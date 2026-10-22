@@ -9,7 +9,7 @@
 // JWT secret, which api-token and integration-worker also use) and XOS_APP_URL (Atlas, whose /api/v1 the actions call).
 // None of them appears in code or tests.
 import { createClient } from "@supabase/supabase-js";
-import { runAutomationJobs, supabaseAutomationRunStore } from "../_vendor/xos-platform.js";
+import { runAutomationJobs, supabaseAutomationRunStore } from "../_vendor/automation-run.js";
 import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
 
 serve(async (request) => {

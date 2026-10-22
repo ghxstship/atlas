@@ -20,3 +20,7 @@ Escribe la clave del dispositivo que se mostró una sola vez al registrar el qui
 4. **Marcar entrada** o **Marcar salida**.
 
 Sin conexión, la marca se guarda y tu PIN se verifica cuando el quiosco se reconecta. Demasiados intentos fallidos bloquean el PIN hasta que tu supervisor lo restablezca.
+
+## Cuando el quiosco ya no está registrado
+
+Si el quiosco se retiró o se desactivó en Atlas, muestra **Este dispositivo ya no está registrado como quiosco** y no acepta PIN. Un supervisor registra el quiosco de nuevo en Atlas y luego, con su sesión iniciada en el quiosco, elige **Olvidar este quiosco** y escribe la nueva clave del dispositivo.

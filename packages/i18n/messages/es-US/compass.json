@@ -470,10 +470,18 @@
     "doneQueued": "{name}: guardado. Tu PIN se revisa cuando el quiosco vuelva a tener conexión.",
     "refused": {
       "pinLocked": "Este PIN se bloqueó por demasiados intentos. Pide a tu supervisor que lo restablezca.",
-      "deviceRevoked": "Este quiosco se desactivó en Atlas. Pide a tu supervisor que lo registre de nuevo.",
       "requestInvalid": "No se pudo leer esa marcación. Empieza de nuevo.",
       "kioskDisabled": "Los quioscos están desactivados en esta organización. Pide a un administrador que los active en Atlas.",
       "photoRequired": "Este proyecto pide una foto en cada fichaje en el quiosco. Empieza de nuevo y toma la foto."
+    },
+    "unregistered": {
+      "title": "Este dispositivo ya no está registrado como quiosco",
+      "sentence": "Nadie puede marcar entrada aquí. Un supervisor registra el quiosco de nuevo en Atlas, olvida este quiosco y luego escribe la nueva clave del dispositivo.",
+      "forget": "Olvidar este quiosco",
+      "confirmTitle": "¿Olvidar este quiosco?",
+      "confirmSentence": "Esto quita la clave del dispositivo y lo regresa a la configuración del quiosco.",
+      "confirm": "Olvidar quiosco",
+      "supervisorRequired": "Un supervisor debe iniciar sesión para olvidar este quiosco."
     },
     "exit": "Salir del quiosco",
     "digit": "Dígito {digit}",
