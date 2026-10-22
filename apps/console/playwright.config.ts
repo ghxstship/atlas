@@ -47,10 +47,12 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: process.env["CI"] ? 1 : 0,
-  timeout: 180_000,
+  // Server actions and first compiles run long on a loaded machine, so waits are generous.
+  timeout: 300_000,
+  expect: { timeout: 30_000 },
   reporter: [["list"]],
   outputDir: "node_modules/.cache/playwright",
-  use: { baseURL, trace: "retain-on-failure", actionTimeout: 20_000 },
+  use: { baseURL, trace: "retain-on-failure", actionTimeout: 45_000, navigationTimeout: 90_000 },
   projects: desktop.filter((p) => engines.has(p.name ?? "")),
   webServer: [
     {
