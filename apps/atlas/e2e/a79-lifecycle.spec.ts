@@ -115,6 +115,7 @@ test("ownership moves to a member who accepts with step-up; the old Owner become
   await heir.getByLabel(/^Full name$/).fill("Hal Heir");
   await heir.locator("#signup-email").fill(heirEmail);
   await heir.locator("#signup-password").fill(`E2e-${"passphrase"}-9431`);
+  await heir.locator("#signup-age").check();
   await heir.getByRole("button", { name: "Create account" }).click();
   await heir.getByRole("button", { name: "Accept invitation" }).click();
   await heir.waitForURL(`**/${slug}/home`);
