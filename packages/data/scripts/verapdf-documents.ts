@@ -3,16 +3,34 @@ import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { certifiedPayrollModel } from "../src/certified-payroll.ts";
 import { buildDeletionCertificateModel } from "../src/documents/deletion-certificate.ts";
-import { buildDocumentModel } from "../src/documents/generate.ts";
+import { buildDocumentModel, sharedImageModel, watermarkText } from "../src/documents/generate.ts";
 import { DOCUMENT_KINDS, PAPERS } from "../src/documents/model.ts";
 import { renderDocumentPdf } from "../src/documents/render.ts";
-import { BRAND, DELETION_CERTIFICATE, FIXTURES, NOW } from "../test/documents/fixtures.ts";
+import { osha300Model, osha300aModel, osha301Model } from "../src/osha.ts";
+import {
+  CASES,
+  ESTABLISHMENT,
+  PAYROLL,
+  SUMMARY,
+  TOTALS,
+} from "../test/documents/compliance-fixtures.ts";
+import {
+  BRAND,
+  DELETION_CERTIFICATE,
+  FIXTURES,
+  LOGO_PNG,
+  NOW,
+} from "../test/documents/fixtures.ts";
 
 /**
  * Section 18 gate 19: renders every Section 11.9 template from fixture data, on US Letter and A4, in
  * en-US and es-US, and validates each file against PDF/UA-1 with veraPDF in its pinned Docker image
- * (ADR 0031). Exits 1 when any file is not compliant or veraPDF cannot run.
+ * (ADR 0031). It also renders the Section 8.6 watermarked copies (a Confidential document and a
+ * shared image), so the watermark keeps the files compliant, and the Section 14.5 compliance forms
+ * (OSHA Forms 300, 300A and 301 and the WH-347, ADR 0041). Exits 1 when any file is not compliant
+ * or veraPDF cannot run.
  *
  *   pnpm --filter @xos/data documents:verapdf [--keep]
  */
@@ -60,6 +78,74 @@ for (const locale of LOCALES) {
     writeFileSync(join(dir, name), await renderDocumentPdf(certificate, { paper }), {
       mode: 0o644,
     });
+    files.push(name);
+  }
+  // Section 8.6 watermarks: a watermarked document, landscape, and a Confidential image delivered as a PDF.
+  const watermark = watermarkText(messages, locale, "viewer@example.test", NOW);
+  const marked = buildDocumentModel("incident-report", FIXTURES["incident-report"], {
+    locale,
+    messages,
+    brand: BRAND,
+    recordUrl: "https://atlas.example.test/northwind/documents/incident-report",
+    now: NOW,
+    watermark,
+  });
+  for (const [name, model, orientation] of [
+    [`watermarked-incident-report.${locale}.letter.pdf`, marked, "landscape"],
+    [
+      `shared-image.${locale}.letter.pdf`,
+      sharedImageModel({
+        bytes: LOGO_PNG,
+        filename: "stage-plot.png",
+        orgName: BRAND.name,
+        locale,
+        messages,
+        sourceUrl: "https://atlas.example.test/share/xshr_example",
+        watermark,
+        now: NOW,
+      }),
+      "portrait",
+    ],
+    ...(() => {
+      const forms = {
+        locale,
+        messages,
+        brand: BRAND,
+        recordUrl: "https://atlas.example.test/northwind/forms",
+        watermark,
+        now: NOW,
+      };
+      return [
+        [
+          `osha-300.${locale}.letter.pdf`,
+          osha300Model(ESTABLISHMENT, 2026, CASES, forms),
+          "landscape",
+        ],
+        [
+          `osha-300a.${locale}.letter.pdf`,
+          osha300aModel(ESTABLISHMENT, 2026, TOTALS, SUMMARY, forms),
+          "portrait",
+        ],
+        [
+          `osha-301.${locale}.letter.pdf`,
+          osha301Model(ESTABLISHMENT, CASES[0] as (typeof CASES)[number], forms),
+          "portrait",
+        ],
+        [
+          `certified-payroll.${locale}.letter.pdf`,
+          certifiedPayrollModel(PAYROLL, { ...forms, certifyingOfficial: "Alice Morgan" }),
+          "landscape",
+        ],
+      ] as const;
+    })(),
+  ] as const) {
+    writeFileSync(
+      join(dir, name),
+      await renderDocumentPdf(model, { paper: "letter", orientation }),
+      {
+        mode: 0o644,
+      },
+    );
     files.push(name);
   }
 }

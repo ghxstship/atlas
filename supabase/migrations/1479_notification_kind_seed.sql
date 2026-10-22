@@ -4,7 +4,7 @@
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
--- 7 email templates, 12 categories, 41 kinds (164 kind and channel rows),
+-- 9 email templates, 12 categories, 41 kinds (164 kind and channel rows),
 -- 4 kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows the registry does not name are left in place and fail the
 -- drift test (1479_notification_kind_seed.test.sql); the quiet-hours bypass list is replaced as a set.
@@ -27,7 +27,9 @@ insert into private.email_templates (code, description, transactional) values
   ('report_delivery', 'A scheduled report attached as PDF, CSV or .xlsx.', false),
   ('export_ready', 'A requested export is ready to download.', true),
   ('import_finished', 'An import finished validating or committing.', true),
-  ('dsar_received', 'Acknowledges a data subject request and states its due date.', true)
+  ('dsar_received', 'Acknowledges a data subject request and states its due date.', true),
+  ('subprocessor_confirm', 'Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).', true),
+  ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false)
 on conflict (code) do update set description = excluded.description, transactional = excluded.transactional;
 
 -- Categories (orders move aside first, so a reordering never collides) -------

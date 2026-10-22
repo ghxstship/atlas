@@ -1,3 +1,12 @@
+import {
+  CONSENT_COOKIE,
+  consentCookieOptions,
+  newVisitorId,
+  parseConsent,
+  recordCookieConsent,
+  sendsGpc,
+  serializeConsent,
+} from "@xos/data/consent";
 import { tokenAal } from "@xos/data/auth-assurance";
 import { listMyAccounts, listMyEngagementRoleTypes } from "@xos/data/gateway";
 import { findRoute, getNode, isNodeVisible } from "@xos/ia";
@@ -28,12 +37,29 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
  *   2. issues a per-request nonce and the strict Content Security Policy and security headers;
  *   3. refreshes the Supabase session so tokens renew silently (Section 11.7);
  *   4. guards routes from the sitemap: public and token routes are open, signed-out visitors go
- *      to sign in, and a route the person's standing may not see renders 404, never 403.
+ *      to sign in, and a route the person's standing may not see renders 404, never 403;
+ *   5. records a Global Privacy Control signal once per browser (Section 14.3, A65-014): it refuses
+ *      every non-essential cookie, is logged server-side and stands in for the banner's choice.
  * Engagement tabs depend on the engagement's role type, which only the page can read, so the
  * proxy checks the engagement node and the page checks the tab. Pages repeat every check.
  */
 
 const NOT_FOUND_PATH = "/auth/not-found";
+
+/** A top-level page load, not a server action, an RSC fetch or a prefetch. */
+function isDocumentRequest(request: NextRequest): boolean {
+  if (
+    request.method !== "GET" ||
+    request.headers.has("rsc") ||
+    request.headers.has("next-action")
+  ) {
+    return false;
+  }
+  const dest = request.headers.get("sec-fetch-dest");
+  return dest === null
+    ? (request.headers.get("accept") ?? "").includes("text/html")
+    : dest === "document";
+}
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const config = env();
@@ -65,7 +91,25 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     headers.set("content-security-policy", csp);
     return headers;
   };
+  // Global Privacy Control (Section 14.3): a browser that sends it and has no recorded GPC choice yet.
+  const consent = parseConsent(request.cookies.get(CONSENT_COOKIE)?.value);
+  const gpcConsent =
+    sendsGpc(request.headers) && consent?.gpc !== true && isDocumentRequest(request)
+      ? {
+          visitorId: consent?.visitorId ?? newVisitorId(),
+          preferences: false,
+          performance: false,
+          gpc: true,
+        }
+      : null;
   const secure = <T extends NextResponse>(response: T): T => {
+    if (gpcConsent) {
+      response.cookies.set(
+        CONSENT_COOKIE,
+        serializeConsent(gpcConsent),
+        consentCookieOptions(secureSite),
+      );
+    }
     response.headers.set("Content-Security-Policy", csp);
     // Ask Chromium browsers for the color scheme so the System theme renders without a flash.
     response.headers.set("Accept-CH", "Sec-CH-Prefers-Color-Scheme");
@@ -85,6 +129,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   );
   const { data } = await db.auth.getUser();
   const user = data.user;
+  if (gpcConsent) {
+    const recorded = await recordCookieConsent(db, gpcConsent);
+    if (!recorded.ok) console.error("Global Privacy Control was not recorded", recorded.error);
+  }
   const path = request.nextUrl.pathname;
   const match = findRoute(sitemap, path);
 

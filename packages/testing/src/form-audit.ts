@@ -8,7 +8,10 @@
  *
  * The audit reads TSX source: every `<form>` that posts through `action=` without an `onSubmit`
  * handler and holds a field a person types into (or renders `children`, so a caller can add one) is
- * reported.
+ * reported. Two kinds of form are not: one whose action is a URL (a template literal), which the
+ * browser posts natively and leaves the page, so React resets nothing; and one marked
+ * `data-keep-input="not-refusable"`, whose save always succeeds and whose page renders again from the
+ * saved value (a cookie choice), so a reset shows exactly what was saved.
  */
 
 export interface FormFinding {
@@ -44,6 +47,9 @@ export function findFormsThatLoseInput(file: string, source: string): FormFindin
   for (const match of source.matchAll(/<form\b/g)) {
     const tag = openingTag(source, match.index);
     if (!/\baction=\{/.test(tag) || /\bonSubmit=\{|\{\.\.\.keep\w*\}/.test(tag)) continue;
+    // A URL action is a native post that leaves the page; a save that cannot be refused has nothing to keep.
+    if (/\baction=\{\s*`/.test(tag) || /\bdata-keep-input=["']not-refusable["']/.test(tag))
+      continue;
     // A GET form navigates to a URL (search and filters); nothing is posted or reset.
     if (/\bmethod=["']get["']/i.test(tag)) continue;
     const close = source.indexOf("</form>", match.index);
