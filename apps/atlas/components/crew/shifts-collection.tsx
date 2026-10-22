@@ -47,7 +47,7 @@ import {
 import { getShellSettings } from "@/lib/shell/org-settings";
 import { scheduleViewOf } from "@/components/work/format";
 import { displayTimeZone } from "@xos/ui/preferences";
-import { getOrgTimeZone } from "@/lib/shell/time-zone";
+import { getOrgTimeZone, getOrgWeekStart } from "@/lib/shell/time-zone";
 import { claimingRule, listShiftClaims } from "@xos/data/crew";
 import { resolveSettings } from "@xos/data/settings";
 import { nodeHref } from "@/lib/shell/sitemap";
@@ -83,8 +83,10 @@ export async function ShiftsCollection(props: {
   const [projects, roles] = await Promise.all([getProjects(crew.ctx), getRoleTitles(crew.ctx)]);
   const projectFilter = crew.project ?? projects.find((p) => p.key === search["project"]) ?? null;
   // The week and its bounds are on the project's calendar, or the org's across projects (A71): in UTC,
-  // Sunday evening in New York already showed next week and a Sunday night shift left its week. Weeks
-  // start on the person's or org's first day (payroll.week_start).
+  // Sunday evening in New York already showed next week and a Sunday night shift left its week. The week
+  // is the org's payroll week (its own payroll.week_start), the week payroll counts overtime over
+  // (app.calculate_payroll_run, 1398), so the weekly hours and overtime warning match what is paid; a
+  // person's own week start shapes their month calendars only.
   const zone = projectFilter?.timeZone ?? (await getOrgTimeZone(crew.ctx));
   const today = todayIn(zone);
   const { preferences, viewerTimeZone } = await getShellSettings(db, crew.orgId, null);
@@ -94,7 +96,7 @@ export async function ShiftsCollection(props: {
     displayTimeZone(s.timeZone, zoneView.display, zoneView.viewerZone) ?? s.timeZone;
   const week = weekStartOf(
     isIsoDate(search["week"]) ? search["week"] : today,
-    preferences.weekStart,
+    await getOrgWeekStart(crew.ctx),
   );
   const monthStart = `${week.slice(0, 7)}-01`;
   const from = view === "calendar" ? monthStart : week;

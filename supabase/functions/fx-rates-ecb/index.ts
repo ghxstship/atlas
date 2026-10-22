@@ -2,31 +2,22 @@
 // publication (private.request_fx_feed, migration 1542) with the service key, like the other workers. It reads
 // the daily reference rates file, writes them per ECB publication date into every org's app.fx_rates through
 // app.record_fx_reference_rates (idempotent: a rerun for the same date changes nothing), and records every
-// failure with app.record_fx_feed_failure so finance pages can say the rates are stale.
-import { createClient } from "@supabase/supabase-js";
-import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
+// failure with app.record_fx_feed_failure so finance pages can say the rates are stale. It uses only the shared
+// core (the PostgREST seam), so it loads no npm package at boot (A85).
+import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
 import { runEcbFeed, type FxFeedStore } from "./ecb.ts";
 
 function store(): FxFeedStore {
-  const app = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
-    auth: { persistSession: false, autoRefreshToken: false },
-  }).schema("app");
+  const db = serviceDb();
   return {
-    async record(source, daily) {
-      const { data, error } = await app.rpc("record_fx_reference_rates", {
+    record: (source, daily) =>
+      db.rpc("record_fx_reference_rates", {
         p_source: source,
         p_rate_date: daily.date,
         p_rates: daily.rates,
-      });
-      if (error) throw new Error(error.message);
-      return data;
-    },
+      }),
     async fail(source, message) {
-      const { error } = await app.rpc("record_fx_feed_failure", {
-        p_source: source,
-        p_error: message,
-      });
-      if (error) throw new Error(error.message);
+      await db.rpc("record_fx_feed_failure", { p_source: source, p_error: message });
     },
   };
 }

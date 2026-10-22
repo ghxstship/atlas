@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { isLocale } from "@xos/i18n/locales";
 import { z } from "zod";
 import { LOCALE_COOKIE, selectableLocales } from "@/i18n/negotiate";
-import { env } from "@/lib/env";
+import { preferenceOptions } from "@/lib/privacy/consent";
 import { THEME_COOKIE, THEMES } from "@/lib/theme";
 import { setPersonalSetting } from "@xos/data/settings";
 import { getMyOrganizations, getViewer } from "./context";
@@ -13,20 +13,16 @@ import { devicePreference } from "./org-settings";
 
 /**
  * Device preferences set from the shell: language, theme and the workspace filter, kept in httpOnly
- * SameSite=Lax cookies for this device. Language and theme are also saved as the person's own
+ * SameSite=Lax cookies for this device (for the visit only unless Preferences cookies are allowed). Language and theme are also saved as the person's own
  * settings (Section 4.5.6), so the other shells follow them. Other tabs pick them up through
  * BroadcastChannel. The context switcher action binds the session to the chosen org.
  */
-const YEAR = 60 * 60 * 24 * 365;
-
+/**
+ * A Preferences cookie (legal/cookie-policy.md, A65-014): it lasts 12 months only when the visitor
+ * allowed Preferences in the cookie banner, and ends with the visit otherwise.
+ */
 async function setPreference(name: string, value: string): Promise<void> {
-  (await cookies()).set(name, value, {
-    path: "/",
-    sameSite: "lax",
-    httpOnly: true,
-    secure: env().ATLAS_SITE_URL.startsWith("https:"),
-    maxAge: YEAR,
-  });
+  (await cookies()).set(name, value, await preferenceOptions());
 }
 
 /** Keeps a device preference as the person's own setting too, so Gateway and Compass follow it. */

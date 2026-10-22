@@ -46,10 +46,7 @@ export class BillingNotConfiguredError extends Error {
   }
 }
 
-/** True for test mode keys, so events from the other mode are never applied. */
-export function isTestKey(key: string): boolean {
-  return /^(sk|rk)_test_/.test(key);
-}
+export { isTestKey } from "./keys.ts";
 
 /** The Stripe operations the platform uses. Tests pass fakes; production passes the SDK client. */
 export interface StripeClient {

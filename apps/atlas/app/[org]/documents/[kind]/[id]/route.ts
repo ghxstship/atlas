@@ -1,5 +1,10 @@
-import { generateDocument } from "@xos/data/documents/generate";
-import { isDocumentKind, isPaper } from "@xos/data/documents/model";
+import { generateDocument, watermarkText } from "@xos/data/documents/generate";
+import {
+  DOCUMENT_CLASSIFICATION,
+  isDocumentKind,
+  isPaper,
+  needsWatermark,
+} from "@xos/data/documents/model";
 import { isLocale } from "@xos/i18n";
 import { loadMessages } from "@xos/i18n/load";
 import { getLocale } from "next-intl/server";
@@ -11,6 +16,7 @@ import { getOrgContext } from "@/lib/shell/context";
  * A generated document as tagged PDF/UA-1 (Section 11.9, ADR 0031): the record is read with the
  * viewer's own row level security and must belong to this org, so anyone who cannot open the record
  * gets 404 (ADR 0003). `?paper=a4` prints on A4; US Letter otherwise. Rendered on the server only.
+ * A Confidential or Restricted document carries the viewer's email and the time (Section 8.6).
  */
 export async function GET(
   request: Request,
@@ -25,6 +31,10 @@ export async function GET(
   const negotiated = await getLocale();
   const locale = isLocale(negotiated) ? negotiated : "en-US";
   const site = env().ATLAS_SITE_URL;
+  const messages = (await loadMessages(locale)).documents;
+  const watermark = needsWatermark(DOCUMENT_CLASSIFICATION[kind])
+    ? watermarkText(messages, locale, ctx.viewer.email ?? ctx.viewer.userId, new Date())
+    : undefined;
   const result = await generateDocument({
     db: ctx.viewer.db,
     orgId: ctx.org.id,
@@ -32,8 +42,9 @@ export async function GET(
     kind,
     id,
     locale,
-    messages: (await loadMessages(locale)).documents,
+    messages,
     paper,
+    ...(watermark ? { watermark } : {}),
     recordUrl: (record) =>
       new URL(atlasRecordPath(ctx.org.slug, kind, { id, ...record }), site).toString(),
   });

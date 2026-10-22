@@ -1,4 +1,4 @@
--- 1369_notification_kind_seed.test.sql
+-- 1387_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -29,7 +29,9 @@ select set_eq(
   ('report_delivery', 'A scheduled report attached as PDF, CSV or .xlsx.', false),
   ('export_ready', 'A requested export is ready to download.', true),
   ('import_finished', 'An import finished validating or committing.', true),
-  ('dsar_received', 'Acknowledges a data subject request and states its due date.', true)$$,
+  ('dsar_received', 'Acknowledges a data subject request and states its due date.', true),
+  ('subprocessor_confirm', 'Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).', true),
+  ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false)$$,
   'email templates match notification-kinds.yaml');
 
 select set_eq(

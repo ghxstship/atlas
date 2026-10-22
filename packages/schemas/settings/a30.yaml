@@ -369,7 +369,7 @@ settings:
     help: settings.fields.payPeriod.help
     pages: { org: settings.payroll-and-time-off }
     enforced_by:
-      - consumer: supabase/migrations/1323_payroll_settings.sql#app.next_pay_period_dates
+      - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#app.next_pay_period_dates
         test: supabase/tests/1323_payroll_settings.test.sql
   - key: payroll.week_start
     type: choice
@@ -382,10 +382,14 @@ settings:
     help: settings.fields.weekStart.help
     pages: { org: settings.payroll-and-time-off, personal: me.preferences }
     enforced_by:
-      - consumer: supabase/migrations/1323_payroll_settings.sql#app.next_pay_period_dates
+      - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#app.next_pay_period_dates
         test: supabase/tests/1323_payroll_settings.test.sql
       - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
         test: packages/ui/test/preferences.test.tsx
+      - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#app.calculate_payroll_run
+        test: supabase/tests/1398_payroll_calendar_and_away_since.test.sql
+      - consumer: apps/atlas/lib/shell/time-zone.ts#getOrgWeekStart
+        test: apps/atlas/test/org-calendar.test.ts
 
   # Gateway and marketplace -------------------------------------------------------------------------------------
   - key: gateway.marketplace_visibility
@@ -510,6 +514,10 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
         test: supabase/tests/1325_out_of_office.test.sql
+      - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#private.away_since
+        test: supabase/tests/1398_payroll_calendar_and_away_since.test.sql
+      - consumer: apps/atlas/lib/shell/time-zone.ts#getOrgTimeZone
+        test: apps/atlas/test/org-calendar.test.ts
   - key: locale.date_format
     type: choice
     choices: [locale, iso]
@@ -676,6 +684,8 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
         test: supabase/tests/1325_out_of_office.test.sql
+      - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#private.away_since
+        test: supabase/tests/1398_payroll_calendar_and_away_since.test.sql
   - key: me.out_of_office.ends_on
     type: text
     input: date

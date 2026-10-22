@@ -54,8 +54,9 @@ export default async function Page({
   const projects = await getProjects(crew.ctx);
   const projectFilter = projects.find((p) => p.key === search["project"]) ?? null;
   const zoneOf = (projectId: string) => projects.find((p) => p.id === projectId)?.timeZone ?? "UTC";
-  // This week on the project's calendar, or the org's across projects (A71), never UTC's, starting on the
-  // org's payroll.week_start.
+  // This week on the project's calendar, or the org's across projects (A71), never UTC's. A list to read,
+  // so it starts on the viewer's first day (payroll.week_start as resolved for them: their own, else the
+  // org's); timesheets and the schedule's weekly hours use the org's payroll week (getOrgWeekStart).
   const weekZone = projectFilter?.timeZone ?? (await getOrgTimeZone(crew.ctx));
   const week = weekStartOf(
     isIsoDate(search["week"]) ? search["week"] : todayIn(weekZone),

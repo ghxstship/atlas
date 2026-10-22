@@ -102,6 +102,30 @@ export async function listSettingValues(
   );
 }
 
+/**
+ * The value an org stored for one setting at its own Organization scope, or null when it stored none.
+ * Never a person's own value, which app.resolve_settings ranks above an unlocked org value: org-wide
+ * rules (the org's calendar, its payroll week) read the org's row the way the database does
+ * (private.org_time_zone, private.setting_text without a person; A71, RRR-116).
+ */
+export async function getOrgSettingValue(
+  db: XosClient,
+  orgId: string,
+  key: string,
+): Promise<Result<SettingValue>> {
+  const { data, error } = await db
+    .from("setting_values")
+    .select("value_text, value_boolean, value_integer")
+    .eq("org_id", orgId)
+    .eq("setting_key", key)
+    .eq("scope_kind", "Organization")
+    .eq("scope_id", orgId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  return ok(data ? valueOf(data) : null);
+}
+
 /** Sets a value at a shared scope (app.set_setting); the org scope may lock it. */
 export async function setSetting(
   db: XosClient,

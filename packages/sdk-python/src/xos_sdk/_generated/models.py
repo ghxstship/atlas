@@ -1328,6 +1328,10 @@ __all__ = [
     "PartnerStandingGrantPage",
     "PartnerStandingGrant",
     "PartnerStandingGrantRecordRequest",
+    "ShareLinkPage",
+    "ShareLink",
+    "ShareLinkToken",
+    "ShareLinkCreate",
     "PersonCalendarFeedPage",
     "PersonCalendarFeed",
     "ProjectInboxPage",
@@ -21661,6 +21665,87 @@ class PartnerStandingGrantRecordRequest(TypedDict):
     valid_to: str
     #: The clause of the agreement.
     agreement_reference: str
+
+
+class ShareLinkPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ShareLink]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ShareLink(TypedDict):
+    """A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links."""
+
+    #: Identifier of the share link.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the file the link shares.
+    attachment_id: str
+    #: Clean version the link opens, set from the file's current version.
+    attachment_version_id: Optional[str]
+    classification: Classification
+    #: True when the link asks for a 6-digit access code; always true for a Confidential file.
+    access_code_required: bool
+    #: Who the link is for, lowercased. Required for a Confidential file.
+    recipient_email: Optional[str]
+    #: What the link is for.
+    note: Optional[str]
+    #: When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+    expires_at: Optional[str]
+    #: Wrong access codes entered; the link locks at 5.
+    failed_attempts: int
+    #: Successful opens.
+    open_count: int
+    #: When the link was last opened.
+    last_opened_at: Optional[str]
+    #: When the link was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the link.
+    revoked_by: Optional[str]
+
+
+class ShareLinkToken(TypedDict):
+    """A new share link with its token and access code, shown once."""
+
+    #: The new link.
+    share_link_id: str
+    #: The link token. The link is `{Atlas origin}/share/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.
+    access_code: Optional[str]
+    classification: Classification
+    #: When the link stops opening.
+    expires_at: Optional[str]
+
+
+class _ShareLinkCreateRequired(TypedDict):
+    #: Identifier of the file the link shares.
+    attachment_id: str
+
+
+class ShareLinkCreate(_ShareLinkCreateRequired, total=False):
+    """Fields accepted when creating a ShareLink."""
+
+    #: True when the link asks for a 6-digit access code; always true for a Confidential file.
+    access_code_required: bool
+    #: Who the link is for, lowercased. Required for a Confidential file.
+    recipient_email: Optional[str]
+    #: What the link is for.
+    note: Optional[str]
+    #: When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+    expires_at: Optional[str]
 
 
 class PersonCalendarFeedPage(TypedDict):
