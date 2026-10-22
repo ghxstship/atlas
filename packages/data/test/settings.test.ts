@@ -15,6 +15,7 @@ import {
   listOrgDomains,
   listOrgLegalAcceptances,
   listSettingValues,
+  readOrgTimeZone,
   recordLegalAcceptances,
   removeFavorite,
   removeOrgDomain,
@@ -116,6 +117,33 @@ describe("resolved settings", () => {
       ok: false,
       error: { kind: "not-found" },
     });
+  });
+
+  it("reads the org's locale.time_zone, falling back to UTC (A95)", async () => {
+    const zone = (value: string | null) =>
+      okResponse([
+        {
+          setting_key: "locale.time_zone",
+          value_text: value,
+          value_boolean: null,
+          value_integer: null,
+          source: "Organization",
+          locked: false,
+          value_type: "Text",
+        },
+      ]);
+    const { db } = fakeClient({
+      "rpc:resolve_settings": [
+        zone("America/New_York"),
+        zone("Mars/Olympus_Mons"),
+        zone(null),
+        errorResponse("42501", "denied"),
+      ],
+    });
+    expect(await readOrgTimeZone(db, "o1")).toBe("America/New_York");
+    expect(await readOrgTimeZone(db, "o1")).toBe("UTC");
+    expect(await readOrgTimeZone(db, "o1")).toBe("UTC");
+    expect(await readOrgTimeZone(db, "o1")).toBe("UTC");
   });
 });
 

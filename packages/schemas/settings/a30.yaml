@@ -517,6 +517,9 @@ settings:
         test: supabase/tests/1398_payroll_calendar_and_away_since.test.sql
       - consumer: apps/atlas/lib/shell/time-zone.ts#getOrgTimeZone
         test: apps/atlas/test/org-calendar.test.ts
+      # Aurora's relative dates ("overdue", "this month") resolve on this calendar (A95).
+      - consumer: packages/data/src/settings.ts#readOrgTimeZone
+        test: packages/data/test/settings.test.ts
   - key: locale.date_format
     type: choice
     choices: [locale, iso]
