@@ -7,7 +7,8 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
  * A96 (RRR-141, findings A65-022 and A65-023) on a fresh account each:
  *   - a practice sandbox opens from Help, says plainly what it is, and is purged with every row once it expires
  *   - feedback with a screenshot goes from Help to the platform team, and platform staff triage it
- *   - no product analytics event leaves the browser or lands in the database without consent
+ *   - no product analytics event leaves the browser without a yes to performance cookies, or under Global
+ *     Privacy Control; with the yes, page views land as route templates
  *   - Atlas is installable: the manifest, the service worker and the offline fallback
  *   - browser notifications subscribe with a fake push subscription and turn off again
  * The database checks and the staff grant run as postgres against the local stack only (E2E_DATABASE_URL).
@@ -30,6 +31,18 @@ async function sql<T extends Record<string, unknown>>(
   } finally {
     await client.end();
   }
+}
+
+/** A82's consent cookie (`1.<visitor>.<preferences><performance>.<gpc>`), as the banner writes it. */
+function consentCookie(performance: boolean): string {
+  const visitor = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) =>
+    b.toString(16).padStart(2, "0"),
+  ).join("");
+  return `1.${visitor}.1${performance ? "1" : "0"}.0`;
+}
+
+function baseUrl(): string {
+  return String(test.info().project.use.baseURL);
 }
 
 async function freshOrg(page: Page, label: string): Promise<{ slug: string; email: string }> {
@@ -154,33 +167,85 @@ test("feedback with a screenshot reaches the platform team, who triage it", asyn
   expect(triaged?.state).toBe("Planned");
 });
 
-test("no product analytics leave the browser or reach the database without consent", async ({
-  page,
+test("no product analytics without consent, nor under Global Privacy Control", async ({
+  browser,
 }) => {
   test.setTimeout(4 * 60_000);
   const [before] = await sql<{ n: string }>("select count(*)::text as n from app.product_events");
-  const sent: string[] = [];
-  page.on("request", (r) => {
-    if (r.url().includes("/api/product-events")) sent.push(r.url());
-  });
-  const { slug } = await freshOrg(page, "analytics");
-  for (const path of ["home", "projects", "inbox", "my-work"]) {
-    await page.goto(`/${slug}/${path}`);
-    await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
-  }
-  await page.waitForTimeout(6000);
-  expect(sent).toEqual([]);
-  // Even a well-formed batch posted by hand is dropped: no consent has been given.
-  const response = await page.request.post("/api/product-events", {
-    headers: { Origin: new URL(page.url()).origin, "Content-Type": "application/json" },
+  const watch = (page: Page) => {
+    const sent: string[] = [];
+    page.on("request", (r) => {
+      if (r.url().includes("/api/product-events")) sent.push(r.url());
+    });
+    return sent;
+  };
+
+  // No choice made yet, no signal: the banner asks, and nothing is collected meanwhile.
+  const undecided = await (await browser.newContext({ extraHTTPHeaders: {} })).newPage();
+  const quiet = watch(undecided);
+  for (const path of ["/auth/sign-in", "/auth/sign-up", "/legal/cookie-policy"])
+    await undecided.goto(path);
+  await undecided.waitForTimeout(6000);
+  expect(quiet).toEqual([]);
+  // Even a well-formed batch posted by hand is dropped unread.
+  const response = await undecided.request.post("/api/product-events", {
+    headers: { Origin: new URL(undecided.url()).origin, "Content-Type": "application/json" },
     data: {
       sessionKey: "6f1c3a52-0d1e-4b8e-9a4f-1d2c3b4a5e6f",
       events: [{ occurredAt: new Date().toISOString(), name: "Page Viewed", route: "/[org]/home" }],
     },
   });
   expect(response.status()).toBe(204);
+
+  // A yes to performance cookies, but the browser sends Global Privacy Control: still nothing.
+  const context = await browser.newContext({ extraHTTPHeaders: { "Sec-GPC": "1" } });
+  await context.addCookies([{ name: "xos-consent", value: consentCookie(true), url: baseUrl() }]);
+  const signal = await context.newPage();
+  const refused = watch(signal);
+  const { slug } = await freshOrg(signal, "gpc");
+  for (const path of ["home", "projects", "inbox"]) {
+    await signal.goto(`/${slug}/${path}`);
+    await signal.locator("html[data-shell-ready]").waitFor({ state: "attached" });
+  }
+  await signal.waitForTimeout(6000);
+  expect(refused).toEqual([]);
   const [after] = await sql<{ n: string }>("select count(*)::text as n from app.product_events");
   expect(after?.n).toBe(before?.n);
+});
+
+test("with a yes to performance cookies, page views are recorded as route templates", async ({
+  browser,
+}) => {
+  test.setTimeout(4 * 60_000);
+  const context = await browser.newContext({ extraHTTPHeaders: {} });
+  await context.addCookies([{ name: "xos-consent", value: consentCookie(true), url: baseUrl() }]);
+  const page = await context.newPage();
+  const { slug } = await freshOrg(page, "consented");
+  const posted = page.waitForRequest((r) => r.url().includes("/api/product-events"), {
+    timeout: 60_000,
+  });
+  for (const path of ["projects", "inbox", "my-work"]) {
+    await page.goto(`/${slug}/${path}`);
+    await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
+  }
+  await page.goto("/auth/sign-in?next=/");
+  await posted;
+  await expect
+    .poll(
+      async () =>
+        (
+          await sql<{ route: string }>(
+            "select route_template as route from app.product_events where received_at > now() - interval '5 minutes'",
+          )
+        ).map((r) => r.route),
+      { timeout: 30_000 },
+    )
+    .toContain("/[org]/projects");
+  // Nothing about the person or the org slug reached the table.
+  const leaked = await sql("select 1 from app.product_events where route_template like $1", [
+    `%${slug}%`,
+  ]);
+  expect(leaked).toHaveLength(0);
 });
 
 test("Atlas installs: the manifest, the service worker and the offline fallback", async ({

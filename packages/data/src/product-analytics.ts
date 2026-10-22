@@ -40,7 +40,7 @@ export interface ConsentSignals {
 
 /**
  * The consent seam: analytics only with a recorded yes to performance cookies and no Global Privacy Control. Every
- * other case, no choice included, means no analytics. A82's cookie banner feeds `performance` in each app's
+ * other case, no choice included, means no analytics. A82's cookie consent feeds `performance` in each app's
  * lib/privacy/product-analytics.ts, the one place it is read.
  */
 export function productAnalyticsAllowed(signals: ConsentSignals): boolean {

@@ -14,7 +14,7 @@ The A65 requirements trace found four first-run and delivery features missing:
 - consent-gated product analytics for the workflow funnels of Sections 11.11 to 11.13;
 - Atlas and Gateway as installable progressive web apps, with web push and an offline read cache.
 
-Three facts shape the design. Production carries no demo tenant (ADR 0033 decision 1), so a sandbox cannot copy rows from one. The platform team had no signed-in identity: "the platform" meant the service role (`private.is_platform_operator`, 0643). And A82 is building the cookie banner and Global Privacy Control on its own branch, so consent cannot be read yet.
+Three facts shape the design. Production carries no demo tenant (ADR 0033 decision 1), so a sandbox cannot copy rows from one. The platform team had no signed-in identity: "the platform" meant the service role (`private.is_platform_operator`, 0643). And consent comes from A82's cookie banner and Global Privacy Control (finding A65-014), built alongside this work, so analytics read it through one seam.
 
 ## Decision
 
@@ -50,7 +50,7 @@ Three facts shape the design. Production carries no demo tenant (ADR 0033 decisi
 - **No personal data.** An event holds no person, org, path or free text. The person is used only to cap events at 300 every 10 minutes, in a counter table kept for an hour and never joined to events.
 - **One write path.** `app.record_product_events` is called by each app's `/api/product-events` route.
 - **The consent seam.** The route asks one function, `productAnalyticsConsent` in each app's `lib/privacy/product-analytics.ts`, built on `productAnalyticsAllowed` in `@xos/data/product-analytics`. It answers yes only for a recorded yes to performance cookies with no Global Privacy Control signal.
-  - Until A82's consent cookie feeds the `performance` input, no choice is read and the answer is always no.
+  - The seam reads A82's consent cookie (`lib/privacy/consent.ts`): its performance choice, and a GPC signal sent now or recorded behind the decision, which always refuses. A visitor who never chose gets none.
   - The browser module loads only on a yes, and also stops itself when `navigator.globalPrivacyControl` is set.
 - `app.product_funnel_hourly` gives platform staff events and distinct sessions per workflow step in hourly instants, not calendar days. Events are kept 13 months.
 

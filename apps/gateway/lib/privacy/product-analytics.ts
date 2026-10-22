@@ -1,17 +1,17 @@
 import "server-only";
-import { productAnalyticsAllowed, sendsGlobalPrivacyControl } from "@xos/data/product-analytics";
-import { headers } from "next/headers";
+import { productAnalyticsAllowed } from "@xos/data/product-analytics";
+import { consentState } from "@/lib/privacy/consent";
 
 /**
  * The consent seam for product analytics (Section 11.14, A96, ADR 0052): the one function Gateway asks before any
- * event is collected or recorded. A82's cookie banner feeds it: once its consent cookie lands, `performance` here
- * reads the person's choice for performance cookies. Until then no choice is read, so the answer is always no, and
- * a browser sending Global Privacy Control is always no.
+ * event is collected or recorded. It reads A82's cookie consent (lib/privacy/consent.ts): only a recorded yes to
+ * performance cookies allows analytics, and a Global Privacy Control signal, sent now or behind the stored decision,
+ * always refuses. A visitor who never chose gets none.
  */
 export async function productAnalyticsConsent(): Promise<boolean> {
-  const requestHeaders = await headers();
+  const { consent, gpc } = await consentState();
   return productAnalyticsAllowed({
-    performance: null,
-    gpc: sendsGlobalPrivacyControl(requestHeaders),
+    performance: consent ? consent.performance : null,
+    gpc: gpc || (consent?.gpc ?? false),
   });
 }
