@@ -34,6 +34,9 @@ select results_eq($$select regular_minutes, ot_minutes, dt_minutes from private.
 truncate pg_temp.work_minutes;
 
 -- End to end: seven consecutive days in California -------------------------------------------------------------------------
+-- The org's workweek runs Monday to Sunday (payroll.week_start, the week 1399 counts in), so Sunday is the seventh day.
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'payroll.week_start', 'Organization', pg_temp.id('org_a'), p_value_text => 'monday');
 select pg_temp.as_user('bob');
 insert into app.pay_rates (membership_id, role_code, rate_minor, currency_code, effective_from)
 values (pg_temp.id('frank@org_a'), '0000.50.01', 3200, 'USD', '2027-01-01');
