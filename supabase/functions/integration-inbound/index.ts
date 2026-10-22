@@ -18,7 +18,7 @@ import {
   mintChatSession,
   supabaseCommunicationSource,
   supabaseInboundStore,
-} from "../_vendor/xos-platform.js";
+} from "../_vendor/integration-inbound.js";
 import { env, serve } from "../_shared/runtime.ts";
 
 serve(async (request) => {

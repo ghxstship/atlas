@@ -45,6 +45,8 @@ import {
   backspace,
   buildKioskPunch,
   canSubmitPin,
+  DEVICE_UNREGISTERED,
+  forgetKiosk,
   KIOSK_START,
   kioskPunchKind,
   pickWorker,
@@ -503,14 +505,84 @@ describe("kiosk", () => {
     expect(
       afterServer({ ...pin, attemptsLeft: 1 }, { ok: false, reason: "kiosk_pin_invalid" }),
     ).toMatchObject({ kind: "refused", reason: "pin-locked" });
-    expect(afterServer(pin, { ok: false, reason: "kiosk_device_revoked" })).toMatchObject({
-      kind: "refused",
-      reason: "device-revoked",
-    });
     expect(afterServer(KIOSK_START, { ok: true })).toBe(KIOSK_START);
     expect(refusalFromServer("kiosk_pin_locked")).toBe("pin-locked");
-    expect(refusalFromServer("kiosk_device_unknown")).toBe("device-revoked");
     expect(refusalFromServer("kiosk_request_invalid")).toBe("request-invalid");
+  });
+
+  it("stops taking PINs when the server says the device is no longer a kiosk (A85, migration 1420)", () => {
+    expect(DEVICE_UNREGISTERED).toBe("kiosk_device_unregistered");
+    expect(refusalFromServer("kiosk_device_unregistered")).toBe("device-unregistered");
+    const pin: KioskStep = {
+      kind: "pin",
+      worker: must(roster[1]),
+      digits: "1234",
+      attemptsLeft: 5,
+    };
+    // Not a wrong PIN: no attempt is spent and the worker is not told their PIN is locked.
+    expect(afterServer(pin, { ok: false, reason: "kiosk_device_unregistered" })).toEqual({
+      kind: "unregistered",
+    });
+    expect(
+      afterServer(
+        { kind: "photo", worker: must(roster[1]), digits: "1234" },
+        { ok: false, reason: "kiosk_device_unregistered" },
+      ),
+    ).toEqual({ kind: "unregistered" });
+    // A wrong PIN still counts down.
+    expect(afterServer(pin, { ok: false, reason: "kiosk_pin_rejected" })).toMatchObject({
+      kind: "pin",
+      attemptsLeft: 4,
+    });
+  });
+
+  describe("forgetting an unregistered kiosk", () => {
+    function deps(over: { supervisor?: boolean; user?: () => Promise<string | null> } = {}) {
+      const cleared: string[] = [];
+      return {
+        cleared,
+        deps: {
+          supervisor: over.supervisor ?? true,
+          verifiedUserId: over.user ?? (async () => "user-1"),
+          clearKey: () => {
+            cleared.push("key");
+          },
+        },
+      };
+    }
+
+    it("clears the stored key for a supervisor the auth server still accepts", async () => {
+      const { cleared, deps: d } = deps();
+      await expect(forgetKiosk(d)).resolves.toBe("forgotten");
+      expect(cleared).toEqual(["key"]);
+    });
+
+    it("keeps the key when the signed-in person is not a supervisor", async () => {
+      let asked = false;
+      const { cleared, deps: d } = deps({
+        supervisor: false,
+        user: async () => {
+          asked = true;
+          return "user-2";
+        },
+      });
+      await expect(forgetKiosk(d)).resolves.toBe("supervisor-required");
+      expect(cleared).toEqual([]);
+      expect(asked).toBe(false);
+    });
+
+    it("keeps the key when the session is gone, expired or cannot be checked offline", async () => {
+      for (const user of [
+        async () => null,
+        async () => {
+          throw new Error("Network request failed");
+        },
+      ]) {
+        const { cleared, deps: d } = deps({ user });
+        await expect(forgetKiosk(d)).resolves.toBe("supervisor-required");
+        expect(cleared).toEqual([]);
+      }
+    });
   });
 
   it("queues the punch with an id, device time and the optional photo", () => {

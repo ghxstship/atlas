@@ -117,8 +117,7 @@ export function rpc(
   name: string,
   args: Row = {},
 ): PromiseLike<{ data: unknown; error: unknown }> {
-  // Cast the client before touching rpc: instantiating the generated overloads of db.rpc for a database
-  // this size exceeds TypeScript's depth limit (TS2589).
+  // Cast the client, not db.rpc.bind(db), which exceeds TypeScript's depth limit as the schema grows (TS2589).
   const client = db as unknown as {
     rpc(fn: string, params: Row): PromiseLike<{ data: unknown; error: unknown }>;
   };

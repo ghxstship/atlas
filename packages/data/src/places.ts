@@ -35,8 +35,7 @@ export async function callRpc<T>(
   fn: string,
   args: Record<string, unknown>,
 ): Promise<Result<T>> {
-  // Cast the client before touching rpc: instantiating the generated overloads of db.rpc for a database
-  // this size exceeds TypeScript's depth limit (TS2589).
+  // Cast the client, not db.rpc.bind(db), which exceeds TypeScript's depth limit as the schema grows (TS2589).
   const client = db as unknown as {
     rpc(
       name: string,

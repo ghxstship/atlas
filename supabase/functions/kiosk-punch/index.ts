@@ -2,26 +2,14 @@
 // (client punch id as UUID v7, kind, device time, and for punches queued offline the monotonic offset since
 // the punch, plus an optional photo). app.kiosk_punch verifies the PIN, rate-limits failures per device and
 // records the punch through app.record_punch, idempotent on the punch id. Refusals come back as codes,
-// never as data about other members.
-import { z } from "zod";
-import { PUNCH_KINDS, kioskPunch } from "../_vendor/xos-platform.js";
+// never as data about other members. A device key that names no live kiosk (never registered, revoked or
+// retired) is refused as kiosk_device_unregistered before the member or PIN are looked at (migration 1420),
+// so the kiosk can say it needs re-keying instead of counting down a worker's PIN attempts.
+//
+// The function loads no npm package (A85): the body is checked by the platform's own parser and the
+// database is reached over PostgREST with fetch, so a kiosk's cold start stays well inside the CPU limit.
+import { kioskPunch, parseKioskPunchRequest } from "../_vendor/kiosk-punch.js";
 import { json, serve, serviceDb } from "../_shared/runtime.ts";
-
-const body = z.object({
-  deviceKey: z.string().min(8).max(200),
-  membershipId: z.uuid(),
-  pin: z.string().regex(/^[0-9]{4,8}$/),
-  punchId: z.uuidv7(),
-  punchKind: z.enum(PUNCH_KINDS),
-  deviceAt: z.iso.datetime({ offset: true }),
-  monotonicOffsetMs: z.number().int().min(0).max(259_200_000).optional(),
-  photoUri: z
-    .string()
-    .max(1000)
-    .regex(/^(storage|https):\/\/\S+$/)
-    .optional(),
-  projectId: z.uuid().optional(),
-});
 
 serve(async (request) => {
   if (request.method !== "POST")
@@ -30,14 +18,11 @@ serve(async (request) => {
       title: "Method not allowed",
       status: 405,
     });
-  const parsed = body.safeParse(await request.json());
-  if (!parsed.success) return json(422, { refusal: "REFUSE", reason: "kiosk_request_invalid" });
-  const result = await kioskPunch(serviceDb(), {
-    ...parsed.data,
-    deviceAt: new Date(parsed.data.deviceAt),
-  });
+  const input = parseKioskPunchRequest(await request.json().catch(() => null));
+  if (input === null) return json(422, { refusal: "REFUSE", reason: "kiosk_request_invalid" });
+  const result = await kioskPunch(serviceDb(), input);
   if (result.refusal !== null)
-    return json(422, { refusal: "REFUSE", reason: result.refusal, punch_id: parsed.data.punchId });
+    return json(422, { refusal: "REFUSE", reason: result.refusal, punch_id: input.punchId });
   return json(200, {
     punch_id: result.punchId,
     punch_kind: result.punchKind,

@@ -20,3 +20,7 @@ Enter the device key shown once when the kiosk was registered in Atlas, then **S
 4. **Clock In** or **Clock Out**.
 
 Offline, the punch is saved and your PIN is checked when the kiosk reconnects. Too many wrong tries lock the PIN until your supervisor resets it.
+
+## When the kiosk is no longer registered
+
+If the kiosk was retired or turned off in Atlas, it says **This device is no longer registered as a kiosk** and takes no PINs. A supervisor registers the kiosk again in Atlas, then, signed in on the kiosk, chooses **Forget this kiosk** and enters the new device key.

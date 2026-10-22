@@ -1,4 +1,3 @@
-import { Resend } from "resend";
 import { z } from "zod";
 import {
   GuardedTransport,
@@ -71,12 +70,28 @@ export function readEmailEnv(source: Readonly<Record<string, string | undefined>
 }
 
 /**
+ * A Resend client that loads the resend package on its first send, so a worker run that sends nothing
+ * never parses it (A85, Edge Function cold starts).
+ */
+export function lazyResendClient(apiKey: string): ResendClient {
+  let client: Promise<ResendClient> | undefined;
+  return {
+    emails: {
+      async send(payload, options) {
+        client ??= import("resend").then(({ Resend }) => new Resend(apiKey));
+        return (await client).emails.send(payload, options);
+      },
+    },
+  };
+}
+
+/**
  * Builds the transport the environment asks for. The Resend client is created only for the resend
  * transport, and is always wrapped by the recipient guard.
  */
 export function createTransport(
   env: EmailEnv,
-  makeClient: (apiKey: string) => ResendClient = (apiKey) => new Resend(apiKey),
+  makeClient: (apiKey: string) => ResendClient = lazyResendClient,
 ): EmailTransport {
   if (env.XOS_EMAIL_TRANSPORT === "mailpit" && env.XOS_EMAIL_MAILPIT_URL !== undefined)
     return new MailpitTransport(env.XOS_EMAIL_MAILPIT_URL);

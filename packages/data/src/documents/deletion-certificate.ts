@@ -1,6 +1,9 @@
+import { certificateKey, deletionCertificateFileName } from "./deletion-certificate-name.ts";
 import { documentTranslator, formatter } from "./format.ts";
 import type { DocumentModel, Paper } from "./model.ts";
 import { renderDocumentPdf } from "./render.ts";
+
+export { certificateKey, deletionCertificateFileName };
 
 /**
  * The deletion certificate (A79, Section 14.7): "At day 90, data is deleted, backups age out on their
@@ -47,11 +50,6 @@ export function deletionCertificateVersion(issuedAt: string): number {
   for (const v of DELETION_CERTIFICATE_VERSIONS)
     if (Date.parse(v.effectiveFrom) <= at) version = v.version;
   return version;
-}
-
-/** The certificate key printed on every page: DEL- and the first 8 characters of the certificate id. */
-export function certificateKey(id: string): string {
-  return `DEL-${id.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
 }
 
 export function buildDeletionCertificateModel(
@@ -130,15 +128,6 @@ export function buildDeletionCertificateModel(
       { kind: "paragraph", text: c("keep", { id: data.id }) },
     ],
   };
-}
-
-/** File name of a certificate PDF. */
-export function deletionCertificateFileName(
-  data: Pick<DeletionCertificateData, "id" | "orgSlug">,
-  paper: Paper = "letter",
-): string {
-  const slug = data.orgSlug.replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "") || "org";
-  return `deletion-certificate-${slug}-${certificateKey(data.id)}-${paper}.pdf`;
 }
 
 /** Renders the certificate to tagged PDF/UA-1. */
