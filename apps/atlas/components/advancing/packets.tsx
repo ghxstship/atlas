@@ -14,6 +14,7 @@ import type { Route } from "next";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
 import { EmptyStateLink } from "@/components/ui";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
@@ -248,7 +249,7 @@ export async function PacketsCollection({
 async function loadPacket(actx: AdvancingContext, packetId: string): Promise<PacketDetail> {
   const result = await getPacket(actx.ctx.viewer.db, packetId);
   if (!result.ok) {
-    if (result.error.kind === "not-found") notFound();
+    if (peekRowMissing(result.error)) notFound();
     throw new Error(`Cannot read packet: ${JSON.stringify(result.error)}`);
   }
   if (actx.project && result.data.projectId !== actx.project.id) notFound();

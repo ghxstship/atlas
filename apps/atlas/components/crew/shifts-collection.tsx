@@ -12,6 +12,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import { EmptyStateLink, ButtonLink } from "@/components/ui";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import {
   acceptShiftAction,
   awardShiftAction,
@@ -47,6 +48,7 @@ import {
 import { getShellSettings } from "@/lib/shell/org-settings";
 import { scheduleViewOf } from "@/components/work/format";
 import { displayTimeZone } from "@xos/ui/preferences";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getOrgTimeZone, getOrgWeekStart } from "@/lib/shell/time-zone";
 import { claimingRule, listShiftClaims } from "@xos/data/crew";
 import { resolveSettings } from "@xos/data/settings";
@@ -402,7 +404,7 @@ export async function ShiftsCollection(props: {
         </CrewRecord>
       );
       if (search["full"] === "1") return peek;
-    } else if (detail.error.kind !== "not-found") {
+    } else if (!peekRowMissing(detail.error)) {
       throw new Error(`Cannot read shift: ${detail.error.kind}`);
     }
   }
@@ -752,7 +754,7 @@ export async function ShiftsCollection(props: {
       filters={filters}
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }

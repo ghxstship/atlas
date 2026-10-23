@@ -53,6 +53,16 @@ export function unshownPeekKey(key: string | null, panel: ReactNode): string | n
   return key !== null && key !== "" && rendersNothing(panel) ? key : null;
 }
 
+/**
+ * Whether a failed read of the `?peek` row means the collection has no row for the key: none the
+ * viewer can read (`not-found`), or a key that is not one of its ids at all (`invalid`: a record key
+ * looked up as a UUID). The collection hands such a key over, or answers it with its own not-found
+ * state; any other failure is the page's to raise.
+ */
+export function peekRowMissing(error: { readonly kind: string }): boolean {
+  return error.kind === "not-found" || error.kind === "invalid";
+}
+
 /** True when `node` renders nothing: null, undefined, a boolean, or a list of only those. */
 function rendersNothing(node: ReactNode): boolean {
   if (node === null || node === undefined || typeof node === "boolean") return true;

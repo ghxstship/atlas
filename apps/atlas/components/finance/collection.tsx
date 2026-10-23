@@ -1,6 +1,7 @@
 import type { DataTableColumn, RecordState } from "@xos/ui";
 import type { ReactNode } from "react";
 import type { BulkConfig } from "@/components/bulk/types";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import type { AskCatalog } from "@/lib/aurora/ask";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { BackToList } from "./kit-back-to-list";
@@ -18,8 +19,9 @@ import { PageHeader, PropertyList, StateChip, TemplateCollection, TemplateRecord
 /**
  * The Collection template for finance documents (Section 11.6): header with count, view switcher and
  * the one primary action; filters; the table, list or board body; the record as a peek beside the
- * list or as the full page (`&full=1`); and the create or edit sheet. Every view keeps the filters,
- * because they live in the query string (Section 11.15).
+ * list or as the full page (`&full=1`), a `?peek` key with no record handed to the shell's peek; and
+ * the create or edit sheet. Every view keeps the filters, because they live in the query string
+ * (Section 11.15).
  */
 
 export interface RecordDetail {
@@ -187,7 +189,8 @@ export function FinanceCollection({
           ask={ask}
         />
       }
-      peek={
+      peek={collectionPeek(
+        query.peek,
         detail ? (
           <RecordPeek
             kindLabel={detail.kindLabel}
@@ -199,8 +202,8 @@ export function FinanceCollection({
           >
             {detail.content}
           </RecordPeek>
-        ) : null
-      }
+        ) : null,
+      )}
     >
       {above}
       {body}

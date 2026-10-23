@@ -9,6 +9,7 @@ import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import type { BulkConfig } from "@/components/bulk/types";
 import { LiveRefresh } from "@/components/live/live-refresh";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { CreateRecordDialog } from "./create-record";
 import {
   capabilitySet,
@@ -223,7 +224,7 @@ export async function RecordsPage({
             {...(createLabel ? { label: createLabel } : {})}
           />
         }
-        peek={peek}
+        peek={collectionPeek(peekKey, peek)}
       />
     </>
   );

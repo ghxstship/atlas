@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
 import { RiderExtraction } from "@/components/aurora/rider-extraction";
 import { EmptyStateLink } from "@/components/ui";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
@@ -221,7 +222,7 @@ export async function RidersCollection({
 async function loadRider(actx: AdvancingContext, riderId: string): Promise<RiderDetail> {
   const result = await getRider(actx.ctx.viewer.db, riderId);
   if (!result.ok) {
-    if (result.error.kind === "not-found") notFound();
+    if (peekRowMissing(result.error)) notFound();
     throw new Error(`Cannot read rider: ${JSON.stringify(result.error)}`);
   }
   if (actx.project && result.data.projectId !== actx.project.id) notFound();

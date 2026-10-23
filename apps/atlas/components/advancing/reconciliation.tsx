@@ -9,6 +9,7 @@ import type { Route } from "next";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
 import { EmptyStateLink } from "@/components/ui";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
@@ -230,7 +231,7 @@ async function RunPage({
 }) {
   const result = await getReconciliation(actx.ctx.viewer.db, runId);
   if (!result.ok) {
-    if (result.error.kind === "not-found") notFound();
+    if (peekRowMissing(result.error)) notFound();
     throw new Error(`Cannot read reconciliation: ${JSON.stringify(result.error)}`);
   }
   const run = result.data;

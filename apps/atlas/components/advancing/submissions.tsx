@@ -2,6 +2,7 @@ import { listSubmissions, type SubmissionFilter } from "@xos/data/advancing";
 import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
+import { PeekHandoff } from "@/components/shell/peek-handoff";
 import { EmptyStateLink } from "@/components/ui";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
@@ -12,6 +13,7 @@ import { PageHeader, Tag, TemplateSplitView } from "./ui";
 import { SelectFilter } from "./views";
 
 const FILTERS: readonly SubmissionFilter[] = ["unreviewed", "reviewed", "all"];
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Submissions (Section 4.5.5, Split view template in Section 11.6): the review queue on the left,
@@ -42,7 +44,10 @@ export async function SubmissionsSplit({
   });
   if (!result.ok) throw new Error(`Cannot list submissions: ${JSON.stringify(result.error)}`);
   const items = result.data;
-  const selected = items.find((s) => s.id === search["peek"]) ?? items[0];
+  const peekId = search["peek"];
+  // A reviewed answer leaves the queue, so an id it no longer holds falls back to its first answer;
+  // a key that is no submission id at all (a record key from elsewhere) goes to the shell's peek.
+  const selected = items.find((s) => s.id === peekId) ?? items[0];
   const when = (iso: string) =>
     format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
   const projectKey = (id: string) => projects.find((p) => p.id === id)?.key ?? "";
@@ -172,6 +177,7 @@ export async function SubmissionsSplit({
           }
         />
       )}
+      {peekId && !UUID.test(peekId) ? <PeekHandoff recordKey={peekId} /> : null}
     </div>
   );
 }
