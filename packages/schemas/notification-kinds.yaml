@@ -305,17 +305,20 @@ kinds:
   - kind: listing.moderated
     category: account
     emitted_by:
-      - emitter: supabase/migrations/1473_moderation_console.sql#private.notify_moderation_decision
+      # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
+      - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#private.notify_moderation_decision
         test: supabase/tests/1473_moderation_console.test.sql
   - kind: listing_report.decided
     category: account
     emitted_by:
-      - emitter: supabase/migrations/1473_moderation_console.sql#private.notify_moderation_decision
+      # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
+      - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#private.notify_moderation_decision
         test: supabase/tests/1473_moderation_console.test.sql
   - kind: moderation_appeal.decided
     category: account
     emitted_by:
-      - emitter: supabase/migrations/1473_moderation_console.sql#app.console_decide_appeal
+      # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
+      - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#app.console_decide_appeal
         test: supabase/tests/1473_moderation_console.test.sql
   # Reports and imports (0520)
   - kind: report.delivered
