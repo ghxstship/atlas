@@ -31,6 +31,7 @@ import {
   type Symbology,
 } from "../../src/domain/scan";
 import { scanAnnouncement } from "../../src/domain/announce";
+import { hapticsOn } from "../../src/domain/settings";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { DenialNotice, formatDay, ProjectPicker, SyncBanner } from "../../src/screens/common";
 import { Scanner } from "../../src/screens/Scanner";
@@ -224,7 +225,7 @@ function LiveScan({
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
-  const { resolved, projectId, enqueue, settings } = useCompass();
+  const { resolved, projectId, enqueue, settings, orgSettings } = useCompass();
   const identity = resolved?.identity;
   const [last, setLastState] = useState<Last | undefined>(undefined);
   // Each result is announced as well as shown: iOS has no live regions (A23-004).
@@ -249,7 +250,7 @@ function LiveScan({
   const { rows: custody } = useRows<CustodyRow & Row>("asset_custody");
   const zonesInGrid = zones.filter((z) => grid.some((g) => g.zone_id === z.id));
   const haptic = (ok: boolean) => {
-    if (settings.haptics)
+    if (hapticsOn(settings.haptics, orgSettings))
       void Haptics.notificationAsync(
         ok ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error,
       );

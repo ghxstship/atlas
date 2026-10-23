@@ -1,11 +1,13 @@
 import type { ResolvedSetting } from "@xos/data/settings";
 import { describe, expect, it } from "vitest";
 import { weekStartOf } from "../lib/crew/time";
+import { chosenWorkspace } from "../lib/shell/workspace";
 import {
   allowedVisibilities,
   devicePreference,
   engagementsToRate,
   feedSwitchDefaults,
+  languageOf,
   legalEntityDefaults,
   orgSupportOf,
   ratingPromptsOn,
@@ -30,6 +32,36 @@ function resolved(values: Record<string, unknown>): Map<string, ResolvedSetting>
 }
 
 const lookup = (values: Record<string, unknown>) => (key: string) => values[key];
+
+describe("language (locale.language)", () => {
+  it("hands locale negotiation the resolved value, where it came from and the org's lock", () => {
+    const locked = new Map<string, ResolvedSetting>([
+      [
+        "locale.language",
+        { key: "locale.language", value: "es-US", source: "Organization", locked: true },
+      ],
+    ]);
+    expect(languageOf(locked)).toEqual({ value: "es-US", source: "Organization", locked: true });
+    expect(shellSettingsOf(locked).language).toEqual({
+      value: "es-US",
+      source: "Organization",
+      locked: true,
+    });
+    expect(languageOf(resolved({}))).toBeNull();
+  });
+});
+
+describe("workspace filter", () => {
+  const workspaces = [
+    { id: "w1", slug: "festival-ops", name: "Festival Ops" },
+    { id: "w2", slug: "touring", name: "Touring" },
+  ];
+  it("applies the workspace the cookie names, when the org has it", () => {
+    expect(chosenWorkspace(workspaces, "touring")?.id).toBe("w2");
+    expect(chosenWorkspace(workspaces, "harbor-lights")).toBeNull();
+    expect(chosenWorkspace(workspaces, undefined)).toBeNull();
+  });
+});
 
 describe("start page (shell.start_page)", () => {
   it("opens the chosen page after sign-in, Home otherwise", () => {

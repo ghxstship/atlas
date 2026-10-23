@@ -70,6 +70,8 @@ settings:
     enforced_by:
       - consumer: apps/atlas/lib/shell/org-settings.ts#startPageOf
         test: apps/atlas/test/org-settings.test.ts
+      - consumer: apps/atlas/app/page.tsx#EntryPage
+        test: apps/atlas/test/entry-start-page.test.ts
 
   # Legal entities and fiscal ---------------------------------------------------------------------
   - key: org.fiscal_year_start_month
@@ -259,7 +261,9 @@ settings:
     help: settings.fields.numberPadding.help
     pages: { org: settings.numbering }
     enforced_by:
-      - consumer: supabase/migrations/1326_numbering_and_general_settings.sql#private.document_number
+      - consumer: supabase/migrations/1396_document_number_padding.sql#private.document_number
+        test: supabase/tests/1396_document_number_padding.test.sql
+      - consumer: supabase/migrations/1326_numbering_and_general_settings.sql#app.complete_training
         test: supabase/tests/1326_numbering_and_general_settings.test.sql
 
   # Time and attendance -----------------------------------------------------------------------------------------
@@ -404,6 +408,8 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1327_marketplace_visibility.sql#private.marketplace_visibility_cap
         test: supabase/tests/1327_marketplace_visibility.test.sql
+      - consumer: supabase/migrations/1397_settings_reader_fixes.sql#app.explore_organizations
+        test: supabase/tests/1397_settings_reader_fixes.test.sql
       - consumer: apps/atlas/lib/shell/org-settings.ts#allowedVisibilities
         test: apps/atlas/test/org-settings.test.ts
   - key: gateway.ratings_enabled
@@ -498,6 +504,16 @@ settings:
     help: settings.fields.language.help
     pages: { org: settings.localization, personal: me.preferences }
     enforced_by:
+      - consumer: apps/atlas/i18n/negotiate.ts#negotiateLocale
+        test: apps/atlas/test/i18n.test.ts
+      - consumer: apps/atlas/i18n/request.ts#negotiatedLocale
+        test: apps/atlas/test/org-locale.test.ts
+      - consumer: apps/gateway/i18n/request.ts#negotiatedLocale
+        test: apps/gateway/test/personal-language.test.ts
+      - consumer: apps/compass/src/domain/settings.ts#languageOf
+        test: apps/compass/test/settings.test.ts
+      - consumer: apps/compass/src/runtime/i18n.ts#applyLanguage
+        test: apps/compass/test/language.test.ts
       - consumer: apps/atlas/lib/shell/org-settings.ts#devicePreference
         test: apps/atlas/test/org-settings.test.ts
       - consumer: supabase/migrations/1393_notification_sender_fixes.sql#app.recipient_setting
@@ -680,6 +696,8 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
         test: supabase/tests/1325_out_of_office.test.sql
+      - consumer: supabase/migrations/1395_approval_delegation_scope.sql#private.step_approver_person_ids
+        test: supabase/tests/1395_approval_delegation_scope.test.sql
   - key: me.out_of_office.starts_on
     type: text
     input: date

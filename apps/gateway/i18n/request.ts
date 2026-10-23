@@ -12,7 +12,14 @@ import { loadMessages } from "@xos/i18n/load";
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 import { cache } from "react";
-import { LOCALE_COOKIE, formattingLocale, negotiateLocale, type GatewayLocale } from "./negotiate";
+import { ownLanguage } from "@/lib/shell/personal-settings";
+import {
+  LOCALE_COOKIE,
+  cookieLocale,
+  formattingLocale,
+  negotiateLocale,
+  type GatewayLocale,
+} from "./negotiate";
 import { precompileMessages } from "./precompile";
 import { pseudoCatalog } from "./pseudo";
 
@@ -82,15 +89,18 @@ export function uiMessages(locale: GatewayLocale): Record<string, string> | unde
 
 /**
  * The locale negotiated for this request (i18n/negotiate.ts), pseudo-locales included. It picks the messages, the
- * document language and direction, and the language picker's value. Read once per request; a Beta locale's
- * catalog is loaded before it returns.
+ * document language and direction, and the language picker's value. When this device chose no language, the signed-in
+ * person's own locale.language takes part. Read once per request; a Beta locale's catalog is loaded before it returns.
  */
 export const negotiatedLocale = cache(async (): Promise<GatewayLocale> => {
   const [cookieStore, headerStore] = await Promise.all([cookies(), headers()]);
+  const cookie = cookieStore.get(LOCALE_COOKIE)?.value;
+  const production = process.env.NODE_ENV === "production";
   const locale = negotiateLocale({
-    cookie: cookieStore.get(LOCALE_COOKIE)?.value,
+    cookie,
     acceptLanguage: headerStore.get("accept-language"),
-    production: process.env.NODE_ENV === "production",
+    production,
+    own: cookieLocale(cookie, production) === null ? await ownLanguage() : null,
   });
   // A Beta catalog loads on first use (ADR 0053), before anything in this request reads messages; its
   // untranslated keys read en-US, so no raw key ever shows.

@@ -9106,6 +9106,106 @@ export interface ShiftTransitionRequest {
 }
 
 /**
+ * The shift after a claim, with the caller's waiting claim when a supervisor decides it.
+ */
+export interface ShiftClaimResult {
+  /**
+   * Identifier of the shift.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the Shift record.
+   * Format: `uuid`.
+   */
+  readonly record_id: string | null;
+  readonly role_code: RoleCode | null;
+  /**
+   * Identifier of the engagement.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * Call time.
+   * Format: `date-time`.
+   */
+  readonly starts_at: string;
+  /**
+   * Wrap time.
+   * Format: `date-time`.
+   */
+  readonly ends_at: string;
+  /**
+   * Shift state.
+   */
+  readonly shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
+  /**
+   * Identifier of the membership of the person on the shift; null for external crew, who carry an engagement.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string | null;
+  /**
+   * Identifier of the scope node of the same project, such as the show.
+   * Format: `uuid`.
+   */
+  readonly scope_node_id: string | null;
+  /**
+   * IANA time zone the call and wrap times are shown in.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
+  /**
+   * Meal break scheduled within the shift, in minutes.
+   * Range: 0 to unbounded.
+   */
+  readonly scheduled_break_minutes: number | null;
+  /**
+   * The caller's waiting claim when the claiming rule is approval or seniority; null when the caller got the shift (first-come).
+   */
+  readonly claim: {
+    /**
+     * Identifier of the waiting claim.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+    /**
+     * State of the claim: Requested until a supervisor approves or rejects it.
+     */
+    readonly claim_state: "Requested";
+  } | null;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface ShiftSwapPage {

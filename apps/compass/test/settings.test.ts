@@ -12,9 +12,11 @@ import {
 } from "../src/domain/kiosk";
 import {
   claimRuleOf,
+  compassValuesFromRows,
   formatDistance,
   hapticsOn,
   kioskRules,
+  languageOf,
   NO_VALUES,
   requiresGeofence,
   scheduleZone,
@@ -22,6 +24,7 @@ import {
   themeOptionsOf,
   unitSystemOf,
   valuesFromRows,
+  withQueuedSetting,
 } from "../src/domain/settings";
 import { formatTime } from "../src/domain/schedule-time";
 import { buildShiftAction, type ShiftRow } from "../src/domain/shifts";
@@ -49,6 +52,63 @@ describe("resolved settings", () => {
     expect(read.get("locale.units")).toBe("metric");
     expect(read.get("x.count")).toBe(3);
   });
+
+  it("speaks the language the person or their org chose, else the device's (locale.language)", () => {
+    const language = (value: string, source: string) =>
+      languageOf(
+        compassValuesFromRows([
+          {
+            setting_key: "locale.language",
+            value_text: value,
+            value_boolean: null,
+            value_integer: null,
+            source,
+          },
+          {
+            setting_key: "x.other",
+            value_text: "kept out",
+            value_boolean: null,
+            value_integer: null,
+            source,
+          },
+        ]),
+      );
+    // An org's language (locked or not, which app.resolve_settings already ranks) and the person's own apply.
+    expect(language("es-US", "Organization")).toBe("es-US");
+    expect(language("es-US", "Personal")).toBe("es-US");
+    // The platform default is nobody's choice: the device's language stands.
+    expect(language("en-US", "Default")).toBeNull();
+    // A Beta locale (ADR 0053) someone chose applies; a language XOS does not ship never does.
+    expect(language("fr-FR", "Personal")).toBe("fr-FR");
+    expect(language("nl-NL", "Personal")).toBeNull();
+    expect(
+      compassValuesFromRows([
+        {
+          setting_key: "x.other",
+          value_text: "kept out",
+          value_boolean: null,
+          value_integer: null,
+        },
+      ]).size,
+    ).toBe(0);
+  });
+
+  it("keeps the person's own time zone only when they set it (locale.time_zone)", () => {
+    const zone = (source: string) =>
+      compassValuesFromRows([
+        {
+          setting_key: "locale.time_zone",
+          value_text: "Europe/Berlin",
+          value_boolean: null,
+          value_integer: null,
+          source,
+        },
+      ]).get("locale.time_zone");
+    expect(zone("Personal")).toBe("Europe/Berlin");
+    // An org's or the platform's zone is not the person's: items with no project follow the device's zone.
+    expect(zone("Organization")).toBeUndefined();
+    expect(zone("Default")).toBeUndefined();
+  });
 });
 
 describe("personal accessibility", () => {
@@ -74,6 +134,22 @@ describe("personal accessibility", () => {
     expect(hapticsOn(true, values({ "me.haptics": false }))).toBe(false);
     expect(hapticsOn(false, values({ "me.haptics": true }))).toBe(true);
     expect(hapticsOn(true, NO_VALUES)).toBe(true);
+  });
+
+  it("keeps the Haptics switch where the person put it while the change is queued", () => {
+    // The last resolve said on; the person turns Haptics off and the change waits in the outbox.
+    const resolved = values({ "me.haptics": true });
+    const off = {
+      op: "rpc",
+      target: "set_personal_setting",
+      payload: { p_setting_key: "me.haptics", p_value_boolean: false },
+    };
+    expect(hapticsOn(false, withQueuedSetting(resolved, off))).toBe(false);
+    expect(hapticsOn(false, resolved)).toBe(true);
+    // Other mutations and keys Compass does not read leave the values as they are.
+    const theme = { ...off, payload: { p_setting_key: "me.theme", p_value_text: "light" } };
+    expect(withQueuedSetting(resolved, theme)).toBe(resolved);
+    expect(withQueuedSetting(resolved, { op: "update", payload: {} })).toBe(resolved);
   });
 
   it("silences the camera shutter while me.sounds is off", () => {

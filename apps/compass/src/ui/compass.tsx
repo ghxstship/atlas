@@ -13,8 +13,7 @@ import type {
   ShiftCardProps,
   SyncConflictSheetProps,
 } from "@xos/ui-native";
-import { useTheme } from "@xos/ui-native/theme";
-import * as Haptics from "expo-haptics";
+import { useHaptic, useTheme } from "@xos/ui-native/theme";
 import qrcode from "qrcode-generator";
 import { useMemo, type ReactElement } from "react";
 import { Pressable, Text as NativeText, View } from "react-native";
@@ -38,6 +37,8 @@ export function ClockButton({
   testID,
 }: ClockButtonProps): ReactElement {
   const theme = useTheme();
+  // ThemeProvider has a handler only while the person keeps haptics on (me.haptics); `haptics` can turn it off here.
+  const haptic = useHaptic();
   const blocked = state === "blocked";
   const bg = blocked
     ? theme.color.bgRaised
@@ -77,7 +78,7 @@ export function ClockButton({
         accessibilityState={{ disabled: blocked }}
         disabled={blocked}
         onPress={() => {
-          if (haptics) void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          if (haptics) haptic("success");
           onPress?.();
         }}
         style={({ pressed }) => ({

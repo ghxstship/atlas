@@ -50,13 +50,20 @@ import {
 } from "../domain/brand";
 import { inOrg, personTimeZone } from "../domain/orgs";
 import {
-  COMPASS_SETTING_KEYS,
+  enqueueApplying,
+  resolveOverQueue,
+  watchQueuedSettings,
+  type QueuedOutbox,
+} from "../domain/queuedSettings";
+import {
   NO_VALUES,
-  valuesFromRows,
+  compassValuesFromRows,
+  languageOf,
   type ResolvedValues,
 } from "../domain/settings";
 import { forgetGoogleAccount } from "./google";
 import { clearGlance } from "./glance";
+import { applyLanguage } from "./i18n";
 import { persistQueuedMedia, resumableMediaUploader } from "./uploads";
 import {
   createSupabase,
@@ -102,6 +109,8 @@ const ORG_PROJECTS_KEY = "xos.compass.org-projects";
 export const BRANDS_TABLE = "_org_brands";
 /** The person's org contexts as last resolved, so Compass opens offline after a restart (device-local). */
 export const IDENTITY_TABLE = "_identity";
+/** The outbox before the local store opens: nothing is queued. */
+const NO_QUEUE: QueuedOutbox = { all: () => Promise.resolve([]) };
 
 export type Phase =
   | { readonly kind: "starting" }
@@ -246,6 +255,8 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [settings, setSettings] = useState<CompassSettings>(DEFAULT_SETTINGS);
   const [resolvedSettings, setResolvedSettings] = useState<ResolvedValues>(NO_VALUES);
+  /** Bumped when one of the person's queued setting changes leaves the outbox, to resolve again. */
+  const [settledSettings, setSettledSettings] = useState(0);
   const [lastRefresh, setLastRefresh] = useState<DownloadReport | null>(null);
   const [identityAttempt, setIdentityAttempt] = useState(0);
   const [startupError, setStartupError] = useState<string | null>(null);
@@ -422,6 +433,10 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
         // Signed out here or remotely from Atlas (the refresh token was revoked): wipe the local store (Section 13).
         void storeRef.current?.wipe();
         clearGlance();
+        // The resolved values are the person's own (me.haptics, their language) and their org's rules: the next
+        // person to sign in on this device starts from the defaults, never from them.
+        setResolvedSettings(NO_VALUES);
+        void SecureStore.deleteItemAsync(RESOLVED_KEY);
         setPhase({ kind: "signed-out" });
       } else if (engine) void engine.authRestored();
     });
@@ -563,33 +578,41 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   }, [client, phase.kind, network.isConnected, store]);
 
   // The person's settings and the org's rules for the current project, refreshed when online and kept for
-  // offline use (A65-001).
+  // offline use (A65-001). The person's own changes still in the outbox stay laid over every answer, and once
+  // one leaves the outbox (sent, refused or discarded) the settings resolve again.
   const orgId = resolved?.identity.membershipId ? resolved.orgId : null;
+  useEffect(() => {
+    if (!engine || !store) return undefined;
+    return watchQueuedSettings(store, engine.outbox, () => setSettledSettings((n) => n + 1));
+  }, [engine, store]);
+
   useEffect(() => {
     if (phase.kind !== "ready" || !network.isConnected) return;
     let live = true;
-    void client
-      .rpc("resolve_settings", {
+    void resolveOverQueue(engine?.outbox ?? NO_QUEUE, async () => {
+      const { data, error } = await client.rpc("resolve_settings", {
         p_org_id: orgId ?? NO_ORG,
         ...(projectId && orgId ? { p_project_id: projectId } : {}),
-      })
-      .then(({ data, error }) => {
-        if (!live || error || !Array.isArray(data)) return;
-        const values = valuesFromRows(
-          (data as (Parameters<typeof valuesFromRows>[0][number] & { source?: string })[]).filter(
-            (r) =>
-              COMPASS_SETTING_KEYS.includes(r.setting_key) &&
-              // The person's own zone only when they set it; otherwise the device's zone (personTimeZone).
-              (r.setting_key !== "locale.time_zone" || r.source === "Personal"),
-          ),
-        );
+      });
+      if (error || !Array.isArray(data)) return null;
+      return compassValuesFromRows(data as Parameters<typeof compassValuesFromRows>[0]);
+    })
+      .then((values) => {
+        if (!live || values === null) return;
         setResolvedSettings(values);
         void SecureStore.setItemAsync(RESOLVED_KEY, JSON.stringify(Object.fromEntries(values)));
-      });
+      })
+      // A resolve that fails keeps the last values; the next network, project or settled change tries again.
+      .catch(() => undefined);
     return () => {
       live = false;
     };
-  }, [client, phase.kind, network.isConnected, orgId, projectId]);
+  }, [client, engine, phase.kind, network.isConnected, orgId, projectId, settledSettings]);
+
+  // Compass speaks the language the person or their org chose (locale.language), else the device's (A65-001).
+  useEffect(() => {
+    void applyLanguage(languageOf(resolvedSettings));
+  }, [resolvedSettings]);
 
   /**
    * Queues a write in the org that is active now: `device_org_id` names the member org whose replay
@@ -599,12 +622,22 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const enqueue = useCallback(
     async (input: MutationInput) => {
       if (!engine) throw new Error("the local store is still opening");
-      // Files the write uploads move out of the caches first, so a restart never loses them.
+      // Files the write uploads move out of the caches first, so a restart never loses them. A personal
+      // setting changed here applies now, in the same render as the screen's own change and before the outbox
+      // write (me.haptics, A65-001), and is kept for offline use.
       const durable = persistQueuedMedia(input);
-      const mutation = await engine.outbox.enqueue({
-        ...durable,
-        payload: { ...durable.payload, device_org_id: orgRef.current },
-      });
+      const mutation = await enqueueApplying(
+        engine.outbox,
+        { ...durable, payload: { ...durable.payload, device_org_id: orgRef.current } },
+        (update) =>
+          setResolvedSettings((current) => {
+            const next = update(current);
+            if (next !== current) {
+              void SecureStore.setItemAsync(RESOLVED_KEY, JSON.stringify(Object.fromEntries(next)));
+            }
+            return next;
+          }),
+      );
       void engine.drain();
       return mutation.id;
     },

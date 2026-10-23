@@ -23,7 +23,7 @@ import { itemZone } from "../../src/domain/orgs";
 import { useHomeWidgets, useOngoingNotification } from "../../src/runtime/glance";
 import { CombinedToday } from "../../src/screens/CombinedToday";
 import { useTodayGlance, type TodayGlance } from "../../src/screens/useTodayGlance";
-import { formatDistance, scheduleZone } from "../../src/domain/settings";
+import { formatDistance, hapticsOn, scheduleZone } from "../../src/domain/settings";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { useClockLiveActivity, useLockScreenPunchDrain } from "../../src/runtime/liveActivity";
 import {
@@ -233,7 +233,7 @@ function ClockCard({
         {...(refusal && clock.snapshot.state === "out" ? { detail: t(REFUSAL_KEY[refusal]) } : {})}
         geofence={geofenceText}
         geofenceOk={clock.geofence.kind === "inside" || clock.geofence.kind === "unfenced"}
-        haptics={settings.haptics}
+        haptics={hapticsOn(settings.haptics, orgSettings)}
         onPress={() => void run(primary)}
       />
       {secondaryPunches(clock.snapshot.state).map((kind) => (

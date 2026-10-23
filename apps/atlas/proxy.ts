@@ -38,6 +38,7 @@ import {
 } from "@/lib/security/headers";
 import { decideRoute } from "@/lib/shell/guard";
 import { LAST_ORG_COOKIE } from "@/lib/shell/last-org";
+import { ROUTE_ORG_HEADER } from "@/lib/shell/route-org";
 import { applyViewAs } from "@/lib/access/view-as";
 import { resolveMembership } from "@/lib/shell/membership";
 import { createProxySupabase } from "@/lib/supabase/proxy";
@@ -63,7 +64,26 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
  *      derived from it, and the user agent.
  * Pages repeat the visibility check (components/shell/sitemap-page.tsx), so a matcher change can
  * never open a hidden page.
+ *
+ * Every request it runs on gets the route's org in ROUTE_ORG_HEADER, or loses a value the client sent
+ * (lib/shell/route-org.ts). A prefetch, which renders a page ahead of the navigation, gets only that:
+ * no nonce, session refresh, guard or cookie, as when prefetches skipped the proxy entirely.
  */
+
+/** A prefetch the router (next/link) or the browser makes ahead of a navigation. */
+function isPrefetch(request: NextRequest): boolean {
+  return (
+    request.headers.has("next-router-prefetch") || request.headers.get("purpose") === "prefetch"
+  );
+}
+
+/** The request's headers with ROUTE_ORG_HEADER set to the route's org, or removed when it names none. */
+function withRouteOrg(request: NextRequest, slug: string | undefined): Headers {
+  const headers = new Headers(request.headers);
+  if (slug) headers.set(ROUTE_ORG_HEADER, slug);
+  else headers.delete(ROUTE_ORG_HEADER);
+  return headers;
+}
 
 /** A path no route serves; rewriting to it renders app/not-found.tsx with status 404. */
 const NOT_FOUND_PATH = "/auth/not-found";
@@ -90,6 +110,12 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
   // The API host (XOS_API_HOST) serves the public API only: no CSRF page check, session refresh,
   // route guard or cookie applies there (lib/api-host.ts).
   if (isApiHost(request.headers.get("host"), config)) return apiHostResponse(request, config);
+  // The org the route names, for the server code that renders before the page has its params.
+  const slug = findRoute(sitemap, request.nextUrl.pathname)?.params["org"];
+  // A prefetched page negotiates its locale as the page will (i18n/request.ts), and nothing else runs.
+  if (isPrefetch(request)) {
+    return NextResponse.next({ request: { headers: withRouteOrg(request, slug) } });
+  }
   const development = config.NODE_ENV === "development";
   const secureSite = config.ATLAS_SITE_URL.startsWith("https:");
   if (
@@ -112,7 +138,7 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
   });
   /** Request headers for the app, rebuilt after any cookie refresh so they carry the new cookies. */
   const forwardedHeaders = () => {
-    const headers = new Headers(request.headers);
+    const headers = withRouteOrg(request, slug);
     headers.set("x-nonce", nonce);
     headers.set("content-security-policy", csp);
     headers.set(PATH_HEADER, `${request.nextUrl.pathname}${request.nextUrl.search}`);
@@ -254,7 +280,6 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
   }
   const result = response();
   // Remember the org this device opened last, so the entry route returns to it.
-  const slug = findRoute(sitemap, request.nextUrl.pathname)?.params["org"];
   if (slug && user && request.cookies.get(LAST_ORG_COOKIE)?.value !== slug) {
     // A Preferences cookie (legal/cookie-policy.md): 12 months with consent, the visit without it.
     result.cookies.set(
@@ -285,6 +310,11 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
   return secure(result);
 }
 
+/**
+ * Every page request, prefetches included (they take the light path above). The proxy never sees the
+ * /api/ route handlers, the calendar feeds, the OAuth token endpoint or static files, and none of them
+ * negotiates a locale.
+ */
 export const config = {
   matcher: [
     {
@@ -293,10 +323,6 @@ export const config = {
       // The OAuth token endpoint (A99) is called by apps, never with the session cookie, so no CSRF
       // origin check or cookie applies to it either.
       source: "/((?!api/|ical/|oauth/token|_next/static|_next/image|favicon.ico|\\.well-known/).*)",
-      missing: [
-        { type: "header", key: "next-router-prefetch" },
-        { type: "header", key: "purpose", value: "prefetch" },
-      ],
     },
   ],
 };

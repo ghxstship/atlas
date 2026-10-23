@@ -54,6 +54,11 @@ export interface ActionSpec {
   readonly query?: z.ZodObject;
   /** Response schema; defaults to the resource read shape. */
   readonly response?: z.ZodType;
+  /**
+   * The success response carries the resource's `ETag`, as a read-shaped result always does. Set it when
+   * `response` extends the read shape (its `updated_at`), so a client can still send `If-Match` on a later update.
+   */
+  readonly etag?: boolean;
   /** Status of the success response; defaults to 200. */
   readonly status?: 200 | 201 | 202;
   /** The database RPC the operation calls, recorded as `x-xos-rpc`. */

@@ -64,6 +64,7 @@ export interface ShellFrameProps {
   readonly favorites: readonly NavLinkModel[];
   readonly workspaces: readonly { readonly slug: string; readonly name: string }[];
   readonly workspace: string | null;
+  /** The language picker's choices; empty when the org locks its language. */
   readonly locales: readonly AtlasLocale[];
   readonly locale: AtlasLocale;
   readonly theme: Theme;
@@ -215,20 +216,24 @@ export function ShellFrame(props: ShellFrameProps) {
     ...(account
       ? [{ label: account.label, icon: account.icon, onSelect: () => go(account.href) }]
       : []),
-    { separator: true },
-    { heading: t("shell.chrome.language") },
-    ...props.locales.map((l) => ({
-      // A Beta locale (Section 15) says so in its name, so screen readers announce it too.
-      label: isBetaLocale(l)
-        ? t("shell.chrome.betaLocale", { language: t(`shell.chrome.locales.${l}`) })
-        : t(`shell.chrome.locales.${l}`),
-      active: l === props.locale,
-      onSelect: async () => {
-        await setLocale(l);
-        broadcast("preferences");
-        router.refresh();
-      },
-    })),
+    ...(props.locales.length === 0
+      ? []
+      : [
+          { separator: true },
+          { heading: t("shell.chrome.language") },
+          ...props.locales.map((l) => ({
+            // A Beta locale (Section 15) says so in its name, so screen readers announce it too.
+            label: isBetaLocale(l)
+              ? t("shell.chrome.betaLocale", { language: t(`shell.chrome.locales.${l}`) })
+              : t(`shell.chrome.locales.${l}`),
+            active: l === props.locale,
+            onSelect: async () => {
+              await setLocale(l);
+              broadcast("preferences");
+              router.refresh();
+            },
+          })),
+        ]),
     { separator: true },
     { heading: t("shell.chrome.theme") },
     ...(["dark", "light"] as const).map((theme) => ({

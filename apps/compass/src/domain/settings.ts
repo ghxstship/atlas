@@ -1,9 +1,10 @@
 /**
  * The registered settings Compass applies (Section 4.5.6, A65-001), from app.resolve_settings for the person in
- * their org and current project: personal accessibility (text size, contrast, motion, haptics, sounds), units,
- * and the org's clock, kiosk and claiming rules. The server enforces the org rules again (migrations 1321 and
- * 1322); here they shape what the device offers before it queues anything.
+ * their org and current project: the language, personal accessibility (text size, contrast, motion, haptics,
+ * sounds), units, and the org's clock, kiosk and claiming rules. The server enforces the org rules again
+ * (migrations 1321 and 1322); here they shape what the device offers before it queues anything.
  */
+import { isLocale, type Locale } from "@xos/i18n/locales";
 import { resolveUnitSystem, type UnitsPreference, type UnitSystem } from "@xos/i18n/units";
 import type { ThemeOptions } from "@xos/ui-native/theme";
 
@@ -14,6 +15,7 @@ export const NO_VALUES: ResolvedValues = new Map();
 
 /** The settings Compass reads; the device keeps only these. */
 export const COMPASS_SETTING_KEYS: readonly string[] = [
+  "locale.language",
   "me.text_size",
   "me.high_contrast",
   "me.reduced_motion",
@@ -43,6 +45,34 @@ export function valuesFromRows(
   );
 }
 
+/**
+ * Rows of app.resolve_settings as the values the device keeps: the keys Compass reads, without the platform
+ * default of locale.language, which is nobody's choice, so the device's own language stands until the person or
+ * their org chooses one.
+ */
+export function compassValuesFromRows(
+  rows: readonly (Parameters<typeof valuesFromRows>[0][number] & { readonly source?: string })[],
+): ResolvedValues {
+  return valuesFromRows(
+    rows.filter(
+      (r) =>
+        COMPASS_SETTING_KEYS.includes(r.setting_key) &&
+        !(r.setting_key === "locale.language" && r.source === "Default") &&
+        // The person's own zone only when they set it; otherwise the device's zone (personTimeZone).
+        (r.setting_key !== "locale.time_zone" || r.source === "Personal"),
+    ),
+  );
+}
+
+/**
+ * The language Compass renders in: locale.language as resolved for the person (their org's when it locks it,
+ * else their own from any device or shell, else their org's), or null to keep the device's language.
+ */
+export function languageOf(values: ResolvedValues): Locale | null {
+  const value = values.get("locale.language");
+  return typeof value === "string" && isLocale(value) ? value : null;
+}
+
 /** Text size, contrast and motion for the native theme (me.text_size, me.high_contrast, me.reduced_motion). */
 export function themeOptionsOf(values: ResolvedValues): ThemeOptions {
   const size = values.get("me.text_size");
@@ -51,6 +81,35 @@ export function themeOptionsOf(values: ResolvedValues): ThemeOptions {
     highContrast: values.get("me.high_contrast") === true,
     reduceMotion: values.get("me.reduced_motion") === "reduce",
   };
+}
+
+/**
+ * The resolved values with a personal setting the person changed on this device (a queued
+ * set_personal_setting), before the outbox sends it and a later resolve confirms it. A switch bound to a
+ * resolved value, such as Haptics (me.haptics), then shows the change at once instead of snapping back;
+ * queuedSettings.ts keeps it there until the server has it. Returns the same map for any other mutation or a
+ * key Compass does not read.
+ */
+export function withQueuedSetting(
+  values: ResolvedValues,
+  input: {
+    readonly op: string;
+    readonly target?: string | undefined;
+    readonly payload: Readonly<Record<string, unknown>>;
+  },
+): ResolvedValues {
+  if (input.op !== "rpc" || input.target !== "set_personal_setting") return values;
+  const key = input.payload["p_setting_key"];
+  if (typeof key !== "string" || !COMPASS_SETTING_KEYS.includes(key)) return values;
+  const next = new Map(values);
+  next.set(
+    key,
+    input.payload["p_value_text"] ??
+      input.payload["p_value_boolean"] ??
+      input.payload["p_value_integer"] ??
+      null,
+  );
+  return next;
 }
 
 /** Haptic feedback follows the person's me.haptics once known, and the device switch until then. */
