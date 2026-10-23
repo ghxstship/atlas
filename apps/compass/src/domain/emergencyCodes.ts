@@ -67,35 +67,60 @@ export function needsCodeWord(code: string, label: string): boolean {
   return said(code) !== said(label);
 }
 
+/**
+ * The canon rows an earlier build cached in the local emergency_codes table, with no org: the REST downloader stored
+ * xpms.emergency_code whole with the code word as id, and the sync rule stored code AS id. Until this build downloads
+ * canon_emergency_codes, they are the standard list an offline launch can show.
+ */
+function cachedCanon(rows: readonly OrgEmergencyCodeRow[]): CanonEmergencyCodeRow[] {
+  return rows.flatMap((raw) => {
+    const r = raw as unknown as Readonly<Record<string, unknown>>;
+    if (typeof r["org_id"] === "string" && r["org_id"] !== "") return [];
+    const id = typeof r["code"] === "string" ? r["code"] : r["id"];
+    if (typeof id !== "string" || typeof r["label"] !== "string") return [];
+    return [
+      {
+        id,
+        label: r["label"],
+        emergency: typeof r["emergency"] === "string" ? r["emergency"] : "",
+        swatch: typeof r["swatch"] === "string" ? r["swatch"] : "",
+        sort_order: Number(r["sort_order"] ?? 0),
+      },
+    ];
+  });
+}
+
 function byOrder(a: EmergencyCode, b: EmergencyCode): number {
   return a.sortOrder - b.sortOrder || a.code.localeCompare(b.code);
 }
 
 /**
  * The codes Reference lists for the active org: its own copies in their numeric order, each with its canon swatch,
- * or the canon codes when it holds none. Rows without an org are canon rows an earlier build stored in the same table;
- * they are not the org's codes.
+ * or the canon codes when it holds none. Rows without an org are canon rows an earlier build stored in the same table:
+ * never the org's codes, but the standard list until the canon table is on the device.
  */
 export function emergencyCodesFor(
   own: readonly OrgEmergencyCodeRow[],
   canon: readonly CanonEmergencyCodeRow[],
 ): EmergencyCodeList {
   const mine = own.filter((r) => typeof r.org_id === "string" && r.org_id !== "");
+  // Before this build has downloaded the canon codes, the ones an earlier build cached stand in for them.
+  const standard = canon.length > 0 ? canon : cachedCanon(own);
   if (mine.length === 0)
     return {
       standard: true,
-      codes: canon
+      codes: standard
         .map((c) => ({
           key: c.id,
           code: c.id,
           label: c.label,
           emergency: c.emergency,
-          swatch: c.swatch,
+          swatch: c.swatch || null,
           sortOrder: c.sort_order,
         }))
         .sort(byOrder),
     };
-  const swatches = new Map(canon.map((c) => [c.id, c.swatch]));
+  const swatches = new Map(standard.map((c) => [c.id, c.swatch]));
   return {
     standard: false,
     codes: mine

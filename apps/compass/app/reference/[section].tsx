@@ -1,6 +1,6 @@
 import type { Row } from "@xos/sync";
 import { useLocalSearchParams } from "expo-router";
-import type { ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import {
@@ -100,13 +100,13 @@ function EmergencyCodes({ onRefresh }: { onRefresh: () => void }): ReactElement 
   );
 }
 
-function RadioChannels({ onRefresh }: { onRefresh: () => void }): ReactElement {
+function RadioChannels({ onRefresh }: { onRefresh: () => void }): ReactElement | null {
   const { t } = useTranslation();
   const { projectId } = useCompass();
-  const { rows } = useRows<Row & { project_id: string; channel_number: number; name: string }>(
-    "radio_channels",
-    (r) => r.project_id === projectId,
-  );
+  const { rows, loading } = useRows<
+    Row & { project_id: string; channel_number: number; name: string }
+  >("radio_channels", (r) => r.project_id === projectId);
+  if (loading) return null;
   if (rows.length === 0)
     return (
       <EmptyState
@@ -132,11 +132,12 @@ function RadioChannels({ onRefresh }: { onRefresh: () => void }): ReactElement {
   );
 }
 
-function Sops({ onRefresh }: { onRefresh: () => void }): ReactElement {
+function Sops({ onRefresh }: { onRefresh: () => void }): ReactElement | null {
   const { t } = useTranslation();
-  const { rows } = useRows<
+  const { rows, loading } = useRows<
     Row & { code: string; title: string; body: string; published_at: string | null }
   >("sops", (s) => s.published_at !== null);
+  if (loading) return null;
   if (rows.length === 0)
     return (
       <EmptyState
@@ -163,8 +164,15 @@ export default function ReferenceSection(): ReactElement {
   const { t } = useTranslation();
   const { section } = useLocalSearchParams<{ section: string }>();
   const { refresh } = useCompass();
-  // Pull down, or the empty state's Refresh, downloads again when there is a connection.
-  const onRefresh = () => void refresh();
+  const [refreshing, setRefreshing] = useState(false);
+  // Pull down, or the empty state's Refresh, downloads again when there is a connection; the spinner stays until the
+  // download ends, offline included.
+  const onRefresh = () => {
+    setRefreshing(true);
+    void refresh().finally(() => setRefreshing(false));
+  };
+  // Venue maps have no source yet, so that screen offers no refresh.
+  const refreshable = section !== "venue-maps";
   const titles: Readonly<Record<string, string>> = {
     "emergency-codes": "nav.compass.reference.emergencyCodes",
     "radio-channels": "nav.compass.reference.radioChannels",
@@ -175,7 +183,7 @@ export default function ReferenceSection(): ReactElement {
     <Screen
       testID={`reference-${section ?? ""}`}
       title={t(titles[section ?? ""] ?? "compass.reference.title")}
-      onRefresh={onRefresh}
+      {...(refreshable ? { onRefresh, refreshing } : {})}
     >
       {section === "emergency-codes" ? <EmergencyCodes onRefresh={onRefresh} /> : null}
       {section === "radio-channels" ? <RadioChannels onRefresh={onRefresh} /> : null}
@@ -185,7 +193,6 @@ export default function ReferenceSection(): ReactElement {
           icon="map"
           sentence={t("compass.reference.mapsEmpty")}
           actionLabel={t("compass.common.refresh")}
-          onAction={onRefresh}
         />
       ) : null}
     </Screen>

@@ -107,6 +107,40 @@ describe("emergency codes in Reference (WP18)", () => {
     expect(list.codes.map((c) => c.swatch)).toEqual(["ecode-red", "ecode-adam", "ecode-blue"]);
   });
 
+  it("shows the codes an earlier build cached while this build has not downloaded the canon table", () => {
+    // The first launch after an over-the-air update can be offline on site: the old rows are the only codes there.
+    const restCached = {
+      id: "CODE_RED",
+      code: "CODE_RED",
+      label: "Code Red",
+      emergency: "Fire",
+      swatch: "ecode-red",
+      sort_order: 1,
+    };
+    const syncCached = {
+      id: "CODE_BLUE",
+      label: "Code Blue",
+      emergency: "Medical",
+      sort_order: "2",
+    };
+    const list = emergencyCodesFor(
+      [restCached, syncCached] as unknown as OrgEmergencyCodeRow[],
+      [],
+    );
+    expect(list.standard).toBe(true);
+    expect(list.codes.map((c) => [c.code, c.label, c.swatch])).toEqual([
+      ["CODE_RED", "Code Red", "ecode-red"],
+      ["CODE_BLUE", "Code Blue", null],
+    ]);
+    // Once the org's own codes are on the device, the cached rows still lend them their swatches.
+    const mine = emergencyCodesFor(
+      [...own([{ code: "CODE_RED", label: "Fire on site" }]), restCached] as OrgEmergencyCodeRow[],
+      [],
+    );
+    expect(mine.standard).toBe(false);
+    expect(mine.codes.map((c) => [c.label, c.swatch])).toEqual([["Fire on site", "ecode-red"]]);
+  });
+
   it("shows nothing before either list has downloaded", () => {
     expect(emergencyCodesFor([], [])).toEqual({ codes: [], standard: true });
   });
