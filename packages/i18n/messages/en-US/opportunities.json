@@ -153,6 +153,7 @@
       "engagement_application_not_accepted": "Only an accepted application becomes an engagement.",
       "engagement_already_created": "This application already has its engagement. Open it from Engagements.",
       "engagement_role_required": "Give the posting a canon role code before engaging from it.",
+      "engagement_work_terms": "Client and sponsor engagements carry no role, classification or pay terms. Leave them out and try again.",
       "onboarding_incomplete": "Every blocking onboarding item must pass before the engagement is Active. Verify the open items first.",
       "engagement_transition_not_allowed": "The engagement cannot move to that state from here.",
       "engagement_state_conflict": "Someone else moved this engagement first. Reload to see its state.",

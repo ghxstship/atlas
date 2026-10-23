@@ -10,44 +10,35 @@ type State = Engagement["state"];
 
 /** A row of the engagement Overview's property card. */
 export type OverviewRow =
-  | "org"
-  | "project"
-  | "role"
-  | "engagement"
-  | "package"
-  | "dates"
-  | "rate"
-  | "payBasis"
-  | "contractValue"
-  | "billingBasis"
-  | "sponsorshipFee"
-  | "approvalsWaiting"
-  | "entitlements";
+  "org" | "project" | "role" | "dates" | "rate" | "payBasis" | "approvalsWaiting" | "entitlements";
 
 /**
  * The Overview property rows for a role type (Section 4.5.8). People the org pays (crew, staff,
- * contractors, vendors, artists and their representatives) see their rate and pay basis. A client
- * pays the org, so it sees the contract value, its billing basis and the approvals waiting on it;
- * a sponsor contributes, so it sees its package, fee and entitlement progress. Neither is shown a
- * role or a rate, which would read as if the org paid them.
+ * contractors, vendors, artists and their representatives) see their role, rate and pay basis. A
+ * client pays the org, so it sees the approvals waiting on it; a sponsor contributes, so it sees
+ * its entitlement progress. Their engagements carry no role, rate or pay basis at all (owner
+ * decision 31, migration 1624), so neither is shown one.
  */
 export function overviewRows(roleType: string): readonly OverviewRow[] {
   switch (roleType) {
     case "client":
-      return [
-        "org",
-        "project",
-        "engagement",
-        "dates",
-        "contractValue",
-        "billingBasis",
-        "approvalsWaiting",
-      ];
+      return ["org", "project", "dates", "approvalsWaiting"];
     case "sponsor":
-      return ["org", "project", "package", "dates", "sponsorshipFee", "entitlements"];
+      return ["org", "project", "dates", "entitlements"];
     default:
       return ["org", "project", "role", "dates", "rate", "payBasis"];
   }
+}
+
+/**
+ * What an engagement is called where a title is shown: the job title of its canon role, or for a
+ * client or sponsor engagement, which has none (1624), its role type label.
+ */
+export function engagementTitle(
+  e: Pick<Engagement, "jobTitle" | "roleType">,
+  roleTypeLabel: (roleType: Engagement["roleType"]) => string,
+): string {
+  return e.jobTitle ?? roleTypeLabel(e.roleType);
 }
 
 /** Role types the org never pays: they have no payout, tax or work details to keep. */

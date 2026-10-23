@@ -39,6 +39,7 @@ export const KNOWN_RULES: ReadonlySet<string> = new Set([
   "engagement_application_not_accepted",
   "engagement_already_created",
   "engagement_role_required",
+  "engagement_work_terms",
   "onboarding_incomplete",
   "engagement_transition_not_allowed",
   "engagement_state_conflict",

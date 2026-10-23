@@ -2,6 +2,7 @@ import {
   APPLICATION_ORG_MOVES,
   APPLICATION_STATES,
   getApplication,
+  hasWorkTerms,
   listApplicationAnswers,
   listApplications,
   listInterviews,
@@ -547,49 +548,8 @@ async function ApplicationRecord({
               action={createEngagementAction}
               hidden={hidden}
               fields={[
-                {
-                  name: "workerClassification",
-                  label: t("fields.classification"),
-                  kind: "select",
-                  defaultValue:
-                    a.applicantKind === "Account" ? "VENDOR_SUPPLIED" : "INDEPENDENT_CONTRACTOR",
-                  help: t("pipeline.classificationHelp"),
-                  options: (
-                    [
-                      "INDEPENDENT_CONTRACTOR",
-                      "EMPLOYEE",
-                      "VENDOR_SUPPLIED",
-                      "UNPAID_INTERN",
-                      "VOLUNTEER",
-                    ] as const
-                  ).map((c) => ({ value: c, label: t(`classifications.${c}`) })),
-                },
-                {
-                  name: "payBasis",
-                  label: t("fields.payBasis"),
-                  kind: "select",
-                  defaultValue: "Day Rate",
-                  options: [
-                    { value: "", label: t("pipeline.unpaid") },
-                    ...["Day Rate", "Hourly", "Flat Fee", "Salary"].map((p) => ({
-                      value: p,
-                      label: t(`payBases.${enumKey(p)}`),
-                    })),
-                  ],
-                },
-                {
-                  name: "arrangement",
-                  label: t("fields.arrangement"),
-                  kind: "select",
-                  defaultValue: "Per Engagement",
-                  options: [
-                    { value: "", label: t("pipeline.unpaid") },
-                    ...["Per Engagement", "Retainer"].map((p) => ({
-                      value: p,
-                      label: t(`arrangements.${enumKey(p)}`),
-                    })),
-                  ],
-                },
+                // A client or sponsor engagement keeps no classification or pay terms (decision 31, 1624).
+                ...(hasWorkTerms(a.roleType) ? engagementTermsFields(page, a) : []),
                 { name: "startDate", label: t("fields.startsOn"), kind: "date" },
                 { name: "endDate", label: t("fields.endsOn"), kind: "date" },
               ]}
@@ -604,4 +564,53 @@ async function ApplicationRecord({
       ) : null}
     </TemplateRecord>
   );
+}
+
+/** The work terms an engagement from an accepted application starts with. */
+function engagementTermsFields(page: PageSetup, a: ApplicationCard): FieldSpec[] {
+  const { t } = page;
+  return [
+    {
+      name: "workerClassification",
+      label: t("fields.classification"),
+      kind: "select",
+      defaultValue: a.applicantKind === "Account" ? "VENDOR_SUPPLIED" : "INDEPENDENT_CONTRACTOR",
+      help: t("pipeline.classificationHelp"),
+      options: (
+        [
+          "INDEPENDENT_CONTRACTOR",
+          "EMPLOYEE",
+          "VENDOR_SUPPLIED",
+          "UNPAID_INTERN",
+          "VOLUNTEER",
+        ] as const
+      ).map((c) => ({ value: c, label: t(`classifications.${c}`) })),
+    },
+    {
+      name: "payBasis",
+      label: t("fields.payBasis"),
+      kind: "select",
+      defaultValue: "Day Rate",
+      options: [
+        { value: "", label: t("pipeline.unpaid") },
+        ...["Day Rate", "Hourly", "Flat Fee", "Salary"].map((p) => ({
+          value: p,
+          label: t(`payBases.${enumKey(p)}`),
+        })),
+      ],
+    },
+    {
+      name: "arrangement",
+      label: t("fields.arrangement"),
+      kind: "select",
+      defaultValue: "Per Engagement",
+      options: [
+        { value: "", label: t("pipeline.unpaid") },
+        ...["Per Engagement", "Retainer"].map((p) => ({
+          value: p,
+          label: t(`arrangements.${enumKey(p)}`),
+        })),
+      ],
+    },
+  ];
 }

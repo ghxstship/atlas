@@ -151,6 +151,17 @@ export const DOCUMENT_ORG_MOVES: Readonly<
   Canceled: [],
 };
 
+/**
+ * Role types whose engagements carry no work terms (owner decision 31, migration 1624): a client pays the org and a
+ * sponsor contributes, so neither has a canon role, worker classification, pay basis, rate or employment terms.
+ */
+export const ROLE_TYPES_WITHOUT_WORK_TERMS: readonly ExternalRoleType[] = ["Client", "Sponsor"];
+
+/** Whether an engagement of this role type carries a role, classification and pay terms. */
+export function hasWorkTerms(roleType: ExternalRoleType): boolean {
+  return !ROLE_TYPES_WITHOUT_WORK_TERMS.includes(roleType);
+}
+
 // Shapes -------------------------------------------------------------------------------------------------------------
 
 export interface Requisition {
@@ -340,9 +351,11 @@ export interface EngagementCard {
   readonly accountId: string | null;
   readonly accountName: string | null;
   readonly roleType: ExternalRoleType;
-  readonly roleCode: string;
+  /** Null for Client and Sponsor engagements (hasWorkTerms). */
+  readonly roleCode: string | null;
   readonly jobTitle: string | null;
-  readonly workerClassification: string;
+  /** Null for Client and Sponsor engagements (hasWorkTerms). */
+  readonly workerClassification: string | null;
   readonly state: EngagementState;
   readonly startDate: string;
   readonly endDate: string | null;
@@ -1186,7 +1199,8 @@ export async function createEngagementFromApplication(
   db: XosClient,
   input: {
     applicationId: string;
-    workerClassification: string;
+    /** Null for a client or sponsor opportunity, whose engagement keeps no work terms (1624). */
+    workerClassification: string | null;
     payBasis: string | null;
     arrangement: string | null;
     startDate?: string | null;
@@ -1195,7 +1209,7 @@ export async function createEngagementFromApplication(
 ): Promise<Result<string>> {
   const { data, error } = await db.rpc("create_engagement_from_application", {
     p_application_id: input.applicationId,
-    p_worker_classification: input.workerClassification,
+    p_worker_classification: input.workerClassification as string,
     p_pay_basis: input.payBasis as string,
     p_arrangement: input.arrangement as string,
     p_start_date: (input.startDate ?? null) as string,
@@ -1243,9 +1257,9 @@ function toEngagement(r: EngagementBoardRow): EngagementCard {
     accountId: r.account_id,
     accountName: r.account_name,
     roleType: (r.role_type ?? "Crew") as ExternalRoleType,
-    roleCode: r.role_code ?? "",
+    roleCode: r.role_code,
     jobTitle: r.job_title,
-    workerClassification: r.worker_classification ?? "",
+    workerClassification: r.worker_classification,
     state: (r.engagement_state ?? "Onboarding") as EngagementState,
     startDate: r.start_date ?? "",
     endDate: r.end_date,

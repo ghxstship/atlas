@@ -153,6 +153,7 @@
       "engagement_application_not_accepted": "Solo una solicitud aceptada se convierte en contratación.",
       "engagement_already_created": "Esta solicitud ya tiene su contratación. Ábrela desde Contrataciones.",
       "engagement_role_required": "Indica un código de rol canónico en la publicación antes de contratar desde ella.",
+      "engagement_work_terms": "Las contrataciones de clientes y patrocinadores no llevan rol, clasificación ni condiciones de pago. Quítalos e inténtalo de nuevo.",
       "onboarding_incomplete": "Todos los elementos de incorporación obligatorios deben aprobarse antes de activar la contratación. Verifica primero los pendientes.",
       "engagement_transition_not_allowed": "La contratación no puede pasar a ese estado desde aquí.",
       "engagement_state_conflict": "Otra persona movió esta contratación primero. Vuelve a cargar para ver su estado.",

@@ -37,3 +37,14 @@ These are tracked in Linear under RRR-17.
 
 - Every Section 8.7 projection has pgTAP coverage. Each one is checked for access through the party's own engagement, an account engagement and a representation; for denial on another party's engagement and after the time box; and for leaking internal-only columns.
 - Refusals use SQLSTATE XR001 with the codes listed in the migrations. A hidden listing and a Do Not Engage flag return the same refusal, so the flag is never revealed.
+
+## Amendment (2026-10-23): the open decisions the owner settled
+
+The owner decisions of 2026-10-23 (ADR 0033, decisions 23 and 31) settle four of the open decisions above.
+
+- **Client and Sponsor engagements** (decision 31). A client pays the org and a sponsor contributes to a project; neither works for the org. Their engagements carry no canon role, worker classification, pay basis, arrangement, agreed rate or rate currency, employment status, FLSA status or labor agreement: `role_code` and `worker_classification` are nullable, and the `engagements_work_terms` check requires all nine to be NULL for these two role types and the role and classification for every other one (migration 1624). The engagement contract rules XOS-ENG-1 to 6 are about workers and skip them. Hours, timesheets, shifts and pay are rows that point at a worker's engagement, not fields of it, so nothing else changes. Atlas and Gateway no longer show a role, classification, rate or pay basis for these engagements, and Gateway's client and sponsor Overview drops the contract value, billing basis, package and sponsorship fee rows, which read the rate and pay basis. API v1 keeps every field: `pay_basis` and `arrangement` were already nullable, and `worker_classification` in the read shape becomes nullable through a correction (ADR 0023) while the create body still requires it.
+- **Distance search** (decision 31). Ratified as A89 built it (ADR 0045, migration 1460): PostGIS `st_dwithin` on venue locations, and a venue without a location never matches a radius search.
+- **Exception list** (decision 31). The person-owned tables are an accepted exception to the A02 check that every app table carries `org_id` and the audit columns. pgTAP `0202_identity_core.test.sql` names each one with its reason, and a new person-owned table joins that list with its own.
+- **Spend authority before publishing** (decision 23). It applies only to orgs that set spend limits for requisitions, until the screen for setting them ships. Without one no requisition can be approved, so a Contractor, Crew or Staff opportunity publishes without one, and a named requisition only has to be for the opportunity's project and role (migration 1623).
+
+Carrying person-owned items across orgs with consent stays open.

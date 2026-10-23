@@ -5,6 +5,7 @@ import {
   ENGAGEMENT_STATES,
   getEngagement,
   getEngagementRate,
+  hasWorkTerms,
   listDeliverables,
   listEngagementDocuments,
   listEngagements,
@@ -145,7 +146,8 @@ export async function EngagementsView({
                           {e.partyName ?? t("engagements.unnamed")}
                         </span>
                         <span className="text-text-12 text-text-secondary">
-                          {e.projectKey} · {e.jobTitle ?? e.roleCode}
+                          {e.projectKey} ·{" "}
+                          {e.jobTitle ?? e.roleCode ?? t(`roleTypes.${enumKey(e.roleType)}`)}
                         </span>
                         {e.openBlockingCount > 0 ? (
                           <Tag tone="warning">
@@ -170,8 +172,9 @@ export async function EngagementsView({
               <div className="flex min-w-0 flex-col gap-2">
                 <RowLink href={open(e)}>{e.partyName ?? t("engagements.unnamed")}</RowLink>
                 <span className="text-text-12 text-text-secondary">
-                  {e.projectKey} · {t(`roleTypes.${enumKey(e.roleType)}`)} ·{" "}
-                  {e.jobTitle ?? e.roleCode}
+                  {[e.projectKey, t(`roleTypes.${enumKey(e.roleType)}`), e.jobTitle ?? e.roleCode]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </span>
               </div>
               <StateChip
@@ -271,6 +274,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
   const canRate = ctx.capabilities.has("opportunities.rating.write");
   const canPool = ctx.capabilities.has("opportunities.pool.write");
   const resolved = must(rate, "rate");
+  const workTerms = hasWorkTerms(e.roleType);
   const myRatings = must(ratings, "ratings").filter((r) => r.engagementId === e.id);
   const partyRating = myRatings.find((r) => r.side === "Party");
   const orgRating = myRatings.find((r) => r.side === "Organization");
@@ -322,35 +326,50 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
           <Properties
             label={t("record.properties")}
             items={[
-              {
-                label: t("fields.role"),
-                value: (
-                  <span>
-                    {e.jobTitle ?? e.roleCode}{" "}
-                    <span className="font-mono text-text-12 text-text-secondary">{e.roleCode}</span>
-                  </span>
-                ),
-              },
-              {
-                label: t("fields.classification"),
-                value: t(`classifications.${e.workerClassification}`),
-              },
+              // A client or sponsor engagement carries no role, classification or pay terms (decision 31, 1624).
+              ...(workTerms
+                ? [
+                    {
+                      label: t("fields.role"),
+                      value: (
+                        <span>
+                          {e.jobTitle ?? e.roleCode}{" "}
+                          <span className="font-mono text-text-12 text-text-secondary">
+                            {e.roleCode}
+                          </span>
+                        </span>
+                      ),
+                    },
+                    {
+                      label: t("fields.classification"),
+                      value: e.workerClassification
+                        ? t(`classifications.${e.workerClassification}`)
+                        : t("none"),
+                    },
+                  ]
+                : []),
               { label: t("fields.account"), value: e.accountName ?? t("none") },
               {
                 label: t("fields.dates"),
                 value: t("dateRange", { start: e.startDate, end: e.endDate ?? t("openEnded") }),
               },
-              {
-                label: t("fields.rate"),
-                value: resolved.masked
-                  ? t("engagements.rateMasked")
-                  : (formatMoney(page.locale, resolved.rateMinor, resolved.currencyCode) ??
-                    (resolved.payBasis ? t("unpriced") : t("engagements.unpaid"))),
-              },
-              {
-                label: t("fields.payBasis"),
-                value: resolved.payBasis ? t(`payBases.${enumKey(resolved.payBasis)}`) : t("none"),
-              },
+              ...(workTerms
+                ? [
+                    {
+                      label: t("fields.rate"),
+                      value: resolved.masked
+                        ? t("engagements.rateMasked")
+                        : (formatMoney(page.locale, resolved.rateMinor, resolved.currencyCode) ??
+                          (resolved.payBasis ? t("unpriced") : t("engagements.unpaid"))),
+                    },
+                    {
+                      label: t("fields.payBasis"),
+                      value: resolved.payBasis
+                        ? t(`payBases.${enumKey(resolved.payBasis)}`)
+                        : t("none"),
+                    },
+                  ]
+                : []),
             ]}
           />
           {canWrite && moves.length > 0 ? (
