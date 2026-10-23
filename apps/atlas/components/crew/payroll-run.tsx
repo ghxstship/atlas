@@ -10,6 +10,7 @@ import {
 import type { CrewContext } from "@/lib/crew/context";
 import { money } from "@/lib/crew/format";
 import { stateIcon } from "@/lib/crew/states";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getTranslate } from "@/lib/shell/translate";
 import { ConfirmButton } from "./forms-confirm-button";
 import { DownloadButton } from "./forms-download-button";
@@ -35,7 +36,7 @@ export async function PayrollRunRecord(props: {
   const format = await getFormatter();
   const detail = await getPayrollRun(crew.ctx.viewer.db, props.runId);
   if (!detail.ok) {
-    if (detail.error.kind === "not-found") return null;
+    if (peekRowMissing(detail.error)) return null;
     throw new Error(`Cannot read payroll run: ${detail.error.kind}`);
   }
   const run = detail.data;

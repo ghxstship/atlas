@@ -21,6 +21,7 @@ import { InlineAlert } from "@/components/crew/ui";
 import { FilterSelect } from "@/components/crew/views-filter-select";
 import { PeekTable } from "@/components/crew/views-peek-table";
 import { SendAgreementButton, SignAgreementForm } from "@/components/people/send-agreement";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   flatParams,
@@ -30,6 +31,7 @@ import {
   withParams,
 } from "@/lib/crew/context";
 import { peopleStateIcon } from "@/lib/people/states";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { DocumentActions } from "@/components/documents/document-actions";
@@ -195,7 +197,7 @@ export default async function Page({
         if (search["full"] === "1") return record;
         peek = record;
       }
-    } else if (detail.error.kind !== "not-found") {
+    } else if (!peekRowMissing(detail.error)) {
       throw new Error(`Cannot read agreement: ${detail.error.kind}`);
     }
   }
@@ -403,7 +405,7 @@ export default async function Page({
       }
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }

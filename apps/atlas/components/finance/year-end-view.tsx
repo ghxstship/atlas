@@ -69,6 +69,8 @@ export async function YearEndView({ page }: { page: FinancePage }) {
     <FinanceCollection
       {...base}
       canCreate={false}
+      // A payee has no record panel here, and its id is no record key the shell's peek could open.
+      activatable={false}
       count={shown.length}
       above={
         <div className="flex flex-col gap-16">

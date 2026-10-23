@@ -1,3 +1,4 @@
+import { toDataError } from "@xos/data";
 import { getMessages, locales } from "@xos/i18n";
 import { createElement } from "react";
 import { describe, expect, it } from "vitest";
@@ -5,6 +6,7 @@ import { pageOwnsPeek, peekHref, shellOpensPeek, shellPeekMode } from "../lib/sh
 import {
   handOffPeek,
   peekHandoffs,
+  peekRowMissing,
   serverPeekHandoffs,
   subscribePeekHandoffs,
   unshownPeekKey,
@@ -19,6 +21,8 @@ describe("the shell's global ?peek hook", () => {
       "/demo-productions/activity",
       "/demo-productions/r/NWS-12",
       "/demo-productions/p/NWS/overview",
+      // A saved view redirects to its collection, which reads the key there.
+      "/demo-productions/views/0192f1e2-7c3a-7b4d-9e8f-000000000001",
     ]) {
       expect(pageOwnsPeek(path), path).toBe(false);
     }
@@ -27,24 +31,26 @@ describe("the shell's global ?peek hook", () => {
   it("opens a record on lists that open no peek of their own", () => {
     for (const path of [
       "/demo-productions/inbox",
-      "/demo-productions/my-work",
       "/demo-productions/approvals",
       "/demo-productions/trash",
       "/demo-productions/activity/audit-log",
       "/demo-productions/opportunities/pipeline",
       "/demo-productions/p/NWS/engagements",
+      // My Work's rows open the shell's peek; the scan log's rows link to the issued credential.
+      "/demo-productions/my-work",
+      "/demo-productions/credentials/scan-log",
     ]) {
       expect(pageOwnsPeek(path), path).toBe(false);
       expect(shellPeekMode(path, at("peek=NWS-12")), path).toBe("open");
     }
   });
 
-  it("leaves ?peek to collection pages and saved views, which peek their own rows", () => {
+  it("leaves ?peek to collection pages, which peek their own rows", () => {
     for (const path of [
       "/demo-productions/logistics/shipments",
       "/demo-productions/work/all-records",
       "/demo-productions/assets/units",
-      "/demo-productions/views/0192f1e2-7c3a-7b4d-9e8f-000000000001",
+      "/demo-productions/crew/timesheets",
     ]) {
       expect(pageOwnsPeek(path), path).toBe(true);
     }
@@ -64,7 +70,7 @@ describe("the shell's global ?peek hook", () => {
       "/demo-productions/vendors/directory",
       "/demo-productions/assets/units",
       "/demo-productions/logistics/shipments",
-      "/demo-productions/views/0192f1e2-7c3a-7b4d-9e8f-000000000001",
+      "/demo-productions/crew/timesheets",
     ]) {
       expect(shellPeekMode(path, new URLSearchParams(`peek=${id}&full=1`)), path).toBe("none");
       expect(shellPeekMode(path, new URLSearchParams(`view=board&full=1&peek=${id}`)), path).toBe(
@@ -106,6 +112,24 @@ describe("the shell's global ?peek hook", () => {
     expect(unshownPeekKey("NWS-12", [null, panel])).toBeNull();
     expect(unshownPeekKey(null, null)).toBeNull();
     expect(unshownPeekKey("", null)).toBeNull();
+  });
+
+  it("counts a ?peek key the collection has no row for as missing, and nothing else", () => {
+    // A record key read as a timesheet's id: Postgres rejects it as a UUID before any row is read.
+    const foreign = toDataError({
+      code: "22P02",
+      message: 'invalid input syntax for type uuid: "NWS-12"',
+    });
+    expect(foreign.kind).toBe("invalid");
+    expect(peekRowMissing(foreign)).toBe(true);
+    expect(peekRowMissing({ kind: "not-found" })).toBe(true);
+    expect(peekRowMissing(toDataError({ code: "42501", message: "permission denied" }))).toBe(true);
+    // A refusal, a conflict or a broken read is the page's to raise, not a key to hand over.
+    const refusal = toDataError({ code: "XR001", message: "crew.timesheet.locked: Locked." });
+    expect(refusal.kind).toBe("refusal");
+    expect(peekRowMissing(refusal)).toBe(false);
+    expect(peekRowMissing(toDataError({ code: "23505", message: "duplicate key" }))).toBe(false);
+    expect(peekRowMissing(toDataError({ message: "fetch failed" }))).toBe(false);
   });
 
   it("keeps hand-offs in a store the shell subscribes to until each is released", () => {

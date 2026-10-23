@@ -227,6 +227,8 @@ export async function UplView({ page }: { page: FinancePage }) {
         ) : (
           <CollectionTable
             label={t("finance.upl.tableLabel")}
+            // A posting line has no record panel: its row opens nothing.
+            activatable={false}
             columns={UPL_FIELDS.map((f, i) => ({
               key: f,
               label: columnsFor[i] ?? f,
@@ -316,6 +318,8 @@ export async function AccountsView({ page }: { page: FinancePage }) {
       ) : (
         <CollectionTable
           label={title}
+          // The chart is read-only and an account has no record panel: its row opens nothing.
+          activatable={false}
           columns={[
             { key: "code", label: t("finance.accounts.code"), type: "code" },
             { key: "name", label: t("finance.accounts.name"), wrap: true },

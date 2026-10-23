@@ -18,6 +18,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter, getLocale } from "next-intl/server";
 import { PageHeader, TemplateCollection, TemplateGridEditor } from "./ui";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { exponentOf, getExponents, moneyFormatter } from "@/lib/finance/money";
 import { sitemap } from "@/lib/shell/sitemap";
@@ -406,7 +407,10 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
     <TemplateCollection
       header={header}
       filters={filters}
-      peek={
+      // The full page (`&full=1`) shows the `?peek` budget's grid; a key with no budget goes to the
+      // shell's peek.
+      peek={collectionPeek(
+        query.full ? null : query.peek,
         peek && !query.full ? (
           <RecordPeek
             kindLabel={t("finance.budgets.kind")}
@@ -459,8 +463,8 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
             </div>
             <RecordCollab ctx={ctx} table="app.budgets" id={peek.id} canUpload={canWrite} />
           </RecordPeek>
-        ) : null
-      }
+        ) : null,
+      )}
     >
       {body}
       {query.create && canWrite ? (

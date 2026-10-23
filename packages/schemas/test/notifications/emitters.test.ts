@@ -378,7 +378,7 @@ describe("every notification kind is sent or says why not", () => {
   it("refuses a kind that names no emitter, or both an emitter and a deferral", () => {
     const yaml = readFileSync(NOTIFICATION_KINDS_YAML_PATH, "utf8");
     const bare = yaml.replace(
-      "    emitted_by:\n      - emitter: supabase/migrations/0580_comments.sql#private.after_comment_mention\n        test: supabase/tests/0580_comments.test.sql\n",
+      "    emitted_by:\n      # 1600 redefines 0580's emitter so a mention on a record carries the record's key.\n      - emitter: supabase/migrations/1600_record_keys_in_notifications.sql#private.after_comment_mention\n        test: supabase/tests/1600_record_keys_in_notifications.test.sql\n",
       "",
     );
     expect(() => parseNotificationEmission(bare)).toThrow(/kind mention\.created names no emitter/);
