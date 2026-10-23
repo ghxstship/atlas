@@ -150,7 +150,10 @@ test("feedback with a screenshot reaches the platform team, who triage it", asyn
   const staff = await (
     await browser.newContext({ storageState: await page.context().storageState() })
   ).newPage();
+  // The New filter shows it first; triage moves it out of New, so the form is used from the full list.
   await staff.goto("/support/feedback?state=New");
+  await expect(staff.getByTestId("feedback-item").filter({ hasText: message })).toBeVisible();
+  await staff.goto("/support/feedback");
   await expect(staff.getByRole("heading", { name: "Product Feedback" })).toBeVisible();
   const item = staff.getByTestId("feedback-item").filter({ hasText: message });
   await expect(item).toBeVisible();
@@ -345,9 +348,7 @@ test("browser notifications subscribe with a fake push subscription and turn off
   const { slug, email } = await freshOrg(page, "push");
   await page.goto(`/${slug}/me/notifications`);
   await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
-  const card = page
-    .getByRole("region", { name: "Browser Notifications" })
-    .or(page.locator("section", { hasText: "Browser Notifications" }));
+  await expect(page.getByText("Browser Notifications", { exact: true })).toBeVisible();
   const status = page.locator("[data-push-state]");
   await expect(status).not.toHaveAttribute("data-push-state", "loading");
   if ((await status.getAttribute("data-push-state")) === "unavailable") {
@@ -358,7 +359,7 @@ test("browser notifications subscribe with a fake push subscription and turn off
     return;
   }
   await expectAccessible(page);
-  await card.first().getByRole("button", { name: "Turn On" }).click();
+  await page.getByRole("button", { name: "Turn On" }).click();
   await expect(status).toHaveText("On in this browser.", { timeout: 30_000 });
   const rows = await sql<{ endpoint: string; app: string; revoked: boolean }>(
     `select ps.web_endpoint as endpoint, ps.web_app as app, ps.revoked_at is not null as revoked
