@@ -225,6 +225,15 @@ describe("Inbox item copy", () => {
     expect(inboxTarget("demo", { subjectTable: null, kind: "billing.read_only" })).toBe(
       "/demo/settings/billing-and-plan",
     );
+    expect(inboxTarget("demo", { subjectTable: "app.shifts", kind: "shift.changed" })).toBe(
+      "/demo/crew/shifts",
+    );
+    expect(inboxTarget("demo", { subjectTable: "app.shifts", kind: "shift.assigned" })).toBe(
+      "/demo/crew/shifts",
+    );
+    expect(inboxTarget("demo", { subjectTable: "app.records", kind: "assignment.created" })).toBe(
+      "/demo/my-work",
+    );
     expect(inboxTarget("demo", { subjectTable: "unknown", kind: "x.y" })).toBeNull();
   });
 });
