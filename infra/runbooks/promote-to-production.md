@@ -310,11 +310,11 @@ value again.
 `select name from vault.secrets order by 1;` (names only). Expected after step 4:
 
 - created by migrations: `xos_medical_notes_key`, `xos_tax_form_key`, `xos_org_tax_identifier_key`,
-  `xos_inbound_reply_secret`;
+  `xos_passport_number_key`, `xos_inbound_reply_secret`;
 - set by the operator: `xos_worker_key`, the service role key the cron worker schedules use. It must be replaced
   in step 12.
 
-The four keys were generated in this project and never left Vault, so the demo period did not expose them. After
+The five keys were generated in this project and never left Vault, so the demo period did not expose them. After
 step 4 no row they encrypt remains (the demo encounters, tax forms and entities are gone), so regenerating them
 now would cost nothing, but the owner decided to keep them (ADR 0033, decision 49). No `xos_integration_*` secret
 may remain: the removal deletes the demo connections' credentials.
@@ -354,12 +354,14 @@ Do the following immediately after, in this order, with the new values:
 1. Vault: `select vault.update_secret((select id from vault.secrets where name = 'xos_worker_key'), '<new service key>');`
    in the SQL editor, or the cron workers stop.
 2. Edge Function secret `XOS_API_JWT_SIGNING_KEY` = the new JWT secret.
-3. Vercel (step 13): `SUPABASE_ANON_KEY` in `atlas` and `gateway`, Production environment, then redeploy both.
+3. Vercel (step 13): `SUPABASE_ANON_KEY` in `atlas`, `gateway` and `console`, Production environment, then redeploy
+   all three. Their Preview environments keep the old key and stop signing in until step 14 points them at the
+   staging branch.
 4. EAS `production`: `EXPO_PUBLIC_SUPABASE_ANON_KEY`, picked up by the next Compass build.
 5. The owner's secret store: the new service key replaces the old one; delete the old one.
 
-Verify: Atlas sign-in works; `api-token` issues a token the API accepts; within a minute `cron.job_run_details`
-shows the worker jobs succeeding. Rollback: none; a rotation cannot be undone, only repeated.
+Verify: Atlas and console sign-in work; `api-token` issues a token the API accepts; within a minute
+`cron.job_run_details` shows the worker jobs succeeding. Rollback: none; a rotation cannot be undone, only repeated.
 
 The new publishable and secret API keys (`sb_publishable_`, `sb_secret_`) are the longer-term replacement for
 the legacy keys; moving to them is a separate change, because `api-token` signs with the project JWT secret.
@@ -373,6 +375,7 @@ in `production.md`, "Environment variables".
 | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `atlas`   | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `ATLAS_SITE_URL`, `GATEWAY_SITE_URL`, `XOS_API_HOST`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256` |
 | `gateway` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `GATEWAY_SITE_URL`, `GATEWAY_PLATFORM_HOSTS`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256`         |
+| `console` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `CONSOLE_SITE_URL` (`https://console.ghxstship.tech`), `CONSOLE_PASSWORD_SIGN_IN` (`false`)                                                                                                         |
 | `docs`    | None                                                                                                                                                                                                                                           |
 
 `SUPABASE_URL` does not change (the project keeps its ref). Set on 2026-10-20: `ATLAS_SITE_URL`
@@ -392,7 +395,7 @@ The plan is in "Staging branch plan" below. When the staging branch exists:
   and the load-test instructions). It must no longer point at this project.
 - GitHub variables `XOS_STAGING_*` (synthetics) = the branch's API URL and anon key; the synthetic account is
   created on the branch.
-- Vercel `atlas` and `gateway`, Preview environment: `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the branch.
+- Vercel `atlas`, `gateway` and `console`, Preview environment: `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the branch.
 
 Verify: `backup-weekly` runs green against the branch; a preview deployment signs in as `owner@example.com` on
 the branch. Rollback: point the secret and variables back.

@@ -341,18 +341,18 @@ None. The site is built from the repository and the OpenAPI document. Project se
 
 Set in the EAS dashboard (project, Environment variables, `production`). Every value is public by design.
 
-| Variable                           | Value                                                                                                                                      |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `EXPO_PUBLIC_SUPABASE_URL`         | The production Supabase API URL                                                                                                            |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The production anon key (public), the new one after the key rotation                                                                       |
-| `EXPO_PUBLIC_ATLAS_URL`            | `https://atlas.ghxstship.tech`                                                                                                             |
-| `EXPO_PUBLIC_GATEWAY_URL`          | `https://gateway.ghxstship.tech`                                                                                                           |
-| `EXPO_PUBLIC_DOCS_URL`             | `https://docs.ghxstship.tech`, for the help center row in Settings                                                                         |
-| `XOS_UNIVERSAL_LINK_HOSTS`         | Leave unset: the build claims `atlas.ghxstship.tech` and `gateway.ghxstship.tech`. An empty value turns universal links off for that build |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The Google Web client ID (public), "Sign in with Google (OWNER)" below                                                                     |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | The Google iOS client ID (public), the same section                                                                                        |
-| `XOS_APPLE_TEAM_ID`                | The Apple team id (signs the widget extension in local device builds)                                                                      |
-| `GOOGLE_SERVICES_JSON`             | Secret file variable: the Firebase `google-services.json` for `pro.ghxstship.compass` (Android push)                                       |
+| Variable                           | Value                                                                                                                                                               |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`         | The production Supabase API URL                                                                                                                                     |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The production anon key (public), the new one after the key rotation                                                                                                |
+| `EXPO_PUBLIC_ATLAS_URL`            | `https://atlas.ghxstship.tech`                                                                                                                                      |
+| `EXPO_PUBLIC_GATEWAY_URL`          | `https://gateway.ghxstship.tech`                                                                                                                                    |
+| `EXPO_PUBLIC_DOCS_URL`             | `https://docs.ghxstship.tech`, for the help center row in Settings                                                                                                  |
+| `XOS_UNIVERSAL_LINK_HOSTS`         | Leave unset: the build claims `atlas.ghxstship.tech` and `gateway.ghxstship.tech`. An empty value turns universal links off for that build                          |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The Google Web client ID (public), "Sign in with Google (OWNER)" below                                                                                              |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Leave unset until Sign in with Apple ships (ADR 0033, decision 58): without it iOS shows no Google button. Then the Google iOS client ID (public), the same section |
+| `XOS_APPLE_TEAM_ID`                | The Apple team id (signs the widget extension in local device builds)                                                                                               |
+| `GOOGLE_SERVICES_JSON`             | Secret file variable: the Firebase `google-services.json` for `pro.ghxstship.compass` (Android push)                                                                |
 
 A preview or production build on EAS stops in `apps/compass/app.config.ts` when a server URL is missing, not https or local, or when the app icon `apps/compass/assets/icon.png` is missing.
 
@@ -635,7 +635,7 @@ The seam is built (Section 4.9) but no screen calls it yet, and the platform run
 
 ## Sign in with Google (OWNER)
 
-Atlas, Gateway and Compass offer "Continue with Google" once Google is turned on in the Supabase project (ADR 0036). The code is in place; the owner creates three Google OAuth clients and enters them in Supabase and EAS. Atlas and Gateway need nothing in Vercel: they show the button when Supabase reports Google enabled. Until then no Google button appears in production.
+Atlas, Gateway and Compass offer "Continue with Google" once Google is turned on in the Supabase project (ADR 0036). The code is in place; the owner creates three Google OAuth clients and enters them in Supabase and EAS. Compass on iOS waits for Sign in with Apple: App Review guideline 4.8 asks for it beside any third-party sign-in, so iOS builds leave out the Google button until it ships (ADR 0033, decision 58). Atlas and Gateway need nothing in Vercel: they show the button when Supabase reports Google enabled. Until then no Google button appears in production.
 
 **Every value in the table below is an example of the format; none is real.** Values are kept in the owner's secret store and entered only in the dashboards named; they are never committed, pasted in tickets or logged. Only the Web client secret is a secret; client IDs are public.
 
@@ -669,7 +669,7 @@ For local development, create a separate Web client with the redirect URI `http:
 ### 3. The iOS client (Compass)
 
 1. Create client, application type **iOS**, name `Compass iOS`, bundle ID `pro.ghxstship.compass`. The App Store ID and Team ID are optional.
-2. Copy the client ID. Its reversed form (`com.googleusercontent.apps.<the part before .apps>`) is the URL scheme; `apps/compass/app.config.ts` adds it to the build from `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, so nothing is entered by hand.
+2. Copy the client ID. Its reversed form (`com.googleusercontent.apps.<the part before .apps>`) is the URL scheme; `apps/compass/app.config.ts` adds it to the build from `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, so nothing is entered by hand. The client can be created now; its ID goes into EAS only when Sign in with Apple ships (step 6).
 
 ### 4. The Android clients (Compass)
 
@@ -693,17 +693,17 @@ The callback URL this page shows is the one entered in step 2. The redirect URLs
 
 1. In EAS (expo.dev, the project, Environment variables), add to the `production` and `preview` environments, visibility Plain text (they are public):
    - `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`: the Web client ID.
-   - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`: the iOS client ID.
+   - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`: **not yet.** Leave it unset in both environments until Sign in with Apple ships in the same build (ADR 0033, decision 58); then add the iOS client ID.
 2. Build Compass again (`eas build --platform all --profile production`, "Compass releases" below). The values are read at build time, and the Google SDK is a native module, so an over-the-air update is not enough.
 
-Without `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` Compass shows no Google button; without the iOS client ID it shows none on iOS.
+Without `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` Compass shows no Google button; without the iOS client ID it shows none on iOS, which is how iOS ships until Sign in with Apple.
 
 ### 7. Verify
 
 1. Atlas: sign in with Google using a Google account that has no XOS account. You land on "Create your organization"; the new person has the Google account's name.
 2. Gateway: sign in with Google using another new Google account. You are asked to accept the Worker Terms, then land on Home.
 3. Sign in with Google using the email of an existing XOS account. You land in that account (same organizations), not a new one.
-4. Compass on iOS and Android: Continue with Google, pick the account, and Compass loads your work.
+4. Compass on Android: Continue with Google, pick the account, and Compass loads your work. On iOS the button is absent until Sign in with Apple ships; then repeat this on iOS.
 5. Cancel on Google's account picker: the sign-in page says you left before it finished.
 
 Rollback: turn "Enable Sign in with Google" off. The buttons disappear within five minutes (Atlas and Gateway cache the provider list); accounts keep their google identity and can still sign in by email.

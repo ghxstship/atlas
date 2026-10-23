@@ -72,10 +72,10 @@ Checks: `api.openapi`, `api.read`.
 
 ### Realtime or sync degraded
 
-Checks: `realtime.join`, `sync.liveness`.
+Checks: `realtime.join`, and `sync.liveness` once PowerSync runs (it is skipped while `XOS_POWERSYNC_URL` is unset).
 
 1. Realtime: Supabase, Realtime inspector; check concurrent connection and message quotas on the plan page.
-2. Compass sync: check the PowerSync service health (`/probes/liveness`, `/probes/readiness`) and its logs (`infra/powersync/README.md`). A replication slot error means the service lost its Postgres connection.
+2. Compass sync: Compass launches on REST sync and no PowerSync service runs (ADR 0033, decision 51). Downloads read the Supabase REST API through RLS and the `api_external` views, and queued writes replay through `app.apply_sync_mutation`, so check "API errors or latency" above and the PostgREST and Postgres logs in Supabase for errors from that function. Once PowerSync is turned on, check its service health (`/probes/liveness`, `/probes/readiness`) and its logs (`infra/powersync/README.md`); a replication slot error means the service lost its Postgres connection.
 3. Compass keeps working offline, so sync outages are SEV2: queued writes drain on reconnect and the server deduplicates by idempotency key. Watch the queue drain after recovery.
 
 ### Notifications delayed
