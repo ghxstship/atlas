@@ -136,7 +136,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
   it("refuses a malformed registry and names every broken rule", () => {
     const broken = yamlText
       .replace(
-        "  - kind: comment.created\n    category: comments\n    emitted_by:\n      - emitter: supabase/migrations/0580_comments.sql#private.notify_comment_subscribers\n        test: supabase/tests/0580_comments.test.sql\n",
+        "  - kind: comment.created\n    category: comments\n    emitted_by:\n      # 1600 redefines 0580's emitter so a comment on a record carries the record's key.\n      - emitter: supabase/migrations/1600_record_keys_in_notifications.sql#private.notify_comment_subscribers\n        test: supabase/tests/1600_record_keys_in_notifications.test.sql\n",
         "",
       )
       .replace(
