@@ -66,8 +66,9 @@ way.
 
 ## Second factors, passkeys, SSO and SCIM (A77)
 
-Atlas, Gateway, Compass and the API enforce second factors, the org MFA policy, session length and idle
-timeout themselves (migration 1330). These steps make the hosted project and the deployments match.
+Atlas and Gateway ask a person who holds a second factor for it after the first. Atlas, the API and Compass
+enforce the org MFA policy and session length themselves, and Atlas the idle timeout (migration 1330). These
+steps make the hosted project and the deployments match.
 
 1. **Supabase Auth.** Apply the TOTP, WebAuthn and passkey rows of the table above. Without TOTP
    verify on, nobody can reach aal2, and Restricted exports, the 1099-NEC file, SCIM tokens and
@@ -99,10 +100,11 @@ timeout themselves (migration 1330). These steps make the hosted project and the
    sets. A person who loses every second factor and every code still asks an Owner or Admin to
    contact XOS support, who confirm the person's identity and remove the factor from the dashboard
    (Authentication > Users > the user > MFA).
-6. **Known limit.** Like the IP allow-list, the org MFA policy, session length and idle timeout are
-   enforced where Atlas, the API and Compass check a session, not on direct calls to the Supabase
-   endpoint with a session token. The owner accepted this for launch (ADR 0033, decision 55). The
-   planned fix is the same: route all data access through the API.
+6. **Known limit.** Like the IP allow-list, which Atlas and the API enforce, the org MFA policy and
+   session length are enforced where Atlas, the API and Compass check a session, and the idle timeout
+   in Atlas only, not on direct calls to the Supabase endpoint with a session token. The owner
+   accepted this for launch (ADR 0033, decision 55). The planned fix is the same: route all data
+   access through the API.
 
 ## Recovery codes, sessions and OAuth (A99)
 
