@@ -154,6 +154,8 @@ function scriptedClient(overrides: Partial<AuroraClient>): AuroraClient {
     draft: unused,
     summarize: unused,
     mapColumns: unused,
+    bindCode: unused,
+    preview: unused,
     suggestion: unused,
     confirm: unused,
     reject: unused,

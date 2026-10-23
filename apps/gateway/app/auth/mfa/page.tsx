@@ -1,3 +1,4 @@
+import { getRecoveryCodeStatus } from "@xos/data/account-security";
 import { getAssurance, listSecondFactors } from "@xos/data/auth-assurance";
 import type { Metadata, Route } from "next";
 import { redirect } from "next/navigation";
@@ -22,7 +23,11 @@ export default async function SecondFactorPage({ searchParams }: PageProps<"/aut
   const db = await createServerSupabase();
   const { data } = await db.auth.getUser();
   if (!data.user) redirect(`/auth/sign-in?next=${encodeURIComponent(next)}` as Route);
-  const [factors, assurance] = await Promise.all([listSecondFactors(db), getAssurance(db)]);
+  const [factors, assurance, codes] = await Promise.all([
+    listSecondFactors(db),
+    getAssurance(db),
+    getRecoveryCodeStatus(db),
+  ]);
   if (!factors.ok) throw new Error(`Cannot list second factors: ${JSON.stringify(factors.error)}`);
   const verified = factors.data.filter((f) => f.verified);
   if (verified.length === 0 || (assurance.ok && assurance.data.current === "aal2")) {
@@ -36,6 +41,7 @@ export default async function SecondFactorPage({ searchParams }: PageProps<"/aut
         options={{
           factors: verified.map((f) => ({ id: f.id, type: f.type, label: f.label })),
           securityKeys: relyingPartyFrom(env()) !== null,
+          recoveryCodes: codes.ok && codes.data.usable,
         }}
         mode="sign-in"
         next={next}

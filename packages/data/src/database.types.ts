@@ -7160,6 +7160,589 @@ export type Database = {
           },
         ];
       };
+      automation_actions: {
+        Row: {
+          action_type: Database["app"]["Enums"]["automation_action_type"];
+          assignee_person_id: string | null;
+          automation_id: string;
+          body_template: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          due_in_days: number | null;
+          id: string;
+          org_id: string;
+          phase_code: string | null;
+          position: number;
+          project_id: string | null;
+          recipient_person_id: string | null;
+          title_template: string | null;
+          to_state: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          webhook_endpoint_id: string | null;
+          xyz: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          action_type: Database["app"]["Enums"]["automation_action_type"];
+          assignee_person_id?: string | null;
+          automation_id: string;
+          body_template?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_in_days?: number | null;
+          id?: string;
+          org_id: string;
+          phase_code?: string | null;
+          position: number;
+          project_id?: string | null;
+          recipient_person_id?: string | null;
+          title_template?: string | null;
+          to_state?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          webhook_endpoint_id?: string | null;
+          xyz?: string | null;
+        };
+        Update: {
+          action_type?: Database["app"]["Enums"]["automation_action_type"];
+          assignee_person_id?: string | null;
+          automation_id?: string;
+          body_template?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_in_days?: number | null;
+          id?: string;
+          org_id?: string;
+          phase_code?: string | null;
+          position?: number;
+          project_id?: string | null;
+          recipient_person_id?: string | null;
+          title_template?: string | null;
+          to_state?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          webhook_endpoint_id?: string | null;
+          xyz?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "automation_actions_assignee_person_id_fkey";
+            columns: ["assignee_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_actions_automation_id_fkey";
+            columns: ["automation_id"];
+            isOneToOne: false;
+            referencedRelation: "automations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_actions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_actions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_actions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "automation_actions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "automation_actions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "automation_actions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_actions_recipient_person_id_fkey";
+            columns: ["recipient_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_actions_to_state_fkey";
+            columns: ["to_state"];
+            isOneToOne: false;
+            referencedRelation: "record_state_display";
+            referencedColumns: ["record_state"];
+          },
+          {
+            foreignKeyName: "automation_actions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_actions_webhook_endpoint_id_fkey";
+            columns: ["webhook_endpoint_id"];
+            isOneToOne: false;
+            referencedRelation: "webhook_endpoints";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      automation_conditions: {
+        Row: {
+          automation_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          field: string | null;
+          group_match: Database["app"]["Enums"]["automation_match"] | null;
+          id: string;
+          operator: Database["app"]["Enums"]["filter_operator"] | null;
+          org_id: string;
+          parent_condition_id: string | null;
+          position: number;
+          updated_at: string;
+          updated_by: string | null;
+          value_text: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          automation_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          field?: string | null;
+          group_match?: Database["app"]["Enums"]["automation_match"] | null;
+          id?: string;
+          operator?: Database["app"]["Enums"]["filter_operator"] | null;
+          org_id: string;
+          parent_condition_id?: string | null;
+          position: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          value_text?: string | null;
+        };
+        Update: {
+          automation_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          field?: string | null;
+          group_match?: Database["app"]["Enums"]["automation_match"] | null;
+          id?: string;
+          operator?: Database["app"]["Enums"]["filter_operator"] | null;
+          org_id?: string;
+          parent_condition_id?: string | null;
+          position?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          value_text?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "automation_conditions_automation_id_fkey";
+            columns: ["automation_id"];
+            isOneToOne: false;
+            referencedRelation: "automations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_conditions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_conditions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_conditions_parent_condition_id_fkey";
+            columns: ["parent_condition_id"];
+            isOneToOne: false;
+            referencedRelation: "automation_conditions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_conditions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      automation_run_steps: {
+        Row: {
+          action_type: Database["app"]["Enums"]["automation_action_type"];
+          automation_action_id: string | null;
+          automation_run_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          duration_ms: number;
+          error_code: string | null;
+          error_message: string | null;
+          finished_at: string;
+          http_status: number | null;
+          id: string;
+          operation_id: string | null;
+          org_id: string;
+          position: number;
+          request_body: Json | null;
+          response_body: Json | null;
+          started_at: string;
+          step_status: Database["app"]["Enums"]["automation_step_status"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          action_type: Database["app"]["Enums"]["automation_action_type"];
+          automation_action_id?: string | null;
+          automation_run_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          duration_ms: number;
+          error_code?: string | null;
+          error_message?: string | null;
+          finished_at: string;
+          http_status?: number | null;
+          id?: string;
+          operation_id?: string | null;
+          org_id: string;
+          position: number;
+          request_body?: Json | null;
+          response_body?: Json | null;
+          started_at: string;
+          step_status: Database["app"]["Enums"]["automation_step_status"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          action_type?: Database["app"]["Enums"]["automation_action_type"];
+          automation_action_id?: string | null;
+          automation_run_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          duration_ms?: number;
+          error_code?: string | null;
+          error_message?: string | null;
+          finished_at?: string;
+          http_status?: number | null;
+          id?: string;
+          operation_id?: string | null;
+          org_id?: string;
+          position?: number;
+          request_body?: Json | null;
+          response_body?: Json | null;
+          started_at?: string;
+          step_status?: Database["app"]["Enums"]["automation_step_status"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "automation_run_steps_automation_action_id_fkey";
+            columns: ["automation_action_id"];
+            isOneToOne: false;
+            referencedRelation: "automation_actions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_run_steps_automation_run_id_fkey";
+            columns: ["automation_run_id"];
+            isOneToOne: false;
+            referencedRelation: "automation_runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_run_steps_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_run_steps_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_run_steps_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      automation_runs: {
+        Row: {
+          attempts: number;
+          automation_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          depth: number;
+          domain_event_id: string;
+          duration_ms: number | null;
+          error_code: string | null;
+          error_message: string | null;
+          event_payload: NonNullable<Json>;
+          finished_at: string | null;
+          id: string;
+          job_id: string | null;
+          org_id: string;
+          owner_person_id: string | null;
+          parent_run_id: string | null;
+          run_status: Database["app"]["Enums"]["automation_run_status"];
+          started_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          attempts?: number;
+          automation_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          depth?: number;
+          domain_event_id: string;
+          duration_ms?: number | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          event_payload: NonNullable<Json>;
+          finished_at?: string | null;
+          id?: string;
+          job_id?: string | null;
+          org_id: string;
+          owner_person_id?: string | null;
+          parent_run_id?: string | null;
+          run_status?: Database["app"]["Enums"]["automation_run_status"];
+          started_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          attempts?: number;
+          automation_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          depth?: number;
+          domain_event_id?: string;
+          duration_ms?: number | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          event_payload?: NonNullable<Json>;
+          finished_at?: string | null;
+          id?: string;
+          job_id?: string | null;
+          org_id?: string;
+          owner_person_id?: string | null;
+          parent_run_id?: string | null;
+          run_status?: Database["app"]["Enums"]["automation_run_status"];
+          started_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "automation_runs_automation_id_fkey";
+            columns: ["automation_id"];
+            isOneToOne: false;
+            referencedRelation: "automations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_runs_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_runs_domain_event_id_fkey";
+            columns: ["domain_event_id"];
+            isOneToOne: false;
+            referencedRelation: "domain_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_runs_domain_event_id_fkey";
+            columns: ["domain_event_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_route_events";
+            referencedColumns: ["domain_event_id"];
+          },
+          {
+            foreignKeyName: "automation_runs_job_id_fkey";
+            columns: ["job_id"];
+            isOneToOne: false;
+            referencedRelation: "job_queue";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_runs_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_runs_owner_person_id_fkey";
+            columns: ["owner_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_runs_parent_run_id_fkey";
+            columns: ["parent_run_id"];
+            isOneToOne: false;
+            referencedRelation: "automation_runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automation_runs_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      automations: {
+        Row: {
+          condition_match: Database["app"]["Enums"]["automation_match"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          description: string | null;
+          enabled: boolean;
+          failure_notified_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          owner_person_id: string;
+          pause_reason: string | null;
+          paused_at: string | null;
+          trigger_event_type: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          condition_match?: Database["app"]["Enums"]["automation_match"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          enabled?: boolean;
+          failure_notified_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          owner_person_id: string;
+          pause_reason?: string | null;
+          paused_at?: string | null;
+          trigger_event_type: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          condition_match?: Database["app"]["Enums"]["automation_match"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          description?: string | null;
+          enabled?: boolean;
+          failure_notified_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          owner_person_id?: string;
+          pause_reason?: string | null;
+          paused_at?: string | null;
+          trigger_event_type?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "automations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automations_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automations_owner_person_id_fkey";
+            columns: ["owner_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "automations_trigger_event_type_fkey";
+            columns: ["trigger_event_type"];
+            isOneToOne: false;
+            referencedRelation: "domain_event_catalog";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "automations_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       availability_blocks: {
         Row: {
           availability_calendar_id: string;
@@ -56106,6 +56689,7 @@ export type Database = {
           org_slug: string;
         }[];
       };
+      automation_definition: { Args: { p_automation_id: string }; Returns: Json };
       award_open_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
       award_work_order: {
         Args: { p_bid_id: string; p_reason: string; p_work_order_id: string };
@@ -56126,6 +56710,7 @@ export type Database = {
           object_name: string;
         }[];
       };
+      begin_automation_run: { Args: { p_job_id?: string; p_run_id: string }; Returns: Json };
       begin_file_import: {
         Args: { p_link_id: string };
         Returns: {
@@ -56884,6 +57469,7 @@ export type Database = {
       };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       decline_ownership_transfer: { Args: { p_transfer_id: string }; Returns: string };
+      delete_automation: { Args: { p_automation_id: string }; Returns: undefined };
       delete_chat_message: { Args: { p_message_id: string }; Returns: string };
       delete_my_account: { Args: { p_confirm_email: string }; Returns: Json };
       deletion_storage_objects: {
@@ -57079,6 +57665,16 @@ export type Database = {
       find_integration_connection: {
         Args: { p_external_account_id: string; p_provider_code: string };
         Returns: string;
+      };
+      finish_automation_run: {
+        Args: {
+          p_error_code?: string;
+          p_error_message?: string;
+          p_job_id: string;
+          p_outcome: string;
+          p_run_id: string;
+        };
+        Returns: Database["app"]["Enums"]["automation_run_status"];
       };
       finish_file_import: {
         Args: { p_checksum_sha256: string; p_imported_version: string; p_link_id: string };
@@ -57731,6 +58327,10 @@ export type Database = {
         Args: { p_course_id: string; p_reason?: string };
         Returns: string;
       };
+      queue_automation_webhook: {
+        Args: { p_run_id: string; p_webhook_endpoint_id: string };
+        Returns: string;
+      };
       queue_due_report_schedules: { Args: { p_limit?: number }; Returns: number };
       queue_due_warehouse_deliveries: { Args: Record<PropertyKey, never>; Returns: number };
       queue_subprocessor_notice: {
@@ -57791,6 +58391,24 @@ export type Database = {
         Returns: Database["app"]["Enums"]["scan_status"];
       };
       record_attendance: { Args: { p_rows: Json; p_run_id: string }; Returns: number };
+      record_automation_step: {
+        Args: {
+          p_action_id: string;
+          p_action_type: Database["app"]["Enums"]["automation_action_type"];
+          p_duration_ms: number;
+          p_error_code: string;
+          p_error_message: string;
+          p_http_status: number;
+          p_operation_id: string;
+          p_position: number;
+          p_request_body: Json;
+          p_response_body: Json;
+          p_run_id: string;
+          p_started_at: string;
+          p_step_status: Database["app"]["Enums"]["automation_step_status"];
+        };
+        Returns: string;
+      };
       record_chat_message_translation: {
         Args: {
           p_body: string;
@@ -58372,6 +58990,7 @@ export type Database = {
       retire_form_template: { Args: { p_reason: string; p_template_id: string }; Returns: string };
       retire_service_account: { Args: { p_service_account_id: string }; Returns: undefined };
       retire_training_course: { Args: { p_course_id: string; p_reason: string }; Returns: string };
+      retry_automation_run: { Args: { p_run_id: string }; Returns: string };
       retry_integration_inbound_event: {
         Args: { p_event_id: string; p_reason: string };
         Returns: undefined;
@@ -58441,6 +59060,21 @@ export type Database = {
       };
       run_wholesale_billing: {
         Args: { p_partner_org_id: string; p_period_start: string };
+        Returns: string;
+      };
+      sample_automation_event: { Args: { p_event_type: string; p_org_id: string }; Returns: Json };
+      save_automation: {
+        Args: {
+          p_actions: Json;
+          p_automation_id: string;
+          p_conditions: Json;
+          p_description: string;
+          p_enabled: boolean;
+          p_expected_updated_at?: string;
+          p_name: string;
+          p_org_id: string;
+          p_trigger_event_type: string;
+        };
         Returns: string;
       };
       save_geofence: {
@@ -58544,6 +59178,10 @@ export type Database = {
           signing_token: string;
         }[];
       };
+      send_automation_notice: {
+        Args: { p_body?: string; p_recipient_person_id: string; p_run_id: string; p_title: string };
+        Returns: string;
+      };
       send_chat_message: {
         Args: {
           p_body: string;
@@ -58568,6 +59206,10 @@ export type Database = {
       };
       set_active_org: { Args: { p_org_id: string }; Returns: undefined };
       set_auth_factor_label: { Args: { p_factor_id: string; p_label: string }; Returns: undefined };
+      set_automation_enabled: {
+        Args: { p_automation_id: string; p_enabled: boolean };
+        Returns: undefined;
+      };
       set_deliverable_fee: {
         Args: { p_deliverable_id: string; p_fee_minor?: number };
         Returns: string;
@@ -58923,6 +59565,7 @@ export type Database = {
           reset_seconds: number;
         }[];
       };
+      test_automation: { Args: { p_automation_id: string; p_event: Json }; Returns: Json };
       track_permit_requirement: {
         Args: { p_requirement_id: string; p_title?: string };
         Returns: string;
@@ -59437,6 +60080,11 @@ export type Database = {
         | "Lost"
         | "Retired";
       audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
+      automation_action_type:
+        "create_task" | "update_status" | "assign" | "add_comment" | "notify" | "call_webhook";
+      automation_match: "all" | "any";
+      automation_run_status: "Queued" | "Running" | "Retrying" | "Succeeded" | "Failed" | "Skipped";
+      automation_step_status: "Succeeded" | "Failed" | "Skipped";
       availability_kind: "Available" | "Unavailable" | "Tentative";
       availability_visibility: "Private" | "Shared on Application" | "Public";
       background_check_result: "Pending" | "Clear" | "Consider" | "Suspended" | "Canceled";
@@ -65840,6 +66488,17 @@ export const Constants = {
         "Retired",
       ],
       audience_kind: ["Organization", "Project", "Team", "Department", "Role", "Group"],
+      automation_action_type: [
+        "create_task",
+        "update_status",
+        "assign",
+        "add_comment",
+        "notify",
+        "call_webhook",
+      ],
+      automation_match: ["all", "any"],
+      automation_run_status: ["Queued", "Running", "Retrying", "Succeeded", "Failed", "Skipped"],
+      automation_step_status: ["Succeeded", "Failed", "Skipped"],
       availability_kind: ["Available", "Unavailable", "Tentative"],
       availability_visibility: ["Private", "Shared on Application", "Public"],
       background_check_result: ["Pending", "Clear", "Consider", "Suspended", "Canceled"],

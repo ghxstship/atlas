@@ -10,7 +10,8 @@
  * (handlers/parts/workflow.ts). Support sessions, wholesale statements, acting on a notification and
  * the import dry run and commit request are A36's (handlers/parts/a36.ts); calendar feed rotation,
  * personal feeds, project inboxes and inbound mail are A84's (handlers/parts/a84.ts); the import worker validates
- * and writes the rows with the service role.
+ * and writes the rows with the service role. Automations, their runs and comments by subject are A91's
+ * (handlers/parts/automations.ts).
  */
 import type { XosClient } from "@xos/data";
 import { editComment, deleteComment, postComment, setThreadResolved } from "@xos/data/comments";
@@ -27,6 +28,7 @@ import { viewsHelpSupportHandlers } from "./parts/views-help-support.ts";
 import { a36Handlers } from "./parts/a36.ts";
 import { a79PlatformHandlers } from "./parts/a79.ts";
 import { a84Handlers } from "./parts/a84.ts";
+import { automationHandlers } from "./parts/automations.ts";
 import { workflowHandlers } from "./parts/workflow.ts";
 import { shareLinkHandlers } from "./parts/share-links.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap } from "./support/table.ts";
@@ -265,6 +267,7 @@ export const handlers = defineHandlers("Platform", {
   ...(a79PlatformHandlers as unknown as HandlerSet<"Platform">),
   ...shareLinkHandlers,
   ...(a84Handlers as unknown as HandlerSet<"Platform">),
+  ...(automationHandlers as unknown as HandlerSet<"Platform">),
 
   ...handlersFor("Platform", commentThreads),
   "commentThreads.update": async ({ params, body, ifMatch }, context) => {

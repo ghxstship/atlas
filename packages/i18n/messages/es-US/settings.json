@@ -269,6 +269,10 @@
       "label": "Traducir mensajes del chat",
       "help": "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada."
     },
+    "personalTokens": {
+      "label": "Permitir tokens personales de API",
+      "help": "Los miembros pueden crear sus propios tokens de API en Configuración personal, Desarrollador. Un token actúa como su miembro, limitado a las áreas que elija, y vence en menos de un año. Si lo desactiva, todos los tokens dejan de funcionar al instante."
+    },
     "supplierDiversityProgram": {
       "label": "Programa de diversidad de proveedores",
       "help": "Permite que proveedores y profesionales independientes compartan sus certificaciones de diversidad de proveedores con su organización. Cada uno comparte con un consentimiento aparte y puede revocarlo en cualquier momento. Desactivado, no se puede compartir nada y las certificaciones compartidas quedan ocultas."
@@ -455,10 +459,24 @@
     "teams": "Los equipos agrupan a los miembros que comparten trabajo. Cada equipo muestra sus miembros.",
     "workspaces": "Los espacios de trabajo dividen la organización por oficina o grupo de recintos. Reemplaza aquí los ajustes de cada uno.",
     "accessReviews": "Cada trimestre, los responsables confirman o quitan el rol de cada miembro. Define qué pasa con el acceso no revisado.",
+    "calendarFeeds": "Suscríbase a su horario, o a un proyecto en el que trabaja, desde cualquier aplicación de calendario.",
+    "apiKeysAndServiceAccounts": "Permita que sus servidores llamen a la API de XOS mediante cuentas de servicio y sus claves, y decida si los miembros pueden crear tokens personales.",
+    "webhooks": "Envíe eventos firmados a sus otros sistemas en cuanto ocurren y vuelva a enviar una entrega cuando falle.",
+    "spendAuthority": "Fije cuánto puede aprobar cada rol o persona, por tipo de documento y moneda.",
+    "separationOfDuties": "Las reglas que impiden que una misma persona realice las dos mitades de un acto sensible.",
+    "customFields": "Agregue los campos que necesitan sus registros a proyectos, recintos, proveedores y más.",
+    "canonExtensions": "Disciplinas y categorías que su organización agrega al canon.",
+    "dataAndPrivacy": "Responda solicitudes de datos, aplique retenciones legales y consulte exportaciones, clasificación y retención.",
+    "auditLog": "Los últimos cambios auditados de acceso y configuración, y el acceso al registro completo.",
+    "automations": "Informes programados, trabajo recurrente, políticas de aprobación y webhooks: lo que funciona sin que nadie pulse un botón.",
+    "connectedApps": "Aplicaciones a las que permitió actuar en su nombre, y la forma de desconectarlas.",
+    "developer": "Tokens personales de API para sus propios scripts en esta organización.",
+    "payoutAndTax": "Dónde le pagan las organizaciones y los formularios fiscales que firmó.",
+    "workspace": "Lo que este espacio de trabajo configura distinto de la organización, y quién trabaja en él.",
+    "team": "Quién forma parte de este equipo. Los equipos usan la configuración de su espacio de trabajo y de la organización.",
     "partner": "Las organizaciones cliente de tu agencia socia, las condiciones mayoristas y el acceso a la Consola de socio.",
     "usage": "Lo que la organización usa frente a su plan: asientos, miembros de campo, proyectos y contrataciones.",
-    "templates": "Plantillas que la organización reutiliza para proyectos, documentos y paquetes.",
-    "calendarFeeds": "Suscríbase a su horario, o a un proyecto en el que trabaja, desde cualquier aplicación de calendario."
+    "templates": "Plantillas que la organización reutiliza para proyectos, documentos y paquetes."
   },
   "accessControls": {
     "saved": "Guardado.",
@@ -777,6 +795,10 @@
         "label": "Importaciones y exportaciones",
         "help": "Importaciones terminadas y exportaciones listas para descargar."
       },
+      "automations": {
+        "label": "Automatizaciones",
+        "help": "Mensajes de automatizaciones, ejecuciones fallidas y automatizaciones en pausa."
+      },
       "messages": {
         "label": "Mensajes",
         "help": "Mensajes de chat nuevos para ti o tus grupos."
@@ -795,5 +817,198 @@
       }
     }
   },
-  "notInEffect": "Se guarda, pero todavía no se aplica."
+  "notInEffect": "Se guarda, pero todavía no se aplica.",
+  "automations": {
+    "intro": "Cuando ocurre un evento en tu organización y se cumplen las condiciones, las acciones se ejecutan como la persona responsable de la automatización, con sus permisos.",
+    "notInPlan": "Las automatizaciones requieren el plan Pro o superior. Tus automatizaciones se quedan aquí: puedes desactivarlas o eliminarlas.",
+    "upgrade": "Facturación y plan",
+    "readOnly": "Puedes ver las automatizaciones. Para cambiarlas necesitas el permiso de automatizaciones.",
+    "loadFailed": "No se pudieron cargar las automatizaciones. Vuelve a cargar la página.",
+    "new": "Nueva automatización",
+    "empty": "Aún no hay automatizaciones. Automatiza un paso que se repite.",
+    "list": {
+      "caption": "Automatizaciones",
+      "name": "Automatización",
+      "trigger": "Cuando",
+      "status": "Activa",
+      "lastRun": "Última ejecución",
+      "owner": "Se ejecuta como",
+      "actions": "Acciones"
+    },
+    "toggle": "Ejecutar {name}",
+    "paused": "En pausa: {reason, select, owner_left_org {{owner} dejó la organización} owner_lost_capability {{owner} ya no puede gestionar automatizaciones} owner_cannot_sign_in {{owner} no tiene inicio de sesión} owner_access_refused {la API se negó a actuar como {owner}} other {no se pudo ejecutar}}. Actívala para que se ejecute a tu nombre.",
+    "never": "Nunca se ejecutó",
+    "edit": "Editar {name}",
+    "history": "Ejecuciones de {name}",
+    "delete": "Eliminar {name}",
+    "deleteConfirm": "¿Eliminar {name}? Su historial de ejecuciones se conserva.",
+    "deleted": "Automatización eliminada.",
+    "runs": {
+      "title": "Ejecuciones recientes",
+      "caption": "Ejecuciones recientes de automatizaciones",
+      "empty": "Aún no hay ejecuciones. Aparecen aquí cuando ocurre un evento que coincide.",
+      "automation": "Automatización",
+      "event": "Evento",
+      "status": "Estado",
+      "when": "Cuándo",
+      "duration": "Duración",
+      "details": "Detalles",
+      "older": "Ejecuciones anteriores"
+    },
+    "runStatus": {
+      "Queued": "En cola",
+      "Running": "En curso",
+      "Retrying": "Reintentando",
+      "Succeeded": "Correcta",
+      "Failed": "Fallida",
+      "Skipped": "Omitida"
+    },
+    "run": {
+      "title": "Ejecución de {name}",
+      "event": "Evento",
+      "caused": "Iniciada por otra automatización, a {depth, plural, one {# nivel} other {# niveles}} de profundidad.",
+      "attempts": "{count, plural, one {# intento} other {# intentos}}",
+      "error": "Motivo",
+      "steps": "Pasos",
+      "noSteps": "No se ejecutó ningún paso.",
+      "retry": "Reintentar",
+      "retried": "La ejecución está de nuevo en cola.",
+      "sent": "Enviado",
+      "answered": "Respuesta",
+      "ms": "{ms} ms",
+      "http": "HTTP {status}",
+      "close": "Cerrar",
+      "loadFailed": "No se pudo cargar esta ejecución."
+    },
+    "stepStatus": {
+      "Succeeded": "Correcto",
+      "Failed": "Fallido",
+      "Skipped": "Omitido"
+    },
+    "editor": {
+      "titleNew": "Nueva automatización",
+      "titleEdit": "Editar automatización",
+      "loading": "Cargando la automatización.",
+      "loadFailed": "No se pudo cargar la automatización.",
+      "name": "Nombre",
+      "description": "Descripción",
+      "trigger": "Cuando ocurra esto",
+      "triggerHelp": "El evento que inicia una ejecución: la misma lista que usan los webhooks.",
+      "conditions": "Condiciones",
+      "matchLabel": "Ejecutar cuando",
+      "match": {
+        "all": "Se cumplan todas",
+        "any": "Se cumpla alguna"
+      },
+      "groupMatch": {
+        "all": "Todas de",
+        "any": "Alguna de"
+      },
+      "noConditions": "Sin condiciones: cada evento de este tipo ejecuta la automatización.",
+      "field": "Campo",
+      "fieldHelp": "Una ruta del evento, como data.record_kind.",
+      "operator": "Prueba",
+      "value": "Valor",
+      "valueHelpIn": "Separa los valores con comas.",
+      "addCondition": "Agregar condición",
+      "addGroup": "Agregar grupo",
+      "group": "Grupo {number}",
+      "removeCondition": "Quitar condición",
+      "removeGroup": "Quitar grupo",
+      "actions": "Entonces haz esto",
+      "addAction": "Agregar acción",
+      "action": "Acción {number}",
+      "actionType": "Acción",
+      "removeAction": "Quitar acción",
+      "moveUp": "Subir",
+      "moveDown": "Bajar",
+      "enabled": "Activa",
+      "enabledHelp": "Al activarla, se ejecuta a tu nombre.",
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "saved": "Automatización guardada.",
+      "templateHelp": "Inserta valores del evento entre llaves dobles, como {example}.",
+      "operators": {
+        "eq": "es",
+        "ne": "no es",
+        "lt": "es menor que",
+        "lte": "es como máximo",
+        "gt": "es mayor que",
+        "gte": "es como mínimo",
+        "in": "es uno de",
+        "is_null": "está vacío",
+        "contains": "contiene"
+      },
+      "isNull": {
+        "true": "Vacío",
+        "false": "No vacío"
+      },
+      "actionTypes": {
+        "create_task": "Crear una tarea",
+        "update_status": "Cambiar el estado del registro",
+        "assign": "Asignar el registro",
+        "add_comment": "Comentar en el asunto",
+        "notify": "Notificar a un miembro",
+        "call_webhook": "Enviar el evento a un webhook"
+      },
+      "fields": {
+        "title": "Título",
+        "taskTitleHelp": "Empieza con un verbo, como Revisar {example}.",
+        "project": "Proyecto",
+        "eventProject": "El proyecto del evento",
+        "phase": "Fase",
+        "xyz": "Etiqueta XYZ",
+        "xyzOptions": {
+          "X": "X, Recurso",
+          "Y": "Y, Proceso",
+          "Z": "Z, Cronograma"
+        },
+        "dueInDays": "Vence en días",
+        "dueHelp": "Vence a las 17:00 según el calendario de tu organización. Déjalo vacío si no tiene fecha.",
+        "toState": "Nuevo estado",
+        "note": "Bloqueo o motivo de replanificación",
+        "noteHelp": "Necesario para Bloqueado y Diferido.",
+        "assignee": "Asignar a",
+        "recipient": "Notificar a",
+        "message": "Mensaje",
+        "comment": "Comentario",
+        "endpoint": "Endpoint de webhook",
+        "noEndpoints": "Aún no hay endpoints de webhook. Agrega uno en Configuración, Webhooks.",
+        "choose": "Elegir"
+      },
+      "test": {
+        "title": "Probar con un evento de ejemplo",
+        "help": "No se ejecuta nada y no se guarda nada.",
+        "event": "Evento de ejemplo (JSON)",
+        "loadLatest": "Usar el último evento",
+        "run": "Probar",
+        "matched": "Las condiciones se cumplen para este evento.",
+        "notMatched": "Las condiciones no se cumplen para este evento.",
+        "invalidJson": "El evento de ejemplo no es un JSON válido.",
+        "found": "Encontrado: {value}",
+        "missing": "Falta",
+        "held": "Se cumple",
+        "failed": "No se cumple",
+        "preview": "Lo que enviarían las acciones"
+      }
+    },
+    "errors": {
+      "invalid": "Revisa la automatización: {detail}",
+      "automation_conditions_invalid": "Una condición no está completa: {detail}",
+      "automation_actions_invalid": "Una acción no está completa: {detail}",
+      "automation_action_needs_record": "Cambiar un estado o un responsable requiere un disparador cuyo asunto sea un registro, como record.created.",
+      "automation_action_needs_commentable_subject": "El asunto de este disparador no admite comentarios.",
+      "automation_person_not_member": "Elige a un miembro de esta organización.",
+      "automation_webhook_unknown": "Elige uno de los endpoints de webhook de esta organización.",
+      "automation_project_unknown": "Elige un proyecto de esta organización.",
+      "automation_trigger_unknown": "Elige un disparador de la lista.",
+      "automation_name_length": "Un nombre tiene de 1 a 120 caracteres.",
+      "automation_changed": "Alguien cambió esta automatización desde que la abriste. Vuelve a cargar la página e inténtalo de nuevo.",
+      "plan_feature_required": "Las automatizaciones requieren el plan Pro o superior.",
+      "automation_off": "Activa la automatización antes de reintentar sus ejecuciones.",
+      "automation_run_not_failed": "Solo se puede reintentar una ejecución fallida.",
+      "denied": "No puedes cambiar automatizaciones.",
+      "unexpected": "Algo salió mal. Inténtalo de nuevo."
+    }
+  }
 }

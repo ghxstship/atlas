@@ -66,9 +66,13 @@ export interface PartyPreference {
 /** Channel defaults when a person states no preference (private.channel_defaults). */
 const DEFAULT_ON: Readonly<Record<PartyChannel, boolean>> = { Email: true, Push: true };
 
-/** Every party category and channel with the person's choice, or the default. */
+/**
+ * Every party category and channel with the person's choice, else the defaults of their company accounts (on
+ * when any has it on, as private.person_channel_enabled resolves them since 1434), else the channel default.
+ */
 export async function listMyNotificationPreferences(
   db: XosClient,
+  companyDefaults: readonly PartyPreference[] = [],
 ): Promise<Result<PartyPreference[]>> {
   const { data, error } = await db
     .from("person_notification_preferences")
@@ -76,6 +80,10 @@ export async function listMyNotificationPreferences(
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
   const rows = data ?? [];
+  const company = (category: PartyCategory, channel: PartyChannel) => {
+    const set = companyDefaults.filter((d) => d.category === category && d.channel === channel);
+    return set.length === 0 ? undefined : set.some((d) => d.enabled);
+  };
   return ok(
     PARTY_CATEGORIES.flatMap((category) =>
       PARTY_CHANNELS.map((channel) => ({
@@ -83,6 +91,7 @@ export async function listMyNotificationPreferences(
         channel,
         enabled:
           rows.find((r) => r.category_code === category && r.channel === channel)?.enabled ??
+          company(category, channel) ??
           DEFAULT_ON[channel],
       })),
     ),

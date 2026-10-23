@@ -454,6 +454,17 @@ export const SHORTCUT_REGISTRY: ShortcutRegistry = {
           go: null,
         },
         {
+          id: "ask-filter",
+          scope: "global",
+          group: "general",
+          keys: null,
+          mac: null,
+          label: "help.shortcuts.askFilter",
+          fields: false,
+          fixed: false,
+          go: null,
+        },
+        {
           id: "close",
           scope: "global",
           group: "general",

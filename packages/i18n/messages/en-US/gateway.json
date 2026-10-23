@@ -27,6 +27,14 @@
       "slug_taken": "That web address is already in use. Choose another.",
       "slug_reserved": "That web address is reserved. Choose another.",
       "cross_org_reference": "That document belongs to another organization. Upload it again for this one.",
+      "personal_tokens_off": "That organization does not allow personal API tokens anymore.",
+      "personal_token_scope_not_held": "A token can only use areas you hold a capability in. Clear the others.",
+      "personal_token_limit": "You already have 10 active tokens there. Revoke one first.",
+      "personal_token_expiry": "Choose an expiry within one year.",
+      "personal_token_revoked": "This token is already revoked.",
+      "step_up_required": "Confirm it is you with your second factor, then try again.",
+      "sole_account_owner": "A company account keeps at least one Account Owner. Make someone else an Account Owner first.",
+      "notification_channel_outside": "A company sets Email and Push only.",
       "supplier_diversity_no_program": "That organization does not run a supplier diversity program, so it takes no diversity certifications.",
       "time_zone_unknown": "That time zone is not recognized. Choose one from the list, for example America/New_York."
     }
@@ -1533,6 +1541,13 @@
         "calendar_feed_limit": "You have 20 feeds. Revoke one before you add another.",
         "denied": "That feed is not available to you.",
         "unexpected": "Something went wrong. Try again."
+      }
+    },
+    "surfaces": {
+      "errors": {
+        "jurisdiction": "Choose a jurisdiction from the list.",
+        "category": "Choose a category from the list.",
+        "member": "Choose a team member."
       }
     },
     "quietHours": {

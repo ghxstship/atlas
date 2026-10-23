@@ -43,6 +43,7 @@ import {
   type SubmittalKind,
 } from "@xos/data/procurement";
 import type { XosClient } from "@xos/data";
+import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
 import { actionContext, finish } from "@/lib/collection-kit/actions";
 import {
   all,
@@ -176,17 +177,24 @@ export async function recordResponseAction(_: ActionState, form: FormData): Prom
   if (lines.length === 0) errors.add("lines", "lines");
   if (rfqId === null) return { error: "notFound" };
   if (errors.any || !vendorId || !currency) return errors.state;
-  return finish(
-    await recordRfqResponse(ctx.viewer.db, {
-      rfqId,
-      vendorId,
-      validUntil: validUntil ?? null,
-      currencyCode: currency,
-      lines,
-    }),
-    ctx,
-    MODULE,
-  );
+  const recorded = await recordRfqResponse(ctx.viewer.db, {
+    rfqId,
+    vendorId,
+    validUntil: validUntil ?? null,
+    currencyCode: currency,
+    lines,
+  });
+  // A form Aurora filled from a quote closes its suggestions with the response written (A95);
+  // its quoted lines are stored with the response, so the line suggestions name the response too.
+  if (recorded.ok) {
+    await applySuggestions(
+      ctx.viewer.db,
+      suggestionIds(form),
+      recorded.data.id,
+      "Saved from the RFQ response form after review.",
+    );
+  }
+  return finish(recorded, ctx, MODULE);
 }
 
 export async function orderFromResponseAction(

@@ -46,6 +46,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "account",
       "reports",
       "imports",
+      "automations",
       "messages",
       "feed",
       "opportunities",
@@ -55,7 +56,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "safety",
       "account",
     ]);
-    expect(registry.kinds).toHaveLength(42);
+    expect(registry.kinds).toHaveLength(47);
     expect(notificationKind("opportunity.matched")).toMatchObject({
       category: "opportunities",
       channels: ["In App", "Email", "Push"],

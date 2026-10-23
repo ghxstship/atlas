@@ -7,11 +7,13 @@ import type { NotificationKindRegistry } from "./model.ts";
  * drift test (the new seed's test replaces it) and keep the old seed as history. Each seed is a complete
  * idempotent upsert, so the latest one decides the rows. 1360 was the first; 1368 adds the quiet-hours
  * bypass list (ADR 0033 decision 35); 1369 adds A79's org lifecycle kinds (A79's range runs before 1367, which
- * creates the bypass table the seed fills) and 1387 the Subprocessor List emails (A82, Section 14.4), with A89's
- * marketplace match and expiry reminders (A89's own seed never merged; 1387 carries its kinds).
+ * creates the bypass table the seed fills), 1387 the Subprocessor List emails (A82, Section 14.4), 1489 the
+ * automations category and kinds (A91, ADR 0047, never applied anywhere: its kinds moved into 1569) and 1569 the
+ * account notices of recovery codes and signed-out sessions (A99, ADR 0055), with A89's marketplace match and
+ * expiry reminders (A89's own seeds never merged; 1569 carries its kinds).
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/1387_notification_kind_seed.sql";
+  "supabase/migrations/1569_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(
