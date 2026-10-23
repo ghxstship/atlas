@@ -11,6 +11,10 @@ set search_path = extensions, public;
 
 select plan(17);
 
+-- The scheduled job (xos_fx_rates_ecb) runs in its own session and may fire during this file; holding these locks
+-- makes its run wait until this file rolls back, so the counts and the feed status see only this file's runs.
+lock table private.fx_feed_runs, private.fx_reference_rates in exclusive mode;
+
 create temporary table k (key text primary key, value jsonb);
 grant select, insert on k to public;
 
