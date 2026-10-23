@@ -1,6 +1,6 @@
 # PowerSync service for Compass sync
 
-Compass syncs through PowerSync (Section 5: open edition, self-hostable; Section 13). The service streams changes from Postgres by logical replication and serves each device the buckets that A17's sync rules (`packages/sync/sync-rules.yaml`) grant from `private.sync_scope_grants`. Writes never go through PowerSync: Compass sends them to `app.apply_sync_mutation` with an idempotency key (0364).
+Compass launches on REST sync, and PowerSync is deferred until the readiness check below passes (ADR 0033, decision 51). Until then Compass's REST downloader (`apps/compass/src/data/downloader.ts`) reads through row-level security and the `api_external` views, and nothing in production runs this service. When it is turned on, Compass syncs through PowerSync (Section 5: open edition, self-hostable; Section 13). The service streams changes from Postgres by logical replication and serves each device the buckets that A17's sync rules (`packages/sync/sync-rules.yaml`) grant from `private.sync_scope_grants`. Writes never go through PowerSync: Compass sends them to `app.apply_sync_mutation` with an idempotency key (0364).
 
 | File                         | Purpose                                                                                       |
 | ---------------------------- | --------------------------------------------------------------------------------------------- |

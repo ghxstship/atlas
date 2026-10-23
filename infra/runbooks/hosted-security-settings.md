@@ -7,20 +7,22 @@ and then to production, and record the date and who applied it in the release no
 
 ## Supabase Auth (A22-010)
 
-| Setting                    | Where in the dashboard                                 | Value                                                                      |
-| -------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------- |
-| Leaked password protection | Authentication > Providers > Email (Password security) | On. Checks new passwords against the HaveIBeenPwned breach list (V6.2.12). |
-| Minimum password length    | Authentication > Providers > Email                     | 12                                                                         |
-| Password requirements      | Authentication > Providers > Email                     | Letters and digits                                                         |
-| Secure password change     | Authentication > Providers > Email                     | On: a password change needs a recent sign-in (V6.2.3)                      |
-| TOTP MFA                   | Authentication > Multi-Factor                          | Enroll and verify on. Optional per person; orgs enforce it per role        |
-| WebAuthn MFA and passkeys  | Authentication > Multi-Factor, and Passkeys            | Enroll and verify on                                                       |
-| WebAuthn relying party id  | Authentication > Passkeys (WebAuthn)                   | `ghxstship.tech`, the registrable domain (ADR 0033, decision 5)            |
-| WebAuthn origins           | Authentication > Passkeys (WebAuthn)                   | `https://atlas.ghxstship.tech` and `https://gateway.ghxstship.tech`        |
-| WebAuthn display name      | Authentication > Passkeys (WebAuthn)                   | `XOS`, as `rp_display_name` in `config.toml`                               |
-| Google provider            | Authentication > Sign In / Providers > Google          | On, with the clients from `production.md`, "Sign in with Google (OWNER)"   |
-| Google skip nonce checks   | Authentication > Sign In / Providers > Google          | On: native iOS sign-in cannot send the nonce (ADR 0036, decision 9)        |
-| Manual identity linking    | Authentication > Sign In / Providers (User Signups)    | Off: Google links only to an account with the same verified email          |
+| Setting                    | Where in the dashboard                                 | Value                                                                                                     |
+| -------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Leaked password protection | Authentication > Providers > Email (Password security) | On. Checks new passwords against the HaveIBeenPwned breach list (V6.2.12).                                |
+| Minimum password length    | Authentication > Providers > Email                     | 12                                                                                                        |
+| Password requirements      | Authentication > Providers > Email                     | Letters and digits                                                                                        |
+| Secure password change     | Authentication > Providers > Email                     | On: a password change needs a recent sign-in (V6.2.3)                                                     |
+| Confirm email              | Authentication > Providers > Email                     | On: a new email sign-up confirms its address first (ADR 0033, decision 42)                                |
+| Email rate limit           | Authentication > Rate Limits                           | About 100 emails an hour through Resend SMTP, raised after watching the Auth logs (ADR 0033, decision 43) |
+| TOTP MFA                   | Authentication > Multi-Factor                          | Enroll and verify on. Optional per person; orgs enforce it per role                                       |
+| WebAuthn MFA and passkeys  | Authentication > Multi-Factor, and Passkeys            | Enroll and verify on                                                                                      |
+| WebAuthn relying party id  | Authentication > Passkeys (WebAuthn)                   | `ghxstship.tech`, the registrable domain (ADR 0033, decision 5)                                           |
+| WebAuthn origins           | Authentication > Passkeys (WebAuthn)                   | `https://atlas.ghxstship.tech` and `https://gateway.ghxstship.tech`                                       |
+| WebAuthn display name      | Authentication > Passkeys (WebAuthn)                   | `XOS`, as `rp_display_name` in `config.toml`                                                              |
+| Google provider            | Authentication > Sign In / Providers > Google          | On, with the clients from `production.md`, "Sign in with Google (OWNER)"                                  |
+| Google skip nonce checks   | Authentication > Sign In / Providers > Google          | On: native iOS sign-in cannot send the nonce (ADR 0036, decision 9)                                       |
+| Manual identity linking    | Authentication > Sign In / Providers (User Signups)    | Off: Google links only to an account with the same verified email                                         |
 
 Notes:
 
@@ -76,8 +78,9 @@ timeout themselves (migration 1330). These steps make the hosted project and the
    the "Add security key" option stays hidden. A custom Gateway domain is not a subdomain of
    `ghxstship.tech`, so passkeys and security keys do not work there (see "Passkeys across Atlas and
    Gateway"); people sign in there with a password, a magic link or OAuth, and use an authenticator app.
-3. **SAML single sign-on (Enterprise orgs).** Supabase Auth SSO is a hosted add-on: enable it under
-   Authentication > Providers > SAML 2.0. For each Enterprise customer, register their identity
+3. **SAML single sign-on (Enterprise orgs).** Supabase Auth SSO is a paid hosted add-on. The owner approved it
+   for when the first Enterprise org wants single sign-on (ADR 0033, decision 71): enable it then, not before,
+   under Authentication > Providers > SAML 2.0. For each Enterprise customer, register their identity
    provider with the CLI, linked to the project:
    `supabase sso add --type saml --metadata-url '<IdP metadata URL>' --domains '<their email domain>'`.
    Give the printed provider ID to the customer's Admin, who adds it on Settings, Security with the
@@ -98,7 +101,8 @@ timeout themselves (migration 1330). These steps make the hosted project and the
    (Authentication > Users > the user > MFA).
 6. **Known limit.** Like the IP allow-list, the org MFA policy, session length and idle timeout are
    enforced where Atlas, the API and Compass check a session, not on direct calls to the Supabase
-   endpoint with a session token. The planned fix is the same: route all data access through the API.
+   endpoint with a session token. The owner accepted this for launch (ADR 0033, decision 55). The
+   planned fix is the same: route all data access through the API.
 
 ## Recovery codes, sessions and OAuth (A99)
 
@@ -152,7 +156,7 @@ A signed-in member outside the allowed networks can still read and write what th
 calling that endpoint directly with their session token. No setting closes this.
 
 The planned fix is routing all data access through the API, so that the Supabase endpoint no longer
-accepts end-user tokens directly (owner decision 33, ADR 0034). Until then, say so to any customer who
+accepts end-user tokens directly (owner decisions 33 and 55, ADR 0034). Until then, say so to any customer who
 relies on the allow-list. `legal/security-overview.md` states it publicly.
 
 ## The client address behind proxies (A69-002, A69-003)

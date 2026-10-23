@@ -2,10 +2,10 @@
 
 Section 5.1 requires two things. Releases roll out at 5, then 25, then 100 percent, with automatic rollback when the error rate regresses. Every risky feature ships behind a flag with a kill switch. XOS meets them at two levels:
 
-| Level      | What moves                      | Mechanism                                                                                  | Code                                 |
-| ---------- | ------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------ |
-| Deployment | A new build of Atlas or Gateway | Vercel Rolling Releases at the stages in `infra/delivery/rollout.json`, judged by the gate | `infra/delivery/src/release-gate.ts` |
-| Feature    | One feature, org by org         | A18's flags (0540): per-org overrides as cohorts, plan gating, kill switch                 | `infra/delivery/src/flag-rollout.ts` |
+| Level      | What moves              | Mechanism                                                                                  | Code                                 |
+| ---------- | ----------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------ |
+| Deployment | A new build of Atlas    | Vercel Rolling Releases at the stages in `infra/delivery/rollout.json`, judged by the gate | `infra/delivery/src/release-gate.ts` |
+| Feature    | One feature, org by org | A18's flags (0540): per-org overrides as cohorts, plan gating, kill switch                 | `infra/delivery/src/flag-rollout.ts` |
 
 There is one flag system. A18's `private.feature_flags` and `app.feature_flag_overrides` hold every flag, and `private.flag_enabled(org, flag)` decides. A rollout stage is a set of overrides whose reason starts with `rollout:<flag>:`. Manual support overrides use any other reason and are never touched by these commands. The kill switch and plan gating beat every override.
 
@@ -50,9 +50,9 @@ The gate (`decideStage`) compares the canary deployment with current production 
 
 `pnpm --filter @xos/infra rollout:gate gate metrics.json` takes `{ currentPercent, minutesAtStage, baseline: {requests, errors, p95Ms}, canary: {...} }`. It exits 0 to promote, 3 to hold and 4 to roll back.
 
-### Vercel settings for the orchestrator to apply
+### Vercel settings
 
-Apply these to both projects, `atlas` and `gateway`, only if Rolling Releases are included in the team's current plan at no extra charge. Check the billing page first; if they are not included, this is a blocked item.
+The team's plan includes Rolling Releases for one project, and the owner gave it to `atlas` (ADR 0033, decision 50). They are enabled there with these settings:
 
 | Setting                              | Value                                           |
 | ------------------------------------ | ----------------------------------------------- |
@@ -61,9 +61,11 @@ Apply these to both projects, `atlas` and `gateway`, only if Rolling Releases ar
 | Advancement                          | Manual approval (the gate decides, see below)   |
 | Skew protection (Settings, Advanced) | Enabled, so one session stays on one deployment |
 
+`gateway`, `docs` and `console` have no slot. They promote directly and roll back with Instant Rollback, as described at the end of this section.
+
 The CI job `release-gate` (see `infra/ci/README.md`) reads the canary and baseline numbers for the window. It then approves the next stage, or aborts the rolling release and rolls back to the previous production deployment. Until that job runs, the release owner reads the numbers from Vercel Observability for both deployments, runs the gate command by hand and follows its answer.
 
-Without Rolling Releases, use Vercel's Instant Rollback (included in every plan). Promote a build only after it has run on its preview URL against staging for 30 minutes with the synthetic checks green. Roll back immediately when the gate says roll back.
+For `gateway`, which has no Rolling Release, use Vercel's Instant Rollback (included in every plan). Promote a build only after it has run on its preview URL against staging for 30 minutes with the synthetic checks green, then run the gate on the first 30 minutes of production traffic against the previous deployment's numbers. Roll back immediately when the gate says roll back. `docs` and `console` promote directly and use Instant Rollback the same way.
 
 ## Database changes
 

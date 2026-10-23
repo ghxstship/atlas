@@ -26,7 +26,7 @@ Values are never pasted into tickets, logs or this file. Where a step needs a se
 | 8    | MFA and the rest of the auth settings                      | Yes                                            | OWNER   |
 | 9    | Edge Function secrets                                      | Yes                                            | OWNER   |
 | 10   | Vault secrets                                              | Yes                                            | OWNER   |
-| 11   | Database network restrictions (optional)                   | Yes                                            | OWNER   |
+| 11   | Database network restrictions: stay off for now            | Yes                                            | OWNER   |
 | 12   | Rotate the JWT secret and the anon and service keys        | No: old keys and sessions stop working at once | OWNER   |
 | 13   | Vercel environment variables per app                       | Yes                                            | OWNER   |
 | 14   | Staging branch, and `STAGING_DB_URL` re-pointed at it      | Yes                                            | OWNER   |
@@ -246,8 +246,13 @@ an error. Rollback: put back the values recorded before the change.
 3. Templates (confirm signup, invite, magic link, change email, reset password, reauthentication): the product's
    own email goes through the Edge Functions; the auth templates keep Supabase's defaults with the product name
    and links to `https://atlas.ghxstship.tech`. Check that no template still names staging or the demo tenant.
-4. Raise the email rate limit (Authentication, Rate Limits) from the built-in SMTP's limit to the value the owner
-   chooses; the repository's local value is 2 a minute per address.
+4. Set the email rate limit (Authentication, Rate Limits) to about 100 emails an hour, sent through Resend (ADR 0033,
+   decision 43). Watch the Auth logs for sign-up confirmations, magic links and password resets after launch, and
+   raise it before real volume reaches it. The repository's local value (`email_sent = 2` an hour in
+   `supabase/config.toml`) is for tests only.
+5. DMARC starts monitoring-only, `p=none`, with reports to the owner's DMARC report mailbox, and moves to
+   `p=quarantine` after two to four clean weeks (ADR 0033, decision 46; `production.md`, Email from
+   mail.ghxstship.tech, steps 2 and 5).
 
 Verify: a test sign-up receives its confirmation from `mail.ghxstship.tech`, and the message passes SPF, DKIM and
 DMARC.
@@ -276,9 +281,10 @@ Match `supabase/config.toml`, except the local URLs:
 | Sign-ups; anonymous sign-ins; manual linking | On; off; off                                                                                                                                                         |
 | Sign in with Google                          | As in `production.md`, "Sign in with Google (OWNER)", step 5, once the owner has created the Google clients                                                          |
 | Double confirm email changes                 | On                                                                                                                                                                   |
+| Confirm email (`enable_confirmations`)       | On: a new email sign-up confirms its address before it can sign in (ADR 0033, decision 42). It needs the custom SMTP of step 6 first                                 |
 
-`enable_confirmations` is off locally so tests can sign in at once. For production the owner decides whether new
-email sign-ups must confirm their address first; the recommendation is on.
+`enable_confirmations` stays off locally so tests can sign in at once. Production turns it on (ADR 0033, decision
+42). Check: a new email sign-up cannot sign in until it opens the confirmation link from `mail.ghxstship.tech`.
 
 Verify: enroll TOTP on a test account and sign in with it; the access token carries the hook's claims (Atlas
 loads the org switcher). Rollback: restore the recorded values.
@@ -290,9 +296,10 @@ prints names and digests, never values.
 
 `XOS_API_JWT_SIGNING_KEY` (the project's JWT secret, so it changes again in step 12), `XOS_APP_URL`,
 `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`, `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`,
-`XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY` (true only after the owner approves real-recipient email),
-`XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (live keys only when the
-owner opens billing), `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`, `SENTRY_DSN`, `XOS_ENVIRONMENT` (`production`),
+`XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY` (true only at cutover, once `mail.ghxstship.tech` passes its
+SPF, DKIM and DMARC checks and `XOS_POSTAL_ADDRESS` holds the postal address; ADR 0033, decision 41),
+`XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN` (`inbound.ghxstship.tech`, decision 60), `STRIPE_SECRET_KEY`,
+`STRIPE_WEBHOOK_SECRET` (test keys until Atlas Checkout ships and billing opens with live keys, decision 59), `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`, `SENTRY_DSN`, `XOS_ENVIRONMENT` (`production`),
 `XOS_LOG_LEVEL` (`info`). Unset `XOS_REPORT_MAILPIT_URL`, which only a local stack uses.
 
 Verify: the list shows each name; `XOS_ENVIRONMENT` digest differs from staging's. Rollback: set the previous
@@ -309,19 +316,31 @@ value again.
 
 The four keys were generated in this project and never left Vault, so the demo period did not expose them. After
 step 4 no row they encrypt remains (the demo encounters, tax forms and entities are gone), so regenerating them
-now costs nothing; the recommendation is to keep them. No `xos_integration_*` secret may remain: the removal
-deletes the demo connections' credentials.
+now would cost nothing, but the owner decided to keep them (ADR 0033, decision 49). No `xos_integration_*` secret
+may remain: the removal deletes the demo connections' credentials.
 
 ## 11. Database network restrictions (optional, OWNER CONFIRMS)
 
 Database, Network Restrictions limits direct and pooler Postgres connections to listed CIDR ranges. The apps
 and Edge Functions use the HTTPS API and are not affected. What is affected: the operator's own `psql` and
 `supabase db push`, and any GitHub Actions job that connects to Postgres (runner addresses change on every run).
-After step 14 no CI job connects to production directly, so restricting to the owner's addresses is possible.
+The owner decided to leave them off for now (ADR 0033, decision 47): the weekly production backup is a CI job with
+its own read-only login, and GitHub runners connect from changing addresses. Revisit when that job moves to a fixed
+address.
 
 Verify: a connection from an unlisted address is refused; the API still works. Rollback: allow all again.
 
 ## 12. Rotate the JWT secret and the anon and service keys (OWNER CONFIRMS)
+
+Approved for cutover (ADR 0033, decision 44). The owner still confirms the moment in writing, because of what it
+does:
+
+- every signed-in person in Atlas, Gateway, Compass and the console is signed out at once and signs in again;
+- every token issued with the old keys stops working, including any API token from `api-token` and the worker
+  schedules until step 1 below replaces `xos_worker_key`;
+- it cannot be undone, only repeated.
+
+Run it after step 4 and before step 13, at a quiet hour announced to anyone already using production.
 
 Why: during the build the staging anon and service keys sat in Vercel preview settings, CI variables, local
 `.env` files and agent sessions, and the demo sign-ins used a password published in the repository. The demo
@@ -394,9 +413,9 @@ the branch. Rollback: point the secret and variables back.
 Branching needs Pro, which decision 1 already buys. Branches are billed per hour of compute; a persistent
 `staging` branch runs all month, so the owner confirms that cost first.
 
-1. **Connect GitHub.** Project Settings, Integrations, GitHub: connect `ghxstship/atlas`, Supabase directory
-   `supabase`, production branch `main`. Pushes to `main` then deploy migrations to production; production is
-   never seeded by the integration.
+1. **GitHub stays disconnected.** The owner decided not to connect the Supabase GitHub integration (ADR 0033,
+   decision 48). Migrations reach staging and production only through `supabase db push` from the tagged commit,
+   staging first (`production.md`, Deploy order), so a push to `main` never migrates production.
 2. **Create a persistent branch** named `staging`, from the dashboard or with
    `supabase --experimental branches create --persistent`. Persistent branches are not paused or deleted with
    pull requests. A new branch starts with no data.
@@ -421,14 +440,14 @@ Branching needs Pro, which decision 1 already buys. Branches are billed per hour
 direct connection string> --include-seed`, on the branch only. `--include-seed` is never used against
    production; Supabase's documentation says the same.
 
-4. **Branch settings.** Under `[remotes.staging.auth]`: `site_url` is the staging Vercel URL and
-   `additional_redirect_urls` the preview URLs (decision 7). Branch secrets are separate from production:
+4. **Branch settings.** Under `[remotes.staging.auth]`: `site_url` is `https://atlas-staging.ghxstship.tech` and
+   `additional_redirect_urls` holds `https://atlas-staging.ghxstship.tech/auth/callback**`,
+   `https://gateway-staging.ghxstship.tech/auth/callback**` and the preview URLs (decisions 7 and 63). Branch secrets are separate from production:
    `supabase secrets set --project-ref <branch ref> ...` with staging values (Resend with
    `XOS_EMAIL_ALLOWLIST`, Stripe test keys, `XOS_ENVIRONMENT=staging`).
-5. **Vercel previews.** Either install the Supabase Vercel integration, which writes each preview branch's
-   variables into Vercel's Preview environment when a pull request opens, or scope the Preview environment
-   variables of `atlas` and `gateway` to the persistent `staging` branch's values. The second is simpler and
-   costs no per-PR branches; the first gives each pull request its own database.
+5. **Vercel previews.** The Preview environment variables of `atlas`, `gateway` and `console` point at the
+   persistent `staging` branch's values (ADR 0033, decision 63). No database is made per pull request, and the
+   Supabase Vercel integration is not installed.
 6. **CI.** `STAGING_DB_URL` and the `XOS_STAGING_*` variables point at the staging branch (step 14). The
    `database` job keeps using a local stack; nothing in CI connects to production.
 7. **Verify.** The staging branch has the demo tenant (`owner@example.com` signs in); a dry run of

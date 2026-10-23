@@ -5,7 +5,7 @@ This is the operational runbook for the Incident Response Policy (`legal/policie
 ## First 15 minutes
 
 1. **Acknowledge** the alert in the on-call channel: "I have it." You are the Incident Commander (IC) until you hand over.
-2. **Confirm impact.** Open the status page and the failing check's latest run (GitHub Actions, workflow `synthetics`), then try the journey yourself in a private window.
+2. **Confirm impact.** Open the status page (`https://status.ghxstship.tech`) and the failing check's latest run (GitHub Actions, workflow `synthetics`), then try the journey yourself in a private window.
 3. **Assign a severity** with the policy's table:
 
    | Severity | Examples                                                                                                    | Response start      |
