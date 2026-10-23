@@ -120,6 +120,25 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   },
   "certification.expiring": { title: "First Aid", days: "30", expiresOn: "2026-11-20" },
   "document.expiring": { kind: "passport", title: "passport", days: "1", expiresOn: "2026-10-22" },
+  // A90: marketplace moderation (1473), as private.notify_moderation_decision and console_decide_appeal store them.
+  "listing.moderated": {
+    title: "Festival Riggers",
+    action: "Removed",
+    ground: "Terms Violation",
+    ruleReference: "Marketplace rules 4.2",
+    statement: "The listing asks applicants for a registration fee.",
+    appealUntil: "2027-04-19T12:00:00Z",
+  },
+  "listing_report.decided": {
+    title: "Festival Riggers",
+    action: "Removed",
+    statement: "The listing asks applicants for a registration fee.",
+  },
+  "moderation_appeal.decided": {
+    title: "Festival Riggers",
+    outcome: "Upheld",
+    statement: "The fee request breaks the marketplace rules.",
+  },
 };
 
 function kindsOf(tree: Tree, prefix = ""): string[] {
