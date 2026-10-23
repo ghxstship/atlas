@@ -1552,7 +1552,7 @@
     },
     "quietHours": {
       "title": "Quiet hours",
-      "help": "Push notifications from organizations you are not a member of wait until your quiet hours end. Safety alerts and changes to a shift starting within 12 hours still reach you. Email is never held.",
+      "help": "Push notifications from organizations you are not a member of wait until your quiet hours end. Safety alerts, changes to your sign-in security and a new or changed shift starting within 12 hours still reach you. Email is never held.",
       "start": "Start",
       "end": "End",
       "zone": "Time zone",

@@ -71,8 +71,17 @@ const TARGETS: Readonly<Record<string, string>> = {
 
 export function inboxTarget(
   org: string,
-  item: Pick<InboxItem, "subjectTable" | "kind"> & { readonly args?: InboxItem["args"] },
+  item: Pick<InboxItem, "subjectTable" | "kind"> & {
+    readonly subjectId?: InboxItem["subjectId"];
+    readonly args?: InboxItem["args"];
+  },
 ): string | null {
+  // A delivered report (owner decision 39, 1621) opens the report in Saved reports, with its panel open.
+  if (item.subjectTable === "app.report_definitions") {
+    return item.subjectId
+      ? `/${org}/reports/saved-reports?peek=${encodeURIComponent(item.subjectId)}`
+      : `/${org}/reports/saved-reports`;
+  }
   // A record opens itself when the notification carries its key. Without the key only an assignment (1394) has
   // somewhere to go: My Work lists the records a person is assigned to, not those they comment on or are mentioned in.
   if (item.subjectTable === "app.records") {

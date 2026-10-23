@@ -70,8 +70,9 @@ async function recordTarget(
 }
 
 /**
- * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, else the
- * org's Inbox; in Gateway, Home. A path, never a full URL: the service worker resolves it on its own origin.
+ * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, a delivered
+ * report's report (decision 39), else the org's Inbox; in Gateway, Home. A path, never a full URL: the service worker
+ * resolves it on its own origin.
  */
 export async function webPushLink(
   db: PlatformDb,
@@ -81,6 +82,8 @@ export async function webPushLink(
   if (app === "Gateway") return "/home";
   const target = await recordTarget(db, claim);
   if (target.slug === null) return "/";
+  if (claim.subjectTable === "app.report_definitions" && claim.subjectId !== null)
+    return `/${target.slug}/reports/saved-reports?peek=${encodeURIComponent(claim.subjectId)}`;
   return target.recordKey === null
     ? `/${target.slug}/inbox`
     : `/${target.slug}/r/${target.recordKey}`;

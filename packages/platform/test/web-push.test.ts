@@ -506,5 +506,9 @@ describe("the Web Push stores over the 1533 RPCs", () => {
     );
     expect(await webPushLink(db, base, "Gateway")).toBe("/home");
     expect(await webPushLink(db, { ...base, orgId: "gone" }, "Atlas")).toBe("/");
+    // A delivered report opens its report in Saved reports (decision 39), as its Inbox item does.
+    const report = { orgId: "o1", subjectTable: "app.report_definitions", subjectId: "rd1" };
+    expect(await webPushLink(db, report, "Atlas")).toBe("/northwind/reports/saved-reports?peek=rd1");
+    expect(await webPushLink(db, report, "Gateway")).toBe("/home");
   });
 });

@@ -33,10 +33,11 @@
 #
 # Quiet hours (ADR 0033 decision 35): texts and pushes wait out the person's quiet hours, and texts also wait
 # out 21:00 to 08:00 in their time zone when they set none; held texts go out as one summary. Only the kinds
-# flagged bypasses_quiet_hours below go at once, and the list stays short: safety alerts, and a change to a
-# shift starting within 12 hours (`starts_within_hours`, read from the startsAt argument). A mandatory or
-# urgent category alone never bypasses. Sign-in and verification codes are sent by Supabase Auth itself, never
-# through this queue, so they are never held.
+# flagged bypasses_quiet_hours below go at once, and the list stays short: safety alerts, a change to the
+# person's sign-in security, emergency access taken in their org, and a shift assigned or changed that starts
+# within 12 hours (`starts_within_hours`, read from the startsAt argument; owner decision 24, 2026-10-23).
+# Billing notices wait until morning. A mandatory or urgent category alone never bypasses. Sign-in and
+# verification codes are sent by Supabase Auth itself, never through this queue, so they are never held.
 
 version: 1
 
@@ -159,6 +160,8 @@ kinds:
   # Schedule (0520, 0800)
   - kind: shift.assigned
     category: schedule
+    bypasses_quiet_hours:
+      starts_within_hours: 12
     emitted_by:
       - emitter: supabase/migrations/1394_notification_kind_emitters.sql#private.notify_shift_change
         test: supabase/tests/1394_notification_kind_emitters.test.sql
@@ -217,6 +220,7 @@ kinds:
   # Account (0520, 0560, 1203, 1560, 1561)
   - kind: account.security_changed
     category: account
+    bypasses_quiet_hours: true
     deferred:
       reason: "Security changes (password, email, phone, second factors, passkeys) happen in Supabase Auth and in the sign-in and step-up work, and none of those paths calls private.notify yet. A99's recovery codes and sessions send their own kinds."
       decision: "A follow-up to A77 and A99 (RRR-122, RRR-144) emits it from the password, email, phone and factor change paths; no owner decision pending"
@@ -244,6 +248,7 @@ kinds:
         test: supabase/tests/0560_billing.test.sql
   - kind: access.break_glass_started
     category: account
+    bypasses_quiet_hours: true
     emitted_by:
       - emitter: supabase/migrations/1203_break_glass_sessions.sql#app.start_break_glass
         test: supabase/tests/1203_break_glass_sessions.test.sql
@@ -320,13 +325,14 @@ kinds:
       # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
       - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#app.console_decide_appeal
         test: supabase/tests/1473_moderation_console.test.sql
-  # Reports and imports (0520)
+  # Reports and imports (0520). A delivered report reaches the Inbox and a push only (owner decision 39): the
+  # report.deliver worker's own email (1127, packages/data report-deliveries.ts) stays the only email.
   - kind: report.delivered
     category: reports
-    email_template: report_delivery
-    deferred:
-      reason: "The report.deliver worker (1127, packages/data report-deliveries.ts) emails each scheduled report itself; its report_delivery template needs an absolute download link the database cannot build, and a second email would repeat the first."
-      decision: "Owner decision pending: whether a delivered report also reaches the recipient's Inbox"
+    channels: [In App, Push]
+    emitted_by:
+      - emitter: supabase/migrations/1621_report_delivered_notice.sql#app.finish_report_delivery
+        test: supabase/tests/1621_report_delivered_notice.test.sql
   - kind: import.finished
     category: imports
     email_template: import_finished

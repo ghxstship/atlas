@@ -72,7 +72,7 @@ var NOTIFICATION_KINDS = [
     category: "schedule",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: { startsWithinHours: 12 },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.shift.assigned.subject",
@@ -192,7 +192,7 @@ var NOTIFICATION_KINDS = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.account.security_changed.subject",
@@ -252,7 +252,7 @@ var NOTIFICATION_KINDS = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.access.break_glass_started.subject",
@@ -418,10 +418,10 @@ var NOTIFICATION_KINDS = [
   {
     kind: "report.delivered",
     category: "reports",
-    emailTemplate: "report_delivery",
+    emailTemplate: "notification",
     pushCategory: null,
     quietHoursBypass: null,
-    channels: ["In App", "Email", "SMS", "Push"],
+    channels: ["In App", "Push"],
     copy: {
       subject: "kinds.report.delivered.subject",
       body: "kinds.report.delivered.body",
@@ -677,7 +677,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1569_notification_kind_seed.sql"
+"supabase/migrations/1620_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
@@ -1301,13 +1301,16 @@ async function recordTarget(db, claim) {
   };
 }
 /**
- * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, else the
- * org's Inbox; in Gateway, Home. A path, never a full URL: the service worker resolves it on its own origin.
+ * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, a delivered
+ * report's report (decision 39), else the org's Inbox; in Gateway, Home. A path, never a full URL: the service worker
+ * resolves it on its own origin.
  */
 async function webPushLink(db, claim, app) {
   if (app === "Gateway") return "/home";
   const target = await recordTarget(db, claim);
   if (target.slug === null) return "/";
+  if (claim.subjectTable === "app.report_definitions" && claim.subjectId !== null)
+    return `/${target.slug}/reports/saved-reports?peek=${encodeURIComponent(claim.subjectId)}`;
   return target.recordKey === null
     ? `/${target.slug}/inbox`
     : `/${target.slug}/r/${target.recordKey}`;
