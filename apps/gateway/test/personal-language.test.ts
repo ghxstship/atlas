@@ -68,7 +68,9 @@ describe("the person's own language in Gateway (locale.language)", () => {
       negotiateLocale({ cookie: "en-US", acceptLanguage: "en", production: true, own: "es-US" }),
     ).toBe("en-US");
     expect(negotiateLocale({ acceptLanguage: "en", production: true, own: "es-US" })).toBe("es-US");
-    expect(negotiateLocale({ acceptLanguage: "es", production: true, own: "fr-FR" })).toBe("es-US");
+    // A Beta locale the person chose applies (ADR 0053); a language XOS does not ship leaves it to the browser.
+    expect(negotiateLocale({ acceptLanguage: "es", production: true, own: "fr-FR" })).toBe("fr-FR");
+    expect(negotiateLocale({ acceptLanguage: "es", production: true, own: "nl-NL" })).toBe("es-US");
     expect(negotiateLocale({ acceptLanguage: "es", production: true, own: "en-XA" })).toBe("es-US");
   });
 

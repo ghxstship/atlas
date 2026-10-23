@@ -43,7 +43,9 @@ describe("locale negotiation", () => {
     ).toBe("es-US");
     expect(lockedLocale(org("es-US", true))).toBe("es-US");
     expect(lockedLocale(org("es-US"))).toBeNull();
-    expect(lockedLocale(org("fr-FR", true))).toBeNull();
+    // An org may lock a Beta locale (ADR 0053), whose catalog loads on demand; never a language XOS does not ship.
+    expect(lockedLocale(org("fr-FR", true))).toBe("fr-FR");
+    expect(lockedLocale(org("nl-NL", true))).toBeNull();
     // Unlocked, the device's choice still wins.
     expect(
       negotiateLocale({
@@ -72,8 +74,12 @@ describe("locale negotiation", () => {
         setting: { value: "en-US", source: "Default", locked: false },
       }),
     ).toBe("es-US");
-    expect(negotiateLocale({ acceptLanguage: "es", production: true, setting: org("fr-FR") })).toBe(
+    expect(negotiateLocale({ acceptLanguage: "es", production: true, setting: org("nl-NL") })).toBe(
       "es-US",
+    );
+    // A Beta locale someone chose applies, though the browser alone never picks one.
+    expect(negotiateLocale({ acceptLanguage: "es", production: true, setting: org("fr-FR") })).toBe(
+      "fr-FR",
     );
   });
 
