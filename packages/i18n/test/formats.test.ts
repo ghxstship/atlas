@@ -154,3 +154,23 @@ describe("postal addresses (Section 15)", () => {
     ]);
   });
 });
+
+describe("the region of a locale on an engine without Intl.Locale (Hermes, A93)", () => {
+  it("reads the region from the tag instead of throwing", async () => {
+    const { regionOfLocale, resolveUnitSystem } = await import("../src/formats/units.ts");
+    expect(regionOfLocale("es-US")).toBe("US");
+    const locale = Intl.Locale;
+    try {
+      // Compass runs on Hermes, which has no Intl.Locale.
+      (Intl as { Locale?: unknown }).Locale = undefined;
+      expect(regionOfLocale("es-US")).toBe("US");
+      expect(regionOfLocale("zh-Hant-TW")).toBe("TW");
+      expect(regionOfLocale("es-419")).toBe("419");
+      expect(regionOfLocale("fr")).toBeNull();
+      expect(resolveUnitSystem("jurisdiction", { locale: "en-US" })).toBe("imperial");
+      expect(resolveUnitSystem("jurisdiction", { locale: "de-DE" })).toBe("metric");
+    } finally {
+      (Intl as { Locale?: unknown }).Locale = locale;
+    }
+  });
+});
