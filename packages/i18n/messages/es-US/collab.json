@@ -49,5 +49,18 @@
     "openRecords": "{count, plural, =0 {No es responsable de registros abiertos} one {Responsable de # registro abierto} other {Responsable de # registros abiertos}}",
     "loading": "Cargando…",
     "unavailable": "No hay detalles que mostrar."
+  },
+  "history": {
+    "title": "Historial de campos",
+    "created": "Creado por {name}",
+    "changed": "{name} cambió {count, plural, one {# campo} other {# campos}}",
+    "deleted": "Eliminado por {name}",
+    "someone": "Alguien",
+    "masked": "Restringido",
+    "empty": "Todavía no hay cambios de campos registrados.",
+    "notSet": "Sin definir",
+    "trash": "En la papelera",
+    "restored": "Restaurado",
+    "unavailable": "No se pudo cargar el historial de campos."
   }
 }

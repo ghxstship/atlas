@@ -49,5 +49,18 @@
     "openRecords": "{count, plural, =0 {Owns no open records} one {Owns # open record} other {Owns # open records}}",
     "loading": "Loading…",
     "unavailable": "No details to show."
+  },
+  "history": {
+    "title": "Field history",
+    "created": "Created by {name}",
+    "changed": "{name} changed {count, plural, one {# field} other {# fields}}",
+    "deleted": "Deleted by {name}",
+    "someone": "Someone",
+    "masked": "Restricted",
+    "empty": "No field changes are recorded yet.",
+    "notSet": "Not set",
+    "trash": "In Trash",
+    "restored": "Restored",
+    "unavailable": "The field history could not be loaded."
   }
 }

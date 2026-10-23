@@ -8,7 +8,11 @@ import {
   sopStanding,
   type Sop,
 } from "@xos/data/knowledge";
+import { getFieldHistory } from "@xos/data/field-history";
 import { getFormatter } from "next-intl/server";
+import { FieldHistoryList } from "@/components/history/field-history-list";
+import { historyItems } from "@/lib/history/items";
+import { getTranslate } from "@/lib/shell/translate";
 import {
   acknowledgeSopAction,
   createSopAction,
@@ -38,6 +42,15 @@ import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 
 const VIEWS: readonly ViewKind[] = ["list", "table"];
+
+/** SOP fields its field history shows, labeled from the knowledge catalog. */
+const SOP_FIELD_LABELS: Readonly<Record<string, string>> = {
+  code: "sops.code",
+  title: "sops.sopTitle",
+  body: "sops.procedure",
+  version: "sops.version",
+  published_at: "sops.publishedAt",
+};
 const REFUSALS = "knowledge.refusals";
 
 function standingOf(s: Sop, t: Copy): KitState {
@@ -148,10 +161,13 @@ export async function SopsSection({
   );
 
   if (selected && state.full) {
-    const [fresh, acks] = await Promise.all([
+    const [fresh, acks, fieldHistory, tRoot] = await Promise.all([
       getSop(db, selected.id, me),
       listSopAcknowledgments(db, selected.id),
+      getFieldHistory(db, "app.sops", selected.id),
+      getTranslate(),
     ]);
+
     const sop = fresh.ok ? fresh.data : selected;
     return (
       <RecordPage
@@ -220,6 +236,28 @@ export async function SopsSection({
             </ul>
           )}
         </KitSection>
+        {fieldHistory.ok ? (
+          <FieldHistoryList
+            id={sop.id}
+            title={tRoot("collab.history.title")}
+            empty={tRoot("collab.history.empty")}
+            items={historyItems(fieldHistory.data, {
+              t: tRoot,
+              when: (iso) =>
+                format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
+              label: (field) => {
+                const key = SOP_FIELD_LABELS[field];
+                return key ? t(key) : null;
+              },
+              // Long procedure text shows its opening; the page shows the whole current text.
+              value: (field, v) => {
+                const text = typeof v === "string" ? v : JSON.stringify(v);
+                if (field === "published_at") return when(text);
+                return text.length > 160 ? `${text.slice(0, 157)}...` : text;
+              },
+            })}
+          />
+        ) : null}
         <CollabPanels ctx={ctx} table="app.sops" id={sop.id} />
       </RecordPage>
     );

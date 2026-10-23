@@ -13,7 +13,7 @@
 --     bulk_stale, so an undo never overwrites a later change by someone else.
 --   * A committed call answers the inverse rows (the values before), which undo sends back through the same RPC
 --     (server-side inverse), and writes one records.bulk_update style event per org to the audit ledger. Row changes
---     reach the ledger through each table's audit trail; app.records gains one here (field history, 1453).
+--     reach the ledger through each table's audit trail; app.records gains one here (field history, 1452).
 --   * Adding a resource is one row function, one registry row and one thin app RPC.
 
 -- Registry ---------------------------------------------------------------------------------------------------------

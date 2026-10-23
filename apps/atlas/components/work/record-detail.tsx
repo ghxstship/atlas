@@ -1,5 +1,8 @@
 import { listAttachments, type Attachment } from "@xos/data/attachments";
 import { listThreads, type Thread } from "@xos/data/comments";
+import { getFieldHistory, type HistoryEvent } from "@xos/data/field-history";
+import { FieldHistoryList } from "@/components/history/field-history-list";
+import { historyItems } from "@/lib/history/items";
 import { getActual, listDependencies, type Actual, type Dependency } from "@xos/data/schedule";
 import { getPunchItemForRecord } from "@xos/data/work-orders";
 import {
@@ -65,6 +68,8 @@ export interface RecordDetail {
   readonly watchId: string | null;
   readonly recurrence: Recurrence | null;
   readonly history: readonly StateEntry[];
+  /** Who changed which field and when, from the audit ledger (Section 4.10); null when unreadable. */
+  readonly fieldHistory: readonly HistoryEvent[] | null;
   readonly replans: readonly ReplanEntry[];
   readonly dependencies: readonly Dependency[];
   readonly siblings: readonly RecordSummary[];
@@ -109,6 +114,7 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     punch,
     threads,
     attachments,
+    fieldHistory,
   ] = await Promise.all([
     loadRecordMeta(ctx),
     capabilitySet(ctx),
@@ -130,6 +136,7 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     getPunchItemForRecord(db, record.id),
     listThreads(db, subject),
     listAttachments(db, subject),
+    getFieldHistory(db, "app.records", record.id),
   ]);
   return {
     record,
@@ -144,6 +151,7 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     watchId: must(watch, "watch")?.id ?? null,
     recurrence: must(recurrences, "recurrence").get(record.id) ?? null,
     history: must(history, "state history"),
+    fieldHistory: fieldHistory.ok ? fieldHistory.data : null,
     replans: must(replans, "replan log"),
     dependencies: must(deps, "dependencies"),
     siblings: must(siblings, "project records").filter((r) => r.id !== record.id),
@@ -206,6 +214,28 @@ export async function recordPropertyItems(detail: RecordDetail) {
     { label: t("work.fields.timeZone"), value: tz },
   ];
 }
+
+/**
+ * Labels of the record fields its field history shows; keys, the kind, numbering and bookkeeping
+ * columns are left out, and Trash is worded on its own.
+ */
+const RECORD_FIELD_LABELS: Readonly<Record<string, string>> = {
+  title: "work.fields.title",
+  record_subtype: "work.fields.subtype",
+  record_state: "work.columns.state",
+  phase_code: "work.fields.phase",
+  urid: "work.fields.urid",
+  xyz: "work.fields.xyz",
+  owner_party_id: "work.fields.owner",
+  accountable_party_id: "work.fields.accountable",
+  scope_node_id: "work.fields.scope",
+  starts_at: "work.fields.starts",
+  ends_at: "work.fields.ends",
+  due_at: "work.fields.due",
+  time_zone: "work.fields.timeZone",
+  blocker_text: "work.record.blockedBy",
+  replan_reason: "work.fields.replanReason",
+};
 
 /** The content column: state moves, editing, the kind's attributes, work, schedule and history. */
 export async function RecordBody({
@@ -333,6 +363,36 @@ export async function RecordBody({
           ))}
         </ol>
       </section>
+      {detail.fieldHistory ? (
+        <FieldHistoryList
+          id={record.id}
+          title={t("collab.history.title")}
+          empty={t("collab.history.empty")}
+          items={historyItems(detail.fieldHistory, {
+            t,
+            when: (iso) =>
+              format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
+            label: (field) => {
+              const key = RECORD_FIELD_LABELS[field];
+              return field === "deleted_at" ? t("collab.history.trash") : key ? t(key) : null;
+            },
+            value: (field, v) => {
+              const text = typeof v === "string" ? v : JSON.stringify(v);
+              if (field === "owner_party_id" || field === "accountable_party_id") {
+                return names[text] ?? t("work.values.unnamed");
+              }
+              if (field === "record_state") return t(`work.states.${text}`);
+              if (field === "phase_code") {
+                return meta.phases.find((p) => p.value === text)?.label ?? text;
+              }
+              if (field === "deleted_at") return when(text);
+              if (field === "starts_at" || field === "ends_at" || field === "due_at")
+                return when(text);
+              return text;
+            },
+          })}
+        />
+      ) : null}
       <section aria-labelledby={`replans-${record.id}`} className="flex flex-col gap-8">
         <h3 id={`replans-${record.id}`} className="m-0 text-label-13 font-semibold">
           {t("work.replans.title")}
