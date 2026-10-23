@@ -14,9 +14,15 @@ import {
 
 /**
  * The notification counterpart of the settings guard (A65-001, RRR-125): every registered kind names where it is
- * sent, the migration function that calls private.notify with it at its latest definition and a test that
- * observes the notification, or a recorded reason nothing sends it yet. A kind the preference matrix offers but
- * nothing creates, as shift.changed and incident.reported once were, cannot be added.
+ * sent, the migration function that calls private.notify with it and a test that observes the notification, or a
+ * recorded reason nothing sends it yet. A kind the preference matrix offers but nothing creates, as shift.changed
+ * and incident.reported once were, cannot be added.
+ *
+ * An emitter is checked at the definition the database runs, not at the file the registry names: the guard follows
+ * the function to its last `create function` across every migration. A later migration that redefines it, on this
+ * branch or on one merged later (orch-fix-settings' 1395 redefines the two approval emitters 1030 defines), passes
+ * while it still sends the kind and fails the moment it stops, or drops the function, without either branch having
+ * to know the other's file.
  */
 
 const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
@@ -30,39 +36,109 @@ function read(path: string): string {
   return readFileSync(join(repoRoot, path), "utf8");
 }
 
-/** Where `symbol` is defined in a migration: its last `create function` up to the end of its body. */
-function definition(source: string, symbol: string): string | null {
-  const name = symbol.replaceAll(".", "\\.");
-  const starts = [
-    ...source.matchAll(new RegExp(`create (or replace )?function ${name}\\s*\\(`, "gi")),
-  ];
-  const at = starts.at(-1)?.index;
-  if (at === undefined) return null;
-  const end = source.indexOf("\n$$;", at);
-  return source.slice(at, end < 0 ? undefined : end);
-}
-
 function migration(name: string): string {
   return read(`supabase/migrations/${name}`);
 }
 
+/** The parameter list after `(` at `open`, and how many parameters it holds (commas inside parentheses or quotes do not count). */
+function parameters(source: string, open: number): { list: string; count: number } {
+  let depth = 0;
+  let quoted = false;
+  let count = 0;
+  let any = false;
+  for (let i = open + 1; i < source.length; i++) {
+    const c = source[i];
+    if (quoted) {
+      if (c === "'") quoted = false;
+      continue;
+    }
+    if (c === "'") quoted = true;
+    else if (c === "(") depth++;
+    else if (c === ")") {
+      if (depth === 0) return { list: source.slice(open + 1, i), count: any ? count + 1 : 0 };
+      depth--;
+    } else if (c === "," && depth === 0) count++;
+    if (c !== undefined && !/\s/.test(c)) any = true;
+  }
+  return { list: source.slice(open + 1), count: any ? count + 1 : 0 };
+}
+
+type Event =
+  | { readonly kind: "create"; readonly arity: number; readonly body: string }
+  | { readonly kind: "drop"; readonly arity: number | null };
+
+/** Where one migration creates or drops `symbol`, in source order, with each create's `$$` body (not its signature). */
+function events(source: string, symbol: string): Event[] {
+  const name = symbol.replaceAll(".", "\\.");
+  const pattern = new RegExp(
+    `\\b(create(?:\\s+or\\s+replace)?\\s+function|drop\\s+function(?:\\s+if\\s+exists)?)\\s+${name}\\b\\s*(\\()?`,
+    "gi",
+  );
+  return [...source.matchAll(pattern)].map((m): Event => {
+    const at = m.index;
+    const open = m[2] === undefined ? -1 : at + m[0].length - 1;
+    const arity = open < 0 ? null : parameters(source, open).count;
+    if (m[1]?.toLowerCase().startsWith("drop")) return { kind: "drop", arity };
+    const opening = source.indexOf("$$", at);
+    const closing = opening < 0 ? -1 : source.indexOf("$$", opening + 2);
+    return {
+      kind: "create",
+      arity: arity ?? 0,
+      body: opening < 0 ? "" : source.slice(opening, closing < 0 ? undefined : closing + 2),
+    };
+  });
+}
+
 /**
- * Why an emitter reference no longer names the function's latest definition: the later migrations that redefine it,
- * where to point instead and whether that definition still sends the kind. Branches merged together meet this when
- * one redefines a function another's registry entry names. Null when the reference is the latest definition.
+ * The definition of `symbol` the database runs once every migration in `files` has applied: its last
+ * `create function`, with the migration that holds it, or the migration that drops it afterwards (a drop that names
+ * another overload's parameters leaves it standing). Null when no migration defines it.
  */
-function staleEmitter(
-  kind: string,
-  name: string,
+function latestDefinition(
   symbol: string,
   files: readonly string[],
   source: (name: string) => string,
-): string | null {
-  const later = files.filter((m) => m > name && definition(source(m), symbol) !== null);
-  const latest = later.at(-1);
-  if (latest === undefined) return null;
-  const keeps = definition(source(latest), symbol)?.includes(`'${kind}'`) ?? false;
-  return `${kind}: ${symbol} is redefined in ${later.join(", ")}; point emitted_by at supabase/migrations/${latest}#${symbol}${keeps ? "" : `, which no longer sends ${kind}`}`;
+): { readonly file: string; readonly body: string; readonly droppedIn: string | null } | null {
+  let latest: { file: string; body: string; arity: number; droppedIn: string | null } | null = null;
+  for (const file of files) {
+    for (const e of events(source(file), symbol)) {
+      if (e.kind === "create") latest = { file, body: e.body, arity: e.arity, droppedIn: null };
+      else if (latest !== null && (e.arity === null || e.arity === latest.arity))
+        latest.droppedIn = file;
+    }
+  }
+  return latest === null
+    ? null
+    : { file: latest.file, body: latest.body, droppedIn: latest.droppedIn };
+}
+
+/**
+ * What is wrong with a migration emitter `file#symbol` for `kind`: the named migration must define the function,
+ * and the function's latest definition across `files` must still exist, name the kind and call private.notify.
+ * Empty when the emitter holds.
+ */
+function emitterIssues(
+  kind: string,
+  file: string,
+  symbol: string,
+  files: readonly string[],
+  source: (name: string) => string,
+): string[] {
+  if (!files.includes(file)) return [`${kind}: supabase/migrations/${file} does not exist`];
+  if (!events(source(file), symbol).some((e) => e.kind === "create"))
+    return [`${kind}: ${file} does not define ${symbol}`];
+  const latest = latestDefinition(symbol, files, source);
+  if (latest === null) return [`${kind}: no migration defines ${symbol}`];
+  const where = latest.file === file ? file : `${latest.file} (its latest definition)`;
+  if (latest.droppedIn !== null)
+    return [`${kind}: ${symbol} is dropped in ${latest.droppedIn} and nothing defines it again`];
+  const issues: string[] = [];
+  if (!latest.body.includes(`'${kind}'`))
+    issues.push(`${kind}: ${symbol} in ${where} does not name the kind`);
+  // private.notify itself or one of its private.notify_* wrappers (notify_account, notify_invoice_party).
+  if (!/\bprivate\.notify\w*\s*\(/.test(latest.body))
+    issues.push(`${kind}: ${symbol} in ${where} does not call private.notify`);
+  return issues;
 }
 
 describe("every notification kind is sent or says why not", () => {
@@ -82,15 +158,8 @@ describe("every notification kind is sent or says why not", () => {
           `${kind}: ${file}`,
         ).toBe(true);
         if (symbol !== undefined && file.startsWith("supabase/migrations/")) {
-          const body = definition(source, symbol);
-          expect(body, `${kind}: ${file} defines ${symbol}`).not.toBeNull();
-          expect(body?.includes(`'${kind}'`), `${kind}: ${symbol} names the kind`).toBe(true);
-          expect(body?.includes("private.notify"), `${kind}: ${symbol} calls private.notify`).toBe(
-            true,
-          );
-          // A later migration that redefines the function must take over the reference, with the kind.
           const name = file.slice("supabase/migrations/".length);
-          expect(staleEmitter(kind, name, symbol, migrations, migration)).toBeNull();
+          expect(emitterIssues(kind, name, symbol, migrations, migration)).toEqual([]);
         } else if (symbol !== undefined) {
           expect(source.includes(symbol), `${kind}: ${file} defines ${symbol}`).toBe(true);
         }
@@ -100,24 +169,63 @@ describe("every notification kind is sent or says why not", () => {
     });
   }
 
-  it("names where to point when a merged migration redefines an emitter", () => {
+  it("follows an emitter to its latest definition, wherever a merge puts it", () => {
     // Synthetic migrations, so the case holds whatever the repository's own migrations redefine.
-    const [first, merged] = ["0001_first.sql", "0002_merged_branch.sql"];
+    const [first, merged, later] = ["0001_first.sql", "0002_merged_branch.sql", "0003_later.sql"];
     const symbol = "private.notify_step_approvers";
     const definitionWith = (body: string) =>
-      `create or replace function ${symbol}(p_instance app.approval_instances)\nreturns void\nas $$\nbegin\n  ${body}\nend;\n$$;\n`;
+      `create or replace function ${symbol}(p_instance app.approval_instances)\nreturns void\nlanguage plpgsql\nas $$\nbegin\n  ${body}\nend;\n$$;\n`;
     const sends = definitionWith(
       "perform private.notify(p_instance.org_id, v_person, 'approval.requested');",
     );
-    const keeps = () => sends;
-    const drops = (name: string) => (name === merged ? definitionWith("return;") : sends);
-    expect(staleEmitter("approval.requested", first, symbol, [first, merged], keeps)).toBe(
-      `approval.requested: ${symbol} is redefined in ${merged}; point emitted_by at supabase/migrations/${merged}#${symbol}`,
-    );
-    expect(staleEmitter("approval.requested", first, symbol, [first, merged], drops)).toMatch(
-      /, which no longer sends approval\.requested$/,
-    );
-    expect(staleEmitter("approval.requested", merged, symbol, [first, merged], keeps)).toBeNull();
+    const files = (texts: Record<string, string>) => ({
+      names: Object.keys(texts).sort(),
+      source: (name: string) => texts[name] ?? "",
+    });
+    const issues = (named: string, texts: Record<string, string>) => {
+      const { names, source } = files(texts);
+      return emitterIssues("approval.requested", named, symbol, names, source);
+    };
+
+    // A merged branch redefines the emitter and still sends the kind: the entry at the first file holds, and so
+    // does one pointed at the redefinition.
+    const kept = { [first]: sends, [merged]: sends };
+    expect(issues(first, kept)).toEqual([]);
+    expect(issues(merged, kept)).toEqual([]);
+    expect(latestDefinition(symbol, files(kept).names, files(kept).source)?.file).toBe(merged);
+
+    // The redefinition stops sending it: the guard fails at the definition the database runs.
+    expect(issues(first, { [first]: sends, [merged]: definitionWith("return;") })).toEqual([
+      `approval.requested: ${symbol} in ${merged} (its latest definition) does not name the kind`,
+      `approval.requested: ${symbol} in ${merged} (its latest definition) does not call private.notify`,
+    ]);
+
+    // A later drop of the same signature removes it; a drop of another overload leaves it standing.
+    expect(
+      issues(first, {
+        [first]: sends,
+        [later]: `drop function ${symbol}(app.approval_instances);\n`,
+      }),
+    ).toEqual([
+      `approval.requested: ${symbol} is dropped in ${later} and nothing defines it again`,
+    ]);
+    expect(
+      issues(first, { [first]: sends, [later]: `drop function ${symbol}(uuid, smallint);\n` }),
+    ).toEqual([]);
+    expect(
+      issues(first, {
+        [first]: sends,
+        [merged]: `drop function ${symbol}(app.approval_instances);\n${sends}`,
+      }),
+    ).toEqual([]);
+
+    // The named file must define the function, and a longer name is a different function.
+    expect(issues(first, { [first]: sends.replace(symbol, `${symbol}_v2`) })).toEqual([
+      `approval.requested: ${first} does not define ${symbol}`,
+    ]);
+    expect(issues(later, kept)).toEqual([
+      `approval.requested: supabase/migrations/${later} does not exist`,
+    ]);
   });
 
   it("defers only the kinds that wait on a recorded decision", () => {

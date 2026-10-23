@@ -24,8 +24,10 @@
 #                    bypasses_quiet_hours for the few kinds that reach a person even during quiet hours, and
 #                    either emitted_by or deferred:
 #     emitted_by:    every place that sends the kind: the migration function (or module) that calls private.notify
-#                    with it, as path#symbol at its latest definition, and the test that observes the notification.
-#                    test/notifications/emitters.test.ts checks each one, so a kind nothing sends cannot be added.
+#                    with it, as path#symbol of a migration that defines it, and the test that observes the
+#                    notification. test/notifications/emitters.test.ts checks each one at the function's latest
+#                    definition across every migration, so a later redefinition (yours or a merged branch's) passes
+#                    while it still sends the kind, and a kind nothing sends cannot be added.
 #     deferred:      { reason, decision } for a kind nothing sends yet, naming the owner decision or work package
 #                    it waits on (RRR-125).
 #
