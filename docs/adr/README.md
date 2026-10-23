@@ -46,7 +46,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0040](0040-calendar-feeds-and-project-inbox.md)                    | Calendar Feeds Served and the Project Inbox Surface                              | Proposed |
 | [0041](0041-compliance-forms-and-state-overtime.md)                 | Compliance Forms and State Overtime                                              | Accepted |
 | [0043](0043-global-search.md)                                       | Global Search, Recents and Semantic Search with gte-small                        | Accepted |
-| [0044](0044-collaboration-and-power-editing.md)           | Collaboration and Power Editing                                                  | Accepted |
+| [0044](0044-collaboration-and-power-editing.md)                     | Collaboration and Power Editing                                                  | Accepted |
 | [0045](0045-marketplace-alerts-recommendations-and-gateway-gaps.md) | Marketplace Alerts, Recommendations, Expiry Reminders and Gateway Gaps           | Accepted |
 | [0046](0046-operator-console.md)                                    | The Operator Console                                                             | Proposed |
 | [0047](0047-automation-engine.md)                                   | Automation Engine                                                                | Proposed |
