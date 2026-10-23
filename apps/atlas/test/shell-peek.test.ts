@@ -1,3 +1,4 @@
+import { toDataError } from "@xos/data";
 import { getMessages, locales } from "@xos/i18n";
 import { createElement } from "react";
 import { describe, expect, it } from "vitest";
@@ -5,6 +6,7 @@ import { pageOwnsPeek, peekHref, shellOpensPeek, shellPeekMode } from "../lib/sh
 import {
   handOffPeek,
   peekHandoffs,
+  peekRowMissing,
   serverPeekHandoffs,
   subscribePeekHandoffs,
   unshownPeekKey,
@@ -110,6 +112,24 @@ describe("the shell's global ?peek hook", () => {
     expect(unshownPeekKey("NWS-12", [null, panel])).toBeNull();
     expect(unshownPeekKey(null, null)).toBeNull();
     expect(unshownPeekKey("", null)).toBeNull();
+  });
+
+  it("counts a ?peek key the collection has no row for as missing, and nothing else", () => {
+    // A record key read as a timesheet's id: Postgres rejects it as a UUID before any row is read.
+    const foreign = toDataError({
+      code: "22P02",
+      message: 'invalid input syntax for type uuid: "NWS-12"',
+    });
+    expect(foreign.kind).toBe("invalid");
+    expect(peekRowMissing(foreign)).toBe(true);
+    expect(peekRowMissing({ kind: "not-found" })).toBe(true);
+    expect(peekRowMissing(toDataError({ code: "42501", message: "permission denied" }))).toBe(true);
+    // A refusal, a conflict or a broken read is the page's to raise, not a key to hand over.
+    const refusal = toDataError({ code: "XR001", message: "crew.timesheet.locked: Locked." });
+    expect(refusal.kind).toBe("refusal");
+    expect(peekRowMissing(refusal)).toBe(false);
+    expect(peekRowMissing(toDataError({ code: "23505", message: "duplicate key" }))).toBe(false);
+    expect(peekRowMissing(toDataError({ message: "fetch failed" }))).toBe(false);
   });
 
   it("keeps hand-offs in a store the shell subscribes to until each is released", () => {

@@ -14,48 +14,57 @@ import { describe, expect, it } from "vitest";
 import { pageOwnsPeek } from "@/lib/shell/peek";
 
 /**
- * Collection pages that answer a `?peek` key with no row themselves, so they keep that and never hand
- * the key to the shell. Keyed by the page's directory under app/[org]; each names its not-found state.
+ * Code that reads `?peek` and answers a key with no row itself, so it keeps that and never hands the
+ * key to the shell. Keyed by the reading declaration (`file#name` under apps/atlas), not the page, so
+ * a section added to a project tab beside one of these still has to hand its unshown keys over; each
+ * names its not-found state.
  */
 const OWN_NOT_FOUND: Readonly<Record<string, string>> = {
   // The assets peek drawer names the key it found no row for (assets.*.notFound).
-  "assets/asset-classes": "the peek says assets.classes.notFound",
-  "assets/custody-ledger": "the peek says assets.custody.notFound",
-  "assets/damage": "the peek says assets.damage.notFound",
-  "assets/lots": "the peek says assets.lots.notFound",
-  "assets/maintenance": "the peek says assets.maintenance.notFound",
-  "assets/units": "UnitsView says assets.units.notFound in the peek and on the full page",
-  "p/[projectKey]/assets": "UnitsView, as on Assets > Units",
+  "app/[org]/assets/asset-classes/page.tsx#AssetClassesPage":
+    "the peek says assets.classes.notFound",
+  "app/[org]/assets/custody-ledger/page.tsx#CustodyLedgerPage":
+    "the peek says assets.custody.notFound",
+  "app/[org]/assets/damage/page.tsx#DamagePage": "the peek says assets.damage.notFound",
+  "app/[org]/assets/lots/page.tsx#LotsPage": "the peek says assets.lots.notFound",
+  "app/[org]/assets/maintenance/page.tsx#MaintenancePage":
+    "the peek says assets.maintenance.notFound",
+  "components/assets/units-view.tsx#UnitsView":
+    "assets.units.notFound in the peek and on the full page",
   // Advancing answers 404 (notFound) for a packet, rider, reconciliation run or guest it cannot show.
-  "advancing/packets": "PacketPeek answers 404",
-  "advancing/reconciliation": "a run outside the list answers 404",
-  "advancing/riders": "a rider outside the list answers 404",
-  "p/[projectKey]/advancing": "packets, riders, reconciliation and guests answer 404",
+  "components/advancing/guests.tsx#GuestList": "a guest outside the list answers 404",
+  "components/advancing/packets.tsx#PacketsCollection": "PacketPeek answers 404",
+  "components/advancing/reconciliation.tsx#ReconciliationCollection":
+    "a run outside the list answers 404",
+  "components/advancing/riders.tsx#RidersCollection": "a rider outside the list answers 404",
   // Credentials and incidents show RecordMissing (credentials.common.recordMissing) with Back to list.
-  "credentials/categories": "CategoryRecord shows RecordMissing",
-  "credentials/issued": "CredentialRecord shows RecordMissing",
-  "p/[projectKey]/credentials": "CategoryRecord and CredentialRecord show RecordMissing",
-  "safety/dispatch-board": "IncidentRecord shows RecordMissing",
-  "safety/emergency-codes": "CodeRecord shows RecordMissing",
-  "safety/incidents": "IncidentRecord shows RecordMissing",
-  "safety/radio-channels": "ChannelRecord shows RecordMissing",
+  "components/credentials/sections.tsx#CategoriesSection": "CategoryRecord shows RecordMissing",
+  "components/credentials/sections.tsx#IssuedSection": "CredentialRecord shows RecordMissing",
+  "components/incidents/sections.tsx#DispatchBoardSection": "IncidentRecord shows RecordMissing",
+  "components/incidents/sections.tsx#EmergencyCodesSection": "CodeRecord shows RecordMissing",
+  "components/incidents/sections.tsx#IncidentsSection": "IncidentRecord shows RecordMissing",
+  "components/incidents/sections.tsx#RadioChannelsSection": "ChannelRecord shows RecordMissing",
   // Logistics and hospitality put a RefusalNotice (common.peekMissing) where the record would be.
-  "hospitality/accommodation-blocks": "BlocksSection shows common.peekMissing",
-  "hospitality/beos": "BeosSection shows common.peekMissing",
-  "hospitality/fulfillments": "FulfillmentsSection shows common.peekMissing",
-  "p/[projectKey]/hospitality": "the hospitality sections show common.peekMissing",
-  "logistics/dock-schedule": "DockSection shows common.peekMissing",
-  "logistics/marshalling-yard-log": "YardSection shows common.peekMissing",
-  "logistics/shipments": "ShipmentsSection shows common.peekMissing",
-  "p/[projectKey]/logistics": "the logistics sections show common.peekMissing",
+  "components/logistics-hospitality/beos.tsx#BeosSection": "BeosSection shows common.peekMissing",
+  "components/logistics-hospitality/blocks.tsx#BlocksSection":
+    "BlocksSection shows common.peekMissing",
+  "components/logistics-hospitality/dock.tsx#DockSection": "DockSection shows common.peekMissing",
+  "components/logistics-hospitality/fulfillments.tsx#FulfillmentsSection":
+    "FulfillmentsSection shows common.peekMissing",
+  "components/logistics-hospitality/shipments.tsx#ShipmentsSection":
+    "ShipmentsSection shows common.peekMissing",
+  "components/logistics-hospitality/yard.tsx#YardSection": "YardSection shows common.peekMissing",
   // Places and safety open their drawer with places.kit.peekMissing in it.
-  "places/capability-documents": "the drawer shows places.kit.peekMissing",
-  "places/site-plans": "the drawer shows places.kit.peekMissing",
-  "places/venues": "VenueDetail shows places.kit.peekMissing",
-  "safety/inspection-templates": "the drawer shows places.kit.peekMissing",
-  "safety/inspections": "the drawer shows places.kit.peekMissing",
-  "safety/permits": "the drawer shows places.kit.peekMissing",
-  "p/[projectKey]/safety": "PermitsView's drawer shows places.kit.peekMissing",
+  "components/places/documents/documents-page.tsx#DocumentsPage":
+    "the drawer shows places.kit.peekMissing",
+  "components/places/plans/plans-page.tsx#PlansPage": "the drawer shows places.kit.peekMissing",
+  "components/places/venues/venues-page.tsx#VenuesPage": "VenueDetail shows places.kit.peekMissing",
+  "components/safety/inspections/inspections-page.tsx#InspectionsView":
+    "the drawer shows places.kit.peekMissing",
+  "components/safety/permits/permits-page.tsx#PermitsView":
+    "the drawer shows places.kit.peekMissing",
+  "components/safety/templates/templates-page.tsx#TemplatesPage":
+    "the drawer shows places.kit.peekMissing",
 };
 
 const atlas = fileURLToPath(new URL("../", import.meta.url));
@@ -255,11 +264,11 @@ const SAMPLE: Readonly<Record<string, string>> = {
 };
 
 interface Page {
-  /** The page's directory under app/[org], as OWN_NOT_FOUND names it. */
+  /** The page's directory under app/[org]. */
   readonly page: string;
   /** Whether the shell leaves `?peek` on the page's route to the page (pageOwnsPeek). */
   readonly ownsPeek: boolean;
-  /** The declarations the page reaches that read `?peek`, and whether each hands a key over. */
+  /** The declarations the page reaches that read `?peek` (`file#name`), and whether each hands off. */
   readonly readers: readonly { readonly at: string; readonly handsOff: boolean }[];
 }
 
@@ -304,23 +313,25 @@ describe("collection pages hand ?peek keys they cannot show to the shell", () =>
 
   it("hands an unshown key over wherever a collection page reads ?peek", () => {
     const silent = pages.flatMap((p) =>
-      p.ownsPeek && !(p.page in OWN_NOT_FOUND)
-        ? p.readers.filter((r) => !r.handsOff).map((r) => `${p.page}: ${r.at}`)
+      p.ownsPeek
+        ? p.readers
+            .filter((r) => !r.handsOff && !(r.at in OWN_NOT_FOUND))
+            .map((r) => `${p.page}: ${r.at}`)
         : [],
     );
     // Each reads ?peek and renders nothing for a key with no row: render collectionPeek or
-    // PeekHandoff there, or list the page in OWN_NOT_FOUND with the not-found state it shows.
+    // PeekHandoff there, or list the reader in OWN_NOT_FOUND with the not-found state it shows.
     expect(silent).toEqual([]);
   });
 
-  it("lists only collection pages that read ?peek and still answer a key themselves", () => {
-    for (const [page, why] of Object.entries(OWN_NOT_FOUND)) {
-      const found = byPage.get(page);
-      expect(found, `${page} is a page`).toBeDefined();
-      expect(found?.ownsPeek, `${page} is a collection page`).toBe(true);
+  it("lists only readers a collection page renders that still answer a key themselves", () => {
+    const readers = pages.filter((p) => p.ownsPeek).flatMap((p) => p.readers);
+    for (const [at, why] of Object.entries(OWN_NOT_FOUND)) {
+      const found = readers.filter((r) => r.at === at);
+      expect(found.length, `a collection page renders ${at}`).toBeGreaterThan(0);
       expect(
-        found?.readers.some((r) => !r.handsOff),
-        `${page} still answers a ?peek key itself (${why})`,
+        found.every((r) => !r.handsOff),
+        `${at} still answers a ?peek key itself (${why})`,
       ).toBe(true);
     }
   });

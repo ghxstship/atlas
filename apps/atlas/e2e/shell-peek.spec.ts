@@ -82,6 +82,20 @@ test("a collection hands the shell a key it has no row for", async ({ page }) =>
   await expect(page).toHaveURL(new RegExp(`/${ORG}/vendors/directory$`));
 });
 
+test("a collection that reads its rows by id hands over a record key", async ({ page }) => {
+  await signIn(page, "owner@example.com");
+  // Timesheets read the peeked row by UUID, which Postgres refuses for NWS-12 (22P02): the page
+  // counts that as no row and hands the key over instead of failing into its error boundary.
+  await page.goto(`/${ORG}/crew/timesheets?peek=NWS-12`);
+  const peek = page.getByRole("dialog", { name: /Production Meeting/ });
+  await expect(peek).toBeVisible();
+  await expect(peek.getByText("NWS-12")).toBeVisible();
+  await settled(page);
+  await page.keyboard.press("Escape");
+  await expect(peek).toBeHidden();
+  await expect(page).toHaveURL(new RegExp(`/${ORG}/crew/timesheets$`));
+});
+
 test("a collection hands the shell a stale key, which names the problem", async ({ page }) => {
   await signIn(page, "owner@example.com");
   // NWS-99999 names no record (a link to one since deleted): All records has no row for it, so it
