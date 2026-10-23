@@ -31,12 +31,6 @@ const OWN_NOT_FOUND: Readonly<Record<string, string>> = {
     "the peek says assets.maintenance.notFound",
   "components/assets/units-view.tsx#UnitsView":
     "assets.units.notFound in the peek and on the full page",
-  // Advancing answers 404 (notFound) for a packet, rider, reconciliation run or guest it cannot show.
-  "components/advancing/guests.tsx#GuestList": "a guest outside the list answers 404",
-  "components/advancing/packets.tsx#PacketsCollection": "PacketPeek answers 404",
-  "components/advancing/reconciliation.tsx#ReconciliationCollection":
-    "a run outside the list answers 404",
-  "components/advancing/riders.tsx#RidersCollection": "a rider outside the list answers 404",
   // Credentials and incidents show RecordMissing (credentials.common.recordMissing) with Back to list.
   "components/credentials/sections.tsx#CategoriesSection": "CategoryRecord shows RecordMissing",
   "components/credentials/sections.tsx#IssuedSection": "CredentialRecord shows RecordMissing",

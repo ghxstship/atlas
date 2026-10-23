@@ -11,6 +11,7 @@ import type { Route } from "next";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
 import { RiderExtraction } from "@/components/aurora/rider-extraction";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { EmptyStateLink } from "@/components/ui";
 import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
@@ -24,7 +25,7 @@ import {
   RiderDetailsForm,
   RiderLineRow,
 } from "./forms";
-import { pickView, Property, withQuery, type Search } from "./shared";
+import { isRowId, pickView, Property, withQuery, type Search } from "./shared";
 import { PageHeader, ProgressBar, StateChip, Tag, TemplateRecord } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
 
@@ -94,8 +95,10 @@ export async function RidersCollection({
   const fixedProject = actx.project !== null && search["project"] === undefined;
   const lines = (r: RiderSummary) =>
     t("advancing.riders.fulfilled", { fulfilled: r.fulfilledCount, total: r.lineCount });
+  // A key that is no rider id (a record key from elsewhere) goes to the shell's peek; an id outside
+  // the list answers 404.
   const peekRider = peekId ? riders.find((r) => r.id === peekId) : undefined;
-  if (peekId && !peekRider) notFound();
+  if (peekId && isRowId(peekId) && !peekRider) notFound();
 
   return (
     <div className="flex flex-col gap-12 min-w-0">
@@ -203,18 +206,21 @@ export async function RidersCollection({
           })}
         </ul>
       )}
-      {peekRider ? (
-        <PeekPanel
-          title={peekRider.title}
-          state={riderState(peekRider).state}
-          stateLabel={t(`advancing.riders.states.${riderState(peekRider).key}`)}
-          properties={[
-            { label: t("advancing.common.project"), value: projectKey(peekRider.projectId) },
-            { label: t("advancing.riders.columns.party"), value: partyName(peekRider, t) },
-            { label: t("advancing.riders.columns.lines"), value: lines(peekRider) },
-          ]}
-        />
-      ) : null}
+      {collectionPeek(
+        peekId,
+        peekRider ? (
+          <PeekPanel
+            title={peekRider.title}
+            state={riderState(peekRider).state}
+            stateLabel={t(`advancing.riders.states.${riderState(peekRider).key}`)}
+            properties={[
+              { label: t("advancing.common.project"), value: projectKey(peekRider.projectId) },
+              { label: t("advancing.riders.columns.party"), value: partyName(peekRider, t) },
+              { label: t("advancing.riders.columns.lines"), value: lines(peekRider) },
+            ]}
+          />
+        ) : null,
+      )}
     </div>
   );
 }

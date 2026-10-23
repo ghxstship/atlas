@@ -96,6 +96,20 @@ test("a collection that reads its rows by id hands over a record key", async ({ 
   await expect(page).toHaveURL(new RegExp(`/${ORG}/crew/timesheets$`));
 });
 
+test("advancing hands the shell a key that is no packet id", async ({ page }) => {
+  await signIn(page, "producer@example.com");
+  // Packets keep their 404 for a packet id they have no packet for, but NWS-12 is no packet id at
+  // all (a work record's key): the page hands it over and the shell opens the record.
+  await page.goto(`/${ORG}/advancing/packets?peek=NWS-12`);
+  await expect(page.getByRole("heading", { level: 1, name: "Packets" })).toBeVisible();
+  const peek = page.getByRole("dialog", { name: /Production Meeting/ });
+  await expect(peek).toBeVisible();
+  await settled(page);
+  await page.keyboard.press("Escape");
+  await expect(peek).toBeHidden();
+  await expect(page).toHaveURL(new RegExp(`/${ORG}/advancing/packets$`));
+});
+
 test("a collection hands the shell a stale key, which names the problem", async ({ page }) => {
   await signIn(page, "owner@example.com");
   // NWS-99999 names no record (a link to one since deleted): All records has no row for it, so it

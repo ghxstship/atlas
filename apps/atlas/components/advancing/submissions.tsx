@@ -8,12 +8,11 @@ import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
 import { ReviewForm } from "./forms";
-import { partyLabel, withQuery, type Search } from "./shared";
+import { isRowId, partyLabel, withQuery, type Search } from "./shared";
 import { PageHeader, Tag, TemplateSplitView } from "./ui";
 import { SelectFilter } from "./views";
 
 const FILTERS: readonly SubmissionFilter[] = ["unreviewed", "reviewed", "all"];
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
  * Submissions (Section 4.5.5, Split view template in Section 11.6): the review queue on the left,
@@ -177,7 +176,7 @@ export async function SubmissionsSplit({
           }
         />
       )}
-      {peekId && !UUID.test(peekId) ? <PeekHandoff recordKey={peekId} /> : null}
+      {peekId && !isRowId(peekId) ? <PeekHandoff recordKey={peekId} /> : null}
     </div>
   );
 }

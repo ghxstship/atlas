@@ -13,6 +13,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { EmptyStateLink } from "@/components/ui";
 import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getTranslate } from "@/lib/shell/translate";
@@ -33,6 +34,7 @@ import {
   SendPacketButton,
 } from "./forms";
 import {
+  isRowId,
   PACKET_RECORD_STATE,
   partyLabel,
   pickView,
@@ -98,7 +100,12 @@ export async function PacketsCollection({
     });
   const fixedProject = actx.project !== null && search["project"] === undefined;
 
-  const peek = peekId ? await PacketPeek({ actx, packetId: peekId }) : null;
+  // A key that is no packet id (a record key from elsewhere) goes to the shell's peek; an id
+  // with no packet here answers 404 (loadPacket).
+  const peek = collectionPeek(
+    peekId,
+    peekId && isRowId(peekId) ? await PacketPeek({ actx, packetId: peekId }) : null,
+  );
 
   return (
     <div className="flex flex-col gap-12 min-w-0">
