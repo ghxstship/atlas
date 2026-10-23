@@ -62,5 +62,18 @@
     "trash": "En la papelera",
     "restored": "Restaurado",
     "unavailable": "No se pudo cargar el historial de campos."
+  },
+  "coedit": {
+    "open": "Editar en conjunto",
+    "openNotes": "Abrir notas",
+    "notes": "Notas",
+    "notesHelp": "Notas que todas las personas con acceso editan en conjunto, en vivo.",
+    "loading": "Abriendo el documento…",
+    "error": "No se pudo abrir el documento. Vuelva a cargar la página para intentarlo de nuevo.",
+    "readOnly": "Puede leer en vivo; para editar necesita acceso de escritura.",
+    "saving": "Guardando…",
+    "offline": "Sin conexión. Sus cambios se quedan aquí y se envían al reconectarse.",
+    "saved": "Guardado. Todas las personas en el documento ven los cambios mientras escribe.",
+    "done": "Listo"
   }
 }

@@ -10,6 +10,7 @@ import {
 } from "@xos/data/knowledge";
 import { getFieldHistory } from "@xos/data/field-history";
 import { getFormatter } from "next-intl/server";
+import { CoEditLauncher } from "@/components/coedit/coedit-launcher";
 import { FieldHistoryList } from "@/components/history/field-history-list";
 import { historyItems } from "@/lib/history/items";
 import { getTranslate } from "@/lib/shell/translate";
@@ -187,7 +188,25 @@ export async function SopsSection({
           </InlineAlert>
         ) : null}
         <KitSection id="sop-body" title={t("sops.procedure")}>
-          {body(sop)}
+          {canWrite && ctx.viewer.person ? (
+            // Live co-editing (Section 5): the procedure as it reads, and the editor on demand.
+            <CoEditLauncher
+              org={ctx.org.slug}
+              subject="sop"
+              id={sop.id}
+              label={t("sops.procedure")}
+              me={{
+                key: ctx.viewer.person.id,
+                name: ctx.viewer.person.fullName ?? tRoot("collab.history.someone"),
+              }}
+              openLabel={tRoot("collab.coedit.open")}
+              loadingLabel={tRoot("collab.coedit.loading")}
+            >
+              {body(sop)}
+            </CoEditLauncher>
+          ) : (
+            body(sop)
+          )}
         </KitSection>
         {canWrite ? (
           <KitSection id="sop-edit" title={t("sops.edit")}>

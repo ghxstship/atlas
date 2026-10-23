@@ -7,6 +7,7 @@ import {
   deleteDocumentAction,
   renameDocumentAction,
 } from "@/app/[org]/knowledge/actions";
+import { CoEditLauncher } from "@/components/coedit/coedit-launcher";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
@@ -27,6 +28,7 @@ import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
+import { getTranslate } from "@/lib/shell/translate";
 
 const VIEWS: readonly ViewKind[] = ["list", "table", "gallery"];
 const REFUSALS = "knowledge.refusals";
@@ -149,6 +151,8 @@ export async function DocumentsSection({
   );
 
   if (selected && state.full) {
+    const tRoot = await getTranslate();
+    const person = ctx.viewer.person;
     return (
       <RecordPage
         backHref={withQuery(path, state)}
@@ -179,6 +183,24 @@ export async function DocumentsSection({
           </KitSection>
         ) : null}
         {versions(selected, t)}
+        {person ? (
+          // Live co-edited notes (Section 5): kept in the document's snapshots, edited on demand.
+          <KitSection id={`notes-${selected.id}`} title={tRoot("collab.coedit.notes")}>
+            <CoEditLauncher
+              org={ctx.org.slug}
+              subject="document"
+              id={selected.id}
+              label={tRoot("collab.coedit.notes")}
+              me={{ key: person.id, name: person.fullName ?? tRoot("collab.history.someone") }}
+              openLabel={tRoot("collab.coedit.openNotes")}
+              loadingLabel={tRoot("collab.coedit.loading")}
+            >
+              <p className="m-0 text-text-13 text-text-secondary">
+                {tRoot("collab.coedit.notesHelp")}
+              </p>
+            </CoEditLauncher>
+          </KitSection>
+        ) : null}
         <CollabPanels ctx={ctx} table="app.documents" id={selected.id} />
       </RecordPage>
     );

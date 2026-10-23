@@ -33,7 +33,7 @@ let hub: Promise<Hub | null> | null = null;
  * The tab's live hub (`@xos/data/live`), created the first time a page watches something. The
  * Realtime client is fetched then, on demand (ADR 0027): the shell carries only this loader.
  */
-function loadHub(): Promise<Hub | null> {
+export function loadHub(): Promise<Hub | null> {
   hub ??= (async () => {
     await idle();
     const [grant, live] = await Promise.all([fetchGrant(), import("@xos/data/live")]);

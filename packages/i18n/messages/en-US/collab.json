@@ -62,5 +62,18 @@
     "trash": "In Trash",
     "restored": "Restored",
     "unavailable": "The field history could not be loaded."
+  },
+  "coedit": {
+    "open": "Edit together",
+    "openNotes": "Open notes",
+    "notes": "Notes",
+    "notesHelp": "Notes everyone with access edits together, live.",
+    "loading": "Opening the document…",
+    "error": "The document could not be opened. Reload the page to try again.",
+    "readOnly": "You can read along; editing needs write access.",
+    "saving": "Saving…",
+    "offline": "Offline. Your changes stay here and are sent when you reconnect.",
+    "saved": "Saved. Everyone in the document sees changes as you type.",
+    "done": "Done"
   }
 }

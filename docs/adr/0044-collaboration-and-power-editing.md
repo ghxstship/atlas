@@ -104,6 +104,39 @@ Two constraints shape every decision here:
   (Shift+F10) are registered in `packages/schemas/shortcuts.yaml`. The list keys are fixed, because DataTable
   owns them. X obeys `singleKeyShortcutsEnabled()`.
 
+### 4. Field history from the audit ledger
+
+- **The query.** `app.field_history` (migration 1452) answers who changed which field of a row, when, and from
+  what to what, from `app.audit_events`.
+- **Who may see it.** The ledger itself still needs `audit.log.read`. The history of one row answers only someone
+  who can read that row. `private.caller_reads_row` reads the subject table's own read policies from the catalog
+  and evaluates them for the caller: permissive policies OR'd, restrictive ones AND'd, as row level security does.
+  The history therefore follows the row exactly, with no second copy of any rule.
+- **Masking.** A field classified Restricted shows as masked, with neither value, unless the caller holds its read
+  capability. Actor IP addresses and user agents never leave the ledger.
+- **Where it shows.** Records (page and peek) and SOPs show it on the DiffViewer, with names, states and times
+  worded for people. `app.asset_units` gains an audit trail; `private.field_history_subjects` lists the tables.
+
+### 5. Live co-editing: Yjs over a private Realtime channel, persisted in Postgres
+
+- **Tables.** `app.doc_snapshots` holds one Yjs document per row and field (an SOP's procedure, a document's notes);
+  `app.doc_updates` holds the updates since its snapshot (migration 1453). Presence is Realtime presence and is
+  never stored.
+- **Transport.** Editors broadcast each update on the private channel `doc:<doc id>`, so edits reach the room as
+  they are typed. They also append each update through `app.append_doc_update`, so a reconnecting editor reads
+  what it missed and a new one loads the snapshot plus the updates. A slow pull (15 s) covers a missed broadcast.
+- **Authorization.** Who may read or write a document follows its row: the table's own read and update policies,
+  evaluated for the caller. `realtime.messages` policies apply the same checks to the channel: receiving needs read
+  access, broadcasting needs write access, and presence needs read access.
+- **Persistence.** When the person pauses (3 s), the editor folds the updates into a snapshot
+  (`app.compact_doc`). For an SOP, compaction also writes the text into `sops.body` through the row's own
+  triggers, so readers, search, field history and publishing see the current text.
+- **Changes made elsewhere.** A text changed outside the editor (the form, the API) reseeds the document in a new
+  generation. Editors on the old generation are refused, and they reload.
+- **Seeding.** An empty document is seeded from the row's text with a fixed Yjs client id. Two editors who open it
+  at once produce the same update, and Yjs keeps one copy.
+- **Loading.** Yjs, Tiptap and the room load only when someone presses Edit together, never with the page.
+
 ## Consequences
 
 - The IP allow-list limit of ADR 0034 decision 5 applies to the Realtime socket as it does to PostgREST: a valid
