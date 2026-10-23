@@ -503,6 +503,7 @@ export default function ExpensesScreen(): ReactElement {
       testID="expenses"
       title={t("nav.compass.more.expenses")}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
     >
       <ProjectPicker />
       <SyncBanner />

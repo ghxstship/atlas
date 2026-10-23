@@ -43,15 +43,22 @@ tags:
     id: "expense-line"
 - tapOn:
     id: "expense-line-1"
-# The amount first: the decimal pad has no return key, and closing it would tap a key. The description field
-# sits above it, so the text keyboard comes next and closes cleanly.
-- tapOn:
-    id: "expense-amount"
-- inputText: "42.50"
 - tapOn:
     id: "expense-description"
 - inputText: "Ice and water for the crew"
 - hideKeyboard
+- tapOn:
+    id: "expense-amount"
+- inputText: "42.50"
+# The decimal pad has no return key, and hideKeyboard would tap one of its keys: the form closes the keyboard
+# when it is dragged (keyboardDismissMode on-drag), as a person does.
+- swipe:
+    start: "50%, 40%"
+    end: "50%, 25%"
+    duration: 600
+- extendedWaitUntil:
+    visible: ".*42\\.50.*"
+    timeout: 10000
 - runFlow:
     when:
       platform: Android

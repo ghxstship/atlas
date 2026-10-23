@@ -50,6 +50,7 @@ export function Screen({
   testID,
   scrollRef,
   keyboardShouldPersistTaps,
+  keyboardDismissMode,
 }: ScreenProps & {
   /** Compass only: the scroll view, so a screen can bring a section into view. */
   readonly scrollRef?: RefObject<ScrollView | null>;
@@ -58,6 +59,11 @@ export function Screen({
    * the first touch while the keyboard is up only closes it (A68, A66).
    */
   readonly keyboardShouldPersistTaps?: "handled";
+  /**
+   * "on-drag" on a form with a number pad, which has no return key: scrolling closes the keyboard (the
+   * expense amount, A92).
+   */
+  readonly keyboardDismissMode?: "on-drag";
 }): ReactElement {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -94,6 +100,7 @@ export function Screen({
           ref={scrollRef}
           contentInsetAdjustmentBehavior={nativeHeader ? "automatic" : "never"}
           {...(keyboardShouldPersistTaps ? { keyboardShouldPersistTaps } : {})}
+          {...(keyboardDismissMode ? { keyboardDismissMode } : {})}
           contentContainerStyle={{ paddingBottom: theme.space["32"] }}
           refreshControl={
             onRefresh ? (
