@@ -2,6 +2,7 @@ import { useState, type ReactElement } from "react";
 import { Badge, Button, Card, ListRow, Tag, Text, TextField } from "@xos/ui-native";
 import type { ChatMessage, ConversationSummary } from "@xos/data/workforce-chat";
 import {
+  ContentActionsButton,
   Empty,
   Stack,
   WorkforceFrame,
@@ -9,6 +10,7 @@ import {
   titled,
   useActionRunner,
   type Action,
+  type ContentActions,
   type FrameLabels,
   type ScreenStatus,
 } from "./shared.tsx";
@@ -111,6 +113,8 @@ export interface ChatThreadScreenProps {
   readonly onSend: Action<[body: string]>;
   /** Opens a photo, file or voice note attached to a message. */
   readonly onOpenAttachment?: (messageId: string) => void;
+  /** Report and block on messages by someone else (owner decision 19); absent, no message shows the button. */
+  readonly contentActions?: ContentActions;
   readonly refreshing?: boolean;
   readonly onRefresh?: () => void;
   readonly onRetry?: () => void;
@@ -126,6 +130,7 @@ export function ChatThreadScreen({
   myMembershipIds,
   onSend,
   onOpenAttachment,
+  contentActions,
   refreshing,
   onRefresh,
   onRetry,
@@ -166,7 +171,22 @@ export function ChatThreadScreen({
           const mine = myMembershipIds.includes(m.authorMembershipId);
           const author = mine ? labels.you : (m.authorName ?? labels.someone);
           return (
-            <Card key={m.id}>
+            <Card
+              key={m.id}
+              footer={
+                contentActions !== undefined && !mine ? (
+                  <ContentActionsButton
+                    actions={contentActions}
+                    target={{
+                      kind: "Chat Message",
+                      id: m.id,
+                      authorMembershipId: m.authorMembershipId,
+                      authorName: m.authorName,
+                    }}
+                  />
+                ) : undefined
+              }
+            >
               <Stack>
                 <Text variant="text12" tone="secondary">
                   {labels.meta(author, m.createdAt)}
