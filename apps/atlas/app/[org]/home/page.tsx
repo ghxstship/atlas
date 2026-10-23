@@ -69,7 +69,7 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
     typeof formatAlert
   >[0];
   const now = new Date();
-  // An overdue record's due date reads on the org's calendar (`zone` above), like the alerts' "today" (A71).
+  // An overdue record's due date reads on the org's calendar (`zone`, above), like the alerts' "today" (A71).
   const tileText = projectTiles
     ? {
         alerts: Object.fromEntries(

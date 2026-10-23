@@ -1,15 +1,16 @@
 // Shared plumbing for the XOS Edge Functions (Deno). Logic lives in @xos/platform; this file only reads
-// the environment, builds the service-role database seam and shapes responses.
-import { createClient } from "@supabase/supabase-js";
+// the environment, builds the service-role database seam and shapes responses. It loads only the
+// vendored core (no npm package), so every function's cold start stays small (A85); a function that
+// needs supabase-js (storage, for example) imports it itself.
 import {
   createLogger,
   edgeFunctionName,
   identityFromEnv,
   internalErrorResponse,
   requestIdFor,
-  supabaseDb,
+  restDb,
   type PlatformDb,
-} from "../_vendor/xos-platform.js";
+} from "../_vendor/core.js";
 import { observeFunction } from "./observability.ts";
 
 /** A required environment variable, or a thrown error naming it. */
@@ -19,12 +20,9 @@ export function env(name: string): string {
   return value;
 }
 
-/** The service-role database seam. Never exposed to callers. */
+/** The service-role database seam over PostgREST. Never exposed to callers. */
 export function serviceDb(): PlatformDb {
-  const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  return supabaseDb(client);
+  return restDb({ url: env("SUPABASE_URL"), serviceKey: env("SUPABASE_SERVICE_ROLE_KEY") });
 }
 
 export function json(status: number, body: unknown): Response {

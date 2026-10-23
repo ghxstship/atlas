@@ -19,6 +19,8 @@ params:
   document: { type: slug }
   token: { type: token }
   feedToken: { type: token }
+  workspaceSlug: { type: slug }
+  teamId: { type: uuid }
 globalQuery: { peek: recordKey }
 audience:
   dimension: platform-role
@@ -1208,10 +1210,22 @@ nodes:
             kind: section
             label: nav.settings.org.teams
             route: "/{org}/settings/teams"
+            # ADR 0006 amendment (2026-10-21): one team's settings page, holding only what a team overrides.
+            children:
+              - id: settings.teams.team
+                kind: record
+                label: nav.settings.org.team
+                route: "/{org}/settings/teams/{teamId}"
           - id: settings.workspaces
             kind: section
             label: nav.settings.org.workspaces
             route: "/{org}/settings/workspaces"
+            # ADR 0006 amendment (2026-10-21): one workspace's settings page.
+            children:
+              - id: settings.workspaces.workspace
+                kind: record
+                label: nav.settings.org.workspace
+                route: "/{org}/settings/workspaces/{workspaceSlug}"
           - id: settings.departments-and-disciplines
             kind: section
             label: nav.settings.org.departmentsAndDisciplines

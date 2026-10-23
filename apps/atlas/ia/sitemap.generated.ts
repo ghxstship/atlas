@@ -16,6 +16,8 @@ export const sitemap: Sitemap = {
     document: { type: "slug" },
     token: { type: "token" },
     feedToken: { type: "token" },
+    workspaceSlug: { type: "slug" },
+    teamId: { type: "uuid" },
   },
   globalQuery: { peek: "recordKey" },
   audience: {
@@ -1662,12 +1664,28 @@ export const sitemap: Sitemap = {
               kind: "section",
               label: "nav.settings.org.teams",
               route: "/{org}/settings/teams",
+              children: [
+                {
+                  id: "settings.teams.team",
+                  kind: "record",
+                  label: "nav.settings.org.team",
+                  route: "/{org}/settings/teams/{teamId}",
+                },
+              ],
             },
             {
               id: "settings.workspaces",
               kind: "section",
               label: "nav.settings.org.workspaces",
               route: "/{org}/settings/workspaces",
+              children: [
+                {
+                  id: "settings.workspaces.workspace",
+                  kind: "record",
+                  label: "nav.settings.org.workspace",
+                  route: "/{org}/settings/workspaces/{workspaceSlug}",
+                },
+              ],
             },
             {
               id: "settings.departments-and-disciplines",

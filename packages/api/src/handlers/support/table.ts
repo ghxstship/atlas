@@ -117,12 +117,11 @@ export function rpc(
   name: string,
   args: Row = {},
 ): PromiseLike<{ data: unknown; error: unknown }> {
-  // Widened before the call: binding the typed `rpc` instantiates every function of the generated
-  // schema, which passes TypeScript's depth limit once the schema is large enough.
-  const untyped = db as unknown as {
+  // Cast the client, not db.rpc.bind(db), which exceeds TypeScript's depth limit as the schema grows (TS2589).
+  const client = db as unknown as {
     rpc(fn: string, params: Row): PromiseLike<{ data: unknown; error: unknown }>;
   };
-  return untyped.rpc(name, args);
+  return client.rpc(name, args);
 }
 
 /** Awaits a query and throws its error, so the runtime maps it (README "Errors"). */

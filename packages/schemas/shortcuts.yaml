@@ -163,6 +163,12 @@ shells:
         keys: Mod+J
         fields: true
         label: help.shortcuts.aurora
+      # Focuses a collection's "Filter in plain language" field while Ask in plain language is on (A95).
+      # No default keys: a person may bind it in Personal settings, Keyboard Shortcuts.
+      - id: ask-filter
+        scope: global
+        group: general
+        label: help.shortcuts.askFilter
       - id: close
         scope: global
         group: general

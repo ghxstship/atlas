@@ -2,7 +2,7 @@
 // authenticated by XOS_INBOUND_SECRET. Project inbox mail is filed; replies are accepted only from signed
 // addresses, with DKIM passing and quoted text stripped.
 import { z } from "zod";
-import { inboundStore, receiveInbound } from "../_vendor/xos-platform.js";
+import { inboundStore, receiveInbound } from "../_vendor/inbound-email.js";
 import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 const payload = z.object({

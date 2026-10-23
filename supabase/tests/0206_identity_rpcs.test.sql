@@ -156,7 +156,7 @@ select results_eq(
 
 select pg_temp.as_user('bob');
 insert into tokens select 'quinn', i.invite_token from app.invite_member(pg_temp.id('org_a'), 'quinn@northwind.test', pg_temp.system_role('viewer')) i;
-select pg_temp.as_user('alice');
+select pg_temp.as_user_stepped_up('alice');
 insert into app.membership_roles (membership_id, role_id) values (pg_temp.id('carol@org_a'), pg_temp.system_role('admin'));
 update app.membership_roles set deleted_at = now()
 where membership_id = pg_temp.id('bob@org_a') and role_id = pg_temp.system_role('admin');

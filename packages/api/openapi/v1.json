@@ -46581,6 +46581,39 @@
         },
         "description": "Fields accepted when updating a Comment. Omitted fields are unchanged."
       },
+      "SubjectCommentRequest": {
+        "type": "object",
+        "properties": {
+          "subject_table": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Table of the subject, one of app.comment_subjects without its schema.",
+            "example": "records"
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the row commented on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Comment text.",
+            "example": "Picked up, thanks."
+          },
+          "anchor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Part of the subject the thread is anchored to; absent for the main thread.",
+            "example": "line:12"
+          }
+        },
+        "required": ["subject_table", "subject_id", "body"],
+        "description": "A comment on a subject row, posted in its main thread or the thread of an anchor."
+      },
       "NotificationPage": {
         "type": "object",
         "properties": {
@@ -49948,8 +49981,58 @@
           "time_zone": {
             "type": "string",
             "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
-            "description": "IANA time zone the local time was entered in.",
+            "description": "Time zone the caller works in. Relative dates such as this month or overdue resolve on the org's calendar (its locale.time_zone setting), never on UTC.",
             "example": "America/New_York"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[a-z][a-z0-9_.]*$",
+                  "description": "Filter name as the page's query string writes it.",
+                  "example": "overdue"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["string", "number", "date", "boolean", "enum"],
+                  "description": "Value type.",
+                  "example": "boolean"
+                },
+                "values": {
+                  "type": "array",
+                  "items": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "maxItems": 200,
+                  "description": "The values an enum filter takes.",
+                  "example": ["Issued", "Approved"]
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300,
+                  "description": "What the filter means, in a sentence.",
+                  "example": "Unpaid invoices past their due date on the org's calendar."
+                },
+                "ops": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": ["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"]
+                  },
+                  "minItems": 1,
+                  "description": "The only operators the filter takes.",
+                  "example": ["eq"]
+                }
+              },
+              "required": ["name", "type"]
+            },
+            "minItems": 1,
+            "maxItems": 40,
+            "description": "A page's own filters, offered instead of the API fields of the first collection: names, types, values and operators only, never record data. Restricted columns are never offered.",
+            "example": [{ "name": "overdue", "type": "boolean", "ops": ["eq"] }]
           }
         },
         "required": ["sentence", "collections", "time_zone"],
@@ -50174,6 +50257,111 @@
         },
         "required": ["code", "description", "candidates"],
         "description": "An unknown scanned code to bind."
+      },
+      "AuroraPreview": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AuroraPreviewRecord" },
+            "description": "Each record the request names, in order, with the gate readiness a gate summary adds.",
+            "example": []
+          },
+          "vocabulary_terms": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Verbiage library terms a draft follows.",
+            "example": 12
+          }
+        },
+        "required": ["records", "vocabulary_terms"],
+        "description": "What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered."
+      },
+      "AuroraPreviewRecord": {
+        "type": "object",
+        "properties": {
+          "collection": {
+            "type": "string",
+            "description": "Collection of the record.",
+            "example": "change-orders"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the record.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "sent": {
+            "type": "boolean",
+            "description": "False when the record cannot be read or its whole table is never sent to a model.",
+            "example": true
+          },
+          "fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Fields that would be sent.",
+            "example": ["title", "reason"]
+          },
+          "withheld": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Fields left out: Restricted columns and masked values.",
+            "example": ["agreed_rate_minor"]
+          },
+          "data": {
+            "type": ["object", "null"],
+            "additionalProperties": {},
+            "description": "The values that would be sent; null when nothing of the record is sent.",
+            "example": { "title": "Extra rigging points", "reason": null }
+          }
+        },
+        "required": ["collection", "id", "sent", "fields", "withheld", "data"],
+        "description": "One record as a model would see it."
+      },
+      "AuroraPreviewRequest": {
+        "type": "object",
+        "properties": {
+          "feature": {
+            "type": "string",
+            "enum": ["drafting", "summaries"],
+            "description": "The feature whose request is previewed.",
+            "example": "drafting"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["record_activity", "project_week", "gate_readiness"],
+            "description": "For summaries, what is summarized.",
+            "example": "gate_readiness"
+          },
+          "subject_collection": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "For summaries, the collection summarized.",
+            "example": "projects"
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the record or project summarized.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "collection": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+                "id": { "type": "string", "format": "uuid" }
+              },
+              "required": ["collection", "id"]
+            },
+            "maxItems": 100,
+            "description": "The records the request names: a draft's context or a summary's items, read with the caller's permissions.",
+            "example": [{ "collection": "sops", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }]
+          }
+        },
+        "required": ["feature", "items"],
+        "description": "A drafting or summary request to preview before it is sent."
       },
       "AiSuggestionPage": {
         "type": "object",
@@ -55085,6 +55273,1130 @@
           }
         },
         "description": "Why the mail is discarded."
+      },
+      "AutomationPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Automation" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "Automation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the automation.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Name shown in Settings, Automations.",
+            "example": "Pick up new tasks"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "What the automation is for.",
+            "example": "Comments on every new task."
+          },
+          "trigger_event_type": {
+            "type": "string",
+            "pattern": "^[a-z][a-z_]*\\.[a-z][a-z_]*$",
+            "description": "Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).",
+            "example": "record.created"
+          },
+          "condition_match": {
+            "type": "string",
+            "enum": ["all", "any"],
+            "description": "How the top-level conditions combine; set from the conditions document.",
+            "example": "all"
+          },
+          "owner_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person the actions run as.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "True while new events start runs.",
+            "example": true
+          },
+          "paused_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the engine turned the automation off because a run could not act as the owner; null otherwise. Turning it on again clears it.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "pause_reason": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Why the engine paused it: owner_left_org, owner_lost_capability, owner_cannot_sign_in or owner_access_refused.",
+            "example": "owner_left_org"
+          },
+          "conditions": { "$ref": "#/components/schemas/AutomationConditions" },
+          "actions": { "$ref": "#/components/schemas/AutomationActions" }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "name",
+          "description",
+          "trigger_event_type",
+          "condition_match",
+          "owner_person_id",
+          "enabled",
+          "paused_at",
+          "pause_reason",
+          "conditions",
+          "actions"
+        ],
+        "description": "An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422)."
+      },
+      "AutomationConditions": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "all": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+                          "description": "Path into the event, such as data.record_kind.",
+                          "example": "data.record_kind"
+                        },
+                        "operator": {
+                          "type": "string",
+                          "enum": ["eq", "ne", "lt", "lte", "gt", "gte", "contains"]
+                        },
+                        "value": {
+                          "type": "string",
+                          "maxLength": 1000,
+                          "description": "Value compared, as text.",
+                          "example": "Task"
+                        }
+                      },
+                      "required": ["field", "operator", "value"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+                          "description": "Path into the event, such as data.record_kind.",
+                          "example": "data.record_kind"
+                        },
+                        "operator": { "type": "string", "enum": ["in"] },
+                        "value": {
+                          "type": "string",
+                          "maxLength": 1000,
+                          "pattern": "[^, ]",
+                          "description": "Comma-separated values, each trimmed.",
+                          "example": "Build, Task"
+                        }
+                      },
+                      "required": ["field", "operator", "value"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+                          "description": "Path into the event, such as data.record_kind.",
+                          "example": "data.record_kind"
+                        },
+                        "operator": { "type": "string", "enum": ["is_null"] },
+                        "value": {
+                          "type": ["string", "null"],
+                          "enum": ["true", "false", null],
+                          "description": "true (or absent) holds for a missing value, false for a present one."
+                        }
+                      },
+                      "required": ["field", "operator"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "all": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/AutomationCondition" },
+                          "minItems": 1,
+                          "maxItems": 20
+                        }
+                      },
+                      "required": ["all"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "any": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/AutomationCondition" },
+                          "minItems": 1,
+                          "maxItems": 20
+                        }
+                      },
+                      "required": ["any"],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "maxItems": 20
+              }
+            },
+            "required": ["all"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "any": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+                          "description": "Path into the event, such as data.record_kind.",
+                          "example": "data.record_kind"
+                        },
+                        "operator": {
+                          "type": "string",
+                          "enum": ["eq", "ne", "lt", "lte", "gt", "gte", "contains"]
+                        },
+                        "value": {
+                          "type": "string",
+                          "maxLength": 1000,
+                          "description": "Value compared, as text.",
+                          "example": "Task"
+                        }
+                      },
+                      "required": ["field", "operator", "value"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+                          "description": "Path into the event, such as data.record_kind.",
+                          "example": "data.record_kind"
+                        },
+                        "operator": { "type": "string", "enum": ["in"] },
+                        "value": {
+                          "type": "string",
+                          "maxLength": 1000,
+                          "pattern": "[^, ]",
+                          "description": "Comma-separated values, each trimmed.",
+                          "example": "Build, Task"
+                        }
+                      },
+                      "required": ["field", "operator", "value"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+                          "description": "Path into the event, such as data.record_kind.",
+                          "example": "data.record_kind"
+                        },
+                        "operator": { "type": "string", "enum": ["is_null"] },
+                        "value": {
+                          "type": ["string", "null"],
+                          "enum": ["true", "false", null],
+                          "description": "true (or absent) holds for a missing value, false for a present one."
+                        }
+                      },
+                      "required": ["field", "operator"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "all": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/AutomationCondition" },
+                          "minItems": 1,
+                          "maxItems": 20
+                        }
+                      },
+                      "required": ["all"],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "any": {
+                          "type": "array",
+                          "items": { "$ref": "#/components/schemas/AutomationCondition" },
+                          "minItems": 1,
+                          "maxItems": 20
+                        }
+                      },
+                      "required": ["any"],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                "maxItems": 20
+              }
+            },
+            "required": ["any"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "An automation's conditions: {\"all\": [...]} or {\"any\": [...]} of conditions and one-level groups, at most 20 in all. An empty list always holds.",
+        "example": { "all": [{ "field": "data.record_kind", "operator": "eq", "value": "Task" }] }
+      },
+      "AutomationCondition": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+                "description": "Path into the event, such as data.record_kind.",
+                "example": "data.record_kind"
+              },
+              "operator": {
+                "type": "string",
+                "enum": ["eq", "ne", "lt", "lte", "gt", "gte", "contains"]
+              },
+              "value": {
+                "type": "string",
+                "maxLength": 1000,
+                "description": "Value compared, as text.",
+                "example": "Task"
+              }
+            },
+            "required": ["field", "operator", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+                "description": "Path into the event, such as data.record_kind.",
+                "example": "data.record_kind"
+              },
+              "operator": { "type": "string", "enum": ["in"] },
+              "value": {
+                "type": "string",
+                "maxLength": 1000,
+                "pattern": "[^, ]",
+                "description": "Comma-separated values, each trimmed.",
+                "example": "Build, Task"
+              }
+            },
+            "required": ["field", "operator", "value"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+                "description": "Path into the event, such as data.record_kind.",
+                "example": "data.record_kind"
+              },
+              "operator": { "type": "string", "enum": ["is_null"] },
+              "value": {
+                "type": ["string", "null"],
+                "enum": ["true", "false", null],
+                "description": "true (or absent) holds for a missing value, false for a present one."
+              }
+            },
+            "required": ["field", "operator"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "One condition: a path of the event, an API filter operator (ADR 0003) and a text value. Numbers compare numerically, strings by code point; contains folds ASCII case or finds an array element; every operator but is_null is false on a missing value."
+      },
+      "AutomationActions": {
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/AutomationAction" },
+        "minItems": 1,
+        "maxItems": 10,
+        "description": "An automation's 1 to 10 actions, in the order they run.",
+        "example": [{ "type": "add_comment", "body": "Picked up {{data.title}}." }]
+      },
+      "AutomationAction": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["create_task"] },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "Text; event paths in double braces are filled in, such as {{data.title}}.",
+                "example": "Review {{data.title}}"
+              },
+              "project_id": {
+                "type": ["string", "null"],
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "description": "Project the Task goes in, under its engagement root; null for the event's project.",
+                "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "phase_code": {
+                "type": "string",
+                "pattern": "^[A-Z]{3}$",
+                "description": "Gated phase of the Task.",
+                "example": "SCP"
+              },
+              "xyz": {
+                "type": "string",
+                "enum": ["X", "Y", "Z"],
+                "description": "Declared XYZ tag of the Task.",
+                "example": "Y"
+              },
+              "due_in_days": {
+                "type": ["integer", "null"],
+                "minimum": 0,
+                "maximum": 365,
+                "description": "Due at 17:00 on the org's calendar this many days after the run.",
+                "example": 2
+              }
+            },
+            "required": ["type", "title", "phase_code", "xyz"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["update_status"] },
+              "to_state": {
+                "type": "string",
+                "enum": [
+                  "Proposed",
+                  "Ready",
+                  "Scheduled",
+                  "Active",
+                  "In Review",
+                  "Complete",
+                  "Canceled"
+                ],
+                "description": "Record state the subject record moves to."
+              },
+              "note": {
+                "type": ["string", "null"],
+                "minLength": 1,
+                "maxLength": 2000,
+                "description": "Text; event paths in double braces are filled in, such as {{data.title}}.",
+                "example": "Picked up {{data.title}}."
+              }
+            },
+            "required": ["type", "to_state"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["update_status"] },
+              "to_state": { "type": "string", "enum": ["Blocked", "Deferred"] },
+              "note": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000,
+                "description": "The blocker (Blocked) or the replan reason (Deferred).",
+                "example": "Picked up {{data.title}}."
+              }
+            },
+            "required": ["type", "to_state", "note"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["assign"] },
+              "assignee_person_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "description": "Member who becomes the subject record's owner.",
+                "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              }
+            },
+            "required": ["type", "assignee_person_id"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["add_comment"] },
+              "body": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2000,
+                "description": "Text; event paths in double braces are filled in, such as {{data.title}}.",
+                "example": "Picked up {{data.title}}."
+              }
+            },
+            "required": ["type", "body"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["notify"] },
+              "recipient_person_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "description": "Member who receives the notification.",
+                "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "description": "Text; event paths in double braces are filled in, such as {{data.title}}.",
+                "example": "Review {{data.title}}"
+              },
+              "body": {
+                "type": ["string", "null"],
+                "minLength": 1,
+                "maxLength": 2000,
+                "description": "Text; event paths in double braces are filled in, such as {{data.title}}.",
+                "example": "Picked up {{data.title}}."
+              }
+            },
+            "required": ["type", "recipient_person_id", "title"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["call_webhook"] },
+              "webhook_endpoint_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "description": "The org's webhook endpoint.",
+                "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              }
+            },
+            "required": ["type", "webhook_endpoint_id"],
+            "additionalProperties": false
+          }
+        ],
+        "description": "One action, run in order as the owner through a public API operation: create_task (records.create), update_status (records.transition), assign (records.update), add_comment (comments.postOnSubject), notify (automationRuns.notify) or call_webhook (automationRuns.deliverWebhook)."
+      },
+      "AutomationCreate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Name shown in Settings, Automations.",
+            "example": "Pick up new tasks"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "What the automation is for.",
+            "example": "Comments on every new task."
+          },
+          "trigger_event_type": {
+            "type": "string",
+            "pattern": "^[a-z][a-z_]*\\.[a-z][a-z_]*$",
+            "description": "Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).",
+            "example": "record.created"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "True while new events start runs.",
+            "example": true
+          },
+          "conditions": { "$ref": "#/components/schemas/AutomationConditions" },
+          "actions": { "$ref": "#/components/schemas/AutomationActions" }
+        },
+        "required": ["name", "trigger_event_type", "conditions", "actions"],
+        "description": "Fields accepted when creating a Automation."
+      },
+      "AutomationUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120,
+            "description": "Name shown in Settings, Automations.",
+            "example": "Pick up new tasks"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "What the automation is for.",
+            "example": "Comments on every new task."
+          },
+          "trigger_event_type": {
+            "type": "string",
+            "pattern": "^[a-z][a-z_]*\\.[a-z][a-z_]*$",
+            "description": "Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).",
+            "example": "record.created"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "True while new events start runs.",
+            "example": true
+          },
+          "conditions": { "$ref": "#/components/schemas/AutomationConditions" },
+          "actions": { "$ref": "#/components/schemas/AutomationActions" }
+        },
+        "description": "Fields accepted when updating a Automation. Omitted fields are unchanged."
+      },
+      "AutomationTestResult": {
+        "type": "object",
+        "properties": {
+          "matched": {
+            "type": "boolean",
+            "description": "Whether the conditions hold for the sample event.",
+            "example": true
+          },
+          "conditions": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AutomationConditionResult" },
+            "description": "Each condition in document order.",
+            "example": []
+          }
+        },
+        "required": ["matched", "conditions"],
+        "description": "A dry run of an automation's conditions: nothing runs and nothing is written."
+      },
+      "AutomationConditionResult": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Path into the event.",
+            "example": "data.record_kind"
+          },
+          "operator": {
+            "type": "string",
+            "enum": ["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"],
+            "description": "Filter operator.",
+            "example": "eq"
+          },
+          "value": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Value compared.",
+            "example": "Task"
+          },
+          "actual": {
+            "description": "Value found in the event; null when missing.",
+            "example": "Task"
+          },
+          "matched": {
+            "type": "boolean",
+            "description": "Whether the condition held.",
+            "example": true
+          }
+        },
+        "required": ["field", "operator", "value", "matched"],
+        "description": "One condition of a dry run."
+      },
+      "AutomationTestRequest": {
+        "type": "object",
+        "properties": {
+          "event": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "A sample event body, as a webhook receives it; app.sample_automation_event gives the org's latest of the trigger type.",
+            "example": {
+              "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+              "type": "record.created",
+              "occurred_at": "2026-10-08T14:30:00Z",
+              "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+              "subject": { "table": "records", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "data": { "record_kind": "Task", "title": "Call the venue" }
+            }
+          }
+        },
+        "required": ["event"],
+        "description": "A sample event to test an automation against."
+      },
+      "AutomationRunPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AutomationRun" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AutomationRun": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the automation run.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "automation_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the automation that ran.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "domain_event_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the domain event that started the run.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "parent_run_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the run whose action raised the event, when an automation caused it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "depth": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Automation runs that led to this one; 0 for an event a person raised.",
+            "example": 0
+          },
+          "run_status": {
+            "type": "string",
+            "enum": ["Queued", "Running", "Retrying", "Succeeded", "Failed", "Skipped"],
+            "description": "Queued, Running, Retrying after a failure the job queue retries with backoff, Succeeded, Failed, or Skipped (loop_depth, rate_limited, or the automation was off).",
+            "example": "Queued"
+          },
+          "event_payload": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "The event as webhooks send it: the run's input.",
+            "example": {
+              "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+              "type": "record.created",
+              "occurred_at": "2026-10-08T14:30:00Z",
+              "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+              "subject": { "table": "records", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "data": { "record_kind": "Task", "title": "Call the venue" }
+            }
+          },
+          "owner_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person the run acted as.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Times the worker started the run.",
+            "example": 1
+          },
+          "error_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Rule code of the failure or skip.",
+            "example": "owner_left_org"
+          },
+          "error_message": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the run failed or was skipped.",
+            "example": "The API answered 503."
+          },
+          "started_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the worker first started the run.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "finished_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the run reached Succeeded, Failed or Skipped.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "duration_ms": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Milliseconds from the first start to the end.",
+            "example": 840
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "automation_id",
+          "domain_event_id",
+          "parent_run_id",
+          "depth",
+          "run_status",
+          "event_payload",
+          "owner_person_id",
+          "attempts",
+          "error_code",
+          "error_message",
+          "started_at",
+          "finished_at",
+          "duration_ms"
+        ],
+        "description": "One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice."
+      },
+      "AutomationNoticeResult": {
+        "type": "object",
+        "properties": {
+          "notification_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the notification created.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["notification_id"],
+        "description": "The notification an automation sent."
+      },
+      "AutomationNoticeRequest": {
+        "type": "object",
+        "properties": {
+          "recipient_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member who receives the notification.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Notification title.",
+            "example": "New task: Call the venue"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Message; the title is repeated when absent.",
+            "example": "Call the venue needs a look."
+          }
+        },
+        "required": ["recipient_person_id", "title"],
+        "description": "A notification an automation sends during a run."
+      },
+      "AutomationWebhookResult": {
+        "type": "object",
+        "properties": {
+          "webhook_delivery_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the webhook delivery queued.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["webhook_delivery_id"],
+        "description": "The delivery a run queued."
+      },
+      "AutomationWebhookRequest": {
+        "type": "object",
+        "properties": {
+          "webhook_endpoint_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the the org's webhook endpoint.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["webhook_endpoint_id"],
+        "description": "The endpoint a run's event is delivered to."
+      },
+      "AutomationRunStepPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AutomationRunStep" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AutomationRunStep": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the automation run step.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "automation_run_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the run the step belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "automation_action_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the action the step ran.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Position of the action, 1 first.",
+            "example": 1
+          },
+          "action_type": {
+            "type": "string",
+            "enum": [
+              "create_task",
+              "update_status",
+              "assign",
+              "add_comment",
+              "notify",
+              "call_webhook"
+            ],
+            "description": "What the action does.",
+            "example": "create_task"
+          },
+          "operation_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Public API operation called.",
+            "example": "records.create"
+          },
+          "step_status": {
+            "type": "string",
+            "enum": ["Succeeded", "Failed", "Skipped"],
+            "description": "Outcome of the action.",
+            "example": "Succeeded"
+          },
+          "request_body": {
+            "type": ["object", "null"],
+            "additionalProperties": {},
+            "description": "Body sent, with templates filled in from the event.",
+            "example": { "title": "Review Call the venue" }
+          },
+          "response_body": {
+            "type": ["object", "null"],
+            "additionalProperties": {},
+            "description": "Identifying fields of the answer, or the problem it reported.",
+            "example": { "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }
+          },
+          "http_status": {
+            "type": ["integer", "null"],
+            "minimum": 100,
+            "description": "HTTP status the API answered.",
+            "example": 201
+          },
+          "error_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Rule code of the failure.",
+            "example": "record_title_grammar"
+          },
+          "error_message": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the step failed.",
+            "example": "A Task title starts with an imperative verb."
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the step started.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "finished_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the step ended.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "duration_ms": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Milliseconds the step took.",
+            "example": 120
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "automation_run_id",
+          "automation_action_id",
+          "position",
+          "action_type",
+          "operation_id",
+          "step_status",
+          "request_body",
+          "response_body",
+          "http_status",
+          "error_code",
+          "error_message",
+          "started_at",
+          "finished_at",
+          "duration_ms"
+        ],
+        "description": "One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed."
       },
       "WorkforceGroupPage": {
         "type": "object",
@@ -134098,6 +135410,67 @@
         }
       }
     },
+    "/comments/on-subject": {
+      "post": {
+        "operationId": "comments.postOnSubject",
+        "tags": ["Platform"],
+        "x-xos-table": "app.comments",
+        "x-xos-capability": "work.record.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["work"] }],
+        "x-xos-rpc": "post_comment",
+        "summary": "Comment on a subject",
+        "description": "Posts a comment on any row of app.comment_subjects by its table and id, as the caller, in the subject's main thread or the thread of an anchor, opening the thread on first use (`app.post_comment`). The subject's own read policy decides (404 when it is not visible). The add_comment action of automations calls it as the automation's owner. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "subject_table": "records",
+                "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "body": "Picked up, thanks.",
+                "anchor": "line:12"
+              },
+              "schema": { "$ref": "#/components/schemas/SubjectCommentRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "comment_thread_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "body": "Load-in moved to 07:00.",
+                  "author_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "source": "App",
+                  "edited_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/Comment" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/notifications": {
       "get": {
         "operationId": "notifications.list",
@@ -138591,7 +139964,8 @@
               "example": {
                 "sentence": "blocked permits for Miami shows this month",
                 "collections": ["permits"],
-                "time_zone": "America/New_York"
+                "time_zone": "America/New_York",
+                "fields": [{ "name": "overdue", "type": "boolean", "ops": ["eq"] }]
               },
               "schema": { "$ref": "#/components/schemas/AuroraFilterRequest" }
             }
@@ -138961,6 +140335,54 @@
                   ]
                 },
                 "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/preview": {
+      "post": {
+        "operationId": "aurora.preview",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Preview what a request would send",
+        "description": "Reads the records a drafting or summary request names, as the request would (the caller's permissions, Restricted columns, masked values and excluded tables removed), and returns what would be sent. A gate readiness summary adds the project's gate criteria. No model is called and nothing is metered (A95). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "feature": "drafting",
+                "kind": "gate_readiness",
+                "subject_collection": "projects",
+                "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "items": [{ "collection": "sops", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }]
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraPreviewRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "records": [], "vocabulary_terms": 12 },
+                "schema": { "$ref": "#/components/schemas/AuroraPreview" }
               }
             }
           },
@@ -145895,6 +147317,861 @@
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/automations": {
+      "get": {
+        "operationId": "automations.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automations",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["name"], "numeric": false },
+        "summary": "List automation rows",
+        "description": "An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns a cursor page of automation rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of automation rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "name": "Pick up new tasks",
+                      "description": "Comments on every new task.",
+                      "trigger_event_type": "record.created",
+                      "condition_match": "all",
+                      "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "enabled": true,
+                      "paused_at": "2026-10-08T14:30:00Z",
+                      "pause_reason": "owner_left_org",
+                      "conditions": {
+                        "all": [{ "field": "data.record_kind", "operator": "eq", "value": "Task" }]
+                      },
+                      "actions": [{ "type": "add_comment", "body": "Picked up {{data.title}}." }]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AutomationPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "automations.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automations",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Create an automation",
+        "description": "An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Creates an automation. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "Pick up new tasks",
+                "description": "Comments on every new task.",
+                "trigger_event_type": "record.created",
+                "enabled": true,
+                "conditions": {
+                  "all": [{ "field": "data.record_kind", "operator": "eq", "value": "Task" }]
+                },
+                "actions": [{ "type": "add_comment", "body": "Picked up {{data.title}}." }]
+              },
+              "schema": { "$ref": "#/components/schemas/AutomationCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created automation.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Pick up new tasks",
+                  "description": "Comments on every new task.",
+                  "trigger_event_type": "record.created",
+                  "condition_match": "all",
+                  "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "enabled": true,
+                  "paused_at": "2026-10-08T14:30:00Z",
+                  "pause_reason": "owner_left_org",
+                  "conditions": {
+                    "all": [{ "field": "data.record_kind", "operator": "eq", "value": "Task" }]
+                  },
+                  "actions": [{ "type": "add_comment", "body": "Picked up {{data.title}}." }]
+                },
+                "schema": { "$ref": "#/components/schemas/Automation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/automations/{id}": {
+      "get": {
+        "operationId": "automations.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automations",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get an automation",
+        "description": "An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns one automation with its `ETag`. A automation the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the automation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the automation.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The automation.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Pick up new tasks",
+                  "description": "Comments on every new task.",
+                  "trigger_event_type": "record.created",
+                  "condition_match": "all",
+                  "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "enabled": true,
+                  "paused_at": "2026-10-08T14:30:00Z",
+                  "pause_reason": "owner_left_org",
+                  "conditions": {
+                    "all": [{ "field": "data.record_kind", "operator": "eq", "value": "Task" }]
+                  },
+                  "actions": [{ "type": "add_comment", "body": "Picked up {{data.title}}." }]
+                },
+                "schema": { "$ref": "#/components/schemas/Automation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "automations.update",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automations",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Update an automation",
+        "description": "An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the automation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the automation.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "Pick up new tasks",
+                "description": "Comments on every new task.",
+                "trigger_event_type": "record.created",
+                "enabled": true,
+                "conditions": {
+                  "all": [{ "field": "data.record_kind", "operator": "eq", "value": "Task" }]
+                },
+                "actions": [{ "type": "add_comment", "body": "Picked up {{data.title}}." }]
+              },
+              "schema": { "$ref": "#/components/schemas/AutomationUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated automation.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Pick up new tasks",
+                  "description": "Comments on every new task.",
+                  "trigger_event_type": "record.created",
+                  "condition_match": "all",
+                  "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "enabled": true,
+                  "paused_at": "2026-10-08T14:30:00Z",
+                  "pause_reason": "owner_left_org",
+                  "conditions": {
+                    "all": [{ "field": "data.record_kind", "operator": "eq", "value": "Task" }]
+                  },
+                  "actions": [{ "type": "add_comment", "body": "Picked up {{data.title}}." }]
+                },
+                "schema": { "$ref": "#/components/schemas/Automation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "automations.delete",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automations",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Delete an automation",
+        "description": "An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Soft-deletes the automation: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the automation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the automation.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The automation moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/automations/{id}/test": {
+      "post": {
+        "operationId": "automations.test",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automations",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "test_automation",
+        "summary": "Test an automation against a sample event",
+        "description": "Dry run of the automation's conditions against a sample event body through `app.test_automation`: whether they match and, per condition, the value found. Nothing runs and nothing is written. Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the automation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the automation.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "event": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "type": "record.created",
+                  "occurred_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "subject": { "table": "records", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                  "data": { "record_kind": "Task", "title": "Call the venue" }
+                }
+              },
+              "schema": { "$ref": "#/components/schemas/AutomationTestRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "matched": true, "conditions": [] },
+                "schema": { "$ref": "#/components/schemas/AutomationTestResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/automation-runs": {
+      "get": {
+        "operationId": "automationRuns.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automation_runs",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false, "descending": true },
+        "summary": "List automation run rows",
+        "description": "One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns a cursor page of automation run rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of automation run rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "automation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "domain_event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "parent_run_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "depth": 0,
+                      "run_status": "Queued",
+                      "event_payload": {
+                        "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                        "type": "record.created",
+                        "occurred_at": "2026-10-08T14:30:00Z",
+                        "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                        "subject": {
+                          "table": "records",
+                          "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                        },
+                        "data": { "record_kind": "Task", "title": "Call the venue" }
+                      },
+                      "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "attempts": 1,
+                      "error_code": "owner_left_org",
+                      "error_message": "The API answered 503.",
+                      "started_at": "2026-10-08T14:30:00Z",
+                      "finished_at": "2026-10-08T14:30:00Z",
+                      "duration_ms": 840
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AutomationRunPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/automation-runs/{id}": {
+      "get": {
+        "operationId": "automationRuns.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automation_runs",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get an automation run",
+        "description": "One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns one automation run with its `ETag`. A automation run the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the automation run.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the automation run.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The automation run.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "automation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "domain_event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_run_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "depth": 0,
+                  "run_status": "Queued",
+                  "event_payload": {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "type": "record.created",
+                    "occurred_at": "2026-10-08T14:30:00Z",
+                    "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "subject": { "table": "records", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                    "data": { "record_kind": "Task", "title": "Call the venue" }
+                  },
+                  "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attempts": 1,
+                  "error_code": "owner_left_org",
+                  "error_message": "The API answered 503.",
+                  "started_at": "2026-10-08T14:30:00Z",
+                  "finished_at": "2026-10-08T14:30:00Z",
+                  "duration_ms": 840
+                },
+                "schema": { "$ref": "#/components/schemas/AutomationRun" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/automation-runs/{id}/notices": {
+      "post": {
+        "operationId": "automationRuns.notify",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automation_runs",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "send_automation_notice",
+        "summary": "Notify a member from a running automation run",
+        "description": "The notify action (ADR 0047): during a run, the automation's owner notifies a member of the org (automation.notice) about the event's subject, through `app.send_automation_notice`. Only a running run of the caller's own automation (404 otherwise); the recipient must be a member (automation_person_not_member: 422). Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the automation run.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the automation run.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "recipient_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "title": "New task: Call the venue",
+                "body": "Call the venue needs a look."
+              },
+              "schema": { "$ref": "#/components/schemas/AutomationNoticeRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "notification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/AutomationNoticeResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/automation-runs/{id}/webhook-deliveries": {
+      "post": {
+        "operationId": "automationRuns.deliverWebhook",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automation_runs",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "queue_automation_webhook",
+        "summary": "Send a running run's event to a webhook endpoint",
+        "description": "The call_webhook action (ADR 0047): during a run, its owner queues a delivery of the run's event to one of the org's webhook endpoints through `app.queue_automation_webhook`; the webhook dispatcher signs and retries it like every webhook. Needs org.automations.write, org.webhooks.manage and the webhooks plan feature. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the automation run.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the automation run.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "webhook_endpoint_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "schema": { "$ref": "#/components/schemas/AutomationWebhookRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "webhook_delivery_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/AutomationWebhookResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/automation-runs/{id}/retry": {
+      "post": {
+        "operationId": "automationRuns.retry",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automation_runs",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "retry_automation_run",
+        "summary": "Retry a failed automation run",
+        "description": "Queues a failed run again through `app.retry_automation_run`; steps that succeeded are not run again. The automation must be on (automation_off: 422) and the run Failed (automation_run_not_failed: 422). Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the automation run.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the automation run.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "automation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "domain_event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_run_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "depth": 0,
+                  "run_status": "Queued",
+                  "event_payload": {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "type": "record.created",
+                    "occurred_at": "2026-10-08T14:30:00Z",
+                    "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "subject": { "table": "records", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                    "data": { "record_kind": "Task", "title": "Call the venue" }
+                  },
+                  "owner_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attempts": 1,
+                  "error_code": "owner_left_org",
+                  "error_message": "The API answered 503.",
+                  "started_at": "2026-10-08T14:30:00Z",
+                  "finished_at": "2026-10-08T14:30:00Z",
+                  "duration_ms": 840
+                },
+                "schema": { "$ref": "#/components/schemas/AutomationRun" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/automation-run-steps": {
+      "get": {
+        "operationId": "automationRunSteps.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automation_run_steps",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["automation_run_id", "position"], "numeric": false },
+        "summary": "List automation run step rows",
+        "description": "One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns a cursor page of automation run step rows the caller may see. The default order is `automation_run_id`, then `position` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of automation run step rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "automation_run_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "automation_action_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "position": 1,
+                      "action_type": "create_task",
+                      "operation_id": "records.create",
+                      "step_status": "Succeeded",
+                      "request_body": { "title": "Review Call the venue" },
+                      "response_body": { "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                      "http_status": 201,
+                      "error_code": "record_title_grammar",
+                      "error_message": "A Task title starts with an imperative verb.",
+                      "started_at": "2026-10-08T14:30:00Z",
+                      "finished_at": "2026-10-08T14:30:00Z",
+                      "duration_ms": 120
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AutomationRunStepPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/automation-run-steps/{id}": {
+      "get": {
+        "operationId": "automationRunSteps.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.automation_run_steps",
+        "x-xos-capability": "org.automations.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get an automation run step",
+        "description": "One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns one automation run step with its `ETag`. A automation run step the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the automation run step.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the automation run step.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The automation run step.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "automation_run_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "automation_action_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "position": 1,
+                  "action_type": "create_task",
+                  "operation_id": "records.create",
+                  "step_status": "Succeeded",
+                  "request_body": { "title": "Review Call the venue" },
+                  "response_body": { "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                  "http_status": 201,
+                  "error_code": "record_title_grammar",
+                  "error_message": "A Task title starts with an imperative verb.",
+                  "started_at": "2026-10-08T14:30:00Z",
+                  "finished_at": "2026-10-08T14:30:00Z",
+                  "duration_ms": 120
+                },
+                "schema": { "$ref": "#/components/schemas/AutomationRunStep" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

@@ -148,9 +148,25 @@ if TYPE_CHECKING:
         AuroraExtractRequest,
         AuroraFilterRequest,
         AuroraMapColumnsRequest,
+        AuroraPreview,
+        AuroraPreviewRequest,
         AuroraResult,
         AuroraStatus,
         AuroraSummarizeRequest,
+        Automation,
+        AutomationCreate,
+        AutomationNoticeRequest,
+        AutomationNoticeResult,
+        AutomationPage,
+        AutomationRun,
+        AutomationRunPage,
+        AutomationRunStep,
+        AutomationRunStepPage,
+        AutomationTestRequest,
+        AutomationTestResult,
+        AutomationUpdate,
+        AutomationWebhookRequest,
+        AutomationWebhookResult,
         AvailabilityBlock,
         AvailabilityBlockCreate,
         AvailabilityBlockPage,
@@ -1211,6 +1227,7 @@ if TYPE_CHECKING:
         StdVendorEntitlementPage,
         StdVerbiage,
         StdVerbiagePage,
+        SubjectCommentRequest,
         Subscription,
         SubscriptionPage,
         SupportSession,
@@ -30360,6 +30377,22 @@ class CommentsResource(Resource):
         """
         return self._client.request(OPERATIONS["comments.delete"], path={"id": id}, options=options)
 
+    def post_on_subject(
+        self,
+        body: SubjectCommentRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Comment]:
+        """Comment on a subject
+
+        Posts a comment on any row of app.comment_subjects by its table and id, as the caller, in the subject's main thread or the thread of an anchor, opening the thread on first use (`app.post_comment`). The subject's own read policy decides (404 when it is not visible). The add_comment action of automations calls it as the automation's owner. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /comments/on-subject`` (operation ``comments.postOnSubject``).
+        Requires the capability ``work.record.write``.
+        """
+        return self._client.request(OPERATIONS["comments.postOnSubject"], body=body, idempotency_key=idempotency_key, options=options)
+
 
 class NotificationsResource(Resource):
     """Operations on ``notifications``, in the Platform module."""
@@ -32335,6 +32368,22 @@ class AuroraResource(Resource):
         Requires the capability ``home.dashboard.read``.
         """
         return self._client.request(OPERATIONS["aurora.bindCode"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def preview(
+        self,
+        body: AuroraPreviewRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraPreview]:
+        """Preview what a request would send
+
+        Reads the records a drafting or summary request names, as the request would (the caller's permissions, Restricted columns, masked values and excluded tables removed), and returns what would be sent. A gate readiness summary adds the project's gate criteria. No model is called and nothing is metered (A95). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/preview`` (operation ``aurora.preview``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.preview"], body=body, idempotency_key=idempotency_key, options=options)
 
 
 class AiSuggestionsResource(Resource):
@@ -34936,6 +34985,298 @@ class InboundMessagesResource(Resource):
         Requires the capability ``knowledge.document.write``.
         """
         return self._client.request(OPERATIONS["inboundMessages.discard"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class AutomationsResource(Resource):
+    """Operations on ``automations``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[Automation]:
+        """List automation rows
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns a cursor page of automation rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /automations`` (operation ``automations.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request_page(OPERATIONS["automations.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[Automation]:
+        """List automation rows
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns a cursor page of automation rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /automations`` (operation ``automations.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.paginate(OPERATIONS["automations.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: AutomationCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Automation]:
+        """Create an automation
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Creates an automation. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /automations`` (operation ``automations.create``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automations.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Automation]:
+        """Get an automation
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns one automation with its `ETag`. A automation the caller may not see returns 404.
+
+        ``GET /automations/{id}`` (operation ``automations.get``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automations.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: AutomationUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Automation]:
+        """Update an automation
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /automations/{id}`` (operation ``automations.update``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automations.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete an automation
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Soft-deletes the automation: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /automations/{id}`` (operation ``automations.delete``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automations.delete"], path={"id": id}, options=options)
+
+    def test(
+        self,
+        id: str,
+        body: AutomationTestRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationTestResult]:
+        """Test an automation against a sample event
+
+        Dry run of the automation's conditions against a sample event body through `app.test_automation`: whether they match and, per condition, the value found. Nothing runs and nothing is written. Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /automations/{id}/test`` (operation ``automations.test``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automations.test"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class AutomationRunsResource(Resource):
+    """Operations on ``automationRuns``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AutomationRun]:
+        """List automation run rows
+
+        One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns a cursor page of automation run rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /automation-runs`` (operation ``automationRuns.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request_page(OPERATIONS["automationRuns.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AutomationRun]:
+        """List automation run rows
+
+        One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns a cursor page of automation run rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /automation-runs`` (operation ``automationRuns.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.paginate(OPERATIONS["automationRuns.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationRun]:
+        """Get an automation run
+
+        One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns one automation run with its `ETag`. A automation run the caller may not see returns 404.
+
+        ``GET /automation-runs/{id}`` (operation ``automationRuns.get``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automationRuns.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def notify(
+        self,
+        id: str,
+        body: AutomationNoticeRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationNoticeResult]:
+        """Notify a member from a running automation run
+
+        The notify action (ADR 0047): during a run, the automation's owner notifies a member of the org (automation.notice) about the event's subject, through `app.send_automation_notice`. Only a running run of the caller's own automation (404 otherwise); the recipient must be a member (automation_person_not_member: 422). Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /automation-runs/{id}/notices`` (operation ``automationRuns.notify``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automationRuns.notify"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def deliver_webhook(
+        self,
+        id: str,
+        body: AutomationWebhookRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationWebhookResult]:
+        """Send a running run's event to a webhook endpoint
+
+        The call_webhook action (ADR 0047): during a run, its owner queues a delivery of the run's event to one of the org's webhook endpoints through `app.queue_automation_webhook`; the webhook dispatcher signs and retries it like every webhook. Needs org.automations.write, org.webhooks.manage and the webhooks plan feature. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /automation-runs/{id}/webhook-deliveries`` (operation ``automationRuns.deliverWebhook``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automationRuns.deliverWebhook"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def retry(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationRun]:
+        """Retry a failed automation run
+
+        Queues a failed run again through `app.retry_automation_run`; steps that succeeded are not run again. The automation must be on (automation_off: 422) and the run Failed (automation_run_not_failed: 422). Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /automation-runs/{id}/retry`` (operation ``automationRuns.retry``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automationRuns.retry"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class AutomationRunStepsResource(Resource):
+    """Operations on ``automationRunSteps``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AutomationRunStep]:
+        """List automation run step rows
+
+        One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns a cursor page of automation run step rows the caller may see. The default order is `automation_run_id`, then `position` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /automation-run-steps`` (operation ``automationRunSteps.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request_page(OPERATIONS["automationRunSteps.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AutomationRunStep]:
+        """List automation run step rows
+
+        One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns a cursor page of automation run step rows the caller may see. The default order is `automation_run_id`, then `position` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /automation-run-steps`` (operation ``automationRunSteps.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.paginate(OPERATIONS["automationRunSteps.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationRunStep]:
+        """Get an automation run step
+
+        One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns one automation run step with its `ETag`. A automation run step the caller may not see returns 404.
+
+        ``GET /automation-run-steps/{id}`` (operation ``automationRunSteps.get``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automationRunSteps.get"], path={"id": id}, query={"fields": fields}, options=options)
 
 
 class WorkforceGroupsResource(Resource):

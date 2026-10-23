@@ -8,6 +8,7 @@ import { fieldError } from "./kit-field-error";
 import { useAfterSave } from "./kit-use-after-save";
 import { useFinanceT } from "./kit-use-finance-t";
 import { type Option } from "./kit.types";
+import { ExtractEntry } from "@/components/aurora/entry/extract-entry";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { INITIAL, Submit } from "./forms.shared";
 
@@ -45,6 +46,15 @@ export function InvoiceForm({
         <input type="hidden" name="id" value={invoice.id} />
       ) : (
         <>
+          <ExtractEntry
+            kind="invoice"
+            fields={{
+              invoice_number: { name: "number" },
+              issued_on: { name: "issuedOn" },
+              due_on: { name: "dueOn" },
+              currency_code: { name: "currency" },
+            }}
+          />
           {projectId ? (
             <input type="hidden" name="projectId" value={projectId} />
           ) : (

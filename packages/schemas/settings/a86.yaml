@@ -1,0 +1,19 @@
+# Settings registry: A86 (settings surfaces, RRR-131, finding A65-004). Section 4.5.6.
+# Field reference: see a30.yaml. Departments in use (1430) and location defaults (1431) are lists and a pair of
+# defaults kept in their own tables, not registry settings; they render as contributed panels.
+contributor: a86
+settings:
+  # API Keys and Service Accounts ------------------------------------------------------------------------------
+  - key: developer.personal_tokens
+    type: boolean
+    default: false
+    scopes: [organization]
+    capability: org.api_keys.manage
+    label: settings.fields.personalTokens.label
+    help: settings.fields.personalTokens.help
+    pages: { org: settings.api-keys-and-service-accounts }
+    enforced_by:
+      - consumer: supabase/migrations/1432_personal_access_tokens.sql#private.org_allows_personal_tokens
+        test: supabase/tests/1432_personal_access_tokens.test.sql
+      - consumer: apps/atlas/lib/shell/membership.ts#PERSONAL_TOKENS_SETTING
+        test: apps/atlas/test/settings-surfaces.test.ts

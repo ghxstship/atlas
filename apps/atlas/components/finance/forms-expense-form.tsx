@@ -8,6 +8,7 @@ import { fieldError } from "./kit-field-error";
 import { useAfterSave } from "./kit-use-after-save";
 import { useFinanceT } from "./kit-use-finance-t";
 import { type Option } from "./kit.types";
+import { ExtractEntry } from "@/components/aurora/entry/extract-entry";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { INITIAL, Submit } from "./forms.shared";
 import { type LineOption } from "./forms.types";
@@ -50,6 +51,14 @@ export function ExpenseForm({
       {expense ? <input type="hidden" name="id" value={expense.id} /> : null}
       {expense ? null : (
         <>
+          <ExtractEntry
+            kind="receipt"
+            fields={{
+              description: { name: "description" },
+              amount_minor: { name: "amount", as: "money" },
+              incurred_on: { name: "incurredOn" },
+            }}
+          />
           <input type="hidden" name="budgetLineId" value={lineId} />
           <Combobox
             id="expense-line"

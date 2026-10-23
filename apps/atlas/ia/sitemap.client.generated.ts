@@ -26,6 +26,8 @@ export const clientSitemap: Sitemap = {
       document: { type: "slug" },
       token: { type: "token" },
       feedToken: { type: "token" },
+      workspaceSlug: { type: "slug" },
+      teamId: { type: "uuid" },
     },
     audience: {
       dimension: "platform-role",
@@ -345,8 +347,26 @@ export const clientSitemap: Sitemap = {
         ["legal-entities-and-fiscal", "section", 0, "nav.settings.org.legalEntitiesAndFiscal"],
         ["members", "section", 0, "nav.settings.org.members"],
         ["roles-and-capabilities", "section", 0, "nav.settings.org.rolesAndCapabilities"],
-        ["teams", "section", 0, "nav.settings.org.teams"],
-        ["workspaces", "section", 0, "nav.settings.org.workspaces"],
+        [
+          "teams",
+          "section",
+          [["team", "record", 0, "nav.settings.org.team", "/{org}/settings/teams/{teamId}"]],
+          "nav.settings.org.teams",
+        ],
+        [
+          "workspaces",
+          "section",
+          [
+            [
+              "workspace",
+              "record",
+              0,
+              "nav.settings.org.workspace",
+              "/{org}/settings/workspaces/{workspaceSlug}",
+            ],
+          ],
+          "nav.settings.org.workspaces",
+        ],
         ["departments-and-disciplines", "section", 0, "nav.settings.org.departmentsAndDisciplines"],
         ["locations-and-venues", "section", 0, "nav.settings.org.locationsAndVenues"],
         ["security", "section", 0, "nav.settings.org.security"],
