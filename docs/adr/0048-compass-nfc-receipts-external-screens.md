@@ -78,6 +78,7 @@ The A65 requirements trace found Compass missing three things the spec asks for:
 - **Calendars (A71).** Calendar dates are shown as written. Instants show in the project's zone, travel in each end's own
   zone; "today", per diem's today and overdue follow the project's calendar (`@xos/data/calendar`), as Gateway's
   engagement view does with `todayIn(engagement.projectTimeZone)`. Without a known zone, the person's own zone applies.
+  A person who chose their own zone (`me.time_zone_display`, A97's `scheduleZone`) sees instants there; dates don't move.
 - **Actions.** Submitting a timesheet, uploading onboarding documents, acknowledging an order, handing in a deliverable,
   answering the advance or responding to a settlement stay on the engagement in Gateway; each screen opens its engagement
   tab there. Proof of performance lists the sponsor's entitlements and the proof documents shared with them; capturing
