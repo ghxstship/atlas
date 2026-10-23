@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getAutomationSummary } from "../src/automations.ts";
+import { getScheduledWorkSummary } from "../src/scheduled-work.ts";
 import { listMyConnectedApps, revokeConnectedApp } from "../src/connected-apps.ts";
 import {
   getClassificationSummary,
@@ -859,7 +859,7 @@ describe("usage, connected apps and automations (1433)", () => {
         denied(),
       ],
     });
-    const summary = await getAutomationSummary(db, "org-1");
+    const summary = await getScheduledWorkSummary(db, "org-1");
     expect(summary.ok && summary.data).toEqual({
       scheduledReports: [
         {
@@ -883,9 +883,9 @@ describe("usage, connected apps and automations (1433)", () => {
       activeApprovalPolicies: 0,
       liveWebhooks: 0,
     });
-    expect((await getAutomationSummary(db, "org-1")).ok).toBe(false);
-    expect((await getAutomationSummary(db, "org-1")).ok).toBe(false);
-    expect((await getAutomationSummary(db, "org-1")).ok).toBe(false);
-    expect((await getAutomationSummary(db, "org-1")).ok).toBe(false);
+    expect((await getScheduledWorkSummary(db, "org-1")).ok).toBe(false);
+    expect((await getScheduledWorkSummary(db, "org-1")).ok).toBe(false);
+    expect((await getScheduledWorkSummary(db, "org-1")).ok).toBe(false);
+    expect((await getScheduledWorkSummary(db, "org-1")).ok).toBe(false);
   });
 });

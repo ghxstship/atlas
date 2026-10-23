@@ -7,7 +7,8 @@ import type { NotificationKindRegistry } from "./model.ts";
  * drift test (the new seed's test replaces it) and keep the old seed as history. Each seed is a complete
  * idempotent upsert, so the latest one decides the rows. 1360 was the first; 1368 adds the quiet-hours
  * bypass list (ADR 0033 decision 35); 1369 adds A79's org lifecycle kinds (A79's range runs before 1367, which
- * creates the bypass table the seed fills), 1387 the Subprocessor List emails (A82, Section 14.4) and 1569 the
+ * creates the bypass table the seed fills), 1387 the Subprocessor List emails (A82, Section 14.4), 1489 the
+ * automations category and kinds (A91, ADR 0047, never applied anywhere: its kinds moved into 1569) and 1569 the
  * account notices of recovery codes and signed-out sessions (A99, ADR 0055).
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =

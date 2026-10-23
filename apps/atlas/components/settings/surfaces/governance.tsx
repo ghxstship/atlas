@@ -1,5 +1,5 @@
 import { listMembers, listRoles } from "@xos/data";
-import { getAutomationSummary } from "@xos/data/automations";
+import { getScheduledWorkSummary } from "@xos/data/scheduled-work";
 import { listCanonExtensionProposals } from "@xos/data/canon";
 import { listCurrencies } from "@xos/data/finance";
 import {
@@ -414,7 +414,7 @@ export async function CanonExtensionsPanel({ ctx }: SettingsPanelProps) {
 export async function AutomationsPanel({ ctx }: SettingsPanelProps) {
   const [f, summary] = await Promise.all([
     formatters(ctx),
-    getAutomationSummary(ctx.viewer.db, ctx.org.id),
+    getScheduledWorkSummary(ctx.viewer.db, ctx.org.id),
   ]);
   if (!summary.ok) return <LoadFailed t={f.t} />;
   const s = summary.data;

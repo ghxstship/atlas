@@ -18,6 +18,11 @@ import { a79Capabilities, a79Resources } from "./parts/a79.ts";
 import { shareLinkCapabilities, shareLinkResources } from "./parts/share-links.ts";
 import { a84Actions, a84Capabilities, a84Resources, CalendarFeedToken } from "./parts/a84.ts";
 import {
+  automationActions,
+  automationCapabilities,
+  automationResources,
+} from "./parts/automations.ts";
+import {
   workflowActions,
   workflowCapabilities,
   workflowCorrections,
@@ -62,8 +67,9 @@ export const additions = defineAdditions("Platform", {
     ...a79Resources,
     ...shareLinkResources,
     ...a84Resources,
+    ...automationResources,
   ],
-  actions: { ...workflowActions, ...a36Actions, ...a84Actions },
+  actions: { ...workflowActions, ...a36Actions, ...a84Actions, ...automationActions },
   capabilities: {
     ...viewsHelpSupportCapabilities,
     ...workflowCapabilities,
@@ -71,6 +77,7 @@ export const additions = defineAdditions("Platform", {
     ...a79Capabilities,
     ...shareLinkCapabilities,
     ...a84Capabilities,
+    ...automationCapabilities,
   },
   corrections: [
     ...workflowCorrections,

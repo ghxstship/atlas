@@ -557,6 +557,11 @@
       "assignment": {
         "created": "Nueva asignación"
       },
+      "automation": {
+        "notice": "Mensaje de una automatización",
+        "failed": "Falló una automatización",
+        "paused": "Automatización en pausa"
+      },
       "billing": {
         "payment_failed": "Pago fallido",
         "read_only": "La organización está en modo de solo lectura",

@@ -58,6 +58,21 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "approval.requested": { title: "Purchase Order 41", actorName: "Demo Producer" },
   "approval.decided": { title: "Purchase Order 41", actorName: "Demo Admin", decision: "approved" },
   "assignment.created": { title: "NWS-12 Production Meeting" },
+  // A91's automation kinds (1481), as app.send_automation_notice, the failure notice and the pause store them.
+  "automation.notice": {
+    automationName: "Pick up tasks",
+    title: "New task: Call the venue",
+    body: "Call the venue needs a look.",
+  },
+  "automation.failed": {
+    automationName: "Pick up tasks",
+    error: "A Task title starts with an imperative verb.",
+  },
+  "automation.paused": {
+    automationName: "Pick up tasks",
+    ownerName: "Demo Admin",
+    reason: "owner_left_org",
+  },
   "billing.payment_failed": { days: "3" },
   "billing.read_only": {},
   "comment.created": { title: "NWS-12 Production Meeting" },

@@ -222,6 +222,20 @@ var email_default$1 = {
         body: "{org} is now a direct customer. Your support sessions and standing grants for it have ended, and it no longer appears on your wholesale statements.",
       },
     },
+    automation: {
+      notice: {
+        subject: "{title}",
+        body: "{body} Sent by the automation {automationName}.",
+      },
+      failed: {
+        subject: "Automation failed: {automationName}",
+        body: "A run of {automationName} failed: {error}",
+      },
+      paused: {
+        subject: "Automation paused: {automationName}",
+        body: "{automationName} is off because {reason, select, owner_left_org {{ownerName} is no longer a member} owner_lost_capability {{ownerName} can no longer manage automations} owner_cannot_sign_in {{ownerName} has no sign-in} other {the API refused to act as {ownerName}}}. Turn it on again in Settings, Automations, and it runs as you.",
+      },
+    },
   },
   notification: { heading: "{subject}" },
   digest: {
@@ -508,6 +522,20 @@ var email_default = {
       client_left: {
         subject: "{org} dejó su cuenta de socio",
         body: "{org} ahora es un cliente directo. Sus sesiones de soporte y permisos permanentes para esa organización terminaron, y ya no aparece en sus estados mayoristas.",
+      },
+    },
+    automation: {
+      notice: {
+        subject: "{title}",
+        body: "{body} Enviado por la automatización {automationName}.",
+      },
+      failed: {
+        subject: "Falló la automatización: {automationName}",
+        body: "Una ejecución de {automationName} falló: {error}",
+      },
+      paused: {
+        subject: "Automatización en pausa: {automationName}",
+        body: "{automationName} está desactivada porque {reason, select, owner_left_org {{ownerName} ya no es miembro} owner_lost_capability {{ownerName} ya no puede gestionar automatizaciones} owner_cannot_sign_in {{ownerName} no tiene inicio de sesión} other {la API se negó a actuar como {ownerName}}}. Actívala de nuevo en Configuración, Automatizaciones, y se ejecutará a tu nombre.",
       },
     },
   },
