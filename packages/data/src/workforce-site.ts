@@ -61,6 +61,14 @@ export const HAZARD_UNITS: Readonly<
   Heat: { unit: "F", comparison: "At or Above" },
 };
 
+/**
+ * The Intl unit each stored hazard unit is (Section 15 units): readings and thresholds stay stored in mph, miles
+ * and degrees Fahrenheit, and screens convert them to the person's units (locale.units) for display and input.
+ */
+export const HAZARD_MEASURES: Readonly<
+  Record<(typeof HAZARD_UNITS)[WeatherHazard]["unit"], "mile-per-hour" | "mile" | "fahrenheit">
+> = { mph: "mile-per-hour", mi: "mile", F: "fahrenheit" };
+
 /** The alert thresholds of Section 4.9, in percent of the permitted load. */
 export const OCCUPANCY_LEVELS = [80, 90, 100] as const;
 

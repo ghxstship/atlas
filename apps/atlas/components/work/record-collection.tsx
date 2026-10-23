@@ -24,7 +24,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { transitionRecordAction } from "./actions";
-import { formatWhen, stateToken, withQuery } from "./format";
+import { formatScheduleTime, formatWhen, stateToken, withQuery } from "./format";
+import { useScheduleView } from "./use-schedule-view";
+import { displayTimeZone } from "@xos/ui/preferences";
 import { TransitionDialog } from "./record-panels";
 import { CollectionViews } from "@/components/views/collection-views";
 import type { BulkConfig } from "@/components/bulk/types";
@@ -122,8 +124,10 @@ export function RecordCollection({
     router.push(withQuery(pathname, params, { peek: key }) as Route, { scroll: false });
   const kindLabel = (kind: string) => t(`kinds.${kind}`);
   const stateLabel = (state: string) => t(`states.${state}`);
+  // Schedule times follow me.time_zone_display and carry their zone abbreviation (Section 15).
+  const zoneView = useScheduleView();
   const when = (value: string | null, tz: string) =>
-    formatWhen(value, locale, tz, { dateStyle: "medium", timeStyle: "short" });
+    formatScheduleTime(value, locale, tz, zoneView);
   const nextOf = (r: RecordSummary) => {
     const at =
       r.startsAt && r.startsAt > new Date().toISOString()
@@ -390,7 +394,13 @@ export function RecordCollection({
   } else if (view === "calendar") {
     const byLabel = new Map<string, string>();
     const events = records.flatMap((r) => {
-      const tz = r.timeZone ?? r.projectTimeZone ?? timeZone;
+      // A record lands on its day in the zone its time shows in (me.time_zone_display).
+      const tz =
+        displayTimeZone(
+          r.timeZone ?? r.projectTimeZone ?? timeZone,
+          zoneView.display,
+          zoneView.viewerZone,
+        ) ?? timeZone;
       const at = r.startsAt ?? r.dueAt ?? r.endsAt;
       if (!at) return [];
       const date =

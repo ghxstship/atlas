@@ -116,9 +116,22 @@ import type {
   AuroraExtractRequest,
   AuroraFilterRequest,
   AuroraMapColumnsRequest,
+  AuroraPreview,
+  AuroraPreviewRequest,
   AuroraResult,
   AuroraStatus,
   AuroraSummarizeRequest,
+  Automation,
+  AutomationCreate,
+  AutomationNoticeRequest,
+  AutomationNoticeResult,
+  AutomationRun,
+  AutomationRunStep,
+  AutomationTestRequest,
+  AutomationTestResult,
+  AutomationUpdate,
+  AutomationWebhookRequest,
+  AutomationWebhookResult,
   AvailabilityBlock,
   AvailabilityBlockCreate,
   AvailabilityBlockUpdate,
@@ -322,6 +335,9 @@ import type {
   DoorGuestPage,
   DsarRequest,
   DsarRequestCreate,
+  EarnedMediaItem,
+  EarnedMediaItemCreate,
+  EarnedMediaItemUpdate,
   EarningCode,
   EarningCodeCreate,
   EarningCodeUpdate,
@@ -505,6 +521,9 @@ import type {
   MarshallingLogEntry,
   MarshallingLogEntryCreate,
   Me,
+  MeasurementMetric,
+  MeasurementMetricTag,
+  MeasurementUnit,
   MedicalEncounter,
   MedicalEncounterCreate,
   MedicalEncounterUpdate,
@@ -663,6 +682,14 @@ import type {
   ProjectCreate,
   ProjectInbox,
   ProjectInboxCreate,
+  ProjectMeasurement,
+  ProjectMeasurementCorrection,
+  ProjectMeasurementCreate,
+  ProjectMeasurementSummary,
+  ProjectMeasurementUpdate,
+  ProjectObjective,
+  ProjectObjectiveCreate,
+  ProjectObjectiveUpdate,
   ProjectPhaseTransition,
   ProjectShare,
   ProjectShareCreate,
@@ -812,6 +839,9 @@ import type {
   SettingValueCreate,
   SettingValueUpdate,
   SettleClaimRequest,
+  ShareLink,
+  ShareLinkCreate,
+  ShareLinkToken,
   SharedWorkDetails,
   Shift,
   ShiftCreate,
@@ -859,6 +889,7 @@ import type {
   StdVendorClass,
   StdVendorEntitlement,
   StdVerbiage,
+  SubjectCommentRequest,
   Subscription,
   SupportSession,
   SupportSessionGrantRequest,
@@ -32388,6 +32419,21 @@ export class CommentsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Comment on a subject
+   *
+   * Posts a comment on any row of app.comment_subjects by its table and id, as the caller, in the subject's main thread or the thread of an anchor, opening the thread on first use (`app.post_comment`). The subject's own read policy decides (404 when it is not visible). The add_comment action of automations calls it as the automation's owner. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /comments/on-subject` (operation `comments.postOnSubject`).
+   * Requires the capability `work.record.write`.
+   */
+  postOnSubject(
+    body: SubjectCommentRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Comment>> {
+    return this.client.request<Comment>($OPERATIONS["comments.postOnSubject"], { body }, options);
+  }
 }
 
 /**
@@ -33058,6 +33104,627 @@ export class ProjectAuthoritiesResource extends $Resource {
   ): AsyncGenerator<ProjectAuthority, void, undefined> {
     return this.client.paginate<ProjectAuthority>(
       $OPERATIONS["projectAuthorities.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `measurementMetrics`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class MeasurementMetricsResource extends $Resource {
+  /**
+   * List measurement metric rows
+   *
+   * A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one. Returns a cursor page of measurement metric rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /measurement-metrics` (operation `measurementMetrics.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<MeasurementMetric>,
+    options?: $RequestOptions,
+  ): Promise<$Page<MeasurementMetric>> {
+    return this.client.requestPage<MeasurementMetric>(
+      $OPERATIONS["measurementMetrics.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List measurement metric rows
+   *
+   * A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one. Returns a cursor page of measurement metric rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /measurement-metrics` (operation `measurementMetrics.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<MeasurementMetric>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<MeasurementMetric, void, undefined> {
+    return this.client.paginate<MeasurementMetric>(
+      $OPERATIONS["measurementMetrics.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `measurementUnits`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class MeasurementUnitsResource extends $Resource {
+  /**
+   * List measurement unit rows
+   *
+   * A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers. Returns a cursor page of measurement unit rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /measurement-units` (operation `measurementUnits.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<MeasurementUnit>,
+    options?: $RequestOptions,
+  ): Promise<$Page<MeasurementUnit>> {
+    return this.client.requestPage<MeasurementUnit>(
+      $OPERATIONS["measurementUnits.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List measurement unit rows
+   *
+   * A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers. Returns a cursor page of measurement unit rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /measurement-units` (operation `measurementUnits.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<MeasurementUnit>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<MeasurementUnit, void, undefined> {
+    return this.client.paginate<MeasurementUnit>(
+      $OPERATIONS["measurementUnits.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `measurementMetricTags`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class MeasurementMetricTagsResource extends $Resource {
+  /**
+   * List measurement metric tag rows
+   *
+   * A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10). Returns a cursor page of measurement metric tag rows the caller may see. The default order is `metric_code`, then `tag_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /measurement-metric-tags` (operation `measurementMetricTags.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<MeasurementMetricTag>,
+    options?: $RequestOptions,
+  ): Promise<$Page<MeasurementMetricTag>> {
+    return this.client.requestPage<MeasurementMetricTag>(
+      $OPERATIONS["measurementMetricTags.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List measurement metric tag rows
+   *
+   * A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10). Returns a cursor page of measurement metric tag rows the caller may see. The default order is `metric_code`, then `tag_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /measurement-metric-tags` (operation `measurementMetricTags.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<MeasurementMetricTag>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<MeasurementMetricTag, void, undefined> {
+    return this.client.paginate<MeasurementMetricTag>(
+      $OPERATIONS["measurementMetricTags.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectObjectives`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectObjectivesResource extends $Resource {
+  /**
+   * List project objective rows
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns a cursor page of project objective rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-objectives` (operation `projectObjectives.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<ProjectObjective>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectObjective>> {
+    return this.client.requestPage<ProjectObjective>(
+      $OPERATIONS["projectObjectives.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project objective rows
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns a cursor page of project objective rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-objectives` (operation `projectObjectives.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectObjective>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectObjective, void, undefined> {
+    return this.client.paginate<ProjectObjective>(
+      $OPERATIONS["projectObjectives.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a project objective
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Creates a project objective. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /project-objectives` (operation `projectObjectives.create`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  create(
+    body: ProjectObjectiveCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProjectObjective>> {
+    return this.client.request<ProjectObjective>(
+      $OPERATIONS["projectObjectives.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a project objective
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns one project objective with its `ETag`. A project objective the caller may not see returns 404.
+   *
+   * `GET /project-objectives/{id}` (operation `projectObjectives.get`).
+   * Requires the capability `projects.gate.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectObjective>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectObjective>> {
+    return this.client.request<ProjectObjective>(
+      $OPERATIONS["projectObjectives.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a project objective
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /project-objectives/{id}` (operation `projectObjectives.update`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  update(
+    id: string,
+    body: ProjectObjectiveUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<ProjectObjective>> {
+    return this.client.request<ProjectObjective>(
+      $OPERATIONS["projectObjectives.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a project objective
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Soft-deletes the project objective: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /project-objectives/{id}` (operation `projectObjectives.delete`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["projectObjectives.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectMeasurements`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectMeasurementsResource extends $Resource {
+  /**
+   * List project measurement rows
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns a cursor page of project measurement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-measurements` (operation `projectMeasurements.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<ProjectMeasurement>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectMeasurement>> {
+    return this.client.requestPage<ProjectMeasurement>(
+      $OPERATIONS["projectMeasurements.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project measurement rows
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns a cursor page of project measurement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-measurements` (operation `projectMeasurements.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectMeasurement>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectMeasurement, void, undefined> {
+    return this.client.paginate<ProjectMeasurement>(
+      $OPERATIONS["projectMeasurements.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a project measurement
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Creates a project measurement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /project-measurements` (operation `projectMeasurements.create`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  create(
+    body: ProjectMeasurementCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProjectMeasurement>> {
+    return this.client.request<ProjectMeasurement>(
+      $OPERATIONS["projectMeasurements.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a project measurement
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns one project measurement with its `ETag`. A project measurement the caller may not see returns 404.
+   *
+   * `GET /project-measurements/{id}` (operation `projectMeasurements.get`).
+   * Requires the capability `projects.gate.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectMeasurement>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectMeasurement>> {
+    return this.client.request<ProjectMeasurement>(
+      $OPERATIONS["projectMeasurements.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a project measurement
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /project-measurements/{id}` (operation `projectMeasurements.update`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  update(
+    id: string,
+    body: ProjectMeasurementUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<ProjectMeasurement>> {
+    return this.client.request<ProjectMeasurement>(
+      $OPERATIONS["projectMeasurements.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a project measurement
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Soft-deletes the project measurement: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /project-measurements/{id}` (operation `projectMeasurements.delete`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["projectMeasurements.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectMeasurementCorrections`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectMeasurementCorrectionsResource extends $Resource {
+  /**
+   * List project measurement correction rows
+   *
+   * An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns a cursor page of project measurement correction rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-measurement-corrections` (operation `projectMeasurementCorrections.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<ProjectMeasurementCorrection>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectMeasurementCorrection>> {
+    return this.client.requestPage<ProjectMeasurementCorrection>(
+      $OPERATIONS["projectMeasurementCorrections.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project measurement correction rows
+   *
+   * An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns a cursor page of project measurement correction rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-measurement-corrections` (operation `projectMeasurementCorrections.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectMeasurementCorrection>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectMeasurementCorrection, void, undefined> {
+    return this.client.paginate<ProjectMeasurementCorrection>(
+      $OPERATIONS["projectMeasurementCorrections.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a project measurement correction
+   *
+   * An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns one project measurement correction with its `ETag`. A project measurement correction the caller may not see returns 404.
+   *
+   * `GET /project-measurement-corrections/{id}` (operation `projectMeasurementCorrections.get`).
+   * Requires the capability `projects.gate.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectMeasurementCorrection>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectMeasurementCorrection>> {
+    return this.client.request<ProjectMeasurementCorrection>(
+      $OPERATIONS["projectMeasurementCorrections.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `earnedMediaItems`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class EarnedMediaItemsResource extends $Resource {
+  /**
+   * List earned media item rows
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns a cursor page of earned media item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /earned-media-items` (operation `earnedMediaItems.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<EarnedMediaItem>,
+    options?: $RequestOptions,
+  ): Promise<$Page<EarnedMediaItem>> {
+    return this.client.requestPage<EarnedMediaItem>(
+      $OPERATIONS["earnedMediaItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List earned media item rows
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns a cursor page of earned media item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /earned-media-items` (operation `earnedMediaItems.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<EarnedMediaItem>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<EarnedMediaItem, void, undefined> {
+    return this.client.paginate<EarnedMediaItem>(
+      $OPERATIONS["earnedMediaItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create an earned media item
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Creates an earned media item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /earned-media-items` (operation `earnedMediaItems.create`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  create(
+    body: EarnedMediaItemCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EarnedMediaItem>> {
+    return this.client.request<EarnedMediaItem>(
+      $OPERATIONS["earnedMediaItems.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get an earned media item
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns one earned media item with its `ETag`. A earned media item the caller may not see returns 404.
+   *
+   * `GET /earned-media-items/{id}` (operation `earnedMediaItems.get`).
+   * Requires the capability `projects.gate.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<EarnedMediaItem>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<EarnedMediaItem>> {
+    return this.client.request<EarnedMediaItem>(
+      $OPERATIONS["earnedMediaItems.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update an earned media item
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /earned-media-items/{id}` (operation `earnedMediaItems.update`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  update(
+    id: string,
+    body: EarnedMediaItemUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<EarnedMediaItem>> {
+    return this.client.request<EarnedMediaItem>(
+      $OPERATIONS["earnedMediaItems.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete an earned media item
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Soft-deletes the earned media item: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /earned-media-items/{id}` (operation `earnedMediaItems.delete`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["earnedMediaItems.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectMeasurementSummary`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectMeasurementSummaryResource extends $Resource {
+  /**
+   * List project measurement summary row rows
+   *
+   * Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero. Returns a cursor page of project measurement summary row rows the caller may see. The default order is `project_id`, then `metric_code` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-measurement-summary` (operation `projectMeasurementSummary.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<ProjectMeasurementSummary>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectMeasurementSummary>> {
+    return this.client.requestPage<ProjectMeasurementSummary>(
+      $OPERATIONS["projectMeasurementSummary.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project measurement summary row rows
+   *
+   * Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero. Returns a cursor page of project measurement summary row rows the caller may see. The default order is `project_id`, then `metric_code` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-measurement-summary` (operation `projectMeasurementSummary.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectMeasurementSummary>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectMeasurementSummary, void, undefined> {
+    return this.client.paginate<ProjectMeasurementSummary>(
+      $OPERATIONS["projectMeasurementSummary.list"],
       { query: params },
       options,
     );
@@ -33952,6 +34619,21 @@ export class AuroraResource extends $Resource {
     options?: $MutationOptions,
   ): Promise<$ApiResponse<AuroraResult>> {
     return this.client.request<AuroraResult>($OPERATIONS["aurora.bindCode"], { body }, options);
+  }
+
+  /**
+   * Preview what a request would send
+   *
+   * Reads the records a drafting or summary request names, as the request would (the caller's permissions, Restricted columns, masked values and excluded tables removed), and returns what would be sent. A gate readiness summary adds the project's gate criteria. No model is called and nothing is metered (A95). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /aurora/preview` (operation `aurora.preview`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  preview(
+    body: AuroraPreviewRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AuroraPreview>> {
+    return this.client.request<AuroraPreview>($OPERATIONS["aurora.preview"], { body }, options);
   }
 }
 
@@ -36427,6 +37109,98 @@ export class PartnerStandingGrantsResource extends $Resource {
 }
 
 /**
+ * Operations on `shareLinks`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class ShareLinksResource extends $Resource {
+  /**
+   * List share link rows
+   *
+   * A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /share-links` (operation `shareLinks.list`).
+   * Requires the capability `data.export.run`.
+   */
+  list(params?: $ListParams<ShareLink>, options?: $RequestOptions): Promise<$Page<ShareLink>> {
+    return this.client.requestPage<ShareLink>(
+      $OPERATIONS["shareLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List share link rows
+   *
+   * A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /share-links` (operation `shareLinks.list`).
+   * Requires the capability `data.export.run`.
+   */
+  listAll(
+    params?: $ListAllParams<ShareLink>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ShareLink, void, undefined> {
+    return this.client.paginate<ShareLink>(
+      $OPERATIONS["shareLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a share link
+   *
+   * Makes a link to the current clean version of a file the caller can read, through app.create_share_link. The database applies Section 8.6: Public files may omit `expires_at`; Internal files need one within 90 days; Confidential files need `data.export.confidential`, `expires_at` within 30 days and `recipient_email`, and always get an access code; Restricted files are refused (422 `share_link_restricted`). A Confidential PDF, or an image other than PNG or JPEG, cannot carry the viewer watermark and is refused (422 `share_link_watermark_unsupported`). Answers 201 with the token and access code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /share-links` (operation `shareLinks.create`).
+   * Requires the capability `data.export.run`.
+   */
+  create(body: ShareLinkCreate, options?: $MutationOptions): Promise<$ApiResponse<ShareLinkToken>> {
+    return this.client.request<ShareLinkToken>($OPERATIONS["shareLinks.create"], { body }, options);
+  }
+
+  /**
+   * Get a share link
+   *
+   * A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns one share link with its `ETag`. A share link the caller may not see returns 404.
+   *
+   * `GET /share-links/{id}` (operation `shareLinks.get`).
+   * Requires the capability `data.export.run`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ShareLink>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ShareLink>> {
+    return this.client.request<ShareLink>(
+      $OPERATIONS["shareLinks.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a share link
+   *
+   * Revokes the link through app.revoke_share_link so it never opens again. The person who made it may revoke it, and so may anyone holding `data.export.confidential` in the org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /share-links/{id}/revoke` (operation `shareLinks.revoke`).
+   * Requires the capability `data.export.run`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<ShareLink>> {
+    return this.client.request<ShareLink>(
+      $OPERATIONS["shareLinks.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `personCalendarFeeds`, in the Platform module.
  *
  * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
@@ -36761,6 +37535,328 @@ export class InboundMessagesResource extends $Resource {
     return this.client.request<InboundMessage>(
       $OPERATIONS["inboundMessages.discard"],
       { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `automations`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class AutomationsResource extends $Resource {
+  /**
+   * List automation rows
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns a cursor page of automation rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /automations` (operation `automations.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  list(params?: $ListParams<Automation>, options?: $RequestOptions): Promise<$Page<Automation>> {
+    return this.client.requestPage<Automation>(
+      $OPERATIONS["automations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List automation rows
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns a cursor page of automation rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /automations` (operation `automations.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  listAll(
+    params?: $ListAllParams<Automation>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<Automation, void, undefined> {
+    return this.client.paginate<Automation>(
+      $OPERATIONS["automations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create an automation
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Creates an automation. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /automations` (operation `automations.create`).
+   * Requires the capability `org.automations.write`.
+   */
+  create(body: AutomationCreate, options?: $MutationOptions): Promise<$ApiResponse<Automation>> {
+    return this.client.request<Automation>($OPERATIONS["automations.create"], { body }, options);
+  }
+
+  /**
+   * Get an automation
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns one automation with its `ETag`. A automation the caller may not see returns 404.
+   *
+   * `GET /automations/{id}` (operation `automations.get`).
+   * Requires the capability `org.automations.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<Automation>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Automation>> {
+    return this.client.request<Automation>(
+      $OPERATIONS["automations.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update an automation
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /automations/{id}` (operation `automations.update`).
+   * Requires the capability `org.automations.write`.
+   */
+  update(
+    id: string,
+    body: AutomationUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<Automation>> {
+    return this.client.request<Automation>(
+      $OPERATIONS["automations.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete an automation
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Soft-deletes the automation: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /automations/{id}` (operation `automations.delete`).
+   * Requires the capability `org.automations.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["automations.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Test an automation against a sample event
+   *
+   * Dry run of the automation's conditions against a sample event body through `app.test_automation`: whether they match and, per condition, the value found. Nothing runs and nothing is written. Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /automations/{id}/test` (operation `automations.test`).
+   * Requires the capability `org.automations.write`.
+   */
+  test(
+    id: string,
+    body: AutomationTestRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AutomationTestResult>> {
+    return this.client.request<AutomationTestResult>(
+      $OPERATIONS["automations.test"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `automationRuns`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class AutomationRunsResource extends $Resource {
+  /**
+   * List automation run rows
+   *
+   * One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns a cursor page of automation run rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /automation-runs` (operation `automationRuns.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  list(
+    params?: $ListParams<AutomationRun>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AutomationRun>> {
+    return this.client.requestPage<AutomationRun>(
+      $OPERATIONS["automationRuns.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List automation run rows
+   *
+   * One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns a cursor page of automation run rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /automation-runs` (operation `automationRuns.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  listAll(
+    params?: $ListAllParams<AutomationRun>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AutomationRun, void, undefined> {
+    return this.client.paginate<AutomationRun>(
+      $OPERATIONS["automationRuns.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an automation run
+   *
+   * One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns one automation run with its `ETag`. A automation run the caller may not see returns 404.
+   *
+   * `GET /automation-runs/{id}` (operation `automationRuns.get`).
+   * Requires the capability `org.automations.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AutomationRun>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AutomationRun>> {
+    return this.client.request<AutomationRun>(
+      $OPERATIONS["automationRuns.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Notify a member from a running automation run
+   *
+   * The notify action (ADR 0047): during a run, the automation's owner notifies a member of the org (automation.notice) about the event's subject, through `app.send_automation_notice`. Only a running run of the caller's own automation (404 otherwise); the recipient must be a member (automation_person_not_member: 422). Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /automation-runs/{id}/notices` (operation `automationRuns.notify`).
+   * Requires the capability `org.automations.write`.
+   */
+  notify(
+    id: string,
+    body: AutomationNoticeRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AutomationNoticeResult>> {
+    return this.client.request<AutomationNoticeResult>(
+      $OPERATIONS["automationRuns.notify"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Send a running run's event to a webhook endpoint
+   *
+   * The call_webhook action (ADR 0047): during a run, its owner queues a delivery of the run's event to one of the org's webhook endpoints through `app.queue_automation_webhook`; the webhook dispatcher signs and retries it like every webhook. Needs org.automations.write, org.webhooks.manage and the webhooks plan feature. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /automation-runs/{id}/webhook-deliveries` (operation `automationRuns.deliverWebhook`).
+   * Requires the capability `org.automations.write`.
+   */
+  deliverWebhook(
+    id: string,
+    body: AutomationWebhookRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AutomationWebhookResult>> {
+    return this.client.request<AutomationWebhookResult>(
+      $OPERATIONS["automationRuns.deliverWebhook"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Retry a failed automation run
+   *
+   * Queues a failed run again through `app.retry_automation_run`; steps that succeeded are not run again. The automation must be on (automation_off: 422) and the run Failed (automation_run_not_failed: 422). Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /automation-runs/{id}/retry` (operation `automationRuns.retry`).
+   * Requires the capability `org.automations.write`.
+   */
+  retry(id: string, options?: $MutationOptions): Promise<$ApiResponse<AutomationRun>> {
+    return this.client.request<AutomationRun>(
+      $OPERATIONS["automationRuns.retry"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `automationRunSteps`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class AutomationRunStepsResource extends $Resource {
+  /**
+   * List automation run step rows
+   *
+   * One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns a cursor page of automation run step rows the caller may see. The default order is `automation_run_id`, then `position` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /automation-run-steps` (operation `automationRunSteps.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  list(
+    params?: $ListParams<AutomationRunStep>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AutomationRunStep>> {
+    return this.client.requestPage<AutomationRunStep>(
+      $OPERATIONS["automationRunSteps.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List automation run step rows
+   *
+   * One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns a cursor page of automation run step rows the caller may see. The default order is `automation_run_id`, then `position` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /automation-run-steps` (operation `automationRunSteps.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  listAll(
+    params?: $ListAllParams<AutomationRunStep>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AutomationRunStep, void, undefined> {
+    return this.client.paginate<AutomationRunStep>(
+      $OPERATIONS["automationRunSteps.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an automation run step
+   *
+   * One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns one automation run step with its `ETag`. A automation run step the caller may not see returns 404.
+   *
+   * `GET /automation-run-steps/{id}` (operation `automationRunSteps.get`).
+   * Requires the capability `org.automations.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AutomationRunStep>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AutomationRunStep>> {
+    return this.client.request<AutomationRunStep>(
+      $OPERATIONS["automationRunSteps.get"],
+      { path: { id }, query: params },
       options,
     );
   }

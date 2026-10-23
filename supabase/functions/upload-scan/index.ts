@@ -10,14 +10,13 @@
 // function claims nothing and answers 503, so files stay quarantined until a scanner is configured.
 import { createClient } from "@supabase/supabase-js";
 import {
-  createLogger,
-  identityFromEnv,
   runUploadScans,
   scanStore,
   selectVirusScanner,
   supabaseStorage,
   type ClamdConnection,
-} from "../_vendor/xos-platform.js";
+} from "../_vendor/upload-scan.js";
+import { createLogger, identityFromEnv } from "../_vendor/core.js";
 import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 /** A clamd connection over Deno TCP that reads until the NUL byte that ends clamd's reply. */

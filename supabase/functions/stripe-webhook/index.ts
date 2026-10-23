@@ -6,7 +6,7 @@ import {
   handleStripeWebhook,
   isTestKey,
   planRegistry,
-} from "../_vendor/xos-platform.js";
+} from "../_vendor/stripe-webhook.js";
 import { env, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 serve(async (request) => {

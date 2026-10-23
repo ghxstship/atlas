@@ -5,7 +5,7 @@
 // import.validate and import.commit check and write the rows (packages/data/src/import-worker.ts). Called every
 // minute with the service key, like report-run.
 import { createClient } from "@supabase/supabase-js";
-import { runImportJobs, supabaseImportStore } from "../_vendor/xos-platform.js";
+import { runImportJobs, supabaseImportStore } from "../_vendor/import-run.js";
 import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
 
 serve(async (request) => {

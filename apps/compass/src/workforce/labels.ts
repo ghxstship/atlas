@@ -21,6 +21,14 @@ import type {
   TrainingScreenLabels,
   WeatherScreenLabels,
 } from "@xos/workforce-native";
+import { HAZARD_MEASURES } from "@xos/data/workforce-site";
+import {
+  displayUnitFor,
+  toDisplayUnit,
+  unitSymbol,
+  type MeasureUnit,
+  type UnitSystem,
+} from "@xos/i18n/units";
 import { countKey } from "../runtime/i18n";
 
 export type T = (key: string, values?: Record<string, string | number>) => string;
@@ -316,7 +324,30 @@ export function occupancyLabels(t: T): OccupancyCounterScreenLabels {
   };
 }
 
-export function weatherLabels(t: T): WeatherScreenLabels {
+/**
+ * The units weather values show in on this device (locale.units through unitSystemOf): readings and thresholds
+ * are stored in mph, miles and degrees Fahrenheit and converted here for display.
+ */
+export interface WeatherUnits {
+  readonly locale: string;
+  readonly system: UnitSystem;
+}
+
+const STORED_IMPERIAL: WeatherUnits = { locale: "en-US", system: "imperial" };
+
+function hazardMeasure(unit: string): MeasureUnit | null {
+  return unit in HAZARD_MEASURES ? HAZARD_MEASURES[unit as keyof typeof HAZARD_MEASURES] : null;
+}
+
+export function weatherLabels(t: T, units: WeatherUnits = STORED_IMPERIAL): WeatherScreenLabels {
+  const symbol = (unit: string) => {
+    const measure = hazardMeasure(unit);
+    return measure ? unitSymbol(units.locale, displayUnitFor(measure, units.system)) : unit;
+  };
+  const shown = (value: number, unit: string) => {
+    const measure = hazardMeasure(unit);
+    return measure ? toDisplayUnit(value, measure, units.system, 1) : value;
+  };
   return {
     ...frame(t, t(`${C}.weather.title`)),
     failed: t(`${C}.common.failed`),
@@ -328,7 +359,7 @@ export function weatherLabels(t: T): WeatherScreenLabels {
     noThresholds: t(`${C}.weather.noThresholds`),
     record: t(`${C}.weather.record`),
     hazard: t(`${C}.weather.hazard`),
-    value: (unit) => t(`${C}.weather.value`, { unit }),
+    value: (unit) => t(`${C}.weather.value`, { unit: symbol(unit) }),
     valueError: t(`${C}.weather.valueError`),
     save: t(`${C}.weather.save`),
     hazards: record(["Wind", "Lightning", "Heat"], t, `${C}.weather.hazards`),
@@ -336,9 +367,18 @@ export function weatherLabels(t: T): WeatherScreenLabels {
     alertLine: (hazard, level, issuedAt) =>
       t(`${C}.weather.alertLine`, { hazard, level, time: when(issuedAt) }),
     readingLine: (value, unit, observedAt) =>
-      t(`${C}.weather.readingLine`, { value, unit, time: when(observedAt) }),
+      t(`${C}.weather.readingLine`, {
+        value: shown(value, unit),
+        unit: symbol(unit),
+        time: when(observedAt),
+      }),
     thresholdLine: (level, value, unit, source) =>
-      t(`${C}.weather.thresholdLine`, { level, value, unit, source }),
+      t(`${C}.weather.thresholdLine`, {
+        level,
+        value: shown(value, unit),
+        unit: symbol(unit),
+        source,
+      }),
   };
 }
 

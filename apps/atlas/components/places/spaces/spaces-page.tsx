@@ -18,7 +18,8 @@ import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { getShellSettings } from "@/lib/shell/org-settings";
-import { convertArea } from "@xos/ui/preferences";
+import { convertArea, resolveUnitSystem } from "@xos/ui/preferences";
+import { getLocale } from "next-intl/server";
 import { heldCapabilities } from "../kit/access";
 import { ActionButton } from "../kit/buttons";
 import { PeekTable, PeekTree, QueryDrawer } from "../kit/client";
@@ -60,8 +61,14 @@ export async function SpacesPage({
 }) {
   const ctx = await requireNode(NODE, params);
   const db = ctx.viewer.db;
-  // Floor areas show in the person's units (locale.units); they are stored in square feet.
-  const units = (await getShellSettings(db, ctx.org.id, null)).preferences.units;
+  // Floor areas show in the person's units (locale.units); they are stored in square feet. Venues of several
+  // jurisdictions share this list, so "jurisdiction" follows the region of the person's locale here (Section 15).
+  const units = resolveUnitSystem(
+    (await getShellSettings(db, ctx.org.id, null)).preferences.units,
+    {
+      locale: await getLocale(),
+    },
+  );
   const metric = units === "metric";
   const archiveParam = param(search, "archive");
   const archive: ArchiveFilter =

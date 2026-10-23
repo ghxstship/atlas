@@ -5,6 +5,7 @@ import {
   preferencesFromSettings,
   type DisplayPreferences,
 } from "@xos/ui/preferences";
+import { isTimeZone } from "@xos/data/calendar";
 import { cache } from "react";
 
 /**
@@ -130,6 +131,11 @@ export interface ShellSettings {
   readonly encoded: string;
   readonly startPage: StartPage;
   readonly support: OrgSupport | null;
+  /**
+   * The viewer's own time zone (locale.time_zone as it resolves for them in this org), which schedule times show
+   * in when they choose "my time zone" (me.time_zone_display, Section 15). Null when it is not a known zone.
+   */
+  readonly viewerTimeZone: string | null;
 }
 
 export function shellSettingsOf(settings: ReadonlyMap<string, ResolvedSetting>): ShellSettings {
@@ -139,7 +145,14 @@ export function shellSettingsOf(settings: ReadonlyMap<string, ResolvedSetting>):
     encoded: encodePreferences(preferences),
     startPage: startPageOf(settings),
     support: orgSupportOf(settings),
+    viewerTimeZone: viewerTimeZoneOf(settings),
   };
+}
+
+/** locale.time_zone as resolved for the viewer, when it names a zone Intl knows. */
+export function viewerTimeZoneOf(settings: ReadonlyMap<string, ResolvedSetting>): string | null {
+  const zone = settings.get("locale.time_zone")?.value;
+  return typeof zone === "string" && isTimeZone(zone) ? zone : null;
 }
 
 /** The viewer's resolved shell settings in an org (and workspace), once per request. */

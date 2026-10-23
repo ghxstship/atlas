@@ -128,6 +128,7 @@ function app(queues: Record<string, Response[]>, script: (ModelResponse | Error)
       model: () => model,
       readApi: () => fixtureApi,
       today: () => "2026-10-15",
+      timeZone: () => "America/New_York",
     }) as unknown as HandlerSet<"Settings">,
   );
   return {
@@ -351,7 +352,7 @@ describe("Aurora status and features", () => {
               missing: null,
             },
             {
-              field_path: "currency",
+              field_path: "currency_code",
               value: "USD",
               confidence: 0.9,
               source_excerpt: "USD",

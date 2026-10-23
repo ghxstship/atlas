@@ -3,7 +3,9 @@ import { useRouter } from "expo-router";
 import { useMemo, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
+import { formatMeasure } from "@xos/i18n/units";
 import { samplingPlan } from "../../src/domain/geo";
+import { unitSystemOf } from "../../src/domain/settings";
 import {
   buildReport,
   draftProblems,
@@ -30,10 +32,10 @@ import {
 
 /** CAD-style quick report in three steps (Section 11.13 Incidents), filed offline when needed. */
 function Report(): ReactElement {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
-  const { resolved, projectId, engine, status } = useCompass();
+  const { resolved, projectId, engine, status, orgSettings } = useCompass();
   const { rows: severities } = useRows<Severity & Row>("incident_severities");
   const ordered = useMemo(
     () => [...severities].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -60,7 +62,14 @@ function Report(): ReactElement {
     ? t("compass.incidents.locationAuto", {
         latitude: withFix.fix.latitude.toFixed(5),
         longitude: withFix.fix.longitude.toFixed(5),
-        accuracy: Math.round(withFix.fix.accuracyM),
+        // Measured in meters, shown in the person's units (locale.units).
+        accuracy: formatMeasure(
+          i18n.language,
+          withFix.fix.accuracyM,
+          "meter",
+          unitSystemOf(i18n.language, orgSettings),
+          0,
+        ),
       })
     : t("compass.incidents.locationUnknown");
   const submit = async () => {

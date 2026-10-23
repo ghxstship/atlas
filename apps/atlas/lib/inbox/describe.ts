@@ -35,6 +35,9 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "occupancy.threshold": ["percent", "count", "permitted_load"],
   "weather.alert": ["level", "hazard", "reading"],
   "account.security_changed": ["change"],
+  // A99: a recovery code used (the codes left) and sessions signed out (how many).
+  "account.recovery_code_used": ["remaining"],
+  "account.session_signed_out": ["count"],
   "billing.payment_failed": ["days"],
 };
 
@@ -66,7 +69,7 @@ export function inboxTarget(
   const path = item.subjectTable ? TARGETS[item.subjectTable] : undefined;
   if (path) return `/${org}/${path}`;
   if (item.kind.startsWith("billing.")) return `/${org}/settings/billing-and-plan`;
-  if (item.kind === "account.security_changed") return `/${org}/me/security`;
+  if (item.kind.startsWith("account.")) return `/${org}/me/security`;
   return null;
 }
 

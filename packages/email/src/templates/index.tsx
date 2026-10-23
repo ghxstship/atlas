@@ -58,6 +58,17 @@ export interface TemplateProps {
     readonly receivedAt: Date;
     readonly dueAt: Date;
   };
+  /** Double opt-in for Subprocessor List change notices (Section 14.4, migration 1382). */
+  readonly subprocessor_confirm: {
+    readonly confirmUrl: string;
+  };
+  /** A Subprocessor List change notice, at least 30 days ahead (legal/subprocessors.md section 1). */
+  readonly subprocessor_notice: {
+    readonly listVersion: string;
+    readonly summary: string;
+    readonly effectiveOn: Date;
+    readonly listUrl: string;
+  };
 }
 
 export type TemplateCode = keyof TemplateProps;
@@ -270,6 +281,53 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
                 dueAt,
               })}
             </Paragraph>
+          </Layout>
+        ),
+      };
+    },
+  },
+  subprocessor_confirm: {
+    transactional: true,
+    compose: ({ confirmUrl }, ctx) => {
+      const subject = ctx.t("subprocessor_confirm.subject");
+      return {
+        subject,
+        element: (
+          <Layout
+            locale={ctx.locale}
+            t={ctx.t}
+            sender={ctx.sender}
+            preview={subject}
+            heading={ctx.t("subprocessor_confirm.heading")}
+            transactional
+            action={{ label: ctx.t("subprocessor_confirm.confirm"), url: confirmUrl }}
+          >
+            <Paragraph>{ctx.t("subprocessor_confirm.body")}</Paragraph>
+            <Paragraph>{ctx.t("subprocessor_confirm.ignore")}</Paragraph>
+          </Layout>
+        ),
+      };
+    },
+  },
+  subprocessor_notice: {
+    transactional: false,
+    compose: ({ listVersion, summary, effectiveOn, listUrl }, ctx) => {
+      const subject = ctx.t("subprocessor_notice.subject", { effectiveOn });
+      return {
+        subject,
+        element: (
+          <Layout
+            locale={ctx.locale}
+            t={ctx.t}
+            sender={ctx.sender}
+            preview={subject}
+            heading={ctx.t("subprocessor_notice.heading", { listVersion })}
+            transactional={false}
+            action={{ label: ctx.t("subprocessor_notice.review"), url: listUrl }}
+          >
+            <Paragraph>{ctx.t("subprocessor_notice.intro", { effectiveOn })}</Paragraph>
+            <Paragraph>{summary}</Paragraph>
+            <Paragraph>{ctx.t("subprocessor_notice.objection")}</Paragraph>
           </Layout>
         ),
       };

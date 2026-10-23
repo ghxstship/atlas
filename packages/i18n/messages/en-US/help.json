@@ -81,7 +81,8 @@
     "redo": "Redo the change you undid",
     "selectRange": "Select the rows from the last selected one to the focused one",
     "selectAll": "Select every loaded row",
-    "menu": "Open the focused row's actions"
+    "menu": "Open the focused row's actions",
+    "askFilter": "Filter in plain language"
   },
   "whatsNew": {
     "title": "What's new",

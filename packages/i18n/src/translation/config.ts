@@ -13,6 +13,14 @@ export interface TargetLocale {
   readonly locale: string;
   /** The language code Google is given for it, for example es-US (Translation LLM) or es (NMT). */
   readonly google: string;
+  /**
+   * A Beta locale (Section 15, ADR 0053): its files may be partial or absent until the first owner run,
+   * so a missing namespace, key or file is counted, not an error. Every missing key reads en-US at
+   * runtime. Launch locales leave this out and stay complete and strict.
+   */
+  readonly partial?: boolean;
+  /** The surface ids this locale is translated on; every surface when absent. */
+  readonly surfaces?: readonly string[];
 }
 
 export type SurfaceKind = "catalog" | "markdown" | "text";
@@ -26,6 +34,11 @@ export interface SurfaceConfig {
   readonly extension?: string;
   /** Front matter keys whose values are translated (markdown). */
   readonly frontMatter?: readonly string[];
+  /**
+   * A surface whose readers fall back to en-US for every missing unit (the canon labels, ADR 0053), so
+   * a missing unit is counted, not an error, in every target locale.
+   */
+  readonly partial?: boolean;
 }
 
 export interface PipelineConfig {
@@ -179,6 +192,9 @@ function validateSetup(config: PipelineConfig, glossary: Glossary): void {
   if (new Set(ids).size !== ids.length) problems.push("surface ids repeat");
   for (const s of config.surfaces)
     if (!s.path.includes("{locale}")) problems.push(`surface ${s.id} path has no {locale}`);
+  for (const t of config.targets)
+    for (const id of t.surfaces ?? [])
+      if (!ids.includes(id)) problems.push(`${t.locale} names the unknown surface ${id}`);
   if (problems.length > 0) throw new Error(`translation/config.json: ${problems.join("; ")}.`);
 }
 
@@ -186,6 +202,16 @@ export function targetFor(config: PipelineConfig, locale: string): TargetLocale 
   const target = config.targets.find((t) => t.locale === locale);
   if (!target) throw new Error(`${locale} is not a target locale in translation/config.json.`);
   return target;
+}
+
+/** The surfaces a target locale is translated on, in configuration order. */
+export function surfacesFor(config: PipelineConfig, target: TargetLocale): SurfaceConfig[] {
+  return config.surfaces.filter((s) => !target.surfaces || target.surfaces.includes(s.id));
+}
+
+/** Whether a missing unit of this surface in this locale is counted rather than an error. */
+export function missingAllowed(target: TargetLocale, surface: SurfaceConfig): boolean {
+  return target.partial === true || surface.partial === true;
 }
 
 export function regex(spec: PatternSpec, extra = ""): RegExp {

@@ -82,6 +82,11 @@ export const NOTIFICATION_CATEGORIES: readonly CategoryDefinition[] = [
     order: 10,
   },
   {
+    code: "automations",
+    urgent: false,
+    order: 11,
+  },
+  {
     code: "messages",
     urgent: false,
     order: 40,
@@ -129,6 +134,17 @@ export const NOTIFICATION_EMAIL_TEMPLATES: readonly EmailTemplateDefinition[] = 
     code: "dsar_received",
     transactional: true,
     description: "Acknowledges a data subject request and states its due date.",
+  },
+  {
+    code: "subprocessor_confirm",
+    transactional: true,
+    description:
+      "Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).",
+  },
+  {
+    code: "subprocessor_notice",
+    transactional: false,
+    description: "Announces a Subprocessor List change at least 30 days before it applies.",
   },
 ];
 
@@ -335,6 +351,30 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "account.recovery_code_used",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.recovery_code_used.subject",
+      body: "kinds.account.recovery_code_used.body",
+    },
+  },
+  {
+    kind: "account.session_signed_out",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.session_signed_out.subject",
+      body: "kinds.account.session_signed_out.body",
+    },
+  },
+  {
     kind: "billing.payment_failed",
     category: "account",
     emailTemplate: "notification",
@@ -524,6 +564,42 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     copy: {
       subject: "kinds.export.ready.subject",
       body: "kinds.export.ready.body",
+    },
+  },
+  {
+    kind: "automation.notice",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.notice.subject",
+      body: "kinds.automation.notice.body",
+    },
+  },
+  {
+    kind: "automation.failed",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.failed.subject",
+      body: "kinds.automation.failed.body",
+    },
+  },
+  {
+    kind: "automation.paused",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.paused.subject",
+      body: "kinds.automation.paused.body",
     },
   },
   {

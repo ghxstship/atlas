@@ -1,7 +1,8 @@
 /**
  * The offline check (no network): run by `pnpm --filter @xos/i18n test` and so by `pnpm verify`.
  *
- * Errors: a target catalog misses a namespace or key, has an extra or empty one, a message is not
+ * Errors: a target catalog misses a namespace or key (except a Beta locale or a partial surface such
+ * as the canon labels, ADR 0053, whose missing units are only counted), has an extra or empty one, a message is not
  * valid ICU or its arguments, plural and select structure or tags differ from en-US, a protected word
  * (product name, canon code, plan name, identifier, URL) is not kept, a terminology rule is broken
  * (es-US calls a project gate a "compuerta"), a markdown file is missing, or its code blocks and
@@ -13,7 +14,7 @@
  * no longer exists.
  */
 import { existsSync, readdirSync } from "node:fs";
-import type { Setup } from "./config.ts";
+import { missingAllowed, surfacesFor, type Setup } from "./config.ts";
 import { loadMemory, statusOf, type Status } from "./memory.ts";
 import { sourceHash, validateTarget } from "./pipeline.ts";
 import { compileProtector } from "./protect.ts";
@@ -77,7 +78,8 @@ export function runCheck(setup: Setup, options: { strict?: boolean } = {}): Chec
   const staleIsError = options.strict === true || setup.config.check.stale === "error";
   const source = setup.config.source.locale;
 
-  for (const { locale } of setup.config.targets) {
+  for (const target of setup.config.targets) {
+    const { locale } = target;
     const memory = loadMemory(setup.root, setup.config, locale);
     const counts: Partial<Record<Status, number>> = {};
     statuses[locale] = counts;
@@ -86,8 +88,11 @@ export function runCheck(setup: Setup, options: { strict?: boolean } = {}): Chec
       (staleIsError ? errors : warnings).push({ locale, id, message });
     const ids = new Set<string>();
 
-    for (const surface of setup.config.surfaces) {
+    for (const surface of surfacesFor(setup.config, target)) {
       const units = readUnits(setup.root, surface, source, locale);
+      // A Beta locale or the canon labels (ADR 0053) may be partial: missing units are counted, not
+      // errors, because every reader falls back to en-US key by key.
+      const partial = missingAllowed(target, surface);
       if (surface.kind === "catalog") {
         const list = (dir: string) =>
           existsSync(dir)
@@ -97,7 +102,7 @@ export function runCheck(setup: Setup, options: { strict?: boolean } = {}): Chec
             : [];
         const theirs = new Set(list(surfaceDir(setup.root, surface, locale)));
         for (const file of list(surfaceDir(setup.root, surface, source)))
-          if (!theirs.has(file)) error(file, `namespace file ${file} is missing`);
+          if (!theirs.has(file) && !partial) error(file, `namespace file ${file} is missing`);
         for (const id of extraCatalogKeys(setup.root, surface, source, locale))
           error(id, "key is not in en-US");
       } else {
@@ -113,8 +118,12 @@ export function runCheck(setup: Setup, options: { strict?: boolean } = {}): Chec
         const entry = memory.entries.get(unit.id);
         const status = statusOf(sourceHash(unit), unit.target, entry);
         counts[status] = (counts[status] ?? 0) + 1;
-        if (unit.target === undefined || unit.target.trim() === "") {
-          error(unit.id, unit.target === undefined ? "missing" : "empty");
+        if (unit.target === undefined) {
+          if (!partial) error(unit.id, "missing");
+          continue;
+        }
+        if (unit.target.trim() === "") {
+          error(unit.id, "empty");
           continue;
         }
         for (const problem of validateTarget(unit, unit.target, locale, t)) error(unit.id, problem);
@@ -140,7 +149,7 @@ export function runCheck(setup: Setup, options: { strict?: boolean } = {}): Chec
           );
       }
     }
-    const surfaceIds = new Set(setup.config.surfaces.map((s) => s.id));
+    const surfaceIds = new Set(surfacesFor(setup.config, target).map((s) => s.id));
     for (const id of memory.entries.keys()) {
       const slash = id.indexOf("/");
       const known = slash === -1 || surfaceIds.has(id.slice(0, slash));

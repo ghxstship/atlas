@@ -70,7 +70,13 @@
     "verify": "Verificar",
     "invalid": "Ese código no coincide. Escribe el código que muestra tu app ahora.",
     "requiredTitle": "Configura un Segundo Factor",
-    "required": "Tu organización exige un segundo factor para tu rol. Configura una app de autenticación en Atlas o Gateway, en Configuración, Seguridad, y vuelve a intentarlo."
+    "required": "Tu organización exige un segundo factor para tu rol. Configura una app de autenticación en Atlas o Gateway, en Configuración, Seguridad, y vuelve a intentarlo.",
+    "useRecovery": "Usar un código de recuperación",
+    "useApp": "Usar tu app de autenticación",
+    "recoverySentence": "Escribe uno de los códigos de recuperación que guardaste en Atlas o Gateway. Cada código funciona una sola vez.",
+    "recoveryCode": "Código de recuperación",
+    "recoveryInvalid": "Ese código de recuperación no coincide, o ya se usó.",
+    "recoveryLocked": "Demasiados códigos incorrectos. Espera 15 minutos y vuelve a intentarlo."
   },
   "denial": {
     "roleTitle": "No es parte de tu rol",
@@ -359,7 +365,7 @@
     "step": "Paso {step} de 3",
     "severity": "¿Qué tan grave es?",
     "location": "Ubicación",
-    "locationAuto": "Cerca de {latitude}, {longitude} (a {accuracy} m)",
+    "locationAuto": "Cerca de {latitude}, {longitude} (a {accuracy})",
     "locationUnknown": "No se encontró la ubicación. Describe dónde en el título.",
     "change": "Cambiar",
     "titleLabel": "Qué pasó",
@@ -470,10 +476,18 @@
     "doneQueued": "{name}: guardado. Tu PIN se revisa cuando el quiosco vuelva a tener conexión.",
     "refused": {
       "pinLocked": "Este PIN se bloqueó por demasiados intentos. Pide a tu supervisor que lo restablezca.",
-      "deviceRevoked": "Este quiosco se desactivó en Atlas. Pide a tu supervisor que lo registre de nuevo.",
       "requestInvalid": "No se pudo leer esa marcación. Empieza de nuevo.",
       "kioskDisabled": "Los quioscos están desactivados en esta organización. Pide a un administrador que los active en Atlas.",
       "photoRequired": "Este proyecto pide una foto en cada fichaje en el quiosco. Empieza de nuevo y toma la foto."
+    },
+    "unregistered": {
+      "title": "Este dispositivo ya no está registrado como quiosco",
+      "sentence": "Nadie puede marcar entrada aquí. Un supervisor registra el quiosco de nuevo en Atlas, olvida este quiosco y luego escribe la nueva clave del dispositivo.",
+      "forget": "Olvidar este quiosco",
+      "confirmTitle": "¿Olvidar este quiosco?",
+      "confirmSentence": "Esto quita la clave del dispositivo y lo regresa a la configuración del quiosco.",
+      "confirm": "Olvidar quiosco",
+      "supervisorRequired": "Un supervisor debe iniciar sesión para olvidar este quiosco."
     },
     "exit": "Salir del quiosco",
     "digit": "Dígito {digit}",

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it, vi } from "vitest";
-import { secondFactorGate, verifySecondFactor } from "../src/runtime/assurance";
+import { redeemRecoveryCode, secondFactorGate, verifySecondFactor } from "../src/runtime/assurance";
 
 /** A stand-in client: the assurance levels, the stored session's factors and the org status row. */
 function client(input: {
@@ -81,5 +81,31 @@ describe("the second factor in Compass (A77)", () => {
     expect(challengeAndVerify).toHaveBeenCalledWith({ factorId: "f1", code: "123456" });
     expect(await verifySecondFactor(db, "f1", "000000")).toBe("invalid");
     expect(await verifySecondFactor(db, "f1", "000000")).toBe("network");
+  });
+});
+
+describe("recovery codes and signed-out sessions in Compass (A99)", () => {
+  it("signs in again once the session was signed out from another device", async () => {
+    const ended = client({ current: "aal2", next: "aal2", org: { session_ended: true } });
+    expect(await secondFactorGate(ended.db, "org-1")).toEqual({ kind: "sign-in-again" });
+  });
+
+  it("spends a recovery code, refreshes the session, and names a wrong code, a lockout and a lost network", async () => {
+    const refreshSession = vi.fn(async () => ({ data: { session: {} }, error: null }));
+    const answers = [
+      { data: [{ outcome: "ok", remaining: 9 }], error: null },
+      { data: [{ outcome: "code_invalid", remaining: null }], error: null },
+      { data: [{ outcome: "rate_limited", remaining: null }], error: null },
+      { data: null, error: { code: "", message: "Failed to fetch" } },
+    ];
+    const rpc = vi.fn(async () => answers.shift());
+    const db = { rpc, auth: { refreshSession } } as unknown as SupabaseClient;
+    expect(await redeemRecoveryCode(db, " abcde-fghjk ")).toBe("ok");
+    expect(rpc).toHaveBeenCalledWith("redeem_recovery_code", { p_code: "abcde-fghjk" });
+    expect(refreshSession).toHaveBeenCalledOnce();
+    expect(await redeemRecoveryCode(db, "abcde-fghjk")).toBe("invalid");
+    expect(await redeemRecoveryCode(db, "abcde-fghjk")).toBe("locked");
+    expect(await redeemRecoveryCode(db, "abcde-fghjk")).toBe("network");
+    expect(refreshSession).toHaveBeenCalledOnce();
   });
 });

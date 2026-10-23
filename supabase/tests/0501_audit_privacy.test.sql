@@ -9,7 +9,7 @@ set search_path = extensions, public;
 select plan(52);
 
 -- Audit trail -----------------------------------------------------------------------------------------
-select pg_temp.as_user('bob');
+select pg_temp.as_user_stepped_up('bob');
 insert into app.membership_roles (membership_id, role_id) values (pg_temp.id('gina@org_a'), pg_temp.system_role('member'));
 select pg_temp.as_platform();
 select is(
@@ -97,7 +97,8 @@ select pg_temp.as_anon();
 select is(api_public.record_cookie_consent('short', null, true, true, true, 'banner-3'), false, 'a malformed visitor id is refused');
 select throws_ok($$select 1 from app.cookie_consent_events$$, '42501', null, 'anon cannot read the consent log');
 select pg_temp.as_platform();
-select private.note_rate_event('cookie_consent', 'unknown') from generate_series(1, 30);
+-- 300 decisions per client address in 10 minutes (1381: the web shells call it from their servers).
+select private.note_rate_event('cookie_consent', 'unknown') from generate_series(1, 300);
 select pg_temp.as_anon();
 select is(api_public.record_cookie_consent('visitor-fedcba9876543210', null, true, true, true, 'banner-3'), false,
   'the public consent RPC is rate-limited per client');

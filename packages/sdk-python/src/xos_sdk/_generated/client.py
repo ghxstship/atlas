@@ -339,6 +339,14 @@ from .resources import (
     TemplatesResource,
     TemplateApplicationsResource,
     ProjectAuthoritiesResource,
+    MeasurementMetricsResource,
+    MeasurementUnitsResource,
+    MeasurementMetricTagsResource,
+    ProjectObjectivesResource,
+    ProjectMeasurementsResource,
+    ProjectMeasurementCorrectionsResource,
+    EarnedMediaItemsResource,
+    ProjectMeasurementSummaryResource,
     CueCallsResource,
     GuestListEntriesResource,
     Form1099NecResource,
@@ -372,9 +380,13 @@ from .resources import (
     OrgDeletionRequestsResource,
     DeletionCertificatesResource,
     PartnerStandingGrantsResource,
+    ShareLinksResource,
     PersonCalendarFeedsResource,
     ProjectInboxesResource,
     InboundMessagesResource,
+    AutomationsResource,
+    AutomationRunsResource,
+    AutomationRunStepsResource,
     WorkforceGroupsResource,
     WorkforceGroupMembersResource,
     ConversationsResource,
@@ -757,6 +769,14 @@ class XosClient(XosClientCore):
     templates: TemplatesResource
     template_applications: TemplateApplicationsResource
     project_authorities: ProjectAuthoritiesResource
+    measurement_metrics: MeasurementMetricsResource
+    measurement_units: MeasurementUnitsResource
+    measurement_metric_tags: MeasurementMetricTagsResource
+    project_objectives: ProjectObjectivesResource
+    project_measurements: ProjectMeasurementsResource
+    project_measurement_corrections: ProjectMeasurementCorrectionsResource
+    earned_media_items: EarnedMediaItemsResource
+    project_measurement_summary: ProjectMeasurementSummaryResource
     cue_calls: CueCallsResource
     guest_list_entries: GuestListEntriesResource
     form1099_nec: Form1099NecResource
@@ -790,9 +810,13 @@ class XosClient(XosClientCore):
     org_deletion_requests: OrgDeletionRequestsResource
     deletion_certificates: DeletionCertificatesResource
     partner_standing_grants: PartnerStandingGrantsResource
+    share_links: ShareLinksResource
     person_calendar_feeds: PersonCalendarFeedsResource
     project_inboxes: ProjectInboxesResource
     inbound_messages: InboundMessagesResource
+    automations: AutomationsResource
+    automation_runs: AutomationRunsResource
+    automation_run_steps: AutomationRunStepsResource
     workforce_groups: WorkforceGroupsResource
     workforce_group_members: WorkforceGroupMembersResource
     conversations: ConversationsResource
@@ -1163,6 +1187,14 @@ class XosClient(XosClientCore):
         self.templates = TemplatesResource(self)
         self.template_applications = TemplateApplicationsResource(self)
         self.project_authorities = ProjectAuthoritiesResource(self)
+        self.measurement_metrics = MeasurementMetricsResource(self)
+        self.measurement_units = MeasurementUnitsResource(self)
+        self.measurement_metric_tags = MeasurementMetricTagsResource(self)
+        self.project_objectives = ProjectObjectivesResource(self)
+        self.project_measurements = ProjectMeasurementsResource(self)
+        self.project_measurement_corrections = ProjectMeasurementCorrectionsResource(self)
+        self.earned_media_items = EarnedMediaItemsResource(self)
+        self.project_measurement_summary = ProjectMeasurementSummaryResource(self)
         self.cue_calls = CueCallsResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
         self.form1099_nec = Form1099NecResource(self)
@@ -1196,9 +1228,13 @@ class XosClient(XosClientCore):
         self.org_deletion_requests = OrgDeletionRequestsResource(self)
         self.deletion_certificates = DeletionCertificatesResource(self)
         self.partner_standing_grants = PartnerStandingGrantsResource(self)
+        self.share_links = ShareLinksResource(self)
         self.person_calendar_feeds = PersonCalendarFeedsResource(self)
         self.project_inboxes = ProjectInboxesResource(self)
         self.inbound_messages = InboundMessagesResource(self)
+        self.automations = AutomationsResource(self)
+        self.automation_runs = AutomationRunsResource(self)
+        self.automation_run_steps = AutomationRunStepsResource(self)
         self.workforce_groups = WorkforceGroupsResource(self)
         self.workforce_group_members = WorkforceGroupMembersResource(self)
         self.conversations = ConversationsResource(self)

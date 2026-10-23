@@ -68,11 +68,20 @@ export function findVerbiageMisses(text: string, library: readonly VerbiageEntry
     .map((entry) => entry.term);
 }
 
+/** A term of the org's controlled vocabulary (app.verbiage_terms) with how it is cased. */
+export interface VocabularyTerm {
+  readonly term: string;
+  readonly casingRule: string;
+  readonly definition: string;
+}
+
 export interface DraftInput {
   readonly kind: DraftKind;
   readonly instructions: string;
   readonly context: readonly ContextRecord[];
   readonly verbiage: readonly VerbiageEntry[];
+  /** The org's verbiage library terms, written exactly as cased wherever the draft uses them. */
+  readonly vocabulary?: readonly VocabularyTerm[];
   readonly neverSend: NeverSendList;
   readonly subject: Subject | null;
 }
@@ -85,11 +94,17 @@ export async function draft(ctx: AuroraContext, input: DraftInput): Promise<Auro
     })
     .filter((record) => record !== null);
 
+  const vocabulary = input.vocabulary ?? [];
   return runFeature(ctx, "drafting", input.subject, async (model, maxTokens) => {
     const system = [
       GUARDRAILS,
       GUIDE[input.kind],
       "Use the org's verbiage library: never use a listed term, always its preferred phrasing.",
+      ...(vocabulary.length > 0
+        ? [
+            "The org's vocabulary lists its terms with their casing rules: when the draft uses one, write it exactly as the rule says.",
+          ]
+        : []),
       "When the draft needs a fact the context does not hold, write [needs: what is missing] in its place and list it in gaps.",
       `Today is ${ctx.today}.`,
     ].join("\n\n");
@@ -100,6 +115,9 @@ export async function draft(ctx: AuroraContext, input: DraftInput): Promise<Auro
       system,
       content: [
         { type: "text", text: dataBlock("verbiage library", input.verbiage) },
+        ...(vocabulary.length > 0
+          ? [{ type: "text" as const, text: dataBlock("vocabulary", vocabulary) }]
+          : []),
         { type: "text", text: dataBlock("context records", context) },
         { type: "text", text: dataBlock("instructions", input.instructions) },
       ],

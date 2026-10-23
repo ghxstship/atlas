@@ -383,10 +383,13 @@ enabled = false
 # Obtain from https://clerk.com/setup/supabase
 # domain = "example.clerk.accounts.dev"
 
-# OAuth server configuration
+# OAuth 2.1 server for apps an org registers (Section 10.1, A99, ADR 0055): authorization code with
+# PKCE, refresh-token rotation (enable_refresh_token_rotation above) and revocation. Supabase Auth
+# sends the person to `site_url` + authorization_url_path, Atlas's consent page, which maps the app's
+# capability groups (app.oauth_apps, app.oauth_grants) and asks for step-up on Restricted ones.
+# Clients are registered from Atlas only (migration 1563), never by dynamic registration.
 [auth.oauth_server]
-# Enable OAuth server functionality
-enabled = false
+enabled = true
 # Path for OAuth consent flow UI
 authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
@@ -462,4 +465,7 @@ verify_jwt = false
 
 [functions.integration-inbound]
 # Providers authenticate by webhook signature (A83, migration 1400; packages/integrations/src/inbound).
+verify_jwt = false
+
+[functions.file-download]
 verify_jwt = false

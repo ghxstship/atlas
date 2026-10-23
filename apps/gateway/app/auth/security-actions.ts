@@ -1,6 +1,7 @@
 "use server";
 
 import type { DataError, XosClient } from "@xos/data";
+import { getRecoveryCodeStatus, pruneRecoveryCodes } from "@xos/data/account-security";
 import {
   finishPasskeyRegistration,
   finishPasskeySignIn,
@@ -130,6 +131,8 @@ export interface StepUpOptions {
   readonly factors: readonly { id: string; type: SecondFactorType; label: string }[];
   /** Whether security keys work here (the relying party is configured). */
   readonly securityKeys: boolean;
+  /** Whether the person holds a usable recovery code (A99, migration 1560). */
+  readonly recoveryCodes?: boolean;
 }
 
 /** Whether the session is stepped up now, so a link can ask for step-up before it navigates. */
@@ -143,7 +146,7 @@ export async function stepUpStatusAction(): Promise<ActionResult<{ steppedUp: bo
 /** The caller's verified second factors, for the sign-in challenge and the step-up dialog. */
 export async function stepUpOptionsAction(): Promise<ActionResult<StepUpOptions>> {
   const db = await session();
-  const factors = await listSecondFactors(db);
+  const [factors, codes] = await Promise.all([listSecondFactors(db), getRecoveryCodeStatus(db)]);
   if (!factors.ok) return { ok: false, error: errorKey(factors.error) };
   return {
     ok: true,
@@ -152,6 +155,7 @@ export async function stepUpOptionsAction(): Promise<ActionResult<StepUpOptions>
         .filter((f) => f.verified)
         .map((f) => ({ id: f.id, type: f.type, label: f.label })),
       securityKeys: relyingPartyFrom(env()) !== null,
+      recoveryCodes: codes.ok && codes.data.usable,
     },
   };
 }
@@ -259,6 +263,8 @@ export async function removeFactorAction(_: SecurityState, form: FormData): Prom
   if (gate) return refused(gate);
   const result = await removeSecondFactor(db, factorId.data);
   if (!result.ok) return refused(errorKey(result.error));
+  // Recovery codes stand in for a second factor: without one left they go (A99, migration 1560).
+  await pruneRecoveryCodes(db);
   revalidateSecurity();
   return done();
 }

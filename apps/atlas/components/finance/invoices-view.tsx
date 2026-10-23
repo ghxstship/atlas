@@ -12,6 +12,7 @@ import { listEngagementRefs } from "@xos/data/settlements";
 import { getNode } from "@xos/ia";
 import Link from "next/link";
 import type { Route } from "next";
+import { invoiceAsk, isOverdue } from "@/lib/aurora/finance-ask";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { iconState } from "@/lib/finance/states";
@@ -97,10 +98,14 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
     `${projectKey.get(i.projectId) ?? ""} · ${t(`finance.invoices.directionShort.${i.direction}`)}`;
   const term = query.q?.toLowerCase() ?? null;
   const direction = query.extra["direction"] ?? null;
+  // Overdue reads the org's calendar, never the UTC date (A71); a plain-language filter sets it (A95).
+  const overdue = query.extra["overdue"] ?? null;
+  const today = overdue === null ? null : await orgToday(ctx);
   const shown = invoices.data.filter(
     (i) =>
       (!query.state || i.state === query.state) &&
       (!direction || i.direction === direction) &&
+      (today === null || isOverdue(i, today) === (overdue === "true")) &&
       (term === null ||
         (i.number ?? "").toLowerCase().includes(term) ||
         payee(i).toLowerCase().includes(term)),
@@ -417,6 +422,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
       }))}
       detail={detail}
       sheet={sheet}
+      ask={invoiceAsk(page, c)}
     />
   );
 }

@@ -397,6 +397,34 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Objectives and measurement" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Gate 1 holds the project's " },
+          { t: "strong", v: "Objectives" },
+          {
+            t: "text",
+            v: ": one target per figure, such as at least 5,000 attendees or at most 2 t of waste. Set them while gate 1 is open, then record them as gate 1 evidence. Once gate 1 passes, only a gate approver can change them, and every change is logged.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Gate 8 holds the " },
+          { t: "strong", v: "Measurement" },
+          {
+            t: "text",
+            v: ": record waste, energy, water, transport, attendance, online audience and sentiment figures, and add each piece of earned media coverage with its link. Coverage counts and reach come from the coverage you add. A figure nobody measured shows as Unmeasured, never as zero. To change a figure, choose ",
+          },
+          { t: "strong", v: "Correct" },
+          {
+            t: "text",
+            v: " and give a reason; the correction log keeps the figure before and after.",
+          },
+        ],
+      },
       { t: "h2", v: "Definitions" },
       {
         t: "p",
@@ -1445,6 +1473,17 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Objectives and measurement" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Objectives and Measurement" },
+          {
+            t: "text",
+            v: " compares each project's gate 1 objectives with what gate 8 measured, in your units. Without a project filter it shows how every project's objectives stand and each figure across the projects that measured it. An objective reads Met, Not Met, Incomplete (some figures are unmeasured and could still change it) or Unmeasured.",
+          },
+        ],
+      },
       { t: "h2", v: "Build a report" },
       {
         t: "ol",
@@ -2305,6 +2344,34 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Si un criterio bloqueante sigue abierto, Atlas rechaza la compuerta y nombra el criterio. Adjunte la evidencia que falta o resuelva el criterio e inténtelo de nuevo. Cada paso queda registrado con quién, cuándo y por qué.",
+          },
+        ],
+      },
+      { t: "h2", v: "Objetivos y medición" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "La compuerta 1 contiene los " },
+          { t: "strong", v: "Objetivos" },
+          {
+            t: "text",
+            v: " del proyecto: una meta por cifra, como al menos 5,000 asistentes o como máximo 2 t de residuos. Fíjelos mientras la compuerta 1 esté abierta y luego regístrelos como evidencia de la compuerta 1. Una vez pasada la compuerta 1, solo quien aprueba compuertas puede cambiarlos, y cada cambio queda registrado.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "La compuerta 8 contiene la " },
+          { t: "strong", v: "Medición" },
+          {
+            t: "text",
+            v: ": registre las cifras de residuos, energía, agua, transporte, asistencia, audiencia en línea y sentimiento, y agregue cada pieza de cobertura en medios ganados con su enlace. La cantidad de piezas y el alcance salen de la cobertura que agregue. Una cifra que nadie midió aparece como Sin medir, nunca como cero. Para cambiar una cifra, elija ",
+          },
+          { t: "strong", v: "Corregir" },
+          {
+            t: "text",
+            v: " e indique un motivo; el registro de correcciones guarda la cifra antes y después.",
           },
         ],
       },
@@ -3335,6 +3402,17 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Preparación de compuertas, Matriz de coordenadas, Presupuesto frente a real, Mano de obra, Exposición de órdenes de compra, Incidentes y el Informe de costo final leen los datos actuales que usted puede ver. El informe de costo final se genera cuando un proyecto se cierra y lo compara con su línea base de la compuerta 3.",
+          },
+        ],
+      },
+      { t: "h2", v: "Objetivos y medición" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Objetivos y medición" },
+          {
+            t: "text",
+            v: " compara los objetivos de la compuerta 1 de cada proyecto con lo que midió la compuerta 8, en sus unidades. Sin filtro de proyecto, muestra cómo están los objetivos de cada proyecto y cada cifra entre los proyectos que la midieron. Un objetivo aparece como Cumplido, No cumplido, Incompleto (hay cifras sin medir que aún podrían cambiarlo) o Sin medir.",
           },
         ],
       },

@@ -11,6 +11,8 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 type Tables = Database["app"]["Tables"];
 export type ScanStatus = Database["app"]["Enums"]["scan_status"];
+/** Section 8.3 classification of a file (migration 1380). */
+export type FileClassification = Database["app"]["Enums"]["data_classification"];
 
 export const ATTACHMENTS_BUCKET = "attachments";
 
@@ -24,11 +26,15 @@ export interface AttachmentVersion {
   readonly scanStatus: ScanStatus;
   readonly uploadedBy: string | null;
   readonly uploadedAt: string | null;
+  /** The file's classification, which decides how it downloads (Section 8.6). */
+  readonly classification: FileClassification;
 }
 
 export interface Attachment {
   readonly id: string;
   readonly title: string;
+  /** Public, Internal (the default), Confidential or Restricted (Section 8.6, migration 1380). */
+  readonly classification: FileClassification;
   readonly createdBy: string | null;
   readonly createdAt: string;
   /** Newest first. */
@@ -39,7 +45,7 @@ export interface Attachment {
 
 type AttachmentRow = Pick<
   Tables["attachments"]["Row"],
-  "id" | "title" | "created_by" | "created_at"
+  "id" | "title" | "created_by" | "created_at" | "classification"
 > & {
   attachment_versions:
     | Pick<
@@ -72,10 +78,12 @@ function toAttachment(row: AttachmentRow): Attachment {
       scanStatus: v.scan_status,
       uploadedBy: v.uploaded_by,
       uploadedAt: v.uploaded_at,
+      classification: row.classification,
     }));
   return {
     id: row.id,
     title: row.title,
+    classification: row.classification,
     createdBy: row.created_by,
     createdAt: row.created_at,
     versions,
@@ -91,7 +99,7 @@ export async function listAttachments(
   const { data, error } = await db
     .from("attachments")
     .select(
-      "id, title, created_by, created_at, attachment_versions(id, version_number, object_name, filename, content_type, size_bytes, scan_status, uploaded_by, uploaded_at, deleted_at)",
+      "id, title, created_by, created_at, classification, attachment_versions(id, version_number, object_name, filename, content_type, size_bytes, scan_status, uploaded_by, uploaded_at, deleted_at)",
     )
     .eq("subject_table", subject.table)
     .eq("subject_id", subject.id)
@@ -195,13 +203,27 @@ export async function uploadAttachment(
   return ok({ ...ticket.data, scanStatus: completed.data });
 }
 
-/** A short-lived download link for a Clean version; any other version is not found. */
+/**
+ * The route that delivers a Confidential or Restricted version (Section 8.6): the web shell logs the
+ * download, holds it to the export capability and watermarks images, so no signed URL is issued.
+ */
+export function classifiedDownloadPath(versionId: string): string {
+  return `/files/${versionId}`;
+}
+
+/**
+ * A download link for a Clean version; any other version is not found. Public and Internal files get
+ * a short-lived signed URL; Confidential and Restricted files go through {@link classifiedDownloadPath}.
+ */
 export async function downloadUrl(
   db: XosClient,
   version: AttachmentVersion,
   expiresInSeconds = 60,
 ): Promise<Result<string>> {
   if (version.scanStatus !== "Clean") return fail({ kind: "not-found" });
+  if (version.classification === "Confidential" || version.classification === "Restricted") {
+    return ok(classifiedDownloadPath(version.id));
+  }
   const { data, error } = await db.storage
     .from(ATTACHMENTS_BUCKET)
     .createSignedUrl(version.objectName, expiresInSeconds);

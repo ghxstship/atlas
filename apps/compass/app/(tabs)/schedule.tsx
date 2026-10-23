@@ -16,7 +16,7 @@ import {
   shiftCountdown,
   type ShiftRow,
 } from "../../src/domain/shifts";
-import { claimRuleOf } from "../../src/domain/settings";
+import { claimRuleOf, scheduleZone } from "../../src/domain/settings";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import {
   formatDay,
@@ -54,7 +54,7 @@ export default function ScheduleScreen(): ReactElement {
         setNotice({
           tone: "warning",
           text: t("compass.schedule.claimOverlap", {
-            time: `${formatDay(conflict.starts_at, conflict.time_zone)} ${formatTime(conflict.starts_at, conflict.time_zone)}`,
+            time: `${formatDay(conflict.starts_at, scheduleZone(conflict.time_zone, orgSettings))} ${formatTime(conflict.starts_at, scheduleZone(conflict.time_zone, orgSettings))}`,
           }),
         });
         return;
@@ -94,10 +94,10 @@ export default function ScheduleScreen(): ReactElement {
         stateLabel={t(isOpenShift(s) ? "compass.schedule.open" : `compass.schedule.${state}`)}
         {...(countdown ? { countdown: t(countdown.key, countdown.values) } : {})}
         role={roleTitle(s)}
-        date={formatDay(s.starts_at, s.time_zone)}
+        date={formatDay(s.starts_at, scheduleZone(s.time_zone, orgSettings))}
         time={t("compass.schedule.timeRange", {
-          start: formatTime(s.starts_at, s.time_zone),
-          end: formatTime(s.ends_at, s.time_zone),
+          start: formatTime(s.starts_at, scheduleZone(s.time_zone, orgSettings)),
+          end: formatTime(s.ends_at, scheduleZone(s.time_zone, orgSettings)),
         })}
         place={t("compass.schedule.noPlace")}
         actions={
@@ -112,7 +112,7 @@ export default function ScheduleScreen(): ReactElement {
       />
     );
   };
-  const days = groupByDay(mine, now, (iso, tz) => formatDay(iso, tz));
+  const days = groupByDay(mine, now, (iso, tz) => formatDay(iso, scheduleZone(tz, orgSettings)));
   // A teaching empty state (Section 11.10 item 10, finding A59-026): the action that fills My shifts,
   // never Refresh. Members claim an open shift or ask a teammate; external people are booked by the
   // organization on their engagement, in Gateway.

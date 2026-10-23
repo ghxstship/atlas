@@ -1165,6 +1165,7 @@ __all__ = [
     "Comment",
     "CommentCreate",
     "CommentUpdate",
+    "SubjectCommentRequest",
     "NotificationPage",
     "Notification",
     "NotificationUpdate",
@@ -1192,6 +1193,28 @@ __all__ = [
     "TemplateApplicationCreate",
     "ProjectAuthorityPage",
     "ProjectAuthority",
+    "MeasurementMetricPage",
+    "MeasurementMetric",
+    "MeasurementUnitPage",
+    "MeasurementUnit",
+    "MeasurementMetricTagPage",
+    "MeasurementMetricTag",
+    "ProjectObjectivePage",
+    "ProjectObjective",
+    "ProjectObjectiveCreate",
+    "ProjectObjectiveUpdate",
+    "ProjectMeasurementPage",
+    "ProjectMeasurement",
+    "ProjectMeasurementCreate",
+    "ProjectMeasurementUpdate",
+    "ProjectMeasurementCorrectionPage",
+    "ProjectMeasurementCorrection",
+    "EarnedMediaItemPage",
+    "EarnedMediaItem",
+    "EarnedMediaItemCreate",
+    "EarnedMediaItemUpdate",
+    "ProjectMeasurementSummaryPage",
+    "ProjectMeasurementSummary",
     "CueCallPage",
     "CueCall",
     "CueCallCreate",
@@ -1230,6 +1253,9 @@ __all__ = [
     "AuroraSummarizeRequest",
     "AuroraMapColumnsRequest",
     "AuroraBindCodeRequest",
+    "AuroraPreview",
+    "AuroraPreviewRecord",
+    "AuroraPreviewRequest",
     "AiSuggestionPage",
     "AiSuggestion",
     "AiSuggestionState",
@@ -1328,6 +1354,10 @@ __all__ = [
     "PartnerStandingGrantPage",
     "PartnerStandingGrant",
     "PartnerStandingGrantRecordRequest",
+    "ShareLinkPage",
+    "ShareLink",
+    "ShareLinkToken",
+    "ShareLinkCreate",
     "PersonCalendarFeedPage",
     "PersonCalendarFeed",
     "ProjectInboxPage",
@@ -1337,6 +1367,25 @@ __all__ = [
     "InboundMessage",
     "InboundMessageFileRequest",
     "InboundMessageDiscardRequest",
+    "AutomationPage",
+    "Automation",
+    "AutomationConditions",
+    "AutomationCondition",
+    "AutomationActions",
+    "AutomationAction",
+    "AutomationCreate",
+    "AutomationUpdate",
+    "AutomationTestResult",
+    "AutomationConditionResult",
+    "AutomationTestRequest",
+    "AutomationRunPage",
+    "AutomationRun",
+    "AutomationNoticeResult",
+    "AutomationNoticeRequest",
+    "AutomationWebhookResult",
+    "AutomationWebhookRequest",
+    "AutomationRunStepPage",
+    "AutomationRunStep",
     "WorkforceGroupPage",
     "WorkforceGroup",
     "WorkforceGroupCreate",
@@ -19223,6 +19272,22 @@ class CommentUpdate(TypedDict, total=False):
     source: Literal["App", "Email", "API"]
 
 
+class _SubjectCommentRequestRequired(TypedDict):
+    #: Table of the subject, one of app.comment_subjects without its schema.
+    subject_table: str
+    #: Identifier of the row commented on.
+    subject_id: str
+    #: Comment text.
+    body: str
+
+
+class SubjectCommentRequest(_SubjectCommentRequestRequired, total=False):
+    """A comment on a subject row, posted in its main thread or the thread of an anchor."""
+
+    #: Part of the subject the thread is anchored to; absent for the main thread.
+    anchor: str
+
+
 class NotificationPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -19592,6 +19657,447 @@ class ProjectAuthority(TypedDict):
     agency: str
     #: How to reach the agency.
     contact: Optional[str]
+
+
+class MeasurementMetricPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[MeasurementMetric]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class MeasurementMetric(TypedDict):
+    """A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one."""
+
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Family of the figure.
+    family: Literal["Sustainability", "Audience", "Earned Media", "Sentiment"]
+    #: Dimension of the figure.
+    dimension: Literal["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"]
+    #: Unit totals and comparisons are computed in.
+    base_unit_code: str
+    #: How a project's figures combine: each adds to the total (Sum) or the latest measured one stands (Latest).
+    aggregation: Literal["Sum", "Latest"]
+    #: True when the figure is computed from the coverage records rather than entered.
+    is_derived: bool
+    #: Lowest figure accepted, in the base unit.
+    lower_bound: Optional[float]
+    #: Highest figure accepted, in the base unit.
+    upper_bound: Optional[float]
+    #: Domain of the benchmarking canon metric.
+    canon_domain: Optional[str]
+    #: Item of the benchmarking canon metric.
+    canon_item: Optional[str]
+    #: The canon benchmark as a number.
+    canon_value_numeric: Optional[float]
+    #: The canon benchmark in words.
+    canon_value_text: Optional[str]
+    #: Qualifier of the canon benchmark.
+    canon_qualifier: Optional[str]
+    #: Display order.
+    ordinal: int
+
+
+class MeasurementUnitPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[MeasurementUnit]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class MeasurementUnit(TypedDict):
+    """A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers."""
+
+    #: Unit code.
+    unit_code: str
+    #: Dimension of the unit.
+    dimension: Literal["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"]
+    #: Base units in one of this unit.
+    factor_to_base: float
+    #: Measurement system of the unit.
+    unit_system: Literal["Metric", "Imperial", "Either"]
+    #: True for the unit reports show the dimension in for readers of its system.
+    is_display: bool
+    #: Display order.
+    ordinal: int
+
+
+class MeasurementMetricTagPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[MeasurementMetricTag]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class MeasurementMetricTag(TypedDict):
+    """A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10)."""
+
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Canon tag code.
+    tag_id: str
+    #: Tag value as written in canon.
+    tag: str
+
+
+class ProjectObjectivePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectObjective]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectObjective(TypedDict):
+    """A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger."""
+
+    #: Identifier of the project objective.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Met by reaching the target (At Least) or by staying within it (At Most).
+    direction: Literal["At Least", "At Most"]
+    #: Target figure, in unit_code.
+    target_value: float
+    #: Unit of the target, of the metric's dimension.
+    unit_code: str
+    #: Note.
+    note: Optional[str]
+
+
+class _ProjectObjectiveCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Met by reaching the target (At Least) or by staying within it (At Most).
+    direction: Literal["At Least", "At Most"]
+    #: Target figure, in unit_code.
+    target_value: float
+    #: Unit of the target, of the metric's dimension.
+    unit_code: str
+
+
+class ProjectObjectiveCreate(_ProjectObjectiveCreateRequired, total=False):
+    """Fields accepted when creating a ProjectObjective."""
+
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectObjectiveUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ProjectObjective. Omitted fields are unchanged."""
+
+    #: Met by reaching the target (At Least) or by staying within it (At Most).
+    direction: Literal["At Least", "At Most"]
+    #: Target figure, in unit_code.
+    target_value: float
+    #: Unit of the target, of the metric's dimension.
+    unit_code: str
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectMeasurementPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectMeasurement]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectMeasurement(TypedDict):
+    """A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at."""
+
+    #: Identifier of the project measurement.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Day the figure covers, on the project's calendar; today there when omitted, never later.
+    measured_on: str
+    #: The figure in unit_code; null when not measured.
+    value: Optional[float]
+    #: Unit of the figure, of the metric's dimension.
+    unit_code: Optional[str]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Link to the source: an http(s) URL or a URN.
+    source_uri: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class _ProjectMeasurementCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+
+
+class ProjectMeasurementCreate(_ProjectMeasurementCreateRequired, total=False):
+    """Fields accepted when creating a ProjectMeasurement."""
+
+    #: Day the figure covers, on the project's calendar; today there when omitted, never later.
+    measured_on: str
+    #: The figure in unit_code; null when not measured.
+    value: Optional[float]
+    #: Unit of the figure, of the metric's dimension.
+    unit_code: Optional[str]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Link to the source: an http(s) URL or a URN.
+    source_uri: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectMeasurementUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ProjectMeasurement. Omitted fields are unchanged."""
+
+    #: Day the figure covers, on the project's calendar; today there when omitted, never later.
+    measured_on: str
+    #: The figure in unit_code; null when not measured.
+    value: Optional[float]
+    #: Unit of the figure, of the metric's dimension.
+    unit_code: Optional[str]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Link to the source: an http(s) URL or a URN.
+    source_uri: Optional[str]
+    #: Note.
+    note: Optional[str]
+    #: Why the figure is corrected: required when the value, unit or day changes, kept in the correction ledger and never returned.
+    correction_reason: str
+
+
+class ProjectMeasurementCorrectionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectMeasurementCorrection]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectMeasurementCorrection(TypedDict):
+    """An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at."""
+
+    #: Identifier of the project measurement correction.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the figure that changed.
+    project_measurement_id: str
+    #: What changed the figure.
+    correction_kind: Literal["Corrected", "Withdrawn", "Restored"]
+    #: Value before the change; null when Unmeasured.
+    previous_value: Optional[float]
+    #: Unit before the change.
+    previous_unit_code: Optional[str]
+    #: Day before the change.
+    previous_measured_on: str
+    #: Value after the change; null when Unmeasured.
+    value: Optional[float]
+    #: Unit after the change.
+    unit_code: Optional[str]
+    #: Day after the change.
+    measured_on: str
+    #: Why the figure changed.
+    reason: Optional[str]
+
+
+class EarnedMediaItemPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[EarnedMediaItem]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class EarnedMediaItem(TypedDict):
+    """A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated."""
+
+    #: Identifier of the earned media item.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Headline or title of the coverage.
+    title: str
+    #: Publication, station, channel or account that ran it.
+    outlet: str
+    #: Where the coverage ran.
+    medium: Literal["Online", "Print", "Broadcast", "Podcast", "Social"]
+    #: Day it ran, on the project's calendar; never after today there.
+    published_on: str
+    #: Link to the coverage; one live row per link in a project.
+    url: Optional[str]
+    #: Audience the outlet reports for the piece; null when unreported.
+    reach: Optional[int]
+    #: Sentiment of the coverage; null until rated.
+    tone: Optional[Literal["Positive", "Neutral", "Negative"]]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class _EarnedMediaItemCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Headline or title of the coverage.
+    title: str
+    #: Publication, station, channel or account that ran it.
+    outlet: str
+    #: Where the coverage ran.
+    medium: Literal["Online", "Print", "Broadcast", "Podcast", "Social"]
+    #: Day it ran, on the project's calendar; never after today there.
+    published_on: str
+
+
+class EarnedMediaItemCreate(_EarnedMediaItemCreateRequired, total=False):
+    """Fields accepted when creating a EarnedMediaItem."""
+
+    #: Link to the coverage; one live row per link in a project.
+    url: Optional[str]
+    #: Audience the outlet reports for the piece; null when unreported.
+    reach: Optional[int]
+    #: Sentiment of the coverage; null until rated.
+    tone: Optional[Literal["Positive", "Neutral", "Negative"]]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class EarnedMediaItemUpdate(TypedDict, total=False):
+    """Fields accepted when updating a EarnedMediaItem. Omitted fields are unchanged."""
+
+    #: Headline or title of the coverage.
+    title: str
+    #: Publication, station, channel or account that ran it.
+    outlet: str
+    #: Where the coverage ran.
+    medium: Literal["Online", "Print", "Broadcast", "Podcast", "Social"]
+    #: Day it ran, on the project's calendar; never after today there.
+    published_on: str
+    #: Link to the coverage; one live row per link in a project.
+    url: Optional[str]
+    #: Audience the outlet reports for the piece; null when unreported.
+    reach: Optional[int]
+    #: Sentiment of the coverage; null until rated.
+    tone: Optional[Literal["Positive", "Neutral", "Negative"]]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectMeasurementSummaryPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectMeasurementSummary]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectMeasurementSummary(TypedDict):
+    """Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Family of the figure.
+    family: Literal["Sustainability", "Audience", "Earned Media", "Sentiment"]
+    #: Dimension of the figure.
+    dimension: Literal["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"]
+    #: Unit of target_base and measured_base.
+    base_unit_code: str
+    #: How figures combine.
+    aggregation: Literal["Sum", "Latest"]
+    #: Identifier of the live gate 1 objective for the metric.
+    objective_id: Optional[str]
+    #: Direction of the objective.
+    direction: Optional[Literal["At Least", "At Most"]]
+    #: Target as set, in target_unit_code.
+    target_value: Optional[float]
+    #: Unit the target was set in.
+    target_unit_code: Optional[str]
+    #: Target in the base unit.
+    target_base: Optional[float]
+    #: Figures with a value.
+    measured_count: int
+    #: Figures recorded as not measured; never counted as zero.
+    unmeasured_count: int
+    #: Total (Sum) or latest figure (Latest) in the base unit; null when nothing was measured.
+    measured_base: Optional[float]
+    #: Day of the most recent measured figure.
+    last_measured_on: Optional[str]
+    #: Met, Not Met, Incomplete (unmeasured figures leave the objective undecided) or Unmeasured; null without an objective.
+    outcome: Optional[Literal["Met", "Not Met", "Incomplete", "Unmeasured"]]
 
 
 class CueCallPage(TypedDict):
@@ -20051,15 +20557,20 @@ class AuroraAskRequest(_AuroraAskRequestRequired, total=False):
     history: List[Dict[str, Any]]
 
 
-class AuroraFilterRequest(TypedDict):
-    """A sentence to turn into a saved view."""
-
+class _AuroraFilterRequestRequired(TypedDict):
     #: The sentence to turn into a filter.
     sentence: str
     #: Collections the filter may target.
     collections: List[str]
-    #: IANA time zone the local time was entered in.
+    #: Time zone the caller works in. Relative dates such as this month or overdue resolve on the org's calendar (its locale.time_zone setting), never on UTC.
     time_zone: str
+
+
+class AuroraFilterRequest(_AuroraFilterRequestRequired, total=False):
+    """A sentence to turn into a saved view."""
+
+    #: A page's own filters, offered instead of the API fields of the first collection: names, types, values and operators only, never record data. Restricted columns are never offered.
+    fields: List[Dict[str, Any]]
 
 
 class _AuroraExtractRequestRequired(TypedDict):
@@ -20129,6 +20640,50 @@ class AuroraBindCodeRequest(TypedDict):
     description: Optional[str]
     #: Catalog elements found for the code.
     candidates: List[Dict[str, Any]]
+
+
+class AuroraPreview(TypedDict):
+    """What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered."""
+
+    #: Each record the request names, in order, with the gate readiness a gate summary adds.
+    records: List[AuroraPreviewRecord]
+    #: Verbiage library terms a draft follows.
+    vocabulary_terms: int
+
+
+class AuroraPreviewRecord(TypedDict):
+    """One record as a model would see it."""
+
+    #: Collection of the record.
+    collection: str
+    #: Identifier of the record.
+    id: str
+    #: False when the record cannot be read or its whole table is never sent to a model.
+    sent: bool
+    #: Fields that would be sent.
+    fields: List[str]
+    #: Fields left out: Restricted columns and masked values.
+    withheld: List[str]
+    #: The values that would be sent; null when nothing of the record is sent.
+    data: Optional[Dict[str, Any]]
+
+
+class _AuroraPreviewRequestRequired(TypedDict):
+    #: The feature whose request is previewed.
+    feature: Literal["drafting", "summaries"]
+    #: The records the request names: a draft's context or a summary's items, read with the caller's permissions.
+    items: List[Dict[str, Any]]
+
+
+class AuroraPreviewRequest(_AuroraPreviewRequestRequired, total=False):
+    """A drafting or summary request to preview before it is sent."""
+
+    #: For summaries, what is summarized.
+    kind: Literal["record_activity", "project_week", "gate_readiness"]
+    #: For summaries, the collection summarized.
+    subject_collection: str
+    #: Identifier of the record or project summarized.
+    subject_id: str
 
 
 class AiSuggestionPage(TypedDict):
@@ -21663,6 +22218,87 @@ class PartnerStandingGrantRecordRequest(TypedDict):
     agreement_reference: str
 
 
+class ShareLinkPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ShareLink]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ShareLink(TypedDict):
+    """A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links."""
+
+    #: Identifier of the share link.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the file the link shares.
+    attachment_id: str
+    #: Clean version the link opens, set from the file's current version.
+    attachment_version_id: Optional[str]
+    classification: Classification
+    #: True when the link asks for a 6-digit access code; always true for a Confidential file.
+    access_code_required: bool
+    #: Who the link is for, lowercased. Required for a Confidential file.
+    recipient_email: Optional[str]
+    #: What the link is for.
+    note: Optional[str]
+    #: When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+    expires_at: Optional[str]
+    #: Wrong access codes entered; the link locks at 5.
+    failed_attempts: int
+    #: Successful opens.
+    open_count: int
+    #: When the link was last opened.
+    last_opened_at: Optional[str]
+    #: When the link was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the link.
+    revoked_by: Optional[str]
+
+
+class ShareLinkToken(TypedDict):
+    """A new share link with its token and access code, shown once."""
+
+    #: The new link.
+    share_link_id: str
+    #: The link token. The link is `{Atlas origin}/share/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.
+    access_code: Optional[str]
+    classification: Classification
+    #: When the link stops opening.
+    expires_at: Optional[str]
+
+
+class _ShareLinkCreateRequired(TypedDict):
+    #: Identifier of the file the link shares.
+    attachment_id: str
+
+
+class ShareLinkCreate(_ShareLinkCreateRequired, total=False):
+    """Fields accepted when creating a ShareLink."""
+
+    #: True when the link asks for a 6-digit access code; always true for a Confidential file.
+    access_code_required: bool
+    #: Who the link is for, lowercased. Required for a Confidential file.
+    recipient_email: Optional[str]
+    #: What the link is for.
+    note: Optional[str]
+    #: When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+    expires_at: Optional[str]
+
+
 class PersonCalendarFeedPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -21802,6 +22438,258 @@ class InboundMessageDiscardRequest(TypedDict, total=False):
 
     #: Why the mail is discarded.
     reason: str
+
+
+class AutomationPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Automation]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Automation(TypedDict):
+    """An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422)."""
+
+    #: Identifier of the automation.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Name shown in Settings, Automations.
+    name: str
+    #: What the automation is for.
+    description: Optional[str]
+    #: Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+    trigger_event_type: str
+    #: How the top-level conditions combine; set from the conditions document.
+    condition_match: Literal["all", "any"]
+    #: Identifier of the person the actions run as.
+    owner_person_id: str
+    #: True while new events start runs.
+    enabled: bool
+    #: When the engine turned the automation off because a run could not act as the owner; null otherwise. Turning it on again clears it.
+    paused_at: Optional[str]
+    #: Why the engine paused it: owner_left_org, owner_lost_capability, owner_cannot_sign_in or owner_access_refused.
+    pause_reason: Optional[str]
+    conditions: AutomationConditions
+    actions: AutomationActions
+
+
+class _AutomationCreateRequired(TypedDict):
+    #: Name shown in Settings, Automations.
+    name: str
+    #: Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+    trigger_event_type: str
+    conditions: AutomationConditions
+    actions: AutomationActions
+
+
+class AutomationCreate(_AutomationCreateRequired, total=False):
+    """Fields accepted when creating a Automation."""
+
+    #: What the automation is for.
+    description: Optional[str]
+    #: True while new events start runs.
+    enabled: bool
+
+
+class AutomationUpdate(TypedDict, total=False):
+    """Fields accepted when updating a Automation. Omitted fields are unchanged."""
+
+    #: Name shown in Settings, Automations.
+    name: str
+    #: What the automation is for.
+    description: Optional[str]
+    #: Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+    trigger_event_type: str
+    #: True while new events start runs.
+    enabled: bool
+    conditions: AutomationConditions
+    actions: AutomationActions
+
+
+class AutomationTestResult(TypedDict):
+    """A dry run of an automation's conditions: nothing runs and nothing is written."""
+
+    #: Whether the conditions hold for the sample event.
+    matched: bool
+    #: Each condition in document order.
+    conditions: List[AutomationConditionResult]
+
+
+class _AutomationConditionResultRequired(TypedDict):
+    #: Path into the event.
+    field: str
+    #: Filter operator.
+    operator: Literal["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"]
+    #: Value compared.
+    value: Optional[str]
+    #: Whether the condition held.
+    matched: bool
+
+
+class AutomationConditionResult(_AutomationConditionResultRequired, total=False):
+    """One condition of a dry run."""
+
+    #: Value found in the event; null when missing.
+    actual: Any
+
+
+class AutomationTestRequest(TypedDict):
+    """A sample event to test an automation against."""
+
+    #: A sample event body, as a webhook receives it; app.sample_automation_event gives the org's latest of the trigger type.
+    event: Dict[str, Any]
+
+
+class AutomationRunPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AutomationRun]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AutomationRun(TypedDict):
+    """One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice."""
+
+    #: Identifier of the automation run.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the automation that ran.
+    automation_id: str
+    #: Identifier of the domain event that started the run.
+    domain_event_id: str
+    #: Identifier of the run whose action raised the event, when an automation caused it.
+    parent_run_id: Optional[str]
+    #: Automation runs that led to this one; 0 for an event a person raised.
+    depth: int
+    #: Queued, Running, Retrying after a failure the job queue retries with backoff, Succeeded, Failed, or Skipped (loop_depth, rate_limited, or the automation was off).
+    run_status: Literal["Queued", "Running", "Retrying", "Succeeded", "Failed", "Skipped"]
+    #: The event as webhooks send it: the run's input.
+    event_payload: Dict[str, Any]
+    #: Identifier of the person the run acted as.
+    owner_person_id: Optional[str]
+    #: Times the worker started the run.
+    attempts: int
+    #: Rule code of the failure or skip.
+    error_code: Optional[str]
+    #: Why the run failed or was skipped.
+    error_message: Optional[str]
+    #: When the worker first started the run.
+    started_at: Optional[str]
+    #: When the run reached Succeeded, Failed or Skipped.
+    finished_at: Optional[str]
+    #: Milliseconds from the first start to the end.
+    duration_ms: Optional[int]
+
+
+class AutomationNoticeResult(TypedDict):
+    """The notification an automation sent."""
+
+    #: Identifier of the notification created.
+    notification_id: Optional[str]
+
+
+class _AutomationNoticeRequestRequired(TypedDict):
+    #: Identifier of the member who receives the notification.
+    recipient_person_id: str
+    #: Notification title.
+    title: str
+
+
+class AutomationNoticeRequest(_AutomationNoticeRequestRequired, total=False):
+    """A notification an automation sends during a run."""
+
+    #: Message; the title is repeated when absent.
+    body: str
+
+
+class AutomationWebhookResult(TypedDict):
+    """The delivery a run queued."""
+
+    #: Identifier of the webhook delivery queued.
+    webhook_delivery_id: str
+
+
+class AutomationWebhookRequest(TypedDict):
+    """The endpoint a run's event is delivered to."""
+
+    #: Identifier of the the org's webhook endpoint.
+    webhook_endpoint_id: str
+
+
+class AutomationRunStepPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AutomationRunStep]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AutomationRunStep(TypedDict):
+    """One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed."""
+
+    #: Identifier of the automation run step.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the run the step belongs to.
+    automation_run_id: str
+    #: Identifier of the action the step ran.
+    automation_action_id: Optional[str]
+    #: Position of the action, 1 first.
+    position: int
+    #: What the action does.
+    action_type: Literal["create_task", "update_status", "assign", "add_comment", "notify", "call_webhook"]
+    #: Public API operation called.
+    operation_id: Optional[str]
+    #: Outcome of the action.
+    step_status: Literal["Succeeded", "Failed", "Skipped"]
+    #: Body sent, with templates filled in from the event.
+    request_body: Optional[Dict[str, Any]]
+    #: Identifying fields of the answer, or the problem it reported.
+    response_body: Optional[Dict[str, Any]]
+    #: HTTP status the API answered.
+    http_status: Optional[int]
+    #: Rule code of the failure.
+    error_code: Optional[str]
+    #: Why the step failed.
+    error_message: Optional[str]
+    #: When the step started.
+    started_at: str
+    #: When the step ended.
+    finished_at: str
+    #: Milliseconds the step took.
+    duration_ms: int
 
 
 class WorkforceGroupPage(TypedDict):
@@ -24424,3 +25312,15 @@ LoyaltyProgramKind = Literal["Airline", "Hotel", "Car Rental", "Rail"]
 
 #: A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.
 WorkDetailCategory = Literal["Emergency Contacts", "Uniform Sizes", "Dietary Needs", "Accessibility Needs", "Travel Profile", "Passport"]
+
+#: One condition: a path of the event, an API filter operator (ADR 0003) and a text value. Numbers compare numerically, strings by code point; contains folds ASCII case or finds an array element; every operator but is_null is false on a missing value.
+AutomationCondition = Dict[str, Any]
+
+#: An automation's conditions: {"all": [...]} or {"any": [...]} of conditions and one-level groups, at most 20 in all. An empty list always holds.
+AutomationConditions = Dict[str, Any]
+
+#: One action, run in order as the owner through a public API operation: create_task (records.create), update_status (records.transition), assign (records.update), add_comment (comments.postOnSubject), notify (automationRuns.notify) or call_webhook (automationRuns.deliverWebhook).
+AutomationAction = Dict[str, Any]
+
+#: An automation's 1 to 10 actions, in the order they run.
+AutomationActions = List[AutomationAction]

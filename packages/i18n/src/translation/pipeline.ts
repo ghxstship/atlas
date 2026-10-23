@@ -6,6 +6,7 @@
 import {
   engineVersion,
   shortHash,
+  surfacesFor,
   targetFor,
   type Setup,
   type SurfaceConfig,
@@ -276,13 +277,16 @@ function assemble(
   return problems.length > 0 ? forget(problems.join("; ")) : { value };
 }
 
-function selectedSurfaces(ctx: Context): SurfaceConfig[] {
-  return ctx.setup.config.surfaces.filter((s) => !ctx.surfaces || ctx.surfaces.includes(s.id));
+/** The target's surfaces (ADR 0053: Beta locales cover only some), limited to the run's --surface ids. */
+function selectedSurfaces(ctx: Context, target: TargetLocale): SurfaceConfig[] {
+  return surfacesFor(ctx.setup.config, target).filter(
+    (s) => !ctx.surfaces || ctx.surfaces.includes(s.id),
+  );
 }
 
-function readAll(ctx: Context, locale: string): UnitRecord[] {
-  return selectedSurfaces(ctx).flatMap((s) =>
-    readUnits(ctx.setup.root, s, ctx.setup.config.source.locale, locale),
+function readAll(ctx: Context, target: TargetLocale): UnitRecord[] {
+  return selectedSurfaces(ctx, target).flatMap((s) =>
+    readUnits(ctx.setup.root, s, ctx.setup.config.source.locale, target.locale),
   );
 }
 
@@ -308,15 +312,20 @@ function countStatuses(
  */
 function prune(
   ctx: Context,
+  target: TargetLocale,
   memory: Memory,
   units: readonly UnitRecord[],
   t: Tools,
   jobs: readonly Job[],
 ): void {
   const engine = t.engine;
-  const surfaces = selectedSurfaces(ctx);
+  const surfaces = selectedSurfaces(ctx, target);
   const ids = new Set(units.map((u) => u.id));
-  const catalogIds = surfaces.some((s) => s.kind === "catalog");
+  // Catalog keys carry no surface prefix, so they are pruned only when every catalog surface of the
+  // target is in the run (a run limited to the canon labels must not forget the app copy).
+  const catalogIds = surfacesFor(ctx.setup.config, target)
+    .filter((s) => s.kind === "catalog")
+    .every((s) => surfaces.includes(s));
   const surfaceIds = new Set(surfaces.map((s) => s.id));
   for (const id of [...memory.entries.keys()]) {
     const slash = id.indexOf("/");
@@ -354,7 +363,7 @@ export async function translate(
     : ctx.setup.config.targets;
   for (const target of targets) {
     const memory = loadMemory(ctx.setup.root, ctx.setup.config, target.locale);
-    const units = readAll(ctx, target.locale);
+    const units = readAll(ctx, target);
     const statuses = units.map((u) => statusOf(sourceHash(u), u.target, memory.entries.get(u.id)));
     const selected = units.filter((_, i) => statuses[i] === "missing" || statuses[i] === "stale");
     const failures: Failure[] = [];
@@ -400,7 +409,7 @@ export async function translate(
         }
       }
     }
-    for (const surface of selectedSurfaces(ctx).filter((s) => s.kind === "catalog")) {
+    for (const surface of selectedSurfaces(ctx, target).filter((s) => s.kind === "catalog")) {
       const extra = new Set(
         extraCatalogKeys(
           ctx.setup.root,
@@ -416,9 +425,9 @@ export async function translate(
         if (unit && !values.has(unit.id)) values.set(unit.id, unit.target ?? unit.source);
       }
     }
-    prune(ctx, memory, units, t, allJobs(units, t));
+    prune(ctx, target, memory, units, t, allJobs(units, t));
     const written: string[] = [];
-    for (const surface of selectedSurfaces(ctx)) {
+    for (const surface of selectedSurfaces(ctx, target)) {
       written.push(
         ...(await writeUnits(ctx.setup.root, surface, target.locale, units, values, ctx.format)),
       );
@@ -502,7 +511,7 @@ export async function review(ctx: Context, locale: string, apply: boolean): Prom
   const t = tools(ctx.setup);
   const target = targetFor(ctx.setup.config, locale);
   const memory = loadMemory(ctx.setup.root, ctx.setup.config, locale);
-  const units = readAll(ctx, locale);
+  const units = readAll(ctx, target);
   const items: ReviewItem[] = [];
   const jobs: Job[] = [];
   for (const unit of units) {
@@ -626,8 +635,8 @@ export async function review(ctx: Context, locale: string, apply: boolean): Prom
   const written: string[] = [];
   if (apply) {
     for (const [id, entry] of appliedEntries) memory.entries.set(id, entry);
-    prune(ctx, memory, units, t, jobs);
-    for (const surface of selectedSurfaces(ctx))
+    prune(ctx, target, memory, units, t, jobs);
+    for (const surface of selectedSurfaces(ctx, target))
       written.push(
         ...(await writeUnits(ctx.setup.root, surface, locale, units, values, async (text) => text)),
       );
@@ -647,10 +656,10 @@ export function setLock(
   ids: readonly string[],
   locked: boolean,
 ): { changed: string[]; unknown: string[] } {
-  targetFor(setup.config, locale);
+  const target = targetFor(setup.config, locale);
   const memory = loadMemory(setup.root, setup.config, locale);
   const units = new Map(
-    setup.config.surfaces
+    surfacesFor(setup.config, target)
       .flatMap((s) => readUnits(setup.root, s, setup.config.source.locale, locale))
       .map((u) => [u.id, u]),
   );
