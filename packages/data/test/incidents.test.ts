@@ -35,6 +35,7 @@ import {
   transitionIncident,
   updateIncident,
   updateMedicalEncounter,
+  updateEmergencyCode,
   updateRadioChannel,
   withdrawResponder,
 } from "../src/incidents.ts";
@@ -506,6 +507,79 @@ describe("emergency codes and crisis alerts", () => {
     expect((await listEmergencyProtocols(db)).ok).toBe(false);
   });
 
+  it("lists the org's own codes in numeric order, with canon's swatch", async () => {
+    const red = {
+      code: "CODE_RED",
+      label: "Code Red",
+      emergency: "Fire",
+      swatch: "ecode-red",
+      sort_order: 1,
+    };
+    const { db, calls } = client({
+      "from:emergency_code": [okResponse([red]), okResponse([red]), okResponse([red]), down],
+      "from:emergency_codes": [
+        okResponse([
+          { id: "e1", code: "CODE_RED", label: "Fire Alarm", emergency: "Fire", sort_order: 2 },
+          { id: "e2", code: "CODE_TEAL", label: "Code Teal", emergency: "Spill", sort_order: 5 },
+        ]),
+        okResponse([]),
+        down,
+      ],
+    });
+    expect(await listEmergencyCodes(db, "o1")).toEqual({
+      ok: true,
+      data: [
+        {
+          id: "e1",
+          code: "CODE_RED",
+          label: "Fire Alarm",
+          emergency: "Fire",
+          swatch: "ecode-red",
+          sortOrder: 2,
+        },
+        {
+          id: "e2",
+          code: "CODE_TEAL",
+          label: "Code Teal",
+          emergency: "Spill",
+          swatch: "ecode-grey",
+          sortOrder: 5,
+        },
+      ],
+    });
+    expect(calls.find((c) => c.target === "from:emergency_codes")?.steps).toContainEqual([
+      "order",
+      ["sort_order"],
+    ]);
+    const fallback = await listEmergencyCodes(db, "o1");
+    expect(fallback.ok && fallback.data[0]).toEqual({
+      code: "CODE_RED",
+      label: "Code Red",
+      emergency: "Fire",
+      swatch: "ecode-red",
+      sortOrder: 1,
+    });
+    expect((await listEmergencyCodes(db, "o1")).ok).toBe(false);
+    expect((await listEmergencyCodes(db, "o1")).ok).toBe(false);
+  });
+
+  it("edits the org's copy of a code", async () => {
+    const { db, calls } = client({
+      "from:emergency_codes": [okResponse([{ id: "e1" }]), okResponse([]), down],
+    });
+    const input = { label: " Fire Alarm ", emergency: " Fire ", sortOrder: 3 };
+    expect(await updateEmergencyCode(db, "e1", input)).toEqual({ ok: true, data: null });
+    expect(calls[0]?.steps[0]).toEqual([
+      "update",
+      [{ label: "Fire Alarm", emergency: "Fire", sort_order: 3 }],
+    ]);
+    expect(await updateEmergencyCode(db, "e1", input)).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
+    expect((await updateEmergencyCode(db, "e1", input)).ok).toBe(false);
+  });
+
   it("lists, issues and ends crisis alerts", async () => {
     const alert = {
       id: "a1",
@@ -614,6 +688,14 @@ describe("radio plan", () => {
       { record_id: "RCH-017", zone: 2, channel: 1, assignment: "All Call", notes: null },
     ];
     const { db, calls } = client({
+      // The org holds no radio plan of its own, so each import reads the Standard Library's.
+      "from:radio_channel_plan": [
+        okResponse([]),
+        okResponse([]),
+        okResponse([]),
+        okResponse([]),
+        okResponse([]),
+      ],
       "from:std_radio_channel": [
         okResponse(library),
         okResponse(library),
@@ -663,5 +745,20 @@ describe("radio plan", () => {
     const { db } = client({ "from:std_radio_channel": [okResponse([]), down] });
     expect(await listStandardRadioChannels(db)).toEqual({ ok: true, data: [] });
     expect((await listStandardRadioChannels(db)).ok).toBe(false);
+  });
+
+  it("starts from the org's own radio plan when it holds one", async () => {
+    const { db, calls } = client({
+      "from:radio_channel_plan": [
+        okResponse([{ id: "rp1", zone_number: 1, channel_number: 3, assignment: "Site Ops" }]),
+        down,
+      ],
+    });
+    expect(await listStandardRadioChannels(db, "o1")).toEqual({
+      ok: true,
+      data: [{ recordId: "rp1", zone: 1, channel: 3, assignment: "Site Ops", notes: null }],
+    });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["org_id", "o1"]]);
+    expect((await listStandardRadioChannels(db, "o1")).ok).toBe(false);
   });
 });

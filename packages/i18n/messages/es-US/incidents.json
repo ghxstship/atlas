@@ -25,12 +25,16 @@
   "closed": "Incidente cerrado con aprobación.",
   "codes": {
     "activeAlerts": "Alertas activas",
+    "canonWord": "La palabra clave {code} y su color se mantienen como en la Biblioteca Estándar, para que las alertas de crisis y los protocolos la sigan encontrando.",
     "code": "Código",
+    "editHeading": "Editar este código",
     "emergency": "Emergencia",
-    "explain": "Los códigos de emergencia son los mismos para todas las organizaciones y proyectos. Abre un código para leer su protocolo en cada área operativa; las agencias provienen de la jurisdicción del proyecto.",
+    "explain": "Los códigos de emergencia de tu organización, en el orden en que tu personal los aprende. Cada uno es tu copia de un código de la Biblioteca Estándar, así que puedes cambiar su nombre, su descripción o su orden. Abre un código para leer su protocolo en cada área operativa; las agencias provienen de la jurisdicción del proyecto.",
     "genericAgencies": "Elige un proyecto para nombrar las agencias de su jurisdicción; sin proyecto, cada paso nombra el servicio genérico.",
     "kind": "Código de emergencia",
+    "labelField": "Etiqueta",
     "noProtocols": "Este código aún no tiene protocolo en la Biblioteca Estándar.",
+    "notAdopted": "Estos son los códigos de la Biblioteca Estándar. Adopta la Biblioteca Estándar en Configuración, Extensiones del canon para tener tu propia copia editable.",
     "order": "Orden"
   },
   "dispatch": "Despachar a alguien",
