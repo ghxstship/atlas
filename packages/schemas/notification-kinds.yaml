@@ -136,12 +136,14 @@ kinds:
     category: approvals
     push_category: approval_request
     emitted_by:
-      - emitter: supabase/migrations/1030_approvals.sql#private.notify_step_approvers
-        test: supabase/tests/1030_approvals.test.sql
+      # 1395 redefines 1030's emitter: an away approver hands over only what their delegation covers.
+      - emitter: supabase/migrations/1395_approval_delegation_scope.sql#private.notify_step_approvers
+        test: supabase/tests/1395_approval_delegation_scope.test.sql
   - kind: approval.decided
     category: approvals
     emitted_by:
-      - emitter: supabase/migrations/1030_approvals.sql#app.decide_approval
+      # 1395 redefines 1030's emitter; 1030's test observes the decision on every path.
+      - emitter: supabase/migrations/1395_approval_delegation_scope.sql#app.decide_approval
         test: supabase/tests/1030_approvals.test.sql
   - kind: comment.created
     category: comments
