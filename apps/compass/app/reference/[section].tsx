@@ -2,15 +2,52 @@ import type { Row } from "@xos/sync";
 import { useLocalSearchParams } from "expo-router";
 import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
+import { View } from "react-native";
+import {
+  emergencyCodesFor,
+  swatchToken,
+  type CanonEmergencyCodeRow,
+  type OrgEmergencyCodeRow,
+} from "../../src/domain/emergencyCodes";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
-import { Card, EmptyState, ListRow, Screen, Text } from "../../src/ui";
+import { Card, EmptyState, ListRow, Screen, Text, useTheme } from "../../src/ui";
 
+/** The code word with its swatch beside it; the color only helps recognition, so the word is always written. */
+function CodeWord({ code, swatch }: { code: string; swatch: string }): ReactElement {
+  const theme = useTheme();
+  const colors = theme.color as Readonly<Record<string, string>>;
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: theme.space["8"] }}>
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={{
+          width: theme.space["12"],
+          height: theme.space["12"],
+          borderRadius: theme.radius.pill,
+          backgroundColor: colors[swatchToken(swatch)] ?? colors["ecodeGrey"],
+          // White and silver swatches on a light card need an edge to be seen.
+          borderWidth: theme.strokeWidth.hairline,
+          borderColor: theme.color.borderStrong,
+        }}
+      />
+      <Text variant="label13" tone="secondary">
+        {code}
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * The active org's emergency codes (WP18, 1612): its own labels, descriptions and order, each with its canon code
+ * word and swatch, or the canon codes while the org holds none, as Atlas lists them.
+ */
 function EmergencyCodes(): ReactElement {
   const { t } = useTranslation();
-  const { rows } = useRows<Row & { name?: string; description?: string; sort_order?: number }>(
-    "emergency_codes",
-  );
-  if (rows.length === 0)
+  const { rows: own } = useRows<Row & OrgEmergencyCodeRow>("emergency_codes");
+  const { rows: canon } = useRows<Row & CanonEmergencyCodeRow>("canon_emergency_codes");
+  const codes = emergencyCodesFor(own, canon);
+  if (codes.length === 0)
     return (
       <EmptyState
         icon="flame"
@@ -20,13 +57,16 @@ function EmergencyCodes(): ReactElement {
     );
   return (
     <>
-      {[...rows]
-        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-        .map((c) => (
-          <Card key={c.id} testID={`code-${c.id}`} title={c.name ?? c.id}>
-            <Text tone="secondary">{c.description ?? ""}</Text>
-          </Card>
-        ))}
+      {codes.map((c) => (
+        <Card
+          key={c.key}
+          testID={`code-${c.code}`}
+          title={c.label}
+          meta={<CodeWord code={c.code} swatch={c.swatch} />}
+        >
+          <Text tone="secondary">{c.emergency}</Text>
+        </Card>
+      ))}
     </>
   );
 }

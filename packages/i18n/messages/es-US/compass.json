@@ -104,6 +104,7 @@
       "asset_custody": "entregas de equipo",
       "asset_identifiers": "códigos de equipo",
       "asset_units": "equipo",
+      "canon_emergency_codes": "códigos de emergencia estándar",
       "clock_punches": "registros de horario",
       "credentials": "credenciales",
       "cues": "pies",

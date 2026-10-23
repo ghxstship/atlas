@@ -108,9 +108,18 @@ describe("download scope (Section 8.7)", () => {
 
   it("refuses unknown tables, admits canon reference tables and ignores non-string keys", () => {
     expect(admits("payroll_runs", { id: "x", org_id: "org-1" }, internal)).toBe(false);
-    expect(admits("emergency_codes", { id: "code-red" }, external("sponsor"))).toBe(true);
+    expect(admits("canon_emergency_codes", { id: "CODE_RED" }, external("sponsor"))).toBe(true);
     expect(admits("shifts", { id: "s", membership_id: 42 }, internal)).toBe(false);
     expect(ruleFor("shifts")?.anyOf.length).toBeGreaterThan(0);
+  });
+
+  it("admits an org's own emergency codes only to its members (WP18)", () => {
+    expect(admits("emergency_codes", { id: "ec-1", org_id: "org-1" }, internal)).toBe(true);
+    expect(admits("emergency_codes", { id: "ec-2", org_id: "org-2" }, internal)).toBe(false);
+    expect(admits("emergency_codes", { id: "ec-1", org_id: "org-1" }, external("crew"))).toBe(
+      false,
+    );
+    expect(admits("emergency_codes", { id: "ec-3" }, internal)).toBe(false);
   });
 
   it("filters a downloaded batch", () => {
@@ -196,9 +205,9 @@ describe("SyncSession", () => {
     const store = new MemoryStore();
     const session = new SyncSession(store, external("crew"));
     await session.ingest("shifts", [{ id: "s1", engagement_id: "eng-mine" }]);
-    await session.ingest("emergency_codes", [{ id: "code-red" }]);
+    await session.ingest("canon_emergency_codes", [{ id: "CODE_RED" }]);
     expect(await session.narrow(external("crew", []))).toBe(1);
-    expect(await store.tables()).toEqual(["emergency_codes"]);
+    expect(await store.tables()).toEqual(["canon_emergency_codes"]);
   });
 
   it("wipes the store, queue included, on remote sign-out", async () => {

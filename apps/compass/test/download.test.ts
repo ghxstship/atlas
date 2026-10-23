@@ -62,7 +62,7 @@ describe("sources", () => {
     expect(external.map((s) => s.table)).toContain("dock_slots");
     expect(sourcesFor("field").every((s) => s.schema !== "api_external")).toBe(true);
     expect(sourcesFor("field").map((s) => s.table)).toEqual(
-      expect.arrayContaining(["incident_severities", "emergency_codes"]),
+      expect.arrayContaining(["incident_severities", "emergency_codes", "canon_emergency_codes"]),
     );
   });
 
@@ -173,7 +173,15 @@ describe("REST download", () => {
           enum_domain: "Inspection Result",
         },
       ],
-      "xpms.emergency_code": [{ code: "CODE_RED", name: "Code Red" }],
+      "xpms.emergency_code": [
+        {
+          code: "CODE_RED",
+          label: "Code Red",
+          emergency: "Fire",
+          swatch: "ecode-red",
+          sort_order: "1",
+        },
+      ],
     });
     const report = await downloadAll({ client: api, session, projectId: null });
     expect(report.failed).toEqual([
@@ -194,7 +202,13 @@ describe("REST download", () => {
         colorCode: "#D93025",
       },
     ]);
-    expect(await store.get("emergency_codes", "CODE_RED")).toMatchObject({ name: "Code Red" });
+    // Canon codes reach every device, an engaged crew member's too; the org's own codes need a membership.
+    expect(await store.get("canon_emergency_codes", "CODE_RED")).toMatchObject({
+      label: "Code Red",
+      swatch: "ecode-red",
+      sort_order: 1,
+    });
+    expect(await store.list("emergency_codes")).toEqual([]);
     expect(filters).toContain("xpms.std_enumeration enum_domain=Incident Severity");
   });
 
