@@ -398,6 +398,8 @@
       "title": "Esta línea cambió mientras la editaba"
     },
     "converted": "Convertido a {rate} {to} por {from}, el tipo registrado el {date}. Las cifras sin precio siguen Sin precio.",
+    "convertedVia": "Convertido a {rate} {to} por {from} a través de {via}, con los tipos registrados el {date}. Las cifras sin precio siguen Sin precio.",
+    "staleRate": "Este tipo tiene {days, plural, one {# día} other {# días}} de antigüedad: no se ha registrado uno más reciente.",
     "create": "Presupuesto nuevo",
     "delete": "Eliminar presupuesto",
     "deleteCount": "{count, plural, =0 {Eliminar líneas} one {Eliminar # línea} other {Eliminar # líneas}}",
@@ -676,6 +678,13 @@
     "add": "Registrar tipo",
     "added": "Tipo de cambio registrado.",
     "empty": "Aún no hay tipos de cambio. Registre uno para mostrar los totales del presupuesto en otra moneda.",
+    "latestOnly": "Cada par muestra su tipo más reciente. Una conversión usa el tipo de su fecha hábil, o el último anterior.",
+    "feed": {
+      "arrived": "Los tipos de referencia del BCE llegaron por última vez el {date}, para el {rateDate}.",
+      "failing": "La carga de tipos del BCE ha fallado {count, plural, one {# vez} other {# veces}} desde su último éxito, la más reciente el {date}: {error}. Las conversiones usan el tipo más reciente registrado y muestran su fecha.",
+      "never": "Aún no han llegado tipos de referencia del BCE. Las conversiones usan los tipos registrados aquí.",
+      "neverFailed": "Aún no han llegado tipos de referencia del BCE. El último intento, el {date}, falló: {error}"
+    },
     "fields": {
       "base": "Moneda de origen",
       "effectiveOn": "Vigente desde",

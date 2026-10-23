@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(50);
+select plan(51);
 
 create temporary table tokens (key text primary key, token text);
 grant select, insert on tokens to public;
@@ -35,8 +35,11 @@ select results_eq(
 select is((select granted_by from app.membership_roles), null::uuid, 'the first Owner is granted by the platform');
 select results_eq(
   $$select plan_code, subscription_state from app.subscriptions$$,
-  $$values ('access'::text, 'active'::app.subscription_state)$$,
-  'a new org starts on the Access plan');
+  $$values ('pro'::text, 'trialing'::app.subscription_state)$$,
+  'a new org starts a Pro trial (Section 14.7)');
+select ok((select trial_ends_at - now() >= interval '14 days' and trial_ends_at - now() <= interval '15 days'
+  and (trial_ends_at at time zone 'UTC')::time = '00:00' from app.subscriptions),
+  'the trial lasts 14 whole days after today, to midnight on the org''s calendar, and needs no card');
 select is((select count(*)::integer from app.subscription_state_transitions), 1, 'the subscription creation is in the ledger');
 select is_empty('select 1 from app.workspaces', 'Home starts empty: no workspaces');
 select is_empty('select 1 from app.teams', 'Home starts empty: no teams');
@@ -153,7 +156,7 @@ select results_eq(
 
 select pg_temp.as_user('bob');
 insert into tokens select 'quinn', i.invite_token from app.invite_member(pg_temp.id('org_a'), 'quinn@northwind.test', pg_temp.system_role('viewer')) i;
-select pg_temp.as_user('alice');
+select pg_temp.as_user_stepped_up('alice');
 insert into app.membership_roles (membership_id, role_id) values (pg_temp.id('carol@org_a'), pg_temp.system_role('admin'));
 update app.membership_roles set deleted_at = now()
 where membership_id = pg_temp.id('bob@org_a') and role_id = pg_temp.system_role('admin');

@@ -6,7 +6,8 @@
 import type { XosClient } from "@xos/data";
 import { refused } from "../problem.ts";
 
-export type CredentialKind = "session" | "api_key";
+/** A person's session, an org API key, or an OAuth app acting for a person (A99, ADR 0055). */
+export type CredentialKind = "session" | "api_key" | "oauth";
 
 export interface RequestUser {
   /** `auth.users.id` of the caller. */
@@ -31,7 +32,7 @@ export interface RequestContext {
   /** Supabase client acting as the caller, with `db.schema` set to `app`. */
   readonly db: XosClient;
   readonly credential: CredentialKind;
-  /** Capability groups an API key may use; absent for session credentials (the role decides). */
+  /** Capability groups an API key or OAuth app may use; absent for session credentials (the role decides). */
   readonly scopes?: readonly string[];
   /** Correlation id echoed as `X-Request-Id`. */
   readonly requestId: string;

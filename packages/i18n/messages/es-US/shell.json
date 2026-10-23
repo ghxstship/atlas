@@ -945,7 +945,8 @@
       "passwordHelp": "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
       "orgName": "Nombre de la organización",
       "orgSlug": "Dirección web",
-      "orgSlugHelp": "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}."
+      "orgSlugHelp": "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}.",
+      "age": "Tengo 16 años o más."
     },
     "or": "o",
     "signIn": {
@@ -959,7 +960,8 @@
       "title": "Crea tu cuenta de Atlas",
       "submit": "Crear cuenta",
       "haveAccount": "¿Ya tienes una cuenta?",
-      "toSignIn": "Iniciar sesión"
+      "toSignIn": "Iniciar sesión",
+      "magicLink": "Envíame un enlace para registrarme"
     },
     "providers": {
       "continueWith": "Continuar con {provider}",
@@ -991,7 +993,10 @@
         "seat_limit_reached": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que compre asientos adicionales o mejore el plan, y vuelve a abrir la invitación.",
         "seat_limit_upgrade": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que mejore el plan y vuelve a abrir la invitación."
       },
-      "home": "Ir a Atlas"
+      "home": "Ir a Atlas",
+      "closedTitle": "Este enlace de invitación ya no es válido",
+      "closedBody": "Es posible que haya vencido, que ya se haya usado o que una invitación más reciente lo haya reemplazado. Pide a la persona que te invitó que te envíe una nueva. Si ya tienes una cuenta, aún puedes iniciar sesión.",
+      "signIn": "Iniciar sesión"
     },
     "signOut": "Cerrar sesión",
     "session": {
@@ -1023,7 +1028,8 @@
       "orgSlug": "Usa de 2 a 48 letras minúsculas, números y guiones sencillos.",
       "accept": "Acepta los Términos del Servicio y el Acuerdo de Tratamiento de Datos para continuar.",
       "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
-      "slug_reserved": "Atlas reserva esa dirección web. Elige otra."
+      "slug_reserved": "Atlas reserva esa dirección web. Elige otra.",
+      "age": "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante."
     },
     "networkRestricted": {
       "title": "Su red no está permitida",
@@ -1048,7 +1054,7 @@
   },
   "chrome": {
     "search": "Buscar",
-    "searchHint": "Busca páginas y ajustes",
+    "searchHint": "Busca registros, personas, páginas y acciones",
     "favoritesEmpty": "Fija proyectos, vistas guardadas y registros para tenerlos aquí.",
     "organizations": "Organizaciones",
     "createOrganization": "Crear organización",
@@ -1064,9 +1070,15 @@
     "locales": {
       "en-US": "English (US)",
       "es-US": "Español (EE. UU.)",
+      "fr-FR": "Français",
+      "de-DE": "Deutsch",
+      "it-IT": "Italiano",
+      "pt-BR": "Português (Brasil)",
+      "ja-JP": "日本語",
       "en-XA": "Pseudolocalización (acentos)",
       "ar-XB": "Pseudolocalización (derecha a izquierda)"
     },
+    "betaLocale": "{language} (beta)",
     "mainNav": "Principal"
   },
   "settings": {
@@ -1170,6 +1182,55 @@
         "sole_owner": "Eres el único propietario de {org}. Nombra a otra persona propietaria antes de salir.",
         "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento."
       }
+    },
+    "partnerConsole": {
+      "title": "Consola de socio",
+      "lead": "{org} es una agencia socia. Crea organizaciones cliente y define sus planes, dales una marca predeterminada y consulta el uso y la facturación mayorista en la Consola de socio.",
+      "clientOrgs": "Organizaciones cliente",
+      "discount": "Descuento mayorista",
+      "createFirst": "Crear tu primera organización cliente",
+      "open": "Abrir la Consola de socio"
+    },
+    "usagePanel": {
+      "title": "Uso actual",
+      "lead": "Lo que {org} usa hoy frente al plan {plan}.",
+      "leadNoPlan": "Lo que {org} usa hoy.",
+      "seats": "Asientos",
+      "field": "Miembros de campo",
+      "projects": "Proyectos activos",
+      "engagements": "Contrataciones externas abiertas",
+      "unlimited": "{used} (sin límite en este plan)",
+      "ofLimit": "{used} de {limit}",
+      "members": "Ver miembros",
+      "billing": "Facturación y plan"
+    },
+    "templatesPanel": {
+      "title": "Plantillas de proyecto",
+      "lead": "Plantillas con las que la organización inicia proyectos. Créalas, versiónalas y aplícalas en Proyectos, Plantillas.",
+      "empty": "Aún no hay plantillas de proyecto. Guarda una a partir de un proyecto que quieras repetir.",
+      "line": "Versión {version} · {items, plural, one {# elemento} other {# elementos}} · {projects, plural, =0 {aún sin proyectos} one {# proyecto} other {# proyectos}}",
+      "open": "Abrir plantillas de proyecto"
+    }
+  },
+  "refusalOutcome": {
+    "REFUSE": "Rechazado",
+    "NO_ANSWER": "Sin respuesta",
+    "UNRATIFIED": "Sin ratificar"
+  },
+  "commandMenu": {
+    "groups": {
+      "actions": "Acciones",
+      "records": "Registros",
+      "people": "Personas"
+    },
+    "incident": "Incidente",
+    "actions": {
+      "newProject": "Nuevo proyecto",
+      "newRecord": "Nuevo registro",
+      "reportIncident": "Reportar incidente",
+      "approveTimesheets": "Aprobar hojas de horas",
+      "openApprovals": "Abrir aprobaciones",
+      "openInbox": "Abrir Bandeja"
     }
   },
   "create": {

@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
 import { expectAccessibleInBothThemes } from "./a16-support";
 import { createOrganization, signUp, testEmail, uniqueId } from "./support";
+import { enrollAuthenticator } from "./totp";
 
 /**
  * Journey 39 (Section 20.2, Section 14.7): an Owner downloads the full export, cancels the org by
@@ -20,11 +21,16 @@ test("journey 39: cancel an org, download the full export, read-only banner", as
   const panel = page.getByRole("region", { name: "Cancel the organization" });
   await expect(panel).toBeVisible();
   await expectAccessibleInBothThemes(page);
+  // The theme check ends on a reload; the link opens the step-up dialog only once the page is live.
+  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
 
-  // The full export: one ZIP with a manifest.
+  // The full export: one ZIP with a manifest. It needs step-up (Section 9, A77): a new Owner sets up a
+  // second factor in the step-up dialog, and the download follows.
+  await panel.getByRole("link", { name: "Download the full export" }).click();
   const [download] = await Promise.all([
-    page.waitForEvent("download"),
-    panel.getByRole("link", { name: "Download the full export" }).click(),
+    // Setting up the factor, verifying it and building the archive come before the file.
+    page.waitForEvent("download", { timeout: 60_000 }),
+    enrollAuthenticator(page.getByRole("dialog", { name: "Set up a second factor" })),
   ]);
   expect(download.suggestedFilename()).toMatch(
     new RegExp(`^${slug}-export-\\d{4}-\\d{2}-\\d{2}\\.zip$`),
@@ -56,7 +62,7 @@ test("journey 39: cancel an org, download the full export, read-only banner", as
   await page.goto(`/${slug}/settings/custom-objects`);
   await page.getByLabel("Name", { exact: true }).fill("Read Only Probe");
   await page.getByRole("button", { name: "Define the object" }).click();
-  await expect(page.getByText("This organization is canceled and read-only.")).toBeVisible();
+  await expect(page.getByText("This organization is read-only right now.")).toBeVisible();
 
   // The export stays available during the window.
   await page.goto(`/${slug}/settings/danger-zone`);

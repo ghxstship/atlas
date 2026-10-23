@@ -18,6 +18,8 @@ import {
   listSectionVisibility,
   PROFILE_SECTIONS,
 } from "@xos/data/profiles";
+import { listMyPersonCalendarFeeds } from "@xos/data/calendar-feeds";
+import { getAccountNotificationDefaults } from "@xos/data/company-settings";
 import { listMyNotificationPreferences } from "@xos/data/party-notifications";
 import { resolveSettings } from "@xos/data/settings";
 import { getNode } from "@xos/ia";
@@ -50,9 +52,18 @@ import { choiceLabelKey, formText, NO_ORG, personalSettings } from "@/lib/settin
 import type { GatewayContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
+import { AddPersonFeedForm, PersonFeedActions } from "./calendar-feeds-forms";
 import { DeleteAccountSection } from "./delete-account";
 import { NotificationPreferences } from "./notification-preferences";
 import { PersonalSetting } from "./personal-setting";
+import {
+  CompanyDangerSurface,
+  CompanyNotificationsSurface,
+  ConnectedAppsSurface,
+  DeveloperSurface,
+  RegionsSurface,
+} from "./surfaces";
+import { SecurityPanels } from "./security-panels";
 import {
   MyAccessLogPanel,
   MySharingPanel,
@@ -544,6 +555,7 @@ function SecuritySection(props: SectionProps) {
     <>
       <Header t={t} node={props.node} />
       <p className="m-0 text-text-14">{t("gateway.settings.security.passwordless")}</p>
+      <SecurityPanels ctx={props.ctx} t={t} locale={props.locale} />
       <form method="post" action="/auth/sign-out">
         <button
           type="submit"
@@ -675,28 +687,55 @@ async function PayoutTaxSection(props: SectionProps & { account?: boolean }) {
   );
 }
 
-function NoteSection(
-  props: SectionProps & { note: string; action: { label: string; href: string } },
-) {
+/**
+ * The person's own calendar feeds across every org they work with (Section 4.5.8 Work, Upcoming
+ * "with a calendar feed"; Section 4.6.5; A84, migration 1410): each with the last four characters
+ * of its link, a new link and revoke, and a form to add one. Links are shown once, when made.
+ */
+async function CalendarFeedsSection(props: SectionProps) {
+  const { ctx, t, locale } = props;
+  const C = "gateway.settings.calendarFeeds";
+  const feeds = await listMyPersonCalendarFeeds(ctx.db);
   return (
     <>
-      <Header t={props.t} node={props.node} />
-      <TabEmpty
-        icon="Info"
-        sentence={props.note}
-        actionLabel={props.action.label}
-        href={props.action.href}
-      />
+      <Header t={t} node={props.node} />
+      <p className="m-0 text-text-13 text-text-secondary">{t(`${C}.description`)}</p>
+      <p className="m-0 text-text-13 text-text-secondary">{t(`${C}.secret`)}</p>
+      {!feeds.ok ? (
+        <RegionError />
+      ) : feeds.data.length === 0 ? (
+        <p className="m-0 text-text-13 text-text-secondary">{t(`${C}.none`)}</p>
+      ) : (
+        <RowList
+          label={t(`${C}.listLabel`)}
+          items={feeds.data.map((feed) => ({
+            id: feed.id,
+            title: t(`${C}.feedName`),
+            meta: [
+              t(`${C}.hint`, { hint: feed.tokenHint }),
+              feed.rotatedAt
+                ? t(`${C}.rotated`, { date: formatDate(locale, feed.rotatedAt) })
+                : t(`${C}.created`, { date: formatDate(locale, feed.createdAt) }),
+              feed.lastAccessedAt
+                ? t(`${C}.lastFetched`, { date: formatDate(locale, feed.lastAccessedAt) })
+                : t(`${C}.neverFetched`),
+            ],
+            action: <PersonFeedActions id={feed.id} hint={feed.tokenHint} />,
+          }))}
+        />
+      )}
+      <AddPersonFeedForm />
     </>
   );
 }
 
 /**
  * The person's own notification choices as an external party (migration 1131, finding A38-002):
- * Email and Push per category.
+ * Email and Push per category. A cell the person never chose shows their company accounts' default (1434).
  */
 async function NotificationsSection(props: SectionProps) {
-  const prefs = await listMyNotificationPreferences(props.ctx.db);
+  const company = await getAccountNotificationDefaults(props.ctx.db);
+  const prefs = await listMyNotificationPreferences(props.ctx.db, company.ok ? company.data : []);
   return (
     <>
       <Header t={props.t} node={props.node} />
@@ -954,6 +993,8 @@ async function RepresentationSection(props: SectionProps) {
 export async function SettingsSection({ node, ctx }: { node: string; ctx: GatewayContext }) {
   const [t, locale] = await Promise.all([getTranslate(), getLocale()]);
   const props: SectionProps = { ctx, t, locale, node };
+  // A86's surfaces (./surfaces.tsx) draw their content under the section header drawn here.
+  const surface = { ctx, t, locale, header: <Header t={t} node={node} /> };
   switch (node) {
     case "settings.profile":
       return <ProfileSection {...props} />;
@@ -980,75 +1021,27 @@ export async function SettingsSection({ node, ctx }: { node: string; ctx: Gatewa
         </>
       );
     case "settings.calendar-feeds":
-      return (
-        <NoteSection
-          {...props}
-          note={t("gateway.settings.notes.calendarFeeds")}
-          action={{ label: t("gateway.settings.notes.toUpcoming"), href: "/work/upcoming" }}
-        />
-      );
+      return <CalendarFeedsSection {...props} />;
     case "settings.connected-apps":
-      return (
-        <NoteSection
-          {...props}
-          note={t("gateway.settings.notes.connectedApps")}
-          action={{
-            label: t("gateway.settings.notes.toOrganizations"),
-            href: "/settings/organizations",
-          }}
-        />
-      );
+      return <ConnectedAppsSurface {...surface} />;
     case "settings.notifications":
       return <NotificationsSection {...props} />;
     case "settings.company.notifications":
-      return (
-        <NoteSection
-          {...props}
-          note={t("gateway.settings.notes.notifications")}
-          action={{
-            label: t("gateway.settings.notes.toPreferences"),
-            href: "/settings/preferences",
-          }}
-        />
-      );
+      return <CompanyNotificationsSurface {...surface} />;
     case "settings.developer":
-      return (
-        <NoteSection
-          {...props}
-          note={t("gateway.settings.notes.developer")}
-          action={{ label: t("gateway.settings.notes.toSecurity"), href: "/settings/security" }}
-        />
-      );
+      return <DeveloperSurface {...surface} />;
     case "settings.company.company-profile-and-privacy":
       return <CompanyProfileSection {...props} />;
     case "settings.company.team-and-account-roles":
       return <TeamSection {...props} />;
     case "settings.company.service-regions-and-capabilities":
-      return (
-        <NoteSection
-          {...props}
-          note={t("gateway.settings.notes.regions")}
-          action={{
-            label: t("gateway.settings.notes.toCompanyProfile"),
-            href: "/settings/company/company-profile-and-privacy",
-          }}
-        />
-      );
+      return <RegionsSurface {...surface} />;
     case "settings.company.insurance-and-compliance-documents":
       return <InsuranceSection {...props} />;
     case "settings.company.representation":
       return <RepresentationSection {...props} />;
     case "settings.company.danger-zone":
-      return (
-        <NoteSection
-          {...props}
-          note={t("gateway.settings.notes.dangerZone")}
-          action={{
-            label: t("gateway.settings.notes.toTeam"),
-            href: "/settings/company/team-and-account-roles",
-          }}
-        />
-      );
+      return <CompanyDangerSurface {...surface} />;
     default:
       return <RegistrySection {...props} />;
   }

@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, XosClient } from "./client.ts";
 import { csvField } from "./csv.ts";
+import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
 /**
@@ -580,17 +581,23 @@ export async function listFxRates(db: XosClient, orgId: string): Promise<Result<
   );
 }
 
-/**
- * The latest rate on or before a day converting `from` to `to`, using the inverse of a stored
- * opposite pair when only that exists. Null is no answer: a missing rate never converts.
- */
-export function findFxRate(
+/** A rate answering one conversion: the rate, the day it is from and where it came from. */
+export interface FxAnswer {
+  readonly rate: number;
+  /** The rate's date (for a rate through EUR, the older of its two legs). */
+  readonly effectiveOn: string;
+  readonly source: string;
+  /** The currency a cross rate goes through (EUR for ECB reference rates), when it is one. */
+  readonly via?: string;
+}
+
+/** The latest direct (or inverted opposite) rate on or before a day, or null. */
+function directFxRate(
   rates: readonly FxRate[],
   from: string,
   to: string,
   on: string,
-): { rate: number; effectiveOn: string; source: string } | null {
-  if (from === to) return { rate: 1, effectiveOn: on, source: "" };
+): FxAnswer | null {
   const candidates = rates
     .filter((r) => r.effectiveOn <= on)
     .flatMap((r) =>
@@ -602,6 +609,106 @@ export function findFxRate(
     )
     .sort((a, b) => b.effectiveOn.localeCompare(a.effectiveOn));
   return candidates[0] ?? null;
+}
+
+/** The currency ECB reference rates are quoted against (one euro buys `rate` of each currency). */
+export const FX_CROSS_CURRENCY = "EUR";
+
+/**
+ * The latest rate on or before a day converting `from` to `to`: a stored pair, the inverse of a stored
+ * opposite pair, or a cross rate through EUR (ECB publishes every currency against the euro), whichever is
+ * most recent, a stored pair winning a tie. A conversion for a business date uses that date's rate or the
+ * last one before it. Null is no answer: a missing rate never converts.
+ */
+export function findFxRate(
+  rates: readonly FxRate[],
+  from: string,
+  to: string,
+  on: string,
+): FxAnswer | null {
+  if (from === to) return { rate: 1, effectiveOn: on, source: "" };
+  const direct = directFxRate(rates, from, to, on);
+  if (from === FX_CROSS_CURRENCY || to === FX_CROSS_CURRENCY) return direct;
+  const toCross = directFxRate(rates, from, FX_CROSS_CURRENCY, on);
+  const fromCross = directFxRate(rates, FX_CROSS_CURRENCY, to, on);
+  const cross: FxAnswer | null =
+    toCross && fromCross
+      ? {
+          rate: toCross.rate * fromCross.rate,
+          effectiveOn:
+            toCross.effectiveOn < fromCross.effectiveOn
+              ? toCross.effectiveOn
+              : fromCross.effectiveOn,
+          source:
+            toCross.source === fromCross.source
+              ? toCross.source
+              : `${toCross.source}, ${fromCross.source}`,
+          via: FX_CROSS_CURRENCY,
+        }
+      : null;
+  if (!cross) return direct;
+  if (!direct) return cross;
+  return cross.effectiveOn > direct.effectiveOn ? cross : direct;
+}
+
+/**
+ * A rate older than this many days on the business date it converts for is shown as stale. ECB publishes on
+ * TARGET business days, so a Thursday rate is still the latest on the Tuesday after Easter: five days.
+ */
+export const FX_STALE_AFTER_DAYS = 5;
+
+/** Whole days from a rate's date to the business date it converts for (both calendar dates). */
+export function fxRateAgeDays(effectiveOn: string, on: string): number {
+  const day = (iso: string) =>
+    Date.UTC(Number(iso.slice(0, 4)), Number(iso.slice(5, 7)) - 1, Number(iso.slice(8, 10)));
+  return Math.round((day(on) - day(effectiveOn)) / 86_400_000);
+}
+
+/** Whether a rate is too old to show without saying so. */
+export function isFxRateStale(effectiveOn: string, on: string): boolean {
+  return fxRateAgeDays(effectiveOn, on) > FX_STALE_AFTER_DAYS;
+}
+
+/** The latest rate of each currency pair, newest first, for a table that should not list every day. */
+export function latestFxRates(rates: readonly FxRate[]): FxRate[] {
+  const seen = new Set<string>();
+  return [...rates]
+    .sort((a, b) => b.effectiveOn.localeCompare(a.effectiveOn))
+    .filter((r) => {
+      const key = `${r.base}/${r.quote}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+}
+
+/** The daily reference rate feed's state (app.fx_feed_status, migration 1542). */
+export interface FxFeedStatus {
+  readonly lastSuccessAt: string | null;
+  /** The ECB publication date of the newest rates the feed wrote. */
+  readonly lastRateDate: string | null;
+  readonly lastFailureAt: string | null;
+  readonly lastError: string | null;
+  /** Failed runs since the last success: more than zero means the newest rates may be missing. */
+  readonly failuresSinceSuccess: number;
+}
+
+/** The state of a reference rate feed (ECB by default) for honest rate dates on finance pages. */
+export async function getFxFeedStatus(
+  db: XosClient,
+  source = "ECB",
+): Promise<Result<FxFeedStatus>> {
+  const { data, error } = await db.rpc("fx_feed_status", { p_source: source });
+  if (error) return fail(toDataError(error));
+  const row = (Array.isArray(data) ? data[0] : data) as Record<string, unknown> | undefined;
+  const text = (v: unknown) => (typeof v === "string" ? v : null);
+  return ok({
+    lastSuccessAt: text(row?.["last_success_at"]),
+    lastRateDate: text(row?.["last_rate_date"]),
+    lastFailureAt: text(row?.["last_failure_at"]),
+    lastError: text(row?.["last_error"]),
+    failuresSinceSuccess: Number(row?.["failures_since_success"] ?? 0),
+  });
 }
 
 /** Records an exchange rate. Needs finance.cost_center.write. */
@@ -1626,8 +1733,16 @@ export async function listInvoices(
   );
   if (!totals.ok) return totals;
   const byId = new Map(totals.data.map((t) => [str(t["invoice_id"]), t]));
+  // The individual payee's name through the one name resolution (A59-011), never "Individual".
+  const named = await fillPersonNames(
+    db,
+    invoices.data,
+    (i) => strOrNull(i["payee_person_id"]),
+    (i) => strOrNull(obj(i["payee"])?.["full_name"]),
+    (i, full_name) => ({ ...i, payee: { full_name } }),
+  );
   return ok(
-    invoices.data.map((i) => {
+    named.map((i) => {
       const t = byId.get(str(i["id"])) ?? {};
       const subtotal = numOrNull(t["subtotal_minor"]);
       const tax = numOrNull(t["tax_minor"]);
@@ -1841,7 +1956,7 @@ export interface PaymentApplication {
 
 /** Payments of the org, newest first, with the amount applied to invoices. */
 export async function listPayments(db: XosClient, orgId: string): Promise<Result<Payment[]>> {
-  return rows(
+  const result = await rows(
     db
       .from("payments")
       .select(
@@ -1869,6 +1984,16 @@ export async function listPayments(db: XosClient, orgId: string): Promise<Result
         createdAt: str(r["created_at"]),
       };
     },
+  );
+  if (!result.ok) return result;
+  return ok(
+    await fillPersonNames(
+      db,
+      result.data,
+      (p) => p.payeePersonId,
+      (p) => p.payeeName,
+      (p, payeeName) => ({ ...p, payeeName }),
+    ),
   );
 }
 

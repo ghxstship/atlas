@@ -1,9 +1,18 @@
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { Direction } from "radix-ui";
 import { currentConfig, directionOf, translate, type MessageVars, type Messages } from "./i18n.ts";
-import { formatCompact, formatCurrency, formatDate, formatList, formatNumber } from "./format.ts";
+import {
+  displayTimeZone,
+  formatCompact,
+  formatCurrency,
+  formatDate,
+  formatList,
+  formatNumber,
+  formatZonedDateTime,
+} from "./format.ts";
 import { applyTheme, type ThemePreference } from "./theme.ts";
 import { DEFAULT_PREFERENCES, type DisplayPreferences } from "./preferences.ts";
+import { resolveUnitSystem, type UnitSystem } from "@xos/i18n/units";
 
 interface LocaleState {
   locale: string;
@@ -12,6 +21,8 @@ interface LocaleState {
 
 const LocaleContext = createContext<LocaleState | null>(null);
 const PreferencesContext = createContext<DisplayPreferences>(DEFAULT_PREFERENCES);
+/** The viewer's own IANA time zone (locale.time_zone), for me.time_zone_display. */
+const ViewerZoneContext = createContext<string | null>(null);
 
 export interface XOSProviderProps {
   /** BCP 47 locale for copy and Intl formatting; en-US by default. */
@@ -52,17 +63,60 @@ export function XOSProvider({ locale, messages, theme, preferences, children }: 
  */
 export function PreferencesProvider({
   preferences,
+  timeZone,
   children,
 }: {
   preferences: DisplayPreferences;
+  /** The viewer's own IANA time zone (locale.time_zone), which "my time zone" shows schedule times in. */
+  timeZone?: string | null;
   children: ReactNode;
 }) {
-  return <PreferencesContext.Provider value={preferences}>{children}</PreferencesContext.Provider>;
+  return (
+    <PreferencesContext.Provider value={preferences}>
+      <ViewerZoneContext.Provider value={timeZone ?? null}>{children}</ViewerZoneContext.Provider>
+    </PreferencesContext.Provider>
+  );
 }
 
 /** The person's display preferences from the nearest provider (Section 4.5.6, A65-001). */
 export function usePreferences(): DisplayPreferences {
   return useContext(PreferencesContext);
+}
+
+/** The viewer's own time zone from the nearest PreferencesProvider, or null when the shell gave none. */
+export function useViewerTimeZone(): string | null {
+  return useContext(ViewerZoneContext);
+}
+
+/**
+ * Formats schedule times in the zone the person chose (me.time_zone_display, Section 15): the event's zone by
+ * default, their own when they chose it. Every time carries its zone abbreviation.
+ */
+export function useZonedTime() {
+  const locale = useLocale();
+  const { timeZoneDisplay } = usePreferences();
+  const viewer = useViewerTimeZone();
+  return {
+    zone: (eventZone: string | null | undefined) =>
+      displayTimeZone(eventZone, timeZoneDisplay, viewer),
+    dateTime: (iso: string, eventZone: string | null | undefined) => {
+      const zone = displayTimeZone(eventZone, timeZoneDisplay, viewer);
+      return zone
+        ? formatZonedDateTime(locale, iso, zone)
+        : formatZonedDateTime(locale, iso, "UTC");
+    },
+    time: (iso: string, eventZone: string | null | undefined) => {
+      const zone = displayTimeZone(eventZone, timeZoneDisplay, viewer);
+      return formatZonedDateTime(locale, iso, zone ?? "UTC", "time");
+    },
+  };
+}
+
+/** The unit system to show values in (locale.units), given the page's project jurisdiction when it has one. */
+export function useUnitSystem(jurisdiction?: UnitSystem | null): UnitSystem {
+  const locale = useLocale();
+  const { units } = usePreferences();
+  return resolveUnitSystem(units, { jurisdiction: jurisdiction ?? null, locale });
 }
 
 function useLocaleState(): LocaleState {

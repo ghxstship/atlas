@@ -64,6 +64,12 @@ email_templates:
   - code: dsar_received
     transactional: true
     description: Acknowledges a data subject request and states its due date.
+  - code: subprocessor_confirm
+    transactional: true
+    description: Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).
+  - code: subprocessor_notice
+    transactional: false
+    description: Announces a Subprocessor List change at least 30 days before it applies.
 
 categories:
   - code: mentions
@@ -96,6 +102,9 @@ categories:
   - code: imports
     urgent: false
     order: 10
+  - code: automations
+    urgent: false
+    order: 11
   - code: messages
     urgent: false
     order: 40
@@ -144,14 +153,39 @@ kinds:
   - kind: weather.alert
     category: safety
     bypasses_quiet_hours: true
-  # Account (0520, 0560, 1203)
+  # Account (0520, 0560, 1203, 1560, 1561)
   - kind: account.security_changed
+    category: account
+  - kind: account.recovery_code_used
+    category: account
+  - kind: account.session_signed_out
     category: account
   - kind: billing.payment_failed
     category: account
   - kind: billing.read_only
     category: account
   - kind: access.break_glass_started
+    category: account
+  # Org lifecycle: trial, deletion and recovery, ownership, white label, partners (A79, 1350 to 1355)
+  - kind: billing.trial_ending
+    category: account
+  - kind: billing.trial_ended
+    category: account
+  - kind: organization.deletion_requested
+    category: account
+  - kind: organization.deletion_recovered
+    category: account
+  - kind: organization.ownership_offered
+    category: account
+  - kind: organization.ownership_accepted
+    category: account
+  - kind: organization.ownership_declined
+    category: account
+  - kind: organization.white_label_reverting
+    category: account
+  - kind: organization.white_label_reverted
+    category: account
+  - kind: partner.client_left
     category: account
   # Reports and imports (0520)
   - kind: report.delivered
@@ -163,6 +197,13 @@ kinds:
   - kind: export.ready
     category: imports
     email_template: export_ready
+  # Automations (1481, ADR 0047): the notify action's message, a run that failed, an automation paused fail closed
+  - kind: automation.notice
+    category: automations
+  - kind: automation.failed
+    category: automations
+  - kind: automation.paused
+    category: automations
   # Workforce suite (0800)
   - kind: message.received
     category: messages

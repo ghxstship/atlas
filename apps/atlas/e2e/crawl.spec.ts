@@ -30,6 +30,9 @@ test("every sitemap route renders for an Owner, with axe clean", async ({ page }
       recordKey: "NWL-1",
       viewId: "00000000-0000-4000-8000-000000000000",
       objectKey: "rigging",
+      // A workspace and a team that do not exist: their settings pages answer 404 (A86).
+      workspaceSlug: "no-such-workspace",
+      teamId: "00000000-0000-4000-8000-000000000001",
     };
     const path = fillRoute(route.route, params);
     const expected = !dataRow && isNodeVisible(sitemap, route.id, nav) ? 200 : 404;

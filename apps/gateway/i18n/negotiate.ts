@@ -1,4 +1,11 @@
-import { defaultLocale, isLocale, locales, type Locale } from "@xos/i18n/locales";
+import {
+  defaultLocale,
+  isLocale,
+  launchLocales,
+  locales,
+  type LaunchLocale,
+  type Locale,
+} from "@xos/i18n/locales";
 import { isPseudoLocale, type PseudoLocale } from "./pseudo";
 
 /**
@@ -7,6 +14,10 @@ import { isPseudoLocale, type PseudoLocale } from "./pseudo";
  * their own locale.language saved on any device or shell (Section 4.5.6, A65-001), then the
  * browser's Accept-Language list, then en-US. Pseudo-locales are accepted from the cookie only, and
  * only outside production, so they never reach a customer.
+ *
+ * Beta locales (fr-FR, de-DE, it-IT, pt-BR, ja-JP; Section 15, ADR 0053) are chosen, never guessed:
+ * the cookie and a saved locale.language accept them, but the browser's languages match launch
+ * locales only, because a Beta catalog may still read mostly en-US.
  */
 
 export const LOCALE_COOKIE = "xos-locale";
@@ -31,13 +42,13 @@ export function parseAcceptLanguage(header: string | null | undefined): string[]
   return ranges.sort((a, b) => b.q - a.q).map((r) => r.tag);
 }
 
-/** The shipped locale that best serves one language range (`es-MX` and `es` resolve to es-US). */
-function matchRange(range: string): Locale | undefined {
+/** The launch locale that best serves one language range (`es-MX` and `es` resolve to es-US). */
+function matchRange(range: string): LaunchLocale | undefined {
   const lower = range.toLowerCase();
-  const exact = locales.find((l) => l.toLowerCase() === lower);
+  const exact = launchLocales.find((l) => l.toLowerCase() === lower);
   if (exact) return exact;
   const language = lower.split("-")[0];
-  return locales.find((l) => l.toLowerCase().split("-")[0] === language);
+  return launchLocales.find((l) => l.toLowerCase().split("-")[0] === language);
 }
 
 /** The locale this device chose in the cookie, or null when it chose none Gateway can use. */
@@ -67,7 +78,11 @@ export function negotiateLocale(input: {
   return defaultLocale;
 }
 
-/** Locales the language picker offers: the shipped ones, plus the pseudo-locales in development. */
+/**
+ * Locales the language picker offers: the launch ones, the Beta ones (the picker marks them with
+ * `isBetaLocale` from @xos/i18n/locales),
+ * plus the pseudo-locales in development.
+ */
 export function selectableLocales(production: boolean): GatewayLocale[] {
   return production ? [...locales] : [...locales, "en-XA", "ar-XB"];
 }

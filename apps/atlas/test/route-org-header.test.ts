@@ -2,7 +2,8 @@
  * The proxy names the org a route opens in x-xos-route-org (lib/shell/route-org.ts), so locale negotiation can apply
  * that org's locale.language before the page has its params. A value the browser sends is never passed on: the
  * proxy replaces it on every page request, prefetches included, and removes it from a route that names no org.
- * The requests the proxy never sees, the /api/ route handlers, never negotiate a locale.
+ * The requests the proxy never sees, the /api/ route handlers, the calendar feeds and the OAuth token endpoint,
+ * never negotiate a locale.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -36,6 +37,8 @@ describe("the route's org header", () => {
       unstable_doesMiddlewareMatch({ config, url: page, headers: { purpose: "prefetch" } }),
     ).toBe(true);
     expect(unstable_doesMiddlewareMatch({ config, url: "/api/v1/projects" })).toBe(false);
+    expect(unstable_doesMiddlewareMatch({ config, url: "/ical/feed-token.ics" })).toBe(false);
+    expect(unstable_doesMiddlewareMatch({ config, url: "/oauth/token" })).toBe(false);
   });
 
   it("names the route's org on a prefetch, over a value the browser sent, and does nothing else", async () => {
@@ -66,14 +69,19 @@ describe("the route's org header", () => {
     );
   });
 
-  it("is never read by the API route handlers, which the proxy does not see", () => {
-    const api = fileURLToPath(new URL("../app/api", import.meta.url));
-    const sources = (readdirSync(api, { recursive: true }) as string[])
-      .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))
-      .map((f) => [f, readFileSync(join(api, f), "utf8")] as const);
-    expect(sources.length).toBeGreaterThan(0);
-    for (const [file, source] of sources) {
-      expect(source, file).not.toMatch(/next-intl|@\/i18n|route-org|org-language|ROUTE_ORG_HEADER/);
+  it("is never read by the route handlers the proxy does not see", () => {
+    for (const dir of ["../app/api", "../app/ical", "../app/oauth/token"]) {
+      const root = fileURLToPath(new URL(dir, import.meta.url));
+      const sources = (readdirSync(root, { recursive: true }) as string[])
+        .filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f))
+        .map((f) => [f, readFileSync(join(root, f), "utf8")] as const);
+      expect(sources.length, dir).toBeGreaterThan(0);
+      // The feed names itself in its owner's saved language (messagesFor), never the request's.
+      for (const [file, source] of sources) {
+        expect(source, `${dir}/${file}`).not.toMatch(
+          /negotiatedLocale|next-intl\/server|route-org|org-language|ROUTE_ORG_HEADER/,
+        );
+      }
     }
   });
 

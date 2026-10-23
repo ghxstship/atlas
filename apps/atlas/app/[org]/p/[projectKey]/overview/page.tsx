@@ -1,10 +1,11 @@
-import { listActivity } from "@xos/data/activity";
+import { labelActivity, listActivity } from "@xos/data/activity";
 import { listProductionStateHistory, listProjectStateHistory } from "@xos/data/projects";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import type { Route } from "next";
 import { ActivityFeed } from "@/components/activity/activity-feed";
+import { SummaryEntry } from "@/components/aurora/entry/summary-entry";
 import { AttachmentsPanel, CommentsPanel } from "@/components/projects/collab-panels";
 import { ReadinessPanel } from "@/components/projects/readiness-panel";
 import { TransitionDialog } from "@/components/projects/transition-dialog";
@@ -65,7 +66,20 @@ export default async function OverviewPage({
 
   return (
     <>
-      <PageHeader title={t("overview.title")} />
+      <PageHeader
+        title={t("overview.title")}
+        actions={
+          <SummaryEntry
+            subject={{
+              collection: "projects",
+              id: project.id,
+              label: `${project.key} · ${project.name}`,
+            }}
+            kinds={["project_week", "gate_readiness"]}
+            project={{ org: ctx.org.org.slug, key: project.key }}
+          />
+        }
+      />
       <TemplateRecord
         propertiesLabel={t("overview.properties")}
         header={null}
@@ -213,7 +227,7 @@ export default async function OverviewPage({
             </h2>
             <ActivityFeed
               label={a("projectLabel", { key: project.key })}
-              entries={feed.entries}
+              entries={await labelActivity(db, feed.entries)}
               views={["feed"]}
               view="feed"
               next={null}

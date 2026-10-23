@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "lib": ["deno.window", "dom"]
+  },
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.117.3"
+  }
+}

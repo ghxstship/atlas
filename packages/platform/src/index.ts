@@ -24,6 +24,8 @@ export {
   createAddonCheckoutSession,
   createCheckoutSession,
   createPortalSession,
+  stripeTrialEnd,
+  MIN_STRIPE_TRIAL_MS,
   resolvePriceId,
   setExtraSeats,
   type AddonCheckoutRequest,
@@ -47,6 +49,15 @@ export {
   type HostResolver,
   type WebhookStore,
 } from "./webhooks/dispatch.ts";
+export {
+  dispatchPlatformEmails,
+  platformEmailStore,
+  subprocessorLinks,
+  type ClaimedPlatformEmail,
+  type PlatformEmailOptions,
+  type PlatformEmailStore,
+  type PlatformEmailSummary,
+} from "./legal/platform-emails.ts";
 export {
   dispatchEmail,
   type ClaimedEmail,
@@ -171,6 +182,7 @@ export {
   gatewayLink,
   notificationStore,
   recipientProfile,
+  restDb,
   supabaseDb,
   webhookStore,
   type KioskPunchInput,
@@ -178,7 +190,10 @@ export {
   type PunchKind,
   type NotificationStoreOptions,
   type PlatformDb,
+  type PlatformDbErrorDetails,
+  type RestDbOptions,
 } from "./stores.ts";
+export { KIOSK_REFUSALS, parseKioskPunchRequest, type KioskRefusal } from "./kiosk.ts";
 export {
   edgeFunctionName,
   internalErrorResponse,

@@ -43,8 +43,10 @@ Notes:
 - Custom Gateway domains, an org's own domain, are not subdomains of `ghxstship.tech`, so these passkeys do
   not work there, and listing such a domain under origins does not change that. People sign in on a custom domain with
   a password, a magic link or OAuth.
-- No code names a passkey host. The WebAuthn ceremonies run in Supabase Auth with the settings above; Atlas,
-  Gateway and Compass contain no WebAuthn code of their own. Locally, `config.toml` uses `rp_id = "localhost"`.
+- No code names a passkey host. Supabase Auth issues and verifies every WebAuthn ceremony with the settings
+  above; Atlas and Gateway only relay the browser's `navigator.credentials` calls to it (A77), and read
+  `WEBAUTHN_RP_ID` and `WEBAUTHN_RP_ORIGINS` for security keys as a second factor. Locally, `config.toml` uses
+  `rp_id = "localhost"`.
 - Compass does not offer passkeys. Native passkeys would need the associated domain
   `webcredentials:ghxstship.tech` and an apple-app-site-association file served by `https://ghxstship.tech`
   itself, which nothing serves today.
@@ -59,6 +61,71 @@ Check it after every release whose migrations change `[api] schemas`, and in the
 (`promote-to-production.md`, step 15). A schema missing from the hosted list fails every read of it with
 `PGRST106`. Until 2026-10-20 the hosted project exposed only `public`, and Gateway's brand lookup failed that
 way.
+
+## Second factors, passkeys, SSO and SCIM (A77)
+
+Atlas, Gateway, Compass and the API enforce second factors, the org MFA policy, session length and idle
+timeout themselves (migration 1330). These steps make the hosted project and the deployments match.
+
+1. **Supabase Auth.** Apply the TOTP, WebAuthn and passkey rows of the table above. Without TOTP
+   verify on, nobody can reach aal2, and Restricted exports, the 1099-NEC file, SCIM tokens and
+   break-glass stay refused.
+2. **Vercel, Atlas and Gateway projects.** Set `WEBAUTHN_RP_ID=ghxstship.tech` and
+   `WEBAUTHN_RP_ORIGINS=https://atlas.ghxstship.tech,https://gateway.ghxstship.tech` in both
+   projects, the same values as step 1. Unset, people still add authenticator apps and passkeys, but
+   the "Add security key" option stays hidden. A custom Gateway domain is not a subdomain of
+   `ghxstship.tech`, so passkeys and security keys do not work there (see "Passkeys across Atlas and
+   Gateway"); people sign in there with a password, a magic link or OAuth, and use an authenticator app.
+3. **SAML single sign-on (Enterprise orgs).** Supabase Auth SSO is a hosted add-on: enable it under
+   Authentication > Providers > SAML 2.0. For each Enterprise customer, register their identity
+   provider with the CLI, linked to the project:
+   `supabase sso add --type saml --metadata-url '<IdP metadata URL>' --domains '<their email domain>'`.
+   Give the printed provider ID to the customer's Admin, who adds it on Settings, Security with the
+   role new people receive. People then use "Sign in with single sign-on" with their work email; when
+   the provider adds people just in time, they join at sign-in (migration 1332). The SAML ACS URL to
+   give the customer is `<project URL>/auth/v1/sso/saml/acs`, and the entity ID
+   `<project URL>/auth/v1/sso/saml/metadata`. The local stack cannot enable SAML, so this path is
+   tested only against a hosted project.
+4. **SCIM.** Deploy the `scim` Edge Function (`supabase functions deploy scim --no-verify-jwt`). The
+   SCIM base URL customers enter in their identity provider is
+   `<project URL>/functions/v1/scim/v2`; the token is issued by an Admin on Settings, Security
+   (it needs step-up and is shown once). Atlas shows both.
+5. **Recovery codes.** XOS issues them itself since A99 (migration 1560, ADR 0055): ten single-use
+   codes per person from Personal settings, Security, usable at the sign-in challenge and in step-up.
+   Leave Supabase Auth's own MFA recovery codes off: XOS's codes and Supabase Auth's would be two
+   sets. A person who loses every second factor and every code still asks an Owner or Admin to
+   contact XOS support, who confirm the person's identity and remove the factor from the dashboard
+   (Authentication > Users > the user > MFA).
+6. **Known limit.** Like the IP allow-list, the org MFA policy, session length and idle timeout are
+   enforced where Atlas, the API and Compass check a session, not on direct calls to the Supabase
+   endpoint with a session token. The planned fix is the same: route all data access through the API.
+
+## Recovery codes, sessions and OAuth (A99)
+
+Migrations 1560 to 1563 (ADR 0055). Apply to staging, then production:
+
+1. **OAuth 2.1 server.** Authentication > OAuth Server: enable it, set the authorization path to
+   `/oauth/consent`, and leave dynamic client registration off. The local value is
+   `[auth.oauth_server]` in `config.toml`. Apps are registered only in Atlas (Settings,
+   Integrations) or through the `/oauth-apps` API resource; the database creates each app's public
+   client. Without the server, `/oauth/authorize` answers that the app is not registered.
+2. **Site URL.** Authentication > URL Configuration: the Site URL must be the Atlas origin
+   (`https://atlas.ghxstship.tech`), because Supabase Auth sends people to the Site URL plus
+   `/oauth/consent`.
+3. **Refresh-token rotation.** Authentication > Sessions: keep "Detect and revoke compromised
+   refresh tokens" on with the reuse interval at 10 seconds, as `config.toml` sets it. Supabase Auth
+   refuses a refresh token two rotations old; on v2.197.0 it did not revoke the newer ones.
+4. **Endpoints to give app developers.** Authorization `https://atlas.ghxstship.tech/oauth/authorize`
+   (the API host redirects `https://api.ghxstship.tech/oauth/authorize` there) and token
+   `https://atlas.ghxstship.tech/oauth/token`. Apps are public clients: PKCE with S256, no client
+   secret, capability groups in `scope`. Atlas shows both on Settings, Integrations.
+5. **Approximate place on Settings, Security.** Comes from Vercel's `x-vercel-ip-*` headers, read only
+   on Vercel (`VERCEL=1`) and only while `XOS_TRUSTED_PROXY_HOPS` is unset. Behind a CDN or your own
+   proxy the list shows the client address instead.
+6. **Known limits.** A signed-out session's access token still works directly against the Supabase
+   endpoint until it expires (`jwt_expiry`, one hour); Atlas, Gateway and the API refuse it at once.
+   Rows an app reads by the person alone (their own notifications and preferences) are not limited
+   to the app's org. Both close with routing all data access through the API (owner decision 33).
 
 ## Upload virus scanning (A22-011): self-hosted ClamAV
 

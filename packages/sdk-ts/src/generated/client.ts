@@ -333,6 +333,14 @@ import {
   TemplatesResource,
   TemplateApplicationsResource,
   ProjectAuthoritiesResource,
+  MeasurementMetricsResource,
+  MeasurementUnitsResource,
+  MeasurementMetricTagsResource,
+  ProjectObjectivesResource,
+  ProjectMeasurementsResource,
+  ProjectMeasurementCorrectionsResource,
+  EarnedMediaItemsResource,
+  ProjectMeasurementSummaryResource,
   CueCallsResource,
   GuestListEntriesResource,
   Form1099NecResource,
@@ -362,6 +370,17 @@ import {
   TemplateItemsResource,
   SupportSessionsResource,
   WholesaleStatementsResource,
+  OwnershipTransfersResource,
+  OrgDeletionRequestsResource,
+  DeletionCertificatesResource,
+  PartnerStandingGrantsResource,
+  ShareLinksResource,
+  PersonCalendarFeedsResource,
+  ProjectInboxesResource,
+  InboundMessagesResource,
+  AutomationsResource,
+  AutomationRunsResource,
+  AutomationRunStepsResource,
   WorkforceGroupsResource,
   WorkforceGroupMembersResource,
   ConversationsResource,
@@ -1155,6 +1174,26 @@ export class XosClient extends XosClientCore {
   );
   /** Projects: operations on `projectAuthorities`. */
   readonly projectAuthorities: ProjectAuthoritiesResource = new ProjectAuthoritiesResource(this);
+  /** Projects: operations on `measurementMetrics`. */
+  readonly measurementMetrics: MeasurementMetricsResource = new MeasurementMetricsResource(this);
+  /** Projects: operations on `measurementUnits`. */
+  readonly measurementUnits: MeasurementUnitsResource = new MeasurementUnitsResource(this);
+  /** Projects: operations on `measurementMetricTags`. */
+  readonly measurementMetricTags: MeasurementMetricTagsResource = new MeasurementMetricTagsResource(
+    this,
+  );
+  /** Projects: operations on `projectObjectives`. */
+  readonly projectObjectives: ProjectObjectivesResource = new ProjectObjectivesResource(this);
+  /** Projects: operations on `projectMeasurements`. */
+  readonly projectMeasurements: ProjectMeasurementsResource = new ProjectMeasurementsResource(this);
+  /** Projects: operations on `projectMeasurementCorrections`. */
+  readonly projectMeasurementCorrections: ProjectMeasurementCorrectionsResource =
+    new ProjectMeasurementCorrectionsResource(this);
+  /** Projects: operations on `earnedMediaItems`. */
+  readonly earnedMediaItems: EarnedMediaItemsResource = new EarnedMediaItemsResource(this);
+  /** Projects: operations on `projectMeasurementSummary`. */
+  readonly projectMeasurementSummary: ProjectMeasurementSummaryResource =
+    new ProjectMeasurementSummaryResource(this);
   /** Show: operations on `cueCalls`. */
   readonly cueCalls: CueCallsResource = new CueCallsResource(this);
   /** Advancing: operations on `guestListEntries`. */
@@ -1220,6 +1259,32 @@ export class XosClient extends XosClientCore {
   readonly supportSessions: SupportSessionsResource = new SupportSessionsResource(this);
   /** Platform: operations on `wholesaleStatements`. */
   readonly wholesaleStatements: WholesaleStatementsResource = new WholesaleStatementsResource(this);
+  /** Platform: operations on `ownershipTransfers`. */
+  readonly ownershipTransfers: OwnershipTransfersResource = new OwnershipTransfersResource(this);
+  /** Platform: operations on `orgDeletionRequests`. */
+  readonly orgDeletionRequests: OrgDeletionRequestsResource = new OrgDeletionRequestsResource(this);
+  /** Platform: operations on `deletionCertificates`. */
+  readonly deletionCertificates: DeletionCertificatesResource = new DeletionCertificatesResource(
+    this,
+  );
+  /** Platform: operations on `partnerStandingGrants`. */
+  readonly partnerStandingGrants: PartnerStandingGrantsResource = new PartnerStandingGrantsResource(
+    this,
+  );
+  /** Platform: operations on `shareLinks`. */
+  readonly shareLinks: ShareLinksResource = new ShareLinksResource(this);
+  /** Platform: operations on `personCalendarFeeds`. */
+  readonly personCalendarFeeds: PersonCalendarFeedsResource = new PersonCalendarFeedsResource(this);
+  /** Platform: operations on `projectInboxes`. */
+  readonly projectInboxes: ProjectInboxesResource = new ProjectInboxesResource(this);
+  /** Platform: operations on `inboundMessages`. */
+  readonly inboundMessages: InboundMessagesResource = new InboundMessagesResource(this);
+  /** Platform: operations on `automations`. */
+  readonly automations: AutomationsResource = new AutomationsResource(this);
+  /** Platform: operations on `automationRuns`. */
+  readonly automationRuns: AutomationRunsResource = new AutomationRunsResource(this);
+  /** Platform: operations on `automationRunSteps`. */
+  readonly automationRunSteps: AutomationRunStepsResource = new AutomationRunStepsResource(this);
   /** Workforce: operations on `workforceGroups`. */
   readonly workforceGroups: WorkforceGroupsResource = new WorkforceGroupsResource(this);
   /** Workforce: operations on `workforceGroupMembers`. */

@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { cookies, headers } from "next/headers";
 import { negotiatedLocale } from "@/i18n/request";
 import { lockedLocale, selectableLocales } from "@/i18n/negotiate";
+import { getAiFeatures } from "@/lib/aurora/features";
 import { getOrgWorkspaces } from "@/lib/shell/active-workspace";
 import { getMyOrganizations, type OrgContext } from "@/lib/shell/context";
 import { createItems } from "@/lib/shell/create-menu";
@@ -38,7 +39,7 @@ function orDefault<T>(
  */
 export async function AppShell({ ctx, children }: { ctx: OrgContext; children: ReactNode }) {
   const person = ctx.viewer.person;
-  const [t, orgs, workspaces, locale, cookieStore, pinned, bindings, layout, headerStore] =
+  const [t, orgs, workspaces, locale, cookieStore, pinned, bindings, layout, headerStore, ai] =
     await Promise.all([
       getTranslate(),
       getMyOrganizations(),
@@ -49,6 +50,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       person ? listShortcutBindings(ctx.viewer.db, "Atlas") : null,
       person ? listSidebarLayout(ctx.viewer.db, ctx.org.id) : null,
       headers(),
+      getAiFeatures(ctx),
     ]);
   if (pinned && !pinned.ok) {
     throw new Error(`Cannot list favorites: ${JSON.stringify(pinned.error)}`);
@@ -123,7 +125,9 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       theme={themeFromCookie(cookieStore.get(THEME_COOKIE)?.value)}
       email={ctx.viewer.email}
       canManageAi={ctx.capabilities.has("org.ai.write")}
+      aiFeatures={ai}
       preferences={settings.encoded}
+      viewerTimeZone={settings.viewerTimeZone}
       storedPreferences={cookieStore.get(PREFERENCES_COOKIE)?.value ?? ""}
       keys={keys}
       create={createItems(sitemap, { nav: ctx.nav, capabilities: ctx.capabilities, params, t })}

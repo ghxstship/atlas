@@ -10,6 +10,10 @@ order: 33
 
 Gate Readiness, Coordinate Matrix, Budget versus Actual, Labor, Purchase Order Exposure, Incidents and the Final Cost Report each read live data you can see. The final cost report is produced when a project closes and compares it with its gate 3 baseline.
 
+## Objectives and measurement
+
+**Objectives and Measurement** compares each project's gate 1 objectives with what gate 8 measured, in your units. Without a project filter it shows how every project's objectives stand and each figure across the projects that measured it. An objective reads Met, Not Met, Incomplete (some figures are unmeasured and could still change it) or Unmeasured.
+
 ## Build a report
 
 1. Open **Report Builder** and choose a collection.

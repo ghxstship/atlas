@@ -2,6 +2,8 @@
 
 import { Input, Select } from "@xos/ui";
 import { useState } from "react";
+import { AskFilterEntry } from "@/components/aurora/entry/ask-entry";
+import type { AskCatalog } from "@/lib/aurora/ask";
 import { useFinanceT } from "./kit-use-finance-t";
 import { useQueryNav } from "./kit-use-query-nav";
 import { type Option } from "./kit.types";
@@ -17,6 +19,7 @@ export function FilterBar({
   state,
   q,
   showSearch = true,
+  ask,
 }: {
   projects?: readonly Option[] | undefined;
   project?: string | null;
@@ -24,6 +27,44 @@ export function FilterBar({
   state?: string | null;
   q?: string | null;
   showSearch?: boolean;
+  /** The page's filters for Ask in plain language (A95); the field shows only while it is on. */
+  ask?: AskCatalog | undefined;
+}) {
+  // A new search from the URL (an applied plain-language filter) shows in the search field.
+  const bar = (
+    <Filters
+      key={`q-${q ?? ""}`}
+      projects={projects}
+      project={project}
+      states={states}
+      state={state}
+      q={q}
+      showSearch={showSearch}
+    />
+  );
+  if (!ask) return bar;
+  return (
+    <div className="flex flex-col gap-12">
+      {bar}
+      <AskFilterEntry catalog={ask} />
+    </div>
+  );
+}
+
+function Filters({
+  projects,
+  project,
+  states,
+  state,
+  q,
+  showSearch,
+}: {
+  projects?: readonly Option[] | undefined;
+  project?: string | null | undefined;
+  states?: readonly Option[] | undefined;
+  state?: string | null | undefined;
+  q?: string | null | undefined;
+  showSearch: boolean;
 }) {
   const t = useFinanceT();
   const go = useQueryNav();

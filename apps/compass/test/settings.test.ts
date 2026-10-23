@@ -19,11 +19,14 @@ import {
   languageOf,
   NO_VALUES,
   requiresGeofence,
+  scheduleZone,
   soundsOn,
   themeOptionsOf,
+  unitSystemOf,
   valuesFromRows,
   withQueuedSetting,
 } from "../src/domain/settings";
+import { formatTime } from "../src/domain/schedule-time";
 import { buildShiftAction, type ShiftRow } from "../src/domain/shifts";
 
 /**
@@ -140,6 +143,37 @@ describe("personal accessibility", () => {
     expect(formatDistance("en-US", 120, values({ "locale.units": "metric" }))).toBe("120 m");
     expect(formatDistance("en-US", 2500, values({ "locale.units": "metric" }))).toBe("2.5 km");
     expect(formatDistance("en-US", 3218.688, NO_VALUES)).toBe("2 mi");
+  });
+
+  it("follows the jurisdiction by default and a chosen system otherwise (locale.units, Section 15)", () => {
+    expect(unitSystemOf("en-US", values({ "locale.units": "jurisdiction" }))).toBe("imperial");
+    expect(unitSystemOf("de-DE", NO_VALUES)).toBe("metric");
+    expect(unitSystemOf("en-US", NO_VALUES, "metric")).toBe("metric");
+    expect(unitSystemOf("de-DE", values({ "locale.units": "imperial" }), "metric")).toBe(
+      "imperial",
+    );
+    expect(formatDistance("fr-FR", 120, values({ "locale.units": "jurisdiction" }))).toMatch(
+      /^120\sm$/,
+    );
+  });
+});
+
+describe("schedule times (me.time_zone_display, Section 15)", () => {
+  it("shows the shift's zone by default and the device's when the person chose their own", () => {
+    expect(scheduleZone("America/New_York", NO_VALUES, "Europe/Madrid")).toBe("America/New_York");
+    expect(
+      scheduleZone(
+        "America/New_York",
+        values({ "me.time_zone_display": "viewer" }),
+        "Europe/Madrid",
+      ),
+    ).toBe("Europe/Madrid");
+    expect(scheduleZone(null, NO_VALUES, "Europe/Madrid")).toBeUndefined();
+  });
+
+  it("labels a schedule time with its zone abbreviation", () => {
+    const zone = scheduleZone("America/New_York", NO_VALUES, "Europe/Madrid");
+    expect(formatTime("2027-03-08T23:30:00Z", zone)).toMatch(/6:30\sPM EST$/);
   });
 });
 

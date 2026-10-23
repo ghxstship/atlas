@@ -113,7 +113,7 @@
     "hideReason": "Why are you hiding this post?",
     "hiddenTitle": "This post is hidden",
     "reactions": "Reactions",
-    "reaction": "{name} {count}",
+    "reaction": "{name}, {count}",
     "reactionNames": {
       "thumbs_up": "Thumbs up",
       "heart": "Heart",
@@ -129,7 +129,9 @@
     "pickOne": "Choose one",
     "pollResults": "Poll results",
     "pollLine": "{label}: {votes, plural, one {# vote} other {# votes}} ({percent}%)",
-    "yourVote": "(your vote)"
+    "yourVote": "(your vote)",
+    "more": "More",
+    "moreFor": "More actions for {title}"
   },
   "surveys": {
     "title": "Surveys",
@@ -302,7 +304,7 @@
     "gps": "GPS stamp",
     "gpsTake": "Use my location",
     "gpsAgain": "Update location",
-    "gpsTaken": "Located at {latitude}, {longitude} within {accuracy} m.",
+    "gpsTaken": "Located at {latitude}, {longitude} within {accuracy}.",
     "gpsDenied": "Location is blocked. Allow location for this site in your browser, then try again.",
     "gpsNeeded": "This form needs your location.",
     "signature": "Signature",
@@ -418,7 +420,7 @@
     "agenda": "Agenda",
     "organizer": "Organizer",
     "rsvps": "RSVPs",
-    "rsvpCounts": "{Going} going, {Maybe} maybe, {Declined} declined",
+    "rsvpCounts": "{going} going, {maybe} maybe, {declined} declined",
     "rsvp": {
       "Going": "Going",
       "Maybe": "Maybe",
@@ -482,7 +484,7 @@
     "title": "Chat",
     "what": "your conversations",
     "conversations": "Conversations",
-    "empty": "No conversations yet. Find someone in the directory to message.",
+    "empty": "No conversations yet. Message a teammate to start one.",
     "untitled": "Conversation",
     "unread": "{count} new",
     "noMessages": "No messages yet",
@@ -513,7 +515,8 @@
       "Photo": "Photo",
       "File": "File",
       "Voice": "Voice note"
-    }
+    },
+    "emptyAction": "Message a teammate"
   },
   "recognition": {
     "title": "Recognition",
@@ -655,13 +658,8 @@
       "Heat": "Heat index"
     },
     "hazardUnit": "{hazard} ({unit})",
-    "units": {
-      "mph": "mph",
-      "mi": "miles",
-      "F": "°F"
-    },
     "value": "Reading",
-    "valueHelp": "In the hazard's unit.",
+    "valueHelp": "In the unit shown beside the hazard.",
     "thresholds": "Thresholds",
     "noThresholds": "No thresholds yet. Set them from your emergency plan.",
     "noThresholdsRead": "No thresholds set for this project yet.",
@@ -672,14 +670,14 @@
       "Evacuate": "Evacuate"
     },
     "trigger": "Triggers at",
-    "atOrAbove": "{value} {unit} or more",
-    "atOrBelow": "{value} {unit} or closer",
+    "atOrAbove": "{measure} or more",
+    "atOrBelow": "{measure} or closer",
     "source": "Source",
     "sourceHelp": "Where the value comes from, for example the emergency plan section.",
     "canonNote": "The Bible has no weather action metrics yet, so each project enters its thresholds from its emergency plan.",
     "setThreshold": "Set threshold",
     "thresholdValue": "Value",
-    "thresholdHelp": "Mph for wind, miles for lightning distance, °F for heat index.",
+    "thresholdHelp": "In {wind} for wind, {distance} for lightning distance and {heat} for heat index.",
     "roles": "Who is alerted",
     "noRoles": "No roles named yet. The project's dispatchers are always alerted.",
     "roleLine": "{level}: {role}",
@@ -718,7 +716,8 @@
     "credentialHelp": "Scan or type the badge number when the guest has one.",
     "admittedLine": "Admitted with {plusOnes, plural, =0 {no plus-ones} one {# plus-one} other {# plus-ones}} at {door}.",
     "checkedInCount": "Checked in of {expected}",
-    "peopleIn": "People in"
+    "peopleIn": "People in",
+    "emptyAction": "Open the guest list"
   },
   "lostFound": {
     "title": "Lost and Found",
@@ -998,7 +997,7 @@
       },
       "when": "{start} to {end}",
       "whenAt": "{start} to {end} · {location}",
-      "counts": "{Going} going, {Maybe} maybe, {Declined} not going"
+      "counts": "{going} going, {maybe} maybe, {declined} not going"
     },
     "forms": {
       "submit": "Submit Form",

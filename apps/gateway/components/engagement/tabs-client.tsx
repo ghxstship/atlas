@@ -8,7 +8,7 @@ import {
 import { RegionError, Section } from "@/components/page/page";
 import { Calendar } from "@/components/ui";
 import { hasArea, tabHref } from "@/lib/engagement";
-import { formatDate, formatDateTime, formatMoney } from "@/lib/format";
+import { formatDate, formatDateTime, formatMoney, formatScheduleTime } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import { ApprovalForm, DeliverableForm } from "./forms";
@@ -200,9 +200,21 @@ export async function RecordsTab({
           meta: [
             t(enumLabelKey("recordKind", r.kind)),
             r.startsAt
-              ? formatDateTime(locale, r.startsAt, r.timeZone)
+              ? formatScheduleTime(
+                  locale,
+                  r.startsAt,
+                  r.timeZone ?? view.engagement.projectTimeZone,
+                  view.scheduleView,
+                )
               : r.dueAt
-                ? t("gateway.engagement.due", { date: formatDateTime(locale, r.dueAt, r.timeZone) })
+                ? t("gateway.engagement.due", {
+                    date: formatScheduleTime(
+                      locale,
+                      r.dueAt,
+                      r.timeZone ?? view.engagement.projectTimeZone,
+                      view.scheduleView,
+                    ),
+                  })
                 : null,
           ],
           tag: { label: t(enumLabelKey("recordState", r.state)), tone: toneFor(r.state) },
@@ -261,7 +273,15 @@ export async function RunOfShowTab({ view, t, locale, engagementKey }: TabProps)
                 id: c.id ?? "",
                 title: `${c.position ?? ""}. ${c.label ?? ""}`,
                 meta: [
-                  c.planned_at ? formatDateTime(locale, c.planned_at) : null,
+                  c.planned_at
+                    ? formatScheduleTime(
+                        locale,
+                        c.planned_at,
+                        view.engagement.projectTimeZone,
+                        view.scheduleView,
+                        "time",
+                      )
+                    : null,
                   c.duration,
                   c.called_at
                     ? t("gateway.engagement.runOfShow.called", {

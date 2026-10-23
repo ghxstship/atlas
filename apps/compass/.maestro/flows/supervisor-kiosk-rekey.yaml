@@ -1,0 +1,105 @@
+appId: pro.ghxstship.compass
+# A retired kiosk says it is no longer registered, and a supervisor forgets it and sets it up again.
+# Named after its file: config.yaml orders flows by name.
+name: supervisor-kiosk-rekey
+---
+# Runs after supervisor-kiosk, which leaves this device running as a kiosk whose key just clocked the Demo Field
+# Tech in. The Admin retires that kiosk in Atlas (scripts/kiosk-rekey.js), so the next punch is refused as
+# kiosk_device_unregistered (migration 1420): the kiosk says so instead of counting down the PIN. The signed-in
+# Admin forgets the kiosk, enters the key of a newly registered one and punches the Demo Field Tech again.
+# Needs SUPABASE_URL, SUPABASE_ANON_KEY, XOS_DEMO_PASSWORD and the PIN digits KIOSK_PIN_1 to KIOSK_PIN_4.
+# The retired key (KIOSK_DEVICE_KEY) stops working; this device keeps the new one for the next run.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: admin@example.com
+- repeat:
+    times: 4
+    while:
+      notVisible:
+        id: "more"
+    commands:
+      - tapOn:
+          id: "tab-more"
+      - waitForAnimationToEnd:
+          timeout: 3000
+- scrollUntilVisible:
+    element:
+      id: "more-kiosk"
+    direction: DOWN
+- tapOn:
+    id: "more-kiosk"
+- extendedWaitUntil:
+    visible:
+      id: "kiosk-search"
+    timeout: 10000
+- runScript:
+    file: ../scripts/kiosk-rekey.js
+    env:
+      EMAIL: admin@example.com
+      ORG_ID: "01920000-0000-7000-8000-000000000001"
+      PROJECT_ID: "01920000-0000-7000-8000-000000001001"
+      STEP: retire
+- tapOn:
+    id: "kiosk-search"
+- inputText: "Tech"
+- hideKeyboard
+- tapOn: "Demo Field Tech"
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_1}"
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_2}"
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_3}"
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_4}"
+- tapOn:
+    id: "kiosk-submit"
+# The device, not the PIN, is the problem: no attempt is spent and no worker is told their PIN is locked.
+- extendedWaitUntil:
+    visible:
+      id: "kiosk-unregistered"
+    timeout: 15000
+- assertVisible: "This device is no longer registered as a kiosk"
+- assertNotVisible: "4 attempts left"
+- tapOn:
+    id: "kiosk-forget"
+- tapOn:
+    id: "kiosk-forget-confirm"
+- extendedWaitUntil:
+    visible:
+      id: "kiosk-key"
+    timeout: 10000
+- runScript:
+    file: ../scripts/kiosk-rekey.js
+    env:
+      EMAIL: admin@example.com
+      ORG_ID: "01920000-0000-7000-8000-000000000001"
+      PROJECT_ID: "01920000-0000-7000-8000-000000001001"
+      STEP: register
+- tapOn:
+    id: "kiosk-key"
+- inputText: ${output.kiosk.key}
+- hideKeyboard
+- tapOn:
+    id: "kiosk-start"
+# The new key works: the server takes the Demo Field Tech's punch (Clock Out once the roster has synced the
+# clock-in from supervisor-kiosk).
+- tapOn:
+    id: "kiosk-search"
+- inputText: "Tech"
+- hideKeyboard
+- tapOn: "Demo Field Tech"
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_1}"
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_2}"
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_3}"
+- tapOn:
+    id: "kiosk-key-${KIOSK_PIN_4}"
+- tapOn:
+    id: "kiosk-submit"
+- extendedWaitUntil:
+    visible: "Demo Field Tech clocked (out|in)"
+    timeout: 15000

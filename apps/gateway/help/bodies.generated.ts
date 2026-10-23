@@ -3071,7 +3071,10 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Week starts on" },
-            { t: "text", v: " Sunday or Monday, on calendars and timesheets." },
+            {
+              t: "text",
+              v: " Sunday or Monday, on your calendars. Timesheets and pay periods follow the org's week.",
+            },
           ],
           [
             { t: "strong", v: "Translate messages" },
@@ -6621,7 +6624,10 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "La semana empieza" },
-            { t: "text", v: " el domingo o el lunes, en calendarios y hojas de horas." },
+            {
+              t: "text",
+              v: " el domingo o el lunes, en tus calendarios. Las hojas de horas y los periodos de pago siguen la semana de la organización.",
+            },
           ],
           [
             { t: "strong", v: "Traducir mensajes" },

@@ -7,12 +7,14 @@ import {
   isOrgSlug,
   listMyOrganizations,
 } from "@xos/data";
+import { ageMetadata, confirmMinimumAge, minimumAgeConfirmed } from "@xos/data/consent";
 import { acceptInviteLink } from "@xos/data/profiles";
 import { recordLegalAcceptances } from "@xos/data/settings";
 import type { Route } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { authErrorKey } from "@/lib/auth/errors";
 import { newPassword, passwordHasContextWords } from "@/lib/auth/password";
 import { clientIp, signupAcceptances } from "@/lib/auth/legal";
@@ -46,6 +48,28 @@ function text(form: FormData, name: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+/** The "16 or older" box was ticked (Section 14.3, 14.9). */
+function ageTicked(form: FormData): boolean {
+  return form.get("ageConfirmed") === "16";
+}
+
+/**
+ * An account that has not confirmed its age yet (a first Google sign-in) confirms it before it
+ * creates or joins an org. Answers a field error when the box was needed and not ticked.
+ */
+async function requireAge(
+  db: Awaited<ReturnType<typeof createServerSupabase>>,
+  form: FormData,
+): Promise<Record<string, string> | null> {
+  const confirmed = await minimumAgeConfirmed(db);
+  if (confirmed.ok && confirmed.data) return null;
+  if (!ageTicked(form)) return { ageConfirmed: "age" };
+  const recorded = await confirmMinimumAge(db, "Atlas", clientIp(await headers()));
+  if (!recorded.ok)
+    throw new Error(`Age confirmation was not recorded: ${JSON.stringify(recorded.error)}`);
+  return null;
+}
+
 function fieldErrors(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};
   for (const issue of error.issues) {
@@ -65,22 +89,66 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
   });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
   const db = await createServerSupabase();
-  const { error } = await db.auth.signInWithPassword(parsed.data);
+  const { data, error } = await db.auth.signInWithPassword(parsed.data);
   if (error) return { error: authErrorKey(error), values };
-  redirect(safeNext(form.get("next")) as Route);
+  const next = safeNext(form.get("next"));
+  // A person who holds a second factor verifies it before any page (A77). The proxy would ask too, but this
+  // response renders its target without passing the proxy, so the address bar would keep the target.
+  const holdsFactor = (data.user.factors ?? []).some((f) => f.status === "verified");
+  redirect((holdsFactor ? secondFactorRedirect(next, "") : next) as Route);
+}
+
+/**
+ * Sign in with the one Email field (A59-025): its form has two submit buttons, "Email me a sign-in
+ * link" (method=link) and "Sign in with password" (method=password).
+ */
+export async function signInWithEmail(state: FormState, form: FormData): Promise<FormState> {
+  return form.get("method") === "password"
+    ? signInWithPassword(state, form)
+    : sendMagicLink(state, form);
+}
+
+/**
+ * Create an account with the one Email field (A59-025): "Email me a sign-up link" (method=link)
+ * or "Create account" with a password (method=password). Both keep the full name.
+ */
+export async function signUpWithEmail(state: FormState, form: FormData): Promise<FormState> {
+  if (form.get("method") === "password") return signUp(state, form);
+  const fullName = text(form, "fullName");
+  if (fullName === "" || fullName.length > 200) {
+    return {
+      fieldErrors: { fullName: "fullName", ...(ageTicked(form) ? {} : { ageConfirmed: "age" }) },
+      values: { fullName, email: text(form, "email"), ageConfirmed: text(form, "ageConfirmed") },
+    };
+  }
+  return sendMagicLink(state, form);
 }
 
 export async function sendMagicLink(_: FormState, form: FormData): Promise<FormState> {
-  const values = { email: text(form, "email") };
+  const fullName = text(form, "fullName");
+  const signUp = form.get("intent") === "sign-up";
+  const values = {
+    email: text(form, "email"),
+    ageConfirmed: text(form, "ageConfirmed"),
+    ...(fullName ? { fullName } : {}),
+  };
   const parsed = email.safeParse(values.email);
-  if (!parsed.success) return { fieldErrors: { email: "email" }, values };
+  const errors: Record<string, string> = {};
+  if (!parsed.success) errors["email"] = "email";
+  if (signUp && !ageTicked(form)) errors["ageConfirmed"] = "age";
+  if (!parsed.success || Object.keys(errors).length > 0) return { fieldErrors: errors, values };
   const next = safeNext(form.get("next"));
   const db = await createServerSupabase();
   const { error } = await db.auth.signInWithOtp({
     email: parsed.data,
     options: {
-      shouldCreateUser: form.get("intent") === "sign-up",
+      shouldCreateUser: signUp,
       emailRedirectTo: siteUrl(env().ATLAS_SITE_URL, "/auth/callback", next),
+      // Applied only when Supabase creates the account: private.handle_new_auth_user (0206) copies
+      // full_name into app.people, and the ticked "16 or older" box is recorded (migration 1381).
+      ...(signUp
+        ? { data: { ...(fullName ? { full_name: fullName } : {}), ...ageMetadata("Atlas") } }
+        : {}),
     },
   });
   if (error) return { error: authErrorKey(error), values };
@@ -130,22 +198,29 @@ export async function reauthenticate(_: FormState, form: FormData): Promise<Form
 // Sign up -----------------------------------------------------------------------------------------
 
 export async function signUp(_: FormState, form: FormData): Promise<FormState> {
-  const values = { fullName: text(form, "fullName"), email: text(form, "email") };
+  const values = {
+    fullName: text(form, "fullName"),
+    email: text(form, "email"),
+    ageConfirmed: text(form, "ageConfirmed"),
+  };
   const parsed = z
     .object({ fullName: z.string().min(1).max(200), email, password: newPassword })
     .safeParse({ ...values, password: form.get("password") });
-  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
+  const age = ageTicked(form) ? {} : { ageConfirmed: "age" };
+  if (!parsed.success) return { fieldErrors: { ...fieldErrors(parsed.error), ...age }, values };
   if (passwordHasContextWords(parsed.data.password, parsed.data)) {
-    return { fieldErrors: { password: "passwordContext" }, values };
+    return { fieldErrors: { password: "passwordContext", ...age }, values };
   }
+  if (!ageTicked(form)) return { fieldErrors: age, values };
   const next = safeNext(form.get("next"), "/auth/organization");
   const db = await createServerSupabase();
   const { data, error } = await db.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      // private.handle_new_auth_user (0206) copies full_name into app.people.
-      data: { full_name: parsed.data.fullName },
+      // private.handle_new_auth_user (0206) copies full_name into app.people; the ticked "16 or
+      // older" box is recorded by private.record_signup_age_confirmation (1381).
+      data: { full_name: parsed.data.fullName, ...ageMetadata("Atlas") },
       emailRedirectTo: siteUrl(env().ATLAS_SITE_URL, "/auth/callback", next),
     },
   });
@@ -157,7 +232,11 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
 // Organization ------------------------------------------------------------------------------------
 
 export async function createOrganizationAction(_: FormState, form: FormData): Promise<FormState> {
-  const values = { orgName: text(form, "orgName"), orgSlug: text(form, "orgSlug").toLowerCase() };
+  const values = {
+    orgName: text(form, "orgName"),
+    orgSlug: text(form, "orgSlug").toLowerCase(),
+    ageConfirmed: text(form, "ageConfirmed"),
+  };
   const parsed = z
     .object({
       orgName: z.string().min(1).max(200),
@@ -170,6 +249,8 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
   const db = await createServerSupabase();
   const { data: auth } = await db.auth.getUser();
   if (!auth.user) redirect("/auth/sign-in?next=%2Fauth%2Forganization");
+  const ageError = await requireAge(db, form);
+  if (ageError) return { fieldErrors: ageError, values };
   const created = await createOrganization(db, {
     name: parsed.data.orgName,
     slug: parsed.data.orgSlug,
@@ -209,6 +290,8 @@ const PASSED_LINK_REFUSALS = new Set([
 export async function acceptInvitation(_: FormState, form: FormData): Promise<FormState> {
   const token = text(form, "token");
   const db = await createServerSupabase();
+  const ageError = await requireAge(db, form);
+  if (ageError) return { fieldErrors: ageError };
   // Invitation links (xlnk_, migration 0861) are not tied to an email address; their refusals map to
   // the invitation messages. A full org says so either way (seat refusals, ADR 0035).
   const accepted = token.startsWith("xlnk_")

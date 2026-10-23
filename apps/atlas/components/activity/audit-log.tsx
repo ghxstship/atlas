@@ -5,6 +5,7 @@ import { Button, DataTable, EmptyState, Tag } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
+import { auditActionText } from "@/lib/activity-audit";
 
 /**
  * Activity > Audit log (Section 4.5.5, Owner and Admin): the compliance ledger as a table, newest
@@ -22,6 +23,7 @@ export function AuditLog({
   membersHref: string;
 }) {
   const t = useTranslations("activity.audit");
+  const activity = useTranslations("activity") as unknown as Parameters<typeof auditActionText>[2];
   const format = useFormatter();
   const router = useRouter();
   const pathname = usePathname();
@@ -42,8 +44,8 @@ export function AuditLog({
         columns={[
           { key: "when", label: t("when"), width: 190 },
           { key: "actor", label: t("actor"), width: 180 },
-          { key: "action", label: t("action"), type: "code", width: 220 },
-          { key: "subject", label: t("subject"), type: "code", width: 200 },
+          { key: "action", label: t("action"), width: 240, wrap: true },
+          { key: "code", label: t("code"), type: "code", width: 220 },
           { key: "changes", label: t("changes"), wrap: true },
         ]}
         rows={entries.map((e) => ({
@@ -56,8 +58,9 @@ export function AuditLog({
               : e.actorKind === "Service"
                 ? t("service")
                 : t("systemActor")),
-          action: e.action,
-          subject: e.subjectTable.replace(/^app\./, ""),
+          // The action in words, its code beside it (A59-017).
+          action: auditActionText(e.action, e.subjectTable, activity),
+          code: e.action,
           changes: e.redacted
             ? t("redacted")
             : Object.keys(e.diff).length > 0

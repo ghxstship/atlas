@@ -1,9 +1,11 @@
 "use client";
 
 import { Avatar, Button, InlineAlert, Textarea } from "@xos/ui";
-import { useFormatter } from "next-intl";
+import type { DataClassification } from "@xos/data/share-links";
+import dynamic from "next/dynamic";
+import { useFormatter, useTranslations } from "next-intl";
 import { useCopy } from "./use-copy";
-import { useActionState, useEffect, useRef, type ReactNode } from "react";
+import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   attachmentLinkAction,
   deleteCommentAction,
@@ -13,6 +15,14 @@ import {
   type CollabState,
 } from "@/lib/collection-kit/collab-actions";
 import { KitSection } from "./kit";
+
+/** Sharing and classification (Section 8.6) load only when someone opens them. */
+const SharePanel = dynamic(
+  () => import("@/components/files/share-panel").then((m) => m.SharePanel),
+  {
+    ssr: false,
+  },
+);
 
 import { keepInputOnSubmit } from "./keep-input";
 /**
@@ -37,6 +47,38 @@ export interface CollabAttachment {
   readonly sizeBytes: number | null;
   readonly ready: boolean;
   readonly mine: boolean;
+  /** Section 8.6 classification of the file. */
+  readonly classification: DataClassification;
+}
+
+function ShareToggle({ org, attachment }: { org: string; attachment: CollabAttachment }) {
+  const t = useTranslations("compliance.share");
+  const [open, setOpen] = useState(false);
+  const panel = `share-${attachment.id}`;
+  return (
+    <>
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        aria-expanded={open}
+        aria-controls={panel}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {open ? t("hide") : t("toggle")}
+      </Button>
+      {open ? (
+        <div id={panel} className="basis-full">
+          <SharePanel
+            org={org}
+            attachmentId={attachment.id}
+            name={attachment.title}
+            classification={attachment.classification}
+          />
+        </div>
+      ) : null}
+    </>
+  );
 }
 
 const INITIAL: CollabState = {};
@@ -218,6 +260,7 @@ export function CollabClient({
                       onLink={(link) => window.open(link, "_blank", "noopener")}
                     />
                   ) : null}
+                  {a.ready ? <ShareToggle org={org} attachment={a} /> : null}
                   {a.mine ? (
                     <SmallAction
                       action={removeAttachmentAction}

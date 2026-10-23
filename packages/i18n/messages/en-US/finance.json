@@ -398,6 +398,8 @@
       "title": "This line changed while you edited it"
     },
     "converted": "Converted at {rate} {to} per {from}, the rate recorded on {date}. Unpriced figures stay Unpriced.",
+    "convertedVia": "Converted at {rate} {to} per {from} through {via}, from the rates recorded on {date}. Unpriced figures stay Unpriced.",
+    "staleRate": "This rate is {days, plural, one {# day} other {# days}} old: no newer rate has been recorded.",
     "create": "New budget",
     "delete": "Delete budget",
     "deleteCount": "{count, plural, =0 {Delete lines} one {Delete # line} other {Delete # lines}}",
@@ -683,6 +685,13 @@
       "source": "Source"
     },
     "empty": "No exchange rates yet. Record one to show budget totals in another currency.",
+    "latestOnly": "Each pair shows its latest rate. A conversion uses the rate of its business date, or the last one before it.",
+    "feed": {
+      "arrived": "ECB reference rates last arrived on {date}, for {rateDate}.",
+      "failing": "The ECB rate feed has failed {count, plural, one {# time} other {# times}} since its last success, most recently on {date}: {error}. Conversions use the newest rate recorded and show its date.",
+      "never": "No ECB reference rates have arrived yet. Conversions use the rates recorded here.",
+      "neverFailed": "No ECB reference rates have arrived yet. The last attempt, on {date}, failed: {error}"
+    },
     "sentence": "Budget totals convert at the latest rate recorded on or before the day shown, and the rate date is shown beside them.",
     "title": "Exchange rates"
   },

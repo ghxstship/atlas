@@ -125,9 +125,15 @@ settings:
     label: settings.fields.mfaPolicy.label
     help: settings.fields.mfaPolicy.help
     pages: { org: settings.security }
-    deferred:
-      reason: "Pinned to its default by migration 1299 (A69-007) until MFA exists; A77 enforces it at sign-in, in session refresh and in step-up checks. Replace this with enforced_by when A77's work lands."
-      decision: "A69-007 and RRR-122 (A77, auth and step-up)"
+    enforced_by:
+      - consumer: supabase/migrations/1330_auth_assurance.sql#private.mfa_required
+        test: supabase/tests/1330_auth_assurance.test.sql
+      - consumer: apps/atlas/proxy.ts#orgAuthRedirect
+        test: apps/atlas/e2e/a77-auth.spec.ts
+      - consumer: packages/api/src/runtime/auth.ts#createSessionRulesCheck
+        test: packages/api/test/auth.test.ts
+      - consumer: apps/compass/src/runtime/assurance.ts#secondFactorGate
+        test: apps/compass/test/assurance.test.ts
   - key: security.session_hours
     type: integer
     min: 1
@@ -138,9 +144,17 @@ settings:
     label: settings.fields.sessionHours.label
     help: settings.fields.sessionHours.help
     pages: { org: settings.security }
-    deferred:
-      reason: "Pinned to its default by migration 1299 (A69-007) until MFA exists; A77 enforces it at sign-in, in session refresh and in step-up checks. Replace this with enforced_by when A77's work lands."
-      decision: "A69-007 and RRR-122 (A77, auth and step-up)"
+    enforced_by:
+      - consumer: supabase/migrations/1330_auth_assurance.sql#app.my_org_auth_status
+        test: supabase/tests/1330_auth_assurance.test.sql
+      - consumer: apps/atlas/lib/auth/assurance.ts#orgAuthRedirect
+        test: apps/atlas/test/assurance.test.ts
+      - consumer: packages/data/src/auth-assurance.ts#orgAuthDecision
+        test: packages/data/test/auth-assurance.test.ts
+      - consumer: packages/api/src/runtime/auth.ts#createSessionRulesCheck
+        test: packages/api/test/auth.test.ts
+      - consumer: apps/compass/src/runtime/assurance.ts#secondFactorGate
+        test: apps/compass/test/assurance.test.ts
   - key: security.idle_timeout_minutes
     type: integer
     min: 5
@@ -151,9 +165,13 @@ settings:
     label: settings.fields.idleTimeout.label
     help: settings.fields.idleTimeout.help
     pages: { org: settings.security }
-    deferred:
-      reason: "Pinned to its default by migration 1299 (A69-007) until MFA exists; A77 enforces it at sign-in, in session refresh and in step-up checks. Replace this with enforced_by when A77's work lands."
-      decision: "A69-007 and RRR-122 (A77, auth and step-up)"
+    enforced_by:
+      - consumer: supabase/migrations/1330_auth_assurance.sql#app.my_org_auth_status
+        test: supabase/tests/1330_auth_assurance.test.sql
+      - consumer: apps/atlas/proxy.ts#recordsLastSeen
+        test: apps/atlas/test/assurance.test.ts
+      - consumer: packages/data/src/auth-assurance.ts#orgAuthDecision
+        test: packages/data/test/auth-assurance.test.ts
   - key: security.ip_allowlist
     type: boolean
     default: false
@@ -355,7 +373,7 @@ settings:
     help: settings.fields.payPeriod.help
     pages: { org: settings.payroll-and-time-off }
     enforced_by:
-      - consumer: supabase/migrations/1323_payroll_settings.sql#app.next_pay_period_dates
+      - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#app.next_pay_period_dates
         test: supabase/tests/1323_payroll_settings.test.sql
   - key: payroll.week_start
     type: choice
@@ -368,10 +386,14 @@ settings:
     help: settings.fields.weekStart.help
     pages: { org: settings.payroll-and-time-off, personal: me.preferences }
     enforced_by:
-      - consumer: supabase/migrations/1323_payroll_settings.sql#app.next_pay_period_dates
+      - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#app.next_pay_period_dates
         test: supabase/tests/1323_payroll_settings.test.sql
       - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
         test: packages/ui/test/preferences.test.tsx
+      - consumer: supabase/migrations/1399_payroll_state_rules_and_org_week.sql#app.calculate_payroll_run
+        test: supabase/tests/1399_payroll_state_rules_and_org_week.test.sql
+      - consumer: apps/atlas/lib/shell/time-zone.ts#getOrgWeekStart
+        test: apps/atlas/test/org-calendar.test.ts
 
   # Gateway and marketplace -------------------------------------------------------------------------------------
   - key: gateway.marketplace_visibility
@@ -472,7 +494,8 @@ settings:
   # Localization ------------------------------------------------------------------------------------------------------
   - key: locale.language
     type: choice
-    choices: [en-US, es-US]
+    # Section 15: the launch locales, then the five Beta locales (ADR 0053), machine translated and marked Beta.
+    choices: [en-US, es-US, fr-FR, de-DE, it-IT, pt-BR, ja-JP]
     default: en-US
     scopes: [organization, personal]
     lockable: true
@@ -507,6 +530,13 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
         test: supabase/tests/1325_out_of_office.test.sql
+      - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#private.away_since
+        test: supabase/tests/1398_payroll_calendar_and_away_since.test.sql
+      - consumer: apps/atlas/lib/shell/time-zone.ts#getOrgTimeZone
+        test: apps/atlas/test/org-calendar.test.ts
+      # Aurora's relative dates ("overdue", "this month") resolve on this calendar (A95).
+      - consumer: packages/data/src/settings.ts#readOrgTimeZone
+        test: packages/data/test/settings.test.ts
   - key: locale.date_format
     type: choice
     choices: [locale, iso]
@@ -521,8 +551,10 @@ settings:
         test: packages/ui/test/preferences.test.tsx
   - key: locale.units
     type: choice
-    choices: [imperial, metric]
-    default: imperial
+    # Section 15: the project's jurisdiction decides (imperial for the US, metric otherwise) unless the org or the
+    # person chooses a system (ADR 0053).
+    choices: [jurisdiction, imperial, metric]
+    default: jurisdiction
     scopes: [organization, personal]
     capability: org.localization.write
     label: settings.fields.units.label
@@ -532,6 +564,12 @@ settings:
       - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
         test: packages/ui/test/preferences.test.tsx
       - consumer: apps/compass/src/domain/settings.ts#formatDistance
+        test: apps/compass/test/settings.test.ts
+      - consumer: packages/i18n/src/formats/units.ts#resolveUnitSystem
+        test: packages/ui/test/preferences.test.tsx
+      - consumer: apps/atlas/lib/workforce/units.ts#unitSystemFor
+        test: apps/atlas/test/weather-units.test.ts
+      - consumer: apps/compass/src/domain/settings.ts#unitSystemOf
         test: apps/compass/test/settings.test.ts
 
   # Personal: preferences ---------------------------------------------------------------------------------------------
@@ -667,6 +705,8 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
         test: supabase/tests/1325_out_of_office.test.sql
+      - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#private.away_since
+        test: supabase/tests/1398_payroll_calendar_and_away_since.test.sql
   - key: me.out_of_office.ends_on
     type: text
     input: date

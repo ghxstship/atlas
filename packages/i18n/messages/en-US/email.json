@@ -77,6 +77,14 @@
       "security_changed": {
         "subject": "Your account security changed",
         "body": "A security setting on your account changed: {change}. If this was not you, reset your password now."
+      },
+      "recovery_code_used": {
+        "subject": "A recovery code was used on your account",
+        "body": "Someone signed in or confirmed an action with one of your recovery codes. {remaining, plural, =0 {You have no codes left: make a new set in Security.} one {You have # code left.} other {You have # codes left.}} If this was not you, change your password and make new codes now."
+      },
+      "session_signed_out": {
+        "subject": "{count, plural, one {A session was signed out} other {# sessions were signed out}}",
+        "body": "{count, plural, one {A session on your account was signed out} other {# sessions on your account were signed out}} from Settings, Security. If this was not you, change your password and check your sessions."
       }
     },
     "report": {
@@ -105,6 +113,14 @@
       "read_only": {
         "subject": "Your organization is read-only",
         "body": "Your payment is overdue, so your organization is read-only until the payment method is updated. No data has been deleted."
+      },
+      "trial_ending": {
+        "subject": "Your Pro trial ends {days, plural, one {tomorrow} other {in # days}}",
+        "body": "Add a card in Billing and plan to keep Pro. Your card is charged only when the trial ends. Without one, the organization moves to the Access plan: Pro features such as white label and custom domains stop, and no data is deleted."
+      },
+      "trial_ended": {
+        "subject": "Your Pro trial has ended",
+        "body": "Your organization is now on the Access plan. No data was deleted. Add a card in Billing and plan whenever you want Pro back."
       }
     },
     "message": {
@@ -166,6 +182,56 @@
         "subject": "Emergency access taken in {orgName}",
         "body": "{actorName} took emergency full access to {orgName} for one hour. Reason: {reason}"
       }
+    },
+    "organization": {
+      "deletion_requested": {
+        "subject": "Your organization will be deleted",
+        "body": "An Owner asked to delete the organization. It is read-only now and is deleted after {recover_until, date, long}. Until then, any Owner can recover it in Settings, Danger zone."
+      },
+      "deletion_recovered": {
+        "subject": "Your organization was recovered",
+        "body": "An Owner recovered the organization, so it will not be deleted. It can be used again."
+      },
+      "ownership_offered": {
+        "subject": "{actorName} offered you ownership of the organization",
+        "body": "Open the organization in Atlas to accept or decline before {expires_at, date, long}. Accepting asks for your second factor."
+      },
+      "ownership_accepted": {
+        "subject": "Ownership of the organization was accepted",
+        "body": "{actorName} accepted your offer and is now the Owner."
+      },
+      "ownership_declined": {
+        "subject": "Your ownership offer was declined",
+        "body": "{actorName} declined to become the Owner. You are still the Owner."
+      },
+      "white_label_reverting": {
+        "subject": "White label ends on {until, date, long}",
+        "body": "The plan no longer includes white label. Your brand without the XOS name and your custom domains stay until {until, date, long}, the end of the period you paid for. Then the default branding returns."
+      },
+      "white_label_reverted": {
+        "subject": "White label has ended",
+        "body": "The plan no longer includes white label, so the default branding is back and custom domains no longer show your brand. Move to Pro or above to bring it back."
+      }
+    },
+    "partner": {
+      "client_left": {
+        "subject": "{org} left your partner account",
+        "body": "{org} is now a direct customer. Your support sessions and standing grants for it have ended, and it no longer appears on your wholesale statements."
+      }
+    },
+    "automation": {
+      "notice": {
+        "subject": "{title}",
+        "body": "{body} Sent by the automation {automationName}."
+      },
+      "failed": {
+        "subject": "Automation failed: {automationName}",
+        "body": "A run of {automationName} failed: {error}"
+      },
+      "paused": {
+        "subject": "Automation paused: {automationName}",
+        "body": "{automationName} is off because {reason, select, owner_left_org {{ownerName} is no longer a member} owner_lost_capability {{ownerName} can no longer manage automations} owner_cannot_sign_in {{ownerName} has no sign-in} other {the API refused to act as {ownerName}}}. Turn it on again in Settings, Automations, and it runs as you."
+      }
     }
   },
   "notification": {
@@ -206,11 +272,29 @@
     "heading": "Request received",
     "body": "{orgName} received your {requestType} request on {receivedAt, date, long} and will respond by {dueAt, date, long}."
   },
+  "subprocessor_confirm": {
+    "subject": "Confirm your subscription to XOS subprocessor changes",
+    "heading": "Confirm your subscription",
+    "body": "You asked to hear about changes to the XOS Subprocessor List. Confirm within 7 days to start receiving notices.",
+    "ignore": "If you did not ask for this, ignore this email and nothing will be sent.",
+    "confirm": "Confirm subscription"
+  },
+  "subprocessor_notice": {
+    "subject": "XOS Subprocessor List changes on {effectiveOn, date, long}",
+    "heading": "Subprocessor List {listVersion}",
+    "intro": "We will change our Subprocessor List on {effectiveOn, date, long}, at least 30 days from this notice.",
+    "objection": "A customer may object under Section 7.3 of the Data Processing Agreement.",
+    "review": "Read the Subprocessor List"
+  },
   "sms": {
     "message": "{orgName}: {body} {url} Reply STOP to opt out.",
     "help": "XOS notifications: updates about your work from the organizations you belong to. Message frequency varies. Message and data rates may apply. Help: {helpContact}. Reply STOP to opt out.",
     "stop": "You will get no more texts from XOS notifications. Reply START to subscribe again.",
     "start": "You will get XOS notifications by text again. Message frequency varies. Message and data rates may apply. Reply HELP for help, STOP to opt out.",
     "summary": "{orgName}: {count, plural, one {# update} other {# updates}} came in during your quiet hours. Most important: {body} {url} Reply STOP to opt out."
+  },
+  "deletionCertificate": {
+    "subject": "Deletion certificate for {org}",
+    "body": "The data of {org} was deleted from XOS on {date}, as the organization's lifecycle set out.\n\nYour deletion certificate is attached. Its id is {id}. You can also download it from Atlas while you have an account.\n\nEncrypted backups made before the deletion age out on their own schedule."
   }
 }

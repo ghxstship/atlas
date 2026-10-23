@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, InlineAlert } from "@xos/ui";
+import { Button, InlineAlert, useLocale, useUnitSystem } from "@xos/ui";
+import { formatMeasure } from "@xos/ui/preferences";
 import {
   fieldShown,
   formScore,
@@ -40,6 +41,9 @@ export function FormFiller({
   projects: readonly { value: string; label: string }[];
 }) {
   const t = useCopy("workforce.forms");
+  // GPS accuracy is measured in meters and shown in the person's units (locale.units).
+  const locale = useLocale();
+  const units = useUnitSystem();
   const router = useRouter();
   const [answers, setAnswers] = useState<Record<string, FormAnswer>>({});
   const [photos, setPhotos] = useState<Record<string, number>>({});
@@ -277,7 +281,7 @@ export function FormFiller({
                 ? t("gpsTaken", {
                     latitude: location.latitude.toFixed(5),
                     longitude: location.longitude.toFixed(5),
-                    accuracy: Math.round(location.accuracy),
+                    accuracy: formatMeasure(locale, location.accuracy, "meter", units, 0),
                   })
                 : locating === "denied"
                   ? t("gpsDenied")

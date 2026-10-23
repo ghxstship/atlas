@@ -76,7 +76,8 @@
       "done": "Mark the focused item done",
       "snooze": "Snooze the focused item until tomorrow"
     },
-    "customize": "Change shortcuts"
+    "customize": "Change shortcuts",
+    "askFilter": "Filter in plain language"
   },
   "whatsNew": {
     "title": "What's new",
