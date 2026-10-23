@@ -291,7 +291,8 @@
     "help": "Notificaciones de XOS: novedades sobre tu trabajo de las organizaciones a las que perteneces. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Ayuda: {helpContact}. Responde STOP para cancelar.",
     "stop": "Ya no recibirás mensajes de texto de las notificaciones de XOS. Responde START para volver a suscribirte.",
     "start": "Volverás a recibir las notificaciones de XOS por mensaje de texto. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde HELP para obtener ayuda o STOP para cancelar.",
-    "summary": "{orgName}: {count, plural, one {# novedad llegó} other {# novedades llegaron}} durante tus horas de silencio. Lo más importante: {body} {url} Responde STOP para cancelar."
+    "summary": "{orgName}: {count, plural, one {# novedad llegó} other {# novedades llegaron}} durante tus horas de silencio. Lo más importante: {body} {url} Responde STOP para cancelar.",
+    "summaryCount": "{orgName}: {count, plural, one {# novedad llegó} other {# novedades llegaron}} durante tus horas de silencio. Ábrelas en tu Bandeja de entrada: {url} Responde STOP para cancelar."
   },
   "deletionCertificate": {
     "subject": "Certificado de eliminación de {org}",

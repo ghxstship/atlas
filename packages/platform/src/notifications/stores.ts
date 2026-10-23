@@ -81,7 +81,7 @@ export function pushStore(db: PlatformDb): PushStore {
         devices: devices(row["push_devices"]),
       }));
     },
-    recipient: (personId) => recipientProfile(db, personId),
+    recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
     deepLink: (claim) => compassLink(db, claim),
     async recordTickets(deliveryId, tickets) {
       await db.rpc("record_push_tickets", { p_delivery_id: deliveryId, p_tickets: tickets });
@@ -111,10 +111,9 @@ export interface SmsStoreOptions {
   readonly appUrl: string;
 }
 
-/** SmsStore over app.claim_notification_deliveries and app.record_notification_delivery. */
 /**
  * SmsStore and SmsSummaryStore over app.claim_notification_deliveries, app.claim_sms_summaries and their
- * record RPCs (1361, 1367).
+ * record RPCs (1361, 1367), which meter a sent text's billed segments (1393).
  */
 export function smsStore(db: PlatformDb, options: SmsStoreOptions): SmsStore & SmsSummaryStore {
   const org = async (orgId: string) =>
@@ -134,18 +133,19 @@ export function smsStore(db: PlatformDb, options: SmsStoreOptions): SmsStore & S
         messageArgs: (row["message_args"] as Row | null) ?? {},
       }));
     },
-    recipient: (personId) => recipientProfile(db, personId),
+    recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
     async orgName(orgId) {
       return text(await org(orgId), "name");
     },
     linkFor: (claim) => inbox(claim.orgId),
     inboxLink: inbox,
-    async record(deliveryId, outcome, providerMessageId, error) {
+    async record(deliveryId, outcome, providerMessageId, error, segments = 1) {
       await db.rpc("record_notification_delivery", {
         p_delivery_id: deliveryId,
         p_status: outcome,
         p_provider_message_id: providerMessageId,
         p_error: error,
+        p_segments: segments,
       });
     },
     async claimSummaries(limit) {
@@ -167,12 +167,13 @@ export function smsStore(db: PlatformDb, options: SmsStoreOptions): SmsStore & S
         },
       );
     },
-    async recordSummary(deliveryIds, outcome, providerMessageId, error) {
+    async recordSummary(deliveryIds, outcome, providerMessageId, error, segments = 1) {
       await db.rpc("record_sms_summary", {
         p_delivery_ids: [...deliveryIds],
         p_status: outcome,
         p_provider_message_id: providerMessageId,
         p_error: error,
+        p_segments: segments,
       });
     },
   };

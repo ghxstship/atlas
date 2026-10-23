@@ -184,17 +184,21 @@ function gatewayLink(claim, gatewayUrl) {
   return `${gatewayUrl.replace(/\/$/, "")}${path}`;
 }
 /**
- * A person's name, language and time zone for rendering any channel: their own `locale.language` and
- * `locale.time_zone` personal settings, else en-US and UTC.
+ * A person's name, language and time zone for rendering any channel, through app.recipient_setting (1393). In an
+ * org: the language the org gives them (its locked value, their own, its own, en-US) and the zone it reaches them
+ * in. Without an org: their own `locale.language` and `locale.time_zone` for every org, else en-US and UTC.
  */
-async function recipientProfile(db, personId) {
+async function recipientProfile(db, personId, orgId) {
   const person = await db.selectOne("people", "full_name", { id: personId });
   const setting = async (key) =>
     optionalText(
-      (await db.selectOne("personal_setting_values", "value_text", {
-        person_id: personId,
-        setting_key: key,
-      })) ?? void 0,
+      {
+        value_text: await db.rpc("recipient_setting", {
+          p_person_id: personId,
+          p_org_id: orgId ?? null,
+          p_setting_key: key,
+        }),
+      },
       "value_text",
     );
   return {
@@ -238,7 +242,7 @@ function notificationStore(db, options) {
         from: `${name} <${options.fromAddress}>`,
       };
     },
-    recipient: (personId) => recipientProfile(db, personId),
+    recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
     async linkFor(claim) {
       const gateway = gatewayLink(claim, options.gatewayUrl);
       if (gateway !== null) return gateway;

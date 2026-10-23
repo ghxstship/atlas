@@ -7,7 +7,11 @@ import type { KindDefinition } from "./model.ts";
 import { NOTIFICATION_KINDS } from "./registry.generated.ts";
 
 export * from "./model.ts";
-export { NotificationRegistryError, parseNotificationRegistry } from "./parse.ts";
+export {
+  NotificationRegistryError,
+  parseNotificationEmission,
+  parseNotificationRegistry,
+} from "./parse.ts";
 export {
   NOTIFICATION_CATEGORIES,
   NOTIFICATION_CHANNEL_DEFAULTS,

@@ -516,6 +516,8 @@ settings:
         test: apps/compass/test/language.test.ts
       - consumer: apps/atlas/lib/shell/org-settings.ts#devicePreference
         test: apps/atlas/test/org-settings.test.ts
+      - consumer: supabase/migrations/1393_notification_sender_fixes.sql#app.recipient_setting
+        test: supabase/tests/1393_notification_sender_fixes.test.sql
   - key: locale.time_zone
     type: text
     input: time_zone
@@ -530,6 +532,8 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
         test: supabase/tests/1325_out_of_office.test.sql
+      - consumer: supabase/migrations/1393_notification_sender_fixes.sql#app.recipient_setting
+        test: supabase/tests/1393_notification_sender_fixes.test.sql
       - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#private.away_since
         test: supabase/tests/1398_payroll_calendar_and_away_since.test.sql
       - consumer: apps/atlas/lib/shell/time-zone.ts#getOrgTimeZone
@@ -728,7 +732,7 @@ settings:
     help: settings.fields.oooReply.help
     pages: { personal: me.out-of-office }
     enforced_by:
-      - consumer: supabase/migrations/1325_out_of_office.sql#app.send_chat_message
+      - consumer: supabase/migrations/1393_notification_sender_fixes.sql#app.send_chat_message
         test: supabase/tests/1325_out_of_office.test.sql
 
   # Personal: keyboard shortcuts -------------------------------------------------------------------------------------------

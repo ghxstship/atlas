@@ -402,6 +402,7 @@ describe("stores", () => {
             subject_id: "s1",
           },
         ],
+        recipient_setting: () => null,
         reply_address_local_part: () => "r-abc",
         record_notification_delivery: () => null,
       },
@@ -423,7 +424,7 @@ describe("stores", () => {
     expect(sender.from).toBe("Northwind Live <notifications@mail.xos.test>");
     expect(sender.preferencesUrl).toBe("https://atlas.xos.test/northwind-live/me/notifications");
     expect(sender.unsubscribeUrl).toBe("https://fn.xos.test/u?o=org-1&p=p1");
-    await expect(store.recipient("p1")).resolves.toEqual({
+    await expect(store.recipient("p1", "org-1")).resolves.toEqual({
       name: "Dave Lindqvist",
       locale: "en-US",
       timeZone: "UTC",

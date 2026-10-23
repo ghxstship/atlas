@@ -5,7 +5,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(24);
+select plan(25);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
@@ -53,6 +53,8 @@ select is((select subscription_state from app.subscriptions where org_id = pg_te
 select private.run_dunning(now() + interval '21 days');
 select is((select subscription_state from app.subscriptions where org_id = pg_temp.id('org_a') and subscription_state <> 'canceled'),
   'read_only'::app.subscription_state, 'on day 21 the org becomes read-only');
+select is((select count(*)::integer from app.notifications where kind = 'billing.read_only' and recipient_person_id = pg_temp.id('alice')), 1,
+  'and the billing owner is told');
 select is(app.sync_subscription_from_stripe(pg_temp.id('org_a'), 'cus_N0rthw1nd', 'sub_N0rthw1nd', 'pro', 'Monthly', 'active', now(), false),
   'active'::app.subscription_state, 'a recovered payment restores full access');
 

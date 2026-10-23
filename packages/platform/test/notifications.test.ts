@@ -43,6 +43,7 @@ import {
   recipientProfile,
   smsInboundStore,
   smsKeyword,
+  smsSegments,
   smsStore,
   staticAccessToken,
   translateChatMessage,
@@ -477,7 +478,7 @@ const sms = (overrides: Partial<ClaimedSms> = {}): ClaimedSms => ({
 });
 
 function smsFakeStore(claims: ClaimedSms[]) {
-  const records: [string, string, string | null, string | null][] = [];
+  const records: Parameters<SmsStore["record"]>[] = [];
   const store: SmsStore = {
     claimSms: async () => claims,
     recipient: async (id) => ({
@@ -511,10 +512,46 @@ describe("SMS through Twilio (Section 14.5)", () => {
       "Northwind Live: Your shift Load in now starts Tuesday, November 3, 2026 at 9:00 AM. https://atlas.xos.test/northwind-live/inbox Reply STOP to opt out.",
     );
     expect(provider.sent[1]?.body).toMatch(/Responde STOP para cancelar\.$/);
-    expect(records.map((r) => [r[0], r[1], r[2]])).toEqual([
-      ["s1", "Sent", "recorded-sms-1"],
-      ["s2", "Sent", "recorded-sms-2"],
+    // Each sent text counts the segments it is billed as: English fits GSM-7, Spanish accents need UCS-2.
+    expect(records.map((r) => [r[0], r[1], r[2], r[4]])).toEqual([
+      ["s1", "Sent", "recorded-sms-1", 1],
+      ["s2", "Sent", "recorded-sms-2", smsSegments(provider.sent[1]?.body ?? "")],
     ]);
+    expect(records[1]?.[4]).toBeGreaterThan(1);
+  });
+
+  it("counts the segments a text is billed as (sms_segments meter)", () => {
+    expect(smsSegments("")).toBe(1);
+    expect(smsSegments("a".repeat(160))).toBe(1);
+    expect(smsSegments("a".repeat(161))).toBe(2);
+    expect(smsSegments("a".repeat(306))).toBe(2);
+    expect(smsSegments("a".repeat(307))).toBe(3);
+    // Extension characters take two septets.
+    expect(smsSegments("€".repeat(80))).toBe(1);
+    expect(smsSegments("€".repeat(81))).toBe(2);
+    // One character outside GSM-7 makes the whole text UCS-2.
+    expect(smsSegments(`Lo más importante ${"a".repeat(52)}`)).toBe(1);
+    expect(smsSegments(`Lo más importante ${"a".repeat(53)}`)).toBe(2);
+    expect(smsSegments("á".repeat(134))).toBe(2);
+    expect(smsSegments("á".repeat(135))).toBe(3);
+    // Twilio's Smart Encoding sends an ellipsis, curly quotes and odd spaces as their GSM look-alikes.
+    expect(smsSegments(`${"a".repeat(157)}…`)).toBe(1);
+    expect(smsSegments("\u201cLoad in\u201d \u2014 9:00\u202fAM")).toBe(1);
+  });
+
+  it("meters Twilio's own segment count when it gives one", async () => {
+    const provider = {
+      name: "scripted",
+      send: async () => ({ providerMessageId: "SM-seg", segments: 4 }),
+    };
+    const zero = {
+      name: "scripted",
+      send: async () => ({ providerMessageId: "SM-0", segments: 0 }),
+    };
+    const { store, records } = smsFakeStore([sms()]);
+    await dispatchSms(store, provider);
+    await dispatchSms(store, zero);
+    expect(records.map((r) => r[4])).toEqual([4, 1]);
   });
 
   it("bounces an error a retry cannot fix and retries anything else", async () => {
@@ -540,10 +577,12 @@ describe("SMS through Twilio (Section 14.5)", () => {
   it("posts to the Messages API from the Messaging Service with basic auth and the status callback", async () => {
     const { impl, requests } = fakeFetch((_url, _init, n) =>
       n === 1
-        ? json({ sid: "SM-test-1", status: "accepted" }, 201)
-        : n === 2
-          ? json({ code: 21610, message: "Attempt to send to unsubscribed recipient" }, 400)
-          : new Response("oops", { status: 500 }),
+        ? json({ sid: "SM-test-1", status: "accepted", num_segments: "0" }, 201)
+        : n === 4
+          ? json({ sid: "SM-test-4", status: "queued", num_segments: "3" }, 201)
+          : n === 2
+            ? json({ code: 21610, message: "Attempt to send to unsubscribed recipient" }, 400)
+            : new Response("oops", { status: 500 }),
     );
     const provider = twilioSmsProvider({
       accountSid: ACCOUNT,
@@ -579,6 +618,10 @@ describe("SMS through Twilio (Section 14.5)", () => {
       code: "500",
       permanent: false,
     });
+    // Twilio's segment count, when it has split the text already.
+    await expect(
+      provider.send({ to: "+15555550100", body: "Hi", deliveryId: "s4" }),
+    ).resolves.toEqual({ providerMessageId: "SM-test-4", segments: 3 });
     const offline = twilioSmsProvider({
       accountSid: ACCOUNT,
       authToken: TOKEN,
@@ -960,23 +1003,52 @@ describe("chat message translation (Section 4.9)", () => {
 // Stores --------------------------------------------------------------------------------------------------------
 
 describe("stores over the 1361 and 1363 RPCs", () => {
-  it("reads the recipient's own language and time zone", async () => {
-    const { db } = fakeDb(
-      {},
+  it("reads the recipient's live language and zone in the org (app.recipient_setting, 1393)", async () => {
+    const { db, calls } = fakeDb(
+      {
+        // The database answers with live values only, one kept for this org over the one for every org, and
+        // the zone the org reaches the person in.
+        recipient_setting: (args) =>
+          args["p_person_id"] === "p1" && args["p_setting_key"] === "locale.time_zone"
+            ? "America/Chicago"
+            : null,
+      },
       {
         people: [{ id: "p1", full_name: "Dave Lindqvist" }],
+        // A cleared (soft-deleted) Spanish setting: reading the table directly would still pick it up.
         personal_setting_values: [
-          { person_id: "p1", setting_key: "locale.language", value_text: "es-US" },
-          { person_id: "p1", setting_key: "locale.time_zone", value_text: "America/Chicago" },
+          {
+            person_id: "p1",
+            setting_key: "locale.language",
+            value_text: "es-US",
+            deleted_at: "2026-10-20T00:00:00Z",
+          },
         ],
       },
     );
-    await expect(recipientProfile(db, "p1")).resolves.toEqual({
+    await expect(recipientProfile(db, "p1", "org-1")).resolves.toEqual({
       name: "Dave Lindqvist",
-      locale: "es-US",
+      locale: "en-US",
       timeZone: "America/Chicago",
     });
-    await expect(recipientProfile(db, "p9")).resolves.toEqual({
+    expect(calls).toEqual([
+      {
+        fn: "recipient_setting",
+        args: { p_person_id: "p1", p_org_id: "org-1", p_setting_key: "locale.language" },
+      },
+      {
+        fn: "recipient_setting",
+        args: { p_person_id: "p1", p_org_id: "org-1", p_setting_key: "locale.time_zone" },
+      },
+    ]);
+    // Outside an org only the values kept for every org apply.
+    await recipientProfile(db, "p1");
+    expect(calls.at(-1)?.args).toEqual({
+      p_person_id: "p1",
+      p_org_id: null,
+      p_setting_key: "locale.time_zone",
+    });
+    await expect(recipientProfile(db, "p9", "org-1")).resolves.toEqual({
       name: "",
       locale: "en-US",
       timeZone: "UTC",
@@ -1004,6 +1076,7 @@ describe("stores over the 1361 and 1363 RPCs", () => {
           },
         ],
         record_push_tickets: () => null,
+        recipient_setting: () => null,
         record_notification_delivery: () => null,
         claim_push_receipts: () => [{ ticket_id: "t-1" }],
         record_push_receipts: () => 2,
@@ -1024,13 +1097,15 @@ describe("stores over the 1361 and 1363 RPCs", () => {
     await store.record("d1", "Sent", "t-1", null);
     await expect(store.claimReceipts(1000)).resolves.toEqual(["t-1"]);
     await expect(store.recordReceipts([])).resolves.toBe(2);
-    await expect(store.recipient("p1")).resolves.toMatchObject({ locale: "en-US" });
+    await expect(store.recipient("p1", "org-1")).resolves.toMatchObject({ locale: "en-US" });
     expect(calls.map((c) => c.fn)).toEqual([
       "claim_notification_deliveries",
       "record_push_tickets",
       "record_notification_delivery",
       "claim_push_receipts",
       "record_push_receipts",
+      "recipient_setting",
+      "recipient_setting",
     ]);
   });
 
@@ -1066,6 +1141,8 @@ describe("stores over the 1361 and 1363 RPCs", () => {
             message_args: { title: "Load in" },
           },
         ],
+        recipient_setting: (args) =>
+          args["p_setting_key"] === "locale.time_zone" ? "America/Chicago" : null,
         record_notification_delivery: () => null,
         record_sms_keyword: () => 2,
         record_sms_status: () => true,
@@ -1080,7 +1157,21 @@ describe("stores over the 1361 and 1363 RPCs", () => {
       "https://atlas.xos.test/northwind-live/inbox",
     );
     await store.record("s1", "Bounced", null, "21610");
-    await expect(store.recipient("p1")).resolves.toMatchObject({ timeZone: "UTC" });
+    expect(calls.at(-1)).toEqual({
+      fn: "record_notification_delivery",
+      args: {
+        p_delivery_id: "s1",
+        p_status: "Bounced",
+        p_provider_message_id: null,
+        p_error: "21610",
+        p_segments: 1,
+      },
+    });
+    await store.record("s1", "Sent", "SM-9", null, 2);
+    expect(calls.at(-1)?.args).toMatchObject({ p_status: "Sent", p_segments: 2 });
+    await expect(store.recipient("p1", "org-1")).resolves.toMatchObject({
+      timeZone: "America/Chicago",
+    });
     const inboundStore = smsInboundStore(db);
     await expect(inboundStore.recordKeyword("+15555550100", "Opt Out", "STOP")).resolves.toBe(2);
     await expect(inboundStore.recordStatus("SM-1", "delivered", null)).resolves.toBe(true);
@@ -1155,7 +1246,7 @@ describe("texts held by quiet hours go out as one summary", () => {
   });
 
   function summaryStore(summaries: ClaimedSmsSummary[]) {
-    const records: [readonly string[], string, string | null, string | null][] = [];
+    const records: Parameters<SmsSummaryStore["recordSummary"]>[] = [];
     const store: SmsSummaryStore = {
       claimSummaries: async () => summaries,
       recipient: async (id) => ({
@@ -1200,11 +1291,13 @@ describe("texts held by quiet hours go out as one summary", () => {
     expect(provider.sent[2]?.body).toBe(
       "Northwind Live: Bob asked you to approve Catering. https://atlas.xos.test/northwind-live/inbox Reply STOP to opt out.",
     );
-    expect(records.map((r) => [r[0], r[1], r[2]])).toEqual([
-      [["d1", "d2", "d3"], "Sent", "recorded-sms-1"],
-      [["d4", "d5"], "Sent", "recorded-sms-2"],
-      [["d6"], "Sent", "recorded-sms-3"],
+    // A summary counts its billed segments: the Spanish one is UCS-2 and runs to several.
+    expect(records.map((r) => [r[0], r[1], r[2], r[4]])).toEqual([
+      [["d1", "d2", "d3"], "Sent", "recorded-sms-1", 2],
+      [["d4", "d5"], "Sent", "recorded-sms-2", smsSegments(provider.sent[1]?.body ?? "")],
+      [["d6"], "Sent", "recorded-sms-3", 1],
     ]);
+    expect(records[1]?.[4]).toBeGreaterThanOrEqual(3);
     expect(provider.sent).toHaveLength(3);
   });
 
@@ -1229,6 +1322,56 @@ describe("texts held by quiet hours go out as one summary", () => {
       [3, "Bounced"],
       [1, "Failed"],
     ]);
+  });
+
+  it("sends the count alone when the most important held text cannot render", async () => {
+    const provider = new RecordingSmsProvider();
+    const broken = { kind: "message.received", messageArgs: { conversation_id: "c1" } };
+    const { store, records } = summaryStore([
+      held(broken),
+      held({ ...broken, recipientPersonId: "p2", deliveryIds: ["d4", "d5"], heldCount: 2 }),
+      held({ ...broken, deliveryIds: ["d6"], heldCount: 1 }),
+    ]);
+    await expect(dispatchSmsSummaries(store, provider)).resolves.toEqual({
+      attempted: 3,
+      sent: 2,
+      failed: 1,
+      bounced: 0,
+    });
+    expect(provider.sent.map((m) => m.body)).toEqual([
+      "Northwind Live: 3 updates came in during your quiet hours. Open your Inbox to read them: https://atlas.xos.test/northwind-live/inbox Reply STOP to opt out.",
+      "Northwind Live: 2 novedades llegaron durante tus horas de silencio. Ábrelas en tu Bandeja de entrada: https://atlas.xos.test/northwind-live/inbox Responde STOP para cancelar.",
+    ]);
+    // A single held text has nothing else to fall back to: it fails and retries as before.
+    expect(records.map((r) => [r[0], r[1]])).toEqual([
+      [["d1", "d2", "d3"], "Sent"],
+      [["d4", "d5"], "Sent"],
+      [["d6"], "Failed"],
+    ]);
+  });
+
+  it("renders every workforce kind from the arguments its emitter stores, with the actor private.notify adds (1393)", () => {
+    const startsAt = "2026-10-23T18:00:00Z";
+    const emitted: Record<string, Readonly<Record<string, unknown>>> = {
+      "message.received": { conversation_id: "c1", kind: "Text" },
+      "announcement.posted": { title: "Gate C opens at noon", requires_acknowledgment: false },
+      "survey.opened": { title: "Load-in pulse", anonymous: true },
+      "recognition.received": { title: "Thanks for the save at load-out" },
+      "event.invited": { title: "Crew briefing", startsAt, event_kind: "Meeting" },
+      "training.assigned": { title: "Working at height", due_on: "2026-11-01" },
+    };
+    for (const [kind, args] of Object.entries(emitted)) {
+      expect(() => notificationText(kind, args, "en-US", "America/New_York"), kind).toThrow();
+      for (const locale of locales) {
+        const text = notificationText(
+          kind,
+          { ...args, actorName: "Dave Lindqvist" },
+          locale,
+          "America/New_York",
+        );
+        expect(text.body, `${kind} ${locale}`).toContain("Dave Lindqvist");
+      }
+    }
   });
 
   it("claims and records summaries through the 1367 RPCs", async () => {
@@ -1264,7 +1407,7 @@ describe("texts held by quiet hours go out as one summary", () => {
     await expect(store.inboxLink("org-1")).resolves.toBe(
       "https://atlas.xos.test/northwind-live/inbox",
     );
-    await store.recordSummary(["d1", "d2"], "Sent", "SM-1", null);
+    await store.recordSummary(["d1", "d2"], "Sent", "SM-1", null, 3);
     expect(calls.at(-1)).toEqual({
       fn: "record_sms_summary",
       args: {
@@ -1272,8 +1415,11 @@ describe("texts held by quiet hours go out as one summary", () => {
         p_status: "Sent",
         p_provider_message_id: "SM-1",
         p_error: null,
+        p_segments: 3,
       },
     });
+    await store.recordSummary(["d1"], "Failed", null, "timeout");
+    expect(calls.at(-1)?.args).toMatchObject({ p_status: "Failed", p_segments: 1 });
     expect(calls[0]?.args).toEqual({ p_limit: 25 });
   });
 
