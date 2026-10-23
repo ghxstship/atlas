@@ -68,3 +68,33 @@ Two earlier attempts in that session failed, for reasons outside these flows:
 
 - **A white screen at launch.** The data container kept the earlier build's local database, which SQLCipher could not decrypt ("hmac check failed for pgno=1"). Reinstalling cleared it.
 - **The second voice note.** One attempt reported "The microphone did not start". The recorder's stop took longer than its 3-second limit under that load. The rerun recorded both notes.
+
+## A92 flows (RRR-137): NFC, receipt capture and external screens
+
+A92 added `field-nfc-scan`, `field-expense-receipt` and `crew-external-work`, and moved `crew-external-today` and `vendor-external-scan` onto the native external screens. All five ran in one Maestro run, in `config.yaml` order.
+
+- **Device:** iPhone 17 Pro simulator, iOS 26.5.
+- **Build:** Compass Debug for the simulator, with its JavaScript from Metro on port 8192. Metro ran with `EXPO_PUBLIC_XOS_FAKE_NFC=1` and `EXPO_PUBLIC_XOS_FAKE_RECORDER=1` (both refused in EAS builds), since a simulator has no NFC radio.
+- **Stack:** project `xos4-a92`, freshly reset with batch-c 6a41bf17 merged, including seed 1490 (Demo Road Crew).
+- **Tools:** Maestro 1.39.0.
+- **Date:** 2026-10-23. The load average was 30 to 120.
+
+The final run passed every flow. Times are in seconds.
+
+| Flow                  | Time | Notes                                                                                                                                                                                |
+| --------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| field-nfc-scan        | 109  | A wristband's NDEF text record at the Main Gate is refused as its QR code would be. Lookup reads AUD-0042 from a tag and writes it to a blank one. A bare chip goes to the desk.     |
+| field-expense-receipt | 114  | Receipt photo, budget line and amount, saved offline and filed once on reconnect: one expense of 4,250 cents with one receipt. Without Atlas, the screen says Aurora cannot read it. |
+| crew-external-today   | 96   | The crew member's engagement is in Onboarding, so clock-in and scanning stay closed. The onboarding checklist is a Compass screen.                                                   |
+| crew-external-work    | 130  | Demo Road Crew's timesheet (June 4 to 6) and per diem (3 days, 180.00), then travel and onboarding with the server stopped. The flight shows each end in its own zone.               |
+| vendor-external-scan  | 98   | Purchase orders, deliveries and submittals are Compass screens. The vendor has no orders yet, so the empty state shows.                                                              |
+
+### Failures found, and their fixes
+
+| Failure                                                                        | Cause                                                                                                                                                | Fix                                                                                                                                      |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `field-expense-receipt` typed "crewy" and "42.508".                            | The decimal pad has no return key, so `hideKeyboard` tapped one of its keys.                                                                         | App: dragging the form closes the keyboard (`keyboardDismissMode` on-drag), as a person does. Flow: it swipes instead of `hideKeyboard`. |
+| `crew-external-work`: the departure and arrival times were never visible.      | Hermes writes a narrow no-break space before AM and PM; the pattern had a plain space.                                                               | The pattern takes any character there.                                                                                                   |
+| `vendor-external-scan`: "Compass cannot reach the server" at sign-in.          | The flow before it failed while offline, before its own step to come back online, so the API gateway stayed stopped.                                 | Both offline flows restore the network in `onFlowComplete`, which runs however the flow ends.                                            |
+| `field-expense-receipt` on a second run: two expenses instead of one.          | The check counted the first run's expense as well.                                                                                                   | The check counts only expenses filed since the flow started, so it can run again on the same stack.                                      |
+| `crew-external-today` after `field-expense-receipt`: the More tab did nothing. | On a Debug build, React Native's harmless "Sending `onAnimatedValueUpdate` with no listeners registered" notice put a LogBox toast over the tab bar. | `index.ts` ignores that one notice. LogBox is off in release builds, so the nightly jobs never saw it.                                   |
