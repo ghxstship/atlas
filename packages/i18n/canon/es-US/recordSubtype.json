@@ -1,0 +1,178 @@
+{
+  "Approval": {
+    "Booking": "Reserva",
+    "Budget": "Presupuesto",
+    "Content": "Contenido",
+    "Design": "Diseño",
+    "Plan": "Plan"
+  },
+  "Booking": {
+    "Catering": "Catering",
+    "Crew": "Equipo de Trabajo",
+    "Equipment": "Equipamiento",
+    "Freight": "Carga",
+    "Space": "Espacio",
+    "Talent": "Talento",
+    "Travel": "Viaje"
+  },
+  "Build": {
+    "Commissioning": "Puesta en Marcha",
+    "Dress": "Ambientación",
+    "Scenic": "Escenografía",
+    "Structural": "Estructural",
+    "Systems": "Sistemas"
+  },
+  "Compliance": {
+    "Certificate": "Certificado",
+    "License": "Licencia",
+    "Plan": "Plan",
+    "Policy": "Política",
+    "Register": "Registro"
+  },
+  "Contract": {
+    "Insurance": "Seguro",
+    "Lease": "Arrendamiento",
+    "License": "Licencia",
+    "Service Agreement": "Acuerdo de Servicio",
+    "Sponsorship": "Patrocinio",
+    "Supply Agreement": "Acuerdo de Suministro",
+    "Talent Agreement": "Acuerdo de Talento"
+  },
+  "Deadline": {
+    "Authority Owed": "Debido a la Autoridad",
+    "Client Owed": "Debido al Cliente",
+    "Internal": "Interno",
+    "Vendor Owed": "Debido al Proveedor"
+  },
+  "Decision": {
+    "Commercial": "Comercial",
+    "Creative": "Creativa",
+    "Operational": "Operativa"
+  },
+  "Distribution": {
+    "Internal": "Interna",
+    "On-sale": "Venta al Público",
+    "Press": "Prensa",
+    "Social": "Redes Sociales"
+  },
+  "Document": {
+    "Brief": "Resumen",
+    "Package": "Paquete",
+    "Plan": "Plan",
+    "Policy": "Política",
+    "Register": "Registro",
+    "Report": "Informe",
+    "Run of Show": "Guion del Show",
+    "Specification": "Especificación"
+  },
+  "Event": {
+    "After Party": "Fiesta Posterior",
+    "Campaign Launch": "Lanzamiento de Campaña",
+    "Flagship Activation": "Activación Principal",
+    "Listening Party": "Fiesta de Escucha",
+    "Standing Operations": "Operaciones Permanentes"
+  },
+  "Goal": {
+    "Commercial": "Comercial",
+    "Compliance": "Cumplimiento",
+    "Experience": "Experiencia",
+    "Operational": "Operativo"
+  },
+  "Inspection": {
+    "Readiness": "Preparación",
+    "Restoration": "Restauración",
+    "Safety": "Seguridad",
+    "Systems": "Sistemas"
+  },
+  "Meeting": {
+    "Recurring": "Recurrente",
+    "Series": "Serie",
+    "Single": "Única"
+  },
+  "Milestone": {
+    "Handover": "Entrega",
+    "Opening": "Apertura",
+    "Term": "Plazo"
+  },
+  "Payment": {
+    "Deposit": "Depósito",
+    "Progress": "Avance",
+    "Reconciliation": "Conciliación",
+    "Settlement": "Liquidación"
+  },
+  "Permit": {
+    "Alcohol": "Alcohol",
+    "Building": "Construcción",
+    "Fire & Life Safety": "Incendios y Seguridad Humana",
+    "Occupancy": "Ocupación",
+    "Sound": "Sonido",
+    "Special Event": "Evento Especial"
+  },
+  "Recruitment": {
+    "Contracted": "Contratado",
+    "Crewed": "Con Equipo",
+    "Hourly": "Por Hora",
+    "Salaried": "Asalariado"
+  },
+  "Rehearsal": {
+    "Full Run": "Ensayo Completo",
+    "Stream Test": "Prueba de Transmisión",
+    "Technical": "Técnico"
+  },
+  "Report": {
+    "Compliance": "Cumplimiento",
+    "Event Recap": "Resumen del Evento",
+    "Financial": "Financiero",
+    "Operations": "Operaciones"
+  },
+  "Risk": {
+    "Commercial": "Comercial",
+    "Operational": "Operativo",
+    "Reputational": "Reputacional",
+    "Safety": "Seguridad",
+    "Schedule": "Cronograma"
+  },
+  "Shift": {
+    "Load-in": "Carga",
+    "Load-out": "Descarga",
+    "Overnight": "Nocturno",
+    "Show": "Show",
+    "Standing": "Permanente"
+  },
+  "Strike": {
+    "Full Restoration": "Restauración Completa",
+    "Show Strike": "Desmontaje del Show"
+  },
+  "Supply": {
+    "Audio": "Audio",
+    "Bar & Beverage": "Bar y Bebidas",
+    "Catering & Kitchen": "Catering y Cocina",
+    "Facilities & Janitorial": "Instalaciones y Limpieza",
+    "Guest & Front of House": "Invitados y Recepción",
+    "Lighting & Video": "Iluminación y Video",
+    "Power & Staging": "Energía y Escenarios",
+    "Safety & Emergency": "Seguridad y Emergencias",
+    "Signage & Wayfinding": "Señalización",
+    "Technology": "Tecnología"
+  },
+  "Task": {
+    "Assess": "Evaluar",
+    "Coordinate": "Coordinar",
+    "Define": "Definir",
+    "Execute": "Ejecutar",
+    "Issue": "Emitir",
+    "Produce": "Producir",
+    "Verify": "Verificar"
+  },
+  "Timeline": {
+    "Gate Window": "Ventana de Compuerta",
+    "Program Month": "Mes del Programa",
+    "Show Cycle": "Ciclo del Show"
+  },
+  "Training": {
+    "Induction": "Inducción",
+    "Refresher": "Actualización",
+    "Role-specific": "Específica del Rol",
+    "Safety": "Seguridad"
+  }
+}

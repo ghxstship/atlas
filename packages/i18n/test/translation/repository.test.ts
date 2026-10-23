@@ -28,8 +28,8 @@ describe("translation check (offline)", () => {
     expect(setup.config.check.stale).toBe("warning");
   });
 
-  it("covers the catalogs, the help articles and the docs guides of every target", () => {
-    expect(setup.config.surfaces.map((s) => s.id)).toEqual(["catalogs", "help", "guides"]);
+  it("covers the catalogs, the help articles, the docs guides and the canon labels of every target", () => {
+    expect(setup.config.surfaces.map((s) => s.id)).toEqual(["catalogs", "help", "guides", "canon"]);
     for (const { locale } of setup.config.targets) {
       const total = Object.values(result.statuses[locale] ?? {}).reduce((a, b) => a + b, 0);
       expect(total).toBeGreaterThan(12000);

@@ -6,7 +6,14 @@ import {
   type WeatherAlert,
 } from "@xos/data/workforce-site";
 import { listWorkforceRoles } from "@xos/data/people";
-import { getFormatter } from "next-intl/server";
+import { getFormatter, getLocale } from "next-intl/server";
+import { getShellSettings } from "@/lib/shell/org-settings";
+import {
+  formatHazardValue,
+  hazardUnitSymbol,
+  projectJurisdictionUnits,
+  unitSystemFor,
+} from "@/lib/workforce/units";
 import {
   ActionButton,
   EmptyRefresh,
@@ -66,10 +73,16 @@ export async function WeatherSection({
     );
   }
   const db = ctx.viewer.db;
-  const [board, roles] = await Promise.all([
+  const [board, roles, settings, jurisdiction, locale] = await Promise.all([
     getWeatherBoard(db, project.id),
     listWorkforceRoles(db),
+    getShellSettings(db, ctx.org.id, null),
+    projectJurisdictionUnits(db, project.id),
+    getLocale(),
   ]);
+  // Values show and are typed in the person's units (locale.units, Section 15), stored in the hazard's unit.
+  const units = unitSystemFor(settings.preferences.units, jurisdiction, locale);
+  const symbol = (h: (typeof WEATHER_HAZARDS)[number]) => hazardUnitSymbol(locale, h, units);
   const picker = <ProjectPicker t={t} path={path} projects={pickers.projects} current={project} />;
   if (!board.ok) {
     return (
@@ -114,7 +127,7 @@ export async function WeatherSection({
           <EntityForm
             id="weather-reading-form"
             action={recordReadingAction}
-            hidden={{ org: ctx.org.slug, projectId: project.id }}
+            hidden={{ org: ctx.org.slug, projectId: project.id, units }}
             refusals={REFUSALS}
             submitLabel={t("weather.recordSubmit")}
             fields={[
@@ -128,7 +141,7 @@ export async function WeatherSection({
                   value: h,
                   label: t("weather.hazardUnit", {
                     hazard: t(`weather.hazards.${h}`),
-                    unit: t(`weather.units.${HAZARD_UNITS[h].unit}`),
+                    unit: symbol(h),
                   }),
                 })),
               },
@@ -168,7 +181,7 @@ export async function WeatherSection({
                 HAZARD_UNITS[x.hazard].comparison === "At or Below"
                   ? "weather.atOrBelow"
                   : "weather.atOrAbove",
-                { value: x.value, unit: t(`weather.units.${x.unit}`) },
+                { measure: formatHazardValue(locale, x.hazard, x.value, units) },
               ),
               source: x.sourceNote,
             }))}
@@ -179,7 +192,7 @@ export async function WeatherSection({
           <EntityForm
             id="weather-threshold-form"
             action={setThresholdAction}
-            hidden={{ org: ctx.org.slug, projectId: project.id }}
+            hidden={{ org: ctx.org.slug, projectId: project.id, units }}
             refusals={REFUSALS}
             submitLabel={t("weather.setThreshold")}
             submitVariant="secondary"
@@ -208,7 +221,11 @@ export async function WeatherSection({
                 name: "value",
                 label: t("weather.thresholdValue"),
                 required: true,
-                help: t("weather.thresholdHelp"),
+                help: t("weather.thresholdHelp", {
+                  wind: symbol("Wind"),
+                  distance: symbol("Lightning"),
+                  heat: symbol("Heat"),
+                }),
               },
               {
                 kind: "text",
@@ -295,7 +312,7 @@ export async function WeatherSection({
               id: r.id,
               time: when(r.observedAt),
               hazard: t(`weather.hazards.${r.hazard}`),
-              value: `${r.value} ${t(`weather.units.${HAZARD_UNITS[r.hazard].unit}`)}`,
+              value: formatHazardValue(locale, r.hazard, r.value, units),
               by: r.recordedBy ?? t("someone"),
             }))}
           />

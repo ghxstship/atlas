@@ -9,6 +9,7 @@ import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { combinedToday, type TodayCue, type TodaySheet } from "../domain/orgs";
+import { scheduleZone } from "../domain/settings";
 import type { ShiftRow } from "../domain/shifts";
 import { formatCountdown, showsCountdown } from "../domain/show";
 import { useCompass, useRows } from "../runtime/CompassProvider";
@@ -58,7 +59,7 @@ export function CombinedToday({
   const theme = useTheme();
   const router = useRouter();
   const roleTitle = useRoleTitle();
-  const { resolved, personZone, setOrgId } = useCompass();
+  const { resolved, personZone, setOrgId, orgSettings } = useCompass();
   const all = { allOrgs: true } as const;
   const { rows: shifts } = useRows<LocalShift>("shifts", undefined, all);
   const { rows: sheets } = useRows<TodaySheet & Row>("day_sheets", undefined, all);
@@ -90,8 +91,12 @@ export function CombinedToday({
     personZone,
     nowMs: now,
   });
-  const zoneOf = (projectId: string, own?: string | null) =>
-    own ?? projects.find((p) => p.id === projectId)?.time_zone ?? personZone;
+  // Times read in the item's zone, or the person's own when they asked for that (me.time_zone_display, A97);
+  // which day an item is on always follows its own calendar (combinedToday).
+  const zoneOf = (projectId: string, own?: string | null) => {
+    const zone = own ?? projects.find((p) => p.id === projectId)?.time_zone ?? personZone;
+    return scheduleZone(zone, orgSettings) ?? zone;
+  };
   return (
     <View testID="combined-today" style={{ gap: theme.space["16"] }}>
       <Text variant="heading20" heading>

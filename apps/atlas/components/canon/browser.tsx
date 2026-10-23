@@ -1,12 +1,7 @@
 import {
   listCanonExtensionProposals,
-  listCanonRoles,
-  listCategories,
-  listDepartments,
-  listDisciplines,
   listJurisdictions,
   listMetrics,
-  listPhases,
   listRecordKinds,
 } from "@xos/data/canon";
 import type { ReactNode } from "react";
@@ -23,12 +18,20 @@ import { InlineAlert, PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
+import {
+  localizedCanonRoles,
+  localizedCategories,
+  localizedDepartments,
+  localizedDisciplines,
+  localizedPhases,
+} from "@/lib/canon/labels";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 
 /**
  * The read-only Canon browser (Section 4.2 Canon, Section 7.2): the xpms canon every tenant shares,
- * with no create or edit controls. The org's own extensions in .50 to .99 are proposed under Org
+ * with no create or edit controls. Department, discipline, category, phase and role names read in the
+ * viewer's language where canon has a translation (xpms.canon_labels, Section 15); codes never change. The org's own extensions in .50 to .99 are proposed under Org
  * extensions; approved ones show beside canon here, marked as the org's.
  */
 
@@ -131,8 +134,8 @@ async function approvedExtensions(ctx: OrgContext) {
 export async function CanonDepartments({ ctx, path, search }: PageProps) {
   const [t, departments, disciplines] = await Promise.all([
     getCopy("canonBrowser"),
-    listDepartments(ctx.viewer.db),
-    listDisciplines(ctx.viewer.db),
+    localizedDepartments(ctx),
+    localizedDisciplines(ctx),
   ]);
   const title = t("departments.title");
   if (!departments.ok || !disciplines.ok) return failed(title, t);
@@ -195,9 +198,9 @@ export async function CanonDepartments({ ctx, path, search }: PageProps) {
 export async function CanonDisciplines({ ctx, path, search }: PageProps) {
   const [t, departments, disciplines, categories, extensions] = await Promise.all([
     getCopy("canonBrowser"),
-    listDepartments(ctx.viewer.db),
-    listDisciplines(ctx.viewer.db),
-    listCategories(ctx.viewer.db),
+    localizedDepartments(ctx),
+    localizedDisciplines(ctx),
+    localizedCategories(ctx),
     approvedExtensions(ctx),
   ]);
   const title = t("disciplines.title");
@@ -287,8 +290,8 @@ export async function CanonDisciplines({ ctx, path, search }: PageProps) {
 export async function CanonCategories({ ctx, path, search }: PageProps) {
   const [t, disciplines, categories, extensions] = await Promise.all([
     getCopy("canonBrowser"),
-    listDisciplines(ctx.viewer.db),
-    listCategories(ctx.viewer.db),
+    localizedDisciplines(ctx),
+    localizedCategories(ctx),
     approvedExtensions(ctx),
   ]);
   const title = t("categories.title");
@@ -369,7 +372,7 @@ export async function CanonCategories({ ctx, path, search }: PageProps) {
 }
 
 export async function CanonPhases({ ctx, path, search }: PageProps) {
-  const [t, phases] = await Promise.all([getCopy("canonBrowser"), listPhases(ctx.viewer.db)]);
+  const [t, phases] = await Promise.all([getCopy("canonBrowser"), localizedPhases(ctx)]);
   const title = t("phases.title");
   if (!phases.ok) return failed(title, t);
   return (
@@ -499,8 +502,8 @@ export async function CanonRecordKinds({ ctx, path, search }: PageProps) {
 export async function CanonRoles({ ctx, path, search }: PageProps) {
   const [t, roles, departments] = await Promise.all([
     getCopy("canonBrowser"),
-    listCanonRoles(ctx.viewer.db),
-    listDepartments(ctx.viewer.db),
+    localizedCanonRoles(ctx),
+    localizedDepartments(ctx),
   ]);
   const title = t("roles.title");
   if (!roles.ok || !departments.ok) return failed(title, t);

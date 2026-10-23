@@ -1,5 +1,5 @@
 import { csvField } from "@xos/data/csv";
-import { isPublicAddress, type HostResolver } from "@xos/platform";
+import { isPublicAddress, type HostResolver } from "@xos/platform/webhooks";
 import { StoreError, unwrap, type DbClient } from "../framework/db.ts";
 import { asIntegrationError, IntegrationError } from "../framework/errors.ts";
 import type { HttpClient } from "../framework/http.ts";

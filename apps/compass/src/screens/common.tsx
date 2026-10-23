@@ -238,22 +238,7 @@ export function LoadError({
   );
 }
 
-export function formatTime(iso: string, timeZone?: string | null): string {
-  return new Intl.DateTimeFormat(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    ...(timeZone ? { timeZone } : {}),
-  }).format(new Date(iso));
-}
-
-export function formatDay(iso: string, timeZone?: string | null): string {
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    ...(timeZone ? { timeZone } : {}),
-  }).format(new Date(iso));
-}
+export { formatDay, formatTime } from "../domain/schedule-time";
 
 /**
  * The canon job title for a shift (xpms.role, cached as the roles canon table), so a shift reads

@@ -121,6 +121,9 @@ export interface CatalogCandidate {
 export interface CodeBinding {
   readonly code: string;
   readonly elementId: string;
+  /** The chosen candidate's name and URID, for the confirmation step. */
+  readonly name: string;
+  readonly urid: string;
   readonly confidence: number;
   readonly reason: string;
 }
@@ -187,18 +190,22 @@ export async function suggestCatalogBinding(
       value: {
         code: input.code,
         elementId: candidate.elementId,
+        name: candidate.name,
+        urid: candidate.urid,
         confidence: value.confidence,
         reason: value.reason,
       },
       ...log,
+      // The catalogBindings.create body: the element and the name the org uses for it. The code
+      // itself is kept on the resolved scan intake row, which names the binding it became.
       proposals: [
         {
           operationId: "catalogBindings.create",
           targetId: null,
           summary: `Bind code ${input.code} to ${candidate.name} (${candidate.urid}).`,
           fields: [
-            { field_path: "tenant_item_code", value: input.code, confidence: 1 },
             { field_path: "element_id", value: candidate.elementId, confidence: value.confidence },
+            { field_path: "name", value: candidate.name, confidence: value.confidence },
           ],
         },
       ],

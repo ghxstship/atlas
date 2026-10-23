@@ -148,9 +148,25 @@ if TYPE_CHECKING:
         AuroraExtractRequest,
         AuroraFilterRequest,
         AuroraMapColumnsRequest,
+        AuroraPreview,
+        AuroraPreviewRequest,
         AuroraResult,
         AuroraStatus,
         AuroraSummarizeRequest,
+        Automation,
+        AutomationCreate,
+        AutomationNoticeRequest,
+        AutomationNoticeResult,
+        AutomationPage,
+        AutomationRun,
+        AutomationRunPage,
+        AutomationRunStep,
+        AutomationRunStepPage,
+        AutomationTestRequest,
+        AutomationTestResult,
+        AutomationUpdate,
+        AutomationWebhookRequest,
+        AutomationWebhookResult,
         AvailabilityBlock,
         AvailabilityBlockCreate,
         AvailabilityBlockPage,
@@ -454,6 +470,10 @@ if TYPE_CHECKING:
         DsarRequest,
         DsarRequestCreate,
         DsarRequestPage,
+        EarnedMediaItem,
+        EarnedMediaItemCreate,
+        EarnedMediaItemPage,
+        EarnedMediaItemUpdate,
         EarningCode,
         EarningCodeCreate,
         EarningCodePage,
@@ -696,6 +716,12 @@ if TYPE_CHECKING:
         MarshallingLogEntryCreate,
         MarshallingLogEntryPage,
         Me,
+        MeasurementMetric,
+        MeasurementMetricPage,
+        MeasurementMetricTag,
+        MeasurementMetricTagPage,
+        MeasurementUnit,
+        MeasurementUnitPage,
         MedicalEncounter,
         MedicalEncounterCreate,
         MedicalEncounterPage,
@@ -913,6 +939,18 @@ if TYPE_CHECKING:
         ProjectInbox,
         ProjectInboxCreate,
         ProjectInboxPage,
+        ProjectMeasurement,
+        ProjectMeasurementCorrection,
+        ProjectMeasurementCorrectionPage,
+        ProjectMeasurementCreate,
+        ProjectMeasurementPage,
+        ProjectMeasurementSummary,
+        ProjectMeasurementSummaryPage,
+        ProjectMeasurementUpdate,
+        ProjectObjective,
+        ProjectObjectiveCreate,
+        ProjectObjectivePage,
+        ProjectObjectiveUpdate,
         ProjectPage,
         ProjectPhaseTransition,
         ProjectPhaseTransitionPage,
@@ -1116,6 +1154,10 @@ if TYPE_CHECKING:
         SettingValuePage,
         SettingValueUpdate,
         SettleClaimRequest,
+        ShareLink,
+        ShareLinkCreate,
+        ShareLinkPage,
+        ShareLinkToken,
         SharedWorkDetails,
         Shift,
         ShiftCreate,
@@ -1185,6 +1227,7 @@ if TYPE_CHECKING:
         StdVendorEntitlementPage,
         StdVerbiage,
         StdVerbiagePage,
+        SubjectCommentRequest,
         Subscription,
         SubscriptionPage,
         SupportSession,
@@ -30334,6 +30377,22 @@ class CommentsResource(Resource):
         """
         return self._client.request(OPERATIONS["comments.delete"], path={"id": id}, options=options)
 
+    def post_on_subject(
+        self,
+        body: SubjectCommentRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Comment]:
+        """Comment on a subject
+
+        Posts a comment on any row of app.comment_subjects by its table and id, as the caller, in the subject's main thread or the thread of an anchor, opening the thread on first use (`app.post_comment`). The subject's own read policy decides (404 when it is not visible). The add_comment action of automations calls it as the automation's owner. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /comments/on-subject`` (operation ``comments.postOnSubject``).
+        Requires the capability ``work.record.write``.
+        """
+        return self._client.request(OPERATIONS["comments.postOnSubject"], body=body, idempotency_key=idempotency_key, options=options)
+
 
 class NotificationsResource(Resource):
     """Operations on ``notifications``, in the Platform module."""
@@ -30939,6 +30998,558 @@ class ProjectAuthoritiesResource(Resource):
         Requires the capability ``projects.project.read``.
         """
         return self._client.paginate(OPERATIONS["projectAuthorities.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class MeasurementMetricsResource(Resource):
+    """Operations on ``measurementMetrics``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[MeasurementMetric]:
+        """List measurement metric rows
+
+        A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one. Returns a cursor page of measurement metric rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /measurement-metrics`` (operation ``measurementMetrics.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["measurementMetrics.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[MeasurementMetric]:
+        """List measurement metric rows
+
+        A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one. Returns a cursor page of measurement metric rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /measurement-metrics`` (operation ``measurementMetrics.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["measurementMetrics.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class MeasurementUnitsResource(Resource):
+    """Operations on ``measurementUnits``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[MeasurementUnit]:
+        """List measurement unit rows
+
+        A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers. Returns a cursor page of measurement unit rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /measurement-units`` (operation ``measurementUnits.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["measurementUnits.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[MeasurementUnit]:
+        """List measurement unit rows
+
+        A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers. Returns a cursor page of measurement unit rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /measurement-units`` (operation ``measurementUnits.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["measurementUnits.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class MeasurementMetricTagsResource(Resource):
+    """Operations on ``measurementMetricTags``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[MeasurementMetricTag]:
+        """List measurement metric tag rows
+
+        A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10). Returns a cursor page of measurement metric tag rows the caller may see. The default order is `metric_code`, then `tag_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /measurement-metric-tags`` (operation ``measurementMetricTags.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["measurementMetricTags.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[MeasurementMetricTag]:
+        """List measurement metric tag rows
+
+        A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10). Returns a cursor page of measurement metric tag rows the caller may see. The default order is `metric_code`, then `tag_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /measurement-metric-tags`` (operation ``measurementMetricTags.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["measurementMetricTags.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class ProjectObjectivesResource(Resource):
+    """Operations on ``projectObjectives``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectObjective]:
+        """List project objective rows
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns a cursor page of project objective rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-objectives`` (operation ``projectObjectives.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectObjectives.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectObjective]:
+        """List project objective rows
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns a cursor page of project objective rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-objectives`` (operation ``projectObjectives.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectObjectives.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ProjectObjectiveCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectObjective]:
+        """Create a project objective
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Creates a project objective. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /project-objectives`` (operation ``projectObjectives.create``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectObjectives.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectObjective]:
+        """Get a project objective
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns one project objective with its `ETag`. A project objective the caller may not see returns 404.
+
+        ``GET /project-objectives/{id}`` (operation ``projectObjectives.get``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request(OPERATIONS["projectObjectives.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: ProjectObjectiveUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectObjective]:
+        """Update a project objective
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /project-objectives/{id}`` (operation ``projectObjectives.update``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectObjectives.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a project objective
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Soft-deletes the project objective: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /project-objectives/{id}`` (operation ``projectObjectives.delete``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectObjectives.delete"], path={"id": id}, options=options)
+
+
+class ProjectMeasurementsResource(Resource):
+    """Operations on ``projectMeasurements``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectMeasurement]:
+        """List project measurement rows
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns a cursor page of project measurement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-measurements`` (operation ``projectMeasurements.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectMeasurements.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectMeasurement]:
+        """List project measurement rows
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns a cursor page of project measurement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-measurements`` (operation ``projectMeasurements.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectMeasurements.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ProjectMeasurementCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectMeasurement]:
+        """Create a project measurement
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Creates a project measurement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /project-measurements`` (operation ``projectMeasurements.create``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectMeasurements.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectMeasurement]:
+        """Get a project measurement
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns one project measurement with its `ETag`. A project measurement the caller may not see returns 404.
+
+        ``GET /project-measurements/{id}`` (operation ``projectMeasurements.get``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request(OPERATIONS["projectMeasurements.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: ProjectMeasurementUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectMeasurement]:
+        """Update a project measurement
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /project-measurements/{id}`` (operation ``projectMeasurements.update``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectMeasurements.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a project measurement
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Soft-deletes the project measurement: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /project-measurements/{id}`` (operation ``projectMeasurements.delete``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectMeasurements.delete"], path={"id": id}, options=options)
+
+
+class ProjectMeasurementCorrectionsResource(Resource):
+    """Operations on ``projectMeasurementCorrections``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectMeasurementCorrection]:
+        """List project measurement correction rows
+
+        An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns a cursor page of project measurement correction rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-measurement-corrections`` (operation ``projectMeasurementCorrections.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectMeasurementCorrections.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectMeasurementCorrection]:
+        """List project measurement correction rows
+
+        An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns a cursor page of project measurement correction rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-measurement-corrections`` (operation ``projectMeasurementCorrections.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectMeasurementCorrections.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectMeasurementCorrection]:
+        """Get a project measurement correction
+
+        An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns one project measurement correction with its `ETag`. A project measurement correction the caller may not see returns 404.
+
+        ``GET /project-measurement-corrections/{id}`` (operation ``projectMeasurementCorrections.get``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request(OPERATIONS["projectMeasurementCorrections.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class EarnedMediaItemsResource(Resource):
+    """Operations on ``earnedMediaItems``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[EarnedMediaItem]:
+        """List earned media item rows
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns a cursor page of earned media item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /earned-media-items`` (operation ``earnedMediaItems.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["earnedMediaItems.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[EarnedMediaItem]:
+        """List earned media item rows
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns a cursor page of earned media item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /earned-media-items`` (operation ``earnedMediaItems.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["earnedMediaItems.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: EarnedMediaItemCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EarnedMediaItem]:
+        """Create an earned media item
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Creates an earned media item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /earned-media-items`` (operation ``earnedMediaItems.create``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["earnedMediaItems.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EarnedMediaItem]:
+        """Get an earned media item
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns one earned media item with its `ETag`. A earned media item the caller may not see returns 404.
+
+        ``GET /earned-media-items/{id}`` (operation ``earnedMediaItems.get``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request(OPERATIONS["earnedMediaItems.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: EarnedMediaItemUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EarnedMediaItem]:
+        """Update an earned media item
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /earned-media-items/{id}`` (operation ``earnedMediaItems.update``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["earnedMediaItems.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete an earned media item
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Soft-deletes the earned media item: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /earned-media-items/{id}`` (operation ``earnedMediaItems.delete``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["earnedMediaItems.delete"], path={"id": id}, options=options)
+
+
+class ProjectMeasurementSummaryResource(Resource):
+    """Operations on ``projectMeasurementSummary``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectMeasurementSummary]:
+        """List project measurement summary row rows
+
+        Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero. Returns a cursor page of project measurement summary row rows the caller may see. The default order is `project_id`, then `metric_code` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-measurement-summary`` (operation ``projectMeasurementSummary.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectMeasurementSummary.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectMeasurementSummary]:
+        """List project measurement summary row rows
+
+        Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero. Returns a cursor page of project measurement summary row rows the caller may see. The default order is `project_id`, then `metric_code` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-measurement-summary`` (operation ``projectMeasurementSummary.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectMeasurementSummary.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
 
 class CueCallsResource(Resource):
@@ -31757,6 +32368,22 @@ class AuroraResource(Resource):
         Requires the capability ``home.dashboard.read``.
         """
         return self._client.request(OPERATIONS["aurora.bindCode"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def preview(
+        self,
+        body: AuroraPreviewRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraPreview]:
+        """Preview what a request would send
+
+        Reads the records a drafting or summary request names, as the request would (the caller's permissions, Restricted columns, masked values and excluded tables removed), and returns what would be sent. A gate readiness summary adds the project's gate criteria. No model is called and nothing is metered (A95). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/preview`` (operation ``aurora.preview``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.preview"], body=body, idempotency_key=idempotency_key, options=options)
 
 
 class AiSuggestionsResource(Resource):
@@ -33964,6 +34591,97 @@ class PartnerStandingGrantsResource(Resource):
         return self._client.request(OPERATIONS["partnerStandingGrants.end"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
 
+class ShareLinksResource(Resource):
+    """Operations on ``shareLinks``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ShareLink]:
+        """List share link rows
+
+        A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /share-links`` (operation ``shareLinks.list``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request_page(OPERATIONS["shareLinks.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ShareLink]:
+        """List share link rows
+
+        A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /share-links`` (operation ``shareLinks.list``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.paginate(OPERATIONS["shareLinks.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ShareLinkCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShareLinkToken]:
+        """Create a share link
+
+        Makes a link to the current clean version of a file the caller can read, through app.create_share_link. The database applies Section 8.6: Public files may omit `expires_at`; Internal files need one within 90 days; Confidential files need `data.export.confidential`, `expires_at` within 30 days and `recipient_email`, and always get an access code; Restricted files are refused (422 `share_link_restricted`). A Confidential PDF, or an image other than PNG or JPEG, cannot carry the viewer watermark and is refused (422 `share_link_watermark_unsupported`). Answers 201 with the token and access code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /share-links`` (operation ``shareLinks.create``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request(OPERATIONS["shareLinks.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShareLink]:
+        """Get a share link
+
+        A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns one share link with its `ETag`. A share link the caller may not see returns 404.
+
+        ``GET /share-links/{id}`` (operation ``shareLinks.get``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request(OPERATIONS["shareLinks.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def revoke(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShareLink]:
+        """Revoke a share link
+
+        Revokes the link through app.revoke_share_link so it never opens again. The person who made it may revoke it, and so may anyone holding `data.export.confidential` in the org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /share-links/{id}/revoke`` (operation ``shareLinks.revoke``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request(OPERATIONS["shareLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
 class PersonCalendarFeedsResource(Resource):
     """Operations on ``personCalendarFeeds``, in the Platform module."""
 
@@ -34267,6 +34985,298 @@ class InboundMessagesResource(Resource):
         Requires the capability ``knowledge.document.write``.
         """
         return self._client.request(OPERATIONS["inboundMessages.discard"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class AutomationsResource(Resource):
+    """Operations on ``automations``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[Automation]:
+        """List automation rows
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns a cursor page of automation rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /automations`` (operation ``automations.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request_page(OPERATIONS["automations.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[Automation]:
+        """List automation rows
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns a cursor page of automation rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /automations`` (operation ``automations.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.paginate(OPERATIONS["automations.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: AutomationCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Automation]:
+        """Create an automation
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Creates an automation. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /automations`` (operation ``automations.create``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automations.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Automation]:
+        """Get an automation
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns one automation with its `ETag`. A automation the caller may not see returns 404.
+
+        ``GET /automations/{id}`` (operation ``automations.get``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automations.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: AutomationUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Automation]:
+        """Update an automation
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /automations/{id}`` (operation ``automations.update``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automations.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete an automation
+
+        An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Soft-deletes the automation: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /automations/{id}`` (operation ``automations.delete``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automations.delete"], path={"id": id}, options=options)
+
+    def test(
+        self,
+        id: str,
+        body: AutomationTestRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationTestResult]:
+        """Test an automation against a sample event
+
+        Dry run of the automation's conditions against a sample event body through `app.test_automation`: whether they match and, per condition, the value found. Nothing runs and nothing is written. Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /automations/{id}/test`` (operation ``automations.test``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automations.test"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class AutomationRunsResource(Resource):
+    """Operations on ``automationRuns``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AutomationRun]:
+        """List automation run rows
+
+        One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns a cursor page of automation run rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /automation-runs`` (operation ``automationRuns.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request_page(OPERATIONS["automationRuns.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AutomationRun]:
+        """List automation run rows
+
+        One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns a cursor page of automation run rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /automation-runs`` (operation ``automationRuns.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.paginate(OPERATIONS["automationRuns.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationRun]:
+        """Get an automation run
+
+        One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns one automation run with its `ETag`. A automation run the caller may not see returns 404.
+
+        ``GET /automation-runs/{id}`` (operation ``automationRuns.get``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automationRuns.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def notify(
+        self,
+        id: str,
+        body: AutomationNoticeRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationNoticeResult]:
+        """Notify a member from a running automation run
+
+        The notify action (ADR 0047): during a run, the automation's owner notifies a member of the org (automation.notice) about the event's subject, through `app.send_automation_notice`. Only a running run of the caller's own automation (404 otherwise); the recipient must be a member (automation_person_not_member: 422). Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /automation-runs/{id}/notices`` (operation ``automationRuns.notify``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automationRuns.notify"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def deliver_webhook(
+        self,
+        id: str,
+        body: AutomationWebhookRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationWebhookResult]:
+        """Send a running run's event to a webhook endpoint
+
+        The call_webhook action (ADR 0047): during a run, its owner queues a delivery of the run's event to one of the org's webhook endpoints through `app.queue_automation_webhook`; the webhook dispatcher signs and retries it like every webhook. Needs org.automations.write, org.webhooks.manage and the webhooks plan feature. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /automation-runs/{id}/webhook-deliveries`` (operation ``automationRuns.deliverWebhook``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automationRuns.deliverWebhook"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def retry(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationRun]:
+        """Retry a failed automation run
+
+        Queues a failed run again through `app.retry_automation_run`; steps that succeeded are not run again. The automation must be on (automation_off: 422) and the run Failed (automation_run_not_failed: 422). Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /automation-runs/{id}/retry`` (operation ``automationRuns.retry``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automationRuns.retry"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class AutomationRunStepsResource(Resource):
+    """Operations on ``automationRunSteps``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AutomationRunStep]:
+        """List automation run step rows
+
+        One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns a cursor page of automation run step rows the caller may see. The default order is `automation_run_id`, then `position` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /automation-run-steps`` (operation ``automationRunSteps.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request_page(OPERATIONS["automationRunSteps.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AutomationRunStep]:
+        """List automation run step rows
+
+        One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns a cursor page of automation run step rows the caller may see. The default order is `automation_run_id`, then `position` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /automation-run-steps`` (operation ``automationRunSteps.list``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.paginate(OPERATIONS["automationRunSteps.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AutomationRunStep]:
+        """Get an automation run step
+
+        One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns one automation run step with its `ETag`. A automation run step the caller may not see returns 404.
+
+        ``GET /automation-run-steps/{id}`` (operation ``automationRunSteps.get``).
+        Requires the capability ``org.automations.write``.
+        """
+        return self._client.request(OPERATIONS["automationRunSteps.get"], path={"id": id}, query={"fields": fields}, options=options)
 
 
 class WorkforceGroupsResource(Resource):

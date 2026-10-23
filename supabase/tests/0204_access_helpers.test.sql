@@ -105,6 +105,8 @@ select throws_like(
 select throws_like(
   $$insert into app.membership_roles (membership_id, role_id) values (pg_temp.id('dave@org_a'), pg_temp.system_role('owner'))$$,
   'role_band:%', 'an admin cannot assign the Owner role');
+-- Assigning a role asks for step-up (1562).
+select pg_temp.as_user_stepped_up('bob');
 select lives_ok(
   $$insert into app.membership_roles (membership_id, role_id) values (pg_temp.id('dave@org_a'), pg_temp.system_role('manager'))$$,
   'an admin assigns a role below their band to someone else');
@@ -132,6 +134,7 @@ select lives_ok(
 select throws_like(
   $$insert into app.roles (org_id, code, name, band) values (pg_temp.id('org_a'), 'owner', 'Owner Two', 2)$$,
   'role_code_reserved:%', 'a custom role cannot reuse a system role code');
+select pg_temp.as_user_stepped_up('bob');
 select lives_ok(
   $$insert into app.membership_roles (membership_id, role_id)
     select pg_temp.id('erin@org_a'), id from app.roles where code = 'finance_lead'$$,
@@ -311,7 +314,7 @@ select throws_like(
   $$update app.membership_roles set deleted_at = now()
     where membership_id = pg_temp.id('xavier@org_b') and role_id = pg_temp.system_role('owner')$$,
   'sole_owner:%', 'even a platform process cannot leave an org without an Owner');
-select pg_temp.as_user('alice');
+select pg_temp.as_user_stepped_up('alice');
 select lives_ok(
   $$insert into app.membership_roles (membership_id, role_id) values (pg_temp.id('bob@org_a'), pg_temp.system_role('owner'))$$,
   'an Owner makes another member an Owner');

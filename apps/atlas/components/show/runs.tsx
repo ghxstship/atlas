@@ -24,7 +24,8 @@ import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
-import { formatDay, formatWhen, fromLocalInput, withQuery } from "@/components/work/format";
+import { formatDay, formatScheduleTime, fromLocalInput, withQuery } from "@/components/work/format";
+import { useScheduleView } from "@/components/work/use-schedule-view";
 import {
   addCueAction,
   callCueAction,
@@ -410,7 +411,9 @@ export function RunBody({
   const [planned, setPlanned] = useState("");
   const [duration, setDuration] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const time = (at: string | null) => formatWhen(at, locale, tz, { timeStyle: "short" });
+  // Cue times follow me.time_zone_display and carry their zone abbreviation (Section 15).
+  const view = useScheduleView();
+  const time = (at: string | null) => formatScheduleTime(at, locale, tz, view, "time");
   const next = progress.next >= 0 ? cues[progress.next] : undefined;
   const current = progress.current >= 0 ? cues[progress.current] : undefined;
 
@@ -700,6 +703,7 @@ export function RunBody({
 
 function CueList({ cues, tz, highlight }: { cues: readonly Cue[]; tz: string; highlight: number }) {
   const locale = useLocale();
+  const view = useScheduleView();
   return (
     <ol className="m-0 flex list-none flex-col p-0">
       {cues.map((c, i) => (
@@ -710,7 +714,7 @@ function CueList({ cues, tz, highlight }: { cues: readonly Cue[]; tz: string; hi
         >
           <span className="font-mono text-text-12">{c.position}</span>
           <span className="text-text-secondary">
-            {formatWhen(c.plannedAt, locale, tz, { timeStyle: "short" }) ?? ""}
+            {formatScheduleTime(c.plannedAt, locale, tz, view, "time") ?? ""}
           </span>
           <span>{c.label}</span>
         </li>

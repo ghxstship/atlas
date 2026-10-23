@@ -50,6 +50,14 @@ describe("answering the API host", () => {
     expect(res.headers.get("set-cookie")).toBeNull();
   });
 
+  it("sends /oauth/authorize to Atlas's own authorize route, keeping the query (A99)", () => {
+    const response = apiHostResponse(request("/oauth/authorize?client_id=c&scope=work"), config);
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://atlas.atlas.test/oauth/authorize?client_id=c&scope=work",
+    );
+  });
+
   it("describes the API at / and /v1", async () => {
     for (const path of ["/", "/v1"]) {
       const res = apiHostResponse(request(path), config);

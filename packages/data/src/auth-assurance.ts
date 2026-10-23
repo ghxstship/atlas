@@ -156,6 +156,8 @@ export interface OrgAuthStatus {
   readonly sessionExpiresAt: string | null;
   readonly sessionExpired: boolean;
   readonly idleTimeoutMinutes: number | null;
+  /** The session was signed out from Personal settings, Security (A99, migration 1561): its row is gone. */
+  readonly sessionEnded: boolean;
 }
 
 /** What the org's security settings ask of the caller's session, or null when the caller is not a member. */
@@ -175,22 +177,24 @@ export async function getOrgAuthStatus(
     sessionExpiresAt: row.session_expires_at ?? null,
     sessionExpired: row.session_expired === true,
     idleTimeoutMinutes: row.idle_timeout_minutes ?? null,
+    sessionEnded: row.session_ended === true,
   });
 }
 
 /** Why a member may not enter an org with this session, or `ok`. */
-export type OrgAuthDecision = "ok" | "mfa" | "session-expired" | "idle";
+export type OrgAuthDecision = "ok" | "mfa" | "session-expired" | "idle" | "signed-out";
 
 /**
- * The guard's decision for an org (Section 9): a session past the org's lifetime (security.session_hours) or idle
- * longer than its timeout (security.idle_timeout_minutes) signs in again; a session the policy (security.mfa_policy)
- * asks a second factor of verifies one first. `lastSeenAt` is the device's
+ * The guard's decision for an org (Section 9): a session signed out from another device (A99) or past the org's
+ * lifetime (security.session_hours) or idle longer than its timeout (security.idle_timeout_minutes) signs in again; a
+ * session the policy (security.mfa_policy) asks a second factor of verifies one first. `lastSeenAt` is the device's
  * last request; activity before the sign-in does not count against it.
  */
 export function orgAuthDecision(
   status: OrgAuthStatus,
   input: { readonly lastSeenAt: number | null; readonly now: number },
 ): OrgAuthDecision {
+  if (status.sessionEnded) return "signed-out";
   if (status.sessionExpired) return "session-expired";
   if (status.idleTimeoutMinutes !== null && input.lastSeenAt !== null) {
     const signedIn = status.signedInAt === null ? 0 : Date.parse(status.signedInAt);

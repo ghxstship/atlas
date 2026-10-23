@@ -352,65 +352,12 @@ This workflow runs the machine translation pipeline with Google Cloud Translatio
 - **One new action.** It needs `google-github-actions/auth` v3.0.0, pinned by SHA. That is an ADR 0001 amendment, recorded in ADR 0037. The workflow is in the repository since 2026-10-20 (the orchestrator checked that the SHA is the v3.0.0 tag).
 - **The offline check needs nothing here.** It already runs in the `checks` job through `pnpm verify`.
 
-```yaml
-name: Translate
+The workflow file itself is the source; this section no longer copies it. What it does:
 
-on:
-  workflow_dispatch:
-    inputs:
-      command:
-        description: "translate (missing and stale), review (es-US), or all (glossary, translate, review)"
-        type: choice
-        options: [translate, review, all]
-        default: translate
-
-permissions:
-  contents: read
-  id-token: write
-
-jobs:
-  translate:
-    name: Machine translation (${{ inputs.command }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - id: google
-        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
-        with:
-          workload_identity_provider: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ vars.GOOGLE_TRANSLATE_SERVICE_ACCOUNT }}
-          token_format: access_token
-          create_credentials_file: false
-      - name: Translate
-        env:
-          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
-          GOOGLE_TRANSLATE_GLOSSARY_BUCKET: ${{ vars.GOOGLE_TRANSLATE_GLOSSARY_BUCKET }}
-          GOOGLE_OAUTH_ACCESS_TOKEN: ${{ steps.google.outputs.access_token }}
-          COMMAND: ${{ inputs.command }}
-        run: |
-          case "$COMMAND" in
-            translate) pnpm --filter @xos/i18n translate ;;
-            review) pnpm --filter @xos/i18n translate:review ;;
-            all) pnpm --filter @xos/i18n translate:all ;;
-          esac
-      - name: Offline check on the result
-        run: pnpm --filter @xos/i18n test
-      - name: Changes as a patch
-        if: always()
-        run: git add -A && git diff --cached --binary > translation.patch
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
-        with:
-          name: translation-${{ inputs.command }}
-          path: translation.patch
-```
+- **Inputs.** `command` is `translate` (missing and stale strings in es-US and in the five Beta locales), `review` (es-US) or `all` (glossary, translate, review). `locale` limits `translate` or `review` to one target, for example `fr-FR`.
+- **No credentials, no run.** The first step checks the repository variables `GOOGLE_CLOUD_PROJECT`, `GOOGLE_WORKLOAD_IDENTITY_PROVIDER` and `GOOGLE_TRANSLATE_SERVICE_ACCOUNT`. Until the owner sets them, the run ends there with a notice ("Translation skipped") and touches nothing: no install, no Google call, no patch. The Beta catalogs stay as they are and every missing key reads en-US (ADR 0053).
+- **With credentials,** it installs, authenticates through Workload Identity Federation, runs the command, runs the offline check (`pnpm --filter @xos/i18n test`) and uploads the changes as `translation.patch`.
+- **Beta locales** (fr-FR, de-DE, it-IT, pt-BR, ja-JP) are targets in `packages/i18n/translation/config.json` with `partial: true` and the `catalogs` and `canon` surfaces, so the first `translate` writes their catalogs and canon labels and nothing under the help articles or guides.
 
 To apply the result:
 

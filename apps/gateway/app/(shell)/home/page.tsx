@@ -21,7 +21,15 @@ import { ButtonLink, Card, EmptyStateLink, Icon, PropertyList } from "@/componen
 import { UpNextActions } from "@/components/page/up-next-actions";
 import { Updates } from "@/components/page/updates";
 import { acceptRepresentationAction, signDocumentAction } from "@/lib/actions/engagement";
-import { formatCountdown, formatDate, formatDateRange, formatDateTime } from "@/lib/format";
+import {
+  formatCountdown,
+  formatDate,
+  formatDateRange,
+  formatDateTime,
+  formatScheduleTime,
+  type ScheduleView,
+} from "@/lib/format";
+import { getScheduleView } from "@/lib/time-zone";
 import { needsYou, pickUpNext, UP_NEXT_KINDS, type FeedItem } from "@/lib/home";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getNode } from "@xos/ia";
@@ -46,7 +54,11 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   const query = await searchParams;
   const views = getNode(sitemap, "home").node.list?.views ?? ["feed"];
   const view = pickView(query["view"], views, "feed");
-  const [t, locale] = await Promise.all([getTranslate(), getLocale()]);
+  const [t, locale, schedule] = await Promise.all([
+    getTranslate(),
+    getLocale(),
+    getScheduleView(ctx),
+  ]);
   const now = new Date();
   const engagementsResult = await listMyEngagements(ctx.db);
   if (!engagementsResult.ok) {
@@ -116,7 +128,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       {view === "feed" ? (
         <Section title={t("gateway.home.upNext.title")}>
           {upNext ? (
-            <UpNextCardView upNext={upNext} locale={locale} t={t} now={now} />
+            <UpNextCardView upNext={upNext} locale={locale} t={t} now={now} schedule={schedule} />
           ) : (
             <EmptyStateLink
               icon="CalendarClock"
@@ -205,11 +217,14 @@ function UpNextCardView({
   locale,
   t,
   now,
+  schedule,
 }: {
   upNext: ReturnType<typeof pickUpNext> & object;
   locale: string;
   t: Translate;
   now: Date;
+  /** How the person reads schedule times (me.time_zone_display). */
+  schedule: ScheduleView;
 }) {
   if (upNext.kind === "engagement") {
     const e = upNext.engagement;
@@ -277,7 +292,12 @@ function UpNextCardView({
             ? [
                 {
                   label: t("gateway.home.upNext.when"),
-                  value: formatDateTime(locale, start, r.timeZone),
+                  value: formatScheduleTime(
+                    locale,
+                    start,
+                    r.timeZone ?? upNext.engagement?.projectTimeZone,
+                    schedule,
+                  ),
                 },
               ]
             : []),

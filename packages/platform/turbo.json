@@ -1,0 +1,15 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/supabase/functions/**",
+        "$TURBO_ROOT$/infra/observability/src/**",
+        "$TURBO_ROOT$/packages/data/src/**",
+        "$TURBO_ROOT$/packages/integrations/src/**"
+      ]
+    }
+  }
+}

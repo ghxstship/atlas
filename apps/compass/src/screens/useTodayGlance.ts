@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import type { GlanceCue, GlanceShift, Translate, WidgetPayload } from "../domain/glance";
 import { widgetPayload } from "../domain/glance";
 import { combinedToday, itemZone, type TodayCue, type TodaySheet } from "../domain/orgs";
+import { scheduleZone } from "../domain/settings";
 import type { ShiftRow } from "../domain/shifts";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { formatTime, useRoleTitle } from "./common";
@@ -24,7 +25,9 @@ export interface TodayGlance {
 export function useTodayGlance(): TodayGlance {
   const { t } = useTranslation();
   const roleTitle = useRoleTitle();
-  const { resolved, personZone, brands } = useCompass();
+  const { resolved, personZone, brands, orgSettings } = useCompass();
+  // Times read in the item's zone, or the person's own when they asked for that (me.time_zone_display, A97).
+  const display = (zone: string) => scheduleZone(zone, orgSettings) ?? zone;
   const all = { allOrgs: true } as const;
   const { rows: shifts } = useRows<ShiftRow & Row>("shifts", undefined, all);
   const { rows: sheets } = useRows<TodaySheet & Row>("day_sheets", undefined, all);
@@ -65,7 +68,7 @@ export function useTodayGlance(): TodayGlance {
       title: roleTitle(s),
       startsAt: s.starts_at,
       endsAt: s.ends_at,
-      zone: itemZone(s.time_zone, project(s.project_id)?.time_zone, personZone),
+      zone: display(itemZone(s.time_zone, project(s.project_id)?.time_zone, personZone)),
       org: several ? g.orgName : null,
     })),
   );
@@ -80,7 +83,7 @@ export function useTodayGlance(): TodayGlance {
       label: next.label,
       at,
       project: p?.name ?? null,
-      zone: itemZone(null, p?.time_zone, personZone),
+      zone: display(itemZone(null, p?.time_zone, personZone)),
     };
   }
   return {

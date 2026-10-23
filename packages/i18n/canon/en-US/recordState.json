@@ -1,0 +1,11 @@
+{
+  "Active": "Active",
+  "Blocked": "Blocked",
+  "Canceled": "Canceled",
+  "Complete": "Complete",
+  "Deferred": "Deferred",
+  "In Review": "In Review",
+  "Proposed": "Proposed",
+  "Ready": "Ready",
+  "Scheduled": "Scheduled"
+}

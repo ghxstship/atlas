@@ -1,4 +1,6 @@
-import { getMessages, type Locale } from "@xos/i18n";
+import { defaultLocale, isLaunchLocale, type LaunchLocale, type Locale } from "@xos/i18n/locales";
+import enUS from "@xos/i18n/messages/en-US/integrations.json" with { type: "json" };
+import esUS from "@xos/i18n/messages/es-US/integrations.json" with { type: "json" };
 
 /** Copy the integrations send to people outside Atlas (chat messages), from the `integrations` namespace. */
 export type Translate = (key: string, args?: Readonly<Record<string, string | number>>) => string;
@@ -6,11 +8,17 @@ export type Translate = (key: string, args?: Readonly<Record<string, string | nu
 type Tree = { readonly [key: string]: string | Tree };
 
 /**
+ * The integrations namespace of each locale, read from its own file, so the Edge Functions that send chat
+ * copy load this namespace only, never every catalog (A85, cold starts). A Beta locale (ADR 0053) reads en-US.
+ */
+const catalogs: Readonly<Record<LaunchLocale, Tree>> = { "en-US": enUS, "es-US": esUS };
+
+/**
  * A translator over the `integrations` namespace. Messages use simple `{name}` arguments only. A
  * missing key or argument throws, so a raw key or a stray brace never reaches a channel.
  */
 export function integrationsTranslator(locale: Locale): Translate {
-  const catalog = (getMessages(locale) as unknown as Tree)["integrations"];
+  const catalog = catalogs[isLaunchLocale(locale) ? locale : defaultLocale] as Tree | undefined;
   if (typeof catalog !== "object")
     throw new Error(`The ${locale} catalog has no integrations namespace.`);
   return (key, args = {}) => {

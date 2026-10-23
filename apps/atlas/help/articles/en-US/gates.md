@@ -18,6 +18,12 @@ A gate is the check between two phases of a project. Each gate has criteria. Blo
 
 If a blocking criterion is still open, Atlas refuses the gate and names the criterion. Attach the missing evidence or resolve the criterion, then try again. Every pass is logged with who passed it, when and why.
 
+## Objectives and measurement
+
+Gate 1 holds the project's **Objectives**: one target per figure, such as at least 5,000 attendees or at most 2 t of waste. Set them while gate 1 is open, then record them as gate 1 evidence. Once gate 1 passes, only a gate approver can change them, and every change is logged.
+
+Gate 8 holds the **Measurement**: record waste, energy, water, transport, attendance, online audience and sentiment figures, and add each piece of earned media coverage with its link. Coverage counts and reach come from the coverage you add. A figure nobody measured shows as Unmeasured, never as zero. To change a figure, choose **Correct** and give a reason; the correction log keeps the figure before and after.
+
 ## Definitions
 
 Hover over or focus any gate or phase chip to see its definition from the XOS canon. The glossary in Help lists every term.

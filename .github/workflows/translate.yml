@@ -4,10 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       command:
-        description: "translate (missing and stale), review (es-US), or all (glossary, translate, review)"
+        description: "translate (missing and stale, es-US and the Beta locales), review (es-US), or all (glossary, translate, review)"
         type: choice
         options: [translate, review, all]
         default: translate
+      locale:
+        description: "Only this target locale (for example fr-FR); empty for every target"
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -17,16 +21,36 @@ jobs:
   translate:
     name: Machine translation (${{ inputs.command }})
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
+      # Until the owner sets up Google Cloud (infra/runbooks/production.md, Machine translation), the run
+      # is a no-op that says so: no install, no Google call, no patch.
+      - id: credentials
+        name: Google Cloud credentials
+        env:
+          PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          PROVIDER: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          ACCOUNT: ${{ vars.GOOGLE_TRANSLATE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$PROJECT" ] || [ -z "$PROVIDER" ] || [ -z "$ACCOUNT" ]; then
+            echo "::notice title=Translation skipped::Google Cloud credentials are not set up yet, so nothing was translated. es-US and the Beta locales (fr-FR, de-DE, it-IT, pt-BR, ja-JP) keep their current catalogs, and every missing Beta key reads en-US. Set GOOGLE_CLOUD_PROJECT, GOOGLE_WORKLOAD_IDENTITY_PROVIDER and GOOGLE_TRANSLATE_SERVICE_ACCOUNT (infra/runbooks/production.md, Machine translation), then run this workflow again."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.credentials.outputs.ready == 'true'
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        if: steps.credentials.outputs.ready == 'true'
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: steps.credentials.outputs.ready == 'true'
         with:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+        if: steps.credentials.outputs.ready == 'true'
       - id: google
+        if: steps.credentials.outputs.ready == 'true'
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
         with:
           workload_identity_provider: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
@@ -34,24 +58,28 @@ jobs:
           token_format: access_token
           create_credentials_file: false
       - name: Translate
+        if: steps.credentials.outputs.ready == 'true'
         env:
           GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
           GOOGLE_TRANSLATE_GLOSSARY_BUCKET: ${{ vars.GOOGLE_TRANSLATE_GLOSSARY_BUCKET }}
           GOOGLE_OAUTH_ACCESS_TOKEN: ${{ steps.google.outputs.access_token }}
           COMMAND: ${{ inputs.command }}
+          LOCALE: ${{ inputs.locale }}
         run: |
+          set -- ${LOCALE:+--locale "$LOCALE"}
           case "$COMMAND" in
-            translate) pnpm --filter @xos/i18n translate ;;
-            review) pnpm --filter @xos/i18n translate:review ;;
+            translate) pnpm --filter @xos/i18n translate "$@" ;;
+            review) pnpm --filter @xos/i18n translate:review "$@" ;;
             all) pnpm --filter @xos/i18n translate:all ;;
           esac
       - name: Offline check on the result
+        if: steps.credentials.outputs.ready == 'true'
         run: pnpm --filter @xos/i18n test
       - name: Changes as a patch
-        if: always()
+        if: always() && steps.credentials.outputs.ready == 'true'
         run: git add -A && git diff --cached --binary > translation.patch
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
+        if: always() && steps.credentials.outputs.ready == 'true'
         with:
           name: translation-${{ inputs.command }}
           path: translation.patch

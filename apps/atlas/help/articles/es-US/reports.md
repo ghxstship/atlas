@@ -10,6 +10,10 @@ order: 33
 
 Preparación de compuertas, Matriz de coordenadas, Presupuesto frente a real, Mano de obra, Exposición de órdenes de compra, Incidentes y el Informe de costo final leen los datos actuales que usted puede ver. El informe de costo final se genera cuando un proyecto se cierra y lo compara con su línea base de la compuerta 3.
 
+## Objetivos y medición
+
+**Objetivos y medición** compara los objetivos de la compuerta 1 de cada proyecto con lo que midió la compuerta 8, en sus unidades. Sin filtro de proyecto, muestra cómo están los objetivos de cada proyecto y cada cifra entre los proyectos que la midieron. Un objetivo aparece como Cumplido, No cumplido, Incompleto (hay cifras sin medir que aún podrían cambiarlo) o Sin medir.
+
 ## Cree un informe
 
 1. Abra el **Generador de informes** y elija una colección.

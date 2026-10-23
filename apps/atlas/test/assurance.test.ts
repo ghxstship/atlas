@@ -47,6 +47,9 @@ describe("where a session that owes something goes (A77)", () => {
     );
     expect(orgAuthRedirect("idle", "acme", "/acme/home", "")).toBe(
       "/auth/session-ended?org=acme&reason=idle&next=%2Facme%2Fhome",
+    ); // A99: a session signed out from another device signs in again too.
+    expect(orgAuthRedirect("signed-out", "acme", "/acme/home", "")).toBe(
+      "/auth/session-ended?org=acme&reason=signed-out&next=%2Facme%2Fhome",
     );
   });
 

@@ -4,6 +4,7 @@
 - Date: 2026-10-20
 - Decider: Owner (Julian Clarkson); built and recorded by A73 (RRR-118)
 - Amends: ADR 0033 decision 27 (RRR-68)
+- Amended by: ADR 0053 (Beta locales are targets; canon labels are a translated surface)
 
 ## Context
 
@@ -29,7 +30,7 @@ This ADR records what is translated, how the pipeline works, the API, model and 
 | Compass iOS permission prompts                                                                | `NSCameraUsageDescription` and the other prompts in `apps/compass/app.json`, English only                                        | No. This is a gap: Expo `locales` files per language, then a surface entry                                                                                               |
 | API reference operation descriptions                                                          | `packages/api/openapi/v1.json`, shown in English on both locales' pages                                                          | No. It is a developer reference, and the English contract is the source of truth                                                                                         |
 | Pseudo-locales `en-XA` and `ar-XB`                                                            | `packages/i18n/messages/pseudo` (`ui` only) and `apps/*/i18n/pseudo.ts` at runtime                                               | Never. They are derived from en-US by rule, for gate 16                                                                                                                  |
-| Seeded reference data                                                                         | Canon tables and seeds                                                                                                           | Nothing to translate. Canon values are English, display labels come from the catalogs, and `xpms.dim_locale` only lists locale codes                                     |
+| Canon labels (ADR 0053)                                                                       | `packages/i18n/canon/<locale>/<vocabulary>.json`, loaded into `xpms.canon_label` by migrations                                   | Yes, surface `canon` (partial in every locale: `xpms.canon_labels` falls back to en-US). Codes are never translated                                                      |
 
 ### 2. API and model
 
@@ -135,7 +136,7 @@ This ADR records what is translated, how the pipeline works, the API, model and 
 2. Add a `fr` column to `glossary.csv`, then run `translate:glossary`.
 3. Run `pnpm --filter @xos/i18n translate --locale fr-FR`. It writes every catalog, help article and guide, and the memory.
 
-Shipping the locale in the apps is a separate change: `src/locales.ts`, `LOCALES` in `scripts/generate-catalogs.ts`, the catalog map in `src/index.ts`, the apps' locale negotiation, `HELP_LOCALES`, the API's `SUPPORTED_LOCALES` and the `locale.language` setting choices. A full fill of one new locale costs about the same as the es-US review below.
+Shipping the locale in the apps is a separate change: `src/locales.ts`, `LOCALES` in `scripts/generate-catalogs.ts`, the catalog map in `src/index.ts`, the apps' locale negotiation, `HELP_LOCALES`, the API's `SUPPORTED_LOCALES` and the `locale.language` setting choices. A full fill of one new locale costs about the same as the es-US review below. ADR 0053 shipped fr-FR, de-DE, it-IT, pt-BR and ja-JP this way as Beta locales: partial targets on the `catalogs` and `canon` surfaces, listed in `betaLocales`, loaded per locale.
 
 ### 10. Cost of the first run (dry runs on 2026-10-20)
 

@@ -84,13 +84,15 @@ export const EXTRACTION_TARGETS: Readonly<Record<DocumentKind, ExtractionTarget>
       ],
     },
   },
+  // The invoice, expense and RFQ response forms in Atlas fill from these (A95); the project,
+  // counterparty, budget line and vendor come from the person, never from the document.
   invoice: {
     operationId: "invoices.create",
     fields: [
       { path: "invoice_number", kind: "text", description: "Invoice number as printed." },
       { path: "issued_on", kind: "date", description: "Issue date, YYYY-MM-DD." },
       { path: "due_on", kind: "date", description: "Due date, YYYY-MM-DD." },
-      { path: "currency", kind: "currency", description: "ISO 4217 currency." },
+      { path: "currency_code", kind: "currency", description: "ISO 4217 currency." },
     ],
   },
   receipt: {
@@ -98,22 +100,28 @@ export const EXTRACTION_TARGETS: Readonly<Record<DocumentKind, ExtractionTarget>
     fields: [
       { path: "description", kind: "text", description: "What was bought, in a short phrase." },
       { path: "amount_minor", kind: "money", description: "Total paid in minor units." },
-      { path: "currency", kind: "currency", description: "ISO 4217 currency." },
+      { path: "currency_code", kind: "currency", description: "ISO 4217 currency." },
       { path: "incurred_on", kind: "date", description: "Purchase date, YYYY-MM-DD." },
     ],
   },
+  // A vendor's quote answers an RFQ, so it becomes an RFQ response with its quoted lines.
   quote: {
-    operationId: "bids.create",
+    operationId: "rfqResponses.create",
     fields: [
-      { path: "notes", kind: "text", description: "Terms and conditions stated on the quote." },
+      {
+        path: "valid_until",
+        kind: "date",
+        description: "Date the quote is valid until, YYYY-MM-DD.",
+      },
+      { path: "currency_code", kind: "currency", description: "ISO 4217 currency of the prices." },
     ],
     lines: {
-      operationId: "bidLines.create",
+      operationId: "rfqResponseLines.create",
       fields: [
         { path: "description", kind: "text", description: "Line description." },
         { path: "quantity", kind: "quantity", description: "Quantity quoted." },
         { path: "unit_price_minor", kind: "money", description: "Unit price in minor units." },
-        { path: "currency", kind: "currency", description: "ISO 4217 currency." },
+        { path: "currency_code", kind: "currency", description: "ISO 4217 currency." },
       ],
     },
   },

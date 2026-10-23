@@ -4,6 +4,7 @@
  * and the org's clock, kiosk and claiming rules. The server enforces the org rules again (migrations 1321 and
  * 1322); here they shape what the device offers before it queues anything.
  */
+import { resolveUnitSystem, type UnitsPreference, type UnitSystem } from "@xos/i18n/units";
 import type { ThemeOptions } from "@xos/ui-native/theme";
 
 /** Resolved setting values by key; empty until the first download (every rule then falls back to its default). */
@@ -21,6 +22,7 @@ export const COMPASS_SETTING_KEYS: readonly string[] = [
   "locale.units",
   // The person's own calendar for items with no project (A71); kept only when they set it themselves.
   "locale.time_zone",
+  "me.time_zone_display",
   "time.geofence_required",
   "time.kiosk_enabled",
   "time.photo_on_punch",
@@ -89,7 +91,35 @@ export function claimRuleOf(values: ResolvedValues): ClaimRule {
 const METERS_PER_FOOT = 0.3048;
 const METERS_PER_MILE = 1609.344;
 
-/** A distance in the person's units (locale.units, imperial by default), formatted for the locale. */
+/**
+ * The unit system to show (locale.units, Section 15): a system the org or person chose, otherwise the project's
+ * jurisdiction when the screen knows it, otherwise the region of the device's locale (imperial in the US).
+ */
+export function unitSystemOf(
+  locale: string,
+  values: ResolvedValues,
+  jurisdiction: UnitSystem | null = null,
+): UnitSystem {
+  const chosen = values.get("locale.units");
+  const preference: UnitsPreference =
+    chosen === "imperial" || chosen === "metric" ? chosen : "jurisdiction";
+  return resolveUnitSystem(preference, { jurisdiction, locale });
+}
+
+/**
+ * The zone a schedule time shows in (Section 15): the event's (the shift's or project's) unless the person chose
+ * their own (me.time_zone_display); on a phone their own zone is the device's.
+ */
+export function scheduleZone(
+  eventZone: string | null | undefined,
+  values: ResolvedValues,
+  deviceZone: string = Intl.DateTimeFormat().resolvedOptions().timeZone,
+): string | undefined {
+  if (values.get("me.time_zone_display") === "viewer" && deviceZone) return deviceZone;
+  return eventZone ?? undefined;
+}
+
+/** A distance in the person's units (locale.units, by jurisdiction by default), formatted for the locale. */
 export function formatDistance(locale: string, meters: number, values: ResolvedValues): string {
   const unit = (name: string, value: number, digits: number) =>
     new Intl.NumberFormat(locale, {
@@ -97,7 +127,7 @@ export function formatDistance(locale: string, meters: number, values: ResolvedV
       unit: name,
       maximumFractionDigits: digits,
     }).format(value);
-  if (values.get("locale.units") === "metric") {
+  if (unitSystemOf(locale, values) === "metric") {
     return meters >= 1000 ? unit("kilometer", meters / 1000, 1) : unit("meter", meters, 0);
   }
   const feet = meters / METERS_PER_FOOT;

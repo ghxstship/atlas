@@ -22,7 +22,8 @@ import { useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
-import { formatDay, formatWhen, withQuery } from "@/components/work/format";
+import { formatDay, formatScheduleTime, formatWhen, withQuery } from "@/components/work/format";
+import { useScheduleView } from "@/components/work/use-schedule-view";
 import { shiftMonth } from "@/components/work/record-collection";
 import {
   createCallSheetAction,
@@ -381,7 +382,9 @@ export function CallSheetPeek({
   const { pending, error, run } = useAction();
   const close = () =>
     router.replace(withQuery(pathname, params, { peek: null }) as Route, { scroll: false });
-  const time = (at: string) => formatWhen(at, locale, timeZone, { timeStyle: "short" }) ?? "";
+  // Call times follow me.time_zone_display and carry their zone abbreviation (Section 15).
+  const view = useScheduleView();
+  const time = (at: string) => formatScheduleTime(at, locale, timeZone, view, "time") ?? "";
   return (
     <Drawer
       title={`${sheet.projectKey} · ${formatDay(sheet.day, locale, { dateStyle: "full" })}`}

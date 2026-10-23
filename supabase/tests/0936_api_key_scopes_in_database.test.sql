@@ -8,8 +8,8 @@ set search_path = extensions, public;
 
 select plan(7);
 
--- Bob (Admin of Northwind Live) creates an Admin service account and a key scoped to crew only.
-select pg_temp.as_user('bob');
+-- Bob (Admin of Northwind Live) creates an Admin service account and a key scoped to crew only, with step-up (1562).
+select pg_temp.as_user_stepped_up('bob');
 insert into world select 'sa_admin', app.create_service_account(pg_temp.id('org_a'), 'Crew Sync Bot', pg_temp.system_role('admin'));
 create temporary table crew_key as
   select * from app.create_api_key(pg_temp.id('org_a'), 'Crew Only Key', array['crew'], now() + interval '30 days', pg_temp.id('sa_admin'));

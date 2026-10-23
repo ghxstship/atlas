@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, CommandMenu, Dialog, Drawer } from "@xos/ui";
+import { isBetaLocale } from "@xos/i18n/locales";
 import { useTranslations } from "next-intl";
 import { setActing, setLocale, setTheme } from "@/lib/shell/actions";
 import type { ThemePreference } from "@/lib/theme";
@@ -160,7 +161,10 @@ export function ShellOverlays(props: ShellOverlaysProps) {
                     refresh();
                   }}
                 >
-                  {t(`gateway.shell.locales.${l}`)}
+                  {/* A Beta locale (Section 15) says so in its name, so screen readers announce it too. */}
+                  {isBetaLocale(l)
+                    ? t("gateway.shell.betaLocale", { language: t(`gateway.shell.locales.${l}`) })
+                    : t(`gateway.shell.locales.${l}`)}
                 </Button>
               ))}
             </div>

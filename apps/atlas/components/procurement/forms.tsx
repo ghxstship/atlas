@@ -5,6 +5,7 @@ import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import type { ActionState } from "@/lib/collection-kit/forms";
+import { ExtractEntry } from "@/components/aurora/entry/extract-entry";
 import { ActionFeedback } from "@/components/collection-kit/kit";
 import { keepInputOnSubmit, useResetOnSuccess } from "@/components/collection-kit/keep-input";
 import { useCopy } from "@/components/collection-kit/use-copy";
@@ -65,6 +66,12 @@ export function ResponseForm({
     >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="rfqId" value={rfqId} />
+      <ExtractEntry
+        kind="quote"
+        fields={{ valid_until: { name: "validUntil" }, currency_code: { name: "currencyCode" } }}
+        lines={{ description: "lineDescription", quantity: "lineQuantity", unitPrice: "linePrice" }}
+        ensureRows={(rows) => setCount((c) => Math.max(c, Math.min(rows, 30)))}
+      />
       <ActionFeedback state={state} refusals="procurement.refusals" />
       <div className="flex flex-wrap gap-12">
         <Select
