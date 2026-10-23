@@ -26,6 +26,7 @@ import enUS_incidents from "../messages/en-US/incidents.json" with { type: "json
 import enUS_integrations from "../messages/en-US/integrations.json" with { type: "json" };
 import enUS_knowledge from "../messages/en-US/knowledge.json" with { type: "json" };
 import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json" };
+import enUS_measurement from "../messages/en-US/measurement.json" with { type: "json" };
 import enUS_myWork from "../messages/en-US/myWork.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
@@ -83,6 +84,7 @@ import esUS_incidents from "../messages/es-US/incidents.json" with { type: "json
 import esUS_integrations from "../messages/es-US/integrations.json" with { type: "json" };
 import esUS_knowledge from "../messages/es-US/knowledge.json" with { type: "json" };
 import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json" };
+import esUS_measurement from "../messages/es-US/measurement.json" with { type: "json" };
 import esUS_myWork from "../messages/es-US/myWork.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
@@ -142,6 +144,7 @@ export const enUS = {
   integrations: enUS_integrations,
   knowledge: enUS_knowledge,
   logistics: enUS_logistics,
+  measurement: enUS_measurement,
   myWork: enUS_myWork,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
@@ -202,6 +205,7 @@ export const esUS = {
   integrations: esUS_integrations,
   knowledge: esUS_knowledge,
   logistics: esUS_logistics,
+  measurement: esUS_measurement,
   myWork: esUS_myWork,
   nav: esUS_nav,
   opportunities: esUS_opportunities,

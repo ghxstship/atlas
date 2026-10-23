@@ -47,6 +47,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0041](0041-compliance-forms-and-state-overtime.md)       | Compliance Forms and State Overtime                                              | Accepted |
 | [0047](0047-automation-engine.md)                         | Automation Engine                                                                | Proposed |
 | [0051](0051-ai-entry-points.md)                           | AI Entry Points in Atlas                                                         | Proposed |
+| [0054](0054-project-measurement.md)                       | Project Measurement Against Gate 1 Objectives                                    | Proposed |
 | [0055](0055-recovery-codes-sessions-step-up-and-oauth.md) | Recovery Codes, Signed-In Sessions, More Step-Up and OAuth 2.1                   | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.

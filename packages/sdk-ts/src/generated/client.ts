@@ -333,6 +333,14 @@ import {
   TemplatesResource,
   TemplateApplicationsResource,
   ProjectAuthoritiesResource,
+  MeasurementMetricsResource,
+  MeasurementUnitsResource,
+  MeasurementMetricTagsResource,
+  ProjectObjectivesResource,
+  ProjectMeasurementsResource,
+  ProjectMeasurementCorrectionsResource,
+  EarnedMediaItemsResource,
+  ProjectMeasurementSummaryResource,
   CueCallsResource,
   GuestListEntriesResource,
   Form1099NecResource,
@@ -1166,6 +1174,26 @@ export class XosClient extends XosClientCore {
   );
   /** Projects: operations on `projectAuthorities`. */
   readonly projectAuthorities: ProjectAuthoritiesResource = new ProjectAuthoritiesResource(this);
+  /** Projects: operations on `measurementMetrics`. */
+  readonly measurementMetrics: MeasurementMetricsResource = new MeasurementMetricsResource(this);
+  /** Projects: operations on `measurementUnits`. */
+  readonly measurementUnits: MeasurementUnitsResource = new MeasurementUnitsResource(this);
+  /** Projects: operations on `measurementMetricTags`. */
+  readonly measurementMetricTags: MeasurementMetricTagsResource = new MeasurementMetricTagsResource(
+    this,
+  );
+  /** Projects: operations on `projectObjectives`. */
+  readonly projectObjectives: ProjectObjectivesResource = new ProjectObjectivesResource(this);
+  /** Projects: operations on `projectMeasurements`. */
+  readonly projectMeasurements: ProjectMeasurementsResource = new ProjectMeasurementsResource(this);
+  /** Projects: operations on `projectMeasurementCorrections`. */
+  readonly projectMeasurementCorrections: ProjectMeasurementCorrectionsResource =
+    new ProjectMeasurementCorrectionsResource(this);
+  /** Projects: operations on `earnedMediaItems`. */
+  readonly earnedMediaItems: EarnedMediaItemsResource = new EarnedMediaItemsResource(this);
+  /** Projects: operations on `projectMeasurementSummary`. */
+  readonly projectMeasurementSummary: ProjectMeasurementSummaryResource =
+    new ProjectMeasurementSummaryResource(this);
   /** Show: operations on `cueCalls`. */
   readonly cueCalls: CueCallsResource = new CueCallsResource(this);
   /** Advancing: operations on `guestListEntries`. */

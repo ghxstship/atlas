@@ -470,6 +470,10 @@ if TYPE_CHECKING:
         DsarRequest,
         DsarRequestCreate,
         DsarRequestPage,
+        EarnedMediaItem,
+        EarnedMediaItemCreate,
+        EarnedMediaItemPage,
+        EarnedMediaItemUpdate,
         EarningCode,
         EarningCodeCreate,
         EarningCodePage,
@@ -712,6 +716,12 @@ if TYPE_CHECKING:
         MarshallingLogEntryCreate,
         MarshallingLogEntryPage,
         Me,
+        MeasurementMetric,
+        MeasurementMetricPage,
+        MeasurementMetricTag,
+        MeasurementMetricTagPage,
+        MeasurementUnit,
+        MeasurementUnitPage,
         MedicalEncounter,
         MedicalEncounterCreate,
         MedicalEncounterPage,
@@ -929,6 +939,18 @@ if TYPE_CHECKING:
         ProjectInbox,
         ProjectInboxCreate,
         ProjectInboxPage,
+        ProjectMeasurement,
+        ProjectMeasurementCorrection,
+        ProjectMeasurementCorrectionPage,
+        ProjectMeasurementCreate,
+        ProjectMeasurementPage,
+        ProjectMeasurementSummary,
+        ProjectMeasurementSummaryPage,
+        ProjectMeasurementUpdate,
+        ProjectObjective,
+        ProjectObjectiveCreate,
+        ProjectObjectivePage,
+        ProjectObjectiveUpdate,
         ProjectPage,
         ProjectPhaseTransition,
         ProjectPhaseTransitionPage,
@@ -30976,6 +30998,558 @@ class ProjectAuthoritiesResource(Resource):
         Requires the capability ``projects.project.read``.
         """
         return self._client.paginate(OPERATIONS["projectAuthorities.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class MeasurementMetricsResource(Resource):
+    """Operations on ``measurementMetrics``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[MeasurementMetric]:
+        """List measurement metric rows
+
+        A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one. Returns a cursor page of measurement metric rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /measurement-metrics`` (operation ``measurementMetrics.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["measurementMetrics.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[MeasurementMetric]:
+        """List measurement metric rows
+
+        A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one. Returns a cursor page of measurement metric rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /measurement-metrics`` (operation ``measurementMetrics.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["measurementMetrics.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class MeasurementUnitsResource(Resource):
+    """Operations on ``measurementUnits``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[MeasurementUnit]:
+        """List measurement unit rows
+
+        A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers. Returns a cursor page of measurement unit rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /measurement-units`` (operation ``measurementUnits.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["measurementUnits.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[MeasurementUnit]:
+        """List measurement unit rows
+
+        A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers. Returns a cursor page of measurement unit rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /measurement-units`` (operation ``measurementUnits.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["measurementUnits.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class MeasurementMetricTagsResource(Resource):
+    """Operations on ``measurementMetricTags``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[MeasurementMetricTag]:
+        """List measurement metric tag rows
+
+        A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10). Returns a cursor page of measurement metric tag rows the caller may see. The default order is `metric_code`, then `tag_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /measurement-metric-tags`` (operation ``measurementMetricTags.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["measurementMetricTags.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[MeasurementMetricTag]:
+        """List measurement metric tag rows
+
+        A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10). Returns a cursor page of measurement metric tag rows the caller may see. The default order is `metric_code`, then `tag_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /measurement-metric-tags`` (operation ``measurementMetricTags.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["measurementMetricTags.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class ProjectObjectivesResource(Resource):
+    """Operations on ``projectObjectives``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectObjective]:
+        """List project objective rows
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns a cursor page of project objective rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-objectives`` (operation ``projectObjectives.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectObjectives.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectObjective]:
+        """List project objective rows
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns a cursor page of project objective rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-objectives`` (operation ``projectObjectives.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectObjectives.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ProjectObjectiveCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectObjective]:
+        """Create a project objective
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Creates a project objective. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /project-objectives`` (operation ``projectObjectives.create``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectObjectives.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectObjective]:
+        """Get a project objective
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns one project objective with its `ETag`. A project objective the caller may not see returns 404.
+
+        ``GET /project-objectives/{id}`` (operation ``projectObjectives.get``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request(OPERATIONS["projectObjectives.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: ProjectObjectiveUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectObjective]:
+        """Update a project objective
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /project-objectives/{id}`` (operation ``projectObjectives.update``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectObjectives.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a project objective
+
+        A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Soft-deletes the project objective: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /project-objectives/{id}`` (operation ``projectObjectives.delete``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectObjectives.delete"], path={"id": id}, options=options)
+
+
+class ProjectMeasurementsResource(Resource):
+    """Operations on ``projectMeasurements``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectMeasurement]:
+        """List project measurement rows
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns a cursor page of project measurement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-measurements`` (operation ``projectMeasurements.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectMeasurements.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectMeasurement]:
+        """List project measurement rows
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns a cursor page of project measurement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-measurements`` (operation ``projectMeasurements.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectMeasurements.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ProjectMeasurementCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectMeasurement]:
+        """Create a project measurement
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Creates a project measurement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /project-measurements`` (operation ``projectMeasurements.create``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectMeasurements.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectMeasurement]:
+        """Get a project measurement
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns one project measurement with its `ETag`. A project measurement the caller may not see returns 404.
+
+        ``GET /project-measurements/{id}`` (operation ``projectMeasurements.get``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request(OPERATIONS["projectMeasurements.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: ProjectMeasurementUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectMeasurement]:
+        """Update a project measurement
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /project-measurements/{id}`` (operation ``projectMeasurements.update``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectMeasurements.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a project measurement
+
+        A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Soft-deletes the project measurement: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /project-measurements/{id}`` (operation ``projectMeasurements.delete``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["projectMeasurements.delete"], path={"id": id}, options=options)
+
+
+class ProjectMeasurementCorrectionsResource(Resource):
+    """Operations on ``projectMeasurementCorrections``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectMeasurementCorrection]:
+        """List project measurement correction rows
+
+        An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns a cursor page of project measurement correction rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-measurement-corrections`` (operation ``projectMeasurementCorrections.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectMeasurementCorrections.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectMeasurementCorrection]:
+        """List project measurement correction rows
+
+        An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns a cursor page of project measurement correction rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-measurement-corrections`` (operation ``projectMeasurementCorrections.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectMeasurementCorrections.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectMeasurementCorrection]:
+        """Get a project measurement correction
+
+        An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns one project measurement correction with its `ETag`. A project measurement correction the caller may not see returns 404.
+
+        ``GET /project-measurement-corrections/{id}`` (operation ``projectMeasurementCorrections.get``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request(OPERATIONS["projectMeasurementCorrections.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class EarnedMediaItemsResource(Resource):
+    """Operations on ``earnedMediaItems``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[EarnedMediaItem]:
+        """List earned media item rows
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns a cursor page of earned media item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /earned-media-items`` (operation ``earnedMediaItems.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["earnedMediaItems.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[EarnedMediaItem]:
+        """List earned media item rows
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns a cursor page of earned media item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /earned-media-items`` (operation ``earnedMediaItems.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["earnedMediaItems.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: EarnedMediaItemCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EarnedMediaItem]:
+        """Create an earned media item
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Creates an earned media item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /earned-media-items`` (operation ``earnedMediaItems.create``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["earnedMediaItems.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EarnedMediaItem]:
+        """Get an earned media item
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns one earned media item with its `ETag`. A earned media item the caller may not see returns 404.
+
+        ``GET /earned-media-items/{id}`` (operation ``earnedMediaItems.get``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request(OPERATIONS["earnedMediaItems.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: EarnedMediaItemUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EarnedMediaItem]:
+        """Update an earned media item
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /earned-media-items/{id}`` (operation ``earnedMediaItems.update``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["earnedMediaItems.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete an earned media item
+
+        A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Soft-deletes the earned media item: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /earned-media-items/{id}`` (operation ``earnedMediaItems.delete``).
+        Requires the capability ``projects.gate.evidence.write``.
+        """
+        return self._client.request(OPERATIONS["earnedMediaItems.delete"], path={"id": id}, options=options)
+
+
+class ProjectMeasurementSummaryResource(Resource):
+    """Operations on ``projectMeasurementSummary``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectMeasurementSummary]:
+        """List project measurement summary row rows
+
+        Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero. Returns a cursor page of project measurement summary row rows the caller may see. The default order is `project_id`, then `metric_code` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-measurement-summary`` (operation ``projectMeasurementSummary.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectMeasurementSummary.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectMeasurementSummary]:
+        """List project measurement summary row rows
+
+        Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero. Returns a cursor page of project measurement summary row rows the caller may see. The default order is `project_id`, then `metric_code` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-measurement-summary`` (operation ``projectMeasurementSummary.list``).
+        Requires the capability ``projects.gate.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectMeasurementSummary.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
 
 class CueCallsResource(Resource):

@@ -101,7 +101,7 @@ $$, $$values ('ai_never_send'), ('application_board'), ('bid_totals'), ('brand_f
   ('comment_subjects'), ('consent_purposes'), ('currencies'), ('custom_field_targets'), ('domain_event_catalog'), ('email_templates'),
   ('employment_statuses'), ('engagement_board'), ('engagement_resolved'), ('feature_flags'), ('flsa_statuses'),
   ('import_target_fields'), ('import_targets'), ('integration_providers'), ('lifecycle_transition_rules'),
-  ('medical_encounters_masked'), ('notification_categories'), ('notification_templates'), ('offboarding_open_records'),
+  ('measurement_metric_tags'), ('measurement_metrics'), ('measurement_units'), ('medical_encounters_masked'), ('notification_categories'), ('notification_templates'), ('offboarding_open_records'),
   ('onboarding_item_status'), ('opportunity_position_counts'), ('org_legal_entities_masked'), ('pay_rates_masked'), ('pay_transparency_rules'),
   ('payroll_line_amounts'), ('rate_card_lines_masked'), ('report_sources'), ('retention_policies'),
   ('separation_of_duties_rules'), ('setting_choices'), ('setting_definitions'), ('shared_certifications'),

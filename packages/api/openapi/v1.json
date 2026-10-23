@@ -47531,6 +47531,1223 @@
         "required": ["project_id", "service", "agency", "contact"],
         "description": "An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none."
       },
+      "MeasurementMetricPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MeasurementMetric" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "MeasurementMetric": {
+        "type": "object",
+        "properties": {
+          "metric_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Metric (app.measurement_metrics).",
+            "example": "waste_generated"
+          },
+          "family": {
+            "type": "string",
+            "enum": ["Sustainability", "Audience", "Earned Media", "Sentiment"],
+            "description": "Family of the figure.",
+            "example": "Sustainability"
+          },
+          "dimension": {
+            "type": "string",
+            "enum": ["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"],
+            "description": "Dimension of the figure.",
+            "example": "Mass"
+          },
+          "base_unit_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit totals and comparisons are computed in.",
+            "example": "kg"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": ["Sum", "Latest"],
+            "description": "How a project's figures combine: each adds to the total (Sum) or the latest measured one stands (Latest).",
+            "example": "Sum"
+          },
+          "is_derived": {
+            "type": "boolean",
+            "description": "True when the figure is computed from the coverage records rather than entered.",
+            "example": false
+          },
+          "lower_bound": {
+            "type": ["number", "null"],
+            "description": "Lowest figure accepted, in the base unit.",
+            "example": 0
+          },
+          "upper_bound": {
+            "type": ["number", "null"],
+            "description": "Highest figure accepted, in the base unit.",
+            "example": 100
+          },
+          "canon_domain": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Domain of the benchmarking canon metric.",
+            "example": "site_services"
+          },
+          "canon_item": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Item of the benchmarking canon metric.",
+            "example": "Waste lbs per guest per day"
+          },
+          "canon_value_numeric": {
+            "type": ["number", "null"],
+            "description": "The canon benchmark as a number.",
+            "example": 2.4
+          },
+          "canon_value_text": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "The canon benchmark in words.",
+            "example": "1.9 kW continuous"
+          },
+          "canon_qualifier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Qualifier of the canon benchmark.",
+            "example": "MODELED event avg"
+          },
+          "ordinal": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Display order.",
+            "example": 1
+          }
+        },
+        "required": [
+          "metric_code",
+          "family",
+          "dimension",
+          "base_unit_code",
+          "aggregation",
+          "is_derived",
+          "lower_bound",
+          "upper_bound",
+          "canon_domain",
+          "canon_item",
+          "canon_value_numeric",
+          "canon_value_text",
+          "canon_qualifier",
+          "ordinal"
+        ],
+        "description": "A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one."
+      },
+      "MeasurementUnitPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MeasurementUnit" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "MeasurementUnit": {
+        "type": "object",
+        "properties": {
+          "unit_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit code.",
+            "example": "kg"
+          },
+          "dimension": {
+            "type": "string",
+            "enum": ["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"],
+            "description": "Dimension of the unit.",
+            "example": "Mass"
+          },
+          "factor_to_base": {
+            "type": "number",
+            "description": "Base units in one of this unit.",
+            "example": 0.45359237
+          },
+          "unit_system": {
+            "type": "string",
+            "enum": ["Metric", "Imperial", "Either"],
+            "description": "Measurement system of the unit.",
+            "example": "Imperial"
+          },
+          "is_display": {
+            "type": "boolean",
+            "description": "True for the unit reports show the dimension in for readers of its system.",
+            "example": true
+          },
+          "ordinal": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Display order.",
+            "example": 3
+          }
+        },
+        "required": [
+          "unit_code",
+          "dimension",
+          "factor_to_base",
+          "unit_system",
+          "is_display",
+          "ordinal"
+        ],
+        "description": "A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers."
+      },
+      "MeasurementMetricTagPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/MeasurementMetricTag" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "MeasurementMetricTag": {
+        "type": "object",
+        "properties": {
+          "metric_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Metric (app.measurement_metrics).",
+            "example": "waste_generated"
+          },
+          "tag_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon tag code.",
+            "example": "TAG-005"
+          },
+          "tag": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Tag value as written in canon.",
+            "example": "REUSABLE"
+          }
+        },
+        "required": ["metric_code", "tag_id", "tag"],
+        "description": "A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10)."
+      },
+      "ProjectObjectivePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectObjective" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ProjectObjective": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project objective.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "metric_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Metric (app.measurement_metrics).",
+            "example": "waste_generated"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["At Least", "At Most"],
+            "description": "Met by reaching the target (At Least) or by staying within it (At Most).",
+            "example": "At Most"
+          },
+          "target_value": {
+            "type": "number",
+            "description": "Target figure, in unit_code.",
+            "example": 2
+          },
+          "unit_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit of the target, of the metric's dimension.",
+            "example": "kg"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Note.",
+            "example": "Two roll-off containers."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "metric_code",
+          "direction",
+          "target_value",
+          "unit_code",
+          "note"
+        ],
+        "description": "A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger."
+      },
+      "ProjectObjectiveCreate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "metric_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Metric (app.measurement_metrics).",
+            "example": "waste_generated"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["At Least", "At Most"],
+            "description": "Met by reaching the target (At Least) or by staying within it (At Most).",
+            "example": "At Most"
+          },
+          "target_value": {
+            "type": "number",
+            "description": "Target figure, in unit_code.",
+            "example": 2
+          },
+          "unit_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit of the target, of the metric's dimension.",
+            "example": "kg"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Note.",
+            "example": "Two roll-off containers."
+          }
+        },
+        "required": ["project_id", "metric_code", "direction", "target_value", "unit_code"],
+        "description": "Fields accepted when creating a ProjectObjective."
+      },
+      "ProjectObjectiveUpdate": {
+        "type": "object",
+        "properties": {
+          "direction": {
+            "type": "string",
+            "enum": ["At Least", "At Most"],
+            "description": "Met by reaching the target (At Least) or by staying within it (At Most).",
+            "example": "At Most"
+          },
+          "target_value": {
+            "type": "number",
+            "description": "Target figure, in unit_code.",
+            "example": 2
+          },
+          "unit_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit of the target, of the metric's dimension.",
+            "example": "kg"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Note.",
+            "example": "Two roll-off containers."
+          }
+        },
+        "description": "Fields accepted when updating a ProjectObjective. Omitted fields are unchanged."
+      },
+      "ProjectMeasurementPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectMeasurement" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ProjectMeasurement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project measurement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "metric_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Metric (app.measurement_metrics).",
+            "example": "waste_generated"
+          },
+          "measured_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Day the figure covers, on the project's calendar; today there when omitted, never later.",
+            "example": "2026-10-08"
+          },
+          "value": {
+            "type": ["number", "null"],
+            "description": "The figure in unit_code; null when not measured.",
+            "example": 1200
+          },
+          "unit_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit of the figure, of the metric's dimension.",
+            "example": "kg"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["Manual", "Import", "Integration"],
+            "description": "How the figure reached XOS.",
+            "example": "Import"
+          },
+          "source_reference": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What the figure came from, such as an invoice, a meter reading or a file name.",
+            "example": "Hauler invoice 4471"
+          },
+          "source_uri": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Link to the source: an http(s) URL or a URN.",
+            "example": "https://hauler.example/invoices/4471"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Note.",
+            "example": "Two roll-off containers."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "metric_code",
+          "measured_on",
+          "value",
+          "unit_code",
+          "source",
+          "source_reference",
+          "source_uri",
+          "note"
+        ],
+        "description": "A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at."
+      },
+      "ProjectMeasurementCreate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "metric_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Metric (app.measurement_metrics).",
+            "example": "waste_generated"
+          },
+          "measured_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Day the figure covers, on the project's calendar; today there when omitted, never later.",
+            "example": "2026-10-08"
+          },
+          "value": {
+            "type": ["number", "null"],
+            "description": "The figure in unit_code; null when not measured.",
+            "example": 1200
+          },
+          "unit_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit of the figure, of the metric's dimension.",
+            "example": "kg"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["Manual", "Import", "Integration"],
+            "description": "How the figure reached XOS.",
+            "example": "Import"
+          },
+          "source_reference": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What the figure came from, such as an invoice, a meter reading or a file name.",
+            "example": "Hauler invoice 4471"
+          },
+          "source_uri": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Link to the source: an http(s) URL or a URN.",
+            "example": "https://hauler.example/invoices/4471"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Note.",
+            "example": "Two roll-off containers."
+          }
+        },
+        "required": ["project_id", "metric_code"],
+        "description": "Fields accepted when creating a ProjectMeasurement."
+      },
+      "ProjectMeasurementUpdate": {
+        "type": "object",
+        "properties": {
+          "measured_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Day the figure covers, on the project's calendar; today there when omitted, never later.",
+            "example": "2026-10-08"
+          },
+          "value": {
+            "type": ["number", "null"],
+            "description": "The figure in unit_code; null when not measured.",
+            "example": 1200
+          },
+          "unit_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit of the figure, of the metric's dimension.",
+            "example": "kg"
+          },
+          "source_reference": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What the figure came from, such as an invoice, a meter reading or a file name.",
+            "example": "Hauler invoice 4471"
+          },
+          "source_uri": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Link to the source: an http(s) URL or a URN.",
+            "example": "https://hauler.example/invoices/4471"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Note.",
+            "example": "Two roll-off containers."
+          },
+          "correction_reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why the figure is corrected: required when the value, unit or day changes, kept in the correction ledger and never returned.",
+            "example": "Weighbridge ticket supersedes the estimate."
+          }
+        },
+        "description": "Fields accepted when updating a ProjectMeasurement. Omitted fields are unchanged."
+      },
+      "ProjectMeasurementCorrectionPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectMeasurementCorrection" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ProjectMeasurementCorrection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project measurement correction.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_measurement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the figure that changed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "correction_kind": {
+            "type": "string",
+            "enum": ["Corrected", "Withdrawn", "Restored"],
+            "description": "What changed the figure.",
+            "example": "Corrected"
+          },
+          "previous_value": {
+            "type": ["number", "null"],
+            "description": "Value before the change; null when Unmeasured.",
+            "example": 1200
+          },
+          "previous_unit_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit before the change.",
+            "example": "kg"
+          },
+          "previous_measured_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Day before the change.",
+            "example": "2026-10-08"
+          },
+          "value": {
+            "type": ["number", "null"],
+            "description": "Value after the change; null when Unmeasured.",
+            "example": 1.25
+          },
+          "unit_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit after the change.",
+            "example": "kg"
+          },
+          "measured_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Day after the change.",
+            "example": "2026-10-08"
+          },
+          "reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why the figure changed.",
+            "example": "Weighbridge ticket supersedes the estimate."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_measurement_id",
+          "correction_kind",
+          "previous_value",
+          "previous_unit_code",
+          "previous_measured_on",
+          "value",
+          "unit_code",
+          "measured_on",
+          "reason"
+        ],
+        "description": "An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at."
+      },
+      "EarnedMediaItemPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EarnedMediaItem" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "EarnedMediaItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the earned media item.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Headline or title of the coverage.",
+            "example": "Summer Series opens on the pier"
+          },
+          "outlet": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Publication, station, channel or account that ran it.",
+            "example": "WLRN"
+          },
+          "medium": {
+            "type": "string",
+            "enum": ["Online", "Print", "Broadcast", "Podcast", "Social"],
+            "description": "Where the coverage ran.",
+            "example": "Broadcast"
+          },
+          "published_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Day it ran, on the project's calendar; never after today there.",
+            "example": "2026-10-08"
+          },
+          "url": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "description": "Link to the coverage; one live row per link in a project.",
+            "example": "https://northwindlive.example/files/site-plan.pdf"
+          },
+          "reach": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Audience the outlet reports for the piece; null when unreported.",
+            "example": 120000
+          },
+          "tone": {
+            "type": ["string", "null"],
+            "enum": ["Positive", "Neutral", "Negative", null],
+            "description": "Sentiment of the coverage; null until rated.",
+            "example": "Positive"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["Manual", "Import", "Integration"],
+            "description": "How the figure reached XOS.",
+            "example": "Import"
+          },
+          "source_reference": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What the figure came from, such as an invoice, a meter reading or a file name.",
+            "example": "Hauler invoice 4471"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Note.",
+            "example": "Two roll-off containers."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "title",
+          "outlet",
+          "medium",
+          "published_on",
+          "url",
+          "reach",
+          "tone",
+          "source",
+          "source_reference",
+          "note"
+        ],
+        "description": "A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated."
+      },
+      "EarnedMediaItemCreate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Headline or title of the coverage.",
+            "example": "Summer Series opens on the pier"
+          },
+          "outlet": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Publication, station, channel or account that ran it.",
+            "example": "WLRN"
+          },
+          "medium": {
+            "type": "string",
+            "enum": ["Online", "Print", "Broadcast", "Podcast", "Social"],
+            "description": "Where the coverage ran.",
+            "example": "Broadcast"
+          },
+          "published_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Day it ran, on the project's calendar; never after today there.",
+            "example": "2026-10-08"
+          },
+          "url": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "description": "Link to the coverage; one live row per link in a project.",
+            "example": "https://northwindlive.example/files/site-plan.pdf"
+          },
+          "reach": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Audience the outlet reports for the piece; null when unreported.",
+            "example": 120000
+          },
+          "tone": {
+            "type": ["string", "null"],
+            "enum": ["Positive", "Neutral", "Negative", null],
+            "description": "Sentiment of the coverage; null until rated.",
+            "example": "Positive"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["Manual", "Import", "Integration"],
+            "description": "How the figure reached XOS.",
+            "example": "Import"
+          },
+          "source_reference": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What the figure came from, such as an invoice, a meter reading or a file name.",
+            "example": "Hauler invoice 4471"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Note.",
+            "example": "Two roll-off containers."
+          }
+        },
+        "required": ["project_id", "title", "outlet", "medium", "published_on"],
+        "description": "Fields accepted when creating a EarnedMediaItem."
+      },
+      "EarnedMediaItemUpdate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Headline or title of the coverage.",
+            "example": "Summer Series opens on the pier"
+          },
+          "outlet": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Publication, station, channel or account that ran it.",
+            "example": "WLRN"
+          },
+          "medium": {
+            "type": "string",
+            "enum": ["Online", "Print", "Broadcast", "Podcast", "Social"],
+            "description": "Where the coverage ran.",
+            "example": "Broadcast"
+          },
+          "published_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Day it ran, on the project's calendar; never after today there.",
+            "example": "2026-10-08"
+          },
+          "url": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "description": "Link to the coverage; one live row per link in a project.",
+            "example": "https://northwindlive.example/files/site-plan.pdf"
+          },
+          "reach": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Audience the outlet reports for the piece; null when unreported.",
+            "example": 120000
+          },
+          "tone": {
+            "type": ["string", "null"],
+            "enum": ["Positive", "Neutral", "Negative", null],
+            "description": "Sentiment of the coverage; null until rated.",
+            "example": "Positive"
+          },
+          "source": {
+            "type": "string",
+            "enum": ["Manual", "Import", "Integration"],
+            "description": "How the figure reached XOS.",
+            "example": "Import"
+          },
+          "source_reference": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "What the figure came from, such as an invoice, a meter reading or a file name.",
+            "example": "Hauler invoice 4471"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Note.",
+            "example": "Two roll-off containers."
+          }
+        },
+        "description": "Fields accepted when updating a EarnedMediaItem. Omitted fields are unchanged."
+      },
+      "ProjectMeasurementSummaryPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectMeasurementSummary" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ProjectMeasurementSummary": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "metric_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Metric (app.measurement_metrics).",
+            "example": "waste_generated"
+          },
+          "family": {
+            "type": "string",
+            "enum": ["Sustainability", "Audience", "Earned Media", "Sentiment"],
+            "description": "Family of the figure.",
+            "example": "Sustainability"
+          },
+          "dimension": {
+            "type": "string",
+            "enum": ["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"],
+            "description": "Dimension of the figure.",
+            "example": "Mass"
+          },
+          "base_unit_code": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit of target_base and measured_base.",
+            "example": "kg"
+          },
+          "aggregation": {
+            "type": "string",
+            "enum": ["Sum", "Latest"],
+            "description": "How figures combine.",
+            "example": "Sum"
+          },
+          "objective_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the live gate 1 objective for the metric.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "direction": {
+            "type": ["string", "null"],
+            "enum": ["At Least", "At Most", null],
+            "description": "Direction of the objective.",
+            "example": "At Most"
+          },
+          "target_value": {
+            "type": ["number", "null"],
+            "description": "Target as set, in target_unit_code.",
+            "example": 2
+          },
+          "target_unit_code": {
+            "type": ["string", "null"],
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Unit the target was set in.",
+            "example": "kg"
+          },
+          "target_base": {
+            "type": ["number", "null"],
+            "description": "Target in the base unit.",
+            "example": 2000
+          },
+          "measured_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Figures with a value.",
+            "example": 2
+          },
+          "unmeasured_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Figures recorded as not measured; never counted as zero.",
+            "example": 1
+          },
+          "measured_base": {
+            "type": ["number", "null"],
+            "description": "Total (Sum) or latest figure (Latest) in the base unit; null when nothing was measured.",
+            "example": 1953.59237
+          },
+          "last_measured_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Day of the most recent measured figure.",
+            "example": "2026-10-08"
+          },
+          "outcome": {
+            "type": ["string", "null"],
+            "enum": ["Met", "Not Met", "Incomplete", "Unmeasured", null],
+            "description": "Met, Not Met, Incomplete (unmeasured figures leave the objective undecided) or Unmeasured; null without an objective.",
+            "example": "Met"
+          }
+        },
+        "required": [
+          "project_id",
+          "metric_code",
+          "family",
+          "dimension",
+          "base_unit_code",
+          "aggregation",
+          "objective_id",
+          "direction",
+          "target_value",
+          "target_unit_code",
+          "target_base",
+          "measured_count",
+          "unmeasured_count",
+          "measured_base",
+          "last_measured_on",
+          "outcome"
+        ],
+        "description": "Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero."
+      },
       "CueCallPage": {
         "type": "object",
         "properties": {
@@ -135666,6 +136883,1234 @@
                   "next_cursor": null
                 },
                 "schema": { "$ref": "#/components/schemas/ProjectAuthorityPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/measurement-metrics": {
+      "get": {
+        "operationId": "measurementMetrics.list",
+        "tags": ["Projects"],
+        "x-xos-table": "app.measurement_metrics",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["ordinal"], "numeric": false },
+        "summary": "List measurement metric rows",
+        "description": "A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one. Returns a cursor page of measurement metric rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of measurement metric rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "metric_code": "waste_generated",
+                      "family": "Sustainability",
+                      "dimension": "Mass",
+                      "base_unit_code": "kg",
+                      "aggregation": "Sum",
+                      "is_derived": false,
+                      "lower_bound": 0,
+                      "upper_bound": 100,
+                      "canon_domain": "site_services",
+                      "canon_item": "Waste lbs per guest per day",
+                      "canon_value_numeric": 2.4,
+                      "canon_value_text": "1.9 kW continuous",
+                      "canon_qualifier": "MODELED event avg",
+                      "ordinal": 1
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/MeasurementMetricPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/measurement-units": {
+      "get": {
+        "operationId": "measurementUnits.list",
+        "tags": ["Projects"],
+        "x-xos-table": "app.measurement_units",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["ordinal"], "numeric": false },
+        "summary": "List measurement unit rows",
+        "description": "A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers. Returns a cursor page of measurement unit rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of measurement unit rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "unit_code": "kg",
+                      "dimension": "Mass",
+                      "factor_to_base": 0.45359237,
+                      "unit_system": "Imperial",
+                      "is_display": true,
+                      "ordinal": 3
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/MeasurementUnitPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/measurement-metric-tags": {
+      "get": {
+        "operationId": "measurementMetricTags.list",
+        "tags": ["Projects"],
+        "x-xos-table": "app.measurement_metric_tags",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["metric_code", "tag_id"], "numeric": false },
+        "summary": "List measurement metric tag rows",
+        "description": "A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10). Returns a cursor page of measurement metric tag rows the caller may see. The default order is `metric_code`, then `tag_id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of measurement metric tag rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    { "metric_code": "waste_generated", "tag_id": "TAG-005", "tag": "REUSABLE" }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/MeasurementMetricTagPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-objectives": {
+      "get": {
+        "operationId": "projectObjectives.list",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_objectives",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List project objective rows",
+        "description": "A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns a cursor page of project objective rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of project objective rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "metric_code": "waste_generated",
+                      "direction": "At Most",
+                      "target_value": 2,
+                      "unit_code": "kg",
+                      "note": "Two roll-off containers."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectObjectivePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "projectObjectives.create",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_objectives",
+        "x-xos-capability": "projects.gate.evidence.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Create a project objective",
+        "description": "A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Creates a project objective. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "metric_code": "waste_generated",
+                "direction": "At Most",
+                "target_value": 2,
+                "unit_code": "kg",
+                "note": "Two roll-off containers."
+              },
+              "schema": { "$ref": "#/components/schemas/ProjectObjectiveCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created project objective.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "metric_code": "waste_generated",
+                  "direction": "At Most",
+                  "target_value": 2,
+                  "unit_code": "kg",
+                  "note": "Two roll-off containers."
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectObjective" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-objectives/{id}": {
+      "get": {
+        "operationId": "projectObjectives.get",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_objectives",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a project objective",
+        "description": "A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns one project objective with its `ETag`. A project objective the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project objective.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project objective.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The project objective.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "metric_code": "waste_generated",
+                  "direction": "At Most",
+                  "target_value": 2,
+                  "unit_code": "kg",
+                  "note": "Two roll-off containers."
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectObjective" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "projectObjectives.update",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_objectives",
+        "x-xos-capability": "projects.gate.evidence.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Update a project objective",
+        "description": "A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project objective.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project objective.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "direction": "At Most",
+                "target_value": 2,
+                "unit_code": "kg",
+                "note": "Two roll-off containers."
+              },
+              "schema": { "$ref": "#/components/schemas/ProjectObjectiveUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated project objective.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "metric_code": "waste_generated",
+                  "direction": "At Most",
+                  "target_value": 2,
+                  "unit_code": "kg",
+                  "note": "Two roll-off containers."
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectObjective" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "projectObjectives.delete",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_objectives",
+        "x-xos-capability": "projects.gate.evidence.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Delete a project objective",
+        "description": "A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Soft-deletes the project objective: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project objective.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project objective.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The project objective moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-measurements": {
+      "get": {
+        "operationId": "projectMeasurements.list",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_measurements",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List project measurement rows",
+        "description": "A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns a cursor page of project measurement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of project measurement rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "metric_code": "waste_generated",
+                      "measured_on": "2026-10-08",
+                      "value": 1200,
+                      "unit_code": "kg",
+                      "source": "Import",
+                      "source_reference": "Hauler invoice 4471",
+                      "source_uri": "https://hauler.example/invoices/4471",
+                      "note": "Two roll-off containers."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectMeasurementPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "projectMeasurements.create",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_measurements",
+        "x-xos-capability": "projects.gate.evidence.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Create a project measurement",
+        "description": "A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Creates a project measurement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "metric_code": "waste_generated",
+                "measured_on": "2026-10-08",
+                "value": 1200,
+                "unit_code": "kg",
+                "source": "Import",
+                "source_reference": "Hauler invoice 4471",
+                "source_uri": "https://hauler.example/invoices/4471",
+                "note": "Two roll-off containers."
+              },
+              "schema": { "$ref": "#/components/schemas/ProjectMeasurementCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created project measurement.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "metric_code": "waste_generated",
+                  "measured_on": "2026-10-08",
+                  "value": 1200,
+                  "unit_code": "kg",
+                  "source": "Import",
+                  "source_reference": "Hauler invoice 4471",
+                  "source_uri": "https://hauler.example/invoices/4471",
+                  "note": "Two roll-off containers."
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectMeasurement" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-measurements/{id}": {
+      "get": {
+        "operationId": "projectMeasurements.get",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_measurements",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a project measurement",
+        "description": "A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns one project measurement with its `ETag`. A project measurement the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project measurement.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project measurement.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The project measurement.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "metric_code": "waste_generated",
+                  "measured_on": "2026-10-08",
+                  "value": 1200,
+                  "unit_code": "kg",
+                  "source": "Import",
+                  "source_reference": "Hauler invoice 4471",
+                  "source_uri": "https://hauler.example/invoices/4471",
+                  "note": "Two roll-off containers."
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectMeasurement" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "projectMeasurements.update",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_measurements",
+        "x-xos-capability": "projects.gate.evidence.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Update a project measurement",
+        "description": "A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project measurement.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project measurement.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "measured_on": "2026-10-08",
+                "value": 1200,
+                "unit_code": "kg",
+                "source_reference": "Hauler invoice 4471",
+                "source_uri": "https://hauler.example/invoices/4471",
+                "note": "Two roll-off containers.",
+                "correction_reason": "Weighbridge ticket supersedes the estimate."
+              },
+              "schema": { "$ref": "#/components/schemas/ProjectMeasurementUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated project measurement.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "metric_code": "waste_generated",
+                  "measured_on": "2026-10-08",
+                  "value": 1200,
+                  "unit_code": "kg",
+                  "source": "Import",
+                  "source_reference": "Hauler invoice 4471",
+                  "source_uri": "https://hauler.example/invoices/4471",
+                  "note": "Two roll-off containers."
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectMeasurement" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "projectMeasurements.delete",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_measurements",
+        "x-xos-capability": "projects.gate.evidence.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Delete a project measurement",
+        "description": "A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Soft-deletes the project measurement: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project measurement.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project measurement.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The project measurement moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-measurement-corrections": {
+      "get": {
+        "operationId": "projectMeasurementCorrections.list",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_measurement_corrections",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List project measurement correction rows",
+        "description": "An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns a cursor page of project measurement correction rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of project measurement correction rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_measurement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "correction_kind": "Corrected",
+                      "previous_value": 1200,
+                      "previous_unit_code": "kg",
+                      "previous_measured_on": "2026-10-08",
+                      "value": 1.25,
+                      "unit_code": "kg",
+                      "measured_on": "2026-10-08",
+                      "reason": "Weighbridge ticket supersedes the estimate."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectMeasurementCorrectionPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-measurement-corrections/{id}": {
+      "get": {
+        "operationId": "projectMeasurementCorrections.get",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_measurement_corrections",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a project measurement correction",
+        "description": "An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns one project measurement correction with its `ETag`. A project measurement correction the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project measurement correction.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project measurement correction.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The project measurement correction.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_measurement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "correction_kind": "Corrected",
+                  "previous_value": 1200,
+                  "previous_unit_code": "kg",
+                  "previous_measured_on": "2026-10-08",
+                  "value": 1.25,
+                  "unit_code": "kg",
+                  "measured_on": "2026-10-08",
+                  "reason": "Weighbridge ticket supersedes the estimate."
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectMeasurementCorrection" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/earned-media-items": {
+      "get": {
+        "operationId": "earnedMediaItems.list",
+        "tags": ["Projects"],
+        "x-xos-table": "app.earned_media_items",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List earned media item rows",
+        "description": "A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns a cursor page of earned media item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of earned media item rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "title": "Summer Series opens on the pier",
+                      "outlet": "WLRN",
+                      "medium": "Broadcast",
+                      "published_on": "2026-10-08",
+                      "url": "https://northwindlive.example/files/site-plan.pdf",
+                      "reach": 120000,
+                      "tone": "Positive",
+                      "source": "Import",
+                      "source_reference": "Hauler invoice 4471",
+                      "note": "Two roll-off containers."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/EarnedMediaItemPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "earnedMediaItems.create",
+        "tags": ["Projects"],
+        "x-xos-table": "app.earned_media_items",
+        "x-xos-capability": "projects.gate.evidence.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Create an earned media item",
+        "description": "A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Creates an earned media item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "title": "Summer Series opens on the pier",
+                "outlet": "WLRN",
+                "medium": "Broadcast",
+                "published_on": "2026-10-08",
+                "url": "https://northwindlive.example/files/site-plan.pdf",
+                "reach": 120000,
+                "tone": "Positive",
+                "source": "Import",
+                "source_reference": "Hauler invoice 4471",
+                "note": "Two roll-off containers."
+              },
+              "schema": { "$ref": "#/components/schemas/EarnedMediaItemCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created earned media item.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "title": "Summer Series opens on the pier",
+                  "outlet": "WLRN",
+                  "medium": "Broadcast",
+                  "published_on": "2026-10-08",
+                  "url": "https://northwindlive.example/files/site-plan.pdf",
+                  "reach": 120000,
+                  "tone": "Positive",
+                  "source": "Import",
+                  "source_reference": "Hauler invoice 4471",
+                  "note": "Two roll-off containers."
+                },
+                "schema": { "$ref": "#/components/schemas/EarnedMediaItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/earned-media-items/{id}": {
+      "get": {
+        "operationId": "earnedMediaItems.get",
+        "tags": ["Projects"],
+        "x-xos-table": "app.earned_media_items",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get an earned media item",
+        "description": "A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns one earned media item with its `ETag`. A earned media item the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the earned media item.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the earned media item.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The earned media item.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "title": "Summer Series opens on the pier",
+                  "outlet": "WLRN",
+                  "medium": "Broadcast",
+                  "published_on": "2026-10-08",
+                  "url": "https://northwindlive.example/files/site-plan.pdf",
+                  "reach": 120000,
+                  "tone": "Positive",
+                  "source": "Import",
+                  "source_reference": "Hauler invoice 4471",
+                  "note": "Two roll-off containers."
+                },
+                "schema": { "$ref": "#/components/schemas/EarnedMediaItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "earnedMediaItems.update",
+        "tags": ["Projects"],
+        "x-xos-table": "app.earned_media_items",
+        "x-xos-capability": "projects.gate.evidence.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Update an earned media item",
+        "description": "A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the earned media item.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the earned media item.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "title": "Summer Series opens on the pier",
+                "outlet": "WLRN",
+                "medium": "Broadcast",
+                "published_on": "2026-10-08",
+                "url": "https://northwindlive.example/files/site-plan.pdf",
+                "reach": 120000,
+                "tone": "Positive",
+                "source": "Import",
+                "source_reference": "Hauler invoice 4471",
+                "note": "Two roll-off containers."
+              },
+              "schema": { "$ref": "#/components/schemas/EarnedMediaItemUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated earned media item.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "title": "Summer Series opens on the pier",
+                  "outlet": "WLRN",
+                  "medium": "Broadcast",
+                  "published_on": "2026-10-08",
+                  "url": "https://northwindlive.example/files/site-plan.pdf",
+                  "reach": 120000,
+                  "tone": "Positive",
+                  "source": "Import",
+                  "source_reference": "Hauler invoice 4471",
+                  "note": "Two roll-off containers."
+                },
+                "schema": { "$ref": "#/components/schemas/EarnedMediaItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "earnedMediaItems.delete",
+        "tags": ["Projects"],
+        "x-xos-table": "app.earned_media_items",
+        "x-xos-capability": "projects.gate.evidence.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Delete an earned media item",
+        "description": "A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Soft-deletes the earned media item: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the earned media item.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the earned media item.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The earned media item moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-measurement-summary": {
+      "get": {
+        "operationId": "projectMeasurementSummary.list",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_measurement_summary",
+        "x-xos-capability": "projects.gate.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["project_id", "metric_code"], "numeric": false },
+        "summary": "List project measurement summary row rows",
+        "description": "Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero. Returns a cursor page of project measurement summary row rows the caller may see. The default order is `project_id`, then `metric_code` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of project measurement summary row rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "metric_code": "waste_generated",
+                      "family": "Sustainability",
+                      "dimension": "Mass",
+                      "base_unit_code": "kg",
+                      "aggregation": "Sum",
+                      "objective_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "direction": "At Most",
+                      "target_value": 2,
+                      "target_unit_code": "kg",
+                      "target_base": 2000,
+                      "measured_count": 2,
+                      "unmeasured_count": 1,
+                      "measured_base": 1953.59237,
+                      "last_measured_on": "2026-10-08",
+                      "outcome": "Met"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectMeasurementSummaryPage" }
               }
             }
           },

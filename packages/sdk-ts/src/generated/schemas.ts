@@ -35488,6 +35488,885 @@ export interface ProjectAuthority {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface MeasurementMetricPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<MeasurementMetric>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one.
+ */
+export interface MeasurementMetric {
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Family of the figure.
+   */
+  readonly family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
+  /**
+   * Dimension of the figure.
+   */
+  readonly dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+  /**
+   * Unit totals and comparisons are computed in.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly base_unit_code: string;
+  /**
+   * How a project's figures combine: each adds to the total (Sum) or the latest measured one stands (Latest).
+   */
+  readonly aggregation: "Sum" | "Latest";
+  /**
+   * True when the figure is computed from the coverage records rather than entered.
+   */
+  readonly is_derived: boolean;
+  /**
+   * Lowest figure accepted, in the base unit.
+   */
+  readonly lower_bound: number | null;
+  /**
+   * Highest figure accepted, in the base unit.
+   */
+  readonly upper_bound: number | null;
+  /**
+   * Domain of the benchmarking canon metric.
+   * Length: 1 to 200.
+   */
+  readonly canon_domain: string | null;
+  /**
+   * Item of the benchmarking canon metric.
+   * Length: 1 to 300.
+   */
+  readonly canon_item: string | null;
+  /**
+   * The canon benchmark as a number.
+   */
+  readonly canon_value_numeric: number | null;
+  /**
+   * The canon benchmark in words.
+   * Length: 1 to 300.
+   */
+  readonly canon_value_text: string | null;
+  /**
+   * Qualifier of the canon benchmark.
+   * Length: 1 to 300.
+   */
+  readonly canon_qualifier: string | null;
+  /**
+   * Display order.
+   * Range: 1 to unbounded.
+   */
+  readonly ordinal: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface MeasurementUnitPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<MeasurementUnit>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers.
+ */
+export interface MeasurementUnit {
+  /**
+   * Unit code.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code: string;
+  /**
+   * Dimension of the unit.
+   */
+  readonly dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+  /**
+   * Base units in one of this unit.
+   */
+  readonly factor_to_base: number;
+  /**
+   * Measurement system of the unit.
+   */
+  readonly unit_system: "Metric" | "Imperial" | "Either";
+  /**
+   * True for the unit reports show the dimension in for readers of its system.
+   */
+  readonly is_display: boolean;
+  /**
+   * Display order.
+   * Range: 1 to unbounded.
+   */
+  readonly ordinal: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface MeasurementMetricTagPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<MeasurementMetricTag>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10).
+ */
+export interface MeasurementMetricTag {
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Canon tag code.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly tag_id: string;
+  /**
+   * Tag value as written in canon.
+   * Length: 1 to 200.
+   */
+  readonly tag: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectObjectivePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectObjective>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger.
+ */
+export interface ProjectObjective {
+  /**
+   * Identifier of the project objective.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Met by reaching the target (At Least) or by staying within it (At Most).
+   */
+  readonly direction: "At Least" | "At Most";
+  /**
+   * Target figure, in unit_code.
+   */
+  readonly target_value: number;
+  /**
+   * Unit of the target, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code: string;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * Fields accepted when creating a ProjectObjective.
+ */
+export interface ProjectObjectiveCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Met by reaching the target (At Least) or by staying within it (At Most).
+   */
+  readonly direction: "At Least" | "At Most";
+  /**
+   * Target figure, in unit_code.
+   */
+  readonly target_value: number;
+  /**
+   * Unit of the target, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code: string;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Fields accepted when updating a ProjectObjective. Omitted fields are unchanged.
+ */
+export interface ProjectObjectiveUpdate {
+  /**
+   * Met by reaching the target (At Least) or by staying within it (At Most).
+   */
+  readonly direction?: "At Least" | "At Most";
+  /**
+   * Target figure, in unit_code.
+   */
+  readonly target_value?: number;
+  /**
+   * Unit of the target, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code?: string;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectMeasurementPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectMeasurement>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at.
+ */
+export interface ProjectMeasurement {
+  /**
+   * Identifier of the project measurement.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Day the figure covers, on the project's calendar; today there when omitted, never later.
+   * Format: `date`.
+   */
+  readonly measured_on: string;
+  /**
+   * The figure in unit_code; null when not measured.
+   */
+  readonly value: number | null;
+  /**
+   * Unit of the figure, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code: string | null;
+  /**
+   * How the figure reached XOS.
+   */
+  readonly source: "Manual" | "Import" | "Integration";
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference: string | null;
+  /**
+   * Link to the source: an http(s) URL or a URN.
+   * Length: 1 to 2000.
+   */
+  readonly source_uri: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * Fields accepted when creating a ProjectMeasurement.
+ */
+export interface ProjectMeasurementCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Day the figure covers, on the project's calendar; today there when omitted, never later.
+   * Format: `date`.
+   */
+  readonly measured_on?: string;
+  /**
+   * The figure in unit_code; null when not measured.
+   */
+  readonly value?: number | null;
+  /**
+   * Unit of the figure, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code?: string | null;
+  /**
+   * How the figure reached XOS.
+   */
+  readonly source?: "Manual" | "Import" | "Integration";
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference?: string | null;
+  /**
+   * Link to the source: an http(s) URL or a URN.
+   * Length: 1 to 2000.
+   */
+  readonly source_uri?: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Fields accepted when updating a ProjectMeasurement. Omitted fields are unchanged.
+ */
+export interface ProjectMeasurementUpdate {
+  /**
+   * Day the figure covers, on the project's calendar; today there when omitted, never later.
+   * Format: `date`.
+   */
+  readonly measured_on?: string;
+  /**
+   * The figure in unit_code; null when not measured.
+   */
+  readonly value?: number | null;
+  /**
+   * Unit of the figure, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code?: string | null;
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference?: string | null;
+  /**
+   * Link to the source: an http(s) URL or a URN.
+   * Length: 1 to 2000.
+   */
+  readonly source_uri?: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+  /**
+   * Why the figure is corrected: required when the value, unit or day changes, kept in the correction ledger and never returned.
+   * Length: 1 to 500.
+   */
+  readonly correction_reason?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectMeasurementCorrectionPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectMeasurementCorrection>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at.
+ */
+export interface ProjectMeasurementCorrection {
+  /**
+   * Identifier of the project measurement correction.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the figure that changed.
+   * Format: `uuid`.
+   */
+  readonly project_measurement_id: string;
+  /**
+   * What changed the figure.
+   */
+  readonly correction_kind: "Corrected" | "Withdrawn" | "Restored";
+  /**
+   * Value before the change; null when Unmeasured.
+   */
+  readonly previous_value: number | null;
+  /**
+   * Unit before the change.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly previous_unit_code: string | null;
+  /**
+   * Day before the change.
+   * Format: `date`.
+   */
+  readonly previous_measured_on: string;
+  /**
+   * Value after the change; null when Unmeasured.
+   */
+  readonly value: number | null;
+  /**
+   * Unit after the change.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code: string | null;
+  /**
+   * Day after the change.
+   * Format: `date`.
+   */
+  readonly measured_on: string;
+  /**
+   * Why the figure changed.
+   * Length: 1 to 500.
+   */
+  readonly reason: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface EarnedMediaItemPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<EarnedMediaItem>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated.
+ */
+export interface EarnedMediaItem {
+  /**
+   * Identifier of the earned media item.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Headline or title of the coverage.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * Publication, station, channel or account that ran it.
+   * Length: 1 to 200.
+   */
+  readonly outlet: string;
+  /**
+   * Where the coverage ran.
+   */
+  readonly medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+  /**
+   * Day it ran, on the project's calendar; never after today there.
+   * Format: `date`.
+   */
+  readonly published_on: string;
+  /**
+   * Link to the coverage; one live row per link in a project.
+   * Format: `uri`.
+   */
+  readonly url: string | null;
+  /**
+   * Audience the outlet reports for the piece; null when unreported.
+   * Range: 0 to unbounded.
+   */
+  readonly reach: number | null;
+  /**
+   * Sentiment of the coverage; null until rated.
+   */
+  readonly tone: "Positive" | "Neutral" | "Negative" | null;
+  /**
+   * How the figure reached XOS.
+   */
+  readonly source: "Manual" | "Import" | "Integration";
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * Fields accepted when creating a EarnedMediaItem.
+ */
+export interface EarnedMediaItemCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Headline or title of the coverage.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * Publication, station, channel or account that ran it.
+   * Length: 1 to 200.
+   */
+  readonly outlet: string;
+  /**
+   * Where the coverage ran.
+   */
+  readonly medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+  /**
+   * Day it ran, on the project's calendar; never after today there.
+   * Format: `date`.
+   */
+  readonly published_on: string;
+  /**
+   * Link to the coverage; one live row per link in a project.
+   * Format: `uri`.
+   */
+  readonly url?: string | null;
+  /**
+   * Audience the outlet reports for the piece; null when unreported.
+   * Range: 0 to unbounded.
+   */
+  readonly reach?: number | null;
+  /**
+   * Sentiment of the coverage; null until rated.
+   */
+  readonly tone?: "Positive" | "Neutral" | "Negative" | null;
+  /**
+   * How the figure reached XOS.
+   */
+  readonly source?: "Manual" | "Import" | "Integration";
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference?: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Fields accepted when updating a EarnedMediaItem. Omitted fields are unchanged.
+ */
+export interface EarnedMediaItemUpdate {
+  /**
+   * Headline or title of the coverage.
+   * Length: 1 to 300.
+   */
+  readonly title?: string;
+  /**
+   * Publication, station, channel or account that ran it.
+   * Length: 1 to 200.
+   */
+  readonly outlet?: string;
+  /**
+   * Where the coverage ran.
+   */
+  readonly medium?: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+  /**
+   * Day it ran, on the project's calendar; never after today there.
+   * Format: `date`.
+   */
+  readonly published_on?: string;
+  /**
+   * Link to the coverage; one live row per link in a project.
+   * Format: `uri`.
+   */
+  readonly url?: string | null;
+  /**
+   * Audience the outlet reports for the piece; null when unreported.
+   * Range: 0 to unbounded.
+   */
+  readonly reach?: number | null;
+  /**
+   * Sentiment of the coverage; null until rated.
+   */
+  readonly tone?: "Positive" | "Neutral" | "Negative" | null;
+  /**
+   * How the figure reached XOS.
+   */
+  readonly source?: "Manual" | "Import" | "Integration";
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference?: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectMeasurementSummaryPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectMeasurementSummary>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero.
+ */
+export interface ProjectMeasurementSummary {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Family of the figure.
+   */
+  readonly family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
+  /**
+   * Dimension of the figure.
+   */
+  readonly dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+  /**
+   * Unit of target_base and measured_base.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly base_unit_code: string;
+  /**
+   * How figures combine.
+   */
+  readonly aggregation: "Sum" | "Latest";
+  /**
+   * Identifier of the live gate 1 objective for the metric.
+   * Format: `uuid`.
+   */
+  readonly objective_id: string | null;
+  /**
+   * Direction of the objective.
+   */
+  readonly direction: "At Least" | "At Most" | null;
+  /**
+   * Target as set, in target_unit_code.
+   */
+  readonly target_value: number | null;
+  /**
+   * Unit the target was set in.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly target_unit_code: string | null;
+  /**
+   * Target in the base unit.
+   */
+  readonly target_base: number | null;
+  /**
+   * Figures with a value.
+   * Range: 0 to unbounded.
+   */
+  readonly measured_count: number;
+  /**
+   * Figures recorded as not measured; never counted as zero.
+   * Range: 0 to unbounded.
+   */
+  readonly unmeasured_count: number;
+  /**
+   * Total (Sum) or latest figure (Latest) in the base unit; null when nothing was measured.
+   */
+  readonly measured_base: number | null;
+  /**
+   * Day of the most recent measured figure.
+   * Format: `date`.
+   */
+  readonly last_measured_on: string | null;
+  /**
+   * Met, Not Met, Incomplete (unmeasured figures leave the objective undecided) or Unmeasured; null without an objective.
+   */
+  readonly outcome: "Met" | "Not Met" | "Incomplete" | "Unmeasured" | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface CueCallPage {
   /**
    * Items on this page, in the documented default order.
