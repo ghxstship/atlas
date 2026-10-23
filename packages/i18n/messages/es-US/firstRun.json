@@ -1,0 +1,73 @@
+{
+  "feedback": {
+    "context": "Se envía con su mensaje: la página {route}, {app} {version}, el idioma {locale} y el tamaño de la ventana {viewport}.",
+    "failedUpload": "La captura no se cargó. Quítela o elija otro archivo y vuelva a enviar.",
+    "limit": "Envió 10 mensajes en la última hora. Inténtelo más tarde.",
+    "open": "Enviar Comentarios",
+    "removeScreenshot": "Quitar Captura",
+    "screenshot": "Captura (opcional)",
+    "screenshotHint": "PNG, JPEG o WebP de hasta 5 MB. Solo se envía el archivo que elija.",
+    "thanks": "Gracias. El equipo de la plataforma lo leerá. Su referencia es {number}.",
+    "unknownVersion": "versión desconocida"
+  },
+  "offline": {
+    "body": "Esta página aún no está guardada en este dispositivo. Las páginas que abrió hace poco se abren sin conexión.",
+    "home": "Ir al Inicio",
+    "retry": "Reintentar",
+    "title": "Está Sin Conexión"
+  },
+  "push": {
+    "blocked": "Este navegador bloquea las notificaciones de {app}. Permítalas en la configuración del sitio del navegador y vuelva a activarlas.",
+    "body": "Reciba notificaciones en este navegador, incluso con {app} cerrado. Sus opciones de arriba y sus horas de silencio se siguen aplicando.",
+    "failed": "No funcionó. Inténtelo de nuevo.",
+    "off": "Desactivadas en este navegador.",
+    "on": "Activadas en este navegador.",
+    "title": "Notificaciones del Navegador",
+    "turnOff": "Desactivar",
+    "turnOn": "Activar",
+    "unavailable": "Las notificaciones del navegador aún no están configuradas.",
+    "unsupported": "Este navegador no puede mostrar notificaciones de {app}."
+  },
+  "sandbox": {
+    "banner": "Este es su espacio de práctica. Solo usted lo ve, y nada en él se factura, se envía por correo ni por mensaje de texto. Termina {when}.",
+    "ends": "Su espacio de práctica termina {when}.",
+    "failed": "Su espacio de práctica no se abrió. Inténtelo de nuevo.",
+    "intro": "Explore una copia privada de la demostración de Northwind Live. Solo usted la ve, nada en ella se factura, se envía por correo ni por mensaje de texto, y termina a los 14 días.",
+    "open": "Abrir Su Espacio de Práctica",
+    "opening": "Abriendo su espacio de práctica",
+    "removing": "Su espacio de práctica anterior aún se está eliminando. Inténtelo en una hora.",
+    "title": "Espacio de Práctica",
+    "try": "Probar un Espacio de Práctica"
+  },
+  "triage": {
+    "description": "Comentarios que las personas enviaron desde Atlas y Gateway, del más reciente al más antiguo. Una captura se abre cuando su análisis de carga la encuentra limpia.",
+    "empty": "No hay comentarios en este estado.",
+    "failed": "No se guardó. Inténtelo de nuevo.",
+    "filter": "Mostrar",
+    "filters": {
+      "All": "Todos",
+      "Closed": "Cerrados",
+      "New": "Nuevos",
+      "Planned": "Planificados",
+      "Read": "Leídos"
+    },
+    "from": "De {name}",
+    "fromUnknown": "De alguien sin nombre registrado",
+    "note": "Nota",
+    "openScreenshot": "Abrir Captura",
+    "page": "Página {route}",
+    "save": "Guardar",
+    "saved": "Guardado.",
+    "screenshotBlocked": "La captura no pasó su análisis y permanece cerrada.",
+    "screenshotScanning": "La captura aún se está analizando.",
+    "sent": "Enviado {when} desde {app}",
+    "state": "Estado",
+    "states": {
+      "Closed": "Cerrado",
+      "New": "Nuevo",
+      "Planned": "Planificado",
+      "Read": "Leído"
+    },
+    "title": "Comentarios del Producto"
+  }
+}

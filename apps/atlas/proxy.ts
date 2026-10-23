@@ -15,6 +15,7 @@ import {
 } from "@xos/data/consent";
 import { tokenAal, type OrgAuthDecision } from "@xos/data/auth-assurance";
 import { findRoute, getNode } from "@xos/ia";
+import { OFFLINE_KEY_HEADER, offlineKey } from "@xos/ui/pwa/offline-key";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
 import {
@@ -279,6 +280,8 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
     if (event) event.waitUntil(touched);
     else await touched;
   }
+  // The service worker keeps a page for offline reading only under the person it was served to (A96).
+  if (user) result.headers.set(OFFLINE_KEY_HEADER, await offlineKey(user.id));
   return secure(result);
 }
 

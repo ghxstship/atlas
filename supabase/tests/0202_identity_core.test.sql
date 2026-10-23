@@ -67,7 +67,11 @@ select is(
        'supplier_diversity_certifications', 'supplier_diversity_events',
        -- platform-level rows of the operator console, owned by no tenant: the platform team, its append-only action
        -- ledger (target_org_id names the tenant an action touched) and platform-wide banners (A90, 1470 and 1474)
-       'platform_operators', 'platform_operator_actions', 'system_banners')
+       'platform_operators', 'platform_operator_actions', 'system_banners',
+       -- feedback a person sends the platform team, keyed by person_id, read by the sender and staff (A96, 1531)
+       'feedback_submissions',
+       -- consent-gated product analytics events, which by design name no person and no org (A96, 1532)
+       'product_events')
      and (select count(*) from information_schema.columns c
           where c.table_schema = 'app' and c.table_name = t.table_name
             and c.column_name in ('org_id', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at')) <> 6),

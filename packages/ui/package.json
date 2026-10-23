@@ -11,6 +11,11 @@
   "exports": {
     ".": "./src/index.ts",
     "./preferences": "./src/lib/preferences.ts",
+    "./pwa": "./src/pwa/index.ts",
+    "./pwa/client": "./src/pwa/client.ts",
+    "./pwa/analytics": "./src/pwa/analytics.ts",
+    "./pwa/offline-key": "./src/pwa/offline-key.ts",
+    "./pwa/browser-push": "./src/pwa/browser-push.tsx",
     "./styles.css": "./src/styles/index.css",
     "./tailwind.config.cjs": "./tailwind.config.cjs",
     "./brand/*": "./src/brand/defaults/*"

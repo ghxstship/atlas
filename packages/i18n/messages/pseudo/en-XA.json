@@ -184,6 +184,7 @@
       "stages": "[Éñgàgéméñt stàgés ······]"
     },
     "feedback": {
+      "failed": "[Ýöûr féédbàçk dîd ñöt séñd. Trý àgàîñ. ···············]",
       "hint": "[Désçrîbé whàt ýöû éxpéçtéd àñd whàt ýöû sàw. ·················]",
       "privacy": "[Öñlý whàt ýöû çhöösé héré îs séñt. Ñöthîñg élsé îs çàptûréd. ·······················]",
       "question": "[Whàt hàppéñéd? ·····]",

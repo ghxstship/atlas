@@ -13,6 +13,8 @@ export interface OrgBrand {
   readonly name: string;
   readonly logoLightPath: string | null;
   readonly logoDarkPath: string | null;
+  /** The app icon in the org-brand bucket, which the installed Gateway shows on a custom domain (A96). */
+  readonly appIconPath: string | null;
   /** Six-digit hex accent; applied only when it passes the contrast gate. */
   readonly accent: string | null;
   readonly showPoweredBy: boolean;
@@ -50,6 +52,7 @@ export async function resolveBrand(
       name: row.name,
       logoLightPath: row.logo_light_path,
       logoDarkPath: row.logo_dark_path,
+      appIconPath: row.app_icon_path,
       accent: row.accent_hex,
       showPoweredBy: !row.suppress_powered_by,
     },

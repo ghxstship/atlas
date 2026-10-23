@@ -19,6 +19,8 @@ import type { HelpPanelState } from "@/lib/help/actions";
 import { ArticleBody } from "./article";
 import { ContactForm } from "./contact-form";
 import { collectDiagnostics } from "./diagnostics";
+import { FeedbackForm } from "./feedback-form";
+import { SandboxEntry } from "./sandbox-entry";
 import { ShortcutSheet } from "./shortcut-sheet";
 import type { HelpView as View } from "./help-center";
 
@@ -64,6 +66,7 @@ export function HelpDrawer({
   startTour,
 }: HelpDrawerProps) {
   const t = useTranslations("help") as unknown as Translate;
+  const firstRun = useTranslations("firstRun") as unknown as Translate;
   const locale = useLocale();
   const pathname = usePathname();
   const lang: HelpLocale = (HELP_LOCALES as readonly string[]).includes(locale)
@@ -161,6 +164,8 @@ export function HelpDrawer({
             <p className="m-0">{t("noArticles")}</p>
           )}
         </article>
+      ) : view.kind === "feedback" ? (
+        <FeedbackForm org={org} onCancel={() => setView({ kind: "home" })} />
       ) : view.kind === "contact" ? (
         <ContactForm
           org={org}
@@ -298,17 +303,23 @@ export function HelpDrawer({
                 </dl>,
               )
             : null}
-          <Button
-            icon="LifeBuoy"
-            onClick={() =>
-              setView({
-                kind: "contact",
-                diagnostics: collectDiagnostics(pathname, navigator.userAgent),
-              })
-            }
-          >
-            {t("contact.open")}
-          </Button>
+          {section(firstRun("sandbox.title"), <SandboxEntry />)}
+          <div className="flex flex-wrap gap-8">
+            <Button
+              icon="LifeBuoy"
+              onClick={() =>
+                setView({
+                  kind: "contact",
+                  diagnostics: collectDiagnostics(pathname, navigator.userAgent),
+                })
+              }
+            >
+              {t("contact.open")}
+            </Button>
+            <Button icon="MessageSquare" onClick={() => setView({ kind: "feedback" })}>
+              {firstRun("feedback.open")}
+            </Button>
+          </div>
         </>
       )}
     </Drawer>

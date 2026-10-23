@@ -16,7 +16,8 @@ import { installErrorCapture, type CollectedDiagnostics } from "./diagnostics";
 export type HelpView =
   | { readonly kind: "home" }
   | { readonly kind: "article"; readonly slug: string }
-  | { readonly kind: "contact"; readonly diagnostics: CollectedDiagnostics };
+  | { readonly kind: "contact"; readonly diagnostics: CollectedDiagnostics }
+  | { readonly kind: "feedback" };
 
 const HELP_EVENT = "xos:help";
 

@@ -50,6 +50,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0046](0046-operator-console.md)                                    | The Operator Console                                                             | Proposed |
 | [0047](0047-automation-engine.md)                                   | Automation Engine                                                                | Proposed |
 | [0051](0051-ai-entry-points.md)                                     | AI Entry Points in Atlas                                                         | Proposed |
+| [0052](0052-sandbox-feedback-analytics-and-installable-apps.md)     | Sandbox, Feedback, Consented Analytics and Installable Apps                      | Accepted |
 | [0053](0053-beta-locales-canon-labels-rates-and-units.md)           | Beta Locales, Canon Label Translations, ECB Rates and Display Units              | Proposed |
 | [0054](0054-project-measurement.md)                                 | Project Measurement Against Gate 1 Objectives                                    | Proposed |
 | [0055](0055-recovery-codes-sessions-step-up-and-oauth.md)           | Recovery Codes, Signed-In Sessions, More Step-Up and OAuth 2.1                   | Proposed |

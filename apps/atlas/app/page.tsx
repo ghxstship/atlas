@@ -5,6 +5,9 @@ import { LAST_ORG_COOKIE } from "@/lib/shell/last-org";
 import { getMyOrganizations, getViewer } from "@/lib/shell/context";
 import { getShellSettings, startPath } from "@/lib/shell/org-settings";
 
+/** Pages the installed app's shortcuts open (`/?open=inbox`). */
+const APP_SHORTCUTS = ["inbox", "my-work", "projects"] as const;
+
 /**
  * Entry. A signed-in person goes to the start page (shell.start_page: Home, My Work, Inbox or
  * Projects) of the org they used last (or their first org), a person with no org creates one, and
@@ -29,6 +32,11 @@ export default async function EntryPage({ searchParams }: PageProps<"/">) {
   const last = (await cookies()).get(LAST_ORG_COOKIE)?.value;
   const org = orgs.find((o) => o.slug === last) ?? orgs[0];
   if (!org) redirect("/auth/organization");
+  // The installed app's shortcuts (app/manifest.ts, A96) open a page of the org used last.
+  const open = query["open"];
+  if (typeof open === "string" && (APP_SHORTCUTS as readonly string[]).includes(open)) {
+    redirect(`/${org.slug}/${open}` as Route);
+  }
   const settings = await getShellSettings(viewer.db, org.id, null);
   redirect(startPath(org.slug, settings.startPage) as Route);
 }

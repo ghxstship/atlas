@@ -43,6 +43,13 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/session-ended":
     "Auth template: an org's session lifetime or idle timeout ended the session; sign in again (A77).",
   "/auth/sso": "Auth template: Enterprise single sign-on by work email domain (A77).",
+  "/auth/offline":
+    "Auth template: the offline page the service worker shows for a page it has not saved (A96, ADR 0052).",
+  "/sw.js": "Route handler: the service worker, served at the origin root (A96, ADR 0052).",
+  "/api/product-events":
+    "Route handler: consent-gated, first-party product analytics events (A96, Section 11.14).",
+  "/support/feedback":
+    "Platform staff: the product feedback triage list (A96, Section 11.7); 404 for anyone else.",
   "/oauth/authorize":
     "Route handler: the OAuth 2.1 authorization endpoint the OpenAPI document names; records the capability groups and opens consent (A99, ADR 0055).",
   "/oauth/token":

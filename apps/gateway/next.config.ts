@@ -46,6 +46,9 @@ const config: NextConfig = {
     // its own wrapper and compresses alone, so fewer, larger chunks are less gzip per page; the cost
     // is shared code merged into page chunks, fetched again on navigation (ADR 0027).
     turbopackChunking: { minChunkSize: 200_000 },
+    // Support and feedback screenshots go up through server actions, and the bucket takes files up to 5 MB
+    // (1034); Next's default 1 MB body refused most phone screenshots (A96).
+    serverActions: { bodySizeLimit: "6mb" },
   },
 };
 

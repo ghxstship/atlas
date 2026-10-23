@@ -20,7 +20,12 @@ import {
   pushStore,
   readSmsEnv,
   smsStore,
+  webPushStore,
 } from "./chunks/platform-notifications-stores.js";
+import {
+  createWebPushClient,
+  readWebPushEnv,
+} from "./chunks/platform-notifications-web-push-env.js";
 import { z } from "zod";
 //#region src/notifications/dispatch.ts
 var exportReady = z.object({
@@ -175,6 +180,22 @@ function pushMessage(claim, device, recipient, url) {
     ttl: 86400,
   };
 }
+/** The Web Push payload of a notification, in the recipient's locale and time zone. */
+function webPushPayload(claim, recipient, url) {
+  const text = notificationText(
+    claim.kind,
+    claim.messageArgs,
+    localeOf(recipient.locale),
+    recipient.timeZone,
+  );
+  return {
+    title: clip(text.title, 120),
+    body: clip(text.body, 900),
+    url,
+    tag: claim.notificationId,
+    kind: claim.kind,
+  };
+}
 /** The delivery outcome of a delivery's tickets. */
 function outcomeOf(tickets) {
   const accepted = tickets.find((t) => t.status === "ok");
@@ -220,9 +241,12 @@ async function dispatchPush(store, client, options = {}) {
   const claims = await store.claimPush(options.limit ?? 50);
   const pending = [];
   const failedEarly = /* @__PURE__ */ new Map();
+  const recipients = /* @__PURE__ */ new Map();
   for (const claim of claims)
     try {
       const recipient = await store.recipient(claim.recipientPersonId);
+      recipients.set(claim.deliveryId, recipient);
+      if (claim.devices.length === 0) continue;
       const url = await store.deepLink(claim);
       for (const device of claim.devices)
         pending.push({
@@ -259,8 +283,18 @@ async function dispatchPush(store, client, options = {}) {
   let sent = 0;
   let failed = 0;
   let bounced = 0;
+  let browsers = 0;
   for (const claim of claims) {
-    const early = failedEarly.get(claim.deliveryId);
+    let early = failedEarly.get(claim.deliveryId);
+    let webTickets = [];
+    const recipient = recipients.get(claim.deliveryId);
+    if (early === void 0 && options.web && recipient && (claim.browsers?.length ?? 0) > 0)
+      try {
+        webTickets = await pushBrowsers(claim, recipient, options.web);
+        browsers += webTickets.length;
+      } catch (error) {
+        early = error instanceof Error ? error.message : String(error);
+      }
     if (early !== void 0) {
       await store.record(claim.deliveryId, "Failed", null, early);
       failed += 1;
@@ -286,14 +320,15 @@ async function dispatchPush(store, client, options = {}) {
             },
       );
     if (mine.length > 0) await store.recordTickets(claim.deliveryId, mine);
+    const all = [...mine, ...webTickets];
     const result =
-      claim.devices.length === 0
+      all.length === 0
         ? {
             outcome: "Sent",
             providerMessageId: null,
             error: null,
           }
-        : outcomeOf(mine);
+        : outcomeOf(all);
     await store.record(claim.deliveryId, result.outcome, result.providerMessageId, result.error);
     if (result.outcome === "Sent") sent += 1;
     else if (result.outcome === "Bounced") bounced += 1;
@@ -304,8 +339,43 @@ async function dispatchPush(store, client, options = {}) {
     sent,
     failed,
     bounced,
-    devices: pending.length,
+    devices: pending.length + browsers,
   };
+}
+/** Pushes a delivery's browsers through Web Push and records each push service's answer. */
+async function pushBrowsers(claim, recipient, web) {
+  const devices = await web.store.webDevices(claim.deliveryId);
+  if (devices.length === 0) return [];
+  const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
+  const links = /* @__PURE__ */ new Map();
+  for (const device of devices)
+    if (!links.has(device.app)) links.set(device.app, await web.store.webLink(claim, device.app));
+  const tickets = await Promise.all(
+    devices.map(async (device) => {
+      const payload = webPushPayload(claim, recipient, links.get(device.app) ?? "/");
+      const answer = await web.client.send(device, payload, {
+        ttl: 86400,
+        urgency: pushCategory === null ? "normal" : "high",
+      });
+      return answer.status === "ok"
+        ? {
+            subscriptionId: device.subscriptionId,
+            status: "ok",
+            ticketId: null,
+            error: null,
+            message: null,
+          }
+        : {
+            subscriptionId: device.subscriptionId,
+            status: "error",
+            ticketId: null,
+            error: answer.error,
+            message: answer.message,
+          };
+    }),
+  );
+  await web.store.recordWebTickets(claim.deliveryId, tickets);
+  return tickets;
 }
 /**
  * Reads the receipts of tickets at least 15 minutes old (Expo keeps them 24 hours) and records them:
@@ -497,6 +567,7 @@ export {
   createPushClient,
   createSmsProvider,
   createTransport,
+  createWebPushClient,
   dispatchEmail,
   dispatchPush,
   dispatchSms,
@@ -506,5 +577,7 @@ export {
   readEmailEnv,
   readPushEnv,
   readSmsEnv,
+  readWebPushEnv,
   smsStore,
+  webPushStore,
 };

@@ -267,6 +267,7 @@ Values live in Vercel, the Supabase project, EAS and GitHub. They are never comm
 | `COMPASS_APPLE_TEAM_IDS`      | The Apple team id, once the developer account exists              |
 | `COMPASS_ANDROID_CERT_SHA256` | The Play app signing certificate fingerprint, once the app exists |
 | `XOS_INBOUND_DOMAIN`          | `<inbound domain>`, once the receiving domain exists (ADR 0040)   |
+| `VAPID_PUBLIC_KEY`            | The Web Push public key ("Web push" below; public, ADR 0052)      |
 
 ### Gateway (Vercel project `gateway`)
 
@@ -282,6 +283,7 @@ Values live in Vercel, the Supabase project, EAS and GitHub. They are never comm
 | `XOS_LOG_LEVEL`               | `info`                                                                                                        |
 | `COMPASS_APPLE_TEAM_IDS`      | As Atlas                                                                                                      |
 | `COMPASS_ANDROID_CERT_SHA256` | As Atlas                                                                                                      |
+| `VAPID_PUBLIC_KEY`            | As Atlas                                                                                                      |
 
 ### Docs (Vercel project `docs`)
 
@@ -303,6 +305,8 @@ None. The site is built from the repository and the OpenAPI document. Project se
 | `XOS_QUICKBOOKS_VERIFIER_TOKEN`                           | QuickBooks Online change notices (`integration-inbound`), once the app exists                                  |
 | `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | The Edge Functions' Sentry DSN; `production`; `info`                                                           |
 | `XOS_PUSH_TRANSPORT`, `EXPO_ACCESS_TOKEN`                 | `expo` to send push ("Push and SMS" below); the access token only if enhanced push security is on              |
+| `XOS_WEB_PUSH_TRANSPORT`, `VAPID_SUBJECT`                 | `vapid` to send browser push ("Web push" below); a `mailto:` or `https:` contact for the push services         |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`                   | `<87 base64url characters>`, the same public key as the apps; `<43 base64url characters>`                      |
 | `XOS_SMS_TRANSPORT`, `TWILIO_ACCOUNT_SID`                 | `twilio` to send SMS; the account SID, `AC<32 hex characters>`                                                 |
 | `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`       | `<32 hex characters>`; the 10DLC Messaging Service, `MG<32 hex characters>`                                    |
 | `XOS_SMS_HELP_CONTACT`                                    | The mailbox or page HELP replies name (OWNER_INPUTS item 6)                                                    |
@@ -572,6 +576,16 @@ limit 5;`. Conversions keep using the newest rate recorded, show its date, and s
 3. Set `XOS_PUSH_TRANSPORT=expo` on staging first. Register a device in a Compass staging build, submit a timesheet, and approve it from the push (journey 57).
 4. Check: `select message_status, count(*) from app.push_tickets group by 1;` shows Sent turning into Delivered after about 15 minutes. Bounced rows with `DeviceNotRegistered` mean uninstalled apps; their devices are revoked automatically.
 
+### Web push (browsers, ADR 0052)
+
+Atlas and Gateway subscribe browsers to Web Push (migration 1533). Browser pushes ride the Push deliveries, so A80's quiet hours and preferences apply. Until these steps are done, browser pushes are recorded, not sent, and the Browser Notifications setting says they are not set up yet.
+
+1. Generate one P-256 key pair for VAPID on the owner's machine, for example `npx web-push generate-vapid-keys` in an empty directory. The public key is 87 base64url characters and the private key 43.
+2. Set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` as Edge Function secrets, then `XOS_WEB_PUSH_TRANSPORT=vapid`, on staging first.
+3. Set the same `VAPID_PUBLIC_KEY` on the Atlas and Gateway Vercel projects and redeploy them.
+4. Check: on staging, turn on Personal settings, Notifications, Browser Notifications, then trigger an approval. `select push_service, message_status, count(*) from app.push_tickets group by 1, 2;` shows `Web Push` rows Delivered. A browser that unsubscribed answers 404 or 410 and is revoked automatically.
+5. Never rotate the keys casually: a new key pair invalidates every browser subscription, and people must turn browser notifications on again.
+
 ### SMS (Twilio with 10DLC, Section 14.5)
 
 1. **Twilio account.** Create the account, upgrade it from trial, and note the Account SID (`AC<32 hex characters>`) and the Auth Token (`<32 hex characters>`).
@@ -671,6 +685,11 @@ Without `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` Compass shows no Google button; witho
 5. Cancel on Google's account picker: the sign-in page says you left before it finished.
 
 Rollback: turn "Enable Sign in with Google" off. The buttons disappear within five minutes (Atlas and Gateway cache the provider list); accounts keep their google identity and can still sign in by email.
+
+## Feedback triage and sandboxes (OWNER)
+
+- **Platform staff.** People who triage product feedback at `/support/feedback` in Atlas are `private.is_platform_staff()` (ADR 0052). Once A90's operator console lands, name them in its roster. Until then, add a row with the service role: `insert into private.platform_staff (person_id, reason) select p.id, 'Triages feedback' from app.people p join auth.users u on u.id = p.user_id where u.email = '<their email>';`. Revoke with `update private.platform_staff set revoked_at = now() where person_id = '<person id>';`.
+- **Sandboxes.** `xos_purge_expired_sandboxes` (pg_cron, hourly at :37) purges sandboxes 14 days after they open. `select org_id, expires_at, purge_error from app.sandbox_orgs where purge_error is not null;` lists any it could not purge, with the reason. Storage objects of purged sandboxes wait in `private.sandbox_leftover_objects` for the Storage API sweep.
 
 ## Monitoring and alerting
 

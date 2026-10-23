@@ -1179,6 +1179,51 @@ function devices(value) {
       : [];
   });
 }
+/** Browsers the claim lists: subscription ids with no Expo token (1533). */
+function browsers(value) {
+  return rows(value).flatMap((d) => {
+    const subscriptionId = optionalText(d, "subscriptionId");
+    return subscriptionId !== null && d["token"] === null ? [subscriptionId] : [];
+  });
+}
+/** The record key and org slug of a notification about a record, or null. */
+async function recordTarget(db, claim) {
+  const slug = optionalText(
+    await db.selectOne("organizations", "slug", { id: claim.orgId }),
+    "slug",
+  );
+  if (claim.subjectId === null || !["records", "app.records"].includes(claim.subjectTable ?? ""))
+    return {
+      slug,
+      recordKey: null,
+    };
+  const record = await db.selectOne("records", "project_id, record_number", {
+    id: claim.subjectId,
+  });
+  const projectId = optionalText(record, "project_id");
+  if (record === null || projectId === null)
+    return {
+      slug,
+      recordKey: null,
+    };
+  const recordKey = `${optionalText(await db.selectOne("projects", "project_key", { id: projectId }), "project_key") ?? ""}-${String(record["record_number"] ?? "")}`;
+  return {
+    slug,
+    recordKey: isRecordKey(recordKey) ? recordKey : null,
+  };
+}
+/**
+ * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, else the
+ * org's Inbox; in Gateway, Home. A path, never a full URL: the service worker resolves it on its own origin.
+ */
+async function webPushLink(db, claim, app) {
+  if (app === "Gateway") return "/home";
+  const target = await recordTarget(db, claim);
+  if (target.slug === null) return "/";
+  return target.recordKey === null
+    ? `/${target.slug}/inbox`
+    : `/${target.slug}/r/${target.recordKey}`;
+}
 /** The Compass deep link of a notification: the record screen for a record, else the Inbox. */
 async function compassLink(db, claim) {
   const inbox = `${COMPASS_SCHEME}://inbox`;
@@ -1220,6 +1265,7 @@ function pushStore(db) {
         subjectTable: optionalText(row, "subject_table"),
         subjectId: optionalText(row, "subject_id"),
         devices: devices(row["push_devices"]),
+        browsers: browsers(row["push_devices"]),
       }));
     },
     recipient: (personId) => recipientProfile(db, personId),
@@ -1247,6 +1293,34 @@ function pushStore(db) {
       const pruned = await db.rpc("record_push_receipts", { p_receipts: receipts });
       return typeof pruned === "number" ? pruned : 0;
     },
+  };
+}
+/** WebPushStore over app.web_push_devices and app.record_web_push_tickets (1533). */
+function webPushStore(db) {
+  return {
+    async webDevices(deliveryId) {
+      return rows(await db.rpc("web_push_devices", { p_delivery_id: deliveryId })).flatMap((r) => {
+        const app = optionalText(r, "app");
+        return app === "Atlas" || app === "Gateway"
+          ? [
+              {
+                subscriptionId: text(r, "subscription_id"),
+                endpoint: text(r, "endpoint"),
+                p256dh: text(r, "p256dh"),
+                auth: text(r, "auth"),
+                app,
+              },
+            ]
+          : [];
+      });
+    },
+    async recordWebTickets(deliveryId, tickets) {
+      await db.rpc("record_web_push_tickets", {
+        p_delivery_id: deliveryId,
+        p_tickets: tickets,
+      });
+    },
+    webLink: (claim, app) => webPushLink(db, claim, app),
   };
 }
 /** SmsStore over app.claim_notification_deliveries and app.record_notification_delivery. */
@@ -1350,4 +1424,5 @@ export {
   readSmsEnv,
   smsInboundStore,
   smsStore,
+  webPushStore,
 };

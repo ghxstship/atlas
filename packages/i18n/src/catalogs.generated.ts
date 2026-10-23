@@ -17,6 +17,7 @@ import enUS_docs from "../messages/en-US/docs.json" with { type: "json" };
 import enUS_documents from "../messages/en-US/documents.json" with { type: "json" };
 import enUS_email from "../messages/en-US/email.json" with { type: "json" };
 import enUS_finance from "../messages/en-US/finance.json" with { type: "json" };
+import enUS_firstRun from "../messages/en-US/firstRun.json" with { type: "json" };
 import enUS_gateway from "../messages/en-US/gateway.json" with { type: "json" };
 import enUS_gatewayOnboarding from "../messages/en-US/gatewayOnboarding.json" with { type: "json" };
 import enUS_handoff from "../messages/en-US/handoff.json" with { type: "json" };
@@ -76,6 +77,7 @@ import esUS_docs from "../messages/es-US/docs.json" with { type: "json" };
 import esUS_documents from "../messages/es-US/documents.json" with { type: "json" };
 import esUS_email from "../messages/es-US/email.json" with { type: "json" };
 import esUS_finance from "../messages/es-US/finance.json" with { type: "json" };
+import esUS_firstRun from "../messages/es-US/firstRun.json" with { type: "json" };
 import esUS_gateway from "../messages/es-US/gateway.json" with { type: "json" };
 import esUS_gatewayOnboarding from "../messages/es-US/gatewayOnboarding.json" with { type: "json" };
 import esUS_handoff from "../messages/es-US/handoff.json" with { type: "json" };
@@ -137,6 +139,7 @@ export const enUS = {
   documents: enUS_documents,
   email: enUS_email,
   finance: enUS_finance,
+  firstRun: enUS_firstRun,
   gateway: enUS_gateway,
   gatewayOnboarding: enUS_gatewayOnboarding,
   handoff: enUS_handoff,
@@ -199,6 +202,7 @@ export const esUS = {
   documents: esUS_documents,
   email: esUS_email,
   finance: esUS_finance,
+  firstRun: esUS_firstRun,
   gateway: esUS_gateway,
   gatewayOnboarding: esUS_gatewayOnboarding,
   handoff: esUS_handoff,

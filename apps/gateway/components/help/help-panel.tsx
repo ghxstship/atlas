@@ -17,6 +17,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { HELP_CONTENT } from "@/help/content.generated";
 import { sitemap } from "@/ia/sitemap.generated";
 import { ContactSupport } from "./contact-support";
+import { FeedbackForm } from "./feedback-form";
 import { HelpArticle } from "./help-article";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -24,7 +25,8 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
 type View =
   | { readonly kind: "home" }
   | { readonly kind: "article"; readonly slug: string }
-  | { readonly kind: "contact" };
+  | { readonly kind: "contact" }
+  | { readonly kind: "feedback" };
 
 /**
  * The shortcuts Gateway answers everywhere (search, help, closing what is open), from the shortcut
@@ -165,6 +167,8 @@ export function HelpPanel({
             <p className="m-0">{t("noArticles")}</p>
           )}
         </article>
+      ) : view.kind === "feedback" ? (
+        <FeedbackForm pathname={pathname} onBack={() => setView({ kind: "home" })} />
       ) : view.kind === "contact" ? (
         <ContactSupport
           engagementKey={engagementKey}
@@ -251,9 +255,14 @@ export function HelpPanel({
               {t("docs.helpCenter")}
             </a>
           ) : null}
-          <Button icon="LifeBuoy" onClick={() => setView({ kind: "contact" })}>
-            {t("contact.open")}
-          </Button>
+          <div className="flex flex-wrap gap-8">
+            <Button icon="LifeBuoy" onClick={() => setView({ kind: "contact" })}>
+              {t("contact.open")}
+            </Button>
+            <Button icon="MessageSquare" onClick={() => setView({ kind: "feedback" })}>
+              {tRoot("firstRun.feedback.open")}
+            </Button>
+          </div>
         </div>
       )}
     </Drawer>

@@ -6,6 +6,7 @@ import { ShellPeek } from "@/components/shell/shell-peek";
 import { getTranslations } from "next-intl/server";
 import { OrgBanners } from "@/components/platform/org-banners";
 import { SystemBanners } from "@/components/shell/system-banners";
+import { SandboxBanner } from "@/components/sandbox/sandbox-banner";
 import { getOrgContext } from "@/lib/shell/context";
 
 /**
@@ -25,6 +26,7 @@ export default async function OrgLayout({ children, params }: LayoutProps<"/[org
     <AppShell ctx={ctx}>
       <SystemBanners linkLabel={t("details")} />
       <OrgBanners ctx={ctx} />
+      <SandboxBanner ctx={ctx} />
       <ReacceptanceBanner ctx={ctx} />
       {children}
       <Suspense fallback={null}>

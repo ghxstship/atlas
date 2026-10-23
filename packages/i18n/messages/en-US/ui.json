@@ -183,6 +183,7 @@
     "stages": "Engagement stages"
   },
   "feedback": {
+    "failed": "Your feedback did not send. Try again.",
     "hint": "Describe what you expected and what you saw.",
     "privacy": "Only what you choose here is sent. Nothing else is captured.",
     "question": "What happened?",

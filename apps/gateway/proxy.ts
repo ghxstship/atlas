@@ -13,6 +13,7 @@ import { listOrgsAllowingPersonalTokens } from "@xos/data/developer";
 import { requestDevice } from "@xos/data/session-device";
 import { listMyAccounts, listMyEngagementRoleTypes } from "@xos/data/gateway";
 import { findRoute, getNode, isNodeVisible } from "@xos/ia";
+import { OFFLINE_KEY_HEADER, offlineKey } from "@xos/ui/pwa/offline-key";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
 import { secondFactorRedirect } from "@/lib/auth/assurance";
@@ -213,6 +214,8 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
       `${DEVICE_SEEN_COOKIE}=${now}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax${secureSite ? "; Secure" : ""}`,
     );
   }
+  // The service worker keeps a page for offline reading only under the person it was served to (A96).
+  if (user) result.headers.set(OFFLINE_KEY_HEADER, await offlineKey(user.id));
   return result;
 }
 
