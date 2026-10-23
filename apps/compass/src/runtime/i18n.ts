@@ -5,7 +5,9 @@
  *
  * Only the device's locale and en-US (the fallback) are handed to i18next, so the app never holds every
  * catalog at once. The device locale is matched against the launch locales: Compass has no language
- * picker, and the Beta locales (ADR 0053) are chosen in Atlas or Gateway, never guessed.
+ * picker, and the Beta locales (ADR 0053) are chosen in Atlas or Gateway, never guessed. A language the
+ * person or their org chose (locale.language) is added when Compass switches to it, a Beta one loaded
+ * on demand.
  */
 import {
   defaultLocale,
@@ -15,6 +17,7 @@ import {
   type LaunchLocale,
   type Locale,
 } from "@xos/i18n";
+import { loadMessages } from "@xos/i18n/load";
 import i18next, { type Resource } from "i18next";
 import { initReactI18next } from "react-i18next";
 
@@ -46,10 +49,24 @@ export function initI18n(locale: Locale = deviceLocale()): typeof i18next {
   return i18next;
 }
 
-/** Renders in a chosen language (locale.language), or in the device's language when nobody chose one. */
-export function applyLanguage(locale: Locale | null): void {
+/** The language the latest applyLanguage asked for, so an earlier call still loading never wins. */
+let wanted: Locale | null = null;
+
+/**
+ * Renders in a chosen language (locale.language), or in the device's language when nobody chose one. A
+ * language i18next was not started with gets its catalog first (a Beta one loads on demand, ADR 0053), so
+ * the switch never shows en-US where the catalog has a translation.
+ */
+export async function applyLanguage(locale: Locale | null): Promise<void> {
   const next = locale ?? deviceLocale();
-  if (i18next.isInitialized && i18next.language !== next) void i18next.changeLanguage(next);
+  wanted = next;
+  if (!i18next.isInitialized) return;
+  if (!i18next.hasResourceBundle(next, "translation")) {
+    const messages = await loadMessages(next);
+    if (wanted !== next) return;
+    i18next.addResourceBundle(next, "translation", messages, true, true);
+  }
+  if (i18next.language !== next) await i18next.changeLanguage(next);
 }
 
 /** Picks the One or Other form of a count message. */

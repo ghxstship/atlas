@@ -393,7 +393,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
 
   // Compass speaks the language the person or their org chose (locale.language), else the device's (A65-001).
   useEffect(() => {
-    applyLanguage(languageOf(resolvedSettings));
+    void applyLanguage(languageOf(resolvedSettings));
   }, [resolvedSettings]);
 
   const enqueue = useCallback(
