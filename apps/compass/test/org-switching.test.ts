@@ -348,6 +348,27 @@ describe("tenancy on the device: no row crosses from one org into another", () =
     expect(rowOrg({ org_id: "org-n", project_id: "p-s" }, orgs)).toBe("org-n");
   });
 
+  it("takes an emergency code off the device once the org removes it in Atlas", async () => {
+    const r = await riley();
+    const store = await PersistentStore.open(sqlite().exec);
+    const session = new SyncSession(
+      store,
+      r.contexts.map((c) => c.scope),
+    );
+    await downloadAll({ client: serverClient(SERVER), session, projectId: null });
+    expect(await store.get("emergency_codes", "ec-n")).toBeDefined();
+    const removed = {
+      ...SERVER,
+      "app.emergency_codes": SERVER["app.emergency_codes"].map((c) =>
+        c.id === "ec-n" ? { ...c, deleted_at: "2026-10-23T09:00:00Z" } : c,
+      ),
+    };
+    const report = await downloadAll({ client: serverClient(removed), session, projectId: null });
+    expect(report.failed).toEqual([]);
+    expect(await store.get("emergency_codes", "ec-n")).toBeUndefined();
+    expect((await store.list("emergency_codes")).map((x) => x.id)).toEqual(["ec-s"]);
+  });
+
   it("purges an org's rows when the membership there ends, keeping the outbox", async () => {
     const r = await riley();
     const store = await PersistentStore.open(sqlite().exec);
@@ -367,6 +388,9 @@ describe("tenancy on the device: no row crosses from one org into another", () =
     expect(await session.narrow(withoutSouth.map((c) => c.scope))).toBeGreaterThan(0);
     expect((await store.list("shifts")).map((x) => x.id).sort()).toEqual(["s-e", "s-n"]);
     expect(await store.get("zones", "z-s")).toBeUndefined();
+    // The org's emergency codes leave with the membership; the other org's stay.
+    expect(await store.get("emergency_codes", "ec-s")).toBeUndefined();
+    expect(await store.get("emergency_codes", "ec-n")).toBeDefined();
     expect(await store.list(OUTBOX_TABLE)).toHaveLength(1);
   });
 

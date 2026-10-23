@@ -120,6 +120,14 @@ describe("download scope (Section 8.7)", () => {
       false,
     );
     expect(admits("emergency_codes", { id: "ec-3" }, internal)).toBe(false);
+    // The audience gate on its own: an engaged person whose scope somehow named the org still gets none.
+    expect(
+      admits(
+        "emergency_codes",
+        { id: "ec-1", org_id: "org-1" },
+        { ...external("crew"), orgIds: ["org-1"] },
+      ),
+    ).toBe(false);
   });
 
   it("filters a downloaded batch", () => {

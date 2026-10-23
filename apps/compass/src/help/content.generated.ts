@@ -1140,7 +1140,7 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "Emergency codes" },
                 {
                   t: "text",
-                  v: ": your organization's codes, with the names, meanings and order your safety team set in Atlas. Each shows its code word and color. Connect once to download them.",
+                  v: ": your organization's codes, with the names, meanings and order your safety team set in Atlas, each with its code word and color. If your organization has not set its own, or you work for it without being a member, you see the standard codes, and the screen says so. Connect once to download them.",
                 },
               ],
               [
@@ -3259,7 +3259,7 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "Códigos de emergencia" },
                 {
                   t: "text",
-                  v: ": los códigos de tu organización, con los nombres, significados y orden que definió tu equipo de seguridad en Atlas. Cada uno muestra su palabra clave y su color. Conéctate una vez para descargarlos.",
+                  v: ": los códigos de tu organización, con los nombres, significados y orden que definió tu equipo de seguridad en Atlas, cada uno con su palabra clave y su color. Si tu organización no definió los suyos, o trabajas para ella sin ser miembro, ves los códigos estándar y la pantalla lo indica. Conéctate una vez para descargarlos.",
                 },
               ],
               [
