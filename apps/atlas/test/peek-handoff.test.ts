@@ -5,8 +5,9 @@
  * elsewhere) shows the list with nothing open. These checks read the source of every page under
  * app/[org] and follow the names each page uses through its local imports, so a new page cannot
  * read `?peek` without handing an unshown key over or answering it with its own not-found state.
- * They also keep row ids out of `?peek` where no record panel would show them: a page with no
- * panel, or one where the shell opens the key itself.
+ * They also keep row ids out of `?peek` where no record panel would show them (a page with no
+ * panel, or one where the shell opens the key itself), and keep every read of a `?peek` row by id
+ * counting a key that is no id as no row (peekRowMissing).
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
@@ -82,6 +83,48 @@ const SHELL_KEYS: Readonly<Record<string, string>> = {
   "components/my-work/my-work-view.tsx#MyWorkView": "a My Work row opens its record key",
 };
 
+/**
+ * Code that reads a `?peek` row by its id. A key that is no id at all (a record key read as a UUID)
+ * fails as `invalid`, which peekRowMissing counts as no row, as it counts `not-found`. Every caller
+ * of peekRowMissing outside lib/ is listed, so none can go back to comparing the kind with
+ * "not-found".
+ */
+const BY_ID_READERS: Readonly<Record<string, string>> = {
+  "app/[org]/crew/pay-periods/page.tsx#Page": "the pay period, handed over when missing",
+  "app/[org]/crew/swaps/page.tsx#Page": "the swap, handed over when missing",
+  "app/[org]/crew/time-entries/page.tsx#Page": "the time entry, handed over when missing",
+  "app/[org]/crew/time-off/page.tsx#Page": "the time-off request, handed over when missing",
+  "app/[org]/crew/timesheets/page.tsx#Page": "the timesheet, handed over when missing",
+  "app/[org]/people/agreements/page.tsx#Page": "the agreement, handed over when missing",
+  "app/[org]/people/certifications/page.tsx#Page": "the certification, handed over when missing",
+  "app/[org]/people/requisitions/page.tsx#Page": "the requisition, handed over when missing",
+  "components/crew/payroll-run.tsx#PayrollRunRecord": "a pay period's run, none when missing",
+  "components/crew/shifts-collection.tsx#ShiftsCollection": "the shift, handed over when missing",
+  "components/advancing/packets.tsx#loadPacket": "a packet's full page, 404 when missing",
+  "components/advancing/reconciliation.tsx#RunPage": "a run's full page, 404 when missing",
+  "components/advancing/riders.tsx#loadRider": "a rider's full page, 404 when missing",
+};
+
+/**
+ * `?peek` readers on collection pages that compare a failed read's kind with "not-found"
+ * themselves: each meets no `invalid` for the key, because it looks the row up by key or reads only
+ * a UUID.
+ */
+const KIND_NOT_FOUND: Readonly<Record<string, string>> = {
+  "components/assets/units-view.tsx#UnitsView": "reads the unit by its asset tag",
+  "components/logistics-hospitality/beos.tsx#BeosSection": "finds the id by key (findIdByKey)",
+  "components/logistics-hospitality/blocks.tsx#BlocksSection": "finds the id by key (findIdByKey)",
+  "components/logistics-hospitality/dock.tsx#DockSection": "reads a slot only for a UUID key",
+  "components/logistics-hospitality/fulfillments.tsx#FulfillmentsSection":
+    "finds the id by key (findIdByKey)",
+  "components/logistics-hospitality/shipments.tsx#ShipmentsSection":
+    "finds the id by key (findIdByKey)",
+  "components/schedule/schedule-pages.tsx#BaselinesPage": "reads a baseline only for a UUID key",
+  "components/show/show-pages.tsx#RunsPage": "reads a running order only for a UUID key",
+  // Its comparison is about the door list's read, not the `?peek` row, which it finds in the list.
+  "components/workforce/guest-check-in.tsx#GuestCheckInSection": "finds the guest in its list",
+};
+
 const atlas = fileURLToPath(new URL("../", import.meta.url));
 const orgApp = join(atlas, "app", "[org]");
 
@@ -99,6 +142,8 @@ interface PeekUse {
   readonly reads: boolean;
   /** Puts a value in `?peek` with a query change: `go({ peek: id })`, `q.set("peek", id)`. */
   readonly writes: boolean;
+  /** Compares a failed read's kind with "not-found" itself instead of asking peekRowMissing. */
+  readonly kindNotFound: boolean;
   readonly elements: readonly Rendered[];
 }
 
@@ -224,10 +269,21 @@ function queryChange(object: ts.ObjectLiteralExpression): boolean {
   }
 }
 
+const EQUALITY: ReadonlySet<ts.SyntaxKind> = new Set([
+  ts.SyntaxKind.EqualsEqualsEqualsToken,
+  ts.SyntaxKind.ExclamationEqualsEqualsToken,
+  ts.SyntaxKind.EqualsEqualsToken,
+  ts.SyntaxKind.ExclamationEqualsToken,
+]);
+
+const isKind = (e: ts.Expression): boolean =>
+  ts.isPropertyAccessExpression(e) && e.name.text === "kind";
+
 /** What `node` does with `?peek`, from its syntax alone. */
 function peekUse(node: ts.Node): PeekUse {
   let reads = false;
   let writes = false;
+  let kindNotFound = false;
   const elements: Rendered[] = [];
   const walk = (n: ts.Node) => {
     // Reads: `search["peek"]`, `params.get("peek")`, `param(search, "peek")`, `state.peek`, and
@@ -285,6 +341,21 @@ function peekUse(node: ts.Node): PeekUse {
       writes = true;
     }
     if (
+      ts.isBinaryExpression(n) &&
+      EQUALITY.has(n.operatorToken.kind) &&
+      ((isText(n.left, "not-found") && isKind(n.right)) ||
+        (isText(n.right, "not-found") && isKind(n.left)))
+    ) {
+      kindNotFound = true;
+    }
+    if (
+      ts.isCaseClause(n) &&
+      isText(n.expression, "not-found") &&
+      isKind(n.parent.parent.expression)
+    ) {
+      kindNotFound = true;
+    }
+    if (
       (ts.isJsxSelfClosingElement(n) || ts.isJsxOpeningElement(n)) &&
       ts.isIdentifier(n.tagName)
     ) {
@@ -303,7 +374,7 @@ function peekUse(node: ts.Node): PeekUse {
     ts.forEachChild(n, walk);
   };
   walk(node);
-  return { reads, writes, elements };
+  return { reads, writes, kindNotFound, elements };
 }
 
 /** A component whose props include `activatable`, destructured or in a `props` type literal. */
@@ -671,6 +742,33 @@ describe("rows on a page with no record panel open nothing", () => {
   });
 });
 
+describe("a ?peek row read by its id", () => {
+  const declarations = () => [...modules.values()].flatMap((m) => [...m.declarations.values()]);
+
+  it("counts a key that is no id as no row wherever the row is read by id", () => {
+    const callers = new Set(
+      declarations()
+        .filter((d) => !relative(atlas, d.file).startsWith("lib/") && d.names.has("peekRowMissing"))
+        .map(at),
+    );
+    expect([...callers].sort()).toEqual(Object.keys(BY_ID_READERS).sort());
+    for (const d of declarations().filter((x) => at(x) in BY_ID_READERS)) {
+      expect(d.kindNotFound, `${at(d)} compares the kind with "not-found" itself`).toBe(false);
+    }
+  });
+
+  it("lets a ?peek reader compare the kind itself only when no key can fail as invalid", () => {
+    const readers = new Set(
+      pages
+        .filter((p) => p.ownsPeek)
+        .flatMap((p) => [...p.reached])
+        .filter((d) => !relative(atlas, d.file).startsWith("lib/") && d.reads && d.kindNotFound)
+        .map(at),
+    );
+    expect([...readers].sort()).toEqual(Object.keys(KIND_NOT_FOUND).sort());
+  });
+});
+
 describe("what the guard counts as reading and writing ?peek", () => {
   const use = (source: string) =>
     peekUse(
@@ -726,5 +824,13 @@ describe("what the guard counts as reading and writing ?peek", () => {
     ).elements;
     expect(open).toMatchObject({ tag: "CollectionTable", inert: false });
     expect(inert).toMatchObject({ tag: "CollectionTable", inert: true });
+  });
+
+  it("compares a kind with not-found in an equality or a switch", () => {
+    expect(use('if (detail.error.kind !== "not-found") throw detail.error;').kindNotFound).toBe(
+      true,
+    );
+    expect(use('switch (error.kind) { case "not-found": break; }').kindNotFound).toBe(true);
+    expect(use("if (!peekRowMissing(detail.error)) throw detail.error;").kindNotFound).toBe(false);
   });
 });
