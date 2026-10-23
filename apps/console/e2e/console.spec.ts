@@ -87,7 +87,17 @@ test("Support searches tenants, opens one and overrides a flag with an expiry", 
   const clear = page.getByRole("form", { name: "Clear override imports.ai_mapping" });
   await clear.getByLabel("Reason").fill("Pilot over.");
   await clear.getByRole("button", { name: "Clear override" }).click();
-  await expect(clear.getByText("Flag override cleared.")).toBeVisible();
+  // The page re-renders without the override, so its line and the clear form go with it.
+  await expect(
+    page.locator('[data-flag="imports.ai_mapping"]').getByText(/Pilot of AI column mapping/),
+  ).toHaveCount(0);
+  await expect(clear).toHaveCount(0);
+  const [cleared] = await sql<{ n: number }>(
+    `select count(*)::int as n from app.feature_flag_overrides
+      where org_id = $1 and flag_key = 'imports.ai_mapping' and deleted_at is null`,
+    [DEMO.org],
+  );
+  expect(cleared?.n).toBe(0);
 });
 
 test("Support opens an Owner-granted support session, reads the members and ends it", async ({
