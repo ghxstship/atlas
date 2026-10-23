@@ -11,15 +11,6 @@
       "review_by": "2027-01-19"
     },
     {
-      "id": "GHSA-vfj7-8cjw-p6xm",
-      "package": "braces",
-      "severity": "high",
-      "path": "apps/compass > expo > @expo/metro > metro-file-map > micromatch > braces",
-      "reason": "No patched release exists (vulnerable <=3.0.3). It comes with Metro, the bundler that builds Compass, which expands only the repository's own glob patterns; the Compass app bundle does not include it. Accepted 2026-10-19 (A54, gate 11).",
-      "recorded": "2026-10-19",
-      "review_by": "2027-01-19"
-    },
-    {
       "id": "GHSA-vcc3-ghjq-m6fr",
       "package": "decode-uri-component",
       "severity": "moderate",
