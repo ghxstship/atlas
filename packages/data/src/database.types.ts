@@ -16246,6 +16246,88 @@ export type Database = {
           },
         ];
       };
+      expense_receipts: {
+        Row: {
+          ai_suggestion_id: string | null;
+          capture_source: string;
+          captured_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expense_id: string;
+          id: string;
+          media_uri: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          ai_suggestion_id?: string | null;
+          capture_source?: string;
+          captured_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expense_id: string;
+          id?: string;
+          media_uri: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          ai_suggestion_id?: string | null;
+          capture_source?: string;
+          captured_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expense_id?: string;
+          id?: string;
+          media_uri?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "expense_receipts_ai_suggestion_id_fkey";
+            columns: ["ai_suggestion_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_suggestions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expense_receipts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expense_receipts_expense_id_fkey";
+            columns: ["expense_id"];
+            isOneToOne: false;
+            referencedRelation: "expenses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expense_receipts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expense_receipts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       expense_state_transitions: {
         Row: {
           created_at: string;
@@ -60092,6 +60174,21 @@ export type Database = {
           p_invoice_number: string;
           p_issued_on: string;
           p_lines: Json;
+        };
+        Returns: string;
+      };
+      submit_expense_receipt: {
+        Args: {
+          p_ai_suggestion_id?: string;
+          p_amount_minor: number;
+          p_budget_line_id: string;
+          p_capture_source?: string;
+          p_captured_at?: string;
+          p_currency_code: string;
+          p_description: string;
+          p_id: string;
+          p_incurred_on: string;
+          p_media_uri: string;
         };
         Returns: string;
       };
