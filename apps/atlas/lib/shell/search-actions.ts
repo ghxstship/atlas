@@ -1,17 +1,42 @@
 "use server";
 
-import { searchOrg } from "@xos/data/search";
-import { getNode, isNodeVisible } from "@xos/ia";
-import { getOrgContext } from "@/lib/shell/context";
+import { embeddingProviderFromEnv, type EmbeddingProvider } from "@xos/ai/embeddings";
+import {
+  globalSearch,
+  recentItems,
+  searchContext,
+  type RecentItem,
+  type SearchHit,
+} from "@xos/data/search";
+import {
+  hasSearchCriteria,
+  isPlainSearch,
+  parseSearchQuery,
+  searchRequest,
+  semanticText,
+} from "@xos/data/search-query";
+import { isNodeVisible } from "@xos/ia";
+import { SETTINGS } from "@xos/schemas/settings";
+import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { CREATE_KINDS } from "@/lib/shell/create-menu";
+import {
+  matchesWords,
+  queryVector,
+  resolveKinds,
+  resolveStatuses,
+  settingEntries,
+} from "@/lib/shell/search-index";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
- * The command menu's server half (Section 11.10 item 1, finding A59-015): records and incidents by
- * key or title, people by name, and the common actions, scoped to what the person may read. It runs
- * on demand as they type, so nothing about the org's data ships in the route bundle; the org context
- * applies the IP allow-list and row level security decides every read.
+ * The command menu's server half (Section 11.10 item 1, Section 11.7; findings A59-015 and A65-005). Before
+ * anything is typed: the last things the person opened and the common actions. As they type: records,
+ * incidents, people, documents, SOPs and handbook articles from app.global_search (the operator grammar,
+ * read with the person's own row level security, blended with semantic matches when the org has semantic
+ * search on), the settings whose label or key matches, and the actions. It runs on demand, so nothing about
+ * the org's data or the settings registry ships in the route bundle; the org context applies the IP
+ * allow-list.
  */
 
 export interface CommandResultItem {
@@ -25,45 +50,15 @@ export interface CommandResultItem {
 }
 
 export interface CommandResultGroup {
-  readonly id: "actions" | "records" | "people";
+  readonly id: "recent" | "actions" | "records" | "people" | "documents" | "settings";
   readonly label: string;
   readonly items: readonly CommandResultItem[];
 }
 
-const RECORD_KINDS = [
-  "Approval",
-  "Booking",
-  "Build",
-  "Compliance",
-  "Contract",
-  "Deadline",
-  "Decision",
-  "Distribution",
-  "Document",
-  "Event",
-  "Goal",
-  "Inspection",
-  "Meeting",
-  "Milestone",
-  "Payment",
-  "Permit",
-  "Recruitment",
-  "Rehearsal",
-  "Report",
-  "Risk",
-  "Shift",
-  "Strike",
-  "Supply",
-  "Task",
-  "Timeline",
-  "Training",
-] as const;
-
 /**
  * The common actions: a verb, the sitemap node that must be visible, and where it leads. The create
  * actions are the Create menu's kinds (lib/shell/create-menu.ts), so they need the same capability and
- * open the same `?create=1` flow; the others open a page, and the menu shows that page's navigation
- * shortcut from the person's keys (packages/schemas/shortcuts.yaml).
+ * open the same `?create=1` flow; the others open a page.
  */
 const ACTIONS = [
   { key: "newProject", create: "project", path: "projects/all?create=1", icon: "FolderPlus" },
@@ -92,14 +87,32 @@ function gate(action: (typeof ACTIONS)[number]): { node: string; capability?: st
   return { node: kind.node, capability: kind.capability };
 }
 
-function matches(text: string, query: string): boolean {
-  if (query === "") return true;
-  const haystack = text.toLocaleLowerCase();
-  return query
-    .toLocaleLowerCase()
-    .split(/\s+/)
-    .filter(Boolean)
-    .every((word) => haystack.includes(word));
+type Item = Pick<SearchHit, "type" | "id" | "key" | "title" | "recordKind"> & {
+  readonly matched?: SearchHit["matched"];
+};
+
+/**
+ * The embedding provider: Supabase's gte-small by default, reached through the search-embed Edge Function
+ * with the person's own session (it embeds only for a member of an org with semantic search on), or what
+ * XOS_SEARCH_EMBEDDINGS names. A misconfiguration leaves search lexical.
+ */
+function embeddingProvider(ctx: OrgContext): EmbeddingProvider | null {
+  try {
+    return embeddingProviderFromEnv(process.env, {
+      remoteGteSmall: async (text) => {
+        const { data, error } = await ctx.viewer.db.functions.invoke("search-embed", {
+          body: { org_id: ctx.org.id, text },
+        });
+        if (error) throw new Error(`search-embed: ${String(error.message ?? error)}`);
+        const vector = (data as { vector?: unknown } | null)?.vector;
+        if (!Array.isArray(vector)) throw new Error("search-embed returned no vector");
+        return vector as number[];
+      },
+    });
+  } catch (error) {
+    console.error("Semantic search is unavailable", error);
+    return null;
+  }
 }
 
 export async function searchCommandMenu(input: {
@@ -110,9 +123,54 @@ export async function searchCommandMenu(input: {
   const ctx = await getOrgContext(input.org);
   if (!ctx) return [];
   const t = await getTranslate();
-  const query = input.query.trim().slice(0, 100);
+  const query = input.query.trim().slice(0, 200);
   const org = ctx.org.slug;
   const visible = (node: string) => isNodeVisible(sitemap, node, ctx.nav);
+  const parsed = parseSearchQuery(query);
+  const words = [...parsed.terms, ...parsed.phrases];
+
+  /** Where a result opens, or null when its page is not one the person may open. */
+  const target = (item: Item): Pick<CommandResultItem, "href" | "peek"> | null => {
+    switch (item.type) {
+      case "record":
+        return item.key ? { peek: item.key } : null;
+      case "incident":
+        return visible("safety.incidents")
+          ? { href: `/${org}/safety/incidents?peek=${item.id}` }
+          : null;
+      case "person":
+        return visible("people.directory")
+          ? { href: `/${org}/people/directory?q=${encodeURIComponent(item.title)}` }
+          : null;
+      case "document":
+        return visible("knowledge.documents")
+          ? { href: `/${org}/knowledge/documents?peek=${item.id}` }
+          : null;
+      case "sop":
+        return visible("knowledge.sops")
+          ? { href: `/${org}/knowledge/sops?peek=${item.id}` }
+          : null;
+      case "article":
+        return visible("knowledge.handbook")
+          ? { href: `/${org}/knowledge/handbook?peek=${item.id}` }
+          : null;
+    }
+  };
+  const toItem = (item: Item): CommandResultItem | null => {
+    const where = target(item);
+    if (!where) return null;
+    const noun =
+      item.type === "record"
+        ? t(`work.kinds.${item.recordKind ?? "Task"}`)
+        : t(`shell.commandMenu.types.${item.type}`);
+    const related = item.matched === "semantic" ? ` · ${t("shell.commandMenu.related")}` : "";
+    return {
+      label: item.type === "person" ? item.title : `${item.title} · ${noun}${related}`,
+      ...(item.key ? { code: item.key } : {}),
+      icon: ICONS[item.type],
+      ...where,
+    };
+  };
 
   const actions: CommandResultItem[] = ACTIONS.filter((a) => {
     const { node, capability } = gate(a);
@@ -123,61 +181,104 @@ export async function searchCommandMenu(input: {
       icon: a.icon,
       href: `/${org}/${a.path}`,
     }))
-    .filter((a) => matches(a.label, query));
+    .filter((a) => isPlainSearch(parsed) && matchesWords(a.label, words));
+  const actionGroup = (): CommandResultGroup[] =>
+    actions.length > 0
+      ? [{ id: "actions", label: t("shell.commandMenu.groups.actions"), items: actions }]
+      : [];
+
+  // Before anything is typed: what the person opened last, then the actions (Section 11.7).
+  if (query === "") {
+    const recent = await recentItems(ctx.viewer.db, ctx.org.id, 50);
+    const items = recent.ok ? recent.data.map((r: RecentItem) => toItem(r)).filter(isItem) : [];
+    return [
+      ...(items.length > 0
+        ? [{ id: "recent" as const, label: t("shell.commandMenu.groups.recent"), items }]
+        : []),
+      ...actionGroup(),
+    ];
+  }
 
   const groups: CommandResultGroup[] = [];
-  if (actions.length > 0) {
-    groups.push({ id: "actions", label: t("shell.commandMenu.groups.actions"), items: actions });
-  }
-  if (query.length < 2) return groups;
-
-  const lower = query.toLocaleLowerCase();
-  const kinds = RECORD_KINDS.filter((k) => {
-    const label = t(`work.kinds.${k}`).toLocaleLowerCase();
-    return lower.length >= 3 && (label.startsWith(lower) || lower.startsWith(label));
-  });
-  const incidentsNode = visible("safety.incidents");
-  const incidentsLabel = incidentsNode
-    ? t(getNode(sitemap, "safety.incidents").node.label).toLocaleLowerCase()
-    : "";
-  const result = await searchOrg(ctx.viewer.db, {
-    orgId: ctx.org.id,
-    query,
-    kinds,
-    incidents: incidentsNode && lower.length >= 3 && incidentsLabel.startsWith(lower.slice(0, 8)),
-  });
-  if (!result.ok) return groups;
-  const incidentNoun = t("shell.commandMenu.incident");
-  const records = result.data.hits
-    .filter((h) => h.kind === "record" || incidentsNode)
-    .map((h): CommandResultItem =>
-      h.kind === "record"
-        ? {
-            label: `${h.title} · ${t(`work.kinds.${h.recordKind ?? "Task"}`)}`,
-            code: h.key,
-            icon: "FileText",
-            peek: h.key,
-          }
-        : {
-            label: `${h.title} · ${incidentNoun}`,
-            code: h.key,
-            icon: "TriangleAlert",
-            href: `/${org}/safety/incidents?peek=${h.id}`,
-          },
-    );
-  if (records.length > 0) {
-    groups.push({ id: "records", label: t("shell.commandMenu.groups.records"), items: records });
-  }
-  if (visible("people.directory") && result.data.people.length > 0) {
-    groups.push({
-      id: "people",
-      label: t("shell.commandMenu.groups.people"),
-      items: result.data.people.map((p) => ({
-        label: p.name,
-        icon: "User",
-        href: `/${org}/people/directory?q=${encodeURIComponent(p.name)}`,
-      })),
+  const plainText = words.join(" ");
+  if (hasSearchCriteria(parsed) && (plainText.length >= 2 || !isPlainSearch(parsed))) {
+    const provider = embeddingProvider(ctx);
+    const vector = await queryVector({
+      provider,
+      text: semanticText(parsed),
+      semanticEnabled: async () => {
+        const context = await searchContext(ctx.viewer.db, ctx.org.id);
+        return context.ok && context.data.semanticEnabled;
+      },
     });
+    const request = searchRequest(parsed, {
+      kinds: resolveKinds(parsed.kinds, t),
+      excludeKinds: resolveKinds(parsed.excludeKinds, t),
+    });
+    const result = await globalSearch(ctx.viewer.db, {
+      orgId: ctx.org.id,
+      request: {
+        ...request,
+        statuses: resolveStatuses(request.statuses, t),
+        exclude_statuses: resolveStatuses(request.exclude_statuses, t),
+      },
+      embedding: vector?.literal ?? null,
+      model: vector?.model ?? null,
+      limit: 8,
+      ...(vector ? { minSimilarity: vector.minSimilarity } : {}),
+    });
+    if (!result.ok && result.error.kind !== "refusal") {
+      console.error("Command menu search failed", result.error);
+    }
+    const hits = result.ok ? result.data : [];
+    const pick = (types: readonly SearchHit["type"][]) =>
+      hits
+        .filter((h) => types.includes(h.type))
+        .map(toItem)
+        .filter(isItem);
+    const records = pick(["record", "incident"]);
+    const people = pick(["person"]);
+    const documents = pick(["document", "sop", "article"]);
+    if (records.length > 0)
+      groups.push({ id: "records", label: t("shell.commandMenu.groups.records"), items: records });
+    if (people.length > 0)
+      groups.push({ id: "people", label: t("shell.commandMenu.groups.people"), items: people });
+    if (documents.length > 0)
+      groups.push({
+        id: "documents",
+        label: t("shell.commandMenu.groups.documents"),
+        items: documents,
+      });
   }
-  return groups;
+
+  if (isPlainSearch(parsed)) {
+    const settings = settingEntries({
+      settings: SETTINGS,
+      words,
+      sitemap,
+      nav: ctx.nav,
+      params: { org },
+      t,
+    }).map((s) => ({ label: s.label, code: s.key, icon: s.icon, href: s.href }));
+    if (settings.length > 0)
+      groups.push({
+        id: "settings",
+        label: t("shell.commandMenu.groups.settings"),
+        items: settings,
+      });
+  }
+  return [...actionGroup(), ...groups];
+}
+
+const ICONS: Readonly<Record<SearchHit["type"], string>> = {
+  record: "FileText",
+  incident: "TriangleAlert",
+  person: "User",
+  document: "File",
+  sop: "ClipboardList",
+  article: "BookOpen",
+};
+
+function isItem(item: CommandResultItem | null): item is CommandResultItem {
+  return item !== null;
 }

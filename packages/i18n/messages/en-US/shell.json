@@ -1221,9 +1221,12 @@
     "groups": {
       "actions": "Actions",
       "records": "Records",
-      "people": "People"
+      "people": "People",
+      "recent": "Recent",
+      "documents": "Documents",
+      "settings": "Settings",
+      "operators": "Search operators"
     },
-    "incident": "Incident",
     "actions": {
       "newProject": "New project",
       "newRecord": "New record",
@@ -1231,6 +1234,25 @@
       "approveTimesheets": "Approve timesheets",
       "openApprovals": "Open approvals",
       "openInbox": "Open Inbox"
+    },
+    "types": {
+      "incident": "Incident",
+      "person": "Person",
+      "document": "Document",
+      "sop": "SOP",
+      "article": "Handbook article"
+    },
+    "related": "Related",
+    "filters": "Search filters",
+    "notUnderstood": "{token} is not understood",
+    "operators": {
+      "type": "Records of a kind, people or documents",
+      "project": "A project, by key or name",
+      "assignee": "Assigned to you, or to someone by name",
+      "status": "A state, open or closed",
+      "after": "Changed after a date, today or 7 days ago",
+      "due": "Due within 7 days, today or overdue",
+      "phrase": "Words together in quotes; a minus leaves a word out"
     }
   },
   "create": {

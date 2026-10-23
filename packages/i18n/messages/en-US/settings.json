@@ -273,6 +273,10 @@
       "label": "Translate chat messages",
       "help": "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default."
     },
+    "semanticSearch": {
+      "label": "Semantic search",
+      "help": "Search also finds documents, SOPs and handbook articles by meaning, not only by their words. Their text and the words people search with are processed by Supabase's built-in embedding model, inside the platform; nothing goes to another provider. Off by default."
+    },
     "personalTokens": {
       "label": "Allow personal API tokens",
       "help": "Members can create their own API tokens in Personal settings, Developer. A token acts as its member, limited to the areas they choose, and expires within a year. Turning this off stops every token at once."

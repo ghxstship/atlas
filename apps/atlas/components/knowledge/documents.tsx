@@ -26,6 +26,7 @@ import { DataTable } from "@/components/platform/client/data-table";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { rememberView } from "@/lib/shell/recents";
 import { orgToday } from "@/lib/shell/time-zone";
 
 const VIEWS: readonly ViewKind[] = ["list", "table", "gallery"];
@@ -72,6 +73,8 @@ export async function DocumentsSection({
   const when = (d: string) =>
     format.dateTime(new Date(d), { dateStyle: "medium", timeStyle: "short" });
   const selected = state.peek ? docs.find((d) => d.id === state.peek) : undefined;
+  // The command menu's recent items (Section 11.7).
+  if (selected) await rememberView(ctx, "documents", selected.id);
   const scopeOf = (d: KnowledgeDocument) => d.projectKey ?? t("documents.orgWide");
   const properties = (d: KnowledgeDocument) => [
     { label: t("documents.scope"), value: scopeOf(d) },

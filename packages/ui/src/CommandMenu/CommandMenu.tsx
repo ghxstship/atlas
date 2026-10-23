@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import { useState, type ReactElement, type ReactNode } from "react";
 import { Command } from "cmdk";
 import { Dialog as RDialog } from "radix-ui";
 import type {
@@ -22,12 +22,16 @@ export interface CommandItem {
   shortcut?: string;
   selected?: boolean;
   onSelect?: () => void;
+  /** Keeps the menu open after the item runs, for an item that edits the search (an operator hint). */
+  keepOpen?: boolean;
 }
 
 export type CommandMenuProps = Omit<ReferenceCommandMenuProps, "groups"> & {
   groups: { label: string; items: CommandItem[] }[];
-  /** Called as the search text changes, for server-side results. */
+  /** Called as the search text changes, for server-side results. With `query`, the text is controlled. */
   onQueryChange?: (query: string) => void;
+  /** Shown between the search field and the results, for example the filters a query recognized. */
+  header?: ReactNode;
   /** Dialog mode: the menu opens over the page. Omit `open` to render the palette inline. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -49,20 +53,35 @@ function Palette({
   groups,
   onQueryChange,
   filter = true,
+  header,
   label,
   onClose,
 }: CommandMenuProps & { onClose?: () => void }) {
   const t = useT();
-  const [search, setSearch] = useControllable<string>(undefined, query ?? "", onQueryChange);
+  const [search, setSearch] = useControllable<string>(query, "", onQueryChange);
   const selected = groups.flatMap((g) =>
     g.items.filter((i) => i.selected).map((i) => itemValue(g.label, i)),
   )[0];
+  // With server results (filter off) nothing re-ranks the list, so a new search, or new results for it,
+  // move the highlight to the first item, and Enter runs what the person sees first.
+  const lead =
+    selected ?? groups.flatMap((g) => g.items.map((i) => itemValue(g.label, i)))[0] ?? "";
+  const [highlight, setHighlight] = useState(lead);
+  const [highlightFor, setHighlightFor] = useState(`${search}\u0000${lead}`);
+  if (!filter && highlightFor !== `${search}\u0000${lead}`) {
+    setHighlightFor(`${search}\u0000${lead}`);
+    setHighlight(lead);
+  }
   return (
     <Command
       label={label ?? t("command.label")}
       shouldFilter={filter}
       loop
-      {...(selected ? { defaultValue: selected } : {})}
+      {...(filter
+        ? selected
+          ? { defaultValue: selected }
+          : {}
+        : { value: highlight, onValueChange: setHighlight })}
       className={cx(panelClass, "xos-anim-dialog w-(--ui-command) overflow-hidden")}
     >
       <div className="flex items-center gap-8 h-(--ui-cmd-input) px-16 border-b border-border-subtle text-text-14">
@@ -75,14 +94,16 @@ function Palette({
         />
         <Kbd>{t("key.esc")}</Kbd>
       </div>
+      {header}
       <Command.Empty className="px-16 py-12 text-text-secondary">{t("list.noMatch")}</Command.Empty>
       <Command.List
         label={t("command.results")}
         className="max-h-(--ui-listbox-max) overflow-y-auto p-8 pt-4"
       >
-        {groups.map((g) => (
+        {groups.map((g, groupIndex) => (
           <Command.Group
-            key={g.label}
+            // Two groups may share a label (a caller's own results and pages); the index keeps them apart.
+            key={`${groupIndex}:${g.label}`}
             heading={g.label}
             className="[&_[cmdk-group-heading]]:mx-8 [&_[cmdk-group-heading]]:mt-8 [&_[cmdk-group-heading]]:mb-4 [&_[cmdk-group-heading]]:text-text-11 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-text-secondary"
           >
@@ -92,7 +113,7 @@ function Palette({
                 value={itemValue(g.label, item)}
                 onSelect={() => {
                   item.onSelect?.();
-                  onClose?.();
+                  if (!item.keepOpen) onClose?.();
                 }}
                 className={cx(
                   "flex items-center gap-8 h-row-default px-8 rounded-control text-text-primary cursor-pointer",

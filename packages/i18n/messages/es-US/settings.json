@@ -273,6 +273,10 @@
       "label": "Traducir mensajes del chat",
       "help": "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada."
     },
+    "semanticSearch": {
+      "label": "Búsqueda semántica",
+      "help": "La búsqueda también encuentra documentos, SOP y artículos del manual por su significado, no solo por sus palabras. Su texto y las palabras que se buscan se procesan con el modelo de embeddings integrado de Supabase, dentro de la plataforma; nada se envía a otro proveedor. Desactivada de forma predeterminada."
+    },
     "personalTokens": {
       "label": "Permitir tokens personales de API",
       "help": "Los miembros pueden crear sus propios tokens de API en Configuración personal, Desarrollador. Un token actúa como su miembro, limitado a las áreas que elija, y vence en menos de un año. Si lo desactiva, todos los tokens dejan de funcionar al instante."

@@ -452,6 +452,63 @@ describe("CommandMenu", () => {
     await userEvent.click(within(dialog).getByText("Create Record"));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
+
+  it("controls the search text, shows a header and keeps open for an item that edits the search", async () => {
+    function App() {
+      const [open, setOpen] = useStateHook(true);
+      const [query, setQuery] = useStateHook("");
+      return (
+        <CommandMenu
+          open={open}
+          onOpenChange={setOpen}
+          filter={false}
+          query={query}
+          onQueryChange={setQuery}
+          header={<p>Filters: {query || "none"}</p>}
+          groups={[
+            {
+              label: "Search operators",
+              items: [{ label: "type:", keepOpen: true, onSelect: () => setQuery("type:") }],
+            },
+          ]}
+        />
+      );
+    }
+    render(<App />);
+    const dialog = await screen.findByRole("dialog", { name: "Command menu" });
+    expect(within(dialog).getByText("Filters: none")).toBeTruthy();
+    await userEvent.click(within(dialog).getByText("type:"));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect((screen.getByRole("combobox") as HTMLInputElement).value).toBe("type:");
+    expect(within(dialog).getByText("Filters: type:")).toBeTruthy();
+    await expectAccessible(document.body);
+  });
+
+  it("moves the highlight to the first of new server results, so Enter runs it", async () => {
+    const openRecent = vi.fn();
+    const openPermit = vi.fn();
+    function App() {
+      const [query, setQuery] = useStateHook("");
+      const groups: CommandMenuProps["groups"] =
+        query === ""
+          ? [{ label: "Recent", items: [{ label: "Production Meeting", onSelect: openRecent }] }]
+          : [
+              {
+                label: "Records",
+                items: [{ label: "Special Event Permit", onSelect: openPermit }],
+              },
+            ];
+      return <CommandMenu filter={false} query={query} onQueryChange={setQuery} groups={groups} />;
+    }
+    render(<App />);
+    await userEvent.type(screen.getByRole("combobox"), "permit");
+    expect(
+      screen.getByRole("option", { name: "Special Event Permit" }).getAttribute("aria-selected"),
+    ).toBe("true");
+    await userEvent.keyboard("{Enter}");
+    expect(openPermit).toHaveBeenCalled();
+    expect(openRecent).not.toHaveBeenCalled();
+  });
 });
 
 describe("Tabs, SegmentedControl and Accordion", () => {

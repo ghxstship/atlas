@@ -15,4 +15,5 @@ export * from "./features/mapping.ts";
 export { GUARDRAILS } from "./features/shared.ts";
 export * from "./client.ts";
 export * from "./conversation.ts";
+export * from "./embeddings.ts";
 export * from "./entry.ts";

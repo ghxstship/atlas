@@ -30,6 +30,7 @@ import { getFormatter, getLocale } from "next-intl/server";
 import { SummaryEntryRow } from "@/components/aurora/entry/summary-entry";
 import { ActualsForm, DependencyEditor } from "@/components/schedule/schedule-panels";
 import type { OrgContext } from "@/lib/shell/context";
+import { rememberView } from "@/lib/shell/recents";
 import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
 import { formatScheduleTime, scheduleViewOf, slipAmount, type ScheduleView } from "./format";
@@ -136,6 +137,8 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     listThreads(db, subject),
     listAttachments(db, subject),
     getShellSettings(db, ctx.org.id, null),
+    // The command menu's recent items (Section 11.7); beside the reads, so it adds no wait.
+    rememberView(ctx, "records", record.id),
   ]);
   return {
     record,

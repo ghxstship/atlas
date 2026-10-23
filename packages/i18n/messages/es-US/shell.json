@@ -1221,9 +1221,12 @@
     "groups": {
       "actions": "Acciones",
       "records": "Registros",
-      "people": "Personas"
+      "people": "Personas",
+      "recent": "Recientes",
+      "documents": "Documentos",
+      "settings": "Configuración",
+      "operators": "Operadores de búsqueda"
     },
-    "incident": "Incidente",
     "actions": {
       "newProject": "Nuevo proyecto",
       "newRecord": "Nuevo registro",
@@ -1231,6 +1234,25 @@
       "approveTimesheets": "Aprobar hojas de horas",
       "openApprovals": "Abrir aprobaciones",
       "openInbox": "Abrir Bandeja"
+    },
+    "types": {
+      "incident": "Incidente",
+      "person": "Persona",
+      "document": "Documento",
+      "sop": "SOP",
+      "article": "Artículo del manual"
+    },
+    "related": "Relacionado",
+    "filters": "Filtros de búsqueda",
+    "notUnderstood": "No se entiende {token}",
+    "operators": {
+      "type": "Registros de un tipo, personas o documentos",
+      "project": "Un proyecto, por clave o nombre",
+      "assignee": "Asignado a usted, o a alguien por su nombre",
+      "status": "Un estado, abierto o cerrado",
+      "after": "Cambiado después de una fecha, hoy o hace 7 días",
+      "due": "Vence en 7 días, hoy o vencido",
+      "phrase": "Palabras juntas entre comillas; un signo menos excluye una palabra"
     }
   },
   "create": {

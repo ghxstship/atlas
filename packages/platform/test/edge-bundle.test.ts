@@ -63,6 +63,8 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   },
   "report-run": { boot: ["@supabase/supabase-js", "zod"], lazy: ["exceljs", "pdfkit", "resend"] },
   scim: { boot: ["@supabase/supabase-js"], lazy: [] },
+  // A87: plain fetch to PostgREST and Supabase's built-in gte-small model, no package.
+  "search-embed": { boot: [], lazy: [] },
   "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
   "stripe-webhook": { boot: ["stripe"], lazy: [] },
   "subprocessor-notices": {
@@ -93,6 +95,7 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "org-lifecycle": 210,
   "report-run": 128,
   scim: 92,
+  "search-embed": 24,
   "sms-webhook": 128,
   "stripe-webhook": 84,
   "subprocessor-notices": 115,
