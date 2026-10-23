@@ -1,4 +1,9 @@
-import { z } from "zod";
+export {
+  createWebPushClient,
+  readWebPushEnv,
+  webPushEnvSchema,
+  type WebPushEnv,
+} from "./web-push-env.ts";
 
 /**
  * Web Push to browsers (Section 4.10, finding A65-023, ADR 0052): RFC 8030 delivery, RFC 8291 message encryption
@@ -320,60 +325,4 @@ export class RecordingWebPushClient implements WebPushClient {
     this.sent.push({ device, payload, options });
     return { status: "ok" };
   }
-}
-
-// Environment -----------------------------------------------------------------------------------------------------
-
-export const webPushEnvSchema = z
-  .object({
-    XOS_WEB_PUSH_TRANSPORT: z.enum(["record", "vapid"]).default("record"),
-    VAPID_PUBLIC_KEY: z
-      .string()
-      .regex(/^[A-Za-z0-9_-]{87}$/, "an uncompressed P-256 public key, base64url")
-      .optional(),
-    VAPID_PRIVATE_KEY: z
-      .string()
-      .regex(/^[A-Za-z0-9_-]{43}$/, "a P-256 private key, base64url")
-      .optional(),
-    VAPID_SUBJECT: z
-      .string()
-      .regex(/^(mailto:[^\s@]+@[^\s@]+|https:\/\/\S+)$/, "a mailto: or https: contact")
-      .optional(),
-  })
-  .refine(
-    (env) =>
-      env.XOS_WEB_PUSH_TRANSPORT !== "vapid" ||
-      (env.VAPID_PUBLIC_KEY !== undefined &&
-        env.VAPID_PRIVATE_KEY !== undefined &&
-        env.VAPID_SUBJECT !== undefined),
-    {
-      message:
-        "XOS_WEB_PUSH_TRANSPORT=vapid needs VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT",
-      path: ["VAPID_PUBLIC_KEY"],
-    },
-  );
-export type WebPushEnv = z.output<typeof webPushEnvSchema>;
-
-/** Parses the Web Push environment, naming each bad variable without echoing its value. */
-export function readWebPushEnv(source: Readonly<Record<string, string | undefined>>): WebPushEnv {
-  const parsed = webPushEnvSchema.safeParse(source);
-  if (!parsed.success) {
-    throw new Error(
-      `Invalid web push environment: ${parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`,
-    );
-  }
-  return parsed.data;
-}
-
-/** The client the environment asks for: VAPID with XOS_WEB_PUSH_TRANSPORT=vapid, recording otherwise. */
-export function createWebPushClient(env: WebPushEnv, fetchImpl?: typeof fetch): WebPushClient {
-  if (env.XOS_WEB_PUSH_TRANSPORT !== "vapid") return new RecordingWebPushClient();
-  return vapidWebPushClient({
-    keys: {
-      publicKey: env.VAPID_PUBLIC_KEY ?? "",
-      privateKey: env.VAPID_PRIVATE_KEY ?? "",
-      subject: env.VAPID_SUBJECT ?? "",
-    },
-    ...(fetchImpl === undefined ? {} : { fetch: fetchImpl }),
-  });
 }
