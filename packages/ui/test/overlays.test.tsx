@@ -26,6 +26,7 @@ import {
   TopNav,
   XOSProvider,
   monogram,
+  rememberOverlayOpener,
   useHotkey,
 } from "../src/index.ts";
 import type { CommandMenuProps } from "../src/index.ts";
@@ -149,6 +150,52 @@ describe("focus return", () => {
     expect(screen.getByRole("dialog", { name: "Rigging inspection" })).toBeTruthy();
     within(screen.getByRole("dialog")).getByRole("button", { name: "Open full page" }).focus();
     await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(row);
+  });
+
+  it("hands focus back to the control that asked for a peek after a loading state took its focus", async () => {
+    // A collection row asks for `?peek`; the route's loading state hides the row (focus drops to the
+    // body) before the page renders the peek, which then mounts with nothing focused.
+    function App() {
+      const [open, setOpen] = useStateHook(false);
+      return (
+        <div>
+          <button
+            type="button"
+            onClick={(e) => {
+              rememberOverlayOpener();
+              e.currentTarget.blur();
+              setOpen(true);
+            }}
+          >
+            Open NWS-2
+          </button>
+          {open ? (
+            <SidePeek
+              open
+              onOpenChange={setOpen}
+              recordKey="NWS-2"
+              kind="Build"
+              title="Install the stage deck"
+              state="scheduled"
+              stateLabel="Scheduled"
+            >
+              Activity
+            </SidePeek>
+          ) : null}
+        </div>
+      );
+    }
+    render(<App />);
+    const row = screen.getByRole("button", { name: "Open NWS-2" });
+    row.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(screen.getByRole("dialog", { name: "Install the stage deck" })).toBeTruthy();
+    await userEvent.keyboard("{Escape}");
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(document.activeElement).toBe(row);
   });

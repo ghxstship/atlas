@@ -121,10 +121,25 @@ export function rovingIndex(
   return null;
 }
 
+/** The control that asked for an overlay a later render mounts (rememberOverlayOpener). */
+let requestedBy: HTMLElement | null = null;
+
+/**
+ * Remembers the focused control as the opener of an overlay that mounts after a navigation, such as
+ * the side peek a page renders for `?peek`. The route's loading state can hide that control first,
+ * which drops focus to the page body, so the overlay would find no opener when it mounts and could
+ * not hand focus back on close (WCAG 2.4.3). The next overlay that opens takes it.
+ */
+export function rememberOverlayOpener(): void {
+  const active = document.activeElement;
+  requestedBy = active instanceof HTMLElement && active !== document.body ? active : null;
+}
+
 /**
  * Focus return for an overlay opened without its own trigger (a hotkey, a row click): remembers the
- * element focused when `open` turns true and hands it back on close, so focus never drops to the
- * page body (WCAG 2.4.3). Pass the result to Radix `onCloseAutoFocus`.
+ * element focused when `open` turns true (or, with focus on the page body, the control that asked
+ * for the overlay) and hands it back on close, so focus never drops to the page body (WCAG 2.4.3).
+ * Pass the result to Radix `onCloseAutoFocus`.
  */
 export function useReturnFocus(open: boolean): (event: Event) => void {
   const opener = useRef<HTMLElement | null>(null);
@@ -133,7 +148,9 @@ export function useReturnFocus(open: boolean): (event: Event) => void {
   useLayoutEffect(() => {
     if (open) {
       const active = document.activeElement;
-      opener.current = active instanceof HTMLElement && active !== document.body ? active : null;
+      const focused = active instanceof HTMLElement && active !== document.body ? active : null;
+      opener.current = focused ?? (requestedBy?.isConnected ? requestedBy : null);
+      requestedBy = null;
     }
   }, [open]);
   return useCallback((event: Event) => {
