@@ -87,8 +87,8 @@ for (const p of PAGES) {
     }
     await expectAccessibleInBothThemes(page);
     // The full page (loaded fresh by the theme reload) is the collection's own rendering of the row,
-    // so the shell's global peek stays closed. The shell gives a collection page 600 ms to claim a
-    // key before it opens the record itself; check after that.
+    // so the shell's global peek stays closed; leave it the time it would need to open, had it taken
+    // the key.
     await settle(page);
     await page.waitForTimeout(1_000);
     await expect(page.getByTestId(/^shell-peek-/)).toHaveCount(0);
