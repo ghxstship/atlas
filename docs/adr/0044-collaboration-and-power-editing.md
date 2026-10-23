@@ -32,6 +32,9 @@ Two constraints shape every decision here:
 - **The token.** `/auth/realtime` gives the page the session's short-lived access token, and only that. It is
   same-origin only: no CORS headers, and `Sec-Fetch-Site` is checked. The refresh token never leaves the httpOnly
   cookie. The page keeps the access token in memory and asks again a minute before it expires.
+  - The hub holds the token before any channel joins. realtime-js composes a channel's join message
+    when the channel subscribes, while it fetches the token asynchronously. A channel subscribed
+    first would join as anon: Realtime would refuse its filters and its private rooms.
   - This is a deliberate, narrow exception to "page scripts never hold a token".
   - A script running in the page could already act as the person through same-origin requests. What changes is
     that it could copy a token valid for at most the access token lifetime (one hour by default).

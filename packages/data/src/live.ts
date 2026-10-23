@@ -81,6 +81,8 @@ export interface LiveClientLike {
   channel(topic: string, options?: LiveChannelOptions): LiveChannelLike;
   removeChannel(channel: LiveChannelLike): Promise<unknown>;
   disconnect(): unknown;
+  /** Fetches the access token through the client's callback before any channel joins. */
+  setAuth?(): Promise<unknown>;
 }
 
 /** What a room tells its owner: broadcasts, who is present, and whether it is joined. */
@@ -267,6 +269,12 @@ export function createLiveHub(options: LiveHubOptions): LiveHub {
   let cached: LiveToken | null = null;
   let closed = false;
   let rooms = 0;
+  // realtime-js fetches the token asynchronously once it connects, but a channel's join message is
+  // composed the moment it subscribes. A channel subscribed before the first token arrives joins
+  // as anon: Realtime then refuses every postgres_changes filter (anon cannot read the columns) and
+  // every private room. A new client therefore fetches its token first, and channels subscribe
+  // once it has one. Later tokens reach joined channels on realtime-js's own heartbeat.
+  let authorizing: Promise<void> | null = null;
 
   const setStatus = (next: LiveStatus) => {
     if (next === current) return;
@@ -351,15 +359,36 @@ export function createLiveHub(options: LiveHubOptions): LiveHub {
     if (client) void client.disconnect();
     client = null;
     cached = null;
+    authorizing = null;
   };
 
   const ensureClient = (): LiveClientLike => {
-    client ??= createClient(realtimeEndpoint(options.url), {
+    if (client) return client;
+    const next = createClient(realtimeEndpoint(options.url), {
       apiKey: options.apiKey,
       accessToken,
       reconnectAfterMs: (tries) => reconnectDelay(tries, random),
     });
-    return client;
+    client = next;
+    if (next.setAuth) {
+      // A failed fetch still lets channels join: they join as anon, are refused, and rejoin.
+      const pending: Promise<void> = next.setAuth().then(
+        () => {
+          if (authorizing === pending) authorizing = null;
+        },
+        () => {
+          if (authorizing === pending) authorizing = null;
+        },
+      );
+      authorizing = pending;
+    }
+    return next;
+  };
+
+  /** Runs `join` once the current client holds its first token (at once when it already does). */
+  const whenAuthorized = (join: () => void) => {
+    if (authorizing === null) join();
+    else void authorizing.then(join);
   };
 
   const scheduleIdle = () => {
@@ -413,15 +442,18 @@ export function createLiveHub(options: LiveHubOptions): LiveHub {
     channelKeys = keys;
     if (current !== "offline") setStatus(wasSubscribed ? "reconnecting" : "connecting");
     const mine = next;
-    next.subscribe((status) => {
-      if (channel !== mine) return;
-      if (status === "SUBSCRIBED") {
-        if (wasSubscribed) resync();
-        wasSubscribed = true;
-        setStatus("live");
-      } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-        if (current !== "offline") setStatus(wasSubscribed ? "reconnecting" : "connecting");
-      }
+    whenAuthorized(() => {
+      if (channel !== mine) return; // replaced or dropped while the token was on its way
+      mine.subscribe((status) => {
+        if (channel !== mine) return;
+        if (status === "SUBSCRIBED") {
+          if (wasSubscribed) resync();
+          wasSubscribed = true;
+          setStatus("live");
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          if (current !== "offline") setStatus(wasSubscribed ? "reconnecting" : "connecting");
+        }
+      });
     });
   };
 
@@ -492,18 +524,22 @@ export function createLiveHub(options: LiveHubOptions): LiveHub {
       rooms += 1;
       let left = false;
       let joined = false;
-      room.subscribe((status) => {
+      const listening = room;
+      whenAuthorized(() => {
         if (left) return;
-        if (status === "SUBSCRIBED") {
-          joined = true;
-          handlers.onStatus?.("joined");
-        } else if (
-          joined &&
-          (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED")
-        ) {
-          joined = false;
-          handlers.onStatus?.("lost");
-        }
+        listening.subscribe((status) => {
+          if (left) return;
+          if (status === "SUBSCRIBED") {
+            joined = true;
+            handlers.onStatus?.("joined");
+          } else if (
+            joined &&
+            (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED")
+          ) {
+            joined = false;
+            handlers.onStatus?.("lost");
+          }
+        });
       });
       return {
         async send(event, payload) {

@@ -1,4 +1,4 @@
-import { expect, test, type Browser, type Page } from "./engine-test";
+import { expect as baseExpect, test, type Browser, type Locator, type Page } from "./engine-test";
 import { DEMO_ORG, signInAs } from "./a36-support";
 import { expectAccessible, uniqueId } from "./support";
 
@@ -14,7 +14,7 @@ import { expectAccessible, uniqueId } from "./support";
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(300_000);
-expect.configure({ timeout: 30_000 });
+const expect = baseExpect.configure({ timeout: 30_000 });
 
 async function asPerson(browser: Browser, email: string): Promise<Page> {
   const page = await (await browser.newContext({ reducedMotion: "reduce" })).newPage();
@@ -22,12 +22,29 @@ async function asPerson(browser: Browser, email: string): Promise<Page> {
   return page;
 }
 
-/** The live editor's text box once the shared document has loaded. */
+/** The SOP page's Procedure section: the text as it reads, or the live editor. */
+function procedure(page: Page): Locator {
+  return page.getByRole("region", { name: "Procedure", exact: true });
+}
+
+/**
+ * The live editor's text box once the shared document has loaded. The SOP's edit form below has
+ * its own Procedure field, so the editor is found inside the procedure section.
+ */
 async function openEditor(page: Page) {
   await page.getByRole("button", { name: "Edit together" }).click();
-  const editor = page.getByRole("textbox", { name: "Procedure" });
+  const editor = procedure(page).getByRole("textbox", { name: "Procedure" });
   await expect(editor).toBeVisible();
   return editor;
+}
+
+/** The grid row whose key cell is exactly `key` (NWS-1, not NWS-10). */
+function rowWithKey(grid: Locator, key: string): Locator {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const exact = new RegExp(`^\\s*${escaped}\\s*$`);
+  return grid
+    .getByRole("row")
+    .filter({ has: grid.page().locator('td[data-column="key"]').filter({ hasText: exact }) });
 }
 
 test("two people edit an SOP together and converge", async ({ browser }) => {
@@ -71,7 +88,7 @@ test("two people edit an SOP together and converge", async ({ browser }) => {
     .poll(
       async () => {
         await owner.reload();
-        return owner.locator("#sop-body").innerText();
+        return procedure(owner).innerText();
       },
       { timeout: 60_000, intervals: [3_000] },
     )
@@ -126,9 +143,10 @@ test("bulk edit, undo, field history, live lists and row menus", async ({ browse
 
   // The other person's list follows without a reload.
   const adminGrid = admin.getByRole("grid");
-  await expect(
-    adminGrid.getByRole("row").filter({ hasText: firstKey }).locator('td[data-column="owner"]'),
-  ).toHaveText(target, { timeout: 45_000 });
+  await expect(rowWithKey(adminGrid, firstKey).locator('td[data-column="owner"]')).toHaveText(
+    target,
+    { timeout: 45_000 },
+  );
 
   // Cmd or Ctrl+Z undoes the change through the server.
   await owner.getByRole("heading", { level: 1 }).click();

@@ -523,4 +523,49 @@ describe("live rooms", () => {
     );
     late.leave();
   });
+
+  it("joins channels and rooms only once the client holds its first token, never as anon", async () => {
+    const time = fakeClock();
+    const realtime = fakeRealtime();
+    let release: () => void = () => undefined;
+    let fetches = 0;
+    const hub = createLiveHub({
+      url: "http://127.0.0.1:62221",
+      apiKey: "publishable-key-for-tests",
+      token: () => Promise.resolve({ token: "t1", expiresAt: time.clock.now() + 3_600_000 }),
+      // realtime-js composes a join message when the channel subscribes, so the token must be in
+      // hand first: this client's setAuth resolves only when the test says so.
+      createClient: (endpoint, options) => ({
+        ...realtime.create(endpoint, options),
+        setAuth: () => {
+          fetches += 1;
+          return new Promise<void>((resolve) => {
+            release = resolve;
+          });
+        },
+      }),
+      clock: time.clock,
+      visibility: visibilityStub(),
+    });
+    hub.watch([{ table: "records" }], () => undefined);
+    time.advance(60);
+    const room = hub.room(
+      "doc:6f1c7e0e-0000-4000-8000-000000000002",
+      { events: ["update"], presenceKey: "person-1" },
+      { onBroadcast: () => undefined },
+    );
+    expect(realtime.channels).toHaveLength(2);
+    expect(realtime.channels.map((c) => c.status)).toEqual([null, null]);
+
+    release();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(realtime.channels.every((c) => c.status !== null)).toBe(true);
+    expect(fetches).toBe(1);
+
+    // Once authorized, a later channel subscribes at once.
+    hub.watch([{ table: "shifts" }], () => undefined);
+    time.advance(60);
+    expect(realtime.live().at(-1)?.status).not.toBeNull();
+    room.leave();
+  });
 });
