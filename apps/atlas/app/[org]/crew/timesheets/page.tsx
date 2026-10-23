@@ -23,6 +23,7 @@ import { InlineAlert } from "@/components/crew/ui";
 import { FilterSelect } from "@/components/crew/views-filter-select";
 import { PeekBoard } from "@/components/crew/views-peek-board";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   flatParams,
@@ -33,6 +34,7 @@ import {
 } from "@/lib/crew/context";
 import { stateIcon } from "@/lib/crew/states";
 import { addDays, hoursFromMinutes, weekStartOf } from "@/lib/crew/time";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getOrgTimeZone, getOrgWeekStart } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
@@ -204,7 +206,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       );
       if (search["full"] === "1") return record;
       peek = record;
-    } else if (detail.error.kind !== "not-found") {
+    } else if (!peekRowMissing(detail.error)) {
       throw new Error(`Cannot read timesheet: ${detail.error.kind}`);
     }
   }
@@ -398,7 +400,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       }
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }

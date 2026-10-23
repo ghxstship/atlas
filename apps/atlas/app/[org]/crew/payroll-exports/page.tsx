@@ -6,6 +6,7 @@ import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { PayrollRunRecord } from "@/components/crew/payroll-run";
 import { RefusalNotice } from "@/components/crew/ui";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, withParams } from "@/lib/crew/context";
 import { planHasFeature } from "@/lib/crew/plan";
@@ -72,7 +73,7 @@ export default async function Page({
       search={search}
       count={exportsList.length}
       view={view}
-      peek={peek}
+      peek={collectionPeek(search["peek"], peek)}
     >
       {!exportAllowed ? (
         <RefusalNotice

@@ -10,11 +10,12 @@ import Link from "next/link";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { AddGuestDialog, GuestActions } from "./guest-forms";
 import { RecordCollab } from "./record-collab";
-import { partyLabel, pickView, withQuery, type Search } from "./shared";
+import { isRowId, partyLabel, pickView, withQuery, type Search } from "./shared";
 import { PageHeader, StateChip, Tag } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
 
@@ -71,8 +72,11 @@ export async function GuestList({
     .reduce((n, g) => n + 1 + g.plusOnes, 0);
   const from = (g: GuestEntry) =>
     g.party ? partyLabel(g.party, t) : t("advancing.guests.production");
-  const peek = search["peek"] ? guests.data.find((g) => g.id === search["peek"]) : undefined;
-  if (search["peek"] && !peek) notFound();
+  // A key that is no guest id (a record key from elsewhere) goes to the shell's peek; an id
+  // outside the list answers 404.
+  const peekId = search["peek"];
+  const peek = peekId ? guests.data.find((g) => g.id === peekId) : undefined;
+  if (peekId && isRowId(peekId) && !peek) notFound();
   const item = (g: GuestEntry) => ({
     id: g.id,
     guestName: g.guestName,
@@ -177,34 +181,37 @@ export async function GuestList({
           ))}
         </ul>
       )}
-      {peek ? (
-        <PeekPanel
-          full={false}
-          title={peek.guestName}
-          state={GUEST_RECORD_STATE[peek.state]}
-          stateLabel={label(peek.state)}
-          properties={[
-            { label: t("advancing.guests.columns.plusOnes"), value: peek.plusOnes },
-            { label: t("advancing.guests.columns.show"), value: scopeName(peek.scopeNodeId) },
-            { label: t("advancing.guests.columns.from"), value: from(peek) },
-            {
-              label: t("advancing.guests.requested"),
-              value: format.dateTime(new Date(peek.createdAt), {
-                dateStyle: "medium",
-                timeStyle: "short",
-              }),
-            },
-            ...(peek.note ? [{ label: t("advancing.guests.form.note"), value: peek.note }] : []),
-          ]}
-        >
-          <RecordCollab
-            actx={actx}
-            table="app.guest_list_entries"
-            id={peek.id}
-            canUpload={can.rider}
-          />
-        </PeekPanel>
-      ) : null}
+      {collectionPeek(
+        peekId,
+        peek ? (
+          <PeekPanel
+            full={false}
+            title={peek.guestName}
+            state={GUEST_RECORD_STATE[peek.state]}
+            stateLabel={label(peek.state)}
+            properties={[
+              { label: t("advancing.guests.columns.plusOnes"), value: peek.plusOnes },
+              { label: t("advancing.guests.columns.show"), value: scopeName(peek.scopeNodeId) },
+              { label: t("advancing.guests.columns.from"), value: from(peek) },
+              {
+                label: t("advancing.guests.requested"),
+                value: format.dateTime(new Date(peek.createdAt), {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                }),
+              },
+              ...(peek.note ? [{ label: t("advancing.guests.form.note"), value: peek.note }] : []),
+            ]}
+          >
+            <RecordCollab
+              actx={actx}
+              table="app.guest_list_entries"
+              id={peek.id}
+              canUpload={can.rider}
+            />
+          </PeekPanel>
+        ) : null,
+      )}
     </div>
   );
 }
