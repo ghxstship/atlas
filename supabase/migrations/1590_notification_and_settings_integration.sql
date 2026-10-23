@@ -10,6 +10,10 @@
 -- with no membership (private.person_quiet_until), with 1393's changes put back. The bypass window now also caps the
 -- push of someone with no membership, which 1461 holds for their own quiet hours: an external crew member's shift change
 -- waits no longer than a member's.
+--
+-- 1393's app.claim_sms_summaries, which no later migration redefines, is recreated too: its suppression, category drop
+-- and claim updates matched a delivery's queue rows on sent_at alone, so they also stamped the row a release had retired
+-- (deleted_at set, sent_at null) when the text was held again. They now touch only the live row.
 
 -- 1. private.notify (from 1461, with 1393's actor and bypass window) ----------------------------------------------------
 
@@ -249,8 +253,157 @@ $$;
 
 comment on function app.claim_notification_deliveries(app.notification_channel, integer) is 'Worker API (service role): claims due deliveries of a channel with SKIP LOCKED. Quiet hours are checked again unless the kind is on the bypass list (ADR 0033 decision 35): a member''s push waits until they end (Deferred) and a text is held for the member''s summary (1367); the push of someone with no membership waits out their own quiet hours (A89); in every case no later than the opening of the kind''s bypass window, as for a shift starting within 12 hours (1393). Suppresses, with the reason, a marketplace match whose listing is no longer open to the recipient (A89), and any delivery whose recipient neither belongs to the org nor works with it as an external party nor may see the listing a match is about, has no verified address, is suppressed, lacks SMS consent or has no device. Push rows list the devices not yet pushed for the delivery (push_devices). A claimed delivery becomes due again after 10 minutes unless its outcome is recorded.';
 
+-- 3. app.claim_sms_summaries (from 1393) settles and claims only a delivery's live queue row ----------------------------
+
+create or replace function app.claim_sms_summaries(p_limit integer default 50)
+returns table (
+  org_id uuid, recipient_person_id uuid, address text, delivery_ids uuid[], held_count integer,
+  kind text, message_args jsonb
+)
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_group record;
+  v_person uuid;
+  v_active boolean;
+  v_project uuid;
+  v_quiet timestamptz;
+  v_address text;
+  v_reason text;
+  v_ids uuid[];
+  v_drop uuid[];
+  v_top record;
+begin
+  for v_group in
+    select q.org_id, q.membership_id from app.sms_summary_queue q
+    where q.sent_at is null and q.deleted_at is null and q.due_at <= now()
+    group by q.org_id, q.membership_id
+    order by min(q.due_at)
+    limit least(greatest(p_limit, 1), 200)
+  loop
+    select array_agg(q.notification_delivery_id order by q.notification_created_at) into v_ids
+    from (select q2.notification_delivery_id, q2.notification_created_at from app.sms_summary_queue q2
+          where q2.org_id = v_group.org_id and q2.membership_id = v_group.membership_id
+            and q2.sent_at is null and q2.deleted_at is null and q2.due_at <= now()
+          for update skip locked) q;
+    if v_ids is null then
+      continue;
+    end if;
+    select m.person_id, (m.deleted_at is null and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now()))
+    into v_person, v_active from app.memberships m where m.id = v_group.membership_id;
+    select n.project_id into v_project from app.notification_deliveries d
+    join app.notifications n on n.id = d.notification_id and n.created_at = d.notification_created_at
+    where d.id = any (v_ids) order by n.created_at desc limit 1;
+
+    v_reason := null;
+    v_address := private.recipient_address(v_person, 'SMS');
+    if not coalesce(v_active, false) then
+      v_reason := 'Recipient no longer belongs to the org.';
+    else
+      -- The member may have moved their quiet hours or their zone since the texts were held.
+      v_quiet := private.sms_quiet_until(v_group.membership_id, v_project, now());
+      if v_quiet is not null then
+        -- A held text whose bypass window has opened since (a shift now starting within 12 hours) leaves the summary
+        -- and goes on its own through app.claim_notification_deliveries (1393). Its queue row is retired (soft
+        -- deleted), not marked sent: should the shift start before the text goes (a retry or an outage) while the
+        -- member is still in quiet hours, the sender holds it again, and the delivery's one live row must be a new one.
+        with released as (
+          update app.notification_deliveries d set message_status = 'Queued', deliver_after = now()
+          from app.notifications n
+          where d.id = any (v_ids) and n.id = d.notification_id and n.created_at = d.notification_created_at
+            and private.bypasses_quiet_hours(n.kind, n.message_args, now())
+          returning d.id)
+        update app.sms_summary_queue set deleted_at = now()
+        where notification_delivery_id in (select r.id from released r) and sent_at is null and deleted_at is null;
+        -- The rest wait for the end of quiet hours, or for their own bypass window when it opens sooner.
+        update app.sms_summary_queue q
+        set due_at = case when o.opens > now() and o.opens < v_quiet then o.opens else v_quiet end
+        from (select d.id, private.quiet_hours_bypass_opens(n.kind, n.message_args) as opens
+              from app.notification_deliveries d
+              join app.notifications n on n.id = d.notification_id and n.created_at = d.notification_created_at
+              where d.id = any (v_ids)) o
+        where q.notification_delivery_id = o.id and q.sent_at is null and q.deleted_at is null;
+        continue;
+      end if;
+      if v_address is null then
+        v_reason := 'No verified address on the channel.';
+      elsif exists (select 1 from app.suppression_list s
+                    where s.org_id = v_group.org_id and s.channel = 'SMS' and s.address = v_address and s.lifted_at is null
+                      and s.deleted_at is null
+                      and (s.reason in ('Hard Bounce', 'Complaint', 'STOP', 'Manual') or s.category_code is null)) then
+        v_reason := 'Address is on the suppression list.';
+      elsif not coalesce((select c.may_text from app.sms_consent_status c
+                          where c.org_id = v_group.org_id and c.phone_e164 = v_address), false) then
+        v_reason := 'No SMS consent for the number.';
+      end if;
+    end if;
+    if v_reason is not null then
+      update app.notification_deliveries set message_status = 'Suppressed', last_error = v_reason where id = any (v_ids);
+      update app.sms_summary_queue set sent_at = now()
+      where notification_delivery_id = any (v_ids) and sent_at is null and deleted_at is null;
+      continue;
+    end if;
+
+    -- A suppression limited to a category (an unsubscribe from it) drops the held texts of that category, as
+    -- app.claim_notification_deliveries does for a single text; they neither count nor become the summary's line.
+    select array_agg(d.id) into v_drop
+    from app.notification_deliveries d
+    join app.notifications n on n.id = d.notification_id and n.created_at = d.notification_created_at
+    join private.notification_templates t on t.kind = n.kind and t.channel = 'SMS'
+    left join private.email_templates e on e.code = t.email_template_code
+    where d.id = any (v_ids)
+      and not coalesce(e.transactional, false)
+      and exists (select 1 from app.suppression_list s
+                  where s.org_id = v_group.org_id and s.channel = 'SMS' and s.address = v_address and s.lifted_at is null
+                    and s.deleted_at is null and s.category_code = t.category_code);
+    if v_drop is not null then
+      update app.notification_deliveries set message_status = 'Suppressed', last_error = 'Address is on the suppression list.'
+      where id = any (v_drop);
+      update app.sms_summary_queue set sent_at = now()
+      where notification_delivery_id = any (v_drop) and sent_at is null and deleted_at is null;
+      v_ids := array(select u.x from unnest(v_ids) with ordinality u(x, i) where u.x <> all (v_drop) order by u.i);
+      if cardinality(v_ids) = 0 then
+        continue;
+      end if;
+    end if;
+
+    -- The most important held text: an urgent category first, then the latest.
+    select n.kind, n.message_args into v_top
+    from app.notification_deliveries d
+    join app.notifications n on n.id = d.notification_id and n.created_at = d.notification_created_at
+    join private.notification_templates t on t.kind = n.kind and t.channel = 'SMS'
+    join private.notification_categories c on c.code = t.category_code
+    where d.id = any (v_ids)
+    order by c.urgent desc, n.created_at desc
+    limit 1;
+
+    -- Claimed: due again in 10 minutes unless the outcome is recorded. Only the live rows: a row a release retired
+    -- keeps its history (1590).
+    update app.sms_summary_queue set due_at = now() + interval '10 minutes'
+    where notification_delivery_id = any (v_ids) and sent_at is null and deleted_at is null;
+    update app.notification_deliveries set attempt_count = attempt_count + 1 where id = any (v_ids);
+
+    org_id := v_group.org_id;
+    recipient_person_id := v_person;
+    address := v_address;
+    delivery_ids := v_ids;
+    held_count := cardinality(v_ids);
+    kind := v_top.kind;
+    message_args := v_top.message_args;
+    return next;
+  end loop;
+end;
+$$;
+
+comment on function app.claim_sms_summaries(integer) is 'SMS sender API (service role): claims the members whose held texts are due (their quiet hours ended), one row per member and org with every held delivery, the count and the most important text (an urgent category first, then the latest). Holds again a member still inside quiet hours, until then or until a held text''s bypass window opens, and releases a held text whose window has opened to go on its own (1393); suppresses, with the reason, the held texts of someone who left the org, lost their verified number, is suppressed or withdrew consent. A suppression limited to a category drops only the held texts of that category (1393). Settling and claiming touch only a delivery''s live queue row, never one a release retired (1590). A claimed summary is due again after 10 minutes unless its outcome is recorded.';
+
 -- Privileges (create or replace keeps them; restated for review) -------------------------------------------------------
 
 revoke all on function private.notify(uuid, uuid, text, text, uuid, uuid, jsonb) from public, anon, authenticated;
 revoke all on function app.claim_notification_deliveries(app.notification_channel, integer) from public, anon, authenticated;
 grant execute on function app.claim_notification_deliveries(app.notification_channel, integer) to service_role;
+revoke all on function app.claim_sms_summaries(integer) from public, anon, authenticated;
+grant execute on function app.claim_sms_summaries(integer) to service_role;
