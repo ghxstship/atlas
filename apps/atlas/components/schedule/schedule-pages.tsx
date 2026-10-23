@@ -4,6 +4,7 @@ import { getBaselineVariance, listBaselines } from "@xos/data/schedule";
 import type { ProjectRef } from "@xos/data/work";
 import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollabPanels } from "@/components/work/collab";
 import {
   capabilitySet,
@@ -86,7 +87,7 @@ export async function BaselinesPage({
           open={param(search, "create") === "1"}
         />
       }
-      peek={peek}
+      peek={collectionPeek(peekId, peek)}
     />
   );
 }

@@ -5,8 +5,8 @@ import { ORG, settled, signIn } from "./operations-support";
  * The shell's global `?peek={recordKey}` (Section 4.5.3): on a page that does not peek its own rows,
  * the record opens in the side peek, Open full goes to the record page, closing removes the parameter,
  * a collection keeps its own rows (peek or full page, however slow) and hands over a key it has no
- * row for, and a key for no readable record says so. Runs on the demo tenant seed (NWS-12 is the
- * Production Meeting record, MH-001 an asset unit).
+ * row for (a record key from elsewhere, a stale link), and a key for no readable record says so.
+ * Runs on the demo tenant seed (NWS-12 is the Production Meeting record, MH-001 an asset unit).
  */
 
 test.use({ reducedMotion: "reduce" });
@@ -80,6 +80,48 @@ test("a collection hands the shell a key it has no row for", async ({ page }) =>
   await page.keyboard.press("Escape");
   await expect(peek).toBeHidden();
   await expect(page).toHaveURL(new RegExp(`/${ORG}/vendors/directory$`));
+});
+
+test("a collection that reads its rows by id hands over a record key", async ({ page }) => {
+  await signIn(page, "owner@example.com");
+  // Timesheets read the peeked row by UUID, which Postgres refuses for NWS-12 (22P02): the page
+  // counts that as no row and hands the key over instead of failing into its error boundary.
+  await page.goto(`/${ORG}/crew/timesheets?peek=NWS-12`);
+  const peek = page.getByRole("dialog", { name: /Production Meeting/ });
+  await expect(peek).toBeVisible();
+  await expect(peek.getByText("NWS-12")).toBeVisible();
+  await settled(page);
+  await page.keyboard.press("Escape");
+  await expect(peek).toBeHidden();
+  await expect(page).toHaveURL(new RegExp(`/${ORG}/crew/timesheets$`));
+});
+
+test("advancing hands the shell a key that is no packet id", async ({ page }) => {
+  await signIn(page, "producer@example.com");
+  // Packets keep their 404 for a packet id they have no packet for, but NWS-12 is no packet id at
+  // all (a work record's key): the page hands it over and the shell opens the record.
+  await page.goto(`/${ORG}/advancing/packets?peek=NWS-12`);
+  await expect(page.getByRole("heading", { level: 1, name: "Packets" })).toBeVisible();
+  const peek = page.getByRole("dialog", { name: /Production Meeting/ });
+  await expect(peek).toBeVisible();
+  await settled(page);
+  await page.keyboard.press("Escape");
+  await expect(peek).toBeHidden();
+  await expect(page).toHaveURL(new RegExp(`/${ORG}/advancing/packets$`));
+});
+
+test("a collection hands the shell a stale key, which names the problem", async ({ page }) => {
+  await signIn(page, "owner@example.com");
+  // NWS-99999 names no record (a link to one since deleted): All records has no row for it, so it
+  // hands the key over instead of showing the list with nothing open.
+  await page.goto(`/${ORG}/work/all-records?peek=NWS-99999`);
+  await expect(page.getByRole("heading", { level: 1, name: "All Records" })).toBeVisible();
+  const missing = page.getByTestId("shell-peek-missing");
+  await expect(missing).toContainText("NWS-99999 is not a record you can open here");
+  await settled(page);
+  await missing.getByRole("button", { name: "Close" }).click();
+  await expect(missing).toBeHidden();
+  await expect(page).toHaveURL(new RegExp(`/${ORG}/work/all-records$`));
 });
 
 test("a key for no readable record names the problem and closes", async ({ page }) => {
