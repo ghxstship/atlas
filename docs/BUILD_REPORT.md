@@ -41,7 +41,7 @@ From ADR 0001 (pinned; see the ADR for deviations).
 | Playwright        | 1.64.0                      |
 | Supabase CLI (CI) | 2.120.0                     |
 | Postgres          | 17                          |
-| Next.js           | 16.4.0                      |
+| Next.js           | 16.4.2                      |
 | React             | 19.3.0                      |
 | Hono              | 4.13.13                     |
 | Zod               | 4.6.5                       |

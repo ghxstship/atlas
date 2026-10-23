@@ -205,3 +205,9 @@ Supply chain tools added by A94 (Section 9, finding A65-017), each run as a pinn
 | Workflow lint | actionlint, as the image `rhysd/actionlint` pinned by digest, used locally to check the workflows     | 1.7.12  |
 
 The CI actions table above is out of date: every pin is now checked against its upstream tag on every push (`infra/security/src/action-pins.ts`), and Renovate waits 14 days before proposing an action release. `actions/setup-node` is pinned to v7.0.0 (`820762786026740c76f36085b0efc47a31fe5020`) and `actions/setup-java` to v6.0.1 (`de7274f081f381c8f8158605e0321c36c376e2e6`), the newest releases at least two weeks old on 2026-10-21; the workflows are the record of every pin.
+
+## Amendment (2026-10-23): Next.js security release (RRR-139)
+
+| Area | Package                                                                                                                                                    | Version |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Web  | `next`, `eslint-config-next` (replaces 16.4.0; 16.4.1 fixes GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr and GHSA-p3m5-59mp-jv5r, 16.4.2 is the current patch) | 16.4.2  |
