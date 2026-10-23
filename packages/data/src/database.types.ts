@@ -63796,6 +63796,53 @@ export type Database = {
           },
         ];
       };
+      declared_gap: {
+        Row: {
+          decision: string;
+          phase_code: string;
+          ratified_by: string;
+          ratified_on: string;
+          reason: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          decision: string;
+          phase_code: string;
+          ratified_by: string;
+          ratified_on: string;
+          reason: string;
+        };
+        Update: {
+          decision?: string;
+          phase_code?: string;
+          ratified_by?: string;
+          ratified_on?: string;
+          reason?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "declared_gap_phase_code_fkey";
+            columns: ["phase_code"];
+            isOneToOne: true;
+            referencedRelation: "dim_phase";
+            referencedColumns: ["phase_code"];
+          },
+          {
+            foreignKeyName: "declared_gap_phase_code_fkey";
+            columns: ["phase_code"];
+            isOneToOne: true;
+            referencedRelation: "v_coordinate_matrix";
+            referencedColumns: ["phase_code"];
+          },
+          {
+            foreignKeyName: "declared_gap_phase_code_fkey";
+            columns: ["phase_code"];
+            isOneToOne: true;
+            referencedRelation: "v_phase_coverage";
+            referencedColumns: ["phase_code"];
+          },
+        ];
+      };
       dim_act: {
         Row: {
           act_code: string;
@@ -67409,6 +67456,8 @@ export type Database = {
         Row: {
           active_element_count: number | null;
           category_count: number | null;
+          declared_gap: boolean | null;
+          declared_gap_reason: string | null;
           element_count: number | null;
           gate: number | null;
           has_active_element: boolean | null;
