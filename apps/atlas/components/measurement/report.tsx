@@ -26,6 +26,7 @@ import type { FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy, type FinanceCopy } from "@/lib/finance/copy";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getShellSettings } from "@/lib/shell/org-settings";
+import { projectJurisdictionUnits, unitSystemFor } from "@/lib/workforce/units";
 import { figureText, metricLabel, outcomeLabel, type MeasurementT } from "./format";
 import { CoverageTable } from "./coverage-table";
 import { SummaryTable, summaryCsv, summaryHeader, summaryLines, type SummaryLine } from "./summary";
@@ -124,7 +125,13 @@ export async function MeasurementReport({ page }: { page: FinancePage }) {
     locale,
     catalog: catalog.data,
     rows: summary.data,
-    preference: shell.preferences.units,
+    // locale.units may follow the project's jurisdiction (A97): a project report uses its jurisdiction, the org
+    // rollup the viewer's locale.
+    preference: unitSystemFor(
+      shell.preferences.units,
+      page.project ? await projectJurisdictionUnits(db, page.project.id) : null,
+      locale,
+    ),
     canExport: page.access.can("reports.report.export"),
   };
   return page.project ? (
