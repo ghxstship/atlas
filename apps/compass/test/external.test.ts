@@ -497,6 +497,18 @@ describe("each page", () => {
       "compassExternal.travel.arrives Wed, Jun 9, 8:05 PM",
       'compassExternal.travel.confirmation{"code":"QX7PLM"}',
     ]);
+    // A person who shows times in their own zone (me.time_zone_display) sees both ends there.
+    const own = factsText(
+      flight?.facts ?? [],
+      t,
+      "en-US",
+      "America/New_York",
+      () => "America/New_York",
+    );
+    expect(own.slice(1, 3)).toEqual([
+      "compassExternal.travel.departs Wed, Jun 9, 12:00 PM",
+      "compassExternal.travel.arrives Wed, Jun 9, 8:05 PM",
+    ]);
     expect(factsText([{ kind: "minutes", minutes: 125 }], t, "en-US")).toEqual([
       'compassExternal.duration{"hours":2,"minutes":5}',
     ]);

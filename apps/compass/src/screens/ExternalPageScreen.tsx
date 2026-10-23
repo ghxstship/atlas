@@ -18,6 +18,7 @@ import {
   type ExternalPageId,
 } from "../domain/external";
 import { factsText } from "../domain/facts";
+import { scheduleZone } from "../domain/settings";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import {
   Button,
@@ -67,7 +68,14 @@ function Item({
 }): ReactElement {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
-  const facts = factsText(item.facts, (key, values) => t(key, { ...values }), i18n.language);
+  const { orgSettings } = useCompass();
+  const facts = factsText(
+    item.facts,
+    (key, values) => t(key, { ...values }),
+    i18n.language,
+    undefined,
+    (zone) => scheduleZone(zone, orgSettings),
+  );
   const title = item.title || facts.shift() || "";
   return (
     <View style={{ paddingLeft: depth * theme.space["16"] }}>
