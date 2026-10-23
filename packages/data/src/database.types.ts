@@ -11589,6 +11589,264 @@ export type Database = {
           },
         ];
       };
+      content_moderation_decisions: {
+        Row: {
+          action: Database["app"]["Enums"]["content_moderation_action"];
+          author_person_id: string | null;
+          chat_message_id: string | null;
+          comment_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          decided_at: string;
+          decided_by: string;
+          deleted_at: string | null;
+          facts: string;
+          feed_post_id: string | null;
+          ground: Database["app"]["Enums"]["moderation_ground"];
+          id: string;
+          org_id: string;
+          rule_reference: string;
+          statement_of_reasons: string;
+          subject_kind: Database["app"]["Enums"]["content_subject_kind"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          action: Database["app"]["Enums"]["content_moderation_action"];
+          author_person_id?: string | null;
+          chat_message_id?: string | null;
+          comment_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string;
+          decided_by: string;
+          deleted_at?: string | null;
+          facts: string;
+          feed_post_id?: string | null;
+          ground: Database["app"]["Enums"]["moderation_ground"];
+          id?: string;
+          org_id: string;
+          rule_reference: string;
+          statement_of_reasons: string;
+          subject_kind: Database["app"]["Enums"]["content_subject_kind"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          action?: Database["app"]["Enums"]["content_moderation_action"];
+          author_person_id?: string | null;
+          chat_message_id?: string | null;
+          comment_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string;
+          decided_by?: string;
+          deleted_at?: string | null;
+          facts?: string;
+          feed_post_id?: string | null;
+          ground?: Database["app"]["Enums"]["moderation_ground"];
+          id?: string;
+          org_id?: string;
+          rule_reference?: string;
+          statement_of_reasons?: string;
+          subject_kind?: Database["app"]["Enums"]["content_subject_kind"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "content_moderation_decisions_author_person_id_fkey";
+            columns: ["author_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_moderation_decisions_chat_message_id_fkey";
+            columns: ["chat_message_id"];
+            isOneToOne: false;
+            referencedRelation: "chat_messages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_moderation_decisions_comment_id_fkey";
+            columns: ["comment_id"];
+            isOneToOne: false;
+            referencedRelation: "comments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_moderation_decisions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_moderation_decisions_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_moderation_decisions_feed_post_id_fkey";
+            columns: ["feed_post_id"];
+            isOneToOne: false;
+            referencedRelation: "feed_posts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_moderation_decisions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_moderation_decisions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      content_reports: {
+        Row: {
+          author_person_id: string | null;
+          chat_message_id: string | null;
+          comment_id: string | null;
+          content_excerpt: string;
+          content_moderation_decision_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          details: string | null;
+          due_at: string;
+          escalated_at: string | null;
+          feed_post_id: string | null;
+          id: string;
+          org_id: string;
+          reason: Database["app"]["Enums"]["content_report_reason"];
+          reported_at: string;
+          reporter_person_id: string;
+          subject_kind: Database["app"]["Enums"]["content_subject_kind"];
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_person_id?: string | null;
+          chat_message_id?: string | null;
+          comment_id?: string | null;
+          content_excerpt: string;
+          content_moderation_decision_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          details?: string | null;
+          due_at: string;
+          escalated_at?: string | null;
+          feed_post_id?: string | null;
+          id?: string;
+          org_id: string;
+          reason: Database["app"]["Enums"]["content_report_reason"];
+          reported_at?: string;
+          reporter_person_id: string;
+          subject_kind: Database["app"]["Enums"]["content_subject_kind"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          author_person_id?: string | null;
+          chat_message_id?: string | null;
+          comment_id?: string | null;
+          content_excerpt?: string;
+          content_moderation_decision_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          details?: string | null;
+          due_at?: string;
+          escalated_at?: string | null;
+          feed_post_id?: string | null;
+          id?: string;
+          org_id?: string;
+          reason?: Database["app"]["Enums"]["content_report_reason"];
+          reported_at?: string;
+          reporter_person_id?: string;
+          subject_kind?: Database["app"]["Enums"]["content_subject_kind"];
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "content_reports_author_person_id_fkey";
+            columns: ["author_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_reports_chat_message_id_fkey";
+            columns: ["chat_message_id"];
+            isOneToOne: false;
+            referencedRelation: "chat_messages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_reports_comment_id_fkey";
+            columns: ["comment_id"];
+            isOneToOne: false;
+            referencedRelation: "comments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_reports_content_moderation_decision_id_fkey";
+            columns: ["content_moderation_decision_id"];
+            isOneToOne: false;
+            referencedRelation: "content_moderation_decisions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_reports_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_reports_feed_post_id_fkey";
+            columns: ["feed_post_id"];
+            isOneToOne: false;
+            referencedRelation: "feed_posts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_reports_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_reports_reporter_person_id_fkey";
+            columns: ["reporter_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "content_reports_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       contingency_draws: {
         Row: {
           amount_minor: number;
@@ -58861,6 +59119,7 @@ export type Database = {
         };
         Returns: string;
       };
+      block_member: { Args: { p_membership_id: string }; Returns: string };
       block_profile: { Args: { p_handle: string; p_kind: string }; Returns: string };
       bulk_update_asset_units: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
@@ -59523,6 +59782,33 @@ export type Database = {
           size_bytes: number;
         }[];
       };
+      content_moderation_queue: {
+        Args: { p_open?: boolean; p_org_id: string };
+        Returns: {
+          author_name: string;
+          author_person_id: string;
+          content_excerpt: string;
+          due_at: string;
+          first_reported_at: string;
+          last_action: Database["app"]["Enums"]["content_moderation_action"];
+          last_decided_at: string;
+          open_reports: number;
+          overdue: boolean;
+          reasons: Database["app"]["Enums"]["content_report_reason"][];
+          removed: boolean;
+          subject_id: string;
+          subject_kind: Database["app"]["Enums"]["content_subject_kind"];
+          total_reports: number;
+        }[];
+      };
+      content_report_detail: {
+        Args: {
+          p_org_id: string;
+          p_subject_id: string;
+          p_subject_kind: Database["app"]["Enums"]["content_subject_kind"];
+        };
+        Returns: Json;
+      };
       conversation_read_receipts: {
         Args: { p_conversation_id: string };
         Returns: {
@@ -59775,6 +60061,19 @@ export type Database = {
           p_response: string;
         };
         Returns: undefined;
+      };
+      decide_content_report: {
+        Args: {
+          p_action: Database["app"]["Enums"]["content_moderation_action"];
+          p_facts: string;
+          p_ground: Database["app"]["Enums"]["moderation_ground"];
+          p_org_id: string;
+          p_rule_reference: string;
+          p_statement: string;
+          p_subject_id: string;
+          p_subject_kind: Database["app"]["Enums"]["content_subject_kind"];
+        };
+        Returns: string;
       };
       decide_deliverable: {
         Args: {
@@ -61501,6 +61800,15 @@ export type Database = {
         Args: { p_person_id: string; p_subject_id: string };
         Returns: string;
       };
+      report_content: {
+        Args: {
+          p_details?: string;
+          p_reason: Database["app"]["Enums"]["content_report_reason"];
+          p_subject_id: string;
+          p_subject_kind: Database["app"]["Enums"]["content_subject_kind"];
+        };
+        Returns: string;
+      };
       report_delivery: {
         Args: { p_delivery_id: string };
         Returns: {
@@ -62896,6 +63204,10 @@ export type Database = {
       client_approval_subject: "Change Order" | "Record";
       comment_source: "App" | "Email" | "API";
       consent_source: "Web" | "Mobile" | "Email" | "SMS" | "Import" | "Support";
+      content_moderation_action: "Removed" | "No Action";
+      content_report_reason:
+        "Harassment" | "Hate" | "Sexual Content" | "Violence" | "Spam" | "Other";
+      content_subject_kind: "Feed Post" | "Comment" | "Chat Message";
       conversation_kind: "Direct" | "Group";
       correction_state: "Proposed" | "Approved" | "Rejected";
       cost_center_kind: "Standing" | "Overhead" | "Event";
@@ -69416,6 +69728,9 @@ export const Constants = {
       client_approval_subject: ["Change Order", "Record"],
       comment_source: ["App", "Email", "API"],
       consent_source: ["Web", "Mobile", "Email", "SMS", "Import", "Support"],
+      content_moderation_action: ["Removed", "No Action"],
+      content_report_reason: ["Harassment", "Hate", "Sexual Content", "Violence", "Spam", "Other"],
+      content_subject_kind: ["Feed Post", "Comment", "Chat Message"],
       conversation_kind: ["Direct", "Group"],
       correction_state: ["Proposed", "Approved", "Rejected"],
       cost_center_kind: ["Standing", "Overhead", "Event"],
