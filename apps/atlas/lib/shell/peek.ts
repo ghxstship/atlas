@@ -18,6 +18,7 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "activity.audit-log",
   "approvals",
   "inbox",
+  "my-work",
   "opportunities.engagements",
   "opportunities.onboarding",
   "opportunities.pipeline",

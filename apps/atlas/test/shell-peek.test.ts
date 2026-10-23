@@ -27,6 +27,7 @@ describe("the shell's global ?peek hook", () => {
   it("opens a record on lists that open no peek of their own", () => {
     for (const path of [
       "/demo-productions/inbox",
+      "/demo-productions/my-work",
       "/demo-productions/approvals",
       "/demo-productions/trash",
       "/demo-productions/activity/audit-log",
