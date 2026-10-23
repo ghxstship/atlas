@@ -3321,6 +3321,75 @@ export type Database = {
           },
         ];
       };
+      account_notification_defaults: {
+        Row: {
+          category_code: string;
+          channel: Database["app"]["Enums"]["notification_channel"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          enabled: boolean;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          category_code: string;
+          channel: Database["app"]["Enums"]["notification_channel"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          enabled: boolean;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          category_code?: string;
+          channel?: Database["app"]["Enums"]["notification_channel"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          enabled?: boolean;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "account_notification_defaults_category_code_fkey";
+            columns: ["category_code"];
+            isOneToOne: false;
+            referencedRelation: "notification_categories";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "account_notification_defaults_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_notification_defaults_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "account_notification_defaults_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       accounting_period_state_transitions: {
         Row: {
           accounting_period_id: string;
@@ -12745,6 +12814,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "custom_field_definitions_target_table_fkey";
+            columns: ["target_table"];
+            isOneToOne: false;
+            referencedRelation: "custom_field_targets";
+            referencedColumns: ["table_name"];
           },
           {
             foreignKeyName: "custom_field_definitions_updated_by_fkey";
@@ -27353,6 +27429,118 @@ export type Database = {
           },
         ];
       };
+      org_departments_in_use: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          dept_code: string;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          dept_code: string;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          dept_code?: string;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "org_departments_in_use_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_departments_in_use_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_departments_in_use_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      org_disciplines_in_use: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          disc_code: string;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          disc_code: string;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          disc_code?: string;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "org_disciplines_in_use_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_disciplines_in_use_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_disciplines_in_use_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       org_domains: {
         Row: {
           auto_join_role_id: string | null;
@@ -27650,6 +27838,65 @@ export type Database = {
           },
           {
             foreignKeyName: "org_legal_entities_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      org_location_defaults: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          jurisdiction_id: string | null;
+          org_id: string;
+          time_zone: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          jurisdiction_id?: string | null;
+          org_id: string;
+          time_zone?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          jurisdiction_id?: string | null;
+          org_id?: string;
+          time_zone?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "org_location_defaults_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_location_defaults_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_location_defaults_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -31436,6 +31683,163 @@ export type Database = {
           },
           {
             foreignKeyName: "person_work_details_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      personal_access_token_scopes: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          personal_access_token_id: string;
+          scope: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          personal_access_token_id: string;
+          scope: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          personal_access_token_id?: string;
+          scope?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "personal_access_token_scopes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personal_access_token_scopes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personal_access_token_scopes_personal_access_token_id_fkey";
+            columns: ["personal_access_token_id"];
+            isOneToOne: false;
+            referencedRelation: "personal_access_tokens";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personal_access_token_scopes_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      personal_access_tokens: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expires_at: string;
+          id: string;
+          last_used_at: string | null;
+          name: string;
+          org_id: string;
+          person_id: string;
+          prefix: string;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          secret_hash: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at: string;
+          id?: string;
+          last_used_at?: string | null;
+          name: string;
+          org_id: string;
+          person_id: string;
+          prefix: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          secret_hash: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string;
+          id?: string;
+          last_used_at?: string | null;
+          name?: string;
+          org_id?: string;
+          person_id?: string;
+          prefix?: string;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          secret_hash?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "personal_access_tokens_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personal_access_tokens_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personal_access_tokens_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personal_access_tokens_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "personal_access_tokens_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -53481,6 +53885,19 @@ export type Database = {
           },
         ];
       };
+      custom_field_targets: {
+        Row: {
+          table_name: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          table_name?: string | null;
+        };
+        Update: {
+          table_name?: string | null;
+        };
+        Relationships: [];
+      };
       domain_event_catalog: {
         Row: {
           code: string | null;
@@ -56868,6 +57285,7 @@ export type Database = {
         Returns: undefined;
       };
       confirm_minimum_age: { Args: { p_client_ip?: unknown; p_surface: string }; Returns: string };
+      consent_oauth_request: { Args: { p_authorization_id: string }; Returns: string };
       consent_to_case_study: { Args: { p_case_study_id: string }; Returns: undefined };
       consume_file_download_ticket: {
         Args: { p_ticket: string };
@@ -57023,6 +57441,13 @@ export type Database = {
         Returns: {
           calendar_feed_id: string;
           feed_token: string;
+        }[];
+      };
+      create_personal_access_token: {
+        Args: { p_expires_at: string; p_name: string; p_org_id: string; p_scopes: string[] };
+        Returns: {
+          personal_access_token_id: string;
+          secret: string;
         }[];
       };
       create_project: {
@@ -57193,6 +57618,7 @@ export type Database = {
         };
         Returns: string;
       };
+      decline_oauth_request: { Args: { p_authorization_id: string }; Returns: undefined };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       decline_ownership_transfer: { Args: { p_transfer_id: string }; Returns: string };
       delete_automation: { Args: { p_automation_id: string }; Returns: undefined };
@@ -57469,6 +57895,12 @@ export type Database = {
         Returns: string;
       };
       generate_permit_requirements: { Args: { p_project_id: string }; Returns: number };
+      generate_recovery_codes: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          code: string;
+        }[];
+      };
       generate_self_billed_invoice: {
         Args: { p_engagement_id: string; p_period_end: string; p_period_start: string };
         Returns: string;
@@ -57712,16 +58144,55 @@ export type Database = {
         }[];
       };
       my_notification_time_zone: { Args: { p_org_id: string }; Returns: string };
+      my_oauth_access: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          oauth_app_id: string;
+          org_id: string;
+          scopes: string[];
+        }[];
+      };
+      my_oauth_apps: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          app_name: string;
+          grant_id: string;
+          granted_at: string;
+          last_used_at: string;
+          oauth_app_id: string;
+          org_name: string;
+          scopes: string[];
+        }[];
+      };
+      my_oauth_grants: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          app_name: string;
+          granted_at: string;
+          oauth_grant_id: string;
+          org_id: string;
+          org_name: string;
+          scopes: string[];
+        }[];
+      };
       my_org_auth_status: {
         Args: { p_org_id: string };
         Returns: {
           idle_timeout_minutes: number;
           mfa_required: boolean;
           mfa_verified: boolean;
+          session_ended: boolean;
           session_expired: boolean;
           session_expires_at: string;
           session_hours: number;
           signed_in_at: string;
+        }[];
+      };
+      my_orgs_allowing_personal_tokens: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          org_id: string;
+          org_name: string;
         }[];
       };
       my_project_role_capabilities: {
@@ -57732,6 +58203,16 @@ export type Database = {
           project_role: Database["app"]["Enums"]["project_role"];
         }[];
       };
+      my_recovery_code_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          created_at: string;
+          last_used_at: string;
+          remaining: number;
+          total: number;
+          usable: boolean;
+        }[];
+      };
       my_second_factor_status: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -57739,6 +58220,29 @@ export type Database = {
           recent_until: string;
           second_factor_at: string;
           session_aal: string;
+        }[];
+      };
+      my_security_events: {
+        Args: { p_limit?: number };
+        Returns: {
+          detail: Json;
+          kind: string;
+          occurred_at: string;
+          this_session: boolean;
+        }[];
+      };
+      my_sessions: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          client_address: string;
+          is_current: boolean;
+          last_active_at: string;
+          place: string;
+          second_factor: boolean;
+          session_id: string;
+          signed_in_at: string;
+          surface: string;
+          user_agent: string;
         }[];
       };
       my_sms_status: {
@@ -57792,6 +58296,29 @@ export type Database = {
           starts_on: string;
         }[];
       };
+      oauth_app_client_ids: {
+        Args: { p_org_id: string };
+        Returns: {
+          auth_client_id: string;
+          oauth_app_id: string;
+        }[];
+      };
+      oauth_consent_request: {
+        Args: { p_authorization_id: string };
+        Returns: {
+          app_name: string;
+          client_id: string;
+          expires_at: string;
+          granted_scopes: string[];
+          oauth_app_id: string;
+          org_id: string;
+          org_name: string;
+          pkce_s256: boolean;
+          redirect_uri: string;
+          restricted_scopes: string[];
+          scopes: string[];
+        }[];
+      };
       object_scan_status: {
         Args: { p_bucket_id: string; p_object_name: string };
         Returns: Database["app"]["Enums"]["scan_status"];
@@ -57839,6 +58366,7 @@ export type Database = {
           project_id: string;
         }[];
       };
+      org_allows_personal_tokens: { Args: { p_org_id: string }; Returns: boolean };
       org_banner_status: {
         Args: { p_org_id: string };
         Returns: {
@@ -57876,6 +58404,16 @@ export type Database = {
           days_left: number;
           plan_code: string;
           trial_ends_at: string;
+        }[];
+      };
+      org_usage: {
+        Args: { p_months?: number; p_org_id: string };
+        Returns: {
+          closed: boolean;
+          meter_code: string;
+          period_start: string;
+          quantity: number;
+          unit: string;
         }[];
       };
       organization_verified: { Args: { p_org_id: string }; Returns: boolean };
@@ -58038,6 +58576,7 @@ export type Database = {
         };
         Returns: string;
       };
+      prune_recovery_codes: { Args: Record<PropertyKey, never>; Returns: boolean };
       publish_form_template: {
         Args: { p_reason?: string; p_template_id: string };
         Returns: number;
@@ -58305,6 +58844,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      record_oauth_request: {
+        Args: { p_authorization_id: string; p_scopes: string[] };
+        Returns: undefined;
+      };
       record_object_scan: {
         Args: { p_clean: boolean; p_detail?: string; p_object_scan_id: string };
         Returns: Database["app"]["Enums"]["scan_status"];
@@ -58526,6 +59069,13 @@ export type Database = {
         Returns: Database["app"]["Enums"]["delivery_status"];
       };
       recover_org_deletion: { Args: { p_org_id: string }; Returns: string };
+      redeem_recovery_code: {
+        Args: { p_code: string };
+        Returns: {
+          outcome: string;
+          remaining: number;
+        }[];
+      };
       refresh_file_link: {
         Args: {
           p_external_modified_at: string;
@@ -58769,6 +59319,7 @@ export type Database = {
         Args: { p_reason: string; p_verification_id: string };
         Returns: undefined;
       };
+      revoke_personal_access_token: { Args: { p_token_id: string }; Returns: undefined };
       revoke_profile_share: { Args: { p_profile_share_id: string }; Returns: undefined };
       revoke_representation: { Args: { p_representation_id: string }; Returns: undefined };
       revoke_self_billing: { Args: { p_engagement_id: string }; Returns: undefined };
@@ -58911,6 +59462,10 @@ export type Database = {
         };
         Returns: string;
       };
+      set_account_notification_defaults: {
+        Args: { p_account_id: string; p_defaults: Json };
+        Returns: undefined;
+      };
       set_active_org: { Args: { p_org_id: string }; Returns: undefined };
       set_auth_factor_label: { Args: { p_factor_id: string; p_label: string }; Returns: undefined };
       set_automation_enabled: {
@@ -58921,7 +59476,15 @@ export type Database = {
         Args: { p_deliverable_id: string; p_fee_minor?: number };
         Returns: string;
       };
+      set_departments_in_use: {
+        Args: { p_dept_codes: string[]; p_disc_codes: string[]; p_org_id: string };
+        Returns: undefined;
+      };
       set_kiosk_pin: { Args: { p_membership_id: string; p_pin: string }; Returns: undefined };
+      set_location_defaults: {
+        Args: { p_jurisdiction_id: string; p_org_id: string; p_time_zone: string };
+        Returns: string;
+      };
       set_module_enabled: {
         Args: { p_enabled: boolean; p_module_code: string; p_org_id: string };
         Returns: string;
@@ -59095,6 +59658,8 @@ export type Database = {
         Returns: string;
       };
       sign_off_inspection: { Args: { p_inspection_id: string }; Returns: string };
+      sign_out_my_other_sessions: { Args: Record<PropertyKey, never>; Returns: number };
+      sign_out_my_session: { Args: { p_session_id: string }; Returns: undefined };
       start_break_glass: {
         Args: { p_org_id: string; p_reason: string };
         Returns: {
@@ -59251,6 +59816,15 @@ export type Database = {
         }[];
       };
       test_automation: { Args: { p_automation_id: string; p_event: Json }; Returns: Json };
+      touch_my_session: {
+        Args: {
+          p_client_address: string;
+          p_place: string;
+          p_surface: string;
+          p_user_agent: string;
+        };
+        Returns: undefined;
+      };
       track_permit_requirement: {
         Args: { p_requirement_id: string; p_title?: string };
         Returns: string;
