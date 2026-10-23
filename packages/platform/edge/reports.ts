@@ -29,6 +29,8 @@ export {
   type ReportRunResult,
 } from "../../data/src/report-runs.ts";
 
+export { READ_REPLICA_ENV, readReplicaUrl } from "../../data/src/read-replica.ts";
+
 type Tree = { readonly [key: string]: Tree | string };
 
 /**

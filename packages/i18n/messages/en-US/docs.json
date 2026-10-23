@@ -7,6 +7,7 @@
     "home": "Home",
     "guides": "Guides",
     "reference": "API reference",
+    "dictionary": "Data dictionary",
     "help": "Help center"
   },
   "language": {
@@ -72,6 +73,33 @@
     "back": "All resources",
     "module": "{module} module",
     "openapi": "OpenAPI document"
+  },
+  "dictionary": {
+    "title": "Data dictionary",
+    "sentence": "{tables} tables and {views} views with {columns} columns, generated from the comments in the database schema.",
+    "source": "Every table and column carries a comment in its migration. CI regenerates this page from a freshly migrated database and fails when it differs, so it always matches the schema. Descriptions are in English, as the schema writes them.",
+    "schemas": {
+      "app": "Organizations' data and the platform's, with row level security on every table.",
+      "xpms": "The canon: the XOS Bible and Playbook as published data, read-only.",
+      "api_external": "Views for external parties in Gateway and Compass, with only the columns they may read.",
+      "api_public": "Views the public token functions read without a sign-in."
+    },
+    "kinds": {
+      "table": "Table",
+      "view": "View"
+    },
+    "partitioned": "Partitioned by month",
+    "rls": "Row level security on",
+    "noRls": "No row level security",
+    "primaryKey": "Primary key",
+    "columns": "Columns of {name}",
+    "column": "Column",
+    "type": "Type",
+    "nullable": "Nullable",
+    "description": "Description",
+    "yes": "Yes",
+    "no": "No",
+    "references": "References"
   },
   "help": {
     "title": "Help center",

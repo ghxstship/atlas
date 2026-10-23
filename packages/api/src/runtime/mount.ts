@@ -31,6 +31,13 @@ import {
 } from "../problem.ts";
 import type { ValidationIssue } from "../problem.ts";
 import type { Authenticate, RequestContext } from "./context.ts";
+import {
+  canonCacheDecision,
+  isCanonRead,
+  readCanonGeneration,
+  type CanonCacheDecision,
+  type CanonGenerationReader,
+} from "./canon-cache.ts";
 import { etagOf } from "./etag.ts";
 import { databaseIdempotencyStore, inProgress, keyReused, requestHash } from "./idempotency.ts";
 import type { IdempotencyStore } from "./idempotency.ts";
@@ -53,6 +60,11 @@ export interface MountOptions {
   readonly idempotency?: IdempotencyStore | false;
   /** Rate limiter; defaults to 600 requests a minute per caller, shared in Postgres (A22-012). */
   readonly rateLimiter?: RateLimiter | false;
+  /**
+   * Reads the canon generation for generation-keyed canon caching (Section 5.1, `canon-cache.ts`);
+   * defaults to `xpms.version`. `false` turns canon cache headers off.
+   */
+  readonly canonGeneration?: CanonGenerationReader | false;
 }
 
 /** What the runtime knows about one operation, taken from its route definition. */
@@ -334,6 +346,10 @@ function serve(
 ) {
   const store =
     options.idempotency === false ? undefined : (options.idempotency ?? databaseIdempotencyStore);
+  const generation =
+    options.canonGeneration === false
+      ? undefined
+      : (options.canonGeneration ?? readCanonGeneration);
   return async (c: Context): Promise<Response> => {
     const requestId = options.requestId?.() ?? crypto.randomUUID();
     const instance = new URL(c.req.url).pathname;
@@ -354,6 +370,17 @@ function serve(
       }
       const request = await timing.measure("validate", () => validateRequest(c, op));
       if (op.method === "patch" && request.ifMatch === undefined) throw preconditionRequired();
+      let canon: CanonCacheDecision | undefined;
+      if (generation !== undefined && isCanonRead(op)) {
+        const current = await timing.measure("canon", () => generation(context));
+        canon = canonCacheDecision(new URL(c.req.url), current);
+        if (canon.kind === "redirect") {
+          return new Response(null, {
+            status: 307,
+            headers: { ...base, ...canon.headers, "Server-Timing": timing.header() },
+          });
+        }
+      }
       const { result, replayed } = await timing.measure("handler", () =>
         runIdempotent(store, context, op, request, instance, () => handler(request, context)),
       );
@@ -369,6 +396,7 @@ function serve(
       const headers: Record<string, string> = {
         ...base,
         ...result.headers,
+        ...canon?.headers,
         "Server-Timing": timing.header(),
       };
       if (replayed) headers["Idempotent-Replayed"] = "true";

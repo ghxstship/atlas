@@ -1,0 +1,16 @@
+# OWASP ZAP baseline rules for staging (infra/security/zap-baseline.sh, Section 9 DAST).
+# ZAP's -c format: rule id, action, (rule name), why. Tabs separate the fields.
+# IGNORE  an accepted alert; the last field says why. Never fails the job.
+# FAIL    a protection Atlas and Gateway guarantee on every page; any alert fails the job.
+# WARN    reported in the job summary. Rules not listed are WARN, except that any High alert fails
+#         unless its rule is ignored here (infra/security/src/zap.ts).
+# Prepared 2026-10-21 (A94) before the first staging run, which waits on the owner's
+# VERCEL_AUTOMATION_BYPASS_SECRET. Review every WARN in the first run's summary and record each
+# decision here: fix it, or IGNORE it with the reason.
+10020	FAIL	(Missing Anti-clickjacking Header)	The proxy sends X-Frame-Options DENY and frame-ancestors 'none' on every page (lib/security/headers.ts).
+10038	FAIL	(Content Security Policy (CSP) Header Not Set)	The proxy sends a nonce-based CSP on every page (Section 9).
+10037	FAIL	(Server Leaks Information via "X-Powered-By" HTTP Response Header Field(s))	poweredByHeader is false in both Next.js configs.
+10027	IGNORE	(Information Disclosure - Suspicious Comments)	Informational. Matches words such as select, debug and admin inside minified framework bundles under /_next/static; the bundles are public build output and hold no secrets (gitleaks and Semgrep scan the source).
+10049	IGNORE	(Storable and Cacheable Content)	Informational. Static assets and public pages are meant to be cached; signed-in pages are dynamic and not cached by the CDN.
+10050	IGNORE	(Retrieved from Cache)	Informational. Vercel's CDN serves content-hashed static assets from cache by design.
+10109	IGNORE	(Modern Web Application)	Informational. Notes that the pages are a JavaScript application, which they are; it asks for the AJAX spider, not a fix.

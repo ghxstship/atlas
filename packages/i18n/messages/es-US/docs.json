@@ -7,6 +7,7 @@
     "home": "Inicio",
     "guides": "Guías",
     "reference": "Referencia de la API",
+    "dictionary": "Diccionario de datos",
     "help": "Centro de ayuda"
   },
   "language": {
@@ -72,6 +73,33 @@
     "back": "Todos los recursos",
     "module": "Módulo {module}",
     "openapi": "Documento OpenAPI"
+  },
+  "dictionary": {
+    "title": "Diccionario de datos",
+    "sentence": "{tables} tablas y {views} vistas con {columns} columnas, generado a partir de los comentarios del esquema de la base de datos.",
+    "source": "Cada tabla y columna lleva un comentario en su migración. La CI regenera esta página a partir de una base de datos recién migrada y falla cuando difiere, así que siempre coincide con el esquema. Las descripciones están en inglés, tal como las escribe el esquema.",
+    "schemas": {
+      "app": "Los datos de las organizaciones y de la plataforma, con seguridad a nivel de fila en cada tabla.",
+      "xpms": "El canon: la Biblia y el Playbook de XOS como datos publicados, de solo lectura.",
+      "api_external": "Vistas para partes externas en Gateway y Compass, solo con las columnas que pueden leer.",
+      "api_public": "Vistas que leen las funciones públicas de token sin iniciar sesión."
+    },
+    "kinds": {
+      "table": "Tabla",
+      "view": "Vista"
+    },
+    "partitioned": "Particionada por mes",
+    "rls": "Seguridad a nivel de fila activa",
+    "noRls": "Sin seguridad a nivel de fila",
+    "primaryKey": "Clave primaria",
+    "columns": "Columnas de {name}",
+    "column": "Columna",
+    "type": "Tipo",
+    "nullable": "Admite nulos",
+    "description": "Descripción",
+    "yes": "Sí",
+    "no": "No",
+    "references": "Hace referencia a"
   },
   "help": {
     "title": "Centro de ayuda",

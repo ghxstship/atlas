@@ -4,9 +4,10 @@
 #   infra/drills/restore-drill.sh --dump <file> --keep      # prints the container name
 #   infra/db/verify-proposals.sh <xos4-drill-restore-...>
 #
-# Runs the pgTAP suites that touch the converted tables, applies the proposals in one transaction,
-# checks the result is partitioned and registered, and runs the same suites again. Passes only when
-# every suite gives the same result before and after.
+# Runs the pgTAP suites that touch time_entries, applies the remaining proposal in one transaction
+# (private.partition_existing_table is migration 1510; access_scans was converted by 1511), checks the
+# result is partitioned and registered, and runs the same suites again. Passes only when every suite
+# gives the same result before and after. The copy must be at migration 1511 or later.
 
 source "$(dirname "$0")/../drills/lib.sh"
 
@@ -33,8 +34,6 @@ echo "$BEFORE" | sed 's/^/before: /'
 {
   echo "begin;"
   echo "set local role postgres;"
-  cat "$REPO"/infra/db/proposals/01_partition_existing_table.sql
-  cat "$REPO"/infra/db/proposals/02_partition_access_scans.sql
   cat "$REPO"/infra/db/proposals/03_partition_time_entries.sql
   echo "commit;"
 } | psql_in "$TARGET" >/dev/null

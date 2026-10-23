@@ -7,8 +7,14 @@ packages:
 onlyBuiltDependencies:
   - unrs-resolver
 
-# exceljs 4.4.0 pins unzipper 0.10, which pulls in binary and buffers 0.1.1; buffers declares no
-# license (owner decision 17, ADR 0034). unzipper 0.12 (MIT) dropped both and keeps the Parse API
-# exceljs's streaming reader uses.
+# Every override lives here. pnpm ignores this list when the root package.json has a `pnpm.overrides`
+# field, which is how the unzipper override below silently stopped applying (A94): keep package.json
+# free of a `pnpm` field. Accepted audit advisories are in infra/security/audit-allowlist.json.
 overrides:
+  # gate 11 audit (A54): patched releases of transitive dependencies.
+  "@xmldom/xmldom@<0.8.15": 0.8.15
+  uuid@<11.1.1: 11.1.1
+  # exceljs 4.4.0 pins unzipper 0.10, which pulls in binary and buffers 0.1.1; buffers declares no
+  # license (owner decision 17, ADR 0034). unzipper 0.12 (MIT) dropped both and keeps the Parse API
+  # exceljs's streaming reader uses.
   exceljs>unzipper: 0.12.3

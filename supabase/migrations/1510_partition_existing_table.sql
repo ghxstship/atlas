@@ -1,22 +1,64 @@
--- Proposal 1 of 3 (A26 Reliability, for the orchestrator to place). Not a migration until it is placed.
--- Suggested home: A18's range (it extends A18's partition machinery in 0500), or the orchestrator's 09xx.
+-- 1510_partition_existing_table.sql
+-- A94 (RRR-139), finding A65-032, Section 5.1: monthly partitions for the last two of the eight tables. A18 created six
+-- partitioned from the start (0500 to 0520); app.time_entries and app.access_scans (A03) are plain tables and need
+-- converting. This is A26's reviewed proposal infra/db/proposals/01_partition_existing_table.sql with the three A94
+-- additions below. 1511 converts app.access_scans. app.time_entries waits: its audit trail and its worker guard name
+-- the table through TG_TABLE_NAME and TG_RELID, which a partition answers with its own name, so the shared trigger
+-- functions must first resolve a partition to its parent (infra/db/README.md). Production holds no tenant rows yet
+-- (demo data removed 2026-10-20), so the copy step moves only staging and local rows.
 --
--- Section 5.1 lists eight tables partitioned by month. A18 created six of them partitioned from the start
--- (audit_events, activity_events, webhook_deliveries, usage_events, notifications, notification_deliveries).
--- The other two, app.time_entries and app.access_scans, were created by A03 as plain tables and already
--- hold rows, so they need converting. Postgres cannot partition a table in place. This procedure does the
--- conversion in one transaction, keeping everything the table had:
+-- Postgres cannot partition a table in place. The procedure converts one in a single transaction, keeping everything
+-- the table had:
 --   * columns, defaults, not-null and check constraints, generated and identity columns, comments;
---   * the primary key, widened to (id, <partition column>) because a partitioned table's unique keys must
---     include the partition key; other unique indexes must already include it (refused otherwise);
+--   * the primary key, widened to (id, <partition column>) because a partitioned table's unique keys must include the
+--     partition key; other unique indexes must already include it (refused otherwise);
 --   * every other index, outgoing foreign key, trigger, row level security policy, table and column grant;
 --   * every view that reads the table, recreated with its options, comment and grants;
---   * incoming foreign keys, which become composite: the referencing table gains <fk>_<partition column>,
---     backfilled, filled on insert by a trigger, and the key references (id, <partition column>);
+--   * incoming foreign keys, which become composite: the referencing table gains <fk>_<partition column>, backfilled,
+--     filled on insert by a trigger, and the key references (id, <partition column>);
 --   * the rows, copied before any trigger exists, so guards and audit trails do not fire on the copy.
--- The table is then registered with A18's maintenance (private.partitioned_tables), which creates future
--- partitions nightly. Retention policies are left as they are; switching one to 'Drop Partition' is a
--- separate decision per table.
+-- The table is then registered with A18's maintenance (private.partitioned_tables), which creates future partitions
+-- nightly. Retention policies are left as they are; switching one to 'Drop Partition' is a separate decision per table.
+--
+-- A94 adds three things to A26's proposal, so the converted tables refuse exactly what they refused before:
+--   * id stays unique. The widened key (id, <partition column>) alone would let a second row reuse an id, for example
+--     two concurrent replays of one client id through app.record_scan. private.guard_partitioned_id, the first
+--     trigger on the table, takes a transaction lock on the id and refuses a taken one with 23505, as the old key did.
+--   * a referencing row that names no existing row is refused with 23503, as the old foreign key did. A composite key
+--     is not checked while one of its columns is null, and the fill trigger leaves the new column null when the
+--     referenced row does not exist, so the fill trigger refuses it instead.
+--   * incoming foreign keys with an ON DELETE or ON UPDATE action, or deferrable ones, are refused rather than
+--     recreated without them.
+
+-- The id guard: one row per id across every partition, with the same error the primary key on id gave.
+create or replace function private.guard_partitioned_id()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_table text := tg_argv[0];
+  v_taken boolean;
+begin
+  if tg_op = 'UPDATE' and new.id = old.id then
+    return new;
+  end if;
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(v_table || ':' || new.id::text, 0));
+  execute format('select exists (select 1 from %s t where t.id = $1)', v_table) into v_taken using new.id;
+  if v_taken then
+    raise exception using errcode = 'unique_violation',
+      message = format('duplicate key value violates unique constraint "%s_pkey"', split_part(v_table, '.', 2)),
+      detail = format('Key (id)=(%s) already exists.', new.id);
+  end if;
+  return new;
+end;
+$$;
+
+comment on function private.guard_partitioned_id() is
+  'Trigger for a table partitioned by private.partition_existing_table (argument: the parent table): keeps id unique across partitions, which the widened primary key (id, partition column) no longer does, and refuses a taken id with 23505 like the original key. A transaction lock on the id serializes concurrent inserts of one id.';
+
+revoke all on function private.guard_partitioned_id() from public, anon, authenticated;
 
 create or replace procedure private.partition_existing_table(
   p_table regclass,
@@ -105,7 +147,12 @@ begin
     execute format('drop policy %I on %s', v_rec.polname, v_rec.rel);
   end loop;
 
-  -- 2. Incoming foreign keys: remember them, then drop them.
+  -- 2. Incoming foreign keys: remember them, then drop them. Actions and deferral would be lost, so they are refused.
+  if exists (select 1 from pg_catalog.pg_constraint con where con.confrelid = p_table and con.contype = 'f'
+             and (con.confupdtype <> 'a' or con.confdeltype <> 'a' or con.condeferrable)) then
+    raise exception 'partition_existing_table: % has an incoming foreign key with an action or deferral', v_qualified
+      using errcode = 'XR001';
+  end if;
   for v_rec in
     select con.conname, con.conrelid::regclass as child, a.attname as fk_col, a.attnotnull as fk_not_null
     from pg_catalog.pg_constraint con
@@ -169,10 +216,12 @@ begin
     execute format('alter table %I.%I add constraint %I %s', v_schema, v_name, substr(v_rec.conname, 3), v_rec.def);
   end loop;
 
-  -- 8. Triggers.
+  -- 8. Triggers, and the id guard first of all.
   for v_rec in select t.tgname, pg_catalog.pg_get_triggerdef(t.oid) as def from pg_catalog.pg_trigger t where t.tgrelid = p_table and not t.tgisinternal loop
     execute replace(v_rec.def, format(' ON %s.%s ', v_schema, v_old), format(' ON %s.%s ', v_schema, v_name));
   end loop;
+  execute format('create trigger t00_unique_id before insert or update of id on %I.%I for each row execute function private.guard_partitioned_id(%L)',
+    v_schema, v_name, v_qualified);
 
   -- 9. Row level security, policies and grants.
   execute format('alter table %I.%I enable row level security', v_schema, v_name);
@@ -228,16 +277,24 @@ begin
     execute format(
       'alter table %s add constraint %I foreign key (%I, %I) references %I.%I (id, %I)',
       v_rec.child, v_rec.name, v_rec.col, v_new_col, v_schema, v_name, p_column);
+    -- The fill trigger also refuses a key that names no row (23503): the composite key is not checked while its
+    -- new column is null, which is what the lookup gives for a missing row.
     execute format($f$
-      create or replace function private.%I() returns trigger language plpgsql security definer set search_path = '' as $b$
+      create or replace function private.%7$I() returns trigger language plpgsql security definer set search_path = '' as $b$
       begin
-        if new.%I is not null then
-          new.%I := (select p.%I from %I.%I p where p.id = new.%I);
+        if new.%1$I is not null then
+          new.%2$I := (select p.%3$I from %4$I.%5$I p where p.id = new.%1$I);
+          if new.%2$I is null then
+            raise exception using errcode = 'foreign_key_violation', message = %6$L,
+              detail = format('Key (%1$s)=(%%s) is not present in table "%5$s".', new.%1$I);
+          end if;
         end if;
         return new;
       end;
       $b$$f$,
-      left('fill_' || replace(v_rec.child, 'app.', '') || '_' || v_new_col, 63), v_rec.col, v_new_col, p_column, v_schema, v_name, v_rec.col);
+      v_rec.col, v_new_col, p_column, v_schema, v_name,
+      format('insert or update on table "%s" violates foreign key constraint "%s"', replace(v_rec.child, 'app.', ''), v_rec.name),
+      left('fill_' || replace(v_rec.child, 'app.', '') || '_' || v_new_col, 63));
     execute format('revoke all on function private.%I() from public, anon, authenticated',
       left('fill_' || replace(v_rec.child, 'app.', '') || '_' || v_new_col, 63));
     execute format('create trigger t05_fill_%s before insert or update of %I on %s for each row execute function private.%I()',

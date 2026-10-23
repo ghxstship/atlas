@@ -9,6 +9,10 @@
 // recipient only with XOS_EMAIL_DELIVER_TO_ANY=true, production, Section 19.8). With neither, deliveries
 // fail with the reason and nothing is sent.
 //
+// Read replica (Section 5.1, A65-032): with XOS_READ_REPLICA_URL set to a Supabase read replica's API
+// origin, each run's definition and source rows are read there, falling back to the primary when the
+// replica errors or lags. Claims, run state, storage and deliveries stay on the primary.
+//
 // Resend, exceljs and pdfkit load only when a run needs them (A85), and the file and email copy load per
 // locale on first use.
 import { createClient } from "@supabase/supabase-js";
@@ -16,6 +20,7 @@ import {
   lazyResendClient,
   mailpitMailer,
   readEmailEnv,
+  readReplicaUrl,
   recipientAllowed,
   reportDeliveryCopy,
   reportRunLabels,
@@ -55,11 +60,19 @@ serve(async (request) => {
   if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
-  const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const options = { auth: { persistSession: false, autoRefreshToken: false } };
+  const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), options);
+  const replicaUrl = readReplicaUrl(Deno.env.toObject(), (message) => console.warn(message));
+  const replica =
+    replicaUrl === null
+      ? null
+      : createClient(replicaUrl, env("SUPABASE_SERVICE_ROLE_KEY"), options);
   const outcome = await runScheduledReports({
-    runs: supabaseReportRunStore(client),
+    runs: supabaseReportRunStore(client, {
+      replica,
+      onReplicaFallback: (label, reason) =>
+        console.warn(`report-run: ${label} read from the primary (${String(reason)})`),
+    }),
     storage: supabaseResultStorage(client),
     labels: await reportRunLabels("en-US"),
     deliveries: supabaseReportDeliveryStore(client),

@@ -1,0 +1,21 @@
+{
+  "$comment": "Production dependencies whose license is outside the allowlist in src/license-check.ts, recorded while counsel reviews them (gate 11). Each entry covers one package name (a trailing * matches platform builds) under one exact license; licenses:check reports them as warnings and fails on anything else. Counsel's ruling changes the status to Approved by counsel, or the dependency is removed.",
+  "exceptions": [
+    {
+      "package": "sentry",
+      "license": "FSL-1.1-Apache-2.0",
+      "status": "Pending counsel",
+      "reason": "The Sentry command line tool, pulled in by @sentry/nextjs through @sentry/bundler-plugins, uploads source maps at build time; it is not served to users. Waiting on counsel to confirm that the Functional Source License (Apache-2.0 two years after each release) permits this use.",
+      "decision": "Owner decisions in legal/qa/gate-status.md: counsel review of FSL-1.1-Apache-2.0.",
+      "recorded": "2026-10-21"
+    },
+    {
+      "package": "@img/sharp-libvips-*",
+      "license": "LGPL-3.0-or-later",
+      "status": "Pending counsel",
+      "reason": "Prebuilt libvips for sharp, which Next.js uses to optimize images on the server. It is loaded as an unmodified shared library; waiting on counsel to confirm the notice and relinking obligations. One package per platform (darwin-arm64 locally, linux-x64 in CI and on Vercel).",
+      "decision": "Owner decisions in legal/qa/gate-status.md: counsel review of LGPL-3.0-or-later.",
+      "recorded": "2026-10-21"
+    }
+  ]
+}

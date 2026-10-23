@@ -56,3 +56,12 @@ Con la CLI, escribe `--filter record_state.eq=Blocked --filter due_at.lte=2026-1
 ## Orden
 
 `sort=starts_at,-updated_at` ordena por cada clave en turno; un `-` inicial ordena de forma descendente. Sin `sort`, cada lista usa el orden predeterminado indicado en su entrada de la referencia. Las listas codificadas, como departamentos, fases y cuentas contables, siempre se devuelven en orden numérico de código.
+
+## Caché del canon
+
+El canon solo cambia cuando se publica una nueva generación de canon, así que las lecturas de canon se pueden guardar en caché de forma permanente. Cada respuesta de `GET /canon/...` lleva `XOS-Canon-Generation`. Agrega `generation=<n>` a la misma solicitud y la respuesta se guarda en caché con `Cache-Control: private, max-age=31536000, immutable`: una URL con una generación siempre significa esa generación. Una solicitud de cualquier otra generación se redirige (307) a la misma URL con la generación actual, así una caché nunca sirve canon desactualizado. Sin `generation`, la respuesta se revalida en cada uso y `Content-Location` indica la URL que se puede guardar en caché.
+
+```bash
+curl -i -G "$XOS_BASE_URL/canon/departments" -H "Authorization: Bearer $XOS_API_KEY" \
+  --data-urlencode "generation=1"
+```

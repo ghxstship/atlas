@@ -26,7 +26,7 @@ import {
   errorForStatus,
   httpFromFetch,
 } from "./chunks/integrations-framework-http.js";
-import { csvField } from "./chunks/data-csv.js";
+import { csvField } from "./chunks/data-client.js";
 import { isPublicAddress } from "./chunks/platform-webhooks-dispatch.js";
 import { createHash, createHmac } from "node:crypto";
 //#region ../integrations/src/framework/catalog.ts

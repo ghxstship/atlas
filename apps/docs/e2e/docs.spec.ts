@@ -30,6 +30,8 @@ const PAGES = [
   { path: "/en-US/reference", heading: "API reference" },
   { path: "/en-US/reference/projects", heading: "projects" },
   { path: "/en-US/reference/projects/list", heading: "List project rows" },
+  { path: "/en-US/data-dictionary/app.time_entries", heading: "app.time_entries" },
+  { path: "/es-US/data-dictionary/xpms.dim_department", heading: "xpms.dim_department" },
   { path: "/en-US/help", heading: "Help center" },
   { path: "/en-US/help/gates", heading: "Gates" },
   { path: "/en-US/help?q=gate", heading: "Help center" },
