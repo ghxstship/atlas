@@ -10,14 +10,25 @@ import type { PeekHandoff } from "./peek-handoff";
  * inbox, dashboards, settings, the Aurora center, a record's full page) the shell opens the record the
  * key names. Aurora citation links and proposed sitemap nodes build their links with peekHref.
  */
-/** Pages without a list in the sitemap that still peek the rows they show: a saved view's collection. */
-const OWN_PEEK_NODES: ReadonlySet<string> = new Set(["saved-view"]);
-
-/** Lists that open no peek of their own (their rows link elsewhere), so the shell opens `?peek`. */
+/**
+ * Lists that open no peek of their own (their rows link elsewhere, or open the shell's peek as My
+ * Work's do), so the shell opens `?peek`. A list page that reads no `?peek` belongs here
+ * (test/peek-handoff.test.ts).
+ */
 const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "activity.audit-log",
+  "activity.feed",
   "approvals",
+  "credentials.access-grid",
+  "credentials.scan-log",
+  "finance.chart-of-accounts",
+  "finance.universal-posting-line-export",
+  "home.alerts",
+  "home.gate-readiness",
+  "home.recent",
+  "home.today",
   "inbox",
+  "my-work",
   "opportunities.engagements",
   "opportunities.onboarding",
   "opportunities.pipeline",
@@ -25,8 +36,20 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "opportunities.postings",
   "opportunities.ratings",
   "opportunities.requisitions",
+  "project.activity",
   "project.engagements",
+  "project.gates",
+  "project.scope",
   "projects.templates",
+  "reports.budget-versus-actual",
+  "reports.coordinate-matrix",
+  "reports.dashboards",
+  "reports.final-cost-report",
+  "reports.gate-readiness",
+  "reports.incidents",
+  "reports.labor",
+  "reports.measurement",
+  "reports.purchase-order-exposure",
   "site-ops.weather",
   "trash",
 ]);
@@ -34,7 +57,7 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
 export function pageOwnsPeek(pathname: string): boolean {
   const match = findRoute(clientSitemap, pathname.split("?")[0] ?? pathname);
   if (!match || NO_OWN_PEEK_NODES.has(match.id)) return false;
-  return OWN_PEEK_NODES.has(match.id) || listNodes.has(match.id);
+  return listNodes.has(match.id);
 }
 
 /**

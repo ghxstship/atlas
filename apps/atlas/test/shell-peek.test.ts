@@ -19,6 +19,8 @@ describe("the shell's global ?peek hook", () => {
       "/demo-productions/activity",
       "/demo-productions/r/NWS-12",
       "/demo-productions/p/NWS/overview",
+      // A saved view redirects to its collection, which reads the key there.
+      "/demo-productions/views/0192f1e2-7c3a-7b4d-9e8f-000000000001",
     ]) {
       expect(pageOwnsPeek(path), path).toBe(false);
     }
@@ -32,18 +34,21 @@ describe("the shell's global ?peek hook", () => {
       "/demo-productions/activity/audit-log",
       "/demo-productions/opportunities/pipeline",
       "/demo-productions/p/NWS/engagements",
+      // My Work's rows open the shell's peek; the scan log's rows link to the issued credential.
+      "/demo-productions/my-work",
+      "/demo-productions/credentials/scan-log",
     ]) {
       expect(pageOwnsPeek(path), path).toBe(false);
       expect(shellPeekMode(path, at("peek=NWS-12")), path).toBe("open");
     }
   });
 
-  it("leaves ?peek to collection pages and saved views, which peek their own rows", () => {
+  it("leaves ?peek to collection pages, which peek their own rows", () => {
     for (const path of [
       "/demo-productions/logistics/shipments",
       "/demo-productions/work/all-records",
       "/demo-productions/assets/units",
-      "/demo-productions/views/0192f1e2-7c3a-7b4d-9e8f-000000000001",
+      "/demo-productions/crew/timesheets",
     ]) {
       expect(pageOwnsPeek(path), path).toBe(true);
     }
@@ -63,7 +68,7 @@ describe("the shell's global ?peek hook", () => {
       "/demo-productions/vendors/directory",
       "/demo-productions/assets/units",
       "/demo-productions/logistics/shipments",
-      "/demo-productions/views/0192f1e2-7c3a-7b4d-9e8f-000000000001",
+      "/demo-productions/crew/timesheets",
     ]) {
       expect(shellPeekMode(path, new URLSearchParams(`peek=${id}&full=1`)), path).toBe("none");
       expect(shellPeekMode(path, new URLSearchParams(`view=board&full=1&peek=${id}`)), path).toBe(

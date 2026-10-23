@@ -324,4 +324,17 @@ describe("collection pages hand ?peek keys they cannot show to the shell", () =>
       ).toBe(true);
     }
   });
+
+  it("leaves ?peek to the shell on every list page that reads none", () => {
+    // The shell waits for a hand-off on a collection page; one that never reads the key never hands
+    // it over. Such a page goes in NO_OWN_PEEK_NODES (lib/shell/peek.ts).
+    expect(pages.filter((p) => p.ownsPeek && p.readers.length === 0).map((p) => p.page)).toEqual(
+      [],
+    );
+  });
+
+  it("reads ?peek only where the shell leaves the key to the page", () => {
+    // Elsewhere the shell opens the key itself, over whatever the page renders for it.
+    expect(pages.filter((p) => !p.ownsPeek && p.readers.length > 0).map((p) => p.page)).toEqual([]);
+  });
 });
