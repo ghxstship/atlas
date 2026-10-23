@@ -24,7 +24,7 @@ This page describes how GHXSTSHIP Industries LLC ("GHXSTSHIP") protects XOS 4.0 
 - **The database is the boundary.** Authorization, tenancy, state transitions and money rules are enforced inside Postgres with row-level security, constraints, triggers and stored procedures. Application code may repeat a check for usability, never instead of the database.
 - **Tenant isolation.** Each row's organization is derived by the database, never accepted from the caller, and can never change. Cross-organization references are refused. Every build runs automated tests that try to read and write across tenants on every table.
 - **External access.** Vendors, crew, clients and other external parties read only through column-allowlisted views. Internal notes, margins, budget lines, other parties' rates and internal ratings never reach them. Their access opens with an engagement and narrows and closes on a fixed schedule after it ends.
-- **Hosting.** Data lives in Supabase Postgres and Storage on Amazon Web Services in the United States, or in the European Union for Enterprise customers who choose it. The web applications run on Vercel. See the Subprocessor List.
+- **Hosting.** Data lives in Supabase Postgres and Storage on Amazon Web Services in the United States. An Enterprise customer may ask for hosting in the European Union; it is set up under that customer's agreement, and the Subprocessor List names the EU region before any data is hosted there. The web applications run on Vercel. See the Subprocessor List.
 
 ## 3. Identity and Access
 
@@ -71,7 +71,7 @@ This page describes how GHXSTSHIP Industries LLC ("GHXSTSHIP") protects XOS 4.0 
 - 99.9 percent monthly availability target, with a public status page and synthetic checks every minute from five regions.
 - Point-in-time recovery with at least 7 days of history and weekly logical backups to separate storage.
 - 1 hour recovery point objective and 4 hour recovery time objective, verified by restore drills.
-- Progressive rollouts (5, 25, then 100 percent) with automatic rollback, and kill switches on risky features.
+- Staged rollouts of Atlas (5, 25, then 100 percent) that roll back when errors regress, instant rollback of every web application to its previous deployment, and kill switches on risky features.
 
 ## 8. Monitoring and Incident Response
 

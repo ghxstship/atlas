@@ -55,9 +55,9 @@ These Terms of Service (the "Terms") are a subscription agreement between GHXSTS
 
 4.2 **Lawful basis and notices.** The Customer is responsible for having a lawful basis for the personal data it puts into the Service and for giving the notices and obtaining the consents that the law requires, including consent to SMS messages, consent to background checks, and notices to workers about time and location capture.
 
-4.3 **Employment and engagement decisions.** The Customer alone decides whom to engage, how to classify each worker, what to pay, and whether a background check result affects an engagement. The Service records the Customer's decisions and their basis. GHXSTSHIP does not make worker classification decisions, does not give legal, tax or employment advice, and is not an employer, staffing agency or joint employer of any person the Customer engages.
+4.3 **Employment and engagement decisions.** The Customer alone decides whom to engage, how to classify each worker, what to pay, and whether a background check result affects an engagement. The Service records the classification the Customer chooses for an engagement; the Customer keeps the basis for its decisions. GHXSTSHIP does not make worker classification decisions, does not give legal, tax or employment advice, and is not an employer, staffing agency or joint employer of any person the Customer engages.
 
-4.4 **Regulated records.** The Service provides tools that support the Customer's obligations, such as overtime rules, certified payroll export, OSHA incident forms, 1099-NEC data export and pay range requirements. The Customer remains responsible for the accuracy of the rules it configures and the records it files with any authority.
+4.4 **Regulated records.** The Service provides tools that support the Customer's obligations, such as overtime rules, 1099-NEC data export and pay range requirements. The Customer remains responsible for the accuracy of the rules it configures and the records it files with any authority.
 
 4.5 **Medical information.** Medical encounter records are restricted to Members who hold the Medical capability. The Customer will grant that capability only to people who need it. GHXSTSHIP does not offer the Service as a covered entity or business associate service under HIPAA unless the parties sign a separate business associate agreement.
 
