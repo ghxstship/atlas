@@ -5,7 +5,7 @@
  * the scheduled email copy from @xos/i18n. Only the two namespaces the copy uses (workflow and
  * reporting) are read, and each locale's pair loads the first time a run asks for that locale (A85).
  */
-import { defaultLocale, isLocale, type Locale } from "@xos/i18n/locales";
+import { defaultLocale, isLaunchLocale, type LaunchLocale } from "@xos/i18n/locales";
 import type { DeliveryCopy } from "../../data/src/report-deliveries.ts";
 import type { RunLabels } from "../../data/src/report-runs.ts";
 
@@ -31,8 +31,11 @@ export {
 
 type Tree = { readonly [key: string]: Tree | string };
 
-/** The workflow and reporting namespaces of each locale, loaded on first use. */
-const namespaces: Readonly<Record<Locale, () => Promise<Tree>>> = {
+/**
+ * The workflow and reporting namespaces of each launch locale, loaded on first use. A Beta locale (ADR 0053)
+ * reads en-US here: the Edge bundle carries no Beta catalog.
+ */
+const namespaces: Readonly<Record<LaunchLocale, () => Promise<Tree>>> = {
   "en-US": async () => {
     const [workflow, reporting] = await Promise.all([
       import("@xos/i18n/messages/en-US/workflow.json", { with: { type: "json" } }),
@@ -50,7 +53,7 @@ const namespaces: Readonly<Record<Locale, () => Promise<Tree>>> = {
 };
 
 function messagesFor(locale: string): Promise<Tree> {
-  return namespaces[isLocale(locale) ? locale : defaultLocale]();
+  return namespaces[isLaunchLocale(locale) ? locale : defaultLocale]();
 }
 
 function lookup(tree: Tree, path: readonly string[]): string | null {
@@ -71,7 +74,7 @@ function fill(template: string, values: Readonly<Record<string, string | number>
 
 /** Column headers and file copy of a run file in a locale (en-US when unknown). */
 export async function reportRunLabels(locale: string): Promise<RunLabels> {
-  const known = isLocale(locale) ? locale : defaultLocale;
+  const known = isLaunchLocale(locale) ? locale : defaultLocale;
   const messages = await messagesFor(known);
   const field = (source: string, key: string) =>
     lookup(messages, ["workflow", "builder", "fields", source, key]) ?? key;

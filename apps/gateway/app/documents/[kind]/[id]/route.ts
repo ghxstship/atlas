@@ -1,7 +1,8 @@
 import { generateExternalDocument } from "@xos/data/documents/generate";
 import { isPaper } from "@xos/data/documents/model";
 import { isExternalDocumentKind } from "@xos/data/documents/sources-external";
-import { getMessages, isLocale } from "@xos/i18n";
+import { isLocale } from "@xos/i18n";
+import { loadMessages } from "@xos/i18n/load";
 import { getLocale } from "next-intl/server";
 import { gatewayRecordPath } from "@/lib/documents/links";
 import { env } from "@/lib/env";
@@ -31,7 +32,7 @@ export async function GET(
     kind,
     id,
     locale,
-    messages: getMessages(locale).documents,
+    messages: (await loadMessages(locale)).documents,
     paper,
     recordUrl: () =>
       new URL(gatewayRecordPath(kind, engagementKey), env().GATEWAY_SITE_URL).toString(),

@@ -1,6 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { isLocale } from "@xos/i18n/locales";
 import { z } from "zod";
 import { LOCALE_COOKIE, selectableLocales } from "@/i18n/negotiate";
 import { preferenceOptions } from "@/lib/privacy/consent";
@@ -36,7 +37,8 @@ export async function setLocale(locale: string): Promise<void> {
   const allowed = selectableLocales(process.env.NODE_ENV === "production") as string[];
   const chosen = z.enum(allowed as [string, ...string[]]).parse(locale);
   await setPreference(LOCALE_COOKIE, chosen);
-  if (chosen === "en-US" || chosen === "es-US") await rememberPersonally("locale.language", chosen);
+  // Launch and Beta locales (ADR 0053) are saved for the other shells; a pseudo-locale stays on this device.
+  if (isLocale(chosen)) await rememberPersonally("locale.language", chosen);
 }
 
 export async function setTheme(theme: string): Promise<void> {

@@ -1070,9 +1070,15 @@
     "locales": {
       "en-US": "English (US)",
       "es-US": "Español (EE. UU.)",
+      "fr-FR": "Français",
+      "de-DE": "Deutsch",
+      "it-IT": "Italiano",
+      "pt-BR": "Português (Brasil)",
+      "ja-JP": "日本語",
       "en-XA": "Pseudolocalización (acentos)",
       "ar-XB": "Pseudolocalización (derecha a izquierda)"
     },
+    "betaLocale": "{language} (beta)",
     "mainNav": "Principal"
   },
   "settings": {

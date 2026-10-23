@@ -26,6 +26,7 @@ import {
   type ReactNode,
 } from "react";
 import { clientSitemap } from "@/ia/sitemap.client.generated";
+import { isBetaLocale } from "@xos/i18n/locales";
 import type { AtlasLocale } from "@/i18n/negotiate";
 import type { CreateItem } from "@/lib/shell/create-order";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
@@ -71,6 +72,8 @@ export interface ShellFrameProps {
   readonly preferences: string;
   /** The preferences cookie this page was rendered with. */
   readonly storedPreferences: string;
+  /** The viewer's own time zone, for schedule times shown in "my time zone" (me.time_zone_display). */
+  readonly viewerTimeZone?: string | null;
   /** The person's keyboard shortcuts: the registry with their own bindings (lib/shell/shell-keys.ts). */
   readonly keys: ShellKeys;
   /** What the person may create, for the Create menu (lib/shell/create-menu.ts). */
@@ -209,7 +212,10 @@ export function ShellFrame(props: ShellFrameProps) {
     { separator: true },
     { heading: t("shell.chrome.language") },
     ...props.locales.map((l) => ({
-      label: t(`shell.chrome.locales.${l}`),
+      // A Beta locale (Section 15) says so in its name, so screen readers announce it too.
+      label: isBetaLocale(l)
+        ? t("shell.chrome.betaLocale", { language: t(`shell.chrome.locales.${l}`) })
+        : t(`shell.chrome.locales.${l}`),
       active: l === props.locale,
       onSelect: async () => {
         await setLocale(l);
@@ -420,7 +426,10 @@ export function ShellFrame(props: ShellFrameProps) {
             tabIndex={-1}
             className="flex min-w-0 flex-col gap-16 pb-(--xos-help-card-space) outline-none [&>*]:shrink-0"
           >
-            <PreferencesProvider preferences={displayPreferences}>
+            <PreferencesProvider
+              preferences={displayPreferences}
+              timeZone={props.viewerTimeZone ?? null}
+            >
               <AiFeaturesProvider features={props.aiFeatures}>{props.children}</AiFeaturesProvider>
             </PreferencesProvider>
           </div>

@@ -1,5 +1,5 @@
 import { IntlMessageFormat } from "intl-messageformat";
-import type { Locale } from "@xos/i18n/locales";
+import { defaultLocale, isLaunchLocale, type LaunchLocale, type Locale } from "@xos/i18n/locales";
 import enUS from "@xos/i18n/messages/en-US/email.json" with { type: "json" };
 import esUS from "@xos/i18n/messages/es-US/email.json" with { type: "json" };
 
@@ -12,9 +12,10 @@ type Tree = { readonly [key: string]: string | Tree };
 /**
  * The email namespace of each locale's catalog, read from its own file: email code loads this
  * namespace only, never the whole catalog of every surface (A85, Edge Function cold starts). The
- * catalog check keeps es-US to exactly the keys of en-US.
+ * catalog check keeps es-US to exactly the keys of en-US. A Beta locale (ADR 0053) reads the en-US email
+ * copy until its catalog is loaded through @xos/i18n/load, which the Edge Functions never do.
  */
-const catalogs: Readonly<Record<Locale, Tree>> = { "en-US": enUS, "es-US": esUS };
+const catalogs: Readonly<Record<LaunchLocale, Tree>> = { "en-US": enUS, "es-US": esUS };
 
 function lookup(tree: Tree, path: readonly string[]): string | undefined {
   let node: string | Tree | undefined = tree;
@@ -27,7 +28,7 @@ function lookup(tree: Tree, path: readonly string[]): string | undefined {
 
 /** The `email` namespace of a locale's catalog: the only home of email copy (Section 3.15). */
 export function emailCatalog(locale: Locale): Tree {
-  const catalog = catalogs[locale] as Tree | undefined;
+  const catalog = catalogs[isLaunchLocale(locale) ? locale : defaultLocale] as Tree | undefined;
   if (typeof catalog !== "object") throw new Error(`The ${locale} catalog has no email namespace`);
   return catalog;
 }

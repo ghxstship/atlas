@@ -204,11 +204,15 @@
     },
     "language": {
       "label": "Language",
-      "help": "The language of menus, emails and documents."
+      "help": "The language of menus, emails and documents. Beta languages are machine translated; anything not translated yet shows in English."
     },
     "timeZone": {
       "label": "Time zone",
       "help": "Times are shown and entered in this zone."
+    },
+    "timeZoneDisplay": {
+      "label": "Show schedule times in",
+      "help": "Schedule times show in the event's time zone, labeled with its abbreviation. Choose your own time zone, set above, to see them as your clock reads them."
     },
     "dateFormat": {
       "label": "Date format",
@@ -216,7 +220,7 @@
     },
     "units": {
       "label": "Units",
-      "help": "Units for distances, weights and areas."
+      "help": "Units for lengths, distances, weights, temperatures and areas. By default they follow the project's jurisdiction: imperial in the United States, metric elsewhere."
     },
     "theme": {
       "label": "Theme"
@@ -318,15 +322,25 @@
     },
     "locale_language": {
       "en-US": "English (United States)",
-      "es-US": "Spanish (United States)"
+      "es-US": "Spanish (United States)",
+      "fr-FR": "French (France), Beta",
+      "de-DE": "German (Germany), Beta",
+      "it-IT": "Italian (Italy), Beta",
+      "pt-BR": "Portuguese (Brazil), Beta",
+      "ja-JP": "Japanese (Japan), Beta"
     },
     "locale_date_format": {
       "locale": "Follow the language",
       "iso": "Year-month-day"
     },
     "locale_units": {
+      "jurisdiction": "Follow the project's jurisdiction",
       "imperial": "Imperial",
       "metric": "Metric"
+    },
+    "me_time_zone_display": {
+      "event": "The event's time zone",
+      "viewer": "My time zone"
     },
     "me_theme": {
       "system": "Match the device",

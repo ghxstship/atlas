@@ -1,16 +1,26 @@
 /**
  * Display preferences from the settings registry (Section 4.5.6 Preferences and Accessibility, A65-001): the
- * person's text size, contrast, motion, density, single-key shortcuts, date format, units and first day of the
- * week. Atlas and Gateway resolve them from the person's settings, keep them in one cookie so the server renders
- * the document with them, and set them on the document root as data attributes the styles read.
+ * person's text size, contrast, motion, density, single-key shortcuts, date format, units, first day of the
+ * week and the zone schedule times show in. Atlas and Gateway resolve them from the person's settings, keep
+ * them in one cookie so the server renders the document with them, and set them on the document root as data
+ * attributes the styles read.
  */
+import type { TimeZoneDisplay } from "./format.ts";
+import type { UnitsPreference } from "@xos/i18n/units";
+
+export * from "@xos/i18n/units";
+export { displayTimeZone, formatZonedDateTime, type TimeZoneDisplay } from "./format.ts";
 
 export type TextSize = "default" | "large" | "larger";
 export type Contrast = "default" | "more";
 export type Motion = "system" | "reduce" | "full";
 export type Density = "comfortable" | "compact";
 export type DateFormat = "locale" | "iso";
-export type Units = "imperial" | "metric";
+/**
+ * locale.units (Section 15): "jurisdiction" follows the project's jurisdiction (imperial for the United States,
+ * metric otherwise), or a fixed system; resolve it with `resolveUnitSystem` where a value is shown.
+ */
+export type Units = UnitsPreference;
 /**
  * 0 for Sunday (payroll.week_start's default), 1 for Monday. The default is the registry's, so a person who
  * never chose one keeps the cookie empty and nothing resyncs.
@@ -26,6 +36,8 @@ export interface DisplayPreferences {
   readonly dateFormat: DateFormat;
   readonly units: Units;
   readonly weekStart: WeekStart;
+  /** me.time_zone_display: schedule times in the event's zone (default) or the viewer's own. */
+  readonly timeZoneDisplay: TimeZoneDisplay;
 }
 
 export const DEFAULT_PREFERENCES: DisplayPreferences = {
@@ -35,8 +47,9 @@ export const DEFAULT_PREFERENCES: DisplayPreferences = {
   density: "comfortable",
   shortcuts: true,
   dateFormat: "locale",
-  units: "imperial",
+  units: "jurisdiction",
   weekStart: 0,
+  timeZoneDisplay: "event",
 };
 
 /** The cookie that carries the preferences for server rendering. */
@@ -65,7 +78,11 @@ export const PREFERENCE_SETTINGS = {
   dateFormat: "locale.date_format",
   units: "locale.units",
   weekStart: "payroll.week_start",
+  timeZoneDisplay: "me.time_zone_display",
 } as const;
+
+const UNITS: readonly Units[] = ["jurisdiction", "imperial", "metric"];
+const ZONE_DISPLAYS: readonly TimeZoneDisplay[] = ["event", "viewer"];
 
 type SettingLookup = (key: string) => unknown;
 
@@ -88,8 +105,9 @@ export function preferencesFromSettings(
     density: pick(get(PREFERENCE_SETTINGS.density), ["comfortable", "compact"], "comfortable"),
     shortcuts: get(PREFERENCE_SETTINGS.shortcuts) !== false,
     dateFormat: pick(get(PREFERENCE_SETTINGS.dateFormat), ["locale", "iso"], "locale"),
-    units: pick(get(PREFERENCE_SETTINGS.units), ["imperial", "metric"], "imperial"),
+    units: pick(get(PREFERENCE_SETTINGS.units), UNITS, "jurisdiction"),
     weekStart: week === "monday" ? 1 : 0,
+    timeZoneDisplay: pick(get(PREFERENCE_SETTINGS.timeZoneDisplay), ZONE_DISPLAYS, "event"),
   };
 }
 
@@ -102,6 +120,7 @@ const CODES: Record<keyof DisplayPreferences, string> = {
   dateFormat: "f",
   units: "u",
   weekStart: "w",
+  timeZoneDisplay: "z",
 };
 
 /** A short cookie value holding only what differs from the defaults, such as `t.large|d.compact`. */
@@ -132,8 +151,9 @@ export function decodePreferences(raw: string | undefined | null): DisplayPrefer
     density: pick(found.get(CODES.density), ["comfortable", "compact"], "comfortable"),
     shortcuts: found.get(CODES.shortcuts) !== "0",
     dateFormat: pick(found.get(CODES.dateFormat), ["locale", "iso"], "locale"),
-    units: pick(found.get(CODES.units), ["imperial", "metric"], "imperial"),
+    units: pick(found.get(CODES.units), UNITS, "jurisdiction"),
     weekStart: week === "1" ? 1 : 0,
+    timeZoneDisplay: pick(found.get(CODES.timeZoneDisplay), ZONE_DISPLAYS, "event"),
   };
 }
 

@@ -1,5 +1,7 @@
 import { listMyEngagements } from "@xos/data/gateway";
+import { isTimeZone } from "@xos/data/calendar";
 import { cookies, headers } from "next/headers";
+import { scheduleViewFrom } from "@/lib/format";
 import { negotiatedLocale } from "@/i18n/request";
 import type { ReactNode } from "react";
 import { ReacceptancePrompt } from "@/components/legal/reacceptance-banner";
@@ -38,6 +40,11 @@ export default async function ShellLayout({ children }: { children: ReactNode })
     // The person's own settings apply in Gateway too (Section 4.5.6 personal settings, A65-001).
     resolveSettings(ctx.db, { orgId: NO_ORG }),
   ]);
+  // The person's own zone, which schedule times show in under "my time zone" (me.time_zone_display).
+  const schedule = scheduleViewFrom(
+    (key) => (settings.ok ? settings.data.get(key)?.value : undefined),
+    isTimeZone,
+  );
   const preferences = encodePreferences(
     preferencesFromSettings((key) => (settings.ok ? settings.data.get(key)?.value : undefined)),
   );
@@ -75,6 +82,7 @@ export default async function ShellLayout({ children }: { children: ReactNode })
       locales={selectableLocales(process.env.NODE_ENV === "production")}
       preferences={preferences}
       storedPreferences={cookieStore.get(PREFERENCES_COOKIE)?.value ?? ""}
+      viewerTimeZone={schedule.viewerZone}
       docsUrl={ctx.brand.kind === "org" ? null : docsSiteUrl(env())}
     >
       <ReporterUser personId={ctx.personId} />

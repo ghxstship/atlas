@@ -10,6 +10,7 @@ import {
 } from "@xos/data/crew";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { getCanonLabels } from "@/lib/canon/labels";
 import { requireNode } from "@/lib/shell/require-node";
 import type { OrgContext } from "@/lib/shell/context";
 
@@ -70,11 +71,14 @@ export async function getCrewContext(
   };
 }
 
-/** Canon roles by code, read once per request. */
+/** Canon roles by code, read once per request, their job titles in the request's language (Section 15). */
 export const getRoleTitles = cache(async (ctx: OrgContext): Promise<Map<string, CanonRole>> => {
-  const roles = await listCanonRoles(ctx.viewer.db);
+  const [roles, titles] = await Promise.all([
+    listCanonRoles(ctx.viewer.db),
+    getCanonLabels(ctx, "jobTitle"),
+  ]);
   if (!roles.ok) throw new Error(`Cannot read the Roles Library: ${roles.error.kind}`);
-  return new Map(roles.data.map((r) => [r.code, r]));
+  return new Map(roles.data.map((r) => [r.code, { ...r, title: titles.get(r.code) ?? r.title }]));
 });
 
 export const getProjects = cache(async (ctx: OrgContext): Promise<ProjectRef[]> => {

@@ -13,7 +13,7 @@ import type {
 } from "../../data/src/documents/deletion-certificate.ts";
 import type { CertificateEmailCopy } from "../../data/src/org-purge.ts";
 import type { Paper } from "../../data/src/documents/model.ts";
-import { defaultLocale, isLocale, type Locale } from "@xos/i18n/locales";
+import { defaultLocale, isLaunchLocale, type LaunchLocale } from "@xos/i18n/locales";
 import enDocuments from "@xos/i18n/messages/en-US/documents.json" with { type: "json" };
 import enEmail from "@xos/i18n/messages/en-US/email.json" with { type: "json" };
 import esDocuments from "@xos/i18n/messages/es-US/documents.json" with { type: "json" };
@@ -40,7 +40,10 @@ export {
 
 type Tree = { readonly [key: string]: Tree | string };
 
-const namespaces: Readonly<Record<Locale, { readonly documents: Tree; readonly email: Tree }>> = {
+// Launch locales only: a Beta locale (ADR 0053) reads en-US, since the Edge bundle carries no Beta catalog.
+const namespaces: Readonly<
+  Record<LaunchLocale, { readonly documents: Tree; readonly email: Tree }>
+> = {
   "en-US": { documents: enDocuments, email: enEmail },
   "es-US": { documents: esDocuments, email: esEmail },
 };
@@ -76,7 +79,7 @@ function fill(template: string, values: Readonly<Record<string, string | number>
   );
 }
 
-const known = (locale: string): Locale => (isLocale(locale) ? locale : defaultLocale);
+const known = (locale: string): LaunchLocale => (isLaunchLocale(locale) ? locale : defaultLocale);
 
 /** The `documents` namespace in a locale (en-US when unknown), for the certificate PDF. */
 export function documentMessages(locale: string): unknown {

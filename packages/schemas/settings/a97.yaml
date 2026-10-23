@@ -1,0 +1,24 @@
+# Settings registry: A97 (locales, canon translations, rates and units; A65-028, RRR-142). Section 15.
+# Field reference: see a30.yaml. A97 also widened two A30 settings there: locale.language offers the five Beta
+# locales, and locale.units follows the project's jurisdiction by default (ADR 0053).
+contributor: a97
+settings:
+  # Personal: preferences ---------------------------------------------------------------------------------------------
+  - key: me.time_zone_display
+    type: choice
+    choices: [event, viewer]
+    default: event
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.timeZoneDisplay.label
+    help: settings.fields.timeZoneDisplay.help
+    pages: { personal: me.preferences }
+    enforced_by:
+      - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
+        test: packages/ui/test/preferences.test.tsx
+      - consumer: apps/atlas/components/work/format.ts#formatScheduleTime
+        test: apps/atlas/test/schedule-zone.test.ts
+      - consumer: apps/gateway/lib/format.ts#scheduleViewFrom
+        test: apps/gateway/test/schedule-zone.test.ts
+      - consumer: apps/compass/src/domain/settings.ts#scheduleZone
+        test: apps/compass/test/settings.test.ts

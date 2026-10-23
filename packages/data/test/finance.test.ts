@@ -66,6 +66,80 @@ describe("money helpers", () => {
     expect(findFxRate(rates, "USD", "USD", "2027-02-01")?.rate).toBe(1);
     expect(findFxRate(rates, "USD", "EUR", "2026-12-31")).toBeNull();
   });
+
+  it("converts through EUR with ECB reference rates, dating a cross rate by its older leg (ADR 0053)", () => {
+    const ecb = [
+      { id: "a", base: "EUR", quote: "USD", rate: 1.08, effectiveOn: "2027-03-05", source: "ECB" },
+      { id: "b", base: "EUR", quote: "GBP", rate: 0.84, effectiveOn: "2027-03-04", source: "ECB" },
+      { id: "c", base: "EUR", quote: "GBP", rate: 0.85, effectiveOn: "2027-03-08", source: "ECB" },
+    ];
+    const cross = findFxRate(ecb, "USD", "GBP", "2027-03-06");
+    expect(cross?.rate).toBeCloseTo(0.84 / 1.08, 10);
+    expect(cross).toMatchObject({ effectiveOn: "2027-03-04", source: "ECB", via: "EUR" });
+    // A direct pair as recent as the cross rate wins; an older one loses to it.
+    const own = {
+      id: "d",
+      base: "USD",
+      quote: "GBP",
+      rate: 0.8,
+      effectiveOn: "2027-03-04",
+      source: "Bank",
+    };
+    expect(findFxRate([...ecb, own], "USD", "GBP", "2027-03-06")).toMatchObject({ rate: 0.8 });
+    const older = { ...own, effectiveOn: "2027-02-01" };
+    expect(findFxRate([...ecb, older], "USD", "GBP", "2027-03-06")?.via).toBe("EUR");
+    // EUR itself never goes through EUR, and a missing leg means no rate.
+    expect(findFxRate(ecb, "EUR", "USD", "2027-03-06")?.via).toBeUndefined();
+    expect(findFxRate(ecb, "USD", "JPY", "2027-03-06")).toBeNull();
+  });
+
+  it("says how old a rate is on its business date and when it is stale", () => {
+    expect(finance.fxRateAgeDays("2027-04-01", "2027-04-06")).toBe(5);
+    expect(finance.isFxRateStale("2027-04-01", "2027-04-06")).toBe(false);
+    expect(finance.isFxRateStale("2027-04-01", "2027-04-07")).toBe(true);
+    expect(finance.fxRateAgeDays("2027-02-28", "2027-03-01")).toBe(1);
+  });
+
+  it("lists the latest rate of each pair, newest first", () => {
+    const rows = [
+      { id: "1", base: "EUR", quote: "USD", rate: 1.07, effectiveOn: "2027-03-04", source: "ECB" },
+      { id: "2", base: "EUR", quote: "USD", rate: 1.08, effectiveOn: "2027-03-05", source: "ECB" },
+      { id: "3", base: "USD", quote: "EUR", rate: 0.9, effectiveOn: "2027-01-01", source: "Bank" },
+    ];
+    expect(finance.latestFxRates(rows).map((r) => r.id)).toEqual(["2", "3"]);
+  });
+
+  it("reads the ECB feed's state", async () => {
+    const { db } = fakeClient({
+      "rpc:fx_feed_status": [
+        okResponse([
+          {
+            last_success_at: "2027-03-05T15:31:00Z",
+            last_rate_date: "2027-03-05",
+            last_failure_at: null,
+            last_error: null,
+            failures_since_success: 0,
+          },
+        ]),
+      ],
+    });
+    const status = await finance.getFxFeedStatus(db);
+    expect(status).toEqual({
+      ok: true,
+      data: {
+        lastSuccessAt: "2027-03-05T15:31:00Z",
+        lastRateDate: "2027-03-05",
+        lastFailureAt: null,
+        lastError: null,
+        failuresSinceSuccess: 0,
+      },
+    });
+    const broken = fakeClient({
+      "rpc:fx_feed_status": [errorResponse("42501", "permission denied")],
+    });
+    const failed = await finance.getFxFeedStatus(broken.db);
+    expect(failed.ok).toBe(false);
+  });
 });
 
 describe("canon helpers", () => {

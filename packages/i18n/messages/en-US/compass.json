@@ -365,7 +365,7 @@
     "step": "Step {step} of 3",
     "severity": "How serious is it?",
     "location": "Location",
-    "locationAuto": "Near {latitude}, {longitude} (within {accuracy} m)",
+    "locationAuto": "Near {latitude}, {longitude} (within {accuracy})",
     "locationUnknown": "Location not found. Describe where in the title.",
     "change": "Change",
     "titleLabel": "What happened",

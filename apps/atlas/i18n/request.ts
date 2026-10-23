@@ -1,11 +1,14 @@
 import {
   defaultLocale,
   getMessages,
+  isBetaCatalogLoaded,
+  isBetaLocale,
   isLocale,
   pickNamespaces,
   type Messages,
   type Namespace,
 } from "@xos/i18n";
+import { loadMessages } from "@xos/i18n/load";
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 import { cache } from "react";
@@ -29,7 +32,8 @@ export function messagesFor(locale: AtlasLocale): Messages {
   let messages = compiled.get(locale);
   if (messages === undefined) {
     messages = precompileMessages(sourceMessagesFor(locale));
-    compiled.set(locale, messages);
+    // A Beta catalog not loaded yet reads en-US; it stays out of the cache so the loaded one replaces it.
+    if (!isBetaLocale(locale) || isBetaCatalogLoaded(locale)) compiled.set(locale, messages);
   }
   return messages;
 }
@@ -80,15 +84,20 @@ export function uiMessages(locale: AtlasLocale): Record<string, string> | undefi
 
 /**
  * The locale negotiated for this request (i18n/negotiate.ts), pseudo-locales included. It picks the messages, the
- * document language and direction, and the language picker's value. Read once per request.
+ * document language and direction, and the language picker's value. Read once per request; a Beta locale's
+ * catalog is loaded before it returns.
  */
 export const negotiatedLocale = cache(async (): Promise<AtlasLocale> => {
   const [cookieStore, headerStore] = await Promise.all([cookies(), headers()]);
-  return negotiateLocale({
+  const locale = negotiateLocale({
     cookie: cookieStore.get(LOCALE_COOKIE)?.value,
     acceptLanguage: headerStore.get("accept-language"),
     production: process.env.NODE_ENV === "production",
   });
+  // A Beta catalog loads on first use (ADR 0053), before anything in this request reads messages; its
+  // untranslated keys read en-US, so no raw key ever shows.
+  if (isLocale(locale)) await loadMessages(locale);
+  return locale;
 });
 
 /**

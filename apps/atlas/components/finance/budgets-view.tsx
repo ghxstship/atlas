@@ -1,6 +1,8 @@
 import {
   convertMinor,
   findFxRate,
+  fxRateAgeDays,
+  isFxRateStale,
   getBudget,
   listBudgets,
   listCostCenters,
@@ -276,14 +278,21 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
             />
             {fx && target ? (
               <p className="m-0 text-text-12 text-text-secondary">
-                {t("finance.budgets.converted", {
+                {/* Every converted figure shows its rate date (Section 15), and a cross rate says so. */}
+                {t(fx.via ? "finance.budgets.convertedVia" : "finance.budgets.converted", {
                   rate: format.number(fx.rate, { maximumFractionDigits: 6 }),
                   from: b.currency,
                   to: target,
+                  via: fx.via ?? "",
                   date: format.dateTime(new Date(`${fx.effectiveOn}T00:00:00`), {
                     dateStyle: "medium",
                   }),
                 })}
+              </p>
+            ) : null}
+            {fx && target && isFxRateStale(fx.effectiveOn, today) ? (
+              <p role="status" className="m-0 text-text-12 text-warning-text">
+                {t("finance.budgets.staleRate", { days: fxRateAgeDays(fx.effectiveOn, today) })}
               </p>
             ) : null}
           </>

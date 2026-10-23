@@ -132,6 +132,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       canManageAi={ctx.capabilities.has("org.ai.write")}
       aiFeatures={ai}
       preferences={settings.encoded}
+      viewerTimeZone={settings.viewerTimeZone}
       storedPreferences={cookieStore.get(PREFERENCES_COOKIE)?.value ?? ""}
       keys={keys}
       create={createItems(sitemap, { nav: ctx.nav, capabilities: ctx.capabilities, params, t })}

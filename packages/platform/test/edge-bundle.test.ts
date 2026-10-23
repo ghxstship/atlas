@@ -30,7 +30,12 @@ const graph = (fn: string) => {
  * Functions that load nothing but the shared core (_vendor/core.js through _shared) and so have no entry
  * of their own. Every other function directory must have packages/platform/edge/entries/<fn>.ts.
  */
-const CORE_ONLY: readonly string[] = ["api-token", "email-unsubscribe", "file-download"];
+const CORE_ONLY: readonly string[] = [
+  "api-token",
+  "email-unsubscribe",
+  "file-download",
+  "fx-rates-ecb",
+];
 
 /**
  * The npm packages each function loads when it boots, and the ones it loads only when a request needs
@@ -42,6 +47,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "automation-run": { boot: ["@supabase/supabase-js", "zod"], lazy: [] },
   "email-unsubscribe": { boot: [], lazy: [] },
   "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
+  "fx-rates-ecb": { boot: [], lazy: [] },
   "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs"] },
   "inbound-email": { boot: ["zod"], lazy: [] },
   "integration-inbound": { boot: ["@supabase/supabase-js"], lazy: [] },
@@ -77,6 +83,7 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "automation-run": 100,
   "email-unsubscribe": 64,
   "file-download": 64,
+  "fx-rates-ecb": 64,
   "import-run": 120,
   "inbound-email": 64,
   "integration-inbound": 130,
