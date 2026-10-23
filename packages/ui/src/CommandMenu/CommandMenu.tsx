@@ -100,9 +100,10 @@ function Palette({
         label={t("command.results")}
         className="max-h-(--ui-listbox-max) overflow-y-auto p-8 pt-4"
       >
-        {groups.map((g) => (
+        {groups.map((g, groupIndex) => (
           <Command.Group
-            key={g.label}
+            // Two groups may share a label (a caller's own results and pages); the index keeps them apart.
+            key={`${groupIndex}:${g.label}`}
             heading={g.label}
             className="[&_[cmdk-group-heading]]:mx-8 [&_[cmdk-group-heading]]:mt-8 [&_[cmdk-group-heading]]:mb-4 [&_[cmdk-group-heading]]:text-text-11 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-text-secondary"
           >

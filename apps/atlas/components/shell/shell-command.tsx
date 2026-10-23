@@ -154,12 +154,17 @@ export function ShellCommand({ open, onOpenChange, commands, locale, go }: Shell
   // opens it as it did when the menu listed pages alone; other matching pages follow the results.
   const phrase = fold(query.trim());
   const naming = (label: string) => phrase !== "" && fold(label).includes(phrase);
+  // A group moves whole, its naming page first, so no group label appears twice in the menu.
   const named = pages
-    .map((g) => ({ ...g, items: g.items.filter((i) => naming(i.label)) }))
-    .filter((g) => g.items.length > 0);
-  const others = pages
-    .map((g) => ({ ...g, items: g.items.filter((i) => !naming(i.label)) }))
-    .filter((g) => g.items.length > 0);
+    .filter((g) => g.items.some((i) => naming(i.label)))
+    .map((g) => ({
+      ...g,
+      items: [
+        ...g.items.filter((i) => naming(i.label)),
+        ...g.items.filter((i) => !naming(i.label)),
+      ],
+    }));
+  const others = pages.filter((g) => !g.items.some((i) => naming(i.label)));
   const help = helpCommandItems(locale).filter((a) => keep(a.title));
   const operators =
     query.trim() === ""
