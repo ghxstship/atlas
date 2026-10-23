@@ -1003,13 +1003,17 @@ function buildCatalog(b: Builder, items: CsvTable, generatedAt: string): void {
     );
     // Ruling D13 as decision 39 reads it: an item may carry an explicit GL default that its class does not
     // give. A balance-sheet item needs one, because no class derives a balance-sheet account.
-    const accountType = text("account_type");
-    const classAccount = accounts.find(
-      (a) =>
-        a["account_type"] === accountType &&
-        String(a["account_code"]).slice(1, 2) === dept.slice(0, 1),
-    )?.["account_code"];
-    if (account !== null && account !== classAccount) explicitAccounts.push(`${id} ${account}`);
+    const accountType = text("account_type") ?? "";
+    const balanceSheet = b.d39.gl_defaults.balance_sheet_types.includes(accountType);
+    const classAccount = balanceSheet
+      ? undefined
+      : accounts.find(
+          (a) =>
+            a["account_type"] === accountType &&
+            String(a["account_code"]).slice(1, 2) === dept.slice(0, 1),
+        )?.["account_code"];
+    if (account !== null && account !== classAccount)
+      explicitAccounts.push(`${id} ${account}${balanceSheet ? ` ${accountType}` : ""}`);
     const unit = text("unit_basis") ?? "";
     if (!units.includes(unit)) units.push(unit);
 

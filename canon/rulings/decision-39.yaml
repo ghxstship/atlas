@@ -103,11 +103,10 @@ role_codes:
   retired: Bible tab 27
   library_only: ["2000.50.02", "5000.50.03", "6000.50.03"]
 
-# 6. GL defaults (ruling D13). Items whose explicit account is not their class's account of that type: the
-#    importer reports them, and a balance-sheet item must carry one.
+# 6. GL defaults (ruling D13). An item may carry an explicit account its class does not give (purchase_account or
+#    sales_account), and so may a counterparty type (default_account_code). An item posting to a balance-sheet
+#    account always carries its own, because no class derives one. The importer reports each such item.
 gl_defaults:
-  item_account_columns: [purchase_account, sales_account]
-  counterparty_column: default_account_code
   balance_sheet_types: [Asset, Liability, Equity]
 
 # 7. Unit dimensions ratified. A unit no canon file states is added as a canon unit of its dimension.

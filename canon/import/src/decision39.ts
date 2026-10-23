@@ -43,8 +43,7 @@ export interface Decision39 {
     readonly library_only: readonly string[];
   };
   readonly gl_defaults: {
-    readonly item_account_columns: readonly string[];
-    readonly counterparty_column: string;
+    /** Account types no class derives, so an item posting to one carries its own account. */
     readonly balance_sheet_types: readonly string[];
   };
   readonly unit_dimensions: readonly {
