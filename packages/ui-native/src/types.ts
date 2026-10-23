@@ -106,7 +106,8 @@ export interface TextFieldProps extends NativeBaseProps {
   onChangeText: (value: string) => void;
   help?: string;
   error?: string;
-  keyboard?: "default" | "numeric" | "email" | "phone" | "url";
+  /** decimal: a number pad with the decimal mark, for amounts (A92). */
+  keyboard?: "default" | "numeric" | "decimal" | "email" | "phone" | "url";
   secure?: boolean;
   multiline?: boolean;
   disabled?: boolean;

@@ -112,6 +112,17 @@ export function summarizeMutation(
           };
         return { key: "incidentPhoto", values: { time } };
       }
+      case "app.submit_expense_receipt": {
+        // An expense with its receipt photo (A92): what was bought and the day, never the photo's path.
+        const description = text(a["p_description"]);
+        const day = text(a["p_incurred_on"]);
+        return description && day
+          ? {
+              key: "expenseReceipt",
+              values: { description, day: ctx.day(`${day}T12:00:00Z`, "UTC") },
+            }
+          : generic(m, ctx);
+      }
       case "app.add_incident_party": {
         const description = text(a["p_description"]);
         return description ? { key: "incidentParty", values: { description } } : generic(m, ctx);

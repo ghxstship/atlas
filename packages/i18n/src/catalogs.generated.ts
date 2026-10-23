@@ -10,6 +10,9 @@ import enUS_authSecurity from "../messages/en-US/authSecurity.json" with { type:
 import enUS_canonBrowser from "../messages/en-US/canonBrowser.json" with { type: "json" };
 import enUS_collab from "../messages/en-US/collab.json" with { type: "json" };
 import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
+import enUS_compassExpenses from "../messages/en-US/compassExpenses.json" with { type: "json" };
+import enUS_compassExternal from "../messages/en-US/compassExternal.json" with { type: "json" };
+import enUS_compassNfc from "../messages/en-US/compassNfc.json" with { type: "json" };
 import enUS_compliance from "../messages/en-US/compliance.json" with { type: "json" };
 import enUS_console from "../messages/en-US/console.json" with { type: "json" };
 import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
@@ -71,6 +74,9 @@ import esUS_authSecurity from "../messages/es-US/authSecurity.json" with { type:
 import esUS_canonBrowser from "../messages/es-US/canonBrowser.json" with { type: "json" };
 import esUS_collab from "../messages/es-US/collab.json" with { type: "json" };
 import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
+import esUS_compassExpenses from "../messages/es-US/compassExpenses.json" with { type: "json" };
+import esUS_compassExternal from "../messages/es-US/compassExternal.json" with { type: "json" };
+import esUS_compassNfc from "../messages/es-US/compassNfc.json" with { type: "json" };
 import esUS_compliance from "../messages/es-US/compliance.json" with { type: "json" };
 import esUS_console from "../messages/es-US/console.json" with { type: "json" };
 import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
@@ -134,6 +140,9 @@ export const enUS = {
   canonBrowser: enUS_canonBrowser,
   collab: enUS_collab,
   compass: enUS_compass,
+  compassExpenses: enUS_compassExpenses,
+  compassExternal: enUS_compassExternal,
+  compassNfc: enUS_compassNfc,
   compliance: enUS_compliance,
   console: enUS_console,
   credentials: enUS_credentials,
@@ -198,6 +207,9 @@ export const esUS = {
   canonBrowser: esUS_canonBrowser,
   collab: esUS_collab,
   compass: esUS_compass,
+  compassExpenses: esUS_compassExpenses,
+  compassExternal: esUS_compassExternal,
+  compassNfc: esUS_compassNfc,
   compliance: esUS_compliance,
   console: esUS_console,
   credentials: esUS_credentials,

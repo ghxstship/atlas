@@ -1,0 +1,23 @@
+{
+  "alert": {
+    "asset": "Acerca la etiqueta del equipo a la parte superior del teléfono.",
+    "credential": "Acerca la credencial o la pulsera a la parte superior del teléfono.",
+    "lookup": "Acerca la etiqueta a la parte superior del teléfono.",
+    "receiving": "Acerca la etiqueta de la caja a la parte superior del teléfono.",
+    "write": "Acerca un adhesivo NFC en blanco a la parte superior del teléfono para grabar {tag}."
+  },
+  "failed": "No se pudo leer la etiqueta. Mantenla quieta en la parte superior del teléfono y vuelve a intentarlo.",
+  "off": "NFC está desactivado. Actívalo en la configuración del teléfono y vuelve a intentarlo.",
+  "read": "Leer etiqueta NFC",
+  "test": {
+    "content": "Lo que contiene la etiqueta",
+    "contentHelp": "Escribe un código. Para una etiqueta sin código, escribe serial: y su número de serie.",
+    "present": "Acercar la etiqueta al teléfono",
+    "title": "Etiqueta NFC de prueba",
+    "writing": "Compass graba {text} en la etiqueta."
+  },
+  "unreadable": "Esta etiqueta no tiene un código que Compass pueda leer.",
+  "write": "Grabar {tag} en una etiqueta NFC",
+  "writeFailed": "No se pudo grabar la etiqueta. Usa un adhesivo NFC en blanco que no esté bloqueado y vuelve a intentarlo.",
+  "written": "{tag} grabado en la etiqueta"
+}

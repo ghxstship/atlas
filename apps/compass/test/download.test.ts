@@ -69,8 +69,9 @@ describe("sources", () => {
   it("selects the column each table's device scope rule checks, for every audience", () => {
     // A row the scope check cannot place is refused, so a source that leaves out the scope column
     // downloads nothing (geofence shapes once lacked org_id and Today said the site had no geofence).
-    // Columns the downloader adds after the pull are listed here.
-    const enriched: Readonly<Record<string, readonly string[]>> = { cues: ["project_id"] };
+    // Columns the downloader adds after the pull are listed here; a source with a parent takes its project, and
+    // budget lines take theirs from the budget they embed (A92).
+    const enriched: Readonly<Record<string, readonly string[]>> = { budget_lines: ["project_id"] };
     const audiences: readonly Audience[] = [...INTERNAL_AUDIENCES, ...EXTERNAL_AUDIENCES];
     const gaps: string[] = [];
     for (const audience of audiences) {
@@ -82,11 +83,15 @@ describe("sources", () => {
         }
         if (rule.global) continue;
         const selected = Object.fromEntries(
-          source.select.split(",").map((c) => [c.split(":")[0]?.trim() ?? c, "x"]),
+          source.select
+            .split(",")
+            .map((c) => c.split(":")[0]?.trim() ?? c)
+            .map((c) => [c, c === "deleted_at" ? null : "x"]),
         );
         const columns = new Set([
           ...Object.keys(source.map ? source.map(selected) : selected),
           ...(enriched[source.table] ?? []),
+          ...(source.parent ? ["project_id"] : []),
         ]);
         const served = rule.anyOf.filter(
           (a) => a.audiences === undefined || a.audiences.includes(audience),

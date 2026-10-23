@@ -1,0 +1,23 @@
+{
+  "alert": {
+    "asset": "Hold the asset tag to the top of your phone.",
+    "credential": "Hold the badge or wristband to the top of your phone.",
+    "lookup": "Hold the tag to the top of your phone.",
+    "receiving": "Hold the tag on the case to the top of your phone.",
+    "write": "Hold a blank NFC sticker to the top of your phone to write {tag}."
+  },
+  "failed": "The tag could not be read. Hold it still at the top of the phone and try again.",
+  "off": "NFC is off. Turn it on in your phone's settings, then try again.",
+  "read": "Read NFC tag",
+  "test": {
+    "content": "What the tag holds",
+    "contentHelp": "Type a code. For a tag with no code, type serial: and its serial number.",
+    "present": "Hold the tag to the phone",
+    "title": "Test NFC tag",
+    "writing": "Compass writes {text} to the tag."
+  },
+  "unreadable": "This tag holds no code Compass can read.",
+  "write": "Write {tag} to an NFC tag",
+  "writeFailed": "The tag could not be written. Use a blank NFC sticker that is not locked, and try again.",
+  "written": "{tag} written to the tag"
+}

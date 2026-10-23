@@ -6,6 +6,65 @@ export const COMPASS_HELP: HelpContent = {
   articles: {
     "en-US": [
       {
+        slug: "artist-advance",
+        title: "Advance, rider and settlement",
+        summary:
+          "What artists and their representatives see for an engagement in Compass, offline.",
+        kind: "page",
+        nodes: ["advance-summary", "rider", "settlement"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "If an organization engaged you as an artist, or you represent one, ",
+              },
+              { t: "strong", v: "More" },
+              {
+                t: "text",
+                v: " lists three screens for the current project. They read from your phone, so they work offline; pull down to refresh when you are online.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Advance summary:" },
+                {
+                  t: "text",
+                  v: " each advance packet, how many sections are answered, when it is due, and how each answer was reviewed.",
+                },
+              ],
+              [
+                { t: "strong", v: "Rider:" },
+                {
+                  t: "text",
+                  v: " each rider and its asks, with what the organization has fulfilled.",
+                },
+              ],
+              [
+                { t: "strong", v: "Settlement:" },
+                {
+                  t: "text",
+                  v: " the settlement the organization submitted, its net amount and each line, deductions shown as minus.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "To answer the advance or accept or dispute a settlement, tap " },
+              { t: "strong", v: "Open Gateway" },
+              { t: "text", v: "; it opens that tab of the engagement." },
+            ],
+          },
+        ],
+      },
+      {
         slug: "aurora",
         title: "Aurora",
         summary: "Asking the assistant about your shifts, SOPs and the handbook.",
@@ -40,6 +99,42 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "New conversation" },
               { t: "text", v: " starts over." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "client-reports",
+        title: "Reports",
+        summary: "The reports an organization shared with its client, listed in Compass.",
+        kind: "page",
+        nodes: ["reports"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "If an organization engaged your company as its client, " },
+              { t: "strong", v: "More" },
+              { t: "text", v: " lists " },
+              { t: "strong", v: "Reports" },
+              {
+                t: "text",
+                v: ": each report it shared with you on the current project, when it was shared, how many rows it holds and when the share expires. The list reads from your phone, so it works offline; pull down to refresh when you are online.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "To download a report, tap " },
+              { t: "strong", v: "Open Gateway" },
+              {
+                t: "text",
+                v: "; it opens the Reports tab of your engagement. The running order is under ",
+              },
+              { t: "strong", v: "Run of Show" },
+              { t: "text", v: "." },
             ],
           },
         ],
@@ -109,6 +204,122 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: " to send the screen you were on, the app version and your device. Nothing else is sent.",
               },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "contractor-work",
+        title: "Time entries and deliverables",
+        summary: "What contractors see for their engagement in Compass, offline.",
+        kind: "page",
+        nodes: ["time-entries", "deliverables"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "If an organization engaged you as a contractor, " },
+              { t: "strong", v: "More" },
+              {
+                t: "text",
+                v: " lists two screens for the current project. They read from your phone, so they work offline; pull down to refresh when you are online.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Time entries:" },
+                {
+                  t: "text",
+                  v: " each time you clocked in and out, with breaks and the hours worked, on the project's clock. An entry still open says so.",
+                },
+              ],
+              [
+                { t: "strong", v: "Deliverables:" },
+                {
+                  t: "text",
+                  v: " what you owe, when it is due and its fee. Anything past due on the project's calendar is marked overdue; a returned deliverable shows the reason.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "To hand in a deliverable or correct your time, tap " },
+              { t: "strong", v: "Open Gateway" },
+              { t: "text", v: "; it opens that tab of your engagement." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "crew-work",
+        title: "Timesheets, per diem, travel and onboarding",
+        summary: "What crew and staff see for their engagement in Compass, offline.",
+        kind: "page",
+        nodes: ["timesheets", "per-diem", "travel-and-lodging", "onboarding"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "If an organization engaged you as crew or staff, " },
+              { t: "strong", v: "More" },
+              {
+                t: "text",
+                v: " lists four screens for your engagement on the current project. They read from your phone, so they work offline; pull down to refresh when you are online.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Timesheets:" },
+                {
+                  t: "text",
+                  v: " each period with its hours and state, and when it was submitted or decided.",
+                },
+              ],
+              [
+                { t: "strong", v: "Per diem:" },
+                { t: "text", v: " each day's amount and the total. Today's is marked." },
+              ],
+              [
+                { t: "strong", v: "Travel and lodging:" },
+                {
+                  t: "text",
+                  v: " your flights and ground transport, each time in the zone of its own airport or station, and your hotel dates.",
+                },
+              ],
+              [
+                { t: "strong", v: "Onboarding Items:" },
+                {
+                  t: "text",
+                  v: " your checklist, what is left first, with a progress bar. It opens before your engagement is active.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Dates follow the project's calendar, so a day never moves because your phone is in another time zone.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "To submit a timesheet or upload an onboarding document, tap " },
+              { t: "strong", v: "Open Gateway" },
+              { t: "text", v: "; it opens that tab of your engagement." },
             ],
           },
         ],
@@ -211,9 +422,9 @@ export const COMPASS_HELP: HelpContent = {
       },
       {
         slug: "elsewhere",
-        title: "Pages in Gateway and Atlas",
+        title: "Finishing in Gateway",
         summary:
-          "More entries that open in Gateway or Atlas because Compass does not show them yet.",
+          "Which actions on your engagement open Gateway, and why your lists stay in Compass.",
         kind: "page",
         nodes: [
           "timesheets",
@@ -230,27 +441,27 @@ export const COMPASS_HELP: HelpContent = {
           "settlement",
           "reports",
           "proof-of-performance",
-          "expenses",
         ],
-        order: 1,
+        order: 2,
         body: [
           {
             t: "p",
             c: [
               {
                 t: "text",
-                v: "Some entries in More are not shown in Compass yet: timesheets, per diem, travel and lodging, onboarding, purchase orders, deliveries, submittals, time entries, deliverables, the advance summary, the rider, settlement, reports, proof of performance and expenses.",
+                v: "Compass shows your engagement's timesheets, per diem, travel, onboarding, purchase orders, deliveries, submittals, time, deliverables, advance, rider, settlement, reports and proof of performance, and keeps them on your phone so they read offline.",
               },
             ],
           },
           {
             t: "p",
             c: [
-              { t: "text", v: "Choosing one opens it in the right place: " },
-              { t: "strong", v: "Gateway" },
-              { t: "text", v: " if an organization engaged you, or " },
-              { t: "strong", v: "Atlas" },
-              { t: "text", v: " if you are a member." },
+              {
+                t: "text",
+                v: "Some actions need the full engagement page: submitting a timesheet, uploading an onboarding document, acknowledging a purchase order, handing in a deliverable, answering the advance or responding to a settlement. Each screen's ",
+              },
+              { t: "strong", v: "Open Gateway" },
+              { t: "text", v: " button opens the right tab of your engagement in your browser." },
             ],
           },
           { t: "p", c: [{ t: "text", v: "Your shifts, clock and scans stay in Compass." }] },
@@ -281,6 +492,82 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: "Your shifts for the engagement are on your " },
               { t: "link", v: "Schedule", href: "help:schedule" },
               { t: "text", v: " in Compass." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "expenses",
+        title: "Expenses",
+        summary: "Filing an expense from a receipt photo, posted to a budget line, even offline.",
+        kind: "workflow",
+        nodes: ["expenses"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Open " },
+              { t: "strong", v: "More" },
+              { t: "text", v: ", then " },
+              { t: "strong", v: "Expenses" },
+              { t: "text", v: ", to file what you spent from its receipt." },
+            ],
+          },
+          {
+            t: "ol",
+            items: [
+              [
+                { t: "text", v: "Tap " },
+                { t: "strong", v: "Take a receipt photo" },
+                { t: "text", v: ", or " },
+                { t: "strong", v: "Choose a photo" },
+                {
+                  t: "text",
+                  v: " to pick one you already took. Compass sees only the photo you pick.",
+                },
+              ],
+              [
+                {
+                  t: "text",
+                  v: "If your organization turned on receipt reading, Aurora fills in what it can read: what was bought, the amount and the date. Each field it read says how sure it is. A value the receipt does not show stays empty for you to type; Aurora never guesses it.",
+                },
+              ],
+              [
+                { t: "text", v: "Check every field, choose the " },
+                { t: "strong", v: "budget line" },
+                { t: "text", v: " the expense posts to, and tap " },
+                { t: "strong", v: "Save expense" },
+                { t: "text", v: "." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "The amount is in the budget's currency. If the receipt is in another currency, Compass says so and leaves the amount for you.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Offline:" },
+              {
+                t: "text",
+                v: " type the details and save. The expense and its photo wait in the offline queue and upload once when you are back online. Aurora reads receipts only while you are online.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Your expenses list shows each one's state, such as Submitted or Approved. Someone else approves it; you cannot approve your own.",
+              },
             ],
           },
         ],
@@ -959,8 +1246,15 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "A code Compass does not know goes to the desk to identify. You can also type a code or tap an NFC tag.",
+                v: "A code Compass does not know goes to the desk to identify. You can also type a code, or tap ",
               },
+              { t: "strong", v: "Read NFC tag" },
+              {
+                t: "text",
+                v: " and hold a badge, wristband or tag to the top of your phone. In Lookup, ",
+              },
+              { t: "strong", v: "Write to an NFC tag" },
+              { t: "text", v: " puts a found item's asset tag on a blank NFC sticker." },
             ],
           },
           { t: "h2", v: "Your badge" },
@@ -1142,6 +1436,56 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "sponsor-proof",
+        title: "Proof of performance",
+        summary: "A sponsor's entitlements and the proof the organization shared, in Compass.",
+        kind: "page",
+        nodes: ["proof-of-performance"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "If an organization engaged your brand as a sponsor, " },
+              { t: "strong", v: "More" },
+              { t: "text", v: " lists " },
+              { t: "strong", v: "Proof of Performance" },
+              { t: "text", v: " for the current project:" },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Entitlements:" },
+                {
+                  t: "text",
+                  v: " what the organization owes you, how many and by when. Delivered ones are marked; anything past due on the project's calendar is marked overdue.",
+                },
+              ],
+              [
+                { t: "strong", v: "Proof documents:" },
+                {
+                  t: "text",
+                  v: " the proof of performance the organization shared, such as photo reports.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "The screen reads from your phone, so it works offline; pull down to refresh when you are online. To open a document or reply to the organization, tap ",
+              },
+              { t: "strong", v: "Open Gateway" },
+              { t: "text", v: "." },
+            ],
+          },
+        ],
+      },
+      {
         slug: "today",
         title: "Today",
         summary: "Your clock, your next shifts and the day's information for your role.",
@@ -1195,6 +1539,67 @@ export const COMPASS_HELP: HelpContent = {
               {
                 t: "text",
                 v: "Other cards depend on your role, such as call times, the dock slot or the activation schedule. A card says Nothing here today when there is nothing for that day.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "vendor-orders",
+        title: "Purchase orders, deliveries and submittals",
+        summary: "What vendors see for their engagement in Compass, offline.",
+        kind: "page",
+        nodes: ["purchase-orders", "deliveries", "submittals"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "If an organization engaged your company as a vendor, " },
+              { t: "strong", v: "More" },
+              {
+                t: "text",
+                v: " lists three screens for the current project. They read from your phone, so they work offline; pull down to refresh when you are online.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Purchase orders:" },
+                {
+                  t: "text",
+                  v: " each order sent to you, with its total, its lines and whether you acknowledged it.",
+                },
+              ],
+              [
+                { t: "strong", v: "Deliveries:" },
+                {
+                  t: "text",
+                  v: " shipments on the project, with ship and arrival times on the project's clock.",
+                },
+              ],
+              [
+                { t: "strong", v: "Submittals:" },
+                {
+                  t: "text",
+                  v: " the records the organization shared with you for review, with their due time.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "To acknowledge an order, send a document or answer a submittal, tap ",
+              },
+              { t: "strong", v: "Open Gateway" },
+              {
+                t: "text",
+                v: "; it opens that tab of your engagement. Your dock slots are on the Scan tab.",
               },
             ],
           },
@@ -1681,6 +2086,68 @@ export const COMPASS_HELP: HelpContent = {
     ],
     "es-US": [
       {
+        slug: "artist-advance",
+        title: "Coordinación previa, rider y liquidación",
+        summary:
+          "Lo que los artistas y sus representantes ven de una contratación en Compass, sin conexión.",
+        kind: "page",
+        nodes: ["advance-summary", "rider", "settlement"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Si una organización te contrató como artista, o representas a uno, ",
+              },
+              { t: "strong", v: "Más" },
+              {
+                t: "text",
+                v: " muestra tres pantallas del proyecto actual. Leen desde tu teléfono, así que funcionan sin conexión; desliza hacia abajo para actualizar cuando estés en línea.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Resumen de coordinación previa:" },
+                {
+                  t: "text",
+                  v: " cada paquete de coordinación previa, cuántas secciones tienen respuesta, su fecha límite y cómo se revisó cada respuesta.",
+                },
+              ],
+              [
+                { t: "strong", v: "Rider:" },
+                {
+                  t: "text",
+                  v: " cada rider y sus solicitudes, con lo que la organización ya cumplió.",
+                },
+              ],
+              [
+                { t: "strong", v: "Liquidación:" },
+                {
+                  t: "text",
+                  v: " la liquidación que envió la organización, su importe neto y cada línea, con las deducciones en negativo.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Para responder la coordinación previa, o aceptar o disputar una liquidación, toca ",
+              },
+              { t: "strong", v: "Abrir Gateway" },
+              { t: "text", v: "; se abre esa pestaña de la contratación." },
+            ],
+          },
+        ],
+      },
+      {
         slug: "aurora",
         title: "Aurora",
         summary: "Cómo preguntar al asistente sobre tus turnos, los procedimientos y el manual.",
@@ -1715,6 +2182,42 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Nueva conversación" },
               { t: "text", v: " empieza de nuevo." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "client-reports",
+        title: "Informes",
+        summary: "Los informes que una organización compartió con su cliente, en Compass.",
+        kind: "page",
+        nodes: ["reports"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Si una organización contrató a tu empresa como cliente, " },
+              { t: "strong", v: "Más" },
+              { t: "text", v: " muestra " },
+              { t: "strong", v: "Informes" },
+              {
+                t: "text",
+                v: ": cada informe que compartió contigo en el proyecto actual, cuándo lo compartió, cuántas filas tiene y cuándo vence el acceso. La lista lee desde tu teléfono, así que funciona sin conexión; desliza hacia abajo para actualizar cuando estés en línea.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Para descargar un informe, toca " },
+              { t: "strong", v: "Abrir Gateway" },
+              {
+                t: "text",
+                v: "; se abre la pestaña Informes de tu contratación. El orden del espectáculo está en ",
+              },
+              { t: "strong", v: "Escaleta" },
+              { t: "text", v: "." },
             ],
           },
         ],
@@ -1784,6 +2287,129 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: " para enviar la pantalla donde estabas, la versión de la aplicación y tu dispositivo. No se envía nada más.",
               },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "contractor-work",
+        title: "Registros de tiempo y entregables",
+        summary: "Lo que los contratistas ven de su contratación en Compass, sin conexión.",
+        kind: "page",
+        nodes: ["time-entries", "deliverables"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Si una organización te contrató como contratista, " },
+              { t: "strong", v: "Más" },
+              {
+                t: "text",
+                v: " muestra dos pantallas del proyecto actual. Leen desde tu teléfono, así que funcionan sin conexión; desliza hacia abajo para actualizar cuando estés en línea.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Registros de tiempo:" },
+                {
+                  t: "text",
+                  v: " cada vez que marcaste entrada y salida, con descansos y horas trabajadas, en el reloj del proyecto. Un registro aún abierto lo indica.",
+                },
+              ],
+              [
+                { t: "strong", v: "Entregables:" },
+                {
+                  t: "text",
+                  v: " lo que debes entregar, su fecha límite y su honorario. Lo vencido según el calendario del proyecto aparece como vencido; un entregable devuelto muestra el motivo.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Para entregar un entregable o corregir tu tiempo, toca " },
+              { t: "strong", v: "Abrir Gateway" },
+              { t: "text", v: "; se abre esa pestaña de tu contratación." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "crew-work",
+        title: "Hojas de horas, viáticos, viaje e incorporación",
+        summary:
+          "Lo que el personal de equipo y de apoyo ve de su contratación en Compass, sin conexión.",
+        kind: "page",
+        nodes: ["timesheets", "per-diem", "travel-and-lodging", "onboarding"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Si una organización te contrató como personal de equipo o de apoyo, ",
+              },
+              { t: "strong", v: "Más" },
+              {
+                t: "text",
+                v: " muestra cuatro pantallas de tu contratación en el proyecto actual. Leen desde tu teléfono, así que funcionan sin conexión; desliza hacia abajo para actualizar cuando estés en línea.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Hojas de horas:" },
+                {
+                  t: "text",
+                  v: " cada período con sus horas y su estado, y cuándo se envió o se decidió.",
+                },
+              ],
+              [
+                { t: "strong", v: "Viáticos:" },
+                { t: "text", v: " el importe de cada día y el total. El de hoy aparece marcado." },
+              ],
+              [
+                { t: "strong", v: "Viaje y alojamiento:" },
+                {
+                  t: "text",
+                  v: " tus vuelos y traslados, cada hora en la zona de su propio aeropuerto o estación, y las fechas de tu hotel.",
+                },
+              ],
+              [
+                { t: "strong", v: "Requisitos de incorporación:" },
+                {
+                  t: "text",
+                  v: " tu lista de pasos, primero lo que falta, con una barra de progreso. Se abre antes de que tu contratación esté activa.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Las fechas siguen el calendario del proyecto, así que un día nunca cambia porque tu teléfono esté en otra zona horaria.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Para enviar una hoja de horas o subir un documento de incorporación, toca ",
+              },
+              { t: "strong", v: "Abrir Gateway" },
+              { t: "text", v: "; se abre esa pestaña de tu contratación." },
             ],
           },
         ],
@@ -1896,9 +2522,9 @@ export const COMPASS_HELP: HelpContent = {
       },
       {
         slug: "elsewhere",
-        title: "Páginas en Gateway y Atlas",
+        title: "Terminar en Gateway",
         summary:
-          "Entradas de Más que se abren en Gateway o Atlas porque Compass todavía no las muestra.",
+          "Qué acciones de tu contratación abren Gateway, y por qué tus listas siguen en Compass.",
         kind: "page",
         nodes: [
           "timesheets",
@@ -1915,27 +2541,30 @@ export const COMPASS_HELP: HelpContent = {
           "settlement",
           "reports",
           "proof-of-performance",
-          "expenses",
         ],
-        order: 1,
+        order: 2,
         body: [
           {
             t: "p",
             c: [
               {
                 t: "text",
-                v: "Algunas entradas de Más todavía no se muestran en Compass: hojas de horas, viáticos, viaje y alojamiento, incorporación, órdenes de compra, entregas, envíos para aprobación, registros de tiempo, entregables, el resumen de coordinación previa, el rider, la liquidación, los informes, la comprobación de cumplimiento y los gastos.",
+                v: "Compass muestra las hojas de horas, viáticos, viajes, incorporación, órdenes de compra, entregas, envíos para aprobación, tiempo, entregables, coordinación previa, rider, liquidación, informes y comprobaciones de cumplimiento de tu contratación, y los guarda en tu teléfono para que se lean sin conexión.",
               },
             ],
           },
           {
             t: "p",
             c: [
-              { t: "text", v: "Al elegir una, se abre en el lugar correcto: " },
-              { t: "strong", v: "Gateway" },
-              { t: "text", v: " si una organización te contrató, o " },
-              { t: "strong", v: "Atlas" },
-              { t: "text", v: " si eres miembro." },
+              {
+                t: "text",
+                v: "Algunas acciones necesitan la página completa de la contratación: enviar una hoja de horas, subir un documento de incorporación, confirmar una orden de compra, entregar un entregable, responder la coordinación previa o responder a una liquidación. El botón ",
+              },
+              { t: "strong", v: "Abrir Gateway" },
+              {
+                t: "text",
+                v: " de cada pantalla abre la pestaña correcta de tu contratación en tu navegador.",
+              },
             ],
           },
           {
@@ -1969,6 +2598,83 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: "Tus turnos de esa contratación están en tu " },
               { t: "link", v: "Agenda", href: "help:schedule" },
               { t: "text", v: " de Compass." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "expenses",
+        title: "Gastos",
+        summary:
+          "Cómo registrar un gasto a partir de la foto del recibo, en una partida del presupuesto, incluso sin conexión.",
+        kind: "workflow",
+        nodes: ["expenses"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Abre " },
+              { t: "strong", v: "Más" },
+              { t: "text", v: " y luego " },
+              { t: "strong", v: "Gastos" },
+              { t: "text", v: " para registrar lo que gastaste a partir de su recibo." },
+            ],
+          },
+          {
+            t: "ol",
+            items: [
+              [
+                { t: "text", v: "Toca " },
+                { t: "strong", v: "Tomar foto del recibo" },
+                { t: "text", v: ", o " },
+                { t: "strong", v: "Elegir una foto" },
+                {
+                  t: "text",
+                  v: " para escoger una que ya tomaste. Compass ve solo la foto que eliges.",
+                },
+              ],
+              [
+                {
+                  t: "text",
+                  v: "Si tu organización activó la lectura de recibos, Aurora completa lo que puede leer: qué se compró, el importe y la fecha. Cada campo leído indica qué tan seguro está. Un valor que el recibo no muestra queda vacío para que lo escribas; Aurora nunca lo adivina.",
+                },
+              ],
+              [
+                { t: "text", v: "Revisa cada campo, elige la " },
+                { t: "strong", v: "partida del presupuesto" },
+                { t: "text", v: " en la que se registra el gasto y toca " },
+                { t: "strong", v: "Guardar gasto" },
+                { t: "text", v: "." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "El importe está en la moneda del presupuesto. Si el recibo está en otra moneda, Compass lo indica y deja el importe para ti.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Sin conexión:" },
+              {
+                t: "text",
+                v: " escribe los datos y guarda. El gasto y su foto esperan en la cola sin conexión y se suben una sola vez cuando vuelvas a estar en línea. Aurora lee recibos solo cuando estás en línea.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tu lista de gastos muestra el estado de cada uno, como Enviado o Aprobado. Otra persona lo aprueba; no puedes aprobar el tuyo.",
+              },
             ],
           },
         ],
@@ -2662,7 +3368,17 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Un código que Compass no conoce pasa al mostrador para identificarlo. También puedes escribir un código o tocar una etiqueta NFC.",
+                v: "Un código que Compass no conoce pasa al mostrador para identificarlo. También puedes escribir un código, o tocar ",
+              },
+              { t: "strong", v: "Leer etiqueta NFC" },
+              {
+                t: "text",
+                v: " y acercar una credencial, pulsera o etiqueta a la parte superior del teléfono. En Consulta, ",
+              },
+              { t: "strong", v: "Grabar en una etiqueta NFC" },
+              {
+                t: "text",
+                v: " pone la etiqueta del equipo encontrado en un adhesivo NFC en blanco.",
               },
             ],
           },
@@ -2861,6 +3577,57 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "sponsor-proof",
+        title: "Comprobación de cumplimiento",
+        summary:
+          "Los beneficios de un patrocinador y las comprobaciones que compartió la organización, en Compass.",
+        kind: "page",
+        nodes: ["proof-of-performance"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Si una organización contrató a tu marca como patrocinador, " },
+              { t: "strong", v: "Más" },
+              { t: "text", v: " muestra " },
+              { t: "strong", v: "Comprobación de cumplimiento" },
+              { t: "text", v: " del proyecto actual:" },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Beneficios:" },
+                {
+                  t: "text",
+                  v: " lo que la organización te debe, cuántos y para cuándo. Los entregados aparecen marcados; lo vencido según el calendario del proyecto aparece como vencido.",
+                },
+              ],
+              [
+                { t: "strong", v: "Documentos de comprobación:" },
+                {
+                  t: "text",
+                  v: " las comprobaciones de cumplimiento que compartió la organización, como informes fotográficos.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "La pantalla lee desde tu teléfono, así que funciona sin conexión; desliza hacia abajo para actualizar cuando estés en línea. Para abrir un documento o responder a la organización, toca ",
+              },
+              { t: "strong", v: "Abrir Gateway" },
+              { t: "text", v: "." },
+            ],
+          },
+        ],
+      },
+      {
         slug: "today",
         title: "Hoy",
         summary: "Tu reloj, tus próximos turnos y la información del día para tu rol.",
@@ -2924,6 +3691,67 @@ export const COMPASS_HELP: HelpContent = {
               {
                 t: "text",
                 v: "Otras tarjetas dependen de tu rol, como los horarios de llamado, el turno de muelle o el calendario de activaciones. Una tarjeta dice Nada aquí hoy cuando no hay nada para ese día.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "vendor-orders",
+        title: "Órdenes de compra, entregas y envíos para aprobación",
+        summary: "Lo que los proveedores ven de su contratación en Compass, sin conexión.",
+        kind: "page",
+        nodes: ["purchase-orders", "deliveries", "submittals"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Si una organización contrató a tu empresa como proveedor, " },
+              { t: "strong", v: "Más" },
+              {
+                t: "text",
+                v: " muestra tres pantallas del proyecto actual. Leen desde tu teléfono, así que funcionan sin conexión; desliza hacia abajo para actualizar cuando estés en línea.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Órdenes de compra:" },
+                {
+                  t: "text",
+                  v: " cada orden que te enviaron, con su total, sus líneas y si la confirmaste.",
+                },
+              ],
+              [
+                { t: "strong", v: "Entregas:" },
+                {
+                  t: "text",
+                  v: " los envíos del proyecto, con las horas de salida y llegada en el reloj del proyecto.",
+                },
+              ],
+              [
+                { t: "strong", v: "Envíos para aprobación:" },
+                {
+                  t: "text",
+                  v: " los registros que la organización compartió contigo para revisión, con su hora límite.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Para confirmar una orden, enviar un documento o responder un envío para aprobación, toca ",
+              },
+              { t: "strong", v: "Abrir Gateway" },
+              {
+                t: "text",
+                v: "; se abre esa pestaña de tu contratación. Tus turnos de muelle están en la pestaña Escanear.",
               },
             ],
           },

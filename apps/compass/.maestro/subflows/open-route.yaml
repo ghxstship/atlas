@@ -1,0 +1,12 @@
+appId: pro.ghxstship.compass
+---
+# Opens a Compass screen by its route (ROUTE, such as per-diem) through the compass:// scheme, which the
+# router passes through unchanged (app/+native-intent.tsx). Moving between pushed screens this way needs no
+# back button, which Maestro cannot press on iOS.
+- openLink: "compass://${ROUTE}"
+# iOS asks before an app opens a link it was handed; answer for Compass when it does.
+- runFlow:
+    when:
+      visible: "Open"
+    commands:
+      - tapOn: "Open"

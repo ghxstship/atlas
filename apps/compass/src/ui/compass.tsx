@@ -209,13 +209,21 @@ export function ScanSheet({
             </View>
           </View>
         ) : null}
+        {/* NFC sits on its own row, so the count beside Done never wraps a word per line (A92). */}
+        {nfc ? (
+          <Button
+            label={nfc.label}
+            variant="secondary"
+            icon="nfc"
+            block
+            onPress={nfc.onPress}
+            {...tid(testID, "nfc")}
+          />
+        ) : null}
         <View style={{ flexDirection: "row", alignItems: "center", gap: theme.space["12"] }}>
           <View style={{ flex: 1 }}>
             <Text variant="heading20" {...tid(testID, "count")}>{`${count} ${countLabel}`}</Text>
           </View>
-          {nfc ? (
-            <Button label={nfc.label} variant="secondary" icon="nfc" onPress={nfc.onPress} />
-          ) : null}
           <Button label={doneLabel} onPress={onDone} {...tid(testID, "done")} />
         </View>
       </View>

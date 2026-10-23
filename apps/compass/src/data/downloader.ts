@@ -27,20 +27,30 @@ export interface DownloadOptions {
   readonly only?: readonly string[];
 }
 
-async function fetchSource(client: SupabaseClient, source: Source, projectId: string | null) {
+async function fetchSource(
+  client: SupabaseClient,
+  source: Source,
+  projectId: string | null,
+  personId: string | null,
+) {
   let query = client.schema(source.schema).from(source.relation).select(source.select);
   const domain = CANON_DOMAIN[source.table];
   if (domain) query = query.eq("enum_domain", domain);
   if (projectId && source.projectColumn) query = query.eq(source.projectColumn, projectId);
+  if (personId && source.personColumn) query = query.eq(source.personColumn, personId);
   return query;
 }
 
-/** External cues carry no project; it comes from their running order, so the scope check can place them. */
-function enrich(table: string, rows: Row[], pulled: ReadonlyMap<string, Row[]>): Row[] {
-  if (table !== "cues") return rows;
-  const project = new Map((pulled.get("run_of_show") ?? []).map((r) => [r.id, r["project_id"]]));
+/**
+ * Rows that carry no project (external cues, purchase order lines, rider lines) take it from their parent's row
+ * pulled earlier in this download, so the scope check can place them. Their sources name the parent.
+ */
+function enrich(source: Source, rows: Row[], pulled: ReadonlyMap<string, Row[]>): Row[] {
+  const parent = source.parent;
+  if (!parent) return rows;
+  const project = new Map((pulled.get(parent.table) ?? []).map((r) => [r.id, r["project_id"]]));
   return rows.map((r) =>
-    r["project_id"] ? r : { ...r, project_id: project.get(String(r["run_of_show_id"])) ?? null },
+    r["project_id"] ? r : { ...r, project_id: project.get(String(r[parent.column])) ?? null },
   );
 }
 
@@ -63,6 +73,8 @@ export async function downloadAll({
   const failed: { table: string; message: string }[] = [];
   const pulled = new Map<string, Row[]>();
   const sources = sourcesForAudiences(session.scopes.map((s) => s.audience));
+  // The person is the same in every org scope; person-limited sources (their own expenses and lodging) filter on them.
+  const personId = session.scope.personIds[0] ?? null;
   for (const [table, tableSources] of byTable(sources)) {
     if (only && !only.includes(table)) continue;
     const rows: Row[] = [];
@@ -70,31 +82,31 @@ export async function downloadAll({
     let complete = true;
     let projectLimited = false;
     for (const source of tableSources) {
-      const { data, error } = await fetchSource(client, source, projectId);
+      const { data, error } = await fetchSource(client, source, projectId, personId);
       if (error) {
         failed.push({ table, message: error.message });
         complete = false;
         continue;
       }
       if (projectId !== null && source.projectColumn) projectLimited = true;
-      for (const row of toLocalRows(
+      for (const row of enrich(
         source,
-        (data ?? []) as unknown as Record<string, unknown>[],
-      ) as Row[]) {
+        toLocalRows(source, (data ?? []) as unknown as Record<string, unknown>[]) as Row[],
+        pulled,
+      )) {
         if (seen.has(row.id)) continue;
         seen.add(row.id);
         rows.push(row);
       }
     }
     if (rows.length === 0 && !complete) continue;
-    const enriched = enrich(table, rows, pulled);
-    pulled.set(table, enriched);
+    pulled.set(table, rows);
     // A full pull of every source is a snapshot; a project-limited pull, or one where a source failed,
     // must not remove the rows it did not fetch.
     const report =
       complete && !projectLimited
-        ? await session.replace(table, enriched)
-        : await session.ingest(table, enriched);
+        ? await session.replace(table, rows)
+        : await session.ingest(table, rows);
     written += report.written;
     refused += report.refused;
   }

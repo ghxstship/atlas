@@ -323,6 +323,7 @@ export function TextField({
   const keyboardType = {
     default: "default",
     numeric: "number-pad",
+    decimal: "decimal-pad",
     email: "email-address",
     phone: "phone-pad",
     url: "url",

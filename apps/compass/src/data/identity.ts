@@ -73,6 +73,10 @@ export function scopeFor(
     readableProjectIds,
     engagementIds: open.map((e) => e.id),
     engagedProjectIds: [...new Set(open.map((e) => e.projectId))],
+    // The onboarding checklist opens before operational access does (A92).
+    onboardingEngagementIds: identity.engagements
+      .filter((e) => e.state !== "Complete" && e.state !== "Canceled")
+      .map((e) => e.id),
   };
 }
 

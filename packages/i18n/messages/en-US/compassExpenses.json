@@ -1,0 +1,60 @@
+{
+  "add": {
+    "camera": "Take a receipt photo",
+    "library": "Choose a photo",
+    "noLines": "No budget lines you can post to on this project. Ask your producer to add you to the budget.",
+    "sentence": "Photograph the receipt. Aurora fills in what it can read; you check every field before saving.",
+    "title": "Add an expense"
+  },
+  "aurora": {
+    "failed": "Aurora could not read this receipt. Enter the details yourself.",
+    "fieldMissing": "Not on the receipt. Enter it yourself.",
+    "fieldRead": "Read by Aurora, {percent}% sure. Check it.",
+    "limit": "Your organization used this month's Aurora requests. Enter the details yourself.",
+    "noAnswer": "Aurora could not find the details on this receipt. Enter them yourself.",
+    "notInPlan": "Your organization's plan does not include Aurora. Enter the details yourself.",
+    "off": "Receipt reading is off for your organization. Enter the details yourself.",
+    "offline": "You are offline. Enter the details; the expense and its photo upload when you are back online.",
+    "otherCurrency": "The receipt is in {receipt} and this budget is in {budget}. Enter the amount in {budget}.",
+    "read": "Aurora read the receipt. Check every field before you save.",
+    "reading": "Aurora is reading the receipt. You can start typing."
+  },
+  "camera": {
+    "hint": "Lay the receipt flat in good light, with the total in view.",
+    "take": "Take photo",
+    "title": "Receipt photo"
+  },
+  "form": {
+    "amount": "Amount",
+    "amountIn": "Amount in {currency}",
+    "chooseLine": "Choose a budget line",
+    "date": "Date on the receipt",
+    "dateHelp": "Year, month and day, such as 2027-06-10.",
+    "description": "What was bought",
+    "line": "Budget line",
+    "lineChosen": "{number}. {line} ({budget})",
+    "photo": "The receipt photo",
+    "retake": "Retake the photo",
+    "save": "Save expense"
+  },
+  "list": {
+    "empty": "No expenses yet. Add one from a receipt.",
+    "title": "Your expenses",
+    "waiting": "Waiting to upload"
+  },
+  "problem": {
+    "amount": "Enter an amount above zero.",
+    "date": "Enter the date as year-month-day.",
+    "description": "Say what was bought, in up to 500 characters.",
+    "future": "The date is after today on the project's calendar.",
+    "line": "Choose the budget line the expense posts to."
+  },
+  "saved": "Expense saved. It uploads with its photo when you are online.",
+  "state": {
+    "approved": "Approved",
+    "canceled": "Canceled",
+    "paid": "Paid",
+    "proposed": "Submitted",
+    "rejected": "Rejected"
+  }
+}

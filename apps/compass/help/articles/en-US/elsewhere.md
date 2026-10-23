@@ -1,6 +1,6 @@
 ---
-title: Pages in Gateway and Atlas
-summary: More entries that open in Gateway or Atlas because Compass does not show them yet.
+title: Finishing in Gateway
+summary: Which actions on your engagement open Gateway, and why your lists stay in Compass.
 kind: page
 nodes:
   [
@@ -18,13 +18,12 @@ nodes:
     settlement,
     reports,
     proof-of-performance,
-    expenses,
   ]
-order: 1
+order: 2
 ---
 
-Some entries in More are not shown in Compass yet: timesheets, per diem, travel and lodging, onboarding, purchase orders, deliveries, submittals, time entries, deliverables, the advance summary, the rider, settlement, reports, proof of performance and expenses.
+Compass shows your engagement's timesheets, per diem, travel, onboarding, purchase orders, deliveries, submittals, time, deliverables, advance, rider, settlement, reports and proof of performance, and keeps them on your phone so they read offline.
 
-Choosing one opens it in the right place: **Gateway** if an organization engaged you, or **Atlas** if you are a member.
+Some actions need the full engagement page: submitting a timesheet, uploading an onboarding document, acknowledging a purchase order, handing in a deliverable, answering the advance or responding to a settlement. Each screen's **Open Gateway** button opens the right tab of your engagement in your browser.
 
 Your shifts, clock and scans stay in Compass.

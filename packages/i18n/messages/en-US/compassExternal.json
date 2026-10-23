@@ -1,0 +1,114 @@
+{
+  "advance": {
+    "answered": "Answered",
+    "empty": "No advance packets on this project yet. The organization sends them before the show.",
+    "notAnswered": "Not answered yet",
+    "progress": "{done} of {total} sections answered",
+    "returnedBecause": "Returned: {reason}",
+    "title": "Advance packets"
+  },
+  "between": "{from} to {to}",
+  "deliverables": {
+    "empty": "No deliverables on this project yet.",
+    "returned": "Returned: {reason}",
+    "title": "Deliverables"
+  },
+  "deliveries": {
+    "arrives": "Arrives",
+    "empty": "No deliveries on this project yet.",
+    "ships": "Ships",
+    "title": "Deliveries"
+  },
+  "due": "Due",
+  "duration": "{hours} h {minutes} min",
+  "gateway": {
+    "actions": "To submit, upload or reply, open this engagement in Gateway.",
+    "time": "To correct your time, open this engagement in Gateway."
+  },
+  "lodging": {
+    "title": "Lodging"
+  },
+  "onboarding": {
+    "blocking": "Needed before work starts",
+    "empty": "No onboarding items for this engagement.",
+    "expires": "Expires",
+    "standing": {
+      "expired": "Expired",
+      "returned": "Returned",
+      "toDo": "To do",
+      "verified": "Done",
+      "waiting": "Waiting for review"
+    },
+    "title": "Onboarding items"
+  },
+  "overdue": "Overdue",
+  "perDiem": {
+    "empty": "No per diem on this project yet.",
+    "title": "Days",
+    "total": "{days} days",
+    "totalTitle": "Total"
+  },
+  "progress": "{done} of {total} done",
+  "proof": {
+    "delivered": "Delivered",
+    "documents": "Proof documents",
+    "empty": "No entitlements or proof of performance on this project yet.",
+    "entitlements": "Entitlements",
+    "waiting": "Not delivered yet"
+  },
+  "purchaseOrders": {
+    "acknowledged": "You acknowledged it",
+    "empty": "No purchase orders sent to you on this project.",
+    "notAcknowledged": "Not acknowledged yet",
+    "sent": "Sent",
+    "title": "Purchase orders",
+    "unpriced": "Total not priced yet"
+  },
+  "quantity": "Quantity {quantity} {unit}",
+  "reports": {
+    "empty": "No reports shared with you on this project.",
+    "expires": "Share ends",
+    "format": "{format} file",
+    "rows": "{count} rows",
+    "shared": "Shared",
+    "title": "Shared reports"
+  },
+  "rider": {
+    "empty": "No rider on this project yet.",
+    "fulfilled": "Fulfilled",
+    "open": "Open",
+    "progress": "{done} of {total} asks fulfilled",
+    "title": "Riders"
+  },
+  "settlement": {
+    "empty": "No settlement submitted to you on this project yet.",
+    "net": "Net",
+    "title": "Settlements",
+    "unpriced": "Net not priced yet"
+  },
+  "submittals": {
+    "empty": "Nothing shared with you for review on this project.",
+    "title": "Shared for review"
+  },
+  "timeEntries": {
+    "breaks": "{minutes} min of breaks",
+    "empty": "No time entries on this project yet.",
+    "open": "Still clocked in",
+    "title": "Time entries",
+    "until": "to"
+  },
+  "timesheets": {
+    "decided": "Decided",
+    "empty": "No timesheets on this project yet.",
+    "submitted": "Submitted",
+    "title": "Timesheets"
+  },
+  "today": "Today",
+  "travel": {
+    "arrives": "Arrives",
+    "confirmation": "Confirmation {code}",
+    "departs": "Departs",
+    "empty": "No travel or lodging booked for you on this project yet.",
+    "title": "Travel"
+  }
+}

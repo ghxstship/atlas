@@ -482,6 +482,10 @@ describe("purpose strings", () => {
     alwaysAndWhenInUse: plugins.get("expo-location")?.["locationAlwaysAndWhenInUsePermission"],
     motion: plugins.get("expo-location")?.["motionUsagePermission"],
     faceId: plugins.get("expo-local-authentication")?.["faceIDPermission"],
+    nfc: plugins.get("react-native-nfc-manager")?.["nfcPermission"],
+    // The image picker plugin writes its own camera and microphone strings unless given these.
+    pickerCamera: plugins.get("expo-image-picker")?.["cameraPermission"],
+    pickerMicrophone: plugins.get("expo-image-picker")?.["microphonePermission"],
   };
 
   it("says in plain language what Compass does with each permission", () => {
@@ -509,17 +513,31 @@ describe("purpose strings", () => {
       "NSLocationAlwaysUsageDescription",
       "NSMotionUsageDescription",
       "NSFaceIDUsageDescription",
+      "NFCReaderUsageDescription",
     ]) {
       expect(es[key], key).toMatch(/^Compass /);
     }
     expect(es["CFBundleDisplayName"]).toBe(expo.name);
   });
 
-  it("asks for no photo library access, because photos come only from the camera", () => {
+  it("gives the image picker the same camera and microphone strings as the camera and recorder", () => {
+    expect(strings["pickerCamera"]).toBe(strings["camera"]);
+    expect(strings["pickerMicrophone"]).toBe(strings["microphone"]);
+    expect(strings["camera"]).toBe(infoPlist["NSCameraUsageDescription"]);
+  });
+
+  it("asks for no photo library access: a receipt comes from the camera or the system photo picker", () => {
+    // The system picker (PHPicker, the Android photo picker) hands Compass only the photo the person
+    // picks and needs no permission, so the plugin removes the photo library string (A92).
     const deps = readJson("package.json")["dependencies"] as Record<string, string>;
-    expect(deps["expo-image-picker"]).toBeUndefined();
     expect(deps["expo-media-library"]).toBeUndefined();
+    expect(plugins.get("expo-image-picker")?.["photosPermission"]).toBe(false);
     expect(Object.keys(infoPlist).filter((k) => k.startsWith("NSPhotoLibrary"))).toEqual([]);
+  });
+
+  it("asks for NFC reading with the NDEF entitlement, for badges, wristbands and asset tags", () => {
+    expect(plugins.get("react-native-nfc-manager")?.["includeNdefEntitlement"]).toBe(true);
+    expect(String(strings["nfc"])).toMatch(/NFC/);
   });
 
   it("runs nothing in the background except the Live Activity", () => {
