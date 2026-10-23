@@ -5,6 +5,8 @@
  * elsewhere) shows the list with nothing open. These checks read the source of every page under
  * app/[org] and follow the names each page uses through its local imports, so a new page cannot
  * read `?peek` without handing an unshown key over or answering it with its own not-found state.
+ * They also keep row ids out of `?peek` where no record panel would show them: a page with no
+ * panel, or one where the shell opens the key itself.
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
@@ -61,17 +63,58 @@ const OWN_NOT_FOUND: Readonly<Record<string, string>> = {
     "the drawer shows places.kit.peekMissing",
 };
 
+/**
+ * Pages whose rows have no record panel. A click on a row there must not put the row's id in
+ * `?peek`, where the shell's peek could only say it is no record, so their row components pass
+ * `activatable={false}`.
+ */
+const NO_RECORD_PANEL: Readonly<Record<string, string>> = {
+  "finance/year-end": "a 1099-NEC payee row is a person or account id, not a record",
+  "finance/chart-of-accounts": "the chart is fixed and read-only; an account code is not a record",
+  "finance/universal-posting-line-export": "a posting line previews an export row, not a record",
+};
+
+/**
+ * Code on a page where the shell opens `?peek` itself (NO_OWN_PEEK_NODES in lib/shell/peek.ts) that
+ * puts a key there on purpose: a record key, which the shell's peek opens.
+ */
+const SHELL_KEYS: Readonly<Record<string, string>> = {
+  "components/my-work/my-work-view.tsx#MyWorkView": "a My Work row opens its record key",
+};
+
 const atlas = fileURLToPath(new URL("../", import.meta.url));
 const orgApp = join(atlas, "app", "[org]");
 
+/** A JSX element a declaration renders. */
+interface Rendered {
+  readonly tag: string;
+  readonly attributes: ReadonlySet<string>;
+  /** Passes `activatable={false}`: a row component whose rows open nothing. */
+  readonly inert: boolean;
+}
+
+/** What a declaration does with `?peek`, read from its syntax (peekUse). */
+interface PeekUse {
+  /** Reads the URL's `?peek`. */
+  readonly reads: boolean;
+  /** Puts a value in `?peek` with a query change: `go({ peek: id })`, `q.set("peek", id)`. */
+  readonly writes: boolean;
+  readonly elements: readonly Rendered[];
+}
+
 /** A top-level declaration: its source and the names it uses. */
-interface Declaration {
+interface Declaration extends PeekUse {
   readonly file: string;
   readonly name: string;
   readonly text: string;
   readonly names: ReadonlySet<string>;
   /** Modules it imports with `import()`, followed whole. */
   readonly loads: readonly string[];
+  /**
+   * A shared row component that takes `activatable` (the finance kit's table, list and board, the
+   * crew PeekTable): its rows open `?peek` unless the page passes `activatable={false}`.
+   */
+  readonly opener: boolean;
 }
 
 interface Module {
@@ -103,6 +146,190 @@ function bindingNames(name: ts.BindingName): string[] {
   return name.elements.flatMap((e) => (ts.isOmittedExpression(e) ? [] : bindingNames(e.name)));
 }
 
+/** Names of the URL state `?peek` is read from: the search params, the parsed collection query. */
+const URL_STATE: ReadonlySet<string> = new Set([
+  "state",
+  "query",
+  "search",
+  "searchParams",
+  "params",
+]);
+
+const isText = (n: ts.Node | undefined, text: string): boolean =>
+  n !== undefined &&
+  (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) &&
+  n.text === text;
+
+/** The key a property or binding names: `peek` in `peek: id`, `"peek": id` or `{ peek }`. */
+const keyOf = (n: ts.Node | undefined): string | null =>
+  n !== undefined && (ts.isIdentifier(n) || ts.isStringLiteral(n)) ? n.text : null;
+
+/** URL state: `search`, `page.query`, `await searchParams`, `collectionState(params)`. */
+function urlState(e: ts.Expression): boolean {
+  if (
+    ts.isAwaitExpression(e) ||
+    ts.isParenthesizedExpression(e) ||
+    ts.isNonNullExpression(e) ||
+    ts.isAsExpression(e)
+  ) {
+    return urlState(e.expression);
+  }
+  if (ts.isIdentifier(e)) return URL_STATE.has(e.text);
+  if (ts.isPropertyAccessExpression(e)) return URL_STATE.has(e.name.text);
+  return ts.isCallExpression(e) && e.arguments.some(urlState);
+}
+
+/** A pattern that takes URL state apart: `const { peek } = search`, or `query: { peek }` in one. */
+function destructuresUrlState(pattern: ts.ObjectBindingPattern): boolean {
+  const owner = pattern.parent;
+  if (ts.isVariableDeclaration(owner)) {
+    return owner.initializer !== undefined && urlState(owner.initializer);
+  }
+  if (ts.isBindingElement(owner)) {
+    const key = keyOf(owner.propertyName);
+    return key !== null && URL_STATE.has(key);
+  }
+  return false;
+}
+
+/** No value: `null`, `undefined` or "", which clear a query value instead of setting it. */
+const absent = (e: ts.Expression | undefined): boolean =>
+  e === undefined ||
+  e.kind === ts.SyntaxKind.NullKeyword ||
+  (ts.isIdentifier(e) && e.text === "undefined") ||
+  isText(e, "");
+
+/**
+ * An object literal passed to a call as a query change (`go({ peek })`, `withQuery(p, { peek })`),
+ * alone or spread into one from a branch; not a props object or a value nested under another key.
+ */
+function queryChange(object: ts.ObjectLiteralExpression): boolean {
+  let n: ts.Node = object;
+  for (;;) {
+    const up = n.parent;
+    if (ts.isCallExpression(up) || ts.isNewExpression(up)) {
+      return (up.arguments ?? []).some((a) => a === n);
+    }
+    if (
+      ts.isParenthesizedExpression(up) ||
+      ts.isConditionalExpression(up) ||
+      ts.isBinaryExpression(up) ||
+      ts.isSpreadAssignment(up) ||
+      ts.isObjectLiteralExpression(up)
+    ) {
+      n = up;
+    } else {
+      return false;
+    }
+  }
+}
+
+/** What `node` does with `?peek`, from its syntax alone. */
+function peekUse(node: ts.Node): PeekUse {
+  let reads = false;
+  let writes = false;
+  const elements: Rendered[] = [];
+  const walk = (n: ts.Node) => {
+    // Reads: `search["peek"]`, `params.get("peek")`, `param(search, "peek")`, `state.peek`, and
+    // `const { peek } = search` (or `{ peek: key }`, or `{ query: { peek } } = page`).
+    if (ts.isElementAccessExpression(n) && isText(n.argumentExpression, "peek")) reads = true;
+    if (ts.isCallExpression(n)) {
+      const [first, second] = n.arguments;
+      const callee = n.expression;
+      if (
+        ts.isPropertyAccessExpression(callee) &&
+        callee.name.text === "get" &&
+        isText(first, "peek")
+      ) {
+        reads = true;
+      }
+      if (
+        n.arguments.length === 2 &&
+        first !== undefined &&
+        (ts.isIdentifier(first) || ts.isPropertyAccessExpression(first)) &&
+        isText(second, "peek")
+      ) {
+        reads = true;
+      }
+      // Writes: `q.set("peek", id)`.
+      if (
+        ts.isPropertyAccessExpression(callee) &&
+        callee.name.text === "set" &&
+        isText(first, "peek") &&
+        !absent(second)
+      ) {
+        writes = true;
+      }
+    }
+    if (ts.isPropertyAccessExpression(n) && n.name.text === "peek" && urlState(n.expression)) {
+      reads = true;
+    }
+    if (
+      ts.isBindingElement(n) &&
+      keyOf(n.propertyName ?? n.name) === "peek" &&
+      ts.isObjectBindingPattern(n.parent) &&
+      destructuresUrlState(n.parent)
+    ) {
+      reads = true;
+    }
+    // Writes: `peek: id` or `{ peek }` in a query change.
+    if (
+      ts.isPropertyAssignment(n) &&
+      keyOf(n.name) === "peek" &&
+      !absent(n.initializer) &&
+      queryChange(n.parent)
+    ) {
+      writes = true;
+    }
+    if (ts.isShorthandPropertyAssignment(n) && n.name.text === "peek" && queryChange(n.parent)) {
+      writes = true;
+    }
+    if (
+      (ts.isJsxSelfClosingElement(n) || ts.isJsxOpeningElement(n)) &&
+      ts.isIdentifier(n.tagName)
+    ) {
+      const attributes = new Set<string>();
+      let inert = false;
+      for (const a of n.attributes.properties) {
+        if (!ts.isJsxAttribute(a)) continue;
+        const name = a.name.getText();
+        attributes.add(name);
+        const value =
+          a.initializer && ts.isJsxExpression(a.initializer) ? a.initializer.expression : undefined;
+        if (name === "activatable" && value?.kind === ts.SyntaxKind.FalseKeyword) inert = true;
+      }
+      elements.push({ tag: n.tagName.text, attributes, inert });
+    }
+    ts.forEachChild(n, walk);
+  };
+  walk(node);
+  return { reads, writes, elements };
+}
+
+/** A component whose props include `activatable`, destructured or in a `props` type literal. */
+function takesActivatable(stmt: ts.Statement): boolean {
+  const fn = ts.isFunctionDeclaration(stmt)
+    ? stmt
+    : ts.isVariableStatement(stmt)
+      ? stmt.declarationList.declarations
+          .map((d) => d.initializer)
+          .find((i) => i !== undefined && (ts.isArrowFunction(i) || ts.isFunctionExpression(i)))
+      : undefined;
+  const [props] = fn && ts.isFunctionLike(fn) ? fn.parameters : [];
+  if (!props) return false;
+  if (
+    ts.isObjectBindingPattern(props.name) &&
+    props.name.elements.some((e) => keyOf(e.propertyName ?? e.name) === "activatable")
+  ) {
+    return true;
+  }
+  return (
+    props.type !== undefined &&
+    ts.isTypeLiteralNode(props.type) &&
+    props.type.members.some((m) => keyOf(m.name) === "activatable")
+  );
+}
+
 const modules = new Map<string, Module>();
 
 function parse(file: string): Module {
@@ -124,7 +351,7 @@ function parse(file: string): Module {
     stars: [],
   };
   modules.set(file, mod);
-  const declare = (declared: readonly string[], node: ts.Node) => {
+  const declare = (declared: readonly string[], node: ts.Node, opener = false) => {
     const names = new Set<string>();
     const loads: string[] = [];
     const walk = (n: ts.Node) => {
@@ -143,7 +370,10 @@ function parse(file: string): Module {
     };
     walk(node);
     const text = node.getText(sf);
-    for (const name of declared) mod.declarations.set(name, { file, name, text, names, loads });
+    const use = peekUse(node);
+    for (const name of declared) {
+      mod.declarations.set(name, { file, name, text, names, loads, opener, ...use });
+    }
   };
   for (const stmt of sf.statements) {
     if (ts.isImportDeclaration(stmt)) {
@@ -183,13 +413,13 @@ function parse(file: string): Module {
       mod.exports.set("default", "default");
     } else if (ts.isFunctionDeclaration(stmt) || ts.isClassDeclaration(stmt)) {
       const name = stmt.name?.text ?? "default";
-      declare([name], stmt);
+      declare([name], stmt, takesActivatable(stmt));
       if (hasModifier(stmt, ts.SyntaxKind.ExportKeyword)) {
         mod.exports.set(hasModifier(stmt, ts.SyntaxKind.DefaultKeyword) ? "default" : name, name);
       }
     } else if (ts.isVariableStatement(stmt)) {
       const names = stmt.declarationList.declarations.flatMap((d) => bindingNames(d.name));
-      declare(names, stmt);
+      declare(names, stmt, takesActivatable(stmt));
       if (hasModifier(stmt, ts.SyntaxKind.ExportKeyword))
         for (const n of names) mod.exports.set(n, n);
     } else if (ts.isEnumDeclaration(stmt)) {
@@ -201,52 +431,72 @@ function parse(file: string): Module {
   return mod;
 }
 
-const reached = new Map<Declaration, ReadonlySet<Declaration>>();
+/** Adds the declaration `name` names in `file` to `out`: its own, or the one it imports. */
+function lookup(file: string, name: string, out: Declaration[], hops = 0): void {
+  const mod = parse(file);
+  const declaration = mod.declarations.get(name);
+  if (declaration) out.push(declaration);
+  const imported = mod.imports.get(name);
+  if (!declaration && imported && hops < 20) exported(imported.from, imported.name, out, hops + 1);
+}
 
-/** Every declaration `start` runs or renders: the names it uses, followed across local modules. */
-function reach(start: Declaration): ReadonlySet<Declaration> {
-  const known = reached.get(start);
+/** Adds what `file` exports as `name` (`*`: every declaration) to `out`. */
+function exported(file: string, name: string, out: Declaration[], hops: number): void {
+  const mod = parse(file);
+  if (name === "*") {
+    out.push(...mod.declarations.values());
+    for (const r of mod.reexports.values()) exported(r.from, r.name, out, hops + 1);
+    for (const s of hops < 20 ? mod.stars : []) exported(s, "*", out, hops + 1);
+    return;
+  }
+  const as = mod.exports.get(name);
+  if (as !== undefined) return lookup(file, as, out, hops);
+  const re = mod.reexports.get(name);
+  if (re) return exported(re.from, re.name, out, hops + 1);
+  for (const s of hops < 20 ? mod.stars : []) exported(s, name, out, hops + 1);
+}
+
+const reached = new Map<Declaration, ReadonlySet<Declaration>>();
+const reachedOutside = new Map<Declaration, ReadonlySet<Declaration>>();
+
+/**
+ * Every declaration `start` runs or renders: the names it uses, followed across local modules.
+ * Without `intoOpeners` it stops at a row component that takes `activatable` (an opener): what the
+ * opener's rows do is decided where it is rendered, by `activatable={false}` or its absence.
+ */
+function reach(start: Declaration, intoOpeners = true): ReadonlySet<Declaration> {
+  const cache = intoOpeners ? reached : reachedOutside;
+  const known = cache.get(start);
   if (known) return known;
   const seen = new Set<Declaration>();
   const queue: Declaration[] = [start];
-  const local = (file: string, name: string, hops: number): void => {
-    const mod = parse(file);
-    const declaration = mod.declarations.get(name);
-    if (declaration) queue.push(declaration);
-    const imported = mod.imports.get(name);
-    if (!declaration && imported && hops < 20) exported(imported.from, imported.name, hops + 1);
-  };
-  const exported = (file: string, name: string, hops: number): void => {
-    const mod = parse(file);
-    if (name === "*") {
-      queue.push(...mod.declarations.values());
-      for (const r of mod.reexports.values()) exported(r.from, r.name, hops + 1);
-      for (const s of hops < 20 ? mod.stars : []) exported(s, "*", hops + 1);
-      return;
-    }
-    const as = mod.exports.get(name);
-    if (as !== undefined) return local(file, as, hops);
-    const re = mod.reexports.get(name);
-    if (re) return exported(re.from, re.name, hops + 1);
-    for (const s of hops < 20 ? mod.stars : []) exported(s, name, hops + 1);
-  };
   for (let next = queue.pop(); next; next = queue.pop()) {
     if (seen.has(next)) continue;
     seen.add(next);
-    for (const name of next.names) local(next.file, name, 0);
-    for (const file of next.loads) exported(file, "*", 0);
+    if (!intoOpeners && next.opener && next !== start) continue;
+    for (const name of next.names) lookup(next.file, name, queue);
+    for (const file of next.loads) exported(file, "*", queue, 0);
   }
-  reached.set(start, seen);
+  cache.set(start, seen);
   return seen;
 }
 
-/**
- * Reads the URL's `?peek`: `search["peek"]`, `params.get("peek")`, `param(search, "peek")`, or the
- * `peek` of parsed URL state (collectionState, the finance and assets query). lib/ holds the parsers
- * and the shell's own decision, so a page counts where it renders from the key.
- */
-const READS_PEEK =
-  /[\w\])]\s*\[\s*"peek"\s*\]|\.get\(\s*"peek"\s*\)|\(\s*[\w.]+\s*,\s*"peek"\s*\)|\b(?:state|query|search|searchParams|params)\.peek\b/;
+/** Whether `<tag>` rendered in `from` is an opener, or loads one lazily (`dynamic(import())`). */
+function rendersOpener(from: Declaration, tag: string): boolean {
+  const found: Declaration[] = [];
+  lookup(from.file, tag, found);
+  return found.some(
+    (d) =>
+      d.opener ||
+      d.loads.some((file) =>
+        [...parse(file).declarations.values()].some((l) => l.opener && d.names.has(l.name)),
+      ),
+  );
+}
+
+/** Attributes that give a row component rows to show; one rendered without rows opens nothing. */
+const ROWS: readonly string[] = ["rows", "items", "listItems", "board", "columns"];
+
 const HANDS_OFF = /<PeekHandoff\b/;
 
 const SAMPLE: Readonly<Record<string, string>> = {
@@ -264,7 +514,16 @@ interface Page {
   readonly ownsPeek: boolean;
   /** The declarations the page reaches that read `?peek` (`file#name`), and whether each hands off. */
   readonly readers: readonly { readonly at: string; readonly handsOff: boolean }[];
+  /**
+   * What the page renders that puts a key in `?peek` on its own route: a query change that sets it
+   * (`file#name`), or a row component given rows and left activatable (`file#name <Tag>`).
+   */
+  readonly writes: readonly string[];
+  /** Every declaration the page reaches. */
+  readonly reached: ReadonlySet<Declaration>;
 }
+
+const at = (d: Declaration) => `${relative(atlas, d.file)}#${d.name}`;
 
 const pages: readonly Page[] = (readdirSync(orgApp, { recursive: true }) as string[])
   .filter((f) => f === "page.tsx" || f.endsWith("/page.tsx"))
@@ -274,17 +533,32 @@ const pages: readonly Page[] = (readdirSync(orgApp, { recursive: true }) as stri
     const route = ["[org]", ...page.split("/").filter(Boolean)]
       .map((s) => s.replace(/^\[(.+)\]$/, (_m, p: string) => SAMPLE[p] ?? "sample"))
       .join("/");
-    const all = new Set(
-      [...parse(join(orgApp, f)).declarations.values()].flatMap((d) => [...reach(d)]),
-    );
+    const declarations = [...parse(join(orgApp, f)).declarations.values()];
+    const all = new Set(declarations.flatMap((d) => [...reach(d)]));
+    // lib/ holds the URL parsers and the shell's own decision, so a page counts where it renders.
     const readers = [...all]
-      .filter((d) => !relative(atlas, d.file).startsWith("lib/") && READS_PEEK.test(d.text))
-      .map((d) => ({
-        at: `${relative(atlas, d.file)}#${d.name}`,
-        handsOff: [...reach(d)].some((r) => HANDS_OFF.test(r.text)),
-      }))
+      .filter((d) => !relative(atlas, d.file).startsWith("lib/") && d.reads)
+      .map((d) => ({ at: at(d), handsOff: [...reach(d)].some((r) => HANDS_OFF.test(r.text)) }))
       .sort((a, b) => a.at.localeCompare(b.at));
-    return { page, ownsPeek: pageOwnsPeek(`/${route}`), readers };
+    // A row component's writes count where it is rendered, unless given activatable={false}; lib/
+    // builds links (peekHref) from keys a page hands it.
+    const outside = new Set(declarations.flatMap((d) => [...reach(d, false)]));
+    const writes = [...outside]
+      .flatMap((d) => [
+        ...(d.writes && !d.opener && !relative(atlas, d.file).startsWith("lib/") ? [at(d)] : []),
+        ...d.elements
+          .filter((e) => !e.inert && ROWS.some((a) => e.attributes.has(a)))
+          .filter((e) => !d.opener && rendersOpener(d, e.tag))
+          .map((e) => `${at(d)} <${e.tag}>`),
+      ])
+      .sort();
+    return {
+      page,
+      ownsPeek: pageOwnsPeek(`/${route}`),
+      readers,
+      writes: [...new Set(writes)],
+      reached: all,
+    };
   });
 
 const byPage = new Map(pages.map((p) => [p.page, p]));
@@ -341,5 +615,116 @@ describe("collection pages hand ?peek keys they cannot show to the shell", () =>
   it("reads ?peek only where the shell leaves the key to the page", () => {
     // Elsewhere the shell opens the key itself, over whatever the page renders for it.
     expect(pages.filter((p) => !p.ownsPeek && p.readers.length > 0).map((p) => p.page)).toEqual([]);
+  });
+});
+
+describe("rows on a page with no record panel open nothing", () => {
+  it("puts no row's id in ?peek on a page with no record panel", () => {
+    for (const [page, why] of Object.entries(NO_RECORD_PANEL)) {
+      const found = byPage.get(page);
+      expect(found, page).toBeDefined();
+      // Pass activatable={false} to the page's table, list or board (or FinanceCollection).
+      expect(found?.writes, `${page}: ${why}`).toEqual([]);
+    }
+  });
+
+  it("puts only record keys in ?peek where the shell opens the key itself", () => {
+    const writes = pages.flatMap((p) =>
+      p.ownsPeek ? [] : p.writes.filter((w) => !(w in SHELL_KEYS)).map((w) => `${p.page}: ${w}`),
+    );
+    // Each would put a row's id where the shell's peek opens it at once and finds no record: pass
+    // activatable={false}, or list a writer of record keys in SHELL_KEYS.
+    expect(writes).toEqual([]);
+    const writers = new Set(pages.flatMap((p) => (p.ownsPeek ? [] : p.writes)));
+    for (const writer of Object.keys(SHELL_KEYS)) expect(writers.has(writer), writer).toBe(true);
+  });
+
+  it("gives a finance collection's rows their record panel, or none to open", () => {
+    const missing = new Set<string>();
+    for (const d of new Set(pages.flatMap((p) => [...p.reached]))) {
+      for (const e of d.elements) {
+        const target: Declaration[] = [];
+        lookup(d.file, e.tag, target);
+        if (!target.some((t) => at(t) === "components/finance/collection.tsx#FinanceCollection")) {
+          continue;
+        }
+        // Rows with no `detail` to show must open nothing: FinanceCollection hands their ids over.
+        if (ROWS.some((a) => e.attributes.has(a)) && !e.attributes.has("detail") && !e.inert) {
+          missing.add(at(d));
+        }
+      }
+    }
+    expect([...missing]).toEqual([]);
+  });
+
+  it("sees a row component left activatable and a query change that sets ?peek", () => {
+    // The finance budgets table (a lazy CollectionTable) and the invoices collection open rows.
+    expect(byPage.get("finance/budgets")?.writes).toContain(
+      "components/finance/budgets-view.tsx#BudgetsView <CollectionTable>",
+    );
+    expect(byPage.get("finance/invoices")?.writes).toContain(
+      "components/finance/invoices-view.tsx#InvoicesView <FinanceCollection>",
+    );
+    expect(byPage.get("my-work")?.writes).toEqual([
+      "components/my-work/my-work-view.tsx#MyWorkView",
+    ]);
+  });
+});
+
+describe("what the guard counts as reading and writing ?peek", () => {
+  const use = (source: string) =>
+    peekUse(
+      ts.createSourceFile("sample.tsx", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX),
+    );
+
+  it("reads ?peek by index, getter, helper, URL state or destructuring", () => {
+    for (const source of [
+      'const key = search["peek"];',
+      'const key = params.get("peek");',
+      'const key = param(search, "peek");',
+      "const key = page.query.peek;",
+      "const { peek } = await searchParams;",
+      "const { view, peek: key } = state;",
+      "const { query: { peek } } = page;",
+      "const { peek = null } = collectionState(params);",
+    ]) {
+      expect(use(source).reads, source).toBe(true);
+    }
+  });
+
+  it("does not take a panel prop, a renamed binding or a write for a read", () => {
+    for (const source of [
+      "function Frame({ peek }: { peek: ReactNode }) { return peek; }",
+      "const { peek } = props;",
+      "const { key: peek } = row;",
+      'next.set("peek", key);',
+    ]) {
+      expect(use(source).reads, source).toBe(false);
+    }
+  });
+
+  it("writes ?peek with a query change, not with a props object or a cleared key", () => {
+    for (const source of [
+      "go({ peek: String(row.id) });",
+      'q.set("peek", id);',
+      "go({ create: null, ...(state.id ? { peek: state.id } : {}) }, true);",
+    ]) {
+      expect(use(source).writes, source).toBe(true);
+    }
+    for (const source of [
+      "go({ peek: null, full: null });",
+      "const frame = <Frame {...(panel ? { peek: panel } : {})} />;",
+      "const parsed = { peek: search.peek };",
+    ]) {
+      expect(use(source).writes, source).toBe(false);
+    }
+  });
+
+  it("tells a row component given activatable={false} from one left activatable", () => {
+    const [open, inert] = use(
+      "<><CollectionTable rows={rows} /><CollectionTable rows={rows} activatable={false} /></>",
+    ).elements;
+    expect(open).toMatchObject({ tag: "CollectionTable", inert: false });
+    expect(inert).toMatchObject({ tag: "CollectionTable", inert: true });
   });
 });

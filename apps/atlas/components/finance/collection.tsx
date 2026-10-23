@@ -21,7 +21,8 @@ import { PageHeader, PropertyList, StateChip, TemplateCollection, TemplateRecord
  * the one primary action; filters; the table, list or board body; the record as a peek beside the
  * list or as the full page (`&full=1`), a `?peek` key with no record handed to the shell's peek; and
  * the create or edit sheet. Every view keeps the filters, because they live in the query string
- * (Section 11.15).
+ * (Section 11.15). A page with no record panel (`activatable={false}`, Year-end) has rows that open
+ * nothing, so a click never puts a row's id in `?peek` for the shell to call no record.
  */
 
 export interface RecordDetail {
@@ -55,6 +56,7 @@ export function FinanceCollection({
   above,
   bulk,
   ask,
+  activatable = true,
 }: {
   page: FinancePage;
   /** The page's filters for Ask in plain language (A95). */
@@ -85,6 +87,8 @@ export function FinanceCollection({
   above?: ReactNode;
   /** Bulk edit of the table view's selection (Section 11.7). */
   bulk?: BulkConfig | null;
+  /** False on a page that renders no record panel (no `detail`): its rows open nothing. */
+  activatable?: boolean;
 }) {
   const { query } = page;
   const header = (
@@ -170,11 +174,19 @@ export function FinanceCollection({
       />
     );
   } else if (page.view === "list" && listItems) {
-    body = <CollectionList label={title} items={listItems} />;
+    body = <CollectionList label={title} items={listItems} activatable={activatable} />;
   } else if (page.view === "board" && board) {
-    body = <CollectionBoard columns={board} />;
+    body = <CollectionBoard columns={board} activatable={activatable} />;
   } else {
-    body = <CollectionTable label={title} columns={columns} rows={rows} bulk={bulk ?? null} />;
+    body = (
+      <CollectionTable
+        label={title}
+        columns={columns}
+        rows={rows}
+        bulk={bulk ?? null}
+        activatable={activatable}
+      />
+    );
   }
   return (
     <TemplateCollection

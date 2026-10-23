@@ -11,9 +11,10 @@ import type { PeekHandoff } from "./peek-handoff";
  * key names. Aurora citation links and proposed sitemap nodes build their links with peekHref.
  */
 /**
- * Lists that open no peek of their own (their rows link elsewhere, or open the shell's peek as My
- * Work's do), so the shell opens `?peek`. A list page that reads no `?peek` belongs here
- * (test/peek-handoff.test.ts).
+ * Lists that open no peek of their own (their rows link elsewhere, open nothing, as the chart of
+ * accounts' and the posting-line export's do with `activatable={false}`, or open the shell's peek
+ * with a record key, as My Work's do), so the shell opens `?peek`. A list page that reads no
+ * `?peek` belongs here, and one here puts no row's id in `?peek` (test/peek-handoff.test.ts).
  */
 const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "activity.audit-log",
