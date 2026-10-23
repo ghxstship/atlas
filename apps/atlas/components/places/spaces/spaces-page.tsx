@@ -35,6 +35,7 @@ import {
   SearchBox,
   type Search,
 } from "../kit/parts";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink } from "@/components/ui";
 import { InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
 import { MapView } from "@/components/platform/client/map-view";
@@ -407,7 +408,9 @@ export async function SpacesPage({
           <ArchiveFilterLinks path={path} search={search} current={archive} t={t} />
         </>
       }
-      overlay={overlay}
+      // A key that is no `space-<id>` or `zone-<id>` (a record key from elsewhere) goes to the shell's
+      // peek; a well-formed one with no row says so in the drawer.
+      overlay={collectionPeek(param(search, "peek"), overlay)}
     >
       {body}
     </Collection>

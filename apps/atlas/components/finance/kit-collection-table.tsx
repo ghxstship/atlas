@@ -12,7 +12,9 @@ import { type Row } from "./kit.types";
 
 /**
  * The table view: Enter or a double click on a row opens its peek. With `bulk`, rows can be
- * selected and changed together (Section 11.7); each row names itself in its `label` field.
+ * selected and changed together (Section 11.7); each row names itself in its `label` field. On a
+ * page with no record panel (`activatable={false}`) rows open nothing: no `?peek`, no Open or Open
+ * full page in the row menu, and no hint that Enter opens one.
  */
 export function CollectionTable({
   label,
@@ -20,12 +22,15 @@ export function CollectionTable({
   rows,
   totals,
   bulk,
+  activatable = true,
 }: {
   label: string;
   columns: DataTableColumn[];
   rows: readonly Row[];
   totals?: Record<string, unknown>;
   bulk?: BulkConfig | null;
+  /** False on a page with no record panel for its rows, such as the chart of accounts. */
+  activatable?: boolean;
 }) {
   const go = useQueryNav();
   const t = useFinanceT();
@@ -52,24 +57,29 @@ export function CollectionTable({
         columns={columns}
         rows={[...rows]}
         {...(totals ? { totals, totalsLabel: t("common.total") } : {})}
-        onRowActivate={(row) => go({ peek: String(row["id"]) })}
-        onRowContextMenu={(row, _index, at, cell) => {
-          const id = String(row["id"]);
-          rowMenu.open(
-            {
-              id,
-              label: String(row["label"] ?? id),
-              open: () => go({ peek: id }),
-              href: fullHref(id),
-              bulk: bulkKit,
-            },
-            at,
-            cell,
-          );
-        }}
+        {...(activatable ? { onRowActivate: (row) => go({ peek: String(row["id"]) }) } : {})}
+        {...(activatable || selection
+          ? {
+              onRowContextMenu: (row, _index, at, cell) => {
+                const id = String(row["id"]);
+                rowMenu.open(
+                  {
+                    id,
+                    label: String(row["label"] ?? id),
+                    ...(activatable ? { open: () => go({ peek: id }), href: fullHref(id) } : {}),
+                    bulk: bulkKit,
+                  },
+                  at,
+                  cell,
+                );
+              },
+            }
+          : {})}
         {...(selection ? { selection } : {})}
       />
-      <p className="m-0 text-text-11 text-text-secondary">{t("common.tableHint")}</p>
+      {activatable ? (
+        <p className="m-0 text-text-11 text-text-secondary">{t("common.tableHint")}</p>
+      ) : null}
       {bar}
       {rowMenu.menu}
     </div>
