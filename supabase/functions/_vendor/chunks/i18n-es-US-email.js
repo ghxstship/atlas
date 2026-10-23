@@ -80,6 +80,15 @@ var email_default$1 = {
         subject: "Your account security changed",
         body: "A security setting on your account changed: {change}. If this was not you, reset your password now.",
       },
+      recovery_code_used: {
+        subject: "A recovery code was used on your account",
+        body: "Someone signed in or confirmed an action with one of your recovery codes. {remaining, plural, =0 {You have no codes left: make a new set in Security.} one {You have # code left.} other {You have # codes left.}} If this was not you, change your password and make new codes now.",
+      },
+      session_signed_out: {
+        subject:
+          "{count, plural, one {A session was signed out} other {# sessions were signed out}}",
+        body: "{count, plural, one {A session on your account was signed out} other {# sessions on your account were signed out}} from Settings, Security. If this was not you, change your password and check your sessions.",
+      },
     },
     report: {
       delivered: {
@@ -359,6 +368,14 @@ var email_default = {
       security_changed: {
         subject: "Cambió la seguridad de tu cuenta",
         body: "Cambió un ajuste de seguridad de tu cuenta: {change}. Si no fuiste tú, restablece tu contraseña ahora.",
+      },
+      recovery_code_used: {
+        subject: "Se usó un código de recuperación en tu cuenta",
+        body: "Alguien inició sesión o confirmó una acción con uno de tus códigos de recuperación. {remaining, plural, =0 {No te quedan códigos: crea un juego nuevo en Seguridad.} one {Te queda # código.} other {Te quedan # códigos.}} Si no fuiste tú, cambia tu contraseña y crea códigos nuevos ahora.",
+      },
+      session_signed_out: {
+        subject: "{count, plural, one {Se cerró una sesión} other {Se cerraron # sesiones}}",
+        body: "{count, plural, one {Se cerró una sesión de tu cuenta} other {Se cerraron # sesiones de tu cuenta}} desde Configuración, Seguridad. Si no fuiste tú, cambia tu contraseña y revisa tus sesiones.",
       },
     },
     report: {

@@ -200,6 +200,30 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "account.recovery_code_used",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.recovery_code_used.subject",
+      body: "kinds.account.recovery_code_used.body",
+    },
+  },
+  {
+    kind: "account.session_signed_out",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.session_signed_out.subject",
+      body: "kinds.account.session_signed_out.body",
+    },
+  },
+  {
     kind: "billing.payment_failed",
     category: "account",
     emailTemplate: "notification",
@@ -515,7 +539,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1387_notification_kind_seed.sql"
+"supabase/migrations/1569_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
