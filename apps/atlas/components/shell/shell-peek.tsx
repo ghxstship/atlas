@@ -5,10 +5,11 @@ import type { Route } from "next";
 import NextLink from "next/link";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { withQuery } from "@/components/work/format";
 import { loadShellPeekAction, type ShellPeekResult } from "@/lib/shell/peek-actions";
-import { pageOwnsPeek } from "@/lib/shell/peek";
+import { shellOpensPeek } from "@/lib/shell/peek";
+import { peekHandoffs, serverPeekHandoffs, subscribePeekHandoffs } from "@/lib/shell/peek-handoff";
 import { onDemand, useOnDemand } from "./on-demand";
 
 /** The side peek loads with the first record the shell opens (A24-009). */
@@ -16,14 +17,12 @@ const peek = onDemand(() => import("@/components/work/record-peek"));
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
-/** How long a collection page has to open its own peek before the shell opens the record. */
-const CLAIM_WAIT_MS = 600;
-
 /**
  * The shell's global `?peek={recordKey}` hook: on every Atlas route that does not peek its own rows,
- * the record the key names opens in the side peek, and on a collection page it opens when the page
- * shows no panel of its own for the key; closing it removes the parameter. Aurora citation
- * links and proposed sitemap nodes rely on it (see lib/shell/peek.ts).
+ * the record the key names opens in the side peek; on a collection page it opens only a key the page
+ * hands over because it shows no row for it (PeekHandoff), never on the collection's full record
+ * page (`&full=1`); closing it removes the parameter. Aurora citation links and proposed sitemap
+ * nodes rely on it (see lib/shell/peek.ts).
  */
 export function ShellPeek({ org }: { org: string }) {
   const pathname = usePathname();
@@ -35,22 +34,12 @@ export function ShellPeek({ org }: { org: string }) {
     has: (k: string) => boolean;
   };
   const key = search.get("peek");
-  const owned = pageOwnsPeek(pathname);
-  // On a collection page the page's own peek opens first. When the page shows no panel for the key
-  // (a collection that does not peek, or a key from elsewhere), the shell opens the record instead.
-  const [unclaimed, setUnclaimed] = useState<string | null>(null);
-  const active = key !== null && key.length > 0 && (!owned || unclaimed === `${pathname}?${key}`);
+  // A collection page owns `?peek` however long its own panel takes to load, and says so explicitly
+  // when it cannot show the key; the shell never guesses from what is on screen.
+  const handoffs = useSyncExternalStore(subscribePeekHandoffs, peekHandoffs, serverPeekHandoffs);
+  const active = shellOpensPeek(pathname, search, handoffs);
   const [result, setResult] = useState<{ key: string; value: ShellPeekResult } | null>(null);
   const loaded = useOnDemand(peek, active);
-
-  useEffect(() => {
-    if (!owned || key === null || key.length === 0) return;
-    const marker = `${pathname}?${key}`;
-    const timer = window.setTimeout(() => {
-      if (document.querySelector('[role="dialog"]') === null) setUnclaimed(marker);
-    }, CLAIM_WAIT_MS);
-    return () => window.clearTimeout(timer);
-  }, [owned, key, pathname]);
 
   useEffect(() => {
     if (!active || key === null) return;
