@@ -93,3 +93,13 @@ The A65 requirements trace found Compass missing three things the spec asks for:
 - Owner steps: enable NFC Tag Reading on the App ID before a signed build; decide whether the Field role (or a project
   role) should hold `finance.expense.write` so field staff can file expenses; the Anthropic key on the deployment (as for
   every Aurora feature).
+
+## Amendment (2026-10-23): the Field role files expenses
+
+Owner decision 38 (ADR 0033) settles the owner step above: the Field role holds `finance.expense.write` at assigned
+reach, on the projects its holder is assigned to (migration 1622). The line picker reads `app.expense_budget_lines`, the
+lines of projects where the person records expenses, without quantities or prices, so a field crew member files expenses
+without reading the budget. A receipt photo reads with its expense: `finance.expense.read` on the project, or having
+submitted it. Approval stays with the budget owner: Field holds no `finance.expense.approve`, the submitter never
+approves their own expense, and only the submitter or someone holding `finance.expense.approve` cancels or resubmits
+one.
