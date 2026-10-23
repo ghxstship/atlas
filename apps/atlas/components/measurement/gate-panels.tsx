@@ -26,6 +26,7 @@ import { SimpleTable } from "@/components/finance/figures";
 import type { ProjectContext } from "@/lib/projects/context";
 import { must } from "@/lib/projects/loaders";
 import { getShellSettings } from "@/lib/shell/org-settings";
+import { projectJurisdictionUnits, unitSystemFor } from "@/lib/workforce/units";
 import {
   correctionLabel,
   directionLabel,
@@ -77,17 +78,29 @@ export interface MeasurementData {
 export async function loadMeasurementData(ctx: ProjectContext): Promise<MeasurementData> {
   const db = ctx.org.viewer.db;
   const projectId = ctx.project.id;
-  const [catalog, objectives, summary, figures, corrections, coverage, ticketing, shell] =
-    await Promise.all([
-      listMeasurementCatalog(db),
-      listProjectObjectives(db, projectId),
-      listMeasurementSummary(db, { orgId: ctx.org.org.id, projectId }),
-      listProjectMeasurements(db, projectId),
-      listMeasurementCorrections(db, projectId),
-      listEarnedMediaItems(db, projectId),
-      ticketingAttendance(db, projectId),
-      getShellSettings(db, ctx.org.org.id, null),
-    ]);
+  const [
+    catalog,
+    objectives,
+    summary,
+    figures,
+    corrections,
+    coverage,
+    ticketing,
+    shell,
+    jurisdiction,
+    locale,
+  ] = await Promise.all([
+    listMeasurementCatalog(db),
+    listProjectObjectives(db, projectId),
+    listMeasurementSummary(db, { orgId: ctx.org.org.id, projectId }),
+    listProjectMeasurements(db, projectId),
+    listMeasurementCorrections(db, projectId),
+    listEarnedMediaItems(db, projectId),
+    ticketingAttendance(db, projectId),
+    getShellSettings(db, ctx.org.org.id, null),
+    projectJurisdictionUnits(db, projectId),
+    getLocale(),
+  ]);
   return {
     catalog: must(catalog, "measurement catalog"),
     objectives: must(objectives, "objectives"),
@@ -96,7 +109,8 @@ export async function loadMeasurementData(ctx: ProjectContext): Promise<Measurem
     corrections: must(corrections, "figure corrections"),
     coverage: must(coverage, "earned media"),
     ticketing: must(ticketing, "ticketing attendance"),
-    preference: shell.preferences.units,
+    // locale.units may follow the project's jurisdiction (A97); figures convert in the system it resolves to.
+    preference: unitSystemFor(shell.preferences.units, jurisdiction, locale),
     today: todayIn(ctx.project.timeZone),
   };
 }
