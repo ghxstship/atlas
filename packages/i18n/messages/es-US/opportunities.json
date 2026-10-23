@@ -130,7 +130,7 @@
     "unexpected": "Algo salió mal al guardar. Inténtalo de nuevo en un momento.",
     "refusal": {
       "generic": "La regla {rule} rechazó el cambio. Corrige lo que indica e inténtalo de nuevo.",
-      "requisition_required": "Las publicaciones de Contratista, Equipo técnico y Personal solo se publican desde una requisición Aprobada. Elige una y luego publica.",
+      "requisition_required": "Tu organización fija límites de gasto para las requisiciones, así que las publicaciones de Contratista, Equipo técnico y Personal solo se publican desde una requisición Aprobada. Elige una y luego publica.",
       "requisition_not_approved": "Esa requisición aún no está Aprobada. Apruébala primero según la autoridad de gasto.",
       "requisition_mismatch": "Esa requisición es de otro proyecto o rol. Elige la requisición correspondiente.",
       "pay_range_required": "Esta jurisdicción exige publicar un rango de pago. Añade el pago más bajo y el más alto y luego publica.",
@@ -203,7 +203,7 @@
     "createTitle": "Nueva publicación",
     "create": "Guardar borrador",
     "created": "Borrador guardado. Ábrelo para añadir puestos y luego envíalo a aprobación.",
-    "requisitionHelp": "Obligatoria para publicar en {types}; la autoridad de gasto se aplica a la requisición.",
+    "requisitionHelp": "Obligatoria para publicar en {types} cuando tu organización fija límites de gasto para las requisiciones; la autoridad de gasto se aplica a la requisición.",
     "noRequisition": "Sin requisición",
     "titleHelp": "Un sintagma nominal con mayúsculas iniciales, por ejemplo Aparejadores de Festival.",
     "roleCodeHelp": "El rol canónico de la Biblioteca de Roles, por ejemplo 5000.51.02. Necesario para contratar desde la publicación.",

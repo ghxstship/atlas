@@ -130,7 +130,7 @@
     "unexpected": "Something went wrong saving this. Try again in a moment.",
     "refusal": {
       "generic": "The change was refused by rule {rule}. Fix what it names and try again.",
-      "requisition_required": "Contractor, Crew and Staff postings publish only from an Approved requisition. Choose one, then publish.",
+      "requisition_required": "Your organization sets spend limits for requisitions, so Contractor, Crew and Staff postings publish only from an Approved requisition. Choose one, then publish.",
       "requisition_not_approved": "That requisition is not Approved yet. Get it approved under spend authority first.",
       "requisition_mismatch": "That requisition is for another project or role. Choose the matching requisition.",
       "pay_range_required": "This jurisdiction requires a posted pay range. Add the lowest and highest pay, then publish.",
@@ -203,7 +203,7 @@
     "createTitle": "New posting",
     "create": "Save draft",
     "created": "Draft saved. Open it to add positions, then submit it for approval.",
-    "requisitionHelp": "Required to publish {types} postings; spend authority runs on the requisition.",
+    "requisitionHelp": "Required to publish {types} postings when your organization sets spend limits for requisitions; spend authority runs on the requisition.",
     "noRequisition": "No requisition",
     "titleHelp": "A Title Case noun phrase, for example Festival Riggers.",
     "roleCodeHelp": "The canon role from the Roles Library, for example 5000.51.02. Required to engage from the posting.",
