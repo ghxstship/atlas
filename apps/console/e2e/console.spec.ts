@@ -54,15 +54,13 @@ test("Support searches tenants, opens one and overrides a flag with an expiry", 
   await expectAccessibleInBothThemes(page);
 
   const flag = page.locator('[data-flag="imports.ai_mapping"]');
-  await flag.getByText("Set override").click();
-  await flag.getByLabel("Value").selectOption("on");
-  await flag.getByLabel("Ends after").selectOption("14");
-  await flag
-    .getByLabel("Reason")
-    .first()
-    .fill("Pilot of AI column mapping for the festival import.");
-  await flag.getByRole("button", { name: "Set override" }).click();
-  await expect(flag.getByText("Flag override saved.")).toBeVisible();
+  await flag.locator("summary", { hasText: "Set override" }).click();
+  const set = page.getByRole("form", { name: "Set override imports.ai_mapping" });
+  await set.getByLabel("Value").selectOption("on");
+  await set.getByLabel("Ends after").selectOption("14");
+  await set.getByLabel("Reason").fill("Pilot of AI column mapping for the festival import.");
+  await set.getByRole("button", { name: "Set override" }).click();
+  await expect(set.getByText("Flag override saved.")).toBeVisible();
   await page.reload();
   await expect(
     page.locator('[data-flag="imports.ai_mapping"]').getByText(/Pilot of AI column mapping/),
@@ -82,7 +80,10 @@ test("Support searches tenants, opens one and overrides a flag with an expiry", 
   );
   expect(audit?.n).toBe(1);
   // Clear it again, so the demo tenant stays as seeded.
-  await page.locator('[data-flag="imports.ai_mapping"]').getByText("Set override").click();
+  await page
+    .locator('[data-flag="imports.ai_mapping"]')
+    .locator("summary", { hasText: "Set override" })
+    .click();
   const clear = page.getByRole("form", { name: "Clear override imports.ai_mapping" });
   await clear.getByLabel("Reason").fill("Pilot over.");
   await clear.getByRole("button", { name: "Clear override" }).click();
