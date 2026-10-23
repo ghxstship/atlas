@@ -8,10 +8,12 @@ import type { SqlRow } from "./sql.ts";
  * resolve. The Bible wins on structure (codes, states, labels, hierarchy); values the Bible lacks are
  * imported and marked as from the Playbook; labels that differ only in casing or punctuation follow the
  * Bible; status labels that are not states map to the closest existing state, and no state is added.
- * Bible inconsistencies (RRR-66) are not covered and stay listed as deferred.
+ * Bible inconsistencies (RRR-66) are not covered here: owner decision 39 settles them (decision39.ts), and
+ * a difference neither decision explains stays listed as deferred.
  */
 
-export type Outcome = "bible-kept" | "playbook-imported" | "mapped-to-existing" | "deferred";
+export type Outcome =
+  "bible-kept" | "playbook-imported" | "mapped-to-existing" | "ruled" | "deferred";
 
 export type Basis =
   | "casing-or-punctuation"
@@ -22,6 +24,7 @@ export type Basis =
   | "closest-state"
   | "closest-value"
   | "same-label"
+  | "owner-ruling"
   | "deferred";
 
 export interface Resolution {

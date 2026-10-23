@@ -25,6 +25,8 @@ import {
   resolveValue,
 } from "../decision25.ts";
 import type { Decision25, Resolution } from "../decision25.ts";
+import { RulingUse, ruled, ruledPhase } from "../decision39.ts";
+import type { Decision39 } from "../decision39.ts";
 
 export const TEMPLATE_CODE = "XOS-4.0";
 export const PLAYBOOK_FILE = "XOS-4.0_Production-Playbook_2026.xlsx";
@@ -66,6 +68,8 @@ export interface DecisionUse {
   readonly rows: Set<string>;
   readonly library: Set<string>;
   readonly deferred: Set<string>;
+  /** Owner decision 39 entries a Playbook difference matched. */
+  readonly rulings: RulingUse;
 }
 
 function same(a: string | null, b: string | null): boolean {
@@ -125,12 +129,19 @@ function applyMirrors(
   diff: DiffEntry[],
   findings: Findings,
   d25: Decision25,
+  d39: Decision39,
   sourced: SqlRow[],
   used: Set<string>,
 ): void {
+  // Default phases canon cannot place; a phase an owner ruling resolved is in canon, not here.
   const csvIntake = new Map<string, string | null>();
   for (const i of intake)
-    if (i.source_column === "default_phase") csvIntake.set(i.target_key, i.proposed_value);
+    if (i.source_column === "default_phase" && i.intake_state === "Proposed")
+      csvIntake.set(i.target_key, i.proposed_value);
+  const ruledPhases = new Map<string, string | null>();
+  for (const i of intake)
+    if (i.source_column === "default_phase" && i.intake_state === "Complete")
+      ruledPhases.set(i.target_key, i.proposed_value);
   const ctx: MirrorContext = { tables, csvIntake };
   const balances = new Map<string, Set<string>>();
   for (const spec of MIRRORS) {
@@ -195,7 +206,18 @@ function applyMirrors(
           : (canonRow[map.column] as string | null);
         if (!same(canonValue, value)) {
           const importable = map.read === undefined || map.assign !== undefined;
-          const resolution = resolveValue(map.table, map.column, canonValue, value, importable);
+          // A phase name the Item Catalog shares with the Playbook and an owner ruling resolved.
+          const phaseRuling =
+            map.table === "bridge_element_phase" && value !== null && ruledPhases.get(key) === value
+              ? ruledPhase(d39, value)
+              : undefined;
+          const resolution = phaseRuling
+            ? ruled(
+                d39,
+                canonValue,
+                `"${phaseRuling.label}" means ${phaseRuling.phase_code}, so canon holds ${canonValue ?? ""}; the Playbook's label stays in intake for the round trip.`,
+              )
+            : resolveValue(map.table, map.column, canonValue, value, importable);
           if (resolution?.outcome === "playbook-imported") {
             if (map.assign) map.assign(canonRow, cell, tables);
             else canonRow[map.column] = normalizeTyped(map.column, cell, value ?? "");
@@ -391,6 +413,7 @@ function crossCheckLibrary(
   tables: Map<string, SqlRow[]>,
   diff: DiffEntry[],
   d25: Decision25,
+  d39: Decision39,
   used: DecisionUse,
 ): { domain: string; label: string; resolution: Resolution }[] {
   const mapped: { domain: string; label: string; resolution: Resolution }[] = [];
@@ -398,8 +421,16 @@ function crossCheckLibrary(
   for (const r of tables.get("role") ?? []) {
     const code = r["role_code"];
     if (!roles.has(code)) {
-      const resolution = deferredEntry(d25, "Roles Library", String(code));
-      if (resolution) used.deferred.add(`Roles Library|${String(code)}`);
+      const owned = d39.role_codes.library_only.includes(String(code));
+      if (owned) used.rulings.mark("role_codes", String(code));
+      const resolution = owned
+        ? ruled(
+            d39,
+            String(code),
+            `${d39.role_codes.retired}'s role codes are retired in favor of the ${d39.role_codes.owner} (ruling D12), so ${String(code)} is a canon role code without a tab 27 row.`,
+          )
+        : deferredEntry(d25, "Roles Library", String(code));
+      if (resolution && !owned) used.deferred.add(`Roles Library|${String(code)}`);
       diff.push({
         kind: "library-conflict",
         sheet: "Roles Library",
@@ -583,9 +614,15 @@ export function applyPlaybook(
   const intake = [...canonIntake];
   const diff: DiffEntry[] = [];
   const d25 = rulings.decision_25;
+  const d39 = rulings.decision_39;
   const sourced: SqlRow[] = [];
-  const used: DecisionUse = { rows: new Set(), library: new Set(), deferred: new Set() };
-  applyMirrors(playbook, start, intake, diff, findings, d25, sourced, used.rows);
+  const used: DecisionUse = {
+    rows: new Set(),
+    library: new Set(),
+    deferred: new Set(),
+    rulings: new RulingUse(),
+  };
+  applyMirrors(playbook, start, intake, diff, findings, d25, d39, sourced, used.rows);
   const reference = buildReferenceModel(playbook, rulings, start, findings);
   const tables = reference.tables;
   const report = [...reference.report];
@@ -597,7 +634,7 @@ export function applyPlaybook(
     rulings.retired_enumeration_domains,
     report,
   );
-  const library = crossCheckLibrary(playbook, tables, diff, d25, used);
+  const library = crossCheckLibrary(playbook, tables, diff, d25, d39, used);
   tables.set("playbook_sourced_value", sourced);
   tables.set("label_mapping", labelMappingRows(d25, library));
   registry(playbook, map, tables);

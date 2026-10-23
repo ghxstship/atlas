@@ -89,7 +89,7 @@ export const GOVERNANCE_TABLES: readonly TableSpec[] = [
   {
     name: "intake",
     comment:
-      "Staging for proposed canon additions and changes. Neither source silently wins: a value that disagrees with canon or cannot be resolved waits here as Proposed until the owner decides. A Playbook value an owner decision does not adopt stays here as Canceled, so the Playbook round trip still reproduces the source; an adopted value leaves intake for canon and xpms.playbook_sourced_value.",
+      "Staging for proposed canon additions and changes. Neither source silently wins: a value that disagrees with canon or cannot be resolved waits here as Proposed until the owner decides. A Playbook value an owner decision does not adopt stays here as Canceled, so the Playbook round trip still reproduces the source; an adopted Playbook value leaves intake for canon and xpms.playbook_sourced_value. A Bible or Item Catalog value an owner ruling resolves (decision 39) stays here as Complete, with the canon value it resolved to.",
     primaryKey: ["source_file", "source_sheet", "source_row", "source_column"],
     columns: [
       { name: "source_file", type: "text", comment: "Canon input file the value comes from." },
@@ -109,7 +109,8 @@ export const GOVERNANCE_TABLES: readonly TableSpec[] = [
         name: "canon_value",
         type: "text",
         nullable: true,
-        comment: "Value canon currently holds; NULL when canon is silent.",
+        comment:
+          "Value canon currently holds, or for a Complete row the value the ruling resolved it to; NULL when canon is silent.",
       },
       {
         name: "reason",
@@ -121,7 +122,7 @@ export const GOVERNANCE_TABLES: readonly TableSpec[] = [
         type: "text",
         references: "dim_state(state)",
         comment:
-          "State of the proposal: Proposed until the owner decides; Canceled when a decision keeps canon's value.",
+          "State of the proposal: Proposed until the owner decides; Canceled when a decision keeps canon's value; Complete when an owner ruling resolves it into canon.",
       },
     ],
   },
@@ -190,5 +191,23 @@ export const GOVERNANCE_TABLES: readonly TableSpec[] = [
       { name: "note", type: "text", nullable: true, comment: "Reasoning for the mapping." },
     ],
     checks: ["(basis = 'deferred') = (canon_value is null)"],
+  },
+  {
+    name: "declared_gap",
+    comment:
+      "Declared gaps (doctrine 3.4): a gated phase with no Active element carries one, ratified by the owner (owner decision 39, 2026-10-23, finding A65-019). xpms.v_phase_coverage reports it.",
+    primaryKey: ["phase_code"],
+    columns: [
+      {
+        name: "phase_code",
+        type: "code",
+        references: "dim_phase(phase_code)",
+        comment: "Gated phase the gap is declared for.",
+      },
+      { name: "reason", type: "text", comment: "Why the phase has no Active element." },
+      { name: "decision", type: "code", comment: "Owner decision that declared the gap (D39)." },
+      { name: "ratified_by", type: "text", comment: "Named human ratifier." },
+      { name: "ratified_on", type: "date", comment: "Date the gap was ratified." },
+    ],
   },
 ];

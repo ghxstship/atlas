@@ -8,6 +8,17 @@ import { normalizeCell, normalizeText } from "../normalize.ts";
 import type { SqlRow } from "../sql.ts";
 import type { WorkbookData } from "../workbook.ts";
 import type { Rulings } from "../rulings.ts";
+import {
+  RulingUse,
+  removedColumns,
+  removedFields,
+  ruledPhase,
+  rulingName,
+  staleRulings,
+  unitDimension,
+  unitDimensionRows,
+} from "../decision39.ts";
+import type { Decision39 } from "../decision39.ts";
 import { RowReader, toMinorUnits } from "./values.ts";
 
 /**
@@ -67,11 +78,17 @@ class Builder {
   readonly findings: Findings;
   readonly bible: WorkbookData;
   readonly rulings: Rulings;
+  /** Owner decision 39 entries the import applied, for the stale-entry check. */
+  readonly use = new RulingUse();
 
   constructor(bible: WorkbookData, rulings: Rulings, findings: Findings) {
     this.bible = bible;
     this.rulings = rulings;
     this.findings = findings;
+  }
+
+  get d39(): Decision39 {
+    return this.rulings.decision_39;
   }
 
   tab(n: string): { table: BibleTable; readers: RowReader[] } {
@@ -429,13 +446,23 @@ function buildDimensions(b: Builder): void {
   }
   b.put("dim_identity_axis", axes);
   const silence = b.tab("23");
-  statement("23 Silence Rule", silence.table.headers[0] ?? null, null);
-  for (const r of silence.readers) statement("23 Silence Rule", r.opt("INSTANCES"), null);
-  b.findings.add(
-    "structure",
-    "Bible 23 · Silence Rule",
-    "The tab holds only headings (INSTANCES, four bullet markers, WHY, CEILING, FLOOR, NOTE) with no statement text. The headings are stored in xpms.canon_statement; the rule itself is implemented from Section 3.7.",
-  );
+  const silenceRemoved = removedColumns(b.d39, "23");
+  if (silence.table.headers.every((h) => silenceRemoved.includes(h))) {
+    for (const h of silence.table.headers) b.use.mark("removed_statements", `23 ${h}`);
+    b.findings.add(
+      "ruling",
+      "Bible 23 · Silence Rule",
+      `The tab holds only headings (INSTANCES, four bullet markers, WHY, CEILING, FLOOR, NOTE) with no statement text. ${rulingName(b.d39)} removes its columns, so nothing of it is loaded; the rule itself is implemented from Section 3.7.`,
+    );
+  } else {
+    statement("23 Silence Rule", silence.table.headers[0] ?? null, null);
+    for (const r of silence.readers) statement("23 Silence Rule", r.opt("INSTANCES"), null);
+    b.findings.add(
+      "structure",
+      "Bible 23 · Silence Rule",
+      "The tab holds only headings (INSTANCES, four bullet markers, WHY, CEILING, FLOOR, NOTE) with no statement text. The headings are stored in xpms.canon_statement; the rule itself is implemented from Section 3.7.",
+    );
+  }
   const generated = new Map<string, string>();
   for (const r of b.tab("_generated").readers) {
     const key = r.req("key");
@@ -462,8 +489,24 @@ function buildDimensions(b: Builder): void {
       };
     }),
   );
-  const strays = kinds.table.headers.filter((h) => h.includes("#"));
-  if (strays.length > 0) {
+  const kindColumns = [
+    "record_kind",
+    "definition",
+    "definition_of_done",
+    "record_class",
+    "title_grammar",
+  ];
+  const strays = kinds.table.headers.filter((h) => !kindColumns.includes(h));
+  const kindsRemoved = removedColumns(b.d39, "24");
+  for (const h of strays.filter((x) => kindsRemoved.includes(x)))
+    b.use.mark("removed_statements", `24 ${h}`);
+  if (strays.length > 0 && strays.every((h) => kindsRemoved.includes(h))) {
+    b.findings.add(
+      "ruling",
+      `Bible ${kinds.table.tab}`,
+      `Columns ${strays.join(", ")} repeat headers of tab 25 and do not describe the kind on their row. ${rulingName(b.d39)} removes them, so they are not loaded.`,
+    );
+  } else if (strays.length > 0) {
     b.findings.add(
       "structure",
       `Bible ${kinds.table.tab}`,
@@ -488,11 +531,22 @@ function buildDimensions(b: Builder): void {
     );
   if (!isPhaseList)
     b.problems.push("Bible 25 gate, phase_code and phase columns no longer match the known layout");
-  b.findings.add(
-    "structure",
-    `Bible ${subtypes.table.tab}`,
-    `Columns gate, phase_code and phase hold the nine phases on the first ${stated.length} rows only; they repeat tab 05 and do not describe the subtype on their row, so subtypes carry no phase. Owner decision: remove the columns or state a phase per subtype.`,
-  );
+  const subtypeRemoved = removedColumns(b.d39, "25");
+  const phaseColumns = ["gate", "phase_code", "phase"];
+  if (phaseColumns.every((c) => subtypeRemoved.includes(c))) {
+    for (const c of phaseColumns) b.use.mark("removed_statements", `25 ${c}`);
+    b.findings.add(
+      "ruling",
+      `Bible ${subtypes.table.tab}`,
+      `Columns gate, phase_code and phase hold the nine phases on the first ${stated.length} rows only; they repeat tab 05 and do not describe the subtype on their row. ${rulingName(b.d39)} removes them, so subtypes carry no phase.`,
+    );
+  } else {
+    b.findings.add(
+      "structure",
+      `Bible ${subtypes.table.tab}`,
+      `Columns gate, phase_code and phase hold the nine phases on the first ${stated.length} rows only; they repeat tab 05 and do not describe the subtype on their row, so subtypes carry no phase. Owner decision: remove the columns or state a phase per subtype.`,
+    );
+  }
   b.put(
     "dim_record_subtype",
     subtypes.readers.map((r, i) => ({
@@ -520,15 +574,26 @@ function buildDimensions(b: Builder): void {
       applies_to: r.req("applies_to"),
     })),
   );
+  const relabeled: string[] = [];
   b.put(
     "dim_role",
     b.tab("27").readers.map((r) => {
       const dept = r.req("dept_code");
       const home = lookup(depts, "dept_code", dept, "department");
-      b.expect(
-        home === r.req("department"),
-        `${r.location("department")}: role ${r.req("role_code")} names department "${r.req("department")}" for ${dept}; tab 01 names it "${home ?? ""}". The code is stored; the label is not.`,
+      const code = r.req("role_code");
+      const stated = r.req("department");
+      const ruling = b.d39.role_department_labels.find(
+        (l) => l.dept_code === dept && l.stated === stated && l.roles.includes(code),
       );
+      if (home !== stated && ruling !== undefined && ruling.label === home) {
+        b.use.mark("role_department_labels", code);
+        relabeled.push(code);
+      } else {
+        b.expect(
+          home === stated,
+          `${r.location("department")}: role ${code} names department "${stated}" for ${dept}; tab 01 names it "${home ?? ""}". The code is stored; the label is not.`,
+        );
+      }
       return {
         role_code: r.req("role_code"),
         role: r.req("role"),
@@ -539,6 +604,21 @@ function buildDimensions(b: Builder): void {
         job_title: r.opt("job_title"),
       };
     }),
+  );
+  for (const l of b.d39.role_department_labels) {
+    const codes = relabeled.filter((c) => l.roles.includes(c));
+    if (codes.length === 0) continue;
+    b.findings.add(
+      "ruling",
+      "Bible 27 · Roles department",
+      `Roles ${codes.join(", ")} name department "${l.stated}" for ${l.dept_code}, which tab 01 names "${l.label}". ${rulingName(b.d39)} relabels them "${l.label}"; the code is stored and the label comes from tab 01.`,
+    );
+  }
+  // Role codes belong to the Roles Library (ruling D12); decision 39 retires tab 27 as their authority.
+  b.findings.add(
+    "ruling",
+    "Bible 27 · Roles role_code",
+    `${rulingName(b.d39)} retires ${b.d39.role_codes.retired}'s role codes in favor of the ${b.d39.role_codes.owner} (ruling D12): xpms.role owns role codes and job titles. xpms.dim_role keeps tab 27's rows for their staffing ratios and kit bases.`,
   );
   b.put(
     "dim_counterparty_type",
@@ -573,11 +653,26 @@ function buildDimensions(b: Builder): void {
       rule: r.req("rule"),
     })),
   );
-  const budget = b.tab("34").readers.map((r, i) => ({
-    field: r.req("field"),
-    ordinal: String(i + 1),
-    rule: r.req("rule"),
-  }));
+  const budgetRemoved = removedFields(b.d39, "34");
+  const budget: { field: string; ordinal: string; rule: string }[] = [];
+  const emptyRules: string[] = [];
+  b.tab("34").readers.forEach((r, i) => {
+    const field = r.req("field");
+    const cell = r.cell("rule");
+    if (budgetRemoved.includes(field) && cell.kind === "empty" && cell.formula !== undefined) {
+      b.use.mark("removed_statements", `34 ${field}`);
+      emptyRules.push(field);
+      return;
+    }
+    budget.push({ field, ordinal: String(i + 1), rule: r.req("rule") });
+  });
+  if (emptyRules.length > 0) {
+    b.findings.add(
+      "ruling",
+      "Bible 34 · Budget Template Spec rule",
+      `The rules of ${emptyRules.join(", ")} are formulas saved with no value. ${rulingName(b.d39)} removes these statements, so the rows are not loaded.`,
+    );
+  }
   b.put("dim_budget_template_rule", budget);
   const columns = budget.find((x) => x.field === "Columns")?.rule ?? "";
   const grades = columns
@@ -837,6 +932,8 @@ function buildCatalog(b: Builder, items: CsvTable, generatedAt: string): void {
   const phaseBridge: SqlRow[] = [];
   const provenance: SqlRow[] = [];
   const units: string[] = [];
+  const relabeled: string[] = [];
+  const explicitAccounts: string[] = [];
   for (const rec of items.records) {
     const v = rec.values;
     const id = v["item_id"] ?? "";
@@ -871,10 +968,19 @@ function buildCatalog(b: Builder, items: CsvTable, generatedAt: string): void {
     const deptLabel = `${dept} ${lookup(depts, "dept_code", dept, "department") ?? ""}`;
     const discLabel = `${disc} ${lookup(discs, "disc_code", disc, "discipline") ?? ""}`;
     const catLabel = lookup(cats, "cat_urid", urid, "category");
-    b.expect(
-      text("department") === deptLabel,
-      `${where}: department "${text("department") ?? ""}" disagrees with URID ${urid}, whose department is "${deptLabel}"`,
+    const statedDept = text("department");
+    const deptRuling = b.d39.item_department_labels.find(
+      (l) => l.stated === statedDept && l.label === deptLabel && l.items.includes(id),
     );
+    if (statedDept !== deptLabel && deptRuling !== undefined) {
+      b.use.mark("item_department_labels", id);
+      relabeled.push(id);
+    } else {
+      b.expect(
+        statedDept === deptLabel,
+        `${where}: department "${statedDept ?? ""}" disagrees with URID ${urid}, whose department is "${deptLabel}"`,
+      );
+    }
     b.expect(
       text("discipline") === discLabel,
       `${where}: discipline "${text("discipline") ?? ""}" disagrees with URID ${urid}, whose discipline is "${discLabel}"`,
@@ -895,6 +1001,15 @@ function buildCatalog(b: Builder, items: CsvTable, generatedAt: string): void {
         lookup(accounts, "account_code", account, "account_type") === text("account_type"),
       `${where}: account_type disagrees with tab 29`,
     );
+    // Ruling D13 as decision 39 reads it: an item may carry an explicit GL default that its class does not
+    // give. A balance-sheet item needs one, because no class derives a balance-sheet account.
+    const accountType = text("account_type");
+    const classAccount = accounts.find(
+      (a) =>
+        a["account_type"] === accountType &&
+        String(a["account_code"]).slice(1, 2) === dept.slice(0, 1),
+    )?.["account_code"];
+    if (account !== null && account !== classAccount) explicitAccounts.push(`${id} ${account}`);
     const unit = text("unit_basis") ?? "";
     if (!units.includes(unit)) units.push(unit);
 
@@ -931,13 +1046,30 @@ function buildCatalog(b: Builder, items: CsvTable, generatedAt: string): void {
 
     const phaseName = text("default_phase");
     const phase = phases.find((p) => p["phase"] === phaseName);
+    const phaseRuling = ruledPhase(b.d39, phaseName);
     if (phase)
       phaseBridge.push({
         element_id: id,
         phase_code: phase["phase_code"] as string,
         is_default: true,
       });
-    else {
+    else if (phaseRuling) {
+      b.use.mark("phase_labels", phaseRuling.label);
+      phaseBridge.push({ element_id: id, phase_code: phaseRuling.phase_code, is_default: true });
+      b.intake.push({
+        source_file: ITEM_CSV,
+        source_sheet: "XOS_4.0_Item_Catalog",
+        source_row: String(rec.line),
+        source_column: "default_phase",
+        target_table: "bridge_element_phase",
+        target_key: id,
+        target_column: "phase_code",
+        proposed_value: phaseName,
+        canon_value: phaseRuling.phase_code,
+        reason: ruledPhaseReason(b.d39, phaseRuling, "Default phase"),
+        intake_state: "Complete",
+      });
+    } else {
       b.intake.push({
         source_file: ITEM_CSV,
         source_sheet: "XOS_4.0_Item_Catalog",
@@ -965,15 +1097,41 @@ function buildCatalog(b: Builder, items: CsvTable, generatedAt: string): void {
     "items name default phase",
     "xpms.bridge_element_phase",
   );
-  b.put("dim_unit_dimension", []);
+  for (const l of b.d39.item_department_labels) {
+    const ids = relabeled.filter((i) => l.items.includes(i));
+    if (ids.length === 0) continue;
+    b.findings.add(
+      "ruling",
+      "Item Catalog department",
+      `${ids.length} items labeled "${l.stated}" carry URIDs of department "${l.label}" (${ids[0] ?? ""} to ${ids[ids.length - 1] ?? ""}). ${rulingName(b.d39)} keeps their codes, as the Bible wins on codes, and labels them "${l.label}".`,
+    );
+  }
+  if (explicitAccounts.length > 0) {
+    b.findings.add(
+      "ruling",
+      "Item Catalog purchase_account and sales_account",
+      `${explicitAccounts.length} items carry an explicit GL account their class does not give (${explicitAccounts.join("; ")}). ${rulingName(b.d39)} reads ruling D13 as allowing explicit item-level and counterparty GL defaults; postings use the item's account first (private.gl_account_for_line).`,
+    );
+  }
+  b.put("dim_unit_dimension", unitDimensionRows(b.d39));
+  const ratifiedUnits = b.d39.unit_dimensions.flatMap((d) => d.units);
+  const allUnits = [...units, ...ratifiedUnits.filter((u) => !units.includes(u))];
+  for (const u of ratifiedUnits) b.use.mark("unit_dimensions", u);
   b.put(
     "dim_unit_alias",
-    units.map((u) => ({ alias: u, unit_code: u, dimension_code: null })),
+    allUnits.map((u) => ({ alias: u, unit_code: u, dimension_code: unitDimension(b.d39, u) })),
+  );
+  const added = ratifiedUnits.filter((u) => !units.includes(u));
+  const undimensioned = allUnits.filter((u) => unitDimension(b.d39, u) === null);
+  b.findings.add(
+    "ruling",
+    "Units",
+    `${rulingName(b.d39)} ratifies the ${b.d39.unit_dimensions.map((d) => `${d.name.toLowerCase()} dimension (${d.units.join(", ")})`).join(" and ")}${added.length > 0 ? `, adding ${added.join(" and ")} as canon units` : ""}.`,
   );
   b.findings.add(
     "unresolved-reference",
     "Units",
-    `Canon states ${units.length} unit bases (${units.join(", ")}) and no unit dimensions. xpms.dim_unit_alias holds each basis as its own unit with no dimension, so arithmetic across units refuses until the owner ratifies dimensions.`,
+    `Canon states ${units.length} unit bases (${units.join(", ")}). ${undimensioned.length} of the units in xpms.dim_unit_alias (${undimensioned.join(", ")}) have no ratified dimension, so arithmetic across them refuses until the owner ratifies one.`,
   );
   b.put("elements", elements);
   b.put("element_price_bands", bands);
@@ -1018,17 +1176,36 @@ function reportUnresolved(
   what: string,
   where: string,
 ): void {
-  const byValue = new Map<string, number>();
-  for (const i of b.intake.filter((x) => x.source_column === column)) {
-    byValue.set(i.proposed_value ?? "", (byValue.get(i.proposed_value ?? "") ?? 0) + 1);
-  }
-  for (const [value, n] of byValue) {
+  const count = (state: string) => {
+    const byValue = new Map<string, number>();
+    for (const i of b.intake.filter((x) => x.source_column === column && x.intake_state === state))
+      byValue.set(i.proposed_value ?? "", (byValue.get(i.proposed_value ?? "") ?? 0) + 1);
+    return byValue;
+  };
+  for (const [value, n] of count("Proposed")) {
     b.findings.add(
       "unresolved-reference",
       location,
       `${n} ${what} "${value}", which is not one of the nine gated phases. They carry no phase in ${where} and wait in xpms.intake for an owner decision.`,
     );
   }
+  for (const [value, n] of count("Complete")) {
+    const ruling = ruledPhase(b.d39, value);
+    b.findings.add(
+      "ruling",
+      location,
+      `${n} ${what} "${value}", which is not one of the nine gated phases. ${rulingName(b.d39)} reads "${value}" as ${ruling?.phase_code ?? ""}, so they carry that phase in ${where}; their intake rows are Complete.`,
+    );
+  }
+}
+
+/** Why an intake row a phase ruling settled is Complete. */
+function ruledPhaseReason(
+  d39: Decision39,
+  ruling: Decision39["phase_labels"][number],
+  what: string,
+): string {
+  return `${what} "${ruling.label}" is not one of the nine gated phases in Bible tab 05. ${rulingName(d39)}: "${ruling.label}" means ${ruling.phase_code}. ${ruling.note}`;
 }
 
 function buildTouchpoints(b: Builder): void {
@@ -1050,9 +1227,27 @@ function buildTouchpoints(b: Builder): void {
         `${r.location("tier")}: "${tierText}" is not a tab 07 tier`,
       );
       const phaseName = r.req("lifecycle_gate");
-      const phase = phases.find((p) => p["phase"] === phaseName);
+      const phaseRuling = ruledPhase(b.d39, phaseName);
+      const phase =
+        phases.find((p) => p["phase"] === phaseName) ??
+        (phaseRuling ? phases.find((p) => p["phase_code"] === phaseRuling.phase_code) : undefined);
       const id = r.req("touchpoint_id");
-      if (!phase) {
+      if (phaseRuling && phase) {
+        b.use.mark("phase_labels", phaseRuling.label);
+        b.intake.push({
+          source_file: BIBLE,
+          source_sheet: "10 · Touchpoints",
+          source_row: String(r.rowNumber),
+          source_column: "lifecycle_gate",
+          target_table: "dim_touchpoint",
+          target_key: id,
+          target_column: "lifecycle_phase_code",
+          proposed_value: phaseName,
+          canon_value: phaseRuling.phase_code,
+          reason: ruledPhaseReason(b.d39, phaseRuling, "Lifecycle gate"),
+          intake_state: "Complete",
+        });
+      } else if (!phase) {
         b.intake.push({
           source_file: BIBLE,
           source_sheet: "10 · Touchpoints",
@@ -1200,6 +1395,47 @@ function systemRows(b: Builder): void {
   ]);
 }
 
+/**
+ * Doctrine 3.4: every gated phase carries an Active element or a declared gap. Decision 39 declares the
+ * gaps; a phase with neither stops the import, and a declared gap on a phase that has an Active element is
+ * a stale entry.
+ */
+function buildDeclaredGaps(b: Builder, ratifiedOn: string): void {
+  const elements = b.rows("elements");
+  const active = new Set(
+    b
+      .rows("bridge_element_phase")
+      .filter(
+        (bp) =>
+          elements.find((e) => e["element_id"] === bp["element_id"])?.["lifecycle_state"] ===
+          "Active",
+      )
+      .map((bp) => bp["phase_code"]),
+  );
+  const gaps = b.d39.declared_gaps;
+  const rows: SqlRow[] = [];
+  for (const p of b.rows("dim_phase")) {
+    const code = p["phase_code"] as string;
+    const gap = gaps.phases.find((g) => g.phase_code === code);
+    if (active.has(code)) continue;
+    if (!gap) {
+      b.problems.push(
+        `Phase ${code} has no Active element and no declared gap (doctrine 3.4); decision 39 declares none for it`,
+      );
+      continue;
+    }
+    b.use.mark("declared_gaps", code);
+    rows.push({
+      phase_code: code,
+      reason: gap.reason,
+      decision: b.d39.decision,
+      ratified_by: gaps.ratified_by,
+      ratified_on: ratifiedOn,
+    });
+  }
+  b.put("declared_gap", rows);
+}
+
 export function buildCanonModel(inputs: CanonInputs, findings: Findings): CanonModel {
   const b = new Builder(inputs.bible, inputs.rulings, findings);
   buildDimensions(b);
@@ -1214,6 +1450,9 @@ export function buildCanonModel(inputs: CanonInputs, findings: Findings): CanonM
   const generatedAt = generated.get("generated_at");
   if (generatedAt === undefined) throw new Error("Bible _generated tab states no generated_at");
   buildCatalog(b, inputs.itemCatalog, generatedAt);
+  buildDeclaredGaps(b, b.d39.decided_on);
+  // Role codes are checked against the Roles Library with the Playbook (crossCheckLibrary).
+  b.problems.push(...staleRulings(b.d39, b.use, ["role_codes"]));
   systemRows(b);
   b.put("version", [
     {
