@@ -8,6 +8,11 @@ set search_path = extensions, public;
 
 select plan(15);
 
+-- The forms sit behind the compliance.us_forms flag, off by default (1593, ADR 0033 decision 54); org_a has it on here.
+select pg_temp.as_platform();
+insert into app.feature_flag_overrides (org_id, flag_key, enabled, reason)
+values (pg_temp.id('org_a'), 'compliance.us_forms', true, 'Test: the forms are on for org_a.');
+
 create function pg_temp.as_user_aal2(p_key text) returns void
 language plpgsql as $$
 begin
