@@ -344,6 +344,9 @@ test("browser notifications subscribe with a fake push subscription and turn off
     PushManager.prototype.getSubscription = async function getSubscription() {
       return current;
     };
+    // Headless Chromium answers "denied" whatever the context grants; the fake browser has said yes.
+    Object.defineProperty(Notification, "permission", { get: () => "granted", configurable: true });
+    Notification.requestPermission = async () => "granted";
   });
   const { slug, email } = await freshOrg(page, "push");
   await page.goto(`/${slug}/me/notifications`);
