@@ -2,8 +2,9 @@
 -- app.claim_notification_deliveries keep 1461's marketplace match and personal quiet hours and get back 1393's actor and
 -- bypass window, which now also caps the push of someone with no membership. The 1393 and 1461 suites run against
 -- these definitions too: this one covers what only the join does. ivy works with org_a through an engagement and has
--- no membership; her quiet hours are set relative to now in UTC, so the suite never depends on the clock. Last, the SMS
--- summary claim settles and claims only a held text's live queue row, never the one a release retired.
+-- no membership; her quiet hours are set relative to now in UTC. Last, the SMS summary claim settles and claims only a
+-- held text's live queue row, never the one a release retired; Dave's zone is pinned with an Etc/GMT offset where it is
+-- now day. Neither part depends on the clock.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -62,8 +63,18 @@ select is((pg_temp.push(:'v_claimed')).message_status::text || ' ' || (pg_temp.p
   'Deferred ' || (now() + interval '30 minutes')::text, 'it waits again, only until the window opens');
 
 -- 4. The SMS summary touches only a held text's live queue row ---------------------------------------------------------
--- Dave texts by day; each held text below has a row a release retired (as 1393's release leaves it: deleted, not sent)
--- and a live row due now, as when a released text is held again.
+-- Each held text below has a row a release retired (as 1393's release leaves it: deleted, not sent) and a live row due
+-- now, as when a released text is held again. Dave's zone is one where it is now day, outside the 21:00 to 08:00 text
+-- window, so the summary claims his texts instead of holding them again (as 1393's suite pins it). Left to the org's
+-- project zone, America/New_York, the claim would hold them again whenever the suite ran at night there.
+create function pg_temp.day_zone() returns text
+language sql stable as $$
+  select z.name from pg_catalog.pg_timezone_names z
+  where z.name ~ '^Etc/GMT[+-][0-9]+$' and (now() at time zone z.name)::time between time '10:00' and time '16:00'
+  order by z.name limit 1
+$$;
+
+insert into app.notification_settings (membership_id, time_zone) values (pg_temp.id('dave@org_a'), pg_temp.day_zone());
 update auth.users set phone = '15555550122', phone_confirmed_at = now() where id = pg_temp.id('dave_user');
 insert into app.sms_consent_events (org_id, person_id, phone_e164, action, source)
 values (pg_temp.id('org_a'), pg_temp.id('dave'), '+15555550122', 'Opt In', 'Web');
@@ -90,16 +101,23 @@ begin
 end;
 $$;
 
-create function pg_temp.retired(p_delivery uuid) returns text
+-- Both of a delivery's queue rows, the live one first: settled (sent_at set), claimed (due again in 10 minutes), or as
+-- held_twice left it.
+create function pg_temp.rows(p_delivery uuid) returns text
 language sql as $$
-  select coalesce(q.sent_at::text, 'unsent') || ' ' || (q.due_at = now() - interval '2 hours')::text from app.sms_summary_queue q
-  where q.notification_delivery_id = p_delivery and q.deleted_at is not null
+  select string_agg(case when q.deleted_at is null then 'live ' else 'retired ' end
+    || case when q.sent_at is not null then 'settled'
+            when q.due_at = now() + interval '10 minutes' then 'claimed'
+            when q.due_at in (now() - interval '2 hours', now() - interval '1 minute') then 'untouched'
+            else 'due ' || q.due_at::text end, ', ' order by q.deleted_at nulls first)
+  from app.sms_summary_queue q where q.notification_delivery_id = p_delivery
 $$;
 
 select pg_temp.held_twice('approval.requested') as v_claimed_text \gset
 select is((select held_count from app.claim_sms_summaries() s where s.recipient_person_id = pg_temp.id('dave')), 1,
   'the summary claims the held text once');
-select is(pg_temp.retired(:'v_claimed_text'), 'unsent true', 'claiming it leaves the retired row as it was');
+select is(pg_temp.rows(:'v_claimed_text'), 'live claimed, retired untouched',
+  'claiming it moves the live row on and leaves the retired row as it was');
 
 -- A category-scoped unsubscribe drops the held text; the account text keeps the summary going.
 insert into app.suppression_list (org_id, channel, address, reason, category_code)
@@ -111,7 +129,8 @@ select app.claim_sms_summaries();
 update auth.users set phone_confirmed_at = null where id = pg_temp.id('dave_user');
 select pg_temp.held_twice('account.security_changed') as v_suppressed_text \gset
 select app.claim_sms_summaries();
-select is(pg_temp.retired(:'v_dropped_text') || ', ' || pg_temp.retired(:'v_suppressed_text'), 'unsent true, unsent true',
+select is(pg_temp.rows(:'v_dropped_text') || '; ' || pg_temp.rows(:'v_suppressed_text'),
+  'live settled, retired untouched; live settled, retired untouched',
   'dropping a category''s text or suppressing the summary settles the live row only');
 
 select * from finish();
