@@ -287,6 +287,10 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
       if (!next) {
         // Signed out here or remotely from Atlas (the refresh token was revoked): wipe the local store (Section 13).
         void storeRef.current?.wipe();
+        // The resolved values are the person's own (me.haptics, their language) and their org's rules: the next
+        // person to sign in on this device starts from the defaults, never from them.
+        setResolvedSettings(NO_VALUES);
+        void SecureStore.deleteItemAsync(RESOLVED_KEY);
         setPhase({ kind: "signed-out" });
       } else if (engine) void engine.authRestored();
     });

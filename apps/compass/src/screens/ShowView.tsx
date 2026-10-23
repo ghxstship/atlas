@@ -17,6 +17,7 @@ import {
   showState,
   type Cue,
 } from "../domain/show";
+import { hapticsOn } from "../domain/settings";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import {
   announce,
@@ -41,7 +42,8 @@ const LIVE_PULL_MS = 10_000;
 
 export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactElement {
   const { t } = useTranslation();
-  const { projectId, enqueue, settings, client, refreshTables, network } = useCompass();
+  const { projectId, enqueue, settings, orgSettings, client, refreshTables, network } =
+    useCompass();
   // Journey 15: followers see cues called in Atlas as they happen. A realtime change on the project's
   // cues pulls them at once; a 10 s pull covers externals (whose cues come through an api_external view)
   // and a dropped channel. On the simulator a called cue stayed "next" until a manual refresh.
@@ -68,13 +70,15 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
   const { rows: cues } = useRows<CueRow>("cues", (c) => c.project_id === projectId);
   const state = showState(cues, now);
   const previous = useRef<number | null>(null);
+  // The pre-cue haptic follows the person's me.haptics once resolved, as every Compass haptic does.
+  const haptics = hapticsOn(settings.haptics, orgSettings);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 500);
     return () => clearInterval(timer);
   }, []);
   useEffect(() => {
-    if (settings.haptics && preCueHapticDue(previous.current, state.msToNext)) {
+    if (haptics && preCueHapticDue(previous.current, state.msToNext)) {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     }
     // The countdown is spoken at set points, never on every tick (A23-009).
@@ -87,7 +91,7 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
       );
     }
     previous.current = state.msToNext;
-  }, [state.msToNext, state.next, settings.haptics, t]);
+  }, [state.msToNext, state.next, haptics, t]);
   useEffect(() => {
     if (!showMode) return undefined;
     void activateKeepAwakeAsync(KEEP_AWAKE_TAG);

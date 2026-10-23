@@ -13,8 +13,7 @@ import type {
   TextProps,
 } from "@xos/ui-native";
 import { useReducedMotion } from "@xos/ui-native";
-import { useTheme, type XosNativeTheme } from "@xos/ui-native/theme";
-import * as Haptics from "expo-haptics";
+import { useHaptic, useTheme, type XosNativeTheme } from "@xos/ui-native/theme";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import {
   ActivityIndicator,
@@ -138,6 +137,8 @@ export function Button({
   testID,
 }: ButtonProps): ReactElement {
   const theme = useTheme();
+  // Plays only while the person keeps haptics on: Compass gives ThemeProvider a handler then (me.haptics).
+  const haptic = useHaptic();
   const progress = useRef(new Animated.Value(0)).current;
   const [holding, setHolding] = useState(false);
   // Reduce Motion (A23-008): the hold counts down whole seconds instead of animating a fill.
@@ -164,7 +165,7 @@ export function Button({
   }[variant];
   const minHeight = size === "lg" ? theme.space["48"] + theme.space["8"] : theme.density.touchMin;
   const fire = () => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptic("impact");
     onPress?.();
   };
   const startHold = () => {
@@ -181,7 +182,7 @@ export function Button({
         }
         stopTick();
         setHolding(false);
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        haptic("warning");
         onPress?.();
       }, 1000);
       return;
@@ -194,7 +195,7 @@ export function Button({
       setHolding(false);
       progress.setValue(0);
       if (finished) {
-        void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+        haptic("warning");
         onPress?.();
       }
     });
