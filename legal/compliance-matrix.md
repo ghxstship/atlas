@@ -12,7 +12,7 @@ audience: Internal
 
 This matrix maps every row of Section 14 (Compliance) of the XOS 4.0 build specification to the artifact that implements it, the owning agent, the CI gate or test from Section 18 that will prove it, and its current state.
 
-**States.** _Drafted_ means the governing artifact is complete as a draft in `legal/` and the row needs no product implementation beyond publishing at /legal. _Planned (Wave n)_ means the row depends on product or pipeline work that lands in wave n; any legal artifact it relies on is already drafted and named in the artifact column. _Deferred_ means an owner decision moved the row, or the part of it the state names, past launch; the state names the decision, and no public legal text promises what it defers, except as a term of a contract not yet signed: the Terms and the DPA still let an Enterprise order choose the EU region (row 14.3-18). Gate numbers refer to the numbered checks in Section 18. "Journey n" refers to Section 20.2. "Acceptance n" refers to Section 20.1.
+**States.** _Drafted_ means the governing artifact is complete as a draft in `legal/` and the row needs no product implementation beyond publishing at /legal. _Planned (Wave n)_ means the row depends on product or pipeline work that lands in wave n; any legal artifact it relies on is already drafted and named in the artifact column. _Planned before the App Store submission_ means an owner decision schedules the row's product work after the web launch and before Compass is submitted for public App Store review; TestFlight and Play internal testing do not wait for it, and the state names the decision. _Deferred_ means an owner decision moved the row, or the part of it the state names, past launch; the state names the decision, and no public legal text promises what it defers, except as a term of a contract not yet signed: the Terms and the DPA still let an Enterprise order choose the EU region (row 14.3-18). Gate numbers refer to the numbered checks in Section 18. "Journey n" refers to Section 20.2. "Acceptance n" refers to Section 20.1.
 
 A21 updates this matrix at every wave exit. A row moves to _Verified_ only when its gate or test passes in CI and in staging.
 
@@ -165,13 +165,15 @@ A21 updates this matrix at every wave exit. A row moves to _Verified_ only when 
 
 ## Summary
 
-| State            | Rows |
-| ---------------- | ---- |
-| Drafted          | 36   |
-| Planned (Wave 2) | 34   |
-| Planned (Wave 3) | 16   |
-| Planned (Wave 4) | 4    |
-| Planned (Wave 5) | 3    |
-| Planned (Wave 6) | 6    |
-| Planned (Wave 7) | 3    |
-| Total            | 102  |
+| State                                   | Rows |
+| --------------------------------------- | ---- |
+| Drafted                                 | 36   |
+| Planned (Wave 2)                        | 33   |
+| Planned (Wave 3)                        | 10   |
+| Planned (Wave 4)                        | 4    |
+| Planned (Wave 5)                        | 1    |
+| Planned (Wave 6)                        | 6    |
+| Planned (Wave 7)                        | 3    |
+| Planned before the App Store submission | 1    |
+| Deferred                                | 8    |
+| Total                                   | 102  |

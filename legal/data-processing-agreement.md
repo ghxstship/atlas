@@ -165,7 +165,7 @@ Each party's liability under this DPA is subject to the limits in the Agreement,
 6. **Logging and monitoring.** Append-only audit ledger retained for 7 years, with personal data in its text redacted after 90 days; error monitoring with data scrubbing; alerting to an on-call rotation.
 7. **Application security.** OWASP ASVS 5.0 Level 2 as the verification standard; static analysis, dependency scanning, secret scanning and dynamic scanning in CI; strict Content Security Policy; SSRF protection; virus scanning of uploads.
 8. **Availability and resilience.** Point-in-time recovery with at least 7 days of history; weekly logical backups to separate storage; 1 hour recovery point objective and 4 hour recovery time objective, verified by restore drills; 99.9 percent monthly availability target.
-9. **Change management.** Peer-reviewed pull requests; signed commits on the main branch; progressive rollout with automatic rollback; feature flags with kill switches.
+9. **Change management.** Peer-reviewed pull requests; signed commits on the main branch; staged rollout of Atlas that rolls back when errors regress; instant rollback of every web application to its previous deployment; feature flags with kill switches.
 10. **Incident response.** A documented incident response plan with severity levels, roles, customer notice within 48 hours of awareness of a Personal Data Breach, and post-incident review.
 11. **Vendor management.** Security and privacy review of each Subprocessor before onboarding and annually after, with written data protection terms.
 12. **Personnel.** Confidentiality undertakings, background screening where lawful, security and privacy training at hire and annually, and prompt access removal at departure.

@@ -62,7 +62,7 @@ than the database allows.
 4. API key to the api-token JWT
 5. Service role and Edge Functions
 6. Webhooks: Stripe, inbound email and kiosk punch
-7. Compass offline sync: `apply_sync_mutation` and PowerSync
+7. Compass offline sync: `apply_sync_mutation` and the REST downloader
 8. Integrations: Vault credentials, SCIM, SSO just-in-time joins and OAuth grants
 9. Aurora AI: prompt injection, tool scopes and data exfiltration
 10. Storage buckets
@@ -211,16 +211,20 @@ Unsubscribe by GET is honored for one-click links; mail scanners that prefetch l
 ## 7. Compass offline sync
 
 Devices queue mutations offline and replay them through `app.apply_sync_mutation`, which calls only
-RPCs listed in `private.sync_rpcs`. PowerSync streams rows filtered by `private.sync_scope_grants`.
+RPCs listed in `private.sync_rpcs`. Devices download their copy over REST
+(`apps/compass/src/data/downloader.ts`): the app tables under row-level security, external parties only
+through the `api_external` views, and every row passes the device-side scope check before it is stored.
+PowerSync, which would stream rows filtered by `private.sync_scope_grants`, is deferred (ADR 0033,
+decision 51).
 
-| STRIDE | Threat                                         | Control                                                                                                  | Evidence                                      |
-| ------ | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| S      | Replaying another person's mutation id         | A stored mutation id is bound to its person and RPC; a mismatch is refused                               | 0364 suite                                    |
-| T      | Replay running with the owner's rights         | Every replayable RPC is SECURITY DEFINER with its own checks; `sync_call` refuses invoker RPCs (A22-002) | `9906` (A22-002); 0935 suite                  |
-| R      | Losing the record of what a device did         | `app.sync_mutations` keeps each result with device id and person                                         | 0364 suite                                    |
-| I      | A device storing another party's rows          | Sync scope grants mirror the RLS helpers, refreshed by triggers and nightly                              | 0942 and 0944 suites; `infra/powersync` tests |
-| D      | A device flooding replays                      | Advisory lock per mutation id; idempotent results                                                        | 0364 suite                                    |
-| E      | Replaying an RPC that is not meant for devices | Allowlist in `private.sync_rpcs`; unknown arguments refused                                              | 0364 and 0935 suites                          |
+| STRIDE | Threat                                         | Control                                                                                                                                     | Evidence                                        |
+| ------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| S      | Replaying another person's mutation id         | A stored mutation id is bound to its person and RPC; a mismatch is refused                                                                  | 0364 suite                                      |
+| T      | Replay running with the owner's rights         | Every replayable RPC is SECURITY DEFINER with its own checks; `sync_call` refuses invoker RPCs (A22-002)                                    | `9906` (A22-002); 0935 suite                    |
+| R      | Losing the record of what a device did         | `app.sync_mutations` keeps each result with device id and person                                                                            | 0364 suite                                      |
+| I      | A device storing another party's rows          | Downloads read through row-level security and the `api_external` views; the device-side scope check refuses rows outside the person's scope | 1022 suite; `download.test.ts`, `scope.test.ts` |
+| D      | A device flooding replays                      | Advisory lock per mutation id; idempotent results                                                                                           | 0364 suite                                      |
+| E      | Replaying an RPC that is not meant for devices | Allowlist in `private.sync_rpcs`; unknown arguments refused                                                                                 | 0364 and 0935 suites                            |
 
 ## 8. Integrations: Vault, SCIM, SSO and OAuth
 
