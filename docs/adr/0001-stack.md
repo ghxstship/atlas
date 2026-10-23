@@ -211,3 +211,12 @@ The CI actions table above is out of date: every pin is now checked against its 
 | Area | Package                                                                                                                                                    | Version |
 | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | Web  | `next`, `eslint-config-next` (replaces 16.4.0; 16.4.1 fixes GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr and GHSA-p3m5-59mp-jv5r, 16.4.2 is the current patch) | 16.4.2  |
+
+## Amendment (2026-10-23): Storybook security release and the NFC module's stable release (RRR-139, RRR-137)
+
+Storybook 10.6.2 was 11 days old when it was taken, short of the two-week minimum. The owner approved it as a security exception, as for Next.js 16.4.2. `react-native-nfc-manager` 4.0.0 replaces A92's 4.0.0-beta.10 on the day it turned two weeks old.
+
+| Area    | Package                                                                                                                     | Version |
+| ------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
+| UI      | `storybook`, `@storybook/react-vite`, `@storybook/addon-a11y`, `@storybook/addon-themes` (10.6.2 fixes GHSA-f2ph-cmg5-wxc8) | 10.6.2  |
+| Compass | `react-native-nfc-manager`                                                                                                  | 4.0.0   |

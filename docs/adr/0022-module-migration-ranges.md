@@ -102,3 +102,7 @@ Within the orchestrator's second block, 1390 adds the project time zone to engag
 ## Amendment (2026-10-23): a third orchestrator block
 
 The orchestrator's second block (1390 to 1399) sorts before A83 to A99's ranges, so fixes that join the batch-c integration audit fixes with their work take a third block, 1590 to 1599, which sorts after every agent range in use. 1590 recreates private.notify and app.claim_notification_deliveries from A89's 1461 with 1393's actor and bypass window put back, which 1461 dropped when it redefined both from 1367. It also recreates app.claim_sms_summaries from 1393 so that its suppression, category-drop and claim updates touch only a held text's live queue row, and A90's private.notify_moderation_decision and app.console_decide_appeal from 1473 so that their notifications name the platform as the actor rather than the operator who decided.
+
+## Amendment (2026-10-23): blocks for the owner decisions of 2026-10-23
+
+The work that follows the owner decisions of 2026-10-23 (ADR 0033) takes blocks after the orchestrator's third: 1600 to 1609 for record keys in record notifications, 1610 to 1619 for the canon rulings and Standard Library seeding (WP18), 1620 to 1629 for the notification and access decisions (quiet-hours bypass, delivered reports in the Inbox, expenses for the Field role, spend authority, engagement fields), 1630 to 1639 for reporting and blocking in Compass and Sign in with Apple, 1640 to 1649 for Checkout, and 1650 to 1659 for operations (the read-only backup login and inbound email).
