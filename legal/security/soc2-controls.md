@@ -16,14 +16,14 @@ This matrix maps the AICPA 2017 Trust Services Criteria (with the 2022 revised p
 
 ## Evidence Automation
 
-Evidence hooks write to a single evidence store so that a Type II period can be sampled without manual collection:
+Evidence hooks are system sources that can each be queried by period, so a Type II period can be sampled without manual collection:
 
 - **CI evidence:** every pull request's checks (format, finish guard, lint, typecheck, unit, pgTAP, contract, CodeQL, Semgrep, secret scan, license check, database advisors) are exported as signed JSON artifacts per run.
 - **Database evidence:** `audit_events`, `access_scans`, access review results, support sessions, break-glass events, retention purge runs and DSAR records are queryable by period.
 - **Operational evidence:** status page history, synthetic check results, restore drill reports, incident records and post-incident reviews.
 - **People and vendor evidence:** training completion, policy acknowledgments, access reviews of internal systems, and the vendor register.
 
-A26 builds the evidence store in Wave 5; each owning agent emits to it.
+A single evidence store that collects these sources is deferred past 4.0 (ADR 0033, decision 73). Until a vendor is chosen, an auditor samples each source where it lives; a vendor that receives Customer Personal Data goes on the Subprocessor List with 30 days' notice.
 
 ## Common Criteria (Security)
 
