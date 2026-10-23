@@ -77,6 +77,14 @@
       "security_changed": {
         "subject": "Cambió la seguridad de tu cuenta",
         "body": "Cambió un ajuste de seguridad de tu cuenta: {change}. Si no fuiste tú, restablece tu contraseña ahora."
+      },
+      "recovery_code_used": {
+        "subject": "Se usó un código de recuperación en tu cuenta",
+        "body": "Alguien inició sesión o confirmó una acción con uno de tus códigos de recuperación. {remaining, plural, =0 {No te quedan códigos: crea un juego nuevo en Seguridad.} one {Te queda # código.} other {Te quedan # códigos.}} Si no fuiste tú, cambia tu contraseña y crea códigos nuevos ahora."
+      },
+      "session_signed_out": {
+        "subject": "{count, plural, one {Se cerró una sesión} other {Se cerraron # sesiones}}",
+        "body": "{count, plural, one {Se cerró una sesión de tu cuenta} other {Se cerraron # sesiones de tu cuenta}} desde Configuración, Seguridad. Si no fuiste tú, cambia tu contraseña y revisa tus sesiones."
       }
     },
     "report": {
@@ -209,6 +217,20 @@
       "client_left": {
         "subject": "{org} dejó su cuenta de socio",
         "body": "{org} ahora es un cliente directo. Sus sesiones de soporte y permisos permanentes para esa organización terminaron, y ya no aparece en sus estados mayoristas."
+      }
+    },
+    "automation": {
+      "notice": {
+        "subject": "{title}",
+        "body": "{body} Enviado por la automatización {automationName}."
+      },
+      "failed": {
+        "subject": "Falló la automatización: {automationName}",
+        "body": "Una ejecución de {automationName} falló: {error}"
+      },
+      "paused": {
+        "subject": "Automatización en pausa: {automationName}",
+        "body": "{automationName} está desactivada porque {reason, select, owner_left_org {{ownerName} ya no es miembro} owner_lost_capability {{ownerName} ya no puede gestionar automatizaciones} owner_cannot_sign_in {{ownerName} no tiene inicio de sesión} other {la API se negó a actuar como {ownerName}}}. Actívala de nuevo en Configuración, Automatizaciones, y se ejecutará a tu nombre."
       }
     }
   },

@@ -50,6 +50,12 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: consent-gated, first-party product analytics events (A96, Section 11.14).",
   "/support/feedback":
     "Platform staff: the product feedback triage list (A96, Section 11.7); 404 for anyone else.",
+  "/oauth/authorize":
+    "Route handler: the OAuth 2.1 authorization endpoint the OpenAPI document names; records the capability groups and opens consent (A99, ADR 0055).",
+  "/oauth/token":
+    "Route handler: the OAuth 2.1 token endpoint (code with PKCE, refresh with rotation), answered by Supabase Auth (A99, ADR 0055).",
+  "/oauth/consent":
+    "Auth template: an app asks to act for the person in its org; Restricted capability groups need step-up (A99, ADR 0055).",
   "/{org}/export":
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/{org}/documents/{kind}/{id}":
@@ -131,4 +137,17 @@ export const EMPTY_STATE_TARGETS: Readonly<Record<string, string>> = {
 };
 
 /** Route parameters that name data rows; a page whose row does not resolve answers 404. */
-export const DATA_PARAMS = ["projectKey", "recordKey", "viewId", "objectKey"] as const;
+export const DATA_PARAMS = [
+  "projectKey",
+  "recordKey",
+  "viewId",
+  "objectKey",
+  "workspaceSlug",
+  "teamId",
+] as const;
+
+/**
+ * Data parameters whose page looks its row up itself and answers 404 when it does not resolve: the workspace
+ * and team settings pages (A86, ADR 0006 amendment of 2026-10-21). Project keys resolve in the route guard.
+ */
+export const PAGE_RESOLVED_PARAMS = ["workspaceSlug", "teamId"] as const;

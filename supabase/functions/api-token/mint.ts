@@ -2,9 +2,11 @@
 // Web Crypto only, so it runs in Deno and in the @xos/api tests: a presented `xos_live_` key is resolved
 // by app.exchange_api_key and answered with a short-lived Supabase JWT whose subject is the key's service
 // account, carrying the key's org and scopes. PostgREST verifies the signature, and RLS sees an ordinary
-// member. The signing key comes from the environment and never appears in code or tests.
+// member. The signing key comes from the environment and never appears in code or tests. A personal API token
+// (`xos_pat_`, A86, migration 1432) takes the same exchange: its subject is the token's own person, and
+// xos_service_account_id is null.
 
-export const API_KEY_PATTERN = /^xos_live_[0-9a-f]{48}$/;
+export const API_KEY_PATTERN = /^xos_(live|pat)_[0-9a-f]{48}$/;
 export const TOKEN_TTL_SECONDS = 300;
 
 export interface ExchangeRow {
@@ -12,7 +14,8 @@ export interface ExchangeRow {
   readonly org_id: string;
   readonly scopes: readonly string[];
   readonly user_id: string;
-  readonly service_account_id: string;
+  /** Null for a personal API token, which acts as its person. */
+  readonly service_account_id: string | null;
 }
 
 /** Null for a key that resolves to nothing; `refusal` when a rule refuses it. */

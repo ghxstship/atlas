@@ -1,3 +1,4 @@
+import { zoneOrUtc } from "./calendar.ts";
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
@@ -66,6 +67,18 @@ export async function resolveSettings(
       ]),
     ),
   );
+}
+
+/**
+ * The time zone dates resolve in for the signed-in person in an org: its locale.time_zone setting,
+ * UTC when unset, unknown or unreadable, the same calendar Atlas pages use (A71). The Aurora API reads
+ * it so "overdue" and "this month" in a plain-language filter never resolve on UTC (A95).
+ */
+export async function readOrgTimeZone(db: XosClient, orgId: string): Promise<string> {
+  const settings = await resolveSettings(db, { orgId });
+  if (!settings.ok) return "UTC";
+  const value = settings.data.get("locale.time_zone")?.value;
+  return zoneOrUtc(typeof value === "string" ? value : null);
 }
 
 export interface StoredSettingValue {

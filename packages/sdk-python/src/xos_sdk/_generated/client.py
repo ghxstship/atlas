@@ -376,6 +376,9 @@ from .resources import (
     PersonCalendarFeedsResource,
     ProjectInboxesResource,
     InboundMessagesResource,
+    AutomationsResource,
+    AutomationRunsResource,
+    AutomationRunStepsResource,
     WorkforceGroupsResource,
     WorkforceGroupMembersResource,
     ConversationsResource,
@@ -795,6 +798,9 @@ class XosClient(XosClientCore):
     person_calendar_feeds: PersonCalendarFeedsResource
     project_inboxes: ProjectInboxesResource
     inbound_messages: InboundMessagesResource
+    automations: AutomationsResource
+    automation_runs: AutomationRunsResource
+    automation_run_steps: AutomationRunStepsResource
     workforce_groups: WorkforceGroupsResource
     workforce_group_members: WorkforceGroupMembersResource
     conversations: ConversationsResource
@@ -1202,6 +1208,9 @@ class XosClient(XosClientCore):
         self.person_calendar_feeds = PersonCalendarFeedsResource(self)
         self.project_inboxes = ProjectInboxesResource(self)
         self.inbound_messages = InboundMessagesResource(self)
+        self.automations = AutomationsResource(self)
+        self.automation_runs = AutomationRunsResource(self)
+        self.automation_run_steps = AutomationRunStepsResource(self)
         self.workforce_groups = WorkforceGroupsResource(self)
         self.workforce_group_members = WorkforceGroupMembersResource(self)
         self.conversations = ConversationsResource(self)

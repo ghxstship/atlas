@@ -180,7 +180,7 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, each every minute; `infra/runbooks/integrations.md`) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, each every minute; `infra/runbooks/integrations.md`) still exist: `select jobname, schedule from cron.job order by 1;`.
 
 How the functions are bundled (A85, RRR-130):
 
@@ -269,7 +269,7 @@ None. The site is built from the repository and the OpenAPI document. Project se
 
 | Secret                                                    | Notes                                                                                                          |
 | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`                                                                      |
+| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`, `integration-worker` and `automation-run` (ADR 0047)                |
 | `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)       |
 | `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key |
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, after **OWNER** approves real-recipient email              |

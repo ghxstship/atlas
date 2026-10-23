@@ -27,6 +27,7 @@ import {
 } from "@xos/data/work";
 import { InlineAlert, PropertyList } from "./ui";
 import { getFormatter, getLocale } from "next-intl/server";
+import { SummaryEntryRow } from "@/components/aurora/entry/summary-entry";
 import { ActualsForm, DependencyEditor } from "@/components/schedule/schedule-panels";
 import type { OrgContext } from "@/lib/shell/context";
 import { getTranslate } from "@/lib/shell/translate";
@@ -231,9 +232,40 @@ export async function RecordBody({
   );
   const when = (v: string | null) => formatWhen(v, locale, tz) ?? t("work.values.notSet");
   const dated = record.startsAt || record.endsAt || record.dueAt || detail.dependencies.length > 0;
+  // What Summarize reads (A95): the record, its state ledger and its comments, newest last.
+  const recordLabel = `${record.key} ${record.title}`;
+  const activity = [
+    { collection: "records", id: record.id, label: recordLabel },
+    ...detail.history.map((h) => ({
+      collection: "record-state-transitions",
+      id: h.id,
+      label:
+        h.from === null
+          ? t("aurora.entry.summary.itemCreated", { to: t(`work.states.${h.to}`) })
+          : t("aurora.entry.summary.itemMoved", {
+              from: t(`work.states.${h.from}`),
+              to: t(`work.states.${h.to}`),
+            }),
+    })),
+    ...detail.threads
+      .flatMap((th) => th.comments)
+      .filter((c) => c.deletedAt === null)
+      .map((c) => ({
+        collection: "comments",
+        id: c.id,
+        label: t("aurora.entry.summary.itemComment", {
+          name: names[c.authorPersonId] ?? t("work.values.unnamed"),
+        }),
+      })),
+  ].slice(0, 100);
 
   return (
     <div className="flex flex-col gap-24">
+      <SummaryEntryRow
+        subject={{ collection: "records", id: record.id, label: recordLabel }}
+        kinds={["record_activity"]}
+        items={{ record_activity: activity }}
+      />
       {record.state === "Blocked" && record.blockerText ? (
         <InlineAlert tone="warning" title={t("work.record.blockedBy")}>
           {record.blockerText}

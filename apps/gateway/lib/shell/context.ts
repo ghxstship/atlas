@@ -6,6 +6,7 @@ import {
   type XosClient,
 } from "@xos/data/gateway";
 import { tokenAal } from "@xos/data/auth-assurance";
+import { listOrgsAllowingPersonalTokens } from "@xos/data/developer";
 import type { NavContext } from "@xos/ia";
 import type { Route } from "next";
 import { cookies, headers } from "next/headers";
@@ -79,12 +80,13 @@ export const getGatewayContext = cache(async (): Promise<GatewayContext | null> 
       redirect(secondFactorRedirect(here, "") as Route);
     }
   }
-  const [person, accounts, roleTypes, cookieStore, facts] = await Promise.all([
+  const [person, accounts, roleTypes, cookieStore, facts, tokenOrgs] = await Promise.all([
     getCurrentPerson(db, user.id),
     listMyAccounts(db),
     listMyEngagementRoleTypes(db),
     cookies(),
     getRequestFacts(),
+    listOrgsAllowingPersonalTokens(db),
   ]);
   if (!person.ok) {
     if (person.error.kind === "not-found") return null;
@@ -110,6 +112,8 @@ export const getGatewayContext = cache(async (): Promise<GatewayContext | null> 
       desktop: facts.desktop,
       // A failed read keeps the paid-work pages: hiding a person's payout settings by mistake is worse.
       paidWork: roleTypes.ok ? doesPaidWork(roleTypes.data) : true,
+      // Settings, Developer appears when an org the person belongs to allows personal tokens (A86).
+      personalTokens: tokenOrgs.ok && tokenOrgs.data.length > 0,
     }),
     platformDomain: facts.platformDomain,
     brand: facts.brand,

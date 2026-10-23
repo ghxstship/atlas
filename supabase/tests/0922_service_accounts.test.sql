@@ -54,8 +54,8 @@ select pg_temp.as_anon();
 select throws_ok($$select app.create_service_account(gen_random_uuid(), 'Anon', gen_random_uuid())$$, '42501', null,
   'anon cannot create service accounts');
 
--- Updates -------------------------------------------------------------------------------------------------------
-select pg_temp.as_user('bob');
+-- Updates (the API keys below need step-up since 1562) -----------------------------------------------------------
+select pg_temp.as_user_stepped_up('bob');
 select lives_ok(format($$update app.service_accounts set name = 'Ledger Bot' where id = %L$$, pg_temp.id('sa_ledger')),
   'an admin renames a service account');
 select throws_ok(format($$update app.service_accounts set user_id = gen_random_uuid() where id = %L$$, pg_temp.id('sa_ledger')),

@@ -392,6 +392,42 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "automation.notice",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.notice.subject",
+      body: "kinds.automation.notice.body",
+    },
+  },
+  {
+    kind: "automation.failed",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.failed.subject",
+      body: "kinds.automation.failed.body",
+    },
+  },
+  {
+    kind: "automation.paused",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.paused.subject",
+      body: "kinds.automation.paused.body",
+    },
+  },
+  {
     kind: "message.received",
     category: "messages",
     emailTemplate: "notification",
@@ -515,7 +551,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1387_notification_kind_seed.sql"
+"supabase/migrations/1489_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
