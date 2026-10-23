@@ -5,6 +5,7 @@ import {
   AppShell,
   Breadcrumbs,
   Button,
+  LiveProvider,
   PreferencesProvider,
   Select,
   Sidebar,
@@ -39,6 +40,9 @@ import { AiFeaturesProvider } from "@/components/aurora/ai-features";
 import { ASK_FILTER_EVENT } from "@/components/aurora/entry/ask-event";
 import { AuroraCenter, openAurora } from "@/components/aurora/aurora-center";
 import { HelpCenter, openHelpArticle } from "@/components/help/help-center";
+import { atlasLiveSource } from "@/components/live/live-source";
+import { UndoCenter } from "@/components/undo/undo-center";
+import { undoStack } from "@/components/undo/undo-stack";
 import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
 import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";
@@ -155,6 +159,8 @@ export function ShellFrame(props: ShellFrameProps) {
           else if (id === "help") openHelpArticle("");
           else if (id === "focus-mode") setFocus((f) => !f);
           else if (id === "aurora") openAurora(true);
+          else if (id === "undo") void undoStack.undo();
+          else if (id === "redo") void undoStack.redo();
           else if (id === "ask-filter") window.dispatchEvent(new CustomEvent(ASK_FILTER_EVENT));
         },
       },
@@ -430,7 +436,9 @@ export function ShellFrame(props: ShellFrameProps) {
               preferences={displayPreferences}
               timeZone={props.viewerTimeZone ?? null}
             >
-              <AiFeaturesProvider features={props.aiFeatures}>{props.children}</AiFeaturesProvider>
+              <AiFeaturesProvider features={props.aiFeatures}>
+                <LiveProvider source={atlasLiveSource}>{props.children}</LiveProvider>
+              </AiFeaturesProvider>
             </PreferencesProvider>
           </div>
         </AppShell>
@@ -462,6 +470,7 @@ export function ShellFrame(props: ShellFrameProps) {
           onSubmit={() => broadcast("signed-out")}
           hidden
         />
+        <UndoCenter />
         <SessionWatcher email={props.email} />
       </div>
     </ShellKeysContext.Provider>

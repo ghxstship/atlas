@@ -1,5 +1,6 @@
 import type { DataTableColumn, RecordState } from "@xos/ui";
 import type { ReactNode } from "react";
+import type { BulkConfig } from "@/components/bulk/types";
 import type { AskCatalog } from "@/lib/aurora/ask";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { BackToList } from "./kit-back-to-list";
@@ -50,6 +51,7 @@ export function FinanceCollection({
   detail,
   sheet,
   above,
+  bulk,
   ask,
 }: {
   page: FinancePage;
@@ -79,6 +81,8 @@ export function FinanceCollection({
   detail?: RecordDetail | null;
   sheet?: ReactNode;
   above?: ReactNode;
+  /** Bulk edit of the table view's selection (Section 11.7). */
+  bulk?: BulkConfig | null;
 }) {
   const { query } = page;
   const header = (
@@ -168,7 +172,7 @@ export function FinanceCollection({
   } else if (page.view === "board" && board) {
     body = <CollectionBoard columns={board} />;
   } else {
-    body = <CollectionTable label={title} columns={columns} rows={rows} />;
+    body = <CollectionTable label={title} columns={columns} rows={rows} bulk={bulk ?? null} />;
   }
   return (
     <TemplateCollection

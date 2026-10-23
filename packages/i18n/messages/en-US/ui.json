@@ -479,7 +479,9 @@
   "table": {
     "resizeColumn": "Resize column {column}",
     "row": "Row {n}",
-    "total": "Total"
+    "total": "Total",
+    "selectAll": "Select all rows",
+    "selectRow": "Select {row}"
   },
   "timeline": {
     "critical": "critical path",

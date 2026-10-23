@@ -20,6 +20,14 @@ export interface CspInput {
 export const OAUTH_AUTHORIZE_ORIGINS = ["https://accounts.google.com"] as const;
 
 /**
+ * The Supabase Realtime socket's origin (live updates, ADR 0044): the API origin with ws or wss in
+ * place of http or https. Pages open it only to receive changes; every other call stays same-origin.
+ */
+export function realtimeOrigin(supabaseOrigin: string): string {
+  return supabaseOrigin.replace(/^http/i, "ws");
+}
+
+/**
  * A strict policy: scripts run only with this response's nonce ('strict-dynamic' lets them load
  * their own chunks), styles come from the site or carry the nonce, and nothing may frame Atlas.
  * Style attributes stay allowed because React and Radix position overlays with them. Development
@@ -38,7 +46,11 @@ export function buildCsp({ nonce, development, supabaseOrigin, secureSite }: Csp
     "style-src-attr": ["'unsafe-inline'"],
     "img-src": ["'self'", "blob:", "data:"],
     "font-src": ["'self'", "data:"],
-    "connect-src": ["'self'", ...(development ? ["ws:", "wss:"] : [])],
+    "connect-src": [
+      "'self'",
+      ...(development ? ["ws:", "wss:"] : []),
+      realtimeOrigin(supabaseOrigin),
+    ],
     // The service worker and the web manifest (A96): stated outright, since 'strict-dynamic' makes the browser
     // ignore 'self' in script-src, which worker-src would otherwise fall back to.
     "worker-src": ["'self'"],

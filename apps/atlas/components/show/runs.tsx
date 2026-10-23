@@ -36,11 +36,12 @@ import {
   updateRunAction,
 } from "./actions";
 import { CollectionViews } from "@/components/views/collection-views";
+import { useLiveRefresh } from "@/components/live/live-refresh";
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
  * The peek holds the cue list editor and live mode, where the stage manager calls cues one by one
- * (journey 15) and everyone following sees progression refresh every two seconds.
+ * (journey 15) and everyone following sees each call live, through Realtime (ADR 0044).
  */
 export function RunCollection({
   org,
@@ -357,11 +358,18 @@ export function CreateRunDialog({
   );
 }
 
-/** Refreshes the page every two seconds while mounted, so live cue calls from others appear. */
-function LivePolling() {
+/** Show mode follows cue calls within half a second (Section 11.11): small batches, short gaps. */
+const SHOW_PACING = { batchMs: 30, minIntervalMs: 200, maxIntervalMs: 1_000 } as const;
+
+/**
+ * Follows cue calls live while mounted (ADR 0044): a called cue refreshes the page as soon as
+ * Realtime reports it. A 15-second pull covers a dropped channel; it replaced a 2-second poll.
+ */
+function LiveCues({ runId }: { runId: string }) {
   const router = useRouter();
+  useLiveRefresh([{ table: "cues", filter: `run_of_show_id=eq.${runId}` }], SHOW_PACING);
   useEffect(() => {
-    const timer = setInterval(() => router.refresh(), 2000);
+    const timer = setInterval(() => router.refresh(), 15_000);
     return () => clearInterval(timer);
   }, [router]);
   return null;
@@ -420,7 +428,7 @@ export function RunBody({
   if (live) {
     return (
       <div className="flex flex-col gap-16">
-        <LivePolling />
+        <LiveCues runId={runOfShow.id} />
         <p className="m-0 text-text-12 text-text-secondary">{t("live.syncing")}</p>
         <ActionErrorAlert error={calls.error} />
         <p role="status" className="m-0 text-heading-16 font-semibold">

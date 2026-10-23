@@ -1,0 +1,79 @@
+{
+  "bulk": {
+    "change": "Change {field}",
+    "title": "Change {field} on {count, plural, one {# row} other {# rows}}",
+    "value": "New {field}",
+    "reason": "Reason",
+    "reasonHelp": "Saved with each change in its history.",
+    "preview": "Preview",
+    "apply": "Apply to {count, plural, one {# row} other {# rows}}",
+    "cancel": "Cancel",
+    "changed": "{count, plural, one {# row will change.} other {# rows will change.}}",
+    "unchanged": "{count, plural, one {# row already has this value.} other {# rows already have this value.}}",
+    "nothing": "Every selected row already has this value.",
+    "refusedTitle": "{count, plural, one {# row can't change} other {# rows can't change}}",
+    "refusedBody": "Nothing changes until every row can. Clear these rows from the selection, or fix what each one needs.",
+    "refusedRow": "{row}: {message}",
+    "someRow": "A selected row",
+    "done": "{count, plural, one {Changed # row.} other {Changed # rows.}}",
+    "failed": "The change couldn't be saved. Try again.",
+    "none": "None"
+  },
+  "undo": {
+    "notifications": "Undo notifications",
+    "undone": "Undone: {label}",
+    "redone": "Redone: {label}",
+    "failed": "Couldn't undo or redo that: {message}",
+    "failedPlain": "Couldn't undo or redo that. Try again.",
+    "nothingToUndo": "Nothing to undo.",
+    "nothingToRedo": "Nothing to redo.",
+    "dismiss": "Dismiss"
+  },
+  "menu": {
+    "label": "Actions for {row}",
+    "open": "Open",
+    "openFull": "Open as a full page",
+    "copyLink": "Copy link",
+    "select": "Select",
+    "deselect": "Deselect",
+    "change": "Change {field}"
+  },
+  "hover": {
+    "owner": "Owner",
+    "next": "Next",
+    "noOwner": "Unassigned",
+    "noDate": "No date",
+    "person": "Person",
+    "role": "Role",
+    "memberSince": "Member since {date}",
+    "openRecords": "{count, plural, =0 {Owns no open records} one {Owns # open record} other {Owns # open records}}",
+    "loading": "Loading…",
+    "unavailable": "No details to show."
+  },
+  "history": {
+    "title": "Field history",
+    "created": "Created by {name}",
+    "changed": "{name} changed {count, plural, one {# field} other {# fields}}",
+    "deleted": "Deleted by {name}",
+    "someone": "Someone",
+    "masked": "Restricted",
+    "empty": "No field changes are recorded yet.",
+    "notSet": "Not set",
+    "trash": "In Trash",
+    "restored": "Restored",
+    "unavailable": "The field history could not be loaded."
+  },
+  "coedit": {
+    "open": "Edit together",
+    "openNotes": "Open notes",
+    "notes": "Notes",
+    "notesHelp": "Notes everyone with access edits together, live.",
+    "loading": "Opening the document…",
+    "error": "The document could not be opened. Reload the page to try again.",
+    "readOnly": "You can read along; editing needs write access.",
+    "saving": "Saving…",
+    "offline": "Offline. Your changes stay here and are sent when you reconnect.",
+    "saved": "Saved. Everyone in the document sees changes as you type.",
+    "done": "Done"
+  }
+}

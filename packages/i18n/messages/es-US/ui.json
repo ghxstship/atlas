@@ -479,7 +479,9 @@
   "table": {
     "resizeColumn": "Cambiar el ancho de la columna {column}",
     "row": "Fila {n}",
-    "total": "Total"
+    "total": "Total",
+    "selectAll": "Seleccionar todas las filas",
+    "selectRow": "Seleccionar {row}"
   },
   "timeline": {
     "critical": "ruta crítica",

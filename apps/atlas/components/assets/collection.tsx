@@ -17,21 +17,27 @@ import {
   Select,
   TemplateCollection,
   type DataTableColumn,
+  type DataTableSelection,
   type RecordState,
   type ResourceScheduleProps,
 } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useAssetsCopy } from "./copy";
 import { CreateDialogContext } from "./dialog";
 import { CollectionViews } from "@/components/views/collection-views";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 import { displayKey, keyedTitle } from "@/lib/assets/views";
 
 /** One row of an assets collection, already shaped for every view the page offers. */
 export interface CollectionRow {
   readonly key: string;
+  /** The row's id, for bulk edit; rows without one are not selectable. */
+  readonly id?: string;
   /** Value of `?peek=` that opens this row; rows without one do not open. */
   readonly peek?: string;
   /** The short human key shown in the key column (an asset tag); a row id is never shown (A59-009). */
@@ -77,7 +83,11 @@ export interface CollectionProps {
   /** The record peek, rendered by the page when `?peek=` names a row. */
   readonly peek?: { title: string; content: ReactNode } | null;
   readonly before?: ReactNode;
+  /** Bulk edit of the table view's selection (Section 11.7); rows need an `id`. */
+  readonly bulk?: BulkConfig | null;
 }
+
+const NOT_TABLE = new Set(["list", "board", "gallery", "calendar", "resource-schedule"]);
 
 /**
  * The Collection template for every assets page (Section 11.6): header with title, count, view
@@ -107,6 +117,34 @@ export function AssetsCollection(props: CollectionProps) {
   };
   const byKey = new Map(props.rows.map((r) => [r.key, r]));
   const filtered = Boolean(search.get("q") || search.get("filter"));
+  const refs = useMemo(
+    () => props.rows.flatMap((r) => (r.id ? [{ id: r.id, label: r.title }] : [])),
+    [props.rows],
+  );
+  const bulkKit = useBulk(NOT_TABLE.has(props.view) ? null : props.bulk, refs);
+  const { selection, bar } = bulkKit;
+  const rowMenu = useRowMenu();
+  const onContext = (
+    row: Record<string, unknown>,
+    at: { x: number; y: number } | null,
+    cell: HTMLElement,
+  ) => {
+    const r = byKey.get(String(row["__key"]));
+    if (!r) return;
+    const peek = r.peek;
+    rowMenu.open(
+      {
+        id: r.id ?? r.key,
+        label: r.title,
+        ...(peek
+          ? { open: () => open(peek), href: `${pathname}?peek=${encodeURIComponent(peek)}&full=1` }
+          : {}),
+        bulk: bulkKit,
+      },
+      at,
+      cell,
+    );
+  };
 
   const header = (
     <PageHeader
@@ -208,7 +246,13 @@ export function AssetsCollection(props: CollectionProps) {
       />
     );
   } else {
-    body = renderView(props, t, open, byKey);
+    body = (
+      <>
+        {renderView(props, t, open, byKey, selection, onContext)}
+        {bar}
+        {rowMenu.menu}
+      </>
+    );
   }
 
   return (
@@ -254,6 +298,12 @@ function renderView(
   t: ReturnType<typeof useAssetsCopy>,
   open: (peek: string | undefined) => void,
   byKey: Map<string, CollectionRow>,
+  selection: DataTableSelection | undefined,
+  onContext: (
+    row: Record<string, unknown>,
+    at: { x: number; y: number } | null,
+    cell: HTMLElement,
+  ) => void,
 ): ReactNode {
   switch (props.view) {
     case "list":
@@ -334,8 +384,11 @@ function renderView(
         <DataTable
           caption={props.title}
           columns={props.columns}
-          rows={props.rows.map((r) => ({ ...r.cells, __key: r.key }))}
+          rows={props.rows.map((r) => ({ ...r.cells, __key: r.key, __id: r.id ?? r.key }))}
+          rowId={(row) => String(row["__id"])}
           onRowActivate={(row) => open(byKey.get(String(row["__key"]))?.peek)}
+          onRowContextMenu={(row, _index, at, cell) => onContext(row, at, cell)}
+          {...(selection ? { selection } : {})}
         />
       );
   }

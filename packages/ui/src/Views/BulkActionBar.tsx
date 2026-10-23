@@ -16,6 +16,7 @@ export function BulkActionBar({
   actions,
   onClear,
   onMore,
+  announce = true,
 }: BulkActionBarProps): ReactElement {
   const t = useT();
   const fmt = useFormat();
@@ -33,7 +34,7 @@ export function BulkActionBar({
         "rounded-card bg-bg-raised shadow-menu print:hidden forced-colors:border",
       )}
     >
-      <span className="tabular-nums" aria-live="polite">
+      <span className="tabular-nums" {...(announce ? { "aria-live": "polite" as const } : {})}>
         {t("bulk.selected", { n: fmt.number(count) })}
       </span>
       <RToolbar.Separator className="w-(--stroke-width-hairline) h-(--space-16) mx-4 bg-border-strong" />
@@ -52,14 +53,16 @@ export function BulkActionBar({
           ) : null}
         </RToolbar.Button>
       ))}
-      <RToolbar.Button
-        className={iconButtonClass()}
-        aria-label={t("menu.more")}
-        title={t("menu.more")}
-        onClick={onMore}
-      >
-        <Icon name="Ellipsis" />
-      </RToolbar.Button>
+      {onMore ? (
+        <RToolbar.Button
+          className={iconButtonClass()}
+          aria-label={t("menu.more")}
+          title={t("menu.more")}
+          onClick={onMore}
+        >
+          <Icon name="Ellipsis" />
+        </RToolbar.Button>
+      ) : null}
       <RToolbar.Button
         className={iconButtonClass()}
         aria-label={t("bulk.clear")}

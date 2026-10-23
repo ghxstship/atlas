@@ -5,6 +5,7 @@ import { stateToken } from "@/components/work/format";
 import { loadRecordDetail, RecordBody, RecordProperties } from "@/components/work/record-detail";
 import { Breadcrumbs, RecordKindChip, StateChip, TemplateRecord } from "@/components/work/ui";
 import { ContinueOnDevice } from "@/components/handoff/continue-on-device";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { handoffLink } from "@/lib/handoff";
 import { getTranslate } from "@/lib/shell/translate";
 import type { RecordKind } from "@xos/ui";
@@ -79,6 +80,8 @@ export default async function RecordPage({ params }: PageProps<"/[org]/r/[record
       }
       properties={<RecordProperties detail={detail} />}
     >
+      {/* The record updates live when someone else changes it (Section 11.7, ADR 0044). */}
+      <LiveRefresh topics={[{ table: "records", filter: `id=eq.${record.id}` }]} />
       <RecordBody org={org} detail={detail} me={ctx.viewer.person?.id ?? null} />
     </TemplateRecord>
   );

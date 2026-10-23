@@ -41,6 +41,7 @@
     "radix-ui": "1.7.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
+    "yjs": "13.6.33",
     "zod": "4.6.5"
   },
   "devDependencies": {

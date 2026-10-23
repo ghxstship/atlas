@@ -40,7 +40,13 @@ export type TreeViewProps = Omit<ReferenceTreeViewProps, "nodes"> & {
 export type BulkActionBarProps = Omit<ReferenceBulkActionBarProps, "actions"> & {
   actions: { label: string; icon?: string; shortcut?: string; onSelect?: () => void }[];
   onClear?: () => void;
+  /** Shows the overflow button, which calls it; without it the button is left out. */
   onMore?: () => void;
+  /**
+   * Announces the count as it changes; true by default. Pass false when the selection already
+   * announces it (a selectable DataTable does), so screen readers hear it once.
+   */
+  announce?: boolean;
 };
 
 export type ActivityFeedItemProps = ReferenceActivityFeedItemProps & {

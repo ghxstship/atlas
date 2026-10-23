@@ -33,6 +33,7 @@ import { type Row } from "./kit.types";
 import { RecordActivity, RecordCollab } from "./record";
 import { DocumentActions } from "@/components/documents/document-actions";
 import { ButtonLink } from "@/components/ui";
+import { LiveRefresh } from "@/components/live/live-refresh";
 
 /**
  * Finance > Invoices (Section 4.5.5): receivables the org issues and payables it receives. A
@@ -112,6 +113,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
   const balance = (i: Invoice) => (i.totalMinor === null ? null : i.totalMinor - i.appliedMinor);
   const rows: Row[] = shown.map((i) => ({
     id: i.id,
+    label: keyOf(i),
     number: i.number ?? "",
     direction: t(`finance.invoices.directionShort.${i.direction}`),
     party: payee(i),
@@ -328,30 +330,64 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
       canCreate={canWrite}
       count={shown.length}
       states={INVOICE_STATES.map((s) => ({ value: s, label: c.state("invoice", s) }))}
+      bulk={
+        canWrite || canApprove
+          ? {
+              org: ctx.org.slug,
+              resource: "invoices",
+              // Approve a queue in one go (Section 11.11): every rule of a single approval applies.
+              fields: [
+                {
+                  key: "invoice_state",
+                  label: t("finance.common.state"),
+                  reason: true,
+                  options: (["Approved", "Disputed", "Canceled"] as const)
+                    .filter((s) => (s === "Approved" ? canApprove : canWrite))
+                    .map((s) => ({ value: s, label: c.state("invoice", s) })),
+                },
+              ],
+            }
+          : null
+      }
       above={
-        <nav
-          aria-label={t("finance.invoices.directionFilter")}
-          className="flex flex-wrap items-center gap-8 text-text-13"
-        >
-          {[null, "Payable", "Receivable"].map((d) => (
-            <Link
-              key={d ?? "all"}
-              href={withQuery(page, { direction: d, peek: null }) as Route}
-              aria-current={direction === d ? "true" : undefined}
-              className="rounded-chip border border-border-subtle px-8 py-2 text-text-12 aria-[current=true]:bg-bg-hover aria-[current=true]:text-text-primary"
-            >
-              {d ? t(`finance.invoices.directionShort.${d}`) : t("finance.invoices.allDirections")}
-            </Link>
-          ))}
-          {canWrite ? (
-            <Link
-              className="ms-auto text-text-13 text-accent-text underline"
-              href={withQuery(page, { selfbill: "1" }) as Route}
-            >
-              {t("finance.invoices.selfBill")}
-            </Link>
-          ) : null}
-        </nav>
+        <>
+          {/* Invoices update live as approvals and payments land (Section 11.7, ADR 0044). */}
+          <LiveRefresh
+            topics={[
+              {
+                table: "invoices",
+                filter: page.project
+                  ? `project_id=eq.${page.project.id}`
+                  : `org_id=eq.${ctx.org.id}`,
+              },
+            ]}
+          />
+          <nav
+            aria-label={t("finance.invoices.directionFilter")}
+            className="flex flex-wrap items-center gap-8 text-text-13"
+          >
+            {[null, "Payable", "Receivable"].map((d) => (
+              <Link
+                key={d ?? "all"}
+                href={withQuery(page, { direction: d, peek: null }) as Route}
+                aria-current={direction === d ? "true" : undefined}
+                className="rounded-chip border border-border-subtle px-8 py-2 text-text-12 aria-[current=true]:bg-bg-hover aria-[current=true]:text-text-primary"
+              >
+                {d
+                  ? t(`finance.invoices.directionShort.${d}`)
+                  : t("finance.invoices.allDirections")}
+              </Link>
+            ))}
+            {canWrite ? (
+              <Link
+                className="ms-auto text-text-13 text-accent-text underline"
+                href={withQuery(page, { selfbill: "1" }) as Route}
+              >
+                {t("finance.invoices.selfBill")}
+              </Link>
+            ) : null}
+          </nav>
+        </>
       }
       columns={[
         { key: "number", label: t("finance.invoices.fields.number"), type: "code" },

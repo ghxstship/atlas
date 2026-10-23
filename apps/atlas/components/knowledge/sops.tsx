@@ -8,7 +8,12 @@ import {
   sopStanding,
   type Sop,
 } from "@xos/data/knowledge";
+import { getFieldHistory } from "@xos/data/field-history";
 import { getFormatter } from "next-intl/server";
+import { CoEditLauncher } from "@/components/coedit/coedit-launcher";
+import { FieldHistoryList } from "@/components/history/field-history-list";
+import { historyItems } from "@/lib/history/items";
+import { getTranslate } from "@/lib/shell/translate";
 import {
   acknowledgeSopAction,
   createSopAction,
@@ -20,6 +25,7 @@ import { DraftEntry } from "@/components/aurora/entry/draft-entry";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import {
   ActionButton,
   EntityForm,
@@ -39,6 +45,15 @@ import { rememberView } from "@/lib/shell/recents";
 import { orgToday } from "@/lib/shell/time-zone";
 
 const VIEWS: readonly ViewKind[] = ["list", "table"];
+
+/** SOP fields its field history shows, labeled from the knowledge catalog. */
+const SOP_FIELD_LABELS: Readonly<Record<string, string>> = {
+  code: "sops.code",
+  title: "sops.sopTitle",
+  body: "sops.procedure",
+  version: "sops.version",
+  published_at: "sops.publishedAt",
+};
 const REFUSALS = "knowledge.refusals";
 
 function standingOf(s: Sop, t: Copy): KitState {
@@ -151,10 +166,13 @@ export async function SopsSection({
   );
 
   if (selected && state.full) {
-    const [fresh, acks] = await Promise.all([
+    const [fresh, acks, fieldHistory, tRoot] = await Promise.all([
       getSop(db, selected.id, me),
       listSopAcknowledgments(db, selected.id),
+      getFieldHistory(db, "app.sops", selected.id),
+      getTranslate(),
     ]);
+
     const sop = fresh.ok ? fresh.data : selected;
     return (
       <RecordPage
@@ -166,13 +184,32 @@ export async function SopsSection({
         properties={properties(sop)}
         actions={actions(sop)}
       >
+        <LiveRefresh topics={[{ table: "sops", filter: `id=eq.${sop.id}` }]} />
         {hasUnpublishedChanges(sop) ? (
           <InlineAlert tone="info" title={t("sops.changedTitle")}>
             {t("sops.changedBody")}
           </InlineAlert>
         ) : null}
         <KitSection id="sop-body" title={t("sops.procedure")}>
-          {body(sop)}
+          {canWrite && ctx.viewer.person ? (
+            // Live co-editing (Section 5): the procedure as it reads, and the editor on demand.
+            <CoEditLauncher
+              org={ctx.org.slug}
+              subject="sop"
+              id={sop.id}
+              label={t("sops.procedure")}
+              me={{
+                key: ctx.viewer.person.id,
+                name: ctx.viewer.person.fullName ?? tRoot("collab.history.someone"),
+              }}
+              openLabel={tRoot("collab.coedit.open")}
+              loadingLabel={tRoot("collab.coedit.loading")}
+            >
+              {body(sop)}
+            </CoEditLauncher>
+          ) : (
+            body(sop)
+          )}
         </KitSection>
         {canWrite ? (
           <KitSection id="sop-edit" title={t("sops.edit")}>
@@ -230,6 +267,28 @@ export async function SopsSection({
             </ul>
           )}
         </KitSection>
+        {fieldHistory.ok ? (
+          <FieldHistoryList
+            id={sop.id}
+            title={tRoot("collab.history.title")}
+            empty={tRoot("collab.history.empty")}
+            items={historyItems(fieldHistory.data, {
+              t: tRoot,
+              when: (iso) =>
+                format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
+              label: (field) => {
+                const key = SOP_FIELD_LABELS[field];
+                return key ? t(key) : null;
+              },
+              // Long procedure text shows its opening; the page shows the whole current text.
+              value: (field, v) => {
+                const text = typeof v === "string" ? v : JSON.stringify(v);
+                if (field === "published_at") return when(text);
+                return text.length > 160 ? `${text.slice(0, 157)}...` : text;
+              },
+            })}
+          />
+        ) : null}
         <CollabPanels ctx={ctx} table="app.sops" id={sop.id} />
       </RecordPage>
     );
@@ -368,6 +427,7 @@ export async function SopsSection({
         { key: "mine", label: t("sops.mine") },
       ]}
       rows={rows}
+      live={[{ table: "sops", filter: `org_id=eq.${ctx.org.id}` }]}
       actions={
         canWrite ? (
           <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">

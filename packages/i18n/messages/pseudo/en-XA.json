@@ -480,7 +480,9 @@
     "table": {
       "resizeColumn": "[Résîzé çölûmñ {column} ········]",
       "row": "[Ŕöŵ {n} ··]",
-      "total": "[Tötàl ·]"
+      "total": "[Tötàl ·]",
+      "selectAll": "[Šéļéçţ àļļ ŕöŵš ······]",
+      "selectRow": "[Šéļéçţ {row} ···]"
     },
     "timeline": {
       "critical": "[çrîtîçàl pàth ·····]",

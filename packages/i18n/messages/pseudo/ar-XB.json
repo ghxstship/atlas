@@ -480,7 +480,9 @@
     "table": {
       "resizeColumn": "‮ꓤǝsızǝ ɔolnɯu {column}‬",
       "row": "‮ꓤoʍ {n}‬",
-      "total": "‮ꓕoʇɐl‬"
+      "total": "‮ꓕoʇɐl‬",
+      "selectAll": "‮Šéļéçţ àļļ ŕöŵš‬",
+      "selectRow": "‮Šéļéçţ {row}‬"
     },
     "timeline": {
       "critical": "‮ɔɹıʇıɔɐl dɐʇɥ‬",

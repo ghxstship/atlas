@@ -17,6 +17,7 @@ import {
   TreeView,
   type TreeNode,
   type RecordState,
+  type LiveTopic,
 } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -24,6 +25,10 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useCopy } from "./use-copy";
 import type { KitBoardColumn, KitChart, KitColumn, KitRow, KitTreeNode, ViewKind } from "./types";
 import { CollectionViews } from "@/components/views/collection-views";
+import { useLiveRefresh } from "@/components/live/live-refresh";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 
 /**
  * The Collection template (Section 11.6) for every A16 list: page header with the view switcher
@@ -45,6 +50,8 @@ export function CollectionView({
   empty,
   actions,
   filters,
+  live,
+  bulk,
   children,
 }: {
   title: string;
@@ -63,6 +70,13 @@ export function CollectionView({
   empty: ReactNode;
   actions?: ReactNode;
   filters?: ReactNode;
+  /**
+   * Tables the rows come from, narrowed to the org (`org_id=eq.<id>`): the page rereads when one
+   * changes, so the list updates live (Section 11.7, ADR 0044).
+   */
+  live?: readonly LiveTopic[];
+  /** Bulk edit of the table view's selection (Section 11.7), for resources with a bulk RPC. */
+  bulk?: BulkConfig | null;
   /** The peek or create drawer, rendered after the body. */
   children?: ReactNode;
 }) {
@@ -71,6 +85,11 @@ export function CollectionView({
   const pathname = usePathname();
   const params = useSearchParams();
   const [query, setQuery] = useState(params.get("q") ?? "");
+  useLiveRefresh(live ?? null);
+  const bulkRows = useMemo(() => rows.map((r) => ({ id: r.id, label: r.key })), [rows]);
+  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const { selection, bar } = bulkKit;
+  const rowMenu = useRowMenu();
 
   const href = (changes: Record<string, string | null>): Route => {
     const next = new URLSearchParams(params.toString());
@@ -254,6 +273,21 @@ export function CollectionView({
         columns={columns.map((c) => ({ ...c }))}
         rows={tableRows}
         onRowActivate={(row) => open(String(row["id"]))}
+        onRowContextMenu={(row, _index, at, cell) => {
+          const id = String(row["id"]);
+          rowMenu.open(
+            {
+              id,
+              label: rows.find((r) => r.id === id)?.key ?? id,
+              open: () => open(id),
+              href: href({ peek: id, full: "1", create: null }),
+              bulk: bulkKit,
+            },
+            at,
+            cell,
+          );
+        }}
+        {...(selection ? { selection } : {})}
       />
     );
   }
@@ -277,6 +311,8 @@ export function CollectionView({
       peek={children}
     >
       {body}
+      {bar}
+      {rowMenu.menu}
     </TemplateCollection>
   );
 }

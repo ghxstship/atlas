@@ -77,6 +77,11 @@
       "snooze": "Posponer el elemento enfocado hasta mañana"
     },
     "customize": "Cambiar atajos",
+    "undo": "Deshacer el último cambio",
+    "redo": "Rehacer el cambio que deshizo",
+    "selectRange": "Seleccionar las filas desde la última seleccionada hasta la enfocada",
+    "selectAll": "Seleccionar todas las filas cargadas",
+    "menu": "Abrir las acciones de la fila enfocada",
     "askFilter": "Filtrar en lenguaje natural"
   },
   "whatsNew": {

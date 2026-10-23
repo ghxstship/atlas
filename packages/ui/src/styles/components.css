@@ -160,6 +160,19 @@
   transform: translateY(calc(var(--stroke-width-hairline) * -1)) rotate(-45deg);
 }
 
+/* A select-all box over a partial selection shows a dash (DataTable selection). */
+.xos-check-input:indeterminate {
+  background: var(--color-accent-default);
+  border-color: var(--color-accent-default);
+}
+
+.xos-check-input:indeterminate::after {
+  content: "";
+  inline-size: var(--space-8);
+  block-size: var(--ui-hairline-half);
+  background: var(--color-accent-text-on);
+}
+
 .xos-check-input[type="radio"] {
   border-radius: var(--radius-pill);
 }
