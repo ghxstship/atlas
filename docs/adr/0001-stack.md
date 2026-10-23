@@ -177,3 +177,9 @@ pdfkit 0.20.2 (A43 amendment) is also the generated document renderer, listed in
 | -------- | ------------------------------------------------------------------------------------------------------------------------ | ------- |
 | Security | ClamAV daemon, run only as the official Docker image `clamav/clamav` (linux/amd64) for upload scanning                   | 1.5.4   |
 | Data     | `unzipper`, pinned through a pnpm override under `exceljs` (replaces 0.10.14, which pulled in `buffers` with no license) | 0.12.3  |
+
+## Amendment (2026-10-23): Next.js security release (RRR-139)
+
+| Area | Package                                                                                                                                                    | Version |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| Web  | `next`, `eslint-config-next` (replaces 16.4.0; 16.4.1 fixes GHSA-2464-fhr4-w9xw, GHSA-673q-mjm6-r5xr and GHSA-p3m5-59mp-jv5r, 16.4.2 is the current patch) | 16.4.2  |
