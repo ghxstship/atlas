@@ -212,7 +212,8 @@ const INTERNAL_SOURCES: readonly Source[] = [
     table: "budget_lines",
     schema: "app",
     relation: "expense_budget_lines",
-    select: "id,org_id,project_id,budget_name,currency_code,is_baseline,line_number,description,urid",
+    select:
+      "id,org_id,project_id,budget_name,currency_code,is_baseline,line_number,description,urid",
     map: (r) => ({
       id: r["id"],
       org_id: r["org_id"],

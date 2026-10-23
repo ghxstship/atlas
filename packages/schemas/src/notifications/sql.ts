@@ -89,7 +89,10 @@ function narrowedChannelsSql(registry: NotificationKindRegistry): string {
   const narrowed = registry.kinds.filter((k) => k.channels.length < registry.channels.length);
   if (narrowed.length === 0) return "";
   const where = narrowed
-    .map((k) => `(kind = ${literal(k.kind)} and channel not in (${k.channels.map(literal).join(", ")}))`)
+    .map(
+      (k) =>
+        `(kind = ${literal(k.kind)} and channel not in (${k.channels.map(literal).join(", ")}))`,
+    )
     .join("\n   or ");
   return `
 -- Channels a kind that names its own channels does not reach ---------------
