@@ -22,7 +22,7 @@ The Vercel projects `atlas` and `gateway` exist. The orchestrator creates `docs`
 
 Owner decision 5 (ADR 0033, amended 2026-10-20): `ghxstship.tech`, one subdomain per app.
 
-| Host                                                             | Serves                                                                 | Vercel project     | State on 2026-10-20                                                                      |
+| Host                                                             | Serves                                                                 | Vercel project     | State on 2026-10-23                                                                      |
 | ---------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------- |
 | `atlas.ghxstship.tech`                                           | Atlas                                                                  | `atlas`            | Serving, with a certificate                                                              |
 | `gateway.ghxstship.tech`                                         | Gateway on the platform brand                                          | `gateway`          | Serving, with a certificate. `gateway-umber-omega.vercel.app` is a platform host too     |
@@ -83,22 +83,24 @@ caller, the same on both hosts. The API sends no CORS headers on either host.
 
 ### console.ghxstship.tech (project `console`, ADR 0046)
 
-The operator console for the platform team. The owner created the project and attached the domain (ADR 0033, decision 79). Still to set, by the owner: `SUPABASE_ANON_KEY` for Production and Preview, and the Auth redirect URL below.
+The operator console for the platform team. The owner created the project and attached the domain (ADR 0033, decision 79). Still to set, by the owner: `SUPABASE_ANON_KEY` for Production and Preview, `CONSOLE_SITE_URL` for Preview, and the Auth redirect URLs below.
 
-| Setting                                                    | Value                                                                                                                                                                      |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Team and name                                              | `ghxstship`, `console`                                                                                                                                                     |
-| Git repository and production branch                       | `ghxstship/atlas`, `main`                                                                                                                                                  |
-| Framework preset                                           | Next.js                                                                                                                                                                    |
-| Root Directory                                             | `apps/console`                                                                                                                                                             |
-| Include files outside the Root Directory in the Build Step | On (the default)                                                                                                                                                           |
-| Install Command                                            | `pnpm install --frozen-lockfile`                                                                                                                                           |
-| Build Command                                              | `pnpm turbo run build --filter=@xos/console`                                                                                                                               |
-| Environment variables (Production)                         | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (the publishable key), `CONSOLE_SITE_URL=https://console.ghxstship.tech`, `CONSOLE_PASSWORD_SIGN_IN=false`. Never the service role key |
-| Environment variables (Preview)                            | `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the persistent staging branch, as for `atlas` and `gateway` (`promote-to-production.md`, step 14)                                |
-| Domains                                                    | `console.ghxstship.tech` on Production; its CNAME at the DNS host as Vercel shows it                                                                                       |
+| Setting                                                    | Value                                                                                                                                                                                                                |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Team and name                                              | `ghxstship`, `console`                                                                                                                                                                                               |
+| Git repository and production branch                       | `ghxstship/atlas`, `main`                                                                                                                                                                                            |
+| Framework preset                                           | Next.js                                                                                                                                                                                                              |
+| Root Directory                                             | `apps/console`                                                                                                                                                                                                       |
+| Include files outside the Root Directory in the Build Step | On (the default)                                                                                                                                                                                                     |
+| Install Command                                            | `pnpm install --frozen-lockfile`                                                                                                                                                                                     |
+| Build Command                                              | `pnpm turbo run build --filter=@xos/console`                                                                                                                                                                         |
+| Environment variables (Production)                         | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (the publishable key), `CONSOLE_SITE_URL=https://console.ghxstship.tech`, `CONSOLE_PASSWORD_SIGN_IN=false`. Never the service role key                                           |
+| Environment variables (Preview)                            | `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the persistent staging branch, as for `atlas` and `gateway`, and `CONSOLE_SITE_URL=https://console-git-staging-ghxstship.vercel.app` (`promote-to-production.md`, step 14) |
+| Domains                                                    | `console.ghxstship.tech` on Production; its CNAME at the DNS host as Vercel shows it                                                                                                                                 |
 
-- Supabase Auth: add `https://console.ghxstship.tech/auth/callback**` to the redirect allow-list (ADR 0036).
+- Supabase Auth: add `https://console.ghxstship.tech/auth/callback**` to the production redirect allow-list (ADR 0036;
+  `promote-to-production.md`, step 5), and `https://console-git-staging-ghxstship.vercel.app/auth/callback**` to the
+  staging branch's (Staging branch plan, step 4).
 - Name the first Administrator once in the Supabase SQL editor, after the person has signed up for an XOS account:
   `select private.grant_platform_operator('<platform email>', 'Administrator', '<reason>');`. Administrators add
   the rest of the platform team in the console, under Platform Team.

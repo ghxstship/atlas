@@ -217,10 +217,12 @@ schemas below.
 
 Authentication, URL Configuration:
 
-| Setting       | Value                                                                                                                 |
-| ------------- | --------------------------------------------------------------------------------------------------------------------- |
-| Site URL      | `https://atlas.ghxstship.tech`                                                                                        |
-| Redirect URLs | `https://atlas.ghxstship.tech/auth/callback**`, `https://gateway.ghxstship.tech/auth/callback**`, `compass://sign-in` |
+| Setting       | Value                                                                                                                                                                   |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Site URL      | `https://atlas.ghxstship.tech`                                                                                                                                          |
+| Redirect URLs | `https://atlas.ghxstship.tech/auth/callback**`, `https://gateway.ghxstship.tech/auth/callback**`, `https://console.ghxstship.tech/auth/callback**`, `compass://sign-in` |
+
+The console's callback joined the list with ADR 0033, decision 79; the owner adds it (`production.md`, console.ghxstship.tech).
 
 Keep the `**` at the end of each callback. Atlas and Gateway return to `/auth/callback` with a query string (`?next=...` for invitations and the claim step, `&provider=google` for Sign in with Google, ADR 0036), and Supabase Auth matches the whole address: an exact entry refuses it and sends the person to the Site URL instead. Checked on a local Supabase Auth (v2.197.0): `.../auth/callback**` accepts the callback with any query string and still refuses other paths and other hosts. Addresses on the Site URL's own host are always accepted.
 
@@ -319,7 +321,7 @@ step 4 no row they encrypt remains (the demo encounters, tax forms and entities 
 now would cost nothing, but the owner decided to keep them (ADR 0033, decision 49). No `xos_integration_*` secret
 may remain: the removal deletes the demo connections' credentials.
 
-## 11. Database network restrictions (optional, OWNER CONFIRMS)
+## 11. Database network restrictions: off for now (OWNER CONFIRMS)
 
 Database, Network Restrictions limits direct and pooler Postgres connections to listed CIDR ranges. The apps
 and Edge Functions use the HTTPS API and are not affected. What is affected: the operator's own `psql` and
@@ -395,7 +397,9 @@ The plan is in "Staging branch plan" below. When the staging branch exists:
   and the load-test instructions). It must no longer point at this project.
 - GitHub variables `XOS_STAGING_*` (synthetics) = the branch's API URL and anon key; the synthetic account is
   created on the branch.
-- Vercel `atlas`, `gateway` and `console`, Preview environment: `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the branch.
+- Vercel `atlas`, `gateway` and `console`, Preview environment: `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the branch,
+  and for `console` also `CONSOLE_SITE_URL=https://console-git-staging-ghxstship.vercel.app`, the address Vercel gives
+  the `staging` git branch of the project (the console has no staging domain).
 
 Verify: `backup-weekly` runs green against the branch; a preview deployment signs in as `owner@example.com` on
 the branch. Rollback: point the secret and variables back.
@@ -445,7 +449,9 @@ direct connection string> --include-seed`, on the branch only. `--include-seed` 
 
 4. **Branch settings.** Under `[remotes.staging.auth]`: `site_url` is `https://atlas-staging.ghxstship.tech` and
    `additional_redirect_urls` holds `https://atlas-staging.ghxstship.tech/auth/callback**`,
-   `https://gateway-staging.ghxstship.tech/auth/callback**` and the preview URLs (decisions 7 and 63). Branch secrets are separate from production:
+   `https://gateway-staging.ghxstship.tech/auth/callback**`, the console's preview callback
+   `https://console-git-staging-ghxstship.vercel.app/auth/callback**` (step 14) and the preview URLs (decisions 7, 63
+   and 79). Branch secrets are separate from production:
    `supabase secrets set --project-ref <branch ref> ...` with staging values (Resend with
    `XOS_EMAIL_ALLOWLIST`, Stripe test keys, `XOS_ENVIRONMENT=staging`).
 5. **Vercel previews.** The Preview environment variables of `atlas`, `gateway` and `console` point at the
