@@ -29,8 +29,7 @@ import { useLiveRefresh } from "@/components/live/live-refresh";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { useRowMenu } from "@/components/menus/use-row-menu";
-import { PeekHandoff } from "@/components/shell/peek-handoff";
-import { unshownPeekKey } from "@/lib/shell/peek-handoff";
+import { collectionPeek } from "@/components/shell/collection-peek";
 
 /**
  * The Collection template (Section 11.6) for every A16 list: page header with the view switcher
@@ -106,7 +105,7 @@ export function CollectionView({
   const open = (id: string) => router.push(href({ peek: id, full: null, create: null }));
   // The page renders the peek for `?peek` as children. With none (a stale link, a key from elsewhere)
   // the key goes to the shell's peek, which opens the record it names or says it cannot.
-  const handOff = unshownPeekKey(params.get("peek"), children);
+  const peek = collectionPeek(params.get("peek"), children);
 
   const needle = query.trim().toLowerCase();
   const visible = useMemo(
@@ -314,7 +313,7 @@ export function CollectionView({
           </>
         ) : undefined
       }
-      peek={handOff === null ? children : <PeekHandoff recordKey={handOff} />}
+      peek={peek}
     >
       {body}
       {bar}

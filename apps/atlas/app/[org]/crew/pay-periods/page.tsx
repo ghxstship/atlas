@@ -15,11 +15,13 @@ import { PayrollRunRecord } from "@/components/crew/payroll-run";
 import { CrewRecord } from "@/components/crew/record";
 import { FilterSelect } from "@/components/crew/views-filter-select";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, withParams } from "@/lib/crew/context";
 import { planHasFeature } from "@/lib/crew/plan";
 import { stateIcon } from "@/lib/crew/states";
 import { nextPayPeriodDates } from "@xos/data/crew";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
@@ -172,7 +174,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       );
       if (search["full"] === "1") return record;
       peek = record;
-    } else if (detail.error.kind !== "not-found") {
+    } else if (!peekRowMissing(detail.error)) {
       throw new Error(`Cannot read pay period: ${detail.error.kind}`);
     }
   }
@@ -373,7 +375,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       }
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }
