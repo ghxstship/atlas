@@ -23,6 +23,10 @@ import {
  * branch or on one merged later (orch-fix-settings' 1395 redefines the two approval emitters 1030 defines), passes
  * while it still sends the kind and fails the moment it stops, or drops the function, without either branch having
  * to know the other's file.
+ *
+ * Sending means calling private.notify, directly or through private functions that do, at their own latest
+ * definitions: the expiry reminder job (1463) names each kind and passes it to private.remind_expiry, which calls
+ * private.notify; private.notify_account and the other wrappers count the same way, by what they call, not by name.
  */
 
 const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
@@ -36,8 +40,15 @@ function read(path: string): string {
   return readFileSync(join(repoRoot, path), "utf8");
 }
 
+const sources = new Map<string, string>();
+
 function migration(name: string): string {
-  return read(`supabase/migrations/${name}`);
+  let text = sources.get(name);
+  if (text === undefined) {
+    text = read(`supabase/migrations/${name}`);
+    sources.set(name, text);
+  }
+  return text;
 }
 
 /** The parameter list after `(` at `open`, and how many parameters it holds (commas inside parentheses or quotes do not count). */
@@ -89,33 +100,97 @@ function events(source: string, symbol: string): Event[] {
   });
 }
 
+interface Definition {
+  readonly file: string;
+  readonly body: string;
+  readonly droppedIn: string | null;
+}
+
+type Latest = { file: string; body: string; arity: number; droppedIn: string | null } | null;
+
+/** `latest` after one migration's events for the function (a drop that names another overload's parameters leaves it standing). */
+function fold(latest: Latest, file: string, found: readonly Event[]): Latest {
+  let next = latest;
+  for (const e of found) {
+    if (e.kind === "create") next = { file, body: e.body, arity: e.arity, droppedIn: null };
+    else if (next !== null && (e.arity === null || e.arity === next.arity))
+      next = { ...next, droppedIn: file };
+  }
+  return next;
+}
+
 /**
  * The definition of `symbol` the database runs once every migration in `files` has applied: its last
- * `create function`, with the migration that holds it, or the migration that drops it afterwards (a drop that names
- * another overload's parameters leaves it standing). Null when no migration defines it.
+ * `create function`, with the migration that holds it, or the migration that drops it afterwards. Null when no
+ * migration defines it.
  */
 function latestDefinition(
   symbol: string,
   files: readonly string[],
   source: (name: string) => string,
-): { readonly file: string; readonly body: string; readonly droppedIn: string | null } | null {
-  let latest: { file: string; body: string; arity: number; droppedIn: string | null } | null = null;
-  for (const file of files) {
-    for (const e of events(source(file), symbol)) {
-      if (e.kind === "create") latest = { file, body: e.body, arity: e.arity, droppedIn: null };
-      else if (latest !== null && (e.arity === null || e.arity === latest.arity))
-        latest.droppedIn = file;
-    }
-  }
+): Definition | null {
+  let latest: Latest = null;
+  for (const file of files) latest = fold(latest, file, events(source(file), symbol));
   return latest === null
     ? null
     : { file: latest.file, body: latest.body, droppedIn: latest.droppedIn };
 }
 
+/** The latest definition of every private function across `files`, in one pass over them. */
+function privateDefinitions(
+  files: readonly string[],
+  source: (name: string) => string,
+): ReadonlyMap<string, Definition> {
+  const latest = new Map<string, Latest>();
+  const named =
+    /\b(?:create(?:\s+or\s+replace)?\s+function|drop\s+function(?:\s+if\s+exists)?)\s+(private\.\w+)/gi;
+  for (const file of files) {
+    const text = source(file);
+    const symbols = new Set([...text.matchAll(named)].map((m) => (m[1] ?? "").toLowerCase()));
+    for (const symbol of symbols)
+      latest.set(symbol, fold(latest.get(symbol) ?? null, file, events(text, symbol)));
+  }
+  const defined = new Map<string, Definition>();
+  for (const [symbol, d] of latest) if (d !== null && d.droppedIn === null) defined.set(symbol, d);
+  return defined;
+}
+
+const definitionsOf = new WeakMap<(name: string) => string, ReadonlyMap<string, Definition>>();
+
+/**
+ * Whether `body` sends a notification: it calls private.notify, or calls a private function whose latest
+ * definition does, however many calls down. A function a migration drops for good sends nothing; each function is
+ * read once, so a cycle ends.
+ */
+function callsNotify(
+  body: string,
+  files: readonly string[],
+  source: (name: string) => string,
+): boolean {
+  let defined = definitionsOf.get(source);
+  if (defined === undefined) {
+    defined = privateDefinitions(files, source);
+    definitionsOf.set(source, defined);
+  }
+  const seen = new Set<string>();
+  const queue = [body];
+  for (let next = queue.shift(); next !== undefined; next = queue.shift()) {
+    if (/\bprivate\.notify\s*\(/i.test(next)) return true;
+    for (const m of next.matchAll(/\bprivate\.(\w+)\s*\(/gi)) {
+      const callee = `private.${(m[1] ?? "").toLowerCase()}`;
+      const d = defined.get(callee);
+      if (seen.has(callee) || d === undefined) continue;
+      seen.add(callee);
+      queue.push(d.body);
+    }
+  }
+  return false;
+}
+
 /**
  * What is wrong with a migration emitter `file#symbol` for `kind`: the named migration must define the function,
- * and the function's latest definition across `files` must still exist, name the kind and call private.notify.
- * Empty when the emitter holds.
+ * and the function's latest definition across `files` must still exist, name the kind and call private.notify,
+ * directly or through private functions that do (callsNotify). Empty when the emitter holds.
  */
 function emitterIssues(
   kind: string,
@@ -135,9 +210,10 @@ function emitterIssues(
   const issues: string[] = [];
   if (!latest.body.includes(`'${kind}'`))
     issues.push(`${kind}: ${symbol} in ${where} does not name the kind`);
-  // private.notify itself or one of its private.notify_* wrappers (notify_account, notify_invoice_party).
-  if (!/\bprivate\.notify\w*\s*\(/.test(latest.body))
-    issues.push(`${kind}: ${symbol} in ${where} does not call private.notify`);
+  if (!callsNotify(latest.body, files, source))
+    issues.push(
+      `${kind}: ${symbol} in ${where} does not call private.notify, directly or through a function`,
+    );
   return issues;
 }
 
@@ -197,7 +273,7 @@ describe("every notification kind is sent or says why not", () => {
     // The redefinition stops sending it: the guard fails at the definition the database runs.
     expect(issues(first, { [first]: sends, [merged]: definitionWith("return;") })).toEqual([
       `approval.requested: ${symbol} in ${merged} (its latest definition) does not name the kind`,
-      `approval.requested: ${symbol} in ${merged} (its latest definition) does not call private.notify`,
+      `approval.requested: ${symbol} in ${merged} (its latest definition) does not call private.notify, directly or through a function`,
     ]);
 
     // A later drop of the same signature removes it; a drop of another overload leaves it standing.
@@ -226,6 +302,57 @@ describe("every notification kind is sent or says why not", () => {
     expect(issues(later, kept)).toEqual([
       `approval.requested: supabase/migrations/${later} does not exist`,
     ]);
+  });
+
+  it("counts a call through private functions that send, at their latest definitions", () => {
+    const [first, later] = ["0001_first.sql", "0002_later.sql"];
+    const symbol = "private.send_expiry_reminders";
+    const definition = (name: string, body: string) =>
+      `create or replace function ${name}(p_kind text)\nreturns boolean\nlanguage plpgsql\nas $$\nbegin\n  ${body}\nend;\n$$;\n`;
+    const job = definition(symbol, "perform private.remind_expiry('document.expiring');");
+    const remind = (body: string) => definition("private.remind_expiry", body);
+    const notifies = "perform private.notify(v_org, v_person, p_kind);";
+    const issues = (texts: Record<string, string>) =>
+      emitterIssues(
+        "document.expiring",
+        first,
+        symbol,
+        Object.keys(texts).sort(),
+        (name) => texts[name] ?? "",
+      );
+    const silent = [
+      `document.expiring: ${symbol} in ${first} does not call private.notify, directly or through a function`,
+    ];
+
+    // The job names the kind and hands it to a function that calls private.notify, or to one that calls such a
+    // function, wherever it is defined.
+    expect(issues({ [first]: job + remind(notifies) })).toEqual([]);
+    expect(
+      issues({
+        [first]: job + remind("perform private.queue_reminder(p_kind);"),
+        [later]: definition("private.queue_reminder", notifies),
+      }),
+    ).toEqual([]);
+
+    // The function's latest definition stops calling private.notify, or a later migration drops it: nothing sends.
+    expect(issues({ [first]: job + remind(notifies), [later]: remind("return true;") })).toEqual(
+      silent,
+    );
+    expect(
+      issues({
+        [first]: job + remind(notifies),
+        [later]: "drop function private.remind_expiry(text);\n",
+      }),
+    ).toEqual(silent);
+
+    // What a function calls counts, not its name; and calls that loop back end.
+    expect(
+      issues({
+        [first]:
+          definition(symbol, "perform private.notify_later('document.expiring');") +
+          definition("private.notify_later", "perform private.notify_later(p_kind);"),
+      }),
+    ).toEqual(silent);
   });
 
   it("defers only the kinds that wait on a recorded decision", () => {
