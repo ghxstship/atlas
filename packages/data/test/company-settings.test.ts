@@ -122,9 +122,15 @@ describe("company notification defaults (1434)", () => {
       { category: "finance", channel: "Email", enabled: false },
       { category: "finance", channel: "Push", enabled: false },
     ]);
+    // Every party category is listed (A89 adds opportunities and expiry reminders); one with no company
+    // default and no choice of the person's falls back to the channel's own default (on).
     expect(prefs.ok && prefs.data).toEqual([
       { category: "finance", channel: "Email", enabled: false },
       { category: "finance", channel: "Push", enabled: true },
+      { category: "opportunities", channel: "Email", enabled: true },
+      { category: "opportunities", channel: "Push", enabled: true },
+      { category: "expiry_reminders", channel: "Email", enabled: true },
+      { category: "expiry_reminders", channel: "Push", enabled: true },
     ]);
   });
 });
