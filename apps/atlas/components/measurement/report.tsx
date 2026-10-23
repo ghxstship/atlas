@@ -26,6 +26,8 @@ import type { FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy, type FinanceCopy } from "@/lib/finance/copy";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getShellSettings } from "@/lib/shell/org-settings";
+import { projectJurisdictionUnits } from "@/lib/workforce/units";
+import { resolveUnitSystem } from "@xos/ui/preferences";
 import { figureText, metricLabel, outcomeLabel, type MeasurementT } from "./format";
 import { CoverageTable } from "./coverage-table";
 import { SummaryTable, summaryCsv, summaryHeader, summaryLines, type SummaryLine } from "./summary";
@@ -108,12 +110,13 @@ export async function MeasurementReport({ page }: { page: FinancePage }) {
   const c = await getFinanceCopy(page.ctx);
   if (!page.access.can("projects.gate.read")) return refused(page, c);
   const db = page.ctx.viewer.db;
-  const [catalog, summary, shell, translations, locale] = await Promise.all([
+  const [catalog, summary, shell, translations, locale, jurisdiction] = await Promise.all([
     listMeasurementCatalog(db),
     listMeasurementSummary(db, { orgId: page.ctx.org.id, projectId: page.project?.id ?? null }),
     getShellSettings(db, page.ctx.org.id, null),
     getTranslations("measurement"),
     getLocale(),
+    page.project ? projectJurisdictionUnits(db, page.project.id) : Promise.resolve(null),
   ]);
   if (!catalog.ok || !summary.ok) return failed(page, c);
   const t = translations as unknown as MeasurementT;
@@ -124,7 +127,8 @@ export async function MeasurementReport({ page }: { page: FinancePage }) {
     locale,
     catalog: catalog.data,
     rows: summary.data,
-    preference: shell.preferences.units,
+    // locale.units may follow the jurisdiction (A97): the project's, else the person's locale.
+    preference: resolveUnitSystem(shell.preferences.units, { jurisdiction, locale }),
     canExport: page.access.can("reports.report.export"),
   };
   return page.project ? (
