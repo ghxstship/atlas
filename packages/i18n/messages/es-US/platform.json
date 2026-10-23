@@ -119,7 +119,10 @@
     "integration_inbound_not_dead_letter": "Solo se puede reenviar un webhook que falló definitivamente.",
     "integration_inbound_secret_short": "Un secreto de webhook tiene al menos 16 caracteres.",
     "integration_inbound_secret_long": "Un secreto de webhook tiene como máximo 1024 caracteres.",
-    "integration_disconnected": "Esa conexión está desconectada y no puede cambiar."
+    "integration_disconnected": "Esa conexión está desconectada y no puede cambiar.",
+    "moderation_appeal_window": "Las apelaciones se aceptan durante seis meses después de una decisión; esta es más antigua.",
+    "moderation_appeal_grounds": "Explica por qué la decisión es incorrecta, en hasta 4,000 caracteres.",
+    "moderation_appeal_exists": "Esta decisión ya se apeló."
   },
   "partner": {
     "sections": "Secciones de la consola de socio",
@@ -592,11 +595,20 @@
         "scheduled": "Pago de factura programado",
         "paid": "Factura pagada"
       },
+      "listing": {
+        "moderated": "Anuncio moderado"
+      },
+      "listing_report": {
+        "decided": "Denuncia revisada"
+      },
       "mention": {
         "created": "Te mencionaron"
       },
       "message": {
         "received": "Nuevo mensaje"
+      },
+      "moderation_appeal": {
+        "decided": "Apelación decidida"
       },
       "occupancy": {
         "threshold": "Se alcanzó el umbral de ocupación"
@@ -716,6 +728,26 @@
       "ownerOnly": "Solo el Propietario otorga o termina una sesión de soporte.",
       "history": "Sesiones de soporte anteriores",
       "past": "{from} a {to}: {reason}"
+    },
+    "platformSupport": {
+      "title": "Sesiones de soporte de la plataforma",
+      "description": "El equipo de la plataforma XOS no puede leer tus registros a menos que la persona propietaria conceda una sesión de soporte. Lee tu resumen, miembros, proyectos y configuración desde su consola, nunca cambia nada, y cada área que abre aparece aquí y en tu registro de auditoría.",
+      "none": "No hay ninguna sesión de soporte de la plataforma abierta.",
+      "open": "El equipo de la plataforma tiene acceso hasta el {when}. Motivo: {reason}",
+      "grant": "Conceder una sesión de soporte al equipo de la plataforma",
+      "granted": "Sesión de soporte de la plataforma concedida.",
+      "reason": "¿Por qué necesita acceso el equipo de la plataforma?",
+      "reasonHelp": "Lo ve el equipo de la plataforma y queda en el registro de auditoría.",
+      "log": "Qué abrió el equipo de la plataforma",
+      "noAccess": "El equipo de la plataforma no ha abierto nada.",
+      "access": "{when}: {name} abrió {area}",
+      "operator": "Una persona del equipo de la plataforma",
+      "areas": {
+        "Overview": "el resumen",
+        "Members": "los miembros",
+        "Projects": "los proyectos",
+        "Settings": "la configuración"
+      }
     }
   },
   "lifecycle": {
@@ -957,6 +989,33 @@
       "submit": "Guardar secreto",
       "saved": "Secreto guardado.",
       "connection": "{name} ({provider})"
+    }
+  },
+  "moderation": {
+    "title": "Decisiones de moderación",
+    "description": "Cuando el equipo de la plataforma XOS retira, restringe o restablece uno de tus anuncios tras una denuncia, la decisión y su exposición de motivos aparecen aquí. Puedes apelar un retiro o una restricción en un plazo de seis meses; otra persona decide la apelación.",
+    "loadError": "No se pudieron cargar las decisiones de moderación.",
+    "none": "No hay decisiones de moderación sobre tus anuncios.",
+    "decision": "{title}: {action} el {when}",
+    "untitled": "Anuncio sin título",
+    "rule": "Norma aplicada: {rule}",
+    "facts": "Hechos: {facts}",
+    "actions": {
+      "Removed": "retirado",
+      "Restricted": "restringido",
+      "Restored": "restablecido",
+      "No Action": "sin medidas"
+    },
+    "appeal": "Apelar esta decisión",
+    "appealed": "Apelación enviada. Otra persona la decidirá.",
+    "grounds": "¿Por qué es incorrecta la decisión?",
+    "groundsHelp": "Explica qué pasó por alto la revisión. Puedes apelar una vez.",
+    "appealUntil": "Puedes apelar hasta el {until}.",
+    "appealOpen": "Apelación enviada el {when}; pendiente de revisión.",
+    "appealDecided": "Apelación {state}: {statement}",
+    "appealStates": {
+      "Upheld": "no concedida, la decisión se mantiene",
+      "Reversed": "concedida, la decisión se revocó"
     }
   }
 }

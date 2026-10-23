@@ -528,5 +528,18 @@
     "routes": {
       "record": "Record"
     }
+  },
+  "console": {
+    "group": "Operator Console",
+    "tenants": "Tenants",
+    "tenant": "Tenant",
+    "flags": "Feature Flags",
+    "support": "Support Sessions",
+    "supportSession": "Support Session",
+    "moderation": "Moderation",
+    "listing": "Reported Listing",
+    "banners": "System Banners",
+    "team": "Platform Team",
+    "activity": "Activity"
   }
 }

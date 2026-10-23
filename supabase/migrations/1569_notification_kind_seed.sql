@@ -4,7 +4,7 @@
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
--- 9 email templates, 15 categories, 47 kinds (187 kind and channel rows),
+-- 9 email templates, 15 categories, 50 kinds (199 kind and channel rows),
 -- 4 kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows the registry does not name are left in place and fail the
 -- drift test (1569_notification_kind_seed.test.sql); the quiet-hours bypass list is replaced as a set.
@@ -182,6 +182,18 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('partner.client_left', 'Email'::app.notification_channel, 'account', 'notification'),
   ('partner.client_left', 'SMS'::app.notification_channel, 'account', null),
   ('partner.client_left', 'Push'::app.notification_channel, 'account', null),
+  ('listing.moderated', 'In App'::app.notification_channel, 'account', null),
+  ('listing.moderated', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('listing.moderated', 'SMS'::app.notification_channel, 'account', null),
+  ('listing.moderated', 'Push'::app.notification_channel, 'account', null),
+  ('listing_report.decided', 'In App'::app.notification_channel, 'account', null),
+  ('listing_report.decided', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('listing_report.decided', 'SMS'::app.notification_channel, 'account', null),
+  ('listing_report.decided', 'Push'::app.notification_channel, 'account', null),
+  ('moderation_appeal.decided', 'In App'::app.notification_channel, 'account', null),
+  ('moderation_appeal.decided', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('moderation_appeal.decided', 'SMS'::app.notification_channel, 'account', null),
+  ('moderation_appeal.decided', 'Push'::app.notification_channel, 'account', null),
   ('report.delivered', 'In App'::app.notification_channel, 'reports', null),
   ('report.delivered', 'Email'::app.notification_channel, 'reports', 'report_delivery'),
   ('report.delivered', 'SMS'::app.notification_channel, 'reports', null),

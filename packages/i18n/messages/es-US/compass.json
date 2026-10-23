@@ -780,5 +780,9 @@
         "unexpected": "No se pudo enviar la solicitud. Inténtalo de nuevo en un momento."
       }
     }
+  },
+  "systemBanner": {
+    "details": "Detalles",
+    "dismiss": "Ocultar"
   }
 }

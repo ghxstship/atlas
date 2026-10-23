@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { ReacceptancePrompt } from "@/components/legal/reacceptance-banner";
 import { GatewayFrame } from "@/components/shell/gateway-frame";
 import { ReporterUser } from "@/components/shell/reporter-user";
+import { SystemBanners } from "@/components/shell/system-banners";
 import { selectableLocales } from "@/i18n/negotiate";
 import { docsSiteUrl, env } from "@/lib/env";
 import { buildNav } from "@/lib/shell/nav-model";
@@ -27,7 +28,8 @@ import {
  * sitemap for the person's standing; the brand is the org's on its custom domain, else the
  * platform's (Section 4.4.7). Only the platform brand links to the docs site's help center. After a
  * material change to a document the person accepted, such as the Worker Terms, every page opens with
- * the re-acceptance prompt (Section 14.4, A82).
+ * the re-acceptance prompt (Section 14.4, A82). The platform's system banners (A90) load after the page,
+ * on every brand.
  */
 export default async function ShellLayout({ children }: { children: ReactNode }) {
   const path = (await headers()).get("x-gateway-path") ?? "/home";
@@ -87,6 +89,7 @@ export default async function ShellLayout({ children }: { children: ReactNode })
     >
       <ReporterUser personId={ctx.personId} />
       <ReacceptancePrompt db={ctx.db} />
+      <SystemBanners linkLabel={t("shell.systemBanner.details")} />
       {children}
     </GatewayFrame>
   );

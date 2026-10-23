@@ -10,6 +10,7 @@ import enUS_authSecurity from "../messages/en-US/authSecurity.json" with { type:
 import enUS_canonBrowser from "../messages/en-US/canonBrowser.json" with { type: "json" };
 import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
 import enUS_compliance from "../messages/en-US/compliance.json" with { type: "json" };
+import enUS_console from "../messages/en-US/console.json" with { type: "json" };
 import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
 import enUS_docs from "../messages/en-US/docs.json" with { type: "json" };
@@ -68,6 +69,7 @@ import esUS_authSecurity from "../messages/es-US/authSecurity.json" with { type:
 import esUS_canonBrowser from "../messages/es-US/canonBrowser.json" with { type: "json" };
 import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
 import esUS_compliance from "../messages/es-US/compliance.json" with { type: "json" };
+import esUS_console from "../messages/es-US/console.json" with { type: "json" };
 import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
 import esUS_docs from "../messages/es-US/docs.json" with { type: "json" };
@@ -128,6 +130,7 @@ export const enUS = {
   canonBrowser: enUS_canonBrowser,
   compass: enUS_compass,
   compliance: enUS_compliance,
+  console: enUS_console,
   credentials: enUS_credentials,
   crew: enUS_crew,
   docs: enUS_docs,
@@ -189,6 +192,7 @@ export const esUS = {
   canonBrowser: esUS_canonBrowser,
   compass: esUS_compass,
   compliance: esUS_compliance,
+  console: esUS_console,
   credentials: esUS_credentials,
   crew: esUS_crew,
   docs: esUS_docs,

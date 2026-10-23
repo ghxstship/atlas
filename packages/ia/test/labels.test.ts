@@ -64,7 +64,7 @@ describe("nav labels", () => {
       "nav.breadcrumb.workspace",
       "nav.breadcrumb.scope",
     ]);
-    for (const app of ["atlas", "gateway", "compass"] as const) {
+    for (const app of ["atlas", "gateway", "compass", "console"] as const) {
       const sitemap = loadApp(app);
       for (const entry of indexSitemap(sitemap).order) used.add(entry.node.label);
       for (const block of sitemap.contentBlocks ?? []) used.add(block.label);

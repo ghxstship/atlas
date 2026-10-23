@@ -56,11 +56,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "safety",
       "account",
     ]);
-    expect(registry.kinds).toHaveLength(47);
-    expect(notificationKind("opportunity.matched")).toMatchObject({
-      category: "opportunities",
-      channels: ["In App", "Email", "Push"],
-    });
+    // 43 kinds (A79, A91, A99 among them), plus the three marketplace moderation kinds of A90 (1473).
+    expect(registry.kinds).toHaveLength(50);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",

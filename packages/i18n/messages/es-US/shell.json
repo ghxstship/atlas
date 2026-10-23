@@ -1291,5 +1291,8 @@
   },
   "keys": {
     "goHint": "Ir a: presiona una de estas teclas después de {key}, o Esc para cancelar."
+  },
+  "systemBanner": {
+    "details": "Detalles"
   }
 }

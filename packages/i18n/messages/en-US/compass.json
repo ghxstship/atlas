@@ -780,5 +780,9 @@
         "unexpected": "The request could not be sent. Try again in a moment."
       }
     }
+  },
+  "systemBanner": {
+    "details": "Details",
+    "dismiss": "Dismiss"
   }
 }

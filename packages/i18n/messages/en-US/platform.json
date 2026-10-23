@@ -119,7 +119,10 @@
     "integration_inbound_not_dead_letter": "Only a webhook that failed for good can be sent back.",
     "integration_inbound_secret_short": "A webhook secret has at least 16 characters.",
     "integration_inbound_secret_long": "A webhook secret is at most 1024 characters.",
-    "integration_disconnected": "That connection is disconnected and cannot change."
+    "integration_disconnected": "That connection is disconnected and cannot change.",
+    "moderation_appeal_window": "Appeals are accepted for six months after a decision; this one is older.",
+    "moderation_appeal_grounds": "Say why the decision is wrong, in up to 4,000 characters.",
+    "moderation_appeal_exists": "This decision has already been appealed."
   },
   "partner": {
     "sections": "Partner console sections",
@@ -592,11 +595,20 @@
         "scheduled": "Invoice payment scheduled",
         "paid": "Invoice paid"
       },
+      "listing": {
+        "moderated": "Listing moderated"
+      },
+      "listing_report": {
+        "decided": "Report reviewed"
+      },
       "mention": {
         "created": "You were mentioned"
       },
       "message": {
         "received": "New message"
+      },
+      "moderation_appeal": {
+        "decided": "Appeal decided"
       },
       "occupancy": {
         "threshold": "Occupancy threshold reached"
@@ -716,6 +728,26 @@
       "ownerOnly": "Only the Owner grants or ends a support session.",
       "history": "Past support sessions",
       "past": "{from} to {to}: {reason}"
+    },
+    "platformSupport": {
+      "title": "Platform support sessions",
+      "description": "The XOS platform team cannot read your records unless the Owner grants a support session. They read your overview, members, projects and settings through their console, never change anything, and every area they open is listed here and in your audit log.",
+      "none": "No platform support session is open.",
+      "open": "The platform team has access until {when}. Reason: {reason}",
+      "grant": "Grant the platform team a support session",
+      "granted": "Platform support session granted.",
+      "reason": "Why does the platform team need access?",
+      "reasonHelp": "Shown to the platform team and kept in the audit log.",
+      "log": "What the platform team opened",
+      "noAccess": "The platform team has not opened anything.",
+      "access": "{when}: {name} opened {area}",
+      "operator": "A platform operator",
+      "areas": {
+        "Overview": "the overview",
+        "Members": "the members",
+        "Projects": "the projects",
+        "Settings": "the settings"
+      }
     }
   },
   "lifecycle": {
@@ -957,6 +989,33 @@
       "submit": "Store secret",
       "saved": "Secret stored.",
       "connection": "{name} ({provider})"
+    }
+  },
+  "moderation": {
+    "title": "Moderation decisions",
+    "description": "When the XOS platform team removes, restricts or restores one of your listings after a report, the decision and its statement of reasons appear here. You can appeal a removal or restriction within six months; another reviewer decides the appeal.",
+    "loadError": "Moderation decisions could not be loaded.",
+    "none": "No moderation decision on your listings.",
+    "decision": "{title}: {action} on {when}",
+    "untitled": "Untitled listing",
+    "rule": "Rule relied on: {rule}",
+    "facts": "Facts: {facts}",
+    "actions": {
+      "Removed": "removed",
+      "Restricted": "restricted",
+      "Restored": "restored",
+      "No Action": "no action taken"
+    },
+    "appeal": "Appeal this decision",
+    "appealed": "Appeal sent. Another reviewer will decide it.",
+    "grounds": "Why is the decision wrong?",
+    "groundsHelp": "Explain what the reviewer missed. You can appeal once.",
+    "appealUntil": "You can appeal until {until}.",
+    "appealOpen": "Appeal sent on {when}; waiting for a reviewer.",
+    "appealDecided": "Appeal {state}: {statement}",
+    "appealStates": {
+      "Upheld": "not granted, the decision stands",
+      "Reversed": "granted, the decision was reversed"
     }
   }
 }

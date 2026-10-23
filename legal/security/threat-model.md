@@ -67,25 +67,27 @@ than the database allows.
 9. Aurora AI: prompt injection, tool scopes and data exfiltration
 10. Storage buckets
 11. Exports and logs
+12. Platform operator to the operator console
 
 ## 1. Anonymous visitor to api_public
 
 Anon has USAGE only on `api_public`, `public`, `extensions` and `storage`. It reaches 21 reviewed
 SECURITY DEFINER RPCs: token documents and agreements, advance packets, public profiles, brand
-lookup, cookie consent, calendar feeds and certification verification.
+lookup, cookie consent, calendar feeds, certification verification and the live system banners (A90).
 
-| STRIDE | Threat                                                   | Control                                                                                                 | Evidence                                              |
-| ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| S      | Guessing a document, advance or agreement token          | Random tokens stored only as hashes; a separate access code; lockout after 5 failed codes               | 0769, 0430 and 0361 suites; `private.resolve_*_token` |
-| T      | Writing tenant rows without a sign-in                    | No anon policies anywhere; anon has no USAGE on `app`; every anon RPC is SECURITY DEFINER with checks   | `9900_security_catalog.test.sql`                      |
-| R      | Denying a signature                                      | Signer name, signed body SHA-256 and time are stored; no IP or user agent is captured (residual risk)   | 0361 and 0769 suites                                  |
-| I      | Enumerating people or certifications                     | Profiles honor Public, Network and Private visibility; verification needs the holder's consent and code | 0860, 0352 and 0510 suites                            |
-| D      | Flooding consent or verification RPCs                    | Per-IP failure limits on verification and kiosk PINs; platform rate limits at the edge                  | `private.rate_limit_exceeded`                         |
-| D      | Hammering a leaked calendar feed link (ADR 0040)         | 120 fetches an hour per token; revoke or rotate ends the link; retired links answer 404                 | 1410 suite                                            |
-| S      | Locking calendar servers out with dead feed links        | Rotated and revoked token hashes are kept a year and never count as failed guesses                      | 1410 suite                                            |
-| S      | Skipping the failed-code count with a GET call (A69-001) | Every lockout and per-address helper refuses a read-only transaction first; resolvers lock the row      | 1295 suite (catalog of every volatile api_public RPC) |
-| S      | Spoofing the address a per-IP limit counts (A69-002)     | `private.request_ip` reads the gateway's appended entry past `xos.trusted_proxy_hops`, never the first  | 1296 suite                                            |
-| E      | Reaching a privileged function through a new anon grant  | The catalog test fixes the exact set of anon-callable functions                                         | `9900_security_catalog.test.sql`                      |
+| STRIDE | Threat                                                   | Control                                                                                                  | Evidence                                              |
+| ------ | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| S      | Guessing a document, advance or agreement token          | Random tokens stored only as hashes; a separate access code; lockout after 5 failed codes                | 0769, 0430 and 0361 suites; `private.resolve_*_token` |
+| T      | Writing tenant rows without a sign-in                    | No anon policies anywhere; anon has no USAGE on `app`; every anon RPC is SECURITY DEFINER with checks    | `9900_security_catalog.test.sql`                      |
+| R      | Denying a signature                                      | Signer name, signed body SHA-256 and time are stored; no IP or user agent is captured (residual risk)    | 0361 and 0769 suites                                  |
+| I      | Enumerating people or certifications                     | Profiles honor Public, Network and Private visibility; verification needs the holder's consent and code  | 0860, 0352 and 0510 suites                            |
+| D      | Flooding consent or verification RPCs                    | Per-IP failure limits on verification and kiosk PINs; platform rate limits at the edge                   | `private.rate_limit_exceeded`                         |
+| I      | Reading platform state through system banners (A90)      | `active_system_banners` returns only live banner text, kind, severity and link, which every visitor sees | 1474 suite                                            |
+| D      | Hammering a leaked calendar feed link (ADR 0040)         | 120 fetches an hour per token; revoke or rotate ends the link; retired links answer 404                  | 1410 suite                                            |
+| S      | Locking calendar servers out with dead feed links        | Rotated and revoked token hashes are kept a year and never count as failed guesses                       | 1410 suite                                            |
+| S      | Skipping the failed-code count with a GET call (A69-001) | Every lockout and per-address helper refuses a read-only transaction first; resolvers lock the row       | 1295 suite (catalog of every volatile api_public RPC) |
+| S      | Spoofing the address a per-IP limit counts (A69-002)     | `private.request_ip` reads the gateway's appended entry past `xos.trusted_proxy_hops`, never the first   | 1296 suite                                            |
+| E      | Reaching a privileged function through a new anon grant  | The catalog test fixes the exact set of anon-callable functions                                          | `9900_security_catalog.test.sql`                      |
 
 A GET through PostgREST runs the RPC in a read-only transaction. Before A69-001 that skipped every
 failed-attempt count while a right code still returned its rows, so a link's 6-digit access code
@@ -292,6 +294,20 @@ public (ADR 0034 amendment, `1265_public_upload_staging` suite).
 | I      | Personal data in error reports                          | One redactor for logs, traces and Sentry; `sendDefaultPii` off; `beforeSend` scrubs                       | `infra/observability` suites                               |
 
 XLSX files write strings as strings (exceljs) and PDFs draw text (pdfkit), so neither runs content.
+
+## 12. Platform operator to the operator console
+
+The operator console (`apps/console`, ADR 0046, migrations 1470 to 1474) is the platform team's only tool. It holds
+the anon key and the operator's own session; every console RPC starts with `private.require_platform_operator`.
+
+| STRIDE | Threat                                                          | Control                                                                                                                            | Evidence             |
+| ------ | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| S      | A tenant member or a stolen password opening the console        | A live grant in `app.platform_operators` and a second-factor (aal2) session, checked in every RPC; an API key is never an operator | 1470 suite           |
+| E      | Support doing what only an Administrator may                    | Role permissions in `private.platform_operator_permissions`, checked per RPC; no operator grants themselves a role                 | 1470 and 1471 suites |
+| I      | Reading a tenant's records without consent                      | Records open only in an Owner-granted platform support session of at most 24 hours, read-only, four areas, no record grants        | 1472 suite           |
+| R      | Denying a console action                                        | Append-only `app.platform_operator_actions` with the operator; tenant changes and support reads land in the tenant's audit ledger  | 1470 to 1474 suites  |
+| T      | One operator deciding a moderation appeal of their own decision | The appeal RPC refuses the operator who made the decision                                                                          | 1473 suite           |
+| S      | A sibling subdomain planting or reading a console session       | `__Host-` session cookie on the console's own host; CSRF Origin check; strict CSP with nonces; `noindex`                           | `apps/console/test`  |
 
 ## Review method
 

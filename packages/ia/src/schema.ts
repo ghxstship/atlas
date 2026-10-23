@@ -9,7 +9,7 @@ import { PARAM_TYPES, type ParamType } from "./constants";
  * `validate.ts`, because they need the whole tree and the message catalog.
  */
 
-export const SHELLS = ["atlas", "gateway", "compass"] as const;
+export const SHELLS = ["atlas", "gateway", "compass", "console"] as const;
 export type Shell = (typeof SHELLS)[number];
 
 /**
@@ -115,10 +115,15 @@ export type GatewayAccountRole = (typeof GATEWAY_ACCOUNT_ROLES)[number];
 export const COMPASS_AUDIENCES = ["field", "field-supervisor", ...EXTERNAL_ROLE_TYPES] as const;
 export type CompassAudience = (typeof COMPASS_AUDIENCES)[number];
 
+/** Operator console roles (A90, migration 1470): the platform team, never org members. */
+export const CONSOLE_OPERATOR_ROLES = ["administrator", "support", "trust-and-safety"] as const;
+export type ConsoleOperatorRole = (typeof CONSOLE_OPERATOR_ROLES)[number];
+
 export const SHELL_ROLES: Record<Shell, readonly string[]> = {
   atlas: ATLAS_ROLES,
   gateway: GATEWAY_ACCOUNT_ROLES,
   compass: COMPASS_AUDIENCES,
+  console: CONSOLE_OPERATOR_ROLES,
 };
 
 /** View types from the view registry (Section 11.15) that a collection route can offer. */
@@ -177,6 +182,7 @@ export const SHELL_VIEWS: Record<Shell, readonly ViewType[]> = {
     "split",
     "document",
   ],
+  console: ["list", "table"],
 };
 
 export { LIST_QUERY_PARAMS, NON_NAVIGABLE_KINDS, PARAM_TYPES, type ParamType } from "./constants";
@@ -296,7 +302,7 @@ export const SitemapSchema = z.strictObject({
   params: z.record(z.string().regex(PARAM_NAME), ParamSchema),
   globalQuery: z.record(z.string().regex(PARAM_NAME), z.string().regex(PARAM_NAME)).optional(),
   audience: z.strictObject({
-    dimension: z.enum(["platform-role", "account-role", "compass-audience"]),
+    dimension: z.enum(["platform-role", "account-role", "compass-audience", "operator-role"]),
     roles: z.array(z.string()).min(1),
     roleTypes: z.array(z.enum(EXTERNAL_ROLE_TYPES)).optional(),
   }),

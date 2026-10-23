@@ -256,6 +256,24 @@
         "subject": "Automation paused: {automationName}",
         "body": "{automationName} is off because {reason, select, owner_left_org {{ownerName} is no longer a member} owner_lost_capability {{ownerName} can no longer manage automations} owner_cannot_sign_in {{ownerName} has no sign-in} other {the API refused to act as {ownerName}}}. Turn it on again in Settings, Automations, and it runs as you."
       }
+    },
+    "listing": {
+      "moderated": {
+        "subject": "{action, select, Removed {We removed your listing {title}} Restricted {We restricted your listing {title}} Restored {We restored your listing {title}} other {We reviewed your listing {title}}}",
+        "body": "{action, select, Removed {{statement} You can appeal this decision within six months from Opportunities, Marketplace settings in Atlas.} Restricted {{statement} You can appeal this decision within six months from Opportunities, Marketplace settings in Atlas.} other {{statement}}}"
+      }
+    },
+    "listing_report": {
+      "decided": {
+        "subject": "We reviewed the listing {title} you reported",
+        "body": "{action, select, Removed {We removed the listing.} Restricted {We restricted the listing.} Restored {We restored the listing.} other {We took no action on the listing.}} {statement} You can appeal this decision within six months."
+      }
+    },
+    "moderation_appeal": {
+      "decided": {
+        "subject": "{outcome, select, Reversed {We reversed our decision on {title}} other {We kept our decision on {title}}}",
+        "body": "{outcome, select, Reversed {Another reviewer agreed with your appeal and reversed the decision.} other {Another reviewer looked at your appeal and kept the decision.}} {statement}"
+      }
     }
   },
   "notification": {

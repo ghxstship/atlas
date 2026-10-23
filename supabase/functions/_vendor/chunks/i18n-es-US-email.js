@@ -263,6 +263,26 @@ var email_default$1 = {
         body: "{automationName} is off because {reason, select, owner_left_org {{ownerName} is no longer a member} owner_lost_capability {{ownerName} can no longer manage automations} owner_cannot_sign_in {{ownerName} has no sign-in} other {the API refused to act as {ownerName}}}. Turn it on again in Settings, Automations, and it runs as you.",
       },
     },
+    listing: {
+      moderated: {
+        subject:
+          "{action, select, Removed {We removed your listing {title}} Restricted {We restricted your listing {title}} Restored {We restored your listing {title}} other {We reviewed your listing {title}}}",
+        body: "{action, select, Removed {{statement} You can appeal this decision within six months from Opportunities, Marketplace settings in Atlas.} Restricted {{statement} You can appeal this decision within six months from Opportunities, Marketplace settings in Atlas.} other {{statement}}}",
+      },
+    },
+    listing_report: {
+      decided: {
+        subject: "We reviewed the listing {title} you reported",
+        body: "{action, select, Removed {We removed the listing.} Restricted {We restricted the listing.} Restored {We restored the listing.} other {We took no action on the listing.}} {statement} You can appeal this decision within six months.",
+      },
+    },
+    moderation_appeal: {
+      decided: {
+        subject:
+          "{outcome, select, Reversed {We reversed our decision on {title}} other {We kept our decision on {title}}}",
+        body: "{outcome, select, Reversed {Another reviewer agreed with your appeal and reversed the decision.} other {Another reviewer looked at your appeal and kept the decision.}} {statement}",
+      },
+    },
   },
   notification: { heading: "{subject}" },
   digest: {
@@ -590,6 +610,26 @@ var email_default = {
       paused: {
         subject: "Automatización en pausa: {automationName}",
         body: "{automationName} está desactivada porque {reason, select, owner_left_org {{ownerName} ya no es miembro} owner_lost_capability {{ownerName} ya no puede gestionar automatizaciones} owner_cannot_sign_in {{ownerName} no tiene inicio de sesión} other {la API se negó a actuar como {ownerName}}}. Actívala de nuevo en Configuración, Automatizaciones, y se ejecutará a tu nombre.",
+      },
+    },
+    listing: {
+      moderated: {
+        subject:
+          "{action, select, Removed {Retiramos tu anuncio {title}} Restricted {Restringimos tu anuncio {title}} Restored {Restablecimos tu anuncio {title}} other {Revisamos tu anuncio {title}}}",
+        body: "{action, select, Removed {{statement} Puedes apelar esta decisión en un plazo de seis meses desde Oportunidades, Configuración del mercado en Atlas.} Restricted {{statement} Puedes apelar esta decisión en un plazo de seis meses desde Oportunidades, Configuración del mercado en Atlas.} other {{statement}}}",
+      },
+    },
+    listing_report: {
+      decided: {
+        subject: "Revisamos el anuncio {title} que denunciaste",
+        body: "{action, select, Removed {Retiramos el anuncio.} Restricted {Restringimos el anuncio.} Restored {Restablecimos el anuncio.} other {No tomamos ninguna medida sobre el anuncio.}} {statement} Puedes apelar esta decisión en un plazo de seis meses.",
+      },
+    },
+    moderation_appeal: {
+      decided: {
+        subject:
+          "{outcome, select, Reversed {Revertimos nuestra decisión sobre {title}} other {Mantuvimos nuestra decisión sobre {title}}}",
+        body: "{outcome, select, Reversed {Otra persona revisó tu apelación, estuvo de acuerdo y revirtió la decisión.} other {Otra persona revisó tu apelación y mantuvo la decisión.}} {statement}",
       },
     },
   },
