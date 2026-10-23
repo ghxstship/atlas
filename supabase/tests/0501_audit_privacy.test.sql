@@ -9,7 +9,7 @@ set search_path = extensions, public;
 select plan(52);
 
 -- Audit trail -----------------------------------------------------------------------------------------
-select pg_temp.as_user('bob');
+select pg_temp.as_user_stepped_up('bob');
 insert into app.membership_roles (membership_id, role_id) values (pg_temp.id('gina@org_a'), pg_temp.system_role('member'));
 select pg_temp.as_platform();
 select is(

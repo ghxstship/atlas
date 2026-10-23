@@ -325,7 +325,9 @@
       "dataAndPrivacy": "Data and Privacy",
       "auditLog": "Audit Log",
       "legal": "Legal",
-      "dangerZone": "Danger Zone"
+      "dangerZone": "Danger Zone",
+      "workspace": "Workspace",
+      "team": "Team"
     },
     "personal": {
       "profile": "Profile",

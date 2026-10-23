@@ -1,3 +1,4 @@
+import { todayIn, zoneOrUtc } from "@xos/data/calendar";
 import {
   getCertifiedPayrollHeader,
   type CertifiedPayrollHeader,
@@ -7,7 +8,9 @@ import { ActionForm } from "@/components/operations/action-form";
 import { SelectField, TextField } from "@/components/operations/fields";
 import { Button } from "@/components/ui";
 import { saveCertifiedPayrollHeaderAction } from "@/lib/compliance/actions";
+import { lastWeekEnding } from "@/lib/crew/time";
 import type { OrgContext } from "@/lib/shell/context";
+import { getOrgWeekStart } from "@/lib/shell/time-zone";
 
 /**
  * Settings, Payroll and Time Off: the WH-347 certified payroll (Section 14.5; migration 1386, ADR
@@ -23,6 +26,7 @@ interface ProjectRow {
   readonly id: string;
   readonly name: string;
   readonly projectKey: string;
+  readonly timeZone: string;
 }
 
 async function listProjects(ctx: OrgContext): Promise<ProjectRow[]> {
@@ -46,7 +50,7 @@ async function listProjects(ctx: OrgContext): Promise<ProjectRow[]> {
     }
   )
     .from("projects")
-    .select("id, name, project_key")
+    .select("id, name, project_key, time_zone")
     .eq("org_id", ctx.org.id)
     .is("deleted_at", null)
     .order("name");
@@ -54,17 +58,22 @@ async function listProjects(ctx: OrgContext): Promise<ProjectRow[]> {
     id: String(r["id"]),
     name: String(r["name"]),
     projectKey: String(r["project_key"]),
+    timeZone: zoneOrUtc(typeof r["time_zone"] === "string" ? r["time_zone"] : null),
   }));
 }
 
-/** The Saturday or Sunday ending the last full week, as the default week ending date. */
-function lastWeekEnding(now = new Date()): string {
-  const day = now.getUTCDay(); // 0 Sunday
-  const back = day === 0 ? 7 : day;
-  return new Date(now.getTime() - back * 86_400_000).toISOString().slice(0, 10);
-}
-
-function IssueForm({ org, header, t }: { org: string; header: CertifiedPayrollHeader; t: T }) {
+function IssueForm({
+  org,
+  header,
+  weekEnding,
+  t,
+}: {
+  org: string;
+  header: CertifiedPayrollHeader;
+  /** The default week ending: the last full week of the org's payroll week on the project's calendar. */
+  weekEnding: string;
+  t: T;
+}) {
   return (
     <form
       method="post"
@@ -77,7 +86,7 @@ function IssueForm({ org, header, t }: { org: string; header: CertifiedPayrollHe
         type="date"
         label={t("weekEnding")}
         required
-        defaultValue={lastWeekEnding()}
+        defaultValue={weekEnding}
       />
       <label className="flex items-center gap-8 text-text-13">
         <input type="checkbox" name="final" />
@@ -100,6 +109,13 @@ export async function CertifiedPayrollPanel({ ctx }: { ctx: OrgContext }) {
   const headers = (
     await Promise.all(projects.map((p) => getCertifiedPayrollHeader(ctx.viewer.db, p.id)))
   ).flatMap((h) => (h.ok && h.data ? [h.data] : []));
+  // The default week is the last full week of the org's payroll week (payroll.week_start, the week payroll
+  // counts overtime over, 1399), on the project's calendar (its days, as app.certified_payroll counts them),
+  // so the form's overtime matches what was paid; never the UTC date's Monday week.
+  const weekStart = await getOrgWeekStart(ctx);
+  const weekEndingOf = new Map(
+    projects.map((p) => [p.id, lastWeekEnding(todayIn(p.timeZone), weekStart)]),
+  );
   return (
     <section aria-labelledby="wh347-heading" className="flex flex-col gap-12">
       <header className="flex flex-col gap-4">
@@ -121,7 +137,12 @@ export async function CertifiedPayrollPanel({ ctx }: { ctx: OrgContext }) {
               <span className="text-text-13 text-text-secondary">
                 {t("headerLine", { contract: h.contractNumber, wd: h.wageDeterminations })}
               </span>
-              <IssueForm org={ctx.org.slug} header={h} t={t} />
+              <IssueForm
+                org={ctx.org.slug}
+                header={h}
+                weekEnding={weekEndingOf.get(h.projectId) ?? ""}
+                t={t}
+              />
             </li>
           ))}
         </ul>

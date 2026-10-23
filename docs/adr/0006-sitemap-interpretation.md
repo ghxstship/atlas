@@ -29,3 +29,12 @@ Section 4.5 is binding but leaves gaps: it groups project tabs by act without a 
 - The es-US navigation labels need native review before general availability, recorded in `packages/i18n/REVIEW.md` (Section 15).
 - View types per list route are provisional until A31 publishes `packages/schemas/views.yaml`.
 - A source lint that flags route paths outside the sitemaps (Section 3.15) is added to CI in Wave 2.
+
+## Amendment (2026-10-21): workspace and team settings pages (A86)
+
+Section 4.5.6 asks for workspace, team and project settings as "short pages holding only the settings their scope can override". Project settings already had their tab; workspaces and teams had none (finding A65-004, trace row S4.5.6-43).
+
+1. **Placement.** Each is a `record` node under its org settings section, not a new section: `settings.workspaces.workspace` at `/{org}/settings/workspaces/{workspaceSlug}` and `settings.teams.team` at `/{org}/settings/teams/{teamId}`. The org settings list keeps exactly its 42 sections in the spec's order, and the settings navigation does not list single workspaces or teams.
+2. **Parameters.** `workspaceSlug` is a `slug` (workspaces carry one); `teamId` is a `uuid` (teams have no slug). Both are data parameters: a workspace or team that is not the org's answers 404. The page looks the row up itself, so the route guard leaves these two parameters to the page (`PAGE_RESOLVED_PARAMS` in `apps/atlas/ia/routes.config.ts`).
+3. **Visibility.** Both inherit the Settings visibility: Owner and Admin, hidden for everyone else.
+4. **Content.** A workspace page shows the settings a workspace may override, with the value's source and the org lock, and the workspace's members. A team page shows its members and says that no setting is set per team yet: no registered setting allows the team scope. Settings, Workspaces and Settings, Teams link to each page.

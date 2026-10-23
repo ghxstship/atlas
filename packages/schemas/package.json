@@ -18,7 +18,9 @@
     "./views": "./src/views/index.ts",
     "./views.yaml": "./views.yaml",
     "./notifications": "./src/notifications/index.ts",
-    "./notification-kinds.yaml": "./notification-kinds.yaml"
+    "./notification-kinds.yaml": "./notification-kinds.yaml",
+    "./automations": "./src/automations/index.ts",
+    "./automation.schema.json": "./automation.schema.json"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -36,7 +38,9 @@
     "generate:shortcuts": "node --experimental-strip-types --no-warnings src/shortcuts/generate-cli.ts",
     "check:shortcuts": "node --experimental-strip-types --no-warnings src/shortcuts/generate-cli.ts --check",
     "generate:views": "node --experimental-strip-types --no-warnings src/views/generate-cli.ts",
-    "check:views": "node --experimental-strip-types --no-warnings src/views/generate-cli.ts --check"
+    "check:views": "node --experimental-strip-types --no-warnings src/views/generate-cli.ts --check",
+    "generate:automations": "node --experimental-strip-types --no-warnings src/automations/generate-cli.ts",
+    "check:automations": "node --experimental-strip-types --no-warnings src/automations/generate-cli.ts --check"
   },
   "dependencies": {
     "yaml": "2.9.1",
@@ -46,6 +50,7 @@
     "@types/node": "22.20.5",
     "@vitest/coverage-v8": "5.0.3",
     "@xos/config": "workspace:*",
+    "ajv": "8.20.0",
     "eslint": "10.12.0",
     "typescript": "6.0.3",
     "vite": "8.3.3",

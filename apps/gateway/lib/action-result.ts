@@ -31,6 +31,15 @@ export const KNOWN_REFUSALS = [
   "slug_taken",
   "slug_reserved",
   "cross_org_reference",
+  // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
+  "personal_tokens_off",
+  "personal_token_scope_not_held",
+  "personal_token_limit",
+  "personal_token_expiry",
+  "personal_token_revoked",
+  "step_up_required",
+  "sole_account_owner",
+  "notification_channel_outside",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

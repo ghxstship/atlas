@@ -546,7 +546,9 @@
         "break_glass_started": "Emergency access taken"
       },
       "account": {
-        "security_changed": "Account security changed"
+        "security_changed": "Account security changed",
+        "recovery_code_used": "Recovery code used",
+        "session_signed_out": "Session signed out"
       },
       "announcement": {
         "posted": "Announcement posted"
@@ -557,6 +559,11 @@
       },
       "assignment": {
         "created": "New assignment"
+      },
+      "automation": {
+        "notice": "Automation message",
+        "failed": "Automation failed",
+        "paused": "Automation paused"
       },
       "billing": {
         "payment_failed": "Payment failed",

@@ -22,6 +22,7 @@ test("an authenticator app set up in Gateway is asked for at the next sign-in", 
   await page.getByRole("button", { name: "Use a password" }).click();
   await page.locator("#signup-password").fill(password);
   await page.locator("#signup-terms").check();
+  await page.locator("#signup-age").check();
   await page.getByRole("button", { name: "Create account" }).click();
   await page.waitForURL((url) => url.pathname === "/home");
 

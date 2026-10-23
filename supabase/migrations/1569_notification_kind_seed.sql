@@ -1,13 +1,13 @@
--- 1479_notification_kind_seed.sql
+-- 1569_notification_kind_seed.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand: the
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
--- 9 email templates, 12 categories, 41 kinds (164 kind and channel rows),
+-- 9 email templates, 13 categories, 46 kinds (184 kind and channel rows),
 -- 4 kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows the registry does not name are left in place and fail the
--- drift test (1479_notification_kind_seed.test.sql); the quiet-hours bypass list is replaced as a set.
+-- drift test (1569_notification_kind_seed.test.sql); the quiet-hours bypass list is replaced as a set.
 
 -- Channel defaults ------------------------------------------------------------
 
@@ -35,7 +35,7 @@ on conflict (code) do update set description = excluded.description, transaction
 -- Categories (orders move aside first, so a reordering never collides) -------
 
 update private.notification_categories set sort_order = -sort_order
-where code in ('mentions', 'assignments', 'approvals', 'comments', 'schedule', 'finance', 'safety', 'account', 'reports', 'imports', 'messages', 'feed');
+where code in ('mentions', 'assignments', 'approvals', 'comments', 'schedule', 'finance', 'safety', 'account', 'reports', 'imports', 'automations', 'messages', 'feed');
 
 insert into private.notification_categories (code, urgent, sort_order) values
   ('mentions', false, 1),
@@ -48,6 +48,7 @@ insert into private.notification_categories (code, urgent, sort_order) values
   ('account', true, 8),
   ('reports', false, 9),
   ('imports', false, 10),
+  ('automations', false, 11),
   ('messages', false, 40),
   ('feed', false, 41)
 on conflict (code) do update set urgent = excluded.urgent, sort_order = excluded.sort_order;
@@ -119,6 +120,14 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('account.security_changed', 'Email'::app.notification_channel, 'account', 'notification'),
   ('account.security_changed', 'SMS'::app.notification_channel, 'account', null),
   ('account.security_changed', 'Push'::app.notification_channel, 'account', null),
+  ('account.recovery_code_used', 'In App'::app.notification_channel, 'account', null),
+  ('account.recovery_code_used', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('account.recovery_code_used', 'SMS'::app.notification_channel, 'account', null),
+  ('account.recovery_code_used', 'Push'::app.notification_channel, 'account', null),
+  ('account.session_signed_out', 'In App'::app.notification_channel, 'account', null),
+  ('account.session_signed_out', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('account.session_signed_out', 'SMS'::app.notification_channel, 'account', null),
+  ('account.session_signed_out', 'Push'::app.notification_channel, 'account', null),
   ('billing.payment_failed', 'In App'::app.notification_channel, 'account', null),
   ('billing.payment_failed', 'Email'::app.notification_channel, 'account', 'notification'),
   ('billing.payment_failed', 'SMS'::app.notification_channel, 'account', null),
@@ -195,6 +204,18 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('export.ready', 'Email'::app.notification_channel, 'imports', 'export_ready'),
   ('export.ready', 'SMS'::app.notification_channel, 'imports', null),
   ('export.ready', 'Push'::app.notification_channel, 'imports', null),
+  ('automation.notice', 'In App'::app.notification_channel, 'automations', null),
+  ('automation.notice', 'Email'::app.notification_channel, 'automations', 'notification'),
+  ('automation.notice', 'SMS'::app.notification_channel, 'automations', null),
+  ('automation.notice', 'Push'::app.notification_channel, 'automations', null),
+  ('automation.failed', 'In App'::app.notification_channel, 'automations', null),
+  ('automation.failed', 'Email'::app.notification_channel, 'automations', 'notification'),
+  ('automation.failed', 'SMS'::app.notification_channel, 'automations', null),
+  ('automation.failed', 'Push'::app.notification_channel, 'automations', null),
+  ('automation.paused', 'In App'::app.notification_channel, 'automations', null),
+  ('automation.paused', 'Email'::app.notification_channel, 'automations', 'notification'),
+  ('automation.paused', 'SMS'::app.notification_channel, 'automations', null),
+  ('automation.paused', 'Push'::app.notification_channel, 'automations', null),
   ('message.received', 'In App'::app.notification_channel, 'messages', null),
   ('message.received', 'Email'::app.notification_channel, 'messages', 'notification'),
   ('message.received', 'SMS'::app.notification_channel, 'messages', null),

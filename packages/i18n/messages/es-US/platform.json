@@ -546,7 +546,9 @@
         "break_glass_started": "Acceso de emergencia tomado"
       },
       "account": {
-        "security_changed": "Cambió la seguridad de la cuenta"
+        "security_changed": "Cambió la seguridad de la cuenta",
+        "recovery_code_used": "Código de recuperación usado",
+        "session_signed_out": "Sesión cerrada"
       },
       "announcement": {
         "posted": "Anuncio publicado"
@@ -557,6 +559,11 @@
       },
       "assignment": {
         "created": "Nueva asignación"
+      },
+      "automation": {
+        "notice": "Mensaje de una automatización",
+        "failed": "Falló una automatización",
+        "paused": "Automatización en pausa"
       },
       "billing": {
         "payment_failed": "Pago fallido",

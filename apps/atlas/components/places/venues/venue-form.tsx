@@ -1,5 +1,6 @@
 "use client";
 
+import { NO_LOCATION_DEFAULTS, venueStartValues, type LocationDefaults } from "@xos/data/org-setup";
 import type { Jurisdiction, Venue } from "@xos/data/places";
 import { Input, Select } from "@xos/ui";
 import { useMemo } from "react";
@@ -14,20 +15,31 @@ function timeZones(current: string | undefined): string[] {
 
 /**
  * Create and edit a venue: name, canon jurisdiction, IANA time zone, address and an optional
- * location. A blank location stays NULL; the map never guesses one.
+ * location. A blank location stays NULL; the map never guesses one. A new venue starts in the
+ * org's location defaults (Settings, Locations and Venues Defaults, migration 1431).
  */
 export function VenueForm({
   org,
   venue,
   jurisdictions,
+  defaults = NO_LOCATION_DEFAULTS,
 }: {
   org: string;
   venue?: Venue;
   jurisdictions: readonly Jurisdiction[];
+  defaults?: LocationDefaults;
 }) {
   const t = useCopy("places");
-  const zones = useMemo(() => timeZones(venue?.timeZone), [venue?.timeZone]);
-  const defaultZone = venue?.timeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const start = venueStartValues(
+    defaults,
+    jurisdictions[0]?.id ?? null,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  );
+  const zones = useMemo(
+    () => timeZones(venue?.timeZone ?? start.timeZone),
+    [venue?.timeZone, start.timeZone],
+  );
+  const defaultZone = venue?.timeZone ?? start.timeZone;
   return (
     <ActionForm
       action={saveVenueAction}
@@ -53,7 +65,7 @@ export function VenueForm({
             name="jurisdictionId"
             label={t("venues.fields.jurisdiction")}
             help={t("venues.fields.jurisdictionHelp")}
-            value={venue?.jurisdictionId ?? jurisdictions[0]?.id ?? ""}
+            value={venue?.jurisdictionId ?? start.jurisdictionId}
             options={jurisdictions.map((j) => ({
               value: j.id,
               label: j.populated ? j.id : t("venues.unpopulated", { id: j.id }),

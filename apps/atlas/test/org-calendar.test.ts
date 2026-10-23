@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { formatAlert } from "@/components/home/format-alert";
 import { collectionState } from "@/lib/collection-kit/page";
-import { addDays, weekStartOf } from "@/lib/crew/time";
+import { todayIn } from "@xos/data/calendar";
+import { addDays, lastWeekEnding, weekStartOf } from "@/lib/crew/time";
 import { type Alert, todayWindow } from "@/lib/home/data";
 import type { OrgContext } from "@/lib/shell/context";
 import { getOrgTimeZone, getOrgWeekStart, weekStartDay } from "@/lib/shell/time-zone";
@@ -91,6 +92,26 @@ describe("the org's payroll week (payroll.week_start at the org)", () => {
     // Sun 06-20, across the period boundary, and never be paid.
     const week = weekStartOf("2027-06-16", await getOrgWeekStart(orgContext({}).ctx));
     expect([week, addDays(week, 6)]).toEqual(["2027-06-13", "2027-06-19"]);
+  });
+});
+
+describe("the WH-347's default week (the org's payroll week)", () => {
+  it("ends the last full week on the org's week start", () => {
+    // Wednesday 2027-06-16: Saturday 06-12 on Sunday weeks, Sunday 06-13 on Monday weeks.
+    expect(lastWeekEnding("2027-06-16", 0)).toBe("2027-06-12");
+    expect(lastWeekEnding("2027-06-16", 1)).toBe("2027-06-13");
+    // The week in progress is never the default, even on its last day.
+    expect(lastWeekEnding("2027-06-19", 0)).toBe("2027-06-12");
+    expect(lastWeekEnding("2027-06-20", 0)).toBe("2027-06-19");
+  });
+
+  it("counts on the project's calendar, not the UTC date", () => {
+    // 21:00 on Saturday 06-19 in New York is already Sunday in UTC, which used to give Sunday 06-13
+    // (a Monday week, wherever the org's week starts). The org's Sunday week in progress ends that
+    // Saturday, so the last full one ended 06-12.
+    const today = todayIn("America/New_York", new Date("2027-06-20T01:00:00Z"));
+    expect(today).toBe("2027-06-19");
+    expect(lastWeekEnding(today, 0)).toBe("2027-06-12");
   });
 });
 

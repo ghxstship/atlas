@@ -70,7 +70,13 @@
     "verify": "Verificar",
     "invalid": "Ese código no coincide. Escribe el código que muestra tu app ahora.",
     "requiredTitle": "Configura un Segundo Factor",
-    "required": "Tu organización exige un segundo factor para tu rol. Configura una app de autenticación en Atlas o Gateway, en Configuración, Seguridad, y vuelve a intentarlo."
+    "required": "Tu organización exige un segundo factor para tu rol. Configura una app de autenticación en Atlas o Gateway, en Configuración, Seguridad, y vuelve a intentarlo.",
+    "useRecovery": "Usar un código de recuperación",
+    "useApp": "Usar tu app de autenticación",
+    "recoverySentence": "Escribe uno de los códigos de recuperación que guardaste en Atlas o Gateway. Cada código funciona una sola vez.",
+    "recoveryCode": "Código de recuperación",
+    "recoveryInvalid": "Ese código de recuperación no coincide, o ya se usó.",
+    "recoveryLocked": "Demasiados códigos incorrectos. Espera 15 minutos y vuelve a intentarlo."
   },
   "denial": {
     "roleTitle": "No es parte de tu rol",

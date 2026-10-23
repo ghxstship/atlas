@@ -55,6 +55,8 @@ create temporary table brand_before as select * from private.public_brand(pg_tem
 select pg_temp.as_user('cora');
 select throws_like($$select app.leave_partner((select id from world where key = 'org_c'), 'Tidewater')$$,
   'org_name_mismatch:%', 'leaving needs the org''s name typed exactly');
+-- Leaving changes how the org is billed, so it asks for step-up (A99, 1562).
+select pg_temp.as_user_stepped_up('cora');
 select is(app.leave_partner(pg_temp.id('org_c'), 'Tidewater Events'), pg_temp.id('org_c'), 'the client Owner leaves the partner');
 select pg_temp.as_platform();
 select is((select parent_org_id from app.organizations where id = pg_temp.id('org_c')), null, 'the org is a direct customer');
