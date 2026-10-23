@@ -1,6 +1,5 @@
 import type { XosClient } from "./client.ts";
 import type { Json } from "./database.types.ts";
-import { untyped } from "./untyped.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -78,7 +77,7 @@ export async function getFieldHistory(
   id: string,
   limit = 200,
 ): Promise<Result<HistoryEvent[]>> {
-  const { data, error } = await untyped(db).rpc("field_history", {
+  const { data, error } = await db.rpc("field_history", {
     p_subject_table: table,
     p_subject_id: id,
     p_limit: limit,

@@ -1,5 +1,4 @@
 import type { XosClient } from "./client.ts";
-import { untyped } from "./untyped.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -59,7 +58,7 @@ export async function openDoc(
     readonly since?: number;
   },
 ): Promise<Result<OpenedDoc>> {
-  const { data, error } = await untyped(db).rpc("open_doc", {
+  const { data, error } = await db.rpc("open_doc", {
     p_subject_table: input.table,
     p_subject_id: input.id,
     p_doc_key: input.docKey,
@@ -76,7 +75,7 @@ export async function appendDocUpdate(
   db: XosClient,
   input: { readonly docId: string; readonly generation: number; readonly update: string },
 ): Promise<Result<number>> {
-  const { data, error } = await untyped(db).rpc("append_doc_update", {
+  const { data, error } = await db.rpc("append_doc_update", {
     p_doc_id: input.docId,
     p_generation: input.generation,
     p_update: input.update,
@@ -92,10 +91,10 @@ export async function compactDoc(
     readonly generation: number;
     readonly state: string;
     readonly through: number;
-    readonly text: string | null;
+    readonly text: string;
   },
 ): Promise<Result<{ compacted: boolean; throughSeq: number }>> {
-  const { data, error } = await untyped(db).rpc("compact_doc", {
+  const { data, error } = await db.rpc("compact_doc", {
     p_doc_id: input.docId,
     p_generation: input.generation,
     p_state: input.state,

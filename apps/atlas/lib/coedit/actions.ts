@@ -73,10 +73,10 @@ export async function compactDocAction(
   generation: number,
   state: string,
   through: number,
-  text: string | null,
+  text: string,
 ): Promise<CoeditResult<{ compacted: boolean; throughSeq: number }>> {
   if (!z.uuid().safeParse(docId).success || !base64.safeParse(state).success) return { ok: false };
-  if (text !== null && text.length > 200_000) return { ok: false, rule: "coedit_text_size" };
+  if (text.length > 200_000) return { ok: false, rule: "coedit_text_size" };
   const ctx = await context(org);
   if (!ctx) return { ok: false };
   const result = await compactDoc(ctx.viewer.db, { docId, generation, state, through, text });
