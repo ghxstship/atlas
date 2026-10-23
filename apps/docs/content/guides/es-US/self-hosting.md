@@ -113,23 +113,23 @@ supabase functions deploy
 supabase secrets set --env-file ./functions.env
 ```
 
-En una pila autoalojada, monta `supabase/functions` en el servicio de funciones de Compose. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token` e `integration-inbound` autentican a quien las llama por sí mismas y se despliegan sin verificación de JWT, como declara `supabase/config.toml`.
+En una pila autoalojada, monta `supabase/functions` en el servicio de funciones de Compose. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token`, `integration-inbound` y `file-download` autentican a quien las llama por sí mismas y se despliegan sin verificación de JWT, como declara `supabase/config.toml`.
 
-| Secreto                                                   | Lo usa                                                                                                            |
-| --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`                                 | `api-token`, que cambia claves de API por tokens de corta duración; usa el secreto JWT del proyecto               |
-| `SUPABASE_SERVICE_ROLE_KEY`                               | Las funciones de trabajo (Supabase alojado la proporciona automáticamente)                                        |
-| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | Los enlaces y la dirección postal de los correos                                                                  |
-| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | El correo saliente mediante Resend (`XOS_EMAIL_TRANSPORT=resend`); sin ellos, el correo se registra y no se envía |
-| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | Quién puede recibir correo; usa `XOS_EMAIL_DELIVER_TO_ANY=true` solo en producción                                |
-| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | `inbound-email`, para las respuestas por correo y las bandejas de proyecto                                        |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | `stripe-webhook`, solo si cobras mediante Stripe                                                                  |
-| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | `upload-scan`, el demonio de ClamAV; el puerto predeterminado es 3310 (consulta Análisis de archivos subidos)     |
-| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | Reporte de errores y nivel de registro opcionales                                                                 |
+| Secreto                                                   | Lo usa                                                                                                                     |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `XOS_API_JWT_SIGNING_KEY`                                 | `api-token`, `integration-worker` y `automation-run`, que firman tokens de corta duración; usa el secreto JWT del proyecto |
+| `SUPABASE_SERVICE_ROLE_KEY`                               | Las funciones de trabajo (Supabase alojado la proporciona automáticamente)                                                 |
+| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | Los enlaces y la dirección postal de los correos                                                                           |
+| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | El correo saliente mediante Resend (`XOS_EMAIL_TRANSPORT=resend`); sin ellos, el correo se registra y no se envía          |
+| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | Quién puede recibir correo; usa `XOS_EMAIL_DELIVER_TO_ANY=true` solo en producción                                         |
+| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | `inbound-email`, para las respuestas por correo y las bandejas de proyecto                                                 |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | `stripe-webhook`, solo si cobras mediante Stripe                                                                           |
+| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | `upload-scan`, el demonio de ClamAV; el puerto predeterminado es 3310 (consulta Análisis de archivos subidos)              |
+| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | Reporte de errores y nivel de registro opcionales                                                                          |
 
 ### Programa las funciones de trabajo
 
-`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run` e `integration-worker` hacen su trabajo cuando se llaman con la clave de rol de servicio. Llama a cada una cada minuto. En Supabase alojado, pg_cron y pg_net pueden hacerlo desde la base de datos, leyendo la clave desde Vault:
+`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices` y `automation-run` hacen su trabajo cuando se llaman con la clave de rol de servicio. Llama a cada una cada minuto. En Supabase alojado, pg_cron y pg_net pueden hacerlo desde la base de datos, leyendo la clave desde Vault:
 
 ```sql
 select vault.create_secret('<service role key>', 'xos_worker_key');
@@ -144,7 +144,7 @@ select cron.schedule('xos_worker_webhook_dispatch', '* * * * *', $$
 $$);
 ```
 
-Repite para las otras cinco funciones, o llámalas desde cualquier programador que ya uses. Mientras `upload-scan` no se ejecute, los adjuntos no se pueden descargar y los archivos de campo y de incorporación solo llegan a quien los subió. Mientras `import-run` no se ejecute, las importaciones no se leen, y mientras `integration-worker` no se ejecute, las integraciones no se sincronizan y las entregas al almacén de datos esperan. Las apps de los proveedores y sus secretos de webhook están en `infra/runbooks/integrations.md`.
+Repite para las otras siete funciones, o llámalas desde cualquier programador que ya uses. Mientras `upload-scan` no se ejecute, los adjuntos no se pueden descargar y los archivos de campo y de incorporación solo llegan a quien los subió. Mientras `import-run` no se ejecute, las importaciones no se leen, mientras `integration-worker` no se ejecute, las integraciones no se sincronizan y las entregas al almacén de datos esperan, y mientras `automation-run` no se ejecute, las automatizaciones dejan sus ejecuciones en cola sin actuar. Las apps de los proveedores y sus secretos de webhook están en `infra/runbooks/integrations.md`.
 
 ### Análisis de archivos subidos
 

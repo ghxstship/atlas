@@ -8,7 +8,14 @@ import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
 import { acceptShiftAction, submitTimesheetAction } from "@/lib/actions/operations";
 import { hasArea, tabHref } from "@/lib/engagement";
-import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
+import {
+  formatDate,
+  formatDateRange,
+  formatDateTime,
+  formatMoney,
+  formatScheduleTime,
+  type ScheduleView,
+} from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
@@ -45,8 +52,10 @@ export async function ShiftsTab({ view, t, locale, engagementKey }: TabProps) {
         id: s.id ?? "",
         title: s.job_title ?? s.scope_node_name ?? "",
         meta: [
-          s.starts_at ? formatDateTime(locale, s.starts_at, s.time_zone) : null,
-          s.ends_at ? formatDateTime(locale, s.ends_at, s.time_zone) : null,
+          s.starts_at
+            ? formatScheduleTime(locale, s.starts_at, s.time_zone, view.scheduleView)
+            : null,
+          s.ends_at ? formatScheduleTime(locale, s.ends_at, s.time_zone, view.scheduleView) : null,
           s.scope_node_name,
         ],
         ...(s.shift_state
@@ -105,10 +114,14 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
             label={position}
             items={list.map((s) => ({
               id: s.id ?? "",
-              title: s.starts_at ? formatDateTime(locale, s.starts_at, s.time_zone) : position,
+              title: s.starts_at
+                ? formatScheduleTime(locale, s.starts_at, s.time_zone, view.scheduleView)
+                : position,
               meta: [
                 s.project_name,
-                s.ends_at ? formatDateTime(locale, s.ends_at, s.time_zone) : null,
+                s.ends_at
+                  ? formatScheduleTime(locale, s.ends_at, s.time_zone, view.scheduleView)
+                  : null,
               ],
               ...(s.shift_state
                 ? {
@@ -192,7 +205,13 @@ export async function TimesheetsTab({ view, t, locale, engagementKey }: TabProps
       )}
       {entries.data.length > 0 ? (
         <Section title={t("gateway.engagement.timesheets.entries")}>
-          <TimeEntryList entries={entries.data} t={t} locale={locale} />
+          <TimeEntryList
+            entries={entries.data}
+            t={t}
+            locale={locale}
+            zone={view.engagement.projectTimeZone}
+            schedule={view.scheduleView}
+          />
         </Section>
       ) : null}
     </div>
@@ -203,7 +222,12 @@ function TimeEntryList({
   entries,
   t,
   locale,
+  zone,
+  schedule,
 }: {
+  /** The engagement's project zone, which punches show in unless the person chose their own. */
+  zone: string;
+  schedule: ScheduleView;
   entries: readonly {
     id: string | null;
     clock_in: string | null;
@@ -219,10 +243,12 @@ function TimeEntryList({
       label={t("gateway.engagement.timesheets.entries")}
       items={entries.map((e) => ({
         id: e.id ?? "",
-        title: e.clock_in ? formatDateTime(locale, e.clock_in) : "",
+        title: e.clock_in ? formatScheduleTime(locale, e.clock_in, zone, schedule) : "",
         meta: [
           e.clock_out
-            ? t("gateway.engagement.time.out", { time: formatDateTime(locale, e.clock_out) })
+            ? t("gateway.engagement.time.out", {
+                time: formatScheduleTime(locale, e.clock_out, zone, schedule, "time"),
+              })
             : t("gateway.engagement.time.open"),
           e.break_minutes ? t("gateway.engagement.time.break", { n: e.break_minutes }) : null,
           e.source ? t(enumLabelKey("timeEntrySource", e.source)) : null,
@@ -251,7 +277,15 @@ export async function TimeTab({ view, t, locale, engagementKey }: TabProps) {
       />
     );
   }
-  return <TimeEntryList entries={entries.data} t={t} locale={locale} />;
+  return (
+    <TimeEntryList
+      entries={entries.data}
+      t={t}
+      locale={locale}
+      zone={view.engagement.projectTimeZone}
+      schedule={view.scheduleView}
+    />
+  );
 }
 
 export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
@@ -526,7 +560,16 @@ export async function TrainingTab({ view, t, locale, engagementKey }: TabProps) 
             items={shared.map((r) => ({
               id: r.id,
               title: r.title,
-              meta: [r.startsAt ? formatDateTime(locale, r.startsAt, r.timeZone) : null],
+              meta: [
+                r.startsAt
+                  ? formatScheduleTime(
+                      locale,
+                      r.startsAt,
+                      r.timeZone ?? view.engagement.projectTimeZone,
+                      view.scheduleView,
+                    )
+                  : null,
+              ],
               tag: { label: t(enumLabelKey("recordState", r.state)), tone: toneFor(r.state) },
             }))}
           />

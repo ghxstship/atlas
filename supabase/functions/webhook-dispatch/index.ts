@@ -1,6 +1,6 @@
 // Webhook dispatcher worker: posts due deliveries signed by the database and records each outcome, so the
 // database applies the 72-hour exponential backoff. Called on a schedule with the service key.
-import { dispatchWebhooks, webhookStore } from "../_vendor/xos-platform.js";
+import { dispatchWebhooks, webhookStore } from "../_vendor/webhook-dispatch.js";
 import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 serve(async (request) => {

@@ -26,6 +26,7 @@ import {
   type ReactNode,
 } from "react";
 import { clientSitemap } from "@/ia/sitemap.client.generated";
+import { isBetaLocale } from "@xos/i18n/locales";
 import type { AtlasLocale } from "@/i18n/negotiate";
 import type { CreateItem } from "@/lib/shell/create-order";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
@@ -33,6 +34,9 @@ import type { ShellKeys } from "@/lib/shell/shell-keys";
 import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
 import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
+import type { AiFeature } from "@xos/data/ai";
+import { AiFeaturesProvider } from "@/components/aurora/ai-features";
+import { ASK_FILTER_EVENT } from "@/components/aurora/entry/ask-event";
 import { AuroraCenter, openAurora } from "@/components/aurora/aurora-center";
 import { HelpCenter, openHelpArticle } from "@/components/help/help-center";
 import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
@@ -62,10 +66,14 @@ export interface ShellFrameProps {
   readonly email: string | null;
   /** Whether the viewer can turn AI features on (org.ai.write), for the Aurora panel. */
   readonly canManageAi: boolean;
+  /** The Aurora features the viewer may use now, for the AI entry points on every page (A95). */
+  readonly aiFeatures: readonly AiFeature[];
   /** The person's display preferences resolved from their settings (encoded as the cookie keeps them). */
   readonly preferences: string;
   /** The preferences cookie this page was rendered with. */
   readonly storedPreferences: string;
+  /** The viewer's own time zone, for schedule times shown in "my time zone" (me.time_zone_display). */
+  readonly viewerTimeZone?: string | null;
   /** The person's keyboard shortcuts: the registry with their own bindings (lib/shell/shell-keys.ts). */
   readonly keys: ShellKeys;
   /** What the person may create, for the Create menu (lib/shell/create-menu.ts). */
@@ -147,6 +155,7 @@ export function ShellFrame(props: ShellFrameProps) {
           else if (id === "help") openHelpArticle("");
           else if (id === "focus-mode") setFocus((f) => !f);
           else if (id === "aurora") openAurora(true);
+          else if (id === "ask-filter") window.dispatchEvent(new CustomEvent(ASK_FILTER_EVENT));
         },
       },
     };
@@ -203,7 +212,10 @@ export function ShellFrame(props: ShellFrameProps) {
     { separator: true },
     { heading: t("shell.chrome.language") },
     ...props.locales.map((l) => ({
-      label: t(`shell.chrome.locales.${l}`),
+      // A Beta locale (Section 15) says so in its name, so screen readers announce it too.
+      label: isBetaLocale(l)
+        ? t("shell.chrome.betaLocale", { language: t(`shell.chrome.locales.${l}`) })
+        : t(`shell.chrome.locales.${l}`),
       active: l === props.locale,
       onSelect: async () => {
         await setLocale(l);
@@ -414,8 +426,11 @@ export function ShellFrame(props: ShellFrameProps) {
             tabIndex={-1}
             className="flex min-w-0 flex-col gap-16 pb-(--xos-help-card-space) outline-none [&>*]:shrink-0"
           >
-            <PreferencesProvider preferences={displayPreferences}>
-              {props.children}
+            <PreferencesProvider
+              preferences={displayPreferences}
+              timeZone={props.viewerTimeZone ?? null}
+            >
+              <AiFeaturesProvider features={props.aiFeatures}>{props.children}</AiFeaturesProvider>
             </PreferencesProvider>
           </div>
         </AppShell>

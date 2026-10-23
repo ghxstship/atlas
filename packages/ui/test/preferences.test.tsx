@@ -12,17 +12,29 @@ import {
   XOSProvider,
   applyDocumentAttributes,
   convertArea,
+  convertUnit,
+  displayTimeZone,
   decodePreferences,
   documentAttributes,
   encodePreferences,
   preferencesCookie,
   formatDate,
   formatDistance,
+  formatMeasure,
+  formatZonedDateTime,
   monthCells,
   preferencesFromSettings,
+  regionOfLocale,
+  resolveUnitSystem,
   singleKeyShortcutsEnabled,
+  toDisplayUnit,
+  toStoredUnit,
+  unitSystemForRegion,
   useHotkey,
   usePreferences,
+  useUnitSystem,
+  useViewerTimeZone,
+  useZonedTime,
   weekStart,
   weekdayNames,
   type DisplayPreferences,
@@ -42,6 +54,7 @@ const settings = new Map<string, unknown>([
   ["locale.date_format", "iso"],
   ["locale.units", "metric"],
   ["payroll.week_start", "monday"],
+  ["me.time_zone_display", "viewer"],
 ]);
 
 const chosen: DisplayPreferences = {
@@ -53,6 +66,7 @@ const chosen: DisplayPreferences = {
   dateFormat: "iso",
   units: "metric",
   weekStart: 1,
+  timeZoneDisplay: "viewer",
 };
 
 afterEach(() => {
@@ -143,6 +157,95 @@ describe("format helpers", () => {
     expect(formatDistance("en-US", 2500, "metric")).toBe("2.5 km");
     expect(formatDistance("en-US", 120, "imperial")).toBe("394 ft");
     expect(formatDistance("en-US", 3218.688, "imperial")).toBe("2 mi");
+  });
+
+  it("follows the project's jurisdiction under locale.units jurisdiction, and a fixed choice otherwise", () => {
+    expect(DEFAULT_PREFERENCES.units).toBe("jurisdiction");
+    // Section 15: imperial for the United States, metric otherwise.
+    expect(unitSystemForRegion("US")).toBe("imperial");
+    expect(unitSystemForRegion("GB")).toBe("metric");
+    expect(unitSystemForRegion(null)).toBe("metric");
+    expect(regionOfLocale("es-US")).toBe("US");
+    expect(regionOfLocale("fr")).toBe("FR");
+    expect(resolveUnitSystem("jurisdiction", { jurisdiction: "metric", locale: "en-US" })).toBe(
+      "metric",
+    );
+    expect(resolveUnitSystem("jurisdiction", { locale: "en-US" })).toBe("imperial");
+    expect(resolveUnitSystem("jurisdiction", { locale: "de-DE" })).toBe("metric");
+    expect(resolveUnitSystem("imperial", { jurisdiction: "metric" })).toBe("imperial");
+    const fromSettings = preferencesFromSettings(new Map([["locale.units", "jurisdiction"]]));
+    expect(fromSettings.units).toBe("jurisdiction");
+    expect(
+      decodePreferences(encodePreferences({ ...DEFAULT_PREFERENCES, units: "imperial" })).units,
+    ).toBe("imperial");
+  });
+
+  it("shows lengths, weights, temperatures and speeds in the person's units under locale.units", () => {
+    expect(formatMeasure("en-US", 25, "mile-per-hour", "metric", 0)).toBe("40 km/h");
+    expect(formatMeasure("en-US", 25, "mile-per-hour", "imperial", 0)).toBe("25 mph");
+    expect(formatMeasure("en-US", 95, "fahrenheit", "metric", 0)).toBe("35°C");
+    expect(formatMeasure("en-US", 95, "fahrenheit", "imperial", 0)).toBe("95°F");
+    expect(formatMeasure("en-US", 6, "mile", "metric")).toBe("9.7 km");
+    expect(formatMeasure("en-US", 12, "meter", "imperial", 0)).toBe("39 ft");
+    expect(formatMeasure("en-US", 100, "pound", "metric")).toBe("45.4 kg");
+    expect(convertUnit(0, "celsius", "fahrenheit")).toBe(32);
+    expect(() => convertUnit(1, "meter", "pound")).toThrow();
+    // A value typed in km/h is saved in mph, and shown back as typed.
+    expect(toStoredUnit(40, "mile-per-hour", "metric")).toBeCloseTo(24.855, 3);
+    expect(
+      toDisplayUnit(toStoredUnit(40, "mile-per-hour", "metric"), "mile-per-hour", "metric"),
+    ).toBe(40);
+    expect(toStoredUnit(30, "fahrenheit", "metric")).toBeCloseTo(86, 6);
+  });
+});
+
+describe("schedule times under me.time_zone_display", () => {
+  const at = "2026-10-21T23:30:00Z";
+
+  it("labels every time with its zone abbreviation", () => {
+    expect(formatZonedDateTime("en-US", at, "America/New_York")).toBe("Oct 21, 2026, 7:30 PM EDT");
+    expect(formatZonedDateTime("en-US", at, "America/Los_Angeles", "time")).toBe("4:30 PM PDT");
+  });
+
+  it("shows the event's zone by default and the viewer's own when they choose it", () => {
+    expect(displayTimeZone("America/New_York", "event", "Europe/Madrid")).toBe("America/New_York");
+    expect(displayTimeZone("America/New_York", "viewer", "Europe/Madrid")).toBe("Europe/Madrid");
+    expect(displayTimeZone("America/New_York", "viewer", null)).toBe("America/New_York");
+    expect(displayTimeZone(null, "event", "Europe/Madrid")).toBe("Europe/Madrid");
+    expect(displayTimeZone(undefined, "event", undefined)).toBeUndefined();
+  });
+
+  it("formats through the provider's choice and the viewer's zone", () => {
+    function Probe() {
+      const zoned = useZonedTime();
+      return (
+        <>
+          <span>{zoned.dateTime(at, "America/New_York")}</span>
+          <span>{useViewerTimeZone()}</span>
+          <span>{useUnitSystem(null)}</span>
+        </>
+      );
+    }
+    const { unmount } = render(
+      <XOSProvider>
+        <PreferencesProvider preferences={DEFAULT_PREFERENCES} timeZone="America/Los_Angeles">
+          <Probe />
+        </PreferencesProvider>
+      </XOSProvider>,
+    );
+    expect(screen.getByText("Oct 21, 2026, 7:30 PM EDT")).toBeTruthy();
+    expect(screen.getByText("imperial")).toBeTruthy();
+    unmount();
+    render(
+      <XOSProvider locale="de-DE">
+        <PreferencesProvider preferences={chosen} timeZone="America/Los_Angeles">
+          <Probe />
+        </PreferencesProvider>
+      </XOSProvider>,
+    );
+    expect(screen.getByText("America/Los_Angeles")).toBeTruthy();
+    expect(screen.getByText(/16:30 GMT-7/)).toBeTruthy();
+    expect(screen.getByText("metric")).toBeTruthy();
   });
 });
 

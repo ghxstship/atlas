@@ -3,7 +3,7 @@
 // TWILIO_AUTH_TOKEN) over the public URL Twilio calls: XOS_SMS_WEBHOOK_URL, or this function's URL on
 // SUPABASE_URL. STOP, START and HELP are recorded through app.record_sms_keyword (STOP writes the STOP
 // suppression) and answered with the catalog's reply; status callbacks go to app.record_sms_status.
-import { handleTwilioWebhook, readSmsEnv, smsInboundStore } from "../_vendor/xos-platform.js";
+import { handleTwilioWebhook, readSmsEnv, smsInboundStore } from "../_vendor/sms-webhook.js";
 import { env, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 serve(async (request) => {

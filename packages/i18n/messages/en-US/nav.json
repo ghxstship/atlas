@@ -160,6 +160,7 @@
         "purchaseOrderExposure": "Purchase Order Exposure",
         "incidents": "Incidents",
         "finalCostReport": "Final Cost Report",
+        "measurement": "Objectives and Measurement",
         "savedReports": "Saved Reports",
         "builder": "Report Builder",
         "dashboards": "Dashboards"
@@ -325,7 +326,9 @@
       "dataAndPrivacy": "Data and Privacy",
       "auditLog": "Audit Log",
       "legal": "Legal",
-      "dangerZone": "Danger Zone"
+      "dangerZone": "Danger Zone",
+      "workspace": "Workspace",
+      "team": "Team"
     },
     "personal": {
       "profile": "Profile",

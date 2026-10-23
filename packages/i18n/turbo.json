@@ -6,7 +6,8 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/apps/atlas/help/articles/**",
-        "$TURBO_ROOT$/apps/docs/content/guides/**"
+        "$TURBO_ROOT$/apps/docs/content/guides/**",
+        "$TURBO_ROOT$/supabase/migrations/**"
       ]
     }
   }

@@ -1,4 +1,5 @@
 import { getMyOrganization } from "@xos/data";
+import { getRecoveryCodeStatus } from "@xos/data/account-security";
 import { getAssurance, getOrgAuthStatus, listSecondFactors } from "@xos/data/auth-assurance";
 import { ShieldCheck } from "lucide-react";
 import type { Metadata, Route } from "next";
@@ -27,9 +28,10 @@ export default async function SecondFactorPage({ searchParams }: PageProps<"/aut
   const next = safeNext(query["next"]);
   const viewer = await getViewer();
   if (!viewer) redirect(`/auth/sign-in?next=${encodeURIComponent(next)}` as Route);
-  const [factors, assurance] = await Promise.all([
+  const [factors, assurance, codes] = await Promise.all([
     listSecondFactors(viewer.db),
     getAssurance(viewer.db),
+    getRecoveryCodeStatus(viewer.db),
   ]);
   if (!factors.ok) throw new Error(`Cannot list second factors: ${JSON.stringify(factors.error)}`);
   const verified = factors.data.filter((f) => f.verified);
@@ -73,6 +75,7 @@ export default async function SecondFactorPage({ searchParams }: PageProps<"/aut
         options={{
           factors: verified.map((f) => ({ id: f.id, type: f.type, label: f.label })),
           securityKeys: relyingPartyFrom(env()) !== null,
+          recoveryCodes: codes.ok && codes.data.usable,
         }}
         mode="sign-in"
         next={next}

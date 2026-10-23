@@ -851,6 +851,20 @@ export const COMPASS_HELP: HelpContent = {
               },
             ],
           },
+          { t: "h2", v: "When the kiosk is no longer registered" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "If the kiosk was retired or turned off in Atlas, it says " },
+              { t: "strong", v: "This device is no longer registered as a kiosk" },
+              {
+                t: "text",
+                v: " and takes no PINs. A supervisor registers the kiosk again in Atlas, then, signed in on the kiosk, chooses ",
+              },
+              { t: "strong", v: "Forget this kiosk" },
+              { t: "text", v: " and enters the new device key." },
+            ],
+          },
         ],
       },
       {
@@ -2949,6 +2963,20 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "Sin conexión, la marca se guarda y tu PIN se verifica cuando el quiosco se reconecta. Demasiados intentos fallidos bloquean el PIN hasta que tu supervisor lo restablezca.",
               },
+            ],
+          },
+          { t: "h2", v: "Cuando el quiosco ya no está registrado" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Si el quiosco se retiró o se desactivó en Atlas, muestra " },
+              { t: "strong", v: "Este dispositivo ya no está registrado como quiosco" },
+              {
+                t: "text",
+                v: " y no acepta PIN. Un supervisor registra el quiosco de nuevo en Atlas y luego, con su sesión iniciada en el quiosco, elige ",
+              },
+              { t: "strong", v: "Olvidar este quiosco" },
+              { t: "text", v: " y escribe la nueva clave del dispositivo." },
             ],
           },
         ],

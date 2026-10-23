@@ -11,6 +11,9 @@ import { securityHeaders } from "@/lib/security/headers";
  *   allow-list serve both hosts. The route strips either prefix (app/api/v1/[...path]/route.ts),
  *   because a rewritten request keeps its original path.
  * - A GET of `/` or `/v1` answers a small JSON pointer to the OpenAPI document and the docs.
+ * - `/oauth/authorize`, which the OpenAPI document names relative to the server, goes to Atlas's
+ *   own authorize route, where the person signs in and consents (A99, ADR 0055). `/oauth/token`
+ *   is outside the proxy's matcher and served by its route handler on either host.
  * - Everything else answers a 404 problem, as the API does for a path or method it does not
  *   serve, so no Atlas page renders there.
  *
@@ -50,6 +53,11 @@ export function apiHostResponse(
   if (pathname.startsWith(`${API_HOST_PREFIX}/`) && pathname !== `${API_HOST_PREFIX}/`) {
     const target = new URL(`/api${pathname}${search}`, request.url);
     return withHeaders(NextResponse.rewrite(target), secureSite);
+  }
+
+  if (pathname === "/oauth/authorize") {
+    const target = new URL(`/oauth/authorize${search}`, config.ATLAS_SITE_URL);
+    return withHeaders(NextResponse.redirect(target), secureSite);
   }
 
   const method = request.method.toUpperCase();

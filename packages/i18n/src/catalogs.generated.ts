@@ -12,6 +12,7 @@ import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
 import enUS_compassExpenses from "../messages/en-US/compassExpenses.json" with { type: "json" };
 import enUS_compassExternal from "../messages/en-US/compassExternal.json" with { type: "json" };
 import enUS_compassNfc from "../messages/en-US/compassNfc.json" with { type: "json" };
+import enUS_compliance from "../messages/en-US/compliance.json" with { type: "json" };
 import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
 import enUS_docs from "../messages/en-US/docs.json" with { type: "json" };
@@ -28,6 +29,7 @@ import enUS_incidents from "../messages/en-US/incidents.json" with { type: "json
 import enUS_integrations from "../messages/en-US/integrations.json" with { type: "json" };
 import enUS_knowledge from "../messages/en-US/knowledge.json" with { type: "json" };
 import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json" };
+import enUS_measurement from "../messages/en-US/measurement.json" with { type: "json" };
 import enUS_myWork from "../messages/en-US/myWork.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
@@ -46,6 +48,7 @@ import enUS_reports from "../messages/en-US/reports.json" with { type: "json" };
 import enUS_savedViews from "../messages/en-US/savedViews.json" with { type: "json" };
 import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
 import enUS_settings from "../messages/en-US/settings.json" with { type: "json" };
+import enUS_settingsSurfaces from "../messages/en-US/settingsSurfaces.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
 import enUS_shipmentTracking from "../messages/en-US/shipmentTracking.json" with { type: "json" };
 import enUS_show from "../messages/en-US/show.json" with { type: "json" };
@@ -70,6 +73,7 @@ import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
 import esUS_compassExpenses from "../messages/es-US/compassExpenses.json" with { type: "json" };
 import esUS_compassExternal from "../messages/es-US/compassExternal.json" with { type: "json" };
 import esUS_compassNfc from "../messages/es-US/compassNfc.json" with { type: "json" };
+import esUS_compliance from "../messages/es-US/compliance.json" with { type: "json" };
 import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
 import esUS_docs from "../messages/es-US/docs.json" with { type: "json" };
@@ -86,6 +90,7 @@ import esUS_incidents from "../messages/es-US/incidents.json" with { type: "json
 import esUS_integrations from "../messages/es-US/integrations.json" with { type: "json" };
 import esUS_knowledge from "../messages/es-US/knowledge.json" with { type: "json" };
 import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json" };
+import esUS_measurement from "../messages/es-US/measurement.json" with { type: "json" };
 import esUS_myWork from "../messages/es-US/myWork.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
@@ -104,6 +109,7 @@ import esUS_reports from "../messages/es-US/reports.json" with { type: "json" };
 import esUS_savedViews from "../messages/es-US/savedViews.json" with { type: "json" };
 import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
 import esUS_settings from "../messages/es-US/settings.json" with { type: "json" };
+import esUS_settingsSurfaces from "../messages/es-US/settingsSurfaces.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
 import esUS_shipmentTracking from "../messages/es-US/shipmentTracking.json" with { type: "json" };
 import esUS_show from "../messages/es-US/show.json" with { type: "json" };
@@ -130,6 +136,7 @@ export const enUS = {
   compassExpenses: enUS_compassExpenses,
   compassExternal: enUS_compassExternal,
   compassNfc: enUS_compassNfc,
+  compliance: enUS_compliance,
   credentials: enUS_credentials,
   crew: enUS_crew,
   docs: enUS_docs,
@@ -146,6 +153,7 @@ export const enUS = {
   integrations: enUS_integrations,
   knowledge: enUS_knowledge,
   logistics: enUS_logistics,
+  measurement: enUS_measurement,
   myWork: enUS_myWork,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
@@ -164,6 +172,7 @@ export const enUS = {
   savedViews: enUS_savedViews,
   schedule: enUS_schedule,
   settings: enUS_settings,
+  settingsSurfaces: enUS_settingsSurfaces,
   shell: enUS_shell,
   shipmentTracking: enUS_shipmentTracking,
   show: enUS_show,
@@ -191,6 +200,7 @@ export const esUS = {
   compassExpenses: esUS_compassExpenses,
   compassExternal: esUS_compassExternal,
   compassNfc: esUS_compassNfc,
+  compliance: esUS_compliance,
   credentials: esUS_credentials,
   crew: esUS_crew,
   docs: esUS_docs,
@@ -207,6 +217,7 @@ export const esUS = {
   integrations: esUS_integrations,
   knowledge: esUS_knowledge,
   logistics: esUS_logistics,
+  measurement: esUS_measurement,
   myWork: esUS_myWork,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
@@ -225,6 +236,7 @@ export const esUS = {
   savedViews: esUS_savedViews,
   schedule: esUS_schedule,
   settings: esUS_settings,
+  settingsSurfaces: esUS_settingsSurfaces,
   shell: esUS_shell,
   shipmentTracking: esUS_shipmentTracking,
   show: esUS_show,

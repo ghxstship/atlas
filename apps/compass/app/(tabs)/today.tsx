@@ -16,7 +16,7 @@ import {
 } from "../../src/domain/clock";
 import { formatCountdown, showState, showsCountdown, type Cue } from "../../src/domain/show";
 import { punchAnnouncementKey } from "../../src/domain/announce";
-import { formatDistance } from "../../src/domain/settings";
+import { formatDistance, scheduleZone } from "../../src/domain/settings";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { useClockLiveActivity, useLockScreenPunchDrain } from "../../src/runtime/liveActivity";
 import {
@@ -269,7 +269,7 @@ export default function TodayScreen(): ReactElement {
   const { t } = useTranslation();
   const roleTitle = useRoleTitle();
   const router = useRouter();
-  const { resolved, projectId, refresh } = useCompass();
+  const { resolved, projectId, refresh, orgSettings } = useCompass();
   const [refreshing, setRefreshing] = useState(false);
   const [clockState, setClockState] = useState<"out" | "on" | "break">("out");
   const identity = resolved?.identity;
@@ -300,8 +300,8 @@ export default function TodayScreen(): ReactElement {
     ? {
         title: roleTitle(working),
         time: t("compass.schedule.timeRange", {
-          start: formatTime(working.starts_at, working.time_zone),
-          end: formatTime(working.ends_at, working.time_zone),
+          start: formatTime(working.starts_at, scheduleZone(working.time_zone, orgSettings)),
+          end: formatTime(working.ends_at, scheduleZone(working.time_zone, orgSettings)),
         }),
         place: t("compass.schedule.noPlace"),
       }
@@ -343,10 +343,10 @@ export default function TodayScreen(): ReactElement {
                     : "compass.schedule.published",
               )}
               role={roleTitle(s)}
-              date={formatDay(s.starts_at, s.time_zone)}
+              date={formatDay(s.starts_at, scheduleZone(s.time_zone, orgSettings))}
               time={t("compass.schedule.timeRange", {
-                start: formatTime(s.starts_at, s.time_zone),
-                end: formatTime(s.ends_at, s.time_zone),
+                start: formatTime(s.starts_at, scheduleZone(s.time_zone, orgSettings)),
+                end: formatTime(s.ends_at, scheduleZone(s.time_zone, orgSettings)),
               })}
               place={t("compass.schedule.noPlace")}
               onPress={() => router.push("/schedule")}

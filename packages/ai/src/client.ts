@@ -61,9 +61,97 @@ export interface AssistantAnswerBody {
   }[];
 }
 
+/** One of a page's own filters, offered to `aurora.filter` instead of the API fields (A95). */
+export interface AuroraFilterField {
+  readonly name: string;
+  readonly type: "string" | "number" | "date" | "boolean" | "enum";
+  readonly values?: readonly string[];
+  readonly description?: string;
+  readonly ops?: readonly (
+    "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains"
+  )[];
+}
+
+/** The answer of `aurora.filter`. */
+export interface AuroraBuiltFilter {
+  readonly collection: string;
+  readonly name: string;
+  readonly conditions: readonly {
+    readonly field: string;
+    readonly op: string;
+    readonly value: string;
+  }[];
+  readonly sort: readonly string[];
+  readonly query: string;
+}
+
+/** The answer of `aurora.draft`. */
+export interface AuroraDraft {
+  readonly kind: string;
+  readonly title: string;
+  readonly body: string;
+  readonly gaps: readonly string[];
+  readonly verbiageMisses: readonly string[];
+}
+
+/** The answer of `aurora.summarize`. */
+export interface AuroraSummary {
+  readonly kind: string;
+  readonly headline: string;
+  readonly bullets: readonly { readonly text: string; readonly citations: readonly string[] }[];
+}
+
+/** The answer of `aurora.extract`. */
+export interface AuroraExtraction {
+  readonly kind: string;
+  readonly answered: number;
+  readonly refused: number;
+}
+
+/** The answer of `aurora.bindCode`. */
+export interface AuroraCodeBinding {
+  readonly code: string;
+  readonly elementId: string;
+  readonly name: string;
+  readonly urid: string;
+  readonly confidence: number;
+  readonly reason: string;
+}
+
+/** `AuroraPreviewRequest` in the OpenAPI document. */
+export interface AuroraPreviewRequest {
+  readonly feature: "drafting" | "summaries";
+  readonly kind?: "record_activity" | "project_week" | "gate_readiness";
+  readonly subject_collection?: string;
+  readonly subject_id?: string;
+  readonly items: readonly { readonly collection: string; readonly id: string }[];
+}
+
+/** One record a request would send, as the model would see it. */
+export interface AuroraPreviewRecord {
+  readonly collection: string;
+  readonly id: string;
+  /** False when the record cannot be read or its whole table is never sent. */
+  readonly sent: boolean;
+  /** Fields that would be sent. */
+  readonly fields: readonly string[];
+  /** Fields left out: Restricted columns and masked values. */
+  readonly withheld: readonly string[];
+  /** The values that would be sent; null when nothing of the record is sent. */
+  readonly data: Readonly<Record<string, unknown>> | null;
+}
+
+/** `AuroraPreview` in the OpenAPI document. */
+export interface AuroraPreviewResult {
+  readonly records: readonly AuroraPreviewRecord[];
+  /** Verbiage library terms a draft would follow. */
+  readonly vocabulary_terms: number;
+}
+
 /** A failed call: a problem the API answered (refusal, not found) or a network failure (status 0). */
 export interface AuroraProblem {
   readonly status: number;
+  /** The refusal rule; `timeout` when the client gave up waiting (status 0). */
   readonly rule: string | null;
   readonly detail: string;
 }
@@ -80,6 +168,19 @@ export interface AuroraClientOptions {
     Readonly<Record<string, string>> | Promise<Readonly<Record<string, string>>>;
   /** Idempotency keys for POSTs; defaults to crypto.randomUUID. */
   readonly idempotencyKey?: () => string;
+  /**
+   * How long to wait for an answer before giving up, in milliseconds. A call that runs longer
+   * answers with the problem `{ status: 0, rule: "timeout" }`; no limit when unset.
+   */
+  readonly timeoutMs?: number;
+}
+
+/** The rule of the problem a call answers when it waited longer than `timeoutMs`. */
+export const TIMEOUT_RULE = "timeout";
+
+function timedOut(error: unknown, signal: AbortSignal | undefined): boolean {
+  if (signal?.aborted) return true;
+  return error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
 }
 
 export interface AuroraClient {
@@ -92,26 +193,28 @@ export interface AuroraClient {
     sentence: string;
     collections: readonly string[];
     time_zone: string;
-  }): Promise<AuroraCall<AuroraApiResult>>;
+    /** A page's own filters, used instead of the collection's API fields (A95). */
+    fields?: readonly AuroraFilterField[];
+  }): Promise<AuroraCall<AuroraApiResult<AuroraBuiltFilter>>>;
   extract(input: {
     kind: "rider" | "insurance_certificate" | "invoice" | "receipt" | "quote";
     document_id?: string | null;
     media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
     content_base64: string;
     file_name: string;
-  }): Promise<AuroraCall<AuroraApiResult>>;
+  }): Promise<AuroraCall<AuroraApiResult<AuroraExtraction>>>;
   draft(input: {
     kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
     instructions: string;
     context?: readonly { collection: string; id: string }[];
     verbiage?: readonly { term: string; preferred: string }[];
-  }): Promise<AuroraCall<AuroraApiResult>>;
+  }): Promise<AuroraCall<AuroraApiResult<AuroraDraft>>>;
   summarize(input: {
     kind: "record_activity" | "project_week" | "gate_readiness";
     subject_collection: string;
     subject_id: string;
     items: readonly { collection: string; id: string }[];
-  }): Promise<AuroraCall<AuroraApiResult>>;
+  }): Promise<AuroraCall<AuroraApiResult<AuroraSummary>>>;
   /** Import column suggestions (aurora.mapColumns): a target field or null per column, with a confidence. */
   mapColumns(input: {
     collection: string;
@@ -122,6 +225,13 @@ export interface AuroraClient {
       AuroraApiResult<readonly { column: string; field: string | null; confidence: number }[]>
     >
   >;
+  bindCode(input: {
+    code: string;
+    description: string | null;
+    candidates: readonly { element_id: string; name: string; urid: string }[];
+  }): Promise<AuroraCall<AuroraApiResult<AuroraCodeBinding>>>;
+  /** What a drafting or summary request would send, read and scrubbed as the request would be. */
+  preview(input: AuroraPreviewRequest): Promise<AuroraCall<AuroraPreviewResult>>;
   suggestion(id: string): Promise<AuroraCall<AuroraSuggestion>>;
   confirm(
     id: string,
@@ -171,6 +281,18 @@ export function createAuroraClient(options: AuroraClientOptions): AuroraClient {
       headers["Content-Type"] = "application/json";
       headers["Idempotency-Key"] = key();
     }
+    const signal =
+      options.timeoutMs === undefined ? undefined : AbortSignal.timeout(options.timeoutMs);
+    const failure = (error: unknown): AuroraCall<T> => ({
+      ok: false,
+      problem: timedOut(error, signal)
+        ? {
+            status: 0,
+            rule: TIMEOUT_RULE,
+            detail: `No answer within ${Math.round((options.timeoutMs ?? 0) / 1000)} seconds.`,
+          }
+        : { status: 0, rule: null, detail: error instanceof Error ? error.message : String(error) },
+    });
     let response: Response;
     try {
       response = await doFetch(`${options.baseUrl}${path}`, {
@@ -178,19 +300,17 @@ export function createAuroraClient(options: AuroraClientOptions): AuroraClient {
         headers,
         credentials: "same-origin",
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        ...(signal ? { signal } : {}),
       });
     } catch (error) {
-      return {
-        ok: false,
-        problem: {
-          status: 0,
-          rule: null,
-          detail: error instanceof Error ? error.message : String(error),
-        },
-      };
+      return failure(error);
     }
     if (!response.ok) return { ok: false, problem: await toProblem(response) };
-    return { ok: true, data: (await response.json()) as T };
+    try {
+      return { ok: true, data: (await response.json()) as T };
+    } catch (error) {
+      return failure(error);
+    }
   }
 
   return {
@@ -201,6 +321,8 @@ export function createAuroraClient(options: AuroraClientOptions): AuroraClient {
     draft: (input) => call("POST", "/aurora/draft", input),
     summarize: (input) => call("POST", "/aurora/summarize", input),
     mapColumns: (input) => call("POST", "/aurora/map-columns", input),
+    bindCode: (input) => call("POST", "/aurora/bind-code", input),
+    preview: (input) => call("POST", "/aurora/preview", input),
     suggestion: (id) => call("GET", `/ai-suggestions/${encodeURIComponent(id)}`),
     confirm: (id, reason, values) =>
       call(

@@ -2,6 +2,12 @@
  * Formatting helpers shared by server and client components of the Schedule, Work and Show pages.
  * Stored canon values are mapped to @xos/ui tokens and catalog keys here, never retyped as lists.
  */
+import {
+  displayTimeZone,
+  formatZonedDateTime,
+  type DisplayPreferences,
+  type TimeZoneDisplay,
+} from "@xos/ui/preferences";
 
 /** The @xos/ui state token of a stored record state: "In Review" to "in-review". */
 export function stateToken(
@@ -44,6 +50,39 @@ export function formatWhen(
 ): string | null {
   if (!value) return null;
   return new Intl.DateTimeFormat(locale, { ...options, timeZone }).format(new Date(value));
+}
+
+/** How a viewer reads schedule times: their me.time_zone_display choice and their own zone. */
+export interface ScheduleView {
+  readonly display: TimeZoneDisplay;
+  readonly viewerZone: string | null;
+}
+
+export const EVENT_ZONE_VIEW: ScheduleView = { display: "event", viewerZone: null };
+
+/**
+ * A schedule time (Section 15): in the event's zone by default, or the viewer's own when they chose "my time
+ * zone" (me.time_zone_display), always labeled with the zone abbreviation, for example "Oct 21, 2026, 7:30 PM
+ * EDT" or "7:30 PM EDT". Null when there is no value.
+ */
+export function formatScheduleTime(
+  value: string | null,
+  locale: string,
+  eventZone: string | null | undefined,
+  view: ScheduleView,
+  parts: "dateTime" | "time" = "dateTime",
+): string | null {
+  if (!value) return null;
+  const zone = displayTimeZone(eventZone, view.display, view.viewerZone) ?? "UTC";
+  return formatZonedDateTime(locale, value, zone, parts);
+}
+
+/** The viewer's schedule view from their resolved display preferences and own zone. */
+export function scheduleViewOf(
+  preferences: Pick<DisplayPreferences, "timeZoneDisplay">,
+  viewerZone: string | null,
+): ScheduleView {
+  return { display: preferences.timeZoneDisplay, viewerZone };
 }
 
 /** A calendar day (YYYY-MM-DD) formatted in a locale without shifting zones. */

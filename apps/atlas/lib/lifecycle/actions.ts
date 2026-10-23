@@ -29,7 +29,8 @@ import {
 /**
  * A79's actions (Section 4.6.1, Section 12, Section 14.7): delete and recover the org, offer, withdraw, accept
  * and decline ownership, leave the partner, record and end standing partner grants, and check a custom domain
- * again. The RPCs decide every rule; deleting, offering and accepting also pass A77's step-up check first
+ * again. The RPCs decide every rule; deleting, offering, accepting and leaving the partner (A99) also pass A77's
+ * step-up check first
  * (lib/auth/step-up.ts), so a session without a recent second factor hears so before anything runs and the
  * form opens the step-up dialog.
  */
@@ -135,6 +136,8 @@ export async function leavePartnerAction(
   const ctx = await contextFor(form);
   const confirm = field(form, "confirm");
   if (confirm.length === 0 || confirm.length > 200) return inputError();
+  // Leaving ends the partner-billed subscription: a billing change, so step-up first (A99, migration 1562).
+  if (!(await requireStepUp(ctx.viewer.db, "leave your partner")).ok) return stepUpRefused();
   const result = await leavePartner(ctx.viewer.db, { orgId: ctx.org.id, confirmName: confirm });
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/${ctx.org.slug}`, "layout");

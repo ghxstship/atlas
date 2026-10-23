@@ -1,0 +1,178 @@
+{
+  "Approval": {
+    "Booking": "Booking",
+    "Budget": "Budget",
+    "Content": "Content",
+    "Design": "Design",
+    "Plan": "Plan"
+  },
+  "Booking": {
+    "Catering": "Catering",
+    "Crew": "Crew",
+    "Equipment": "Equipment",
+    "Freight": "Freight",
+    "Space": "Space",
+    "Talent": "Talent",
+    "Travel": "Travel"
+  },
+  "Build": {
+    "Commissioning": "Commissioning",
+    "Dress": "Dress",
+    "Scenic": "Scenic",
+    "Structural": "Structural",
+    "Systems": "Systems"
+  },
+  "Compliance": {
+    "Certificate": "Certificate",
+    "License": "License",
+    "Plan": "Plan",
+    "Policy": "Policy",
+    "Register": "Register"
+  },
+  "Contract": {
+    "Insurance": "Insurance",
+    "Lease": "Lease",
+    "License": "License",
+    "Service Agreement": "Service Agreement",
+    "Sponsorship": "Sponsorship",
+    "Supply Agreement": "Supply Agreement",
+    "Talent Agreement": "Talent Agreement"
+  },
+  "Deadline": {
+    "Authority Owed": "Authority Owed",
+    "Client Owed": "Client Owed",
+    "Internal": "Internal",
+    "Vendor Owed": "Vendor Owed"
+  },
+  "Decision": {
+    "Commercial": "Commercial",
+    "Creative": "Creative",
+    "Operational": "Operational"
+  },
+  "Distribution": {
+    "Internal": "Internal",
+    "On-sale": "On-sale",
+    "Press": "Press",
+    "Social": "Social"
+  },
+  "Document": {
+    "Brief": "Brief",
+    "Package": "Package",
+    "Plan": "Plan",
+    "Policy": "Policy",
+    "Register": "Register",
+    "Report": "Report",
+    "Run of Show": "Run of Show",
+    "Specification": "Specification"
+  },
+  "Event": {
+    "After Party": "After Party",
+    "Campaign Launch": "Campaign Launch",
+    "Flagship Activation": "Flagship Activation",
+    "Listening Party": "Listening Party",
+    "Standing Operations": "Standing Operations"
+  },
+  "Goal": {
+    "Commercial": "Commercial",
+    "Compliance": "Compliance",
+    "Experience": "Experience",
+    "Operational": "Operational"
+  },
+  "Inspection": {
+    "Readiness": "Readiness",
+    "Restoration": "Restoration",
+    "Safety": "Safety",
+    "Systems": "Systems"
+  },
+  "Meeting": {
+    "Recurring": "Recurring",
+    "Series": "Series",
+    "Single": "Single"
+  },
+  "Milestone": {
+    "Handover": "Handover",
+    "Opening": "Opening",
+    "Term": "Term"
+  },
+  "Payment": {
+    "Deposit": "Deposit",
+    "Progress": "Progress",
+    "Reconciliation": "Reconciliation",
+    "Settlement": "Settlement"
+  },
+  "Permit": {
+    "Alcohol": "Alcohol",
+    "Building": "Building",
+    "Fire & Life Safety": "Fire & Life Safety",
+    "Occupancy": "Occupancy",
+    "Sound": "Sound",
+    "Special Event": "Special Event"
+  },
+  "Recruitment": {
+    "Contracted": "Contracted",
+    "Crewed": "Crewed",
+    "Hourly": "Hourly",
+    "Salaried": "Salaried"
+  },
+  "Rehearsal": {
+    "Full Run": "Full Run",
+    "Stream Test": "Stream Test",
+    "Technical": "Technical"
+  },
+  "Report": {
+    "Compliance": "Compliance",
+    "Event Recap": "Event Recap",
+    "Financial": "Financial",
+    "Operations": "Operations"
+  },
+  "Risk": {
+    "Commercial": "Commercial",
+    "Operational": "Operational",
+    "Reputational": "Reputational",
+    "Safety": "Safety",
+    "Schedule": "Schedule"
+  },
+  "Shift": {
+    "Load-in": "Load-in",
+    "Load-out": "Load-out",
+    "Overnight": "Overnight",
+    "Show": "Show",
+    "Standing": "Standing"
+  },
+  "Strike": {
+    "Full Restoration": "Full Restoration",
+    "Show Strike": "Show Strike"
+  },
+  "Supply": {
+    "Audio": "Audio",
+    "Bar & Beverage": "Bar & Beverage",
+    "Catering & Kitchen": "Catering & Kitchen",
+    "Facilities & Janitorial": "Facilities & Janitorial",
+    "Guest & Front of House": "Guest & Front of House",
+    "Lighting & Video": "Lighting & Video",
+    "Power & Staging": "Power & Staging",
+    "Safety & Emergency": "Safety & Emergency",
+    "Signage & Wayfinding": "Signage & Wayfinding",
+    "Technology": "Technology"
+  },
+  "Task": {
+    "Assess": "Assess",
+    "Coordinate": "Coordinate",
+    "Define": "Define",
+    "Execute": "Execute",
+    "Issue": "Issue",
+    "Produce": "Produce",
+    "Verify": "Verify"
+  },
+  "Timeline": {
+    "Gate Window": "Gate Window",
+    "Program Month": "Program Month",
+    "Show Cycle": "Show Cycle"
+  },
+  "Training": {
+    "Induction": "Induction",
+    "Refresher": "Refresher",
+    "Role-specific": "Role-specific",
+    "Safety": "Safety"
+  }
+}

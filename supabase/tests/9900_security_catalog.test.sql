@@ -71,12 +71,13 @@ select set_eq($$
   where p.prosecdef and n.nspname in ('app', 'private', 'xpms', 'api_public', 'api_external', 'public')
     and has_function_privilege('anon', p.oid, 'EXECUTE')
     and has_schema_privilege('anon', n.oid, 'USAGE')
-$$, $$values ('calendar_feed'), ('client_minimum_version'), ('org_brand_for_host'), ('org_brand_for_slug'), ('organization_profile'),
-  ('organization_profile_details'), ('person_profile'), ('person_profile_certifications'), ('person_profile_languages'),
+$$, $$values ('calendar_feed'), ('client_minimum_version'), ('confirm_subprocessor_notices'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'),
+  ('organization_profile'), ('organization_profile_details'), ('person_profile'), ('person_profile_certifications'), ('person_profile_languages'),
   ('person_profile_links'), ('person_profile_organizations'), ('person_profile_portfolio'), ('person_profile_references'),
   ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_cookie_consent'), ('sign_agreement'),
   ('invite_token_open'),
-  ('submit_advance'), ('token_document'), ('token_sign_document'), ('verify_certification')$$,
+  ('submit_advance'), ('subscribe_subprocessor_notices'), ('token_document'), ('token_sign_document'),
+  ('unsubscribe_subprocessor_notices'), ('verify_certification')$$,
   'anon reaches exactly the reviewed api_public token, profile and consent RPCs');
 
 select is_empty($$
@@ -97,10 +98,10 @@ select set_eq($$
   where c.relkind in ('v', 'm') and n.nspname = 'app'
     and not coalesce(c.reloptions::text[] && array['security_invoker=true', 'security_invoker=on'], false)
 $$, $$values ('ai_never_send'), ('application_board'), ('bid_totals'), ('brand_fonts'), ('column_classifications'),
-  ('comment_subjects'), ('consent_purposes'), ('currencies'), ('domain_event_catalog'), ('email_templates'),
+  ('comment_subjects'), ('consent_purposes'), ('currencies'), ('custom_field_targets'), ('domain_event_catalog'), ('email_templates'),
   ('employment_statuses'), ('engagement_board'), ('engagement_resolved'), ('feature_flags'), ('flsa_statuses'),
   ('import_target_fields'), ('import_targets'), ('integration_providers'), ('lifecycle_transition_rules'),
-  ('medical_encounters_masked'), ('notification_categories'), ('notification_templates'), ('offboarding_open_records'),
+  ('measurement_metric_tags'), ('measurement_metrics'), ('measurement_units'), ('medical_encounters_masked'), ('notification_categories'), ('notification_templates'), ('offboarding_open_records'),
   ('onboarding_item_status'), ('opportunity_position_counts'), ('org_legal_entities_masked'), ('pay_rates_masked'), ('pay_transparency_rules'),
   ('payroll_line_amounts'), ('rate_card_lines_masked'), ('report_sources'), ('retention_policies'),
   ('separation_of_duties_rules'), ('setting_choices'), ('setting_definitions'), ('shared_certifications'),

@@ -14,6 +14,7 @@ import { viewsMigration } from "./playbook/views.ts";
 import { readLedger, ruledChecksum } from "./ledger.ts";
 import type { Ledger } from "./ledger.ts";
 import type { WorkbookData } from "./workbook.ts";
+import { labelFiles } from "./labels.ts";
 import { quoteText } from "./sql.ts";
 import type { ColumnMap } from "./playbook/column-map.ts";
 import { applyPlaybook } from "./playbook/model.ts";
@@ -212,6 +213,8 @@ export function generateCanon(inputs: LoadedInputs, options: GenerateOptions): G
       content: roundTripTest(inputs.playbook, options.ledger),
       committed: true,
     },
+    // Canon label sources for the translation pipeline (Section 15, ADR 0053).
+    ...labelFiles(tables),
     {
       path: "canon/reports/doctrine-findings.md",
       content: doctrineReport(findings.items, d25.accepted_findings),

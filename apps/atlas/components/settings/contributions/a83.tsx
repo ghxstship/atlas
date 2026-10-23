@@ -1,5 +1,4 @@
 import { getSubscription } from "@xos/data";
-import { resolveSettings } from "@xos/data/settings";
 import { isProviderCode } from "@xos/integrations";
 import {
   listDeadLetters,
@@ -20,6 +19,7 @@ import {
 import { docsUrl } from "@/lib/docs-site";
 import { env } from "@/lib/env";
 import { getFormatters } from "@/lib/platform/format";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
 
@@ -65,16 +65,15 @@ async function WarehousePanel({ ctx }: SettingsPanelProps) {
       </section>
     );
   }
-  const [providers, destinations, deliveries, withheld, settings] = await Promise.all([
+  const [providers, destinations, deliveries, withheld, zone] = await Promise.all([
     listWarehouseProviders(ctx.viewer.db),
     listWarehouseDestinations(ctx.viewer.db, ctx.org.id),
     listWarehouseDeliveries(ctx.viewer.db, ctx.org.id),
     listWithheldColumns(ctx.viewer.db),
-    resolveSettings(ctx.viewer.db, { orgId: ctx.org.id }),
+    getOrgTimeZone(ctx),
   ]);
-  // Nightly is the org's night: the hour is on its locale.time_zone clock, as the scheduler reads it (1401).
-  const zoneSetting = settings.ok ? settings.data.get("locale.time_zone")?.value : undefined;
-  const zone = typeof zoneSetting === "string" && zoneSetting !== "" ? zoneSetting : "UTC";
+  // Nightly is the org's night: the hour is on the org's own locale.time_zone clock, the row the scheduler
+  // reads (private.org_time_zone, 1401), never a member's own zone, which resolved settings would rank first.
   if (!subscription.ok || !providers.ok || !destinations.ok || !deliveries.ok || !withheld.ok) {
     return (
       <section aria-labelledby="warehouse-delivery" className="flex flex-col gap-12">

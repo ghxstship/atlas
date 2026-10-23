@@ -180,7 +180,17 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, each every minute; `infra/runbooks/integrations.md`) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, each every minute; `infra/runbooks/integrations.md`; and `xos_fx_rates_ecb`, which a migration creates, section Exchange rates) still exist: `select jobname, schedule from cron.job order by 1;`.
+
+How the functions are bundled (A85, RRR-130):
+
+- Each function has its own bundle entry and its own import map. `supabase/functions/_vendor/<function>.js` holds the platform code that function uses, `_vendor/core.js` the logger, request observer and database seam every function shares, and `_vendor/chunks/` the code several functions share or load on demand. `supabase/functions/<function>/deno.json` lists only the npm packages that function imports, pinned from `supabase/functions/deno.json`. `supabase functions deploy` picks up each function's `deno.json` itself; pass no `--import-map`.
+- All of these files are generated: `pnpm --filter @xos/platform bundle:edge`. The `@xos/platform` tests fail when a generated file is stale, missing or extra, when a function loads an npm package at boot that it did not load before, or when its boot code passes its budget (`packages/platform/test/edge-bundle.test.ts`). A new npm package must be pinned in `supabase/functions/deno.json` before the build will use it.
+- A new function (for example A79's `org-lifecycle`): add `packages/platform/edge/entries/<function>.ts` exporting exactly what its `index.ts` uses, imported module by module (never through a package's index, which pulls every module in). In `index.ts`, import those from `../_vendor/<function>.js` and the logger or database seam from `../_vendor/core.js` (or through `_shared/runtime.ts`). Load a heavy package with a dynamic `import()` where a request may not need it. Run `bundle:edge`, then add the function's boot and lazy packages and its boot budget to `packages/platform/test/edge-bundle.test.ts`. The test fails for a function directory with no entry; a function that uses nothing but the shared core goes in that test's `CORE_ONLY` list instead.
+- Deploy with the CLI's default Docker bundling. Never pass `--use-api`: server-side bundling allows 5 MB per function and `report-run` is about 9 MB compressed (69 MB as an eszip, mostly exceljs and pdfkit, which load only for .xlsx and PDF runs). Local bundling allows 20 MB.
+- Cold starts: `kiosk-punch`, `api-token`, `email-unsubscribe` and `webhook-dispatch` load no npm package; `stripe-webhook` loads only Stripe; `scim`, `integration-worker`, `integration-inbound`, `import-run` and `upload-scan` load only supabase-js (`import-run` loads exceljs when it reads a workbook); React Email and Resend load only when `notification-dispatch` or `report-run` sends. The hosted limits are 2 s of CPU and 256 MB a request. A function that answers HTTP 546 hit one of them: check whether its boot code grew (`bundle:edge`, then the budget test) before raising anything.
+
+Kiosk re-keying: a kiosk whose device key was retired or revoked in Atlas answers every punch with `kiosk_device_unregistered`, and Compass shows "This device is no longer registered as a kiosk". Register a new kiosk in Atlas, then on the device, signed in as a supervisor, choose **Forget this kiosk** and enter the new key (Compass help, Kiosk).
 
 ### 3. Apps
 
@@ -257,7 +267,7 @@ None. The site is built from the repository and the OpenAPI document. Project se
 
 | Secret                                                    | Notes                                                                                                          |
 | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`                                                                      |
+| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`, `integration-worker` and `automation-run` (ADR 0047)                |
 | `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)       |
 | `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key |
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, after **OWNER** approves real-recipient email              |
@@ -368,6 +378,28 @@ becomes downloadable after the next run.
 Renovate proposes new `clamav/clamav` tags. Update ADR 0001 and `infra/scanning/docker-compose.yaml`
 together. Roll hosts one at a time; while one restarts, scans retry with backoff.
 
+## Legal change notices (OWNER)
+
+Section 14.4 needs 30 days' notice before a material change to a legal document or a new subprocessor. Both
+start with one call in the SQL editor of the production project, after the new text is published at `/legal`
+(A82, migrations 1382 and 1383). Each refuses a date less than 30 days ahead and records the notice time from
+the database, which is the evidence of the notice.
+
+```sql
+-- A material change: Atlas asks whoever accepts terms for each org (Org), or Gateway asks each person
+-- who accepted an earlier version (Personal), until they accept the new version.
+select app.announce_legal_change('terms-of-service', '2.0.0', 'Org', '<what changes, in plain words>', date '<effective date>');
+-- Withdraw a notice sent by mistake:
+select app.withdraw_legal_change('terms-of-service', '2.0.0');
+
+-- A Subprocessor List change: emails every confirmed subscriber and every Owner and Admin who has not
+-- opted out; the subprocessor-notices worker sends them.
+select app.queue_subprocessor_notice('<list version>', '<what changes, in plain words>', date '<effective date>');
+```
+
+A subprocessor notice emails real recipients, which `legal/policies/change-management.md` section 5 makes a
+stop condition: the owner approves each one before it is queued.
+
 ## Stripe catalogue (OWNER, test mode)
 
 The products, prices, founding-customer coupon and `FOUNDING30` promotion code come from `packages/schemas/plans.yaml` (pricing v4, ADR 0035). The owner creates them in the Stripe sandbox with the setup script. It runs on the owner's machine with the owner's key, which never goes in a file:
@@ -452,6 +484,18 @@ pnpm --filter @xos/i18n translate:all             # glossary upload, translate, 
 
 Later runs: `pnpm --filter @xos/i18n translate` re-translates only strings whose en-US changed since the last run; the translation memory answers everything else, so an unchanged run calls nothing.
 
+### 5a. Beta locales: fr-FR, de-DE, it-IT, pt-BR and ja-JP (ADR 0053)
+
+The five Beta locales ship in the language picker marked Beta. They are targets of the same pipeline, so the first `translate` (inside `translate:all`) writes their catalogs; until then every key reads en-US.
+
+1. Price it first: `pnpm --filter @xos/i18n translate --dry-run` prints each locale's strings, characters and estimated cost. A full fill of one locale, catalogs and canon labels, is estimated at USD 9.58 (dry run on 2026-10-21), so about USD 48 for all five.
+2. Run `pnpm --filter @xos/i18n translate` (or one locale: `--locale fr-FR`). Beta locales cover the app catalogs and the canon labels (`surfaces: ["catalogs", "canon"]` in `translation/config.json`); help articles and guides stay in en-US for them.
+3. Commit `packages/i18n/messages/<locale>/`, `packages/i18n/canon/<locale>/`, `packages/i18n/translation/memory/<locale>.json`, the regenerated `packages/i18n/src/beta/<locale>.generated.ts` and `docs/i18n/translate-<locale>.md`, with a `Part of RRR-142` trailer.
+   3a. Canon labels reach the database through a migration: run `pnpm --filter @xos/i18n canon:sql` and paste what it prints into a new migration in your range (`packages/i18n/test/canon.test.ts` fails until you do). es-US canon labels other than phases, record kinds, classes, states, subtypes and worker classifications arrive the same way on the first `translate`.
+4. Optional: fill the Beta columns of `packages/i18n/translation/glossary.csv` (`fr`, `de`, `it`, `pt`, `ja`) with the terms a person chose, then run `translate:glossary`. Until then those columns hold only the product names.
+
+A Beta locale becomes general when a native reviewer signs it off in `packages/i18n/REVIEW.md` (the steps are there).
+
 ### 6. CI with Workload Identity Federation (optional)
 
 The manual workflow `translate.yml` (`infra/ci/README.md`, section 9) runs the same commands in GitHub Actions and uploads the result as a patch. It needs no key:
@@ -475,6 +519,23 @@ The manual workflow `translate.yml` (`infra/ci/README.md`, section 9) runs the s
 - `400` about contextual translation: set `google.contextualGlossary` to `false` in `packages/i18n/translation/config.json` and run again.
 - Many strings failed with "Google's markup did not survive": the model is dropping the masking spans. Switch to NMT as above; failed strings are retried and nothing broken was written.
 - Strings listed as failed in `docs/i18n/translate-<locale>.md` kept their value (or the en-US text where they had none) and are retried on the next run.
+
+## Exchange rates (OWNER, ECB daily reference rates)
+
+The Edge Function `fx-rates-ecb` writes the European Central Bank's daily reference rates into every org's
+exchange rates (ADR 0053, migration 1542). pg_cron job `xos_fx_rates_ecb` runs it on ECB business days at 15:30 and
+21:30 UTC (`30 15,21 * * 1-5`), after the 16:00 CET publication. The rates file is public: no key is needed to read
+it.
+
+1. Deploy the function with the others: `supabase functions deploy fx-rates-ecb --project-ref <ref>`. It keeps the
+   default `verify_jwt = true` and checks the service key, as the other workers do.
+2. Add the functions URL to Vault once, beside `xos_worker_key` (example value, use your own project ref):
+   `select vault.create_secret('https://<project ref>.supabase.co/functions/v1', 'xos_functions_url');`
+3. Check the first run (the next weekday after 15:30 UTC, or call `select private.request_fx_feed();`):
+   `select * from app.fx_feed_status('ECB');` shows `last_rate_date` and no failures since. Until step 2, every
+   scheduled run records a failure saying the feed is not configured, and Finance, Cost centers says so.
+4. A failing feed: `select ran_at, error from private.fx_feed_runs where outcome = 'Failed' order by ran_at desc
+limit 5;`. Conversions keep using the newest rate recorded, show its date, and say when it is stale.
 
 ## Push and SMS (OWNER)
 
