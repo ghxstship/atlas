@@ -1,8 +1,15 @@
-import { defaultLocale, isLocale, locales, type Locale } from "@xos/i18n/locales";
+import {
+  defaultLocale,
+  isLocale,
+  launchLocales,
+  type LaunchLocale,
+  type Locale,
+} from "@xos/i18n/locales";
 
 /**
  * Locale negotiation for the console, as Gateway's without pseudo-locales: the `xos-locale` cookie, then the
- * browser's Accept-Language list, then en-US. URLs carry no locale.
+ * browser's Accept-Language list, then en-US. URLs carry no locale. Beta locales (ADR 0053) are chosen, never
+ * guessed: the cookie accepts them, but the browser's languages match launch locales only.
  */
 export const LOCALE_COOKIE = "xos-locale";
 
@@ -24,13 +31,13 @@ export function parseAcceptLanguage(header: string | null | undefined): string[]
   return ranges.sort((a, b) => b.q - a.q).map((r) => r.tag);
 }
 
-/** The shipped locale that best serves one language range (`es-MX` and `es` resolve to es-US). */
-function matchRange(range: string): Locale | undefined {
+/** The launch locale that best serves one language range (`es-MX` and `es` resolve to es-US). */
+function matchRange(range: string): LaunchLocale | undefined {
   const lower = range.toLowerCase();
-  const exact = locales.find((l) => l.toLowerCase() === lower);
+  const exact = launchLocales.find((l) => l.toLowerCase() === lower);
   if (exact) return exact;
   const language = lower.split("-")[0];
-  return locales.find((l) => l.toLowerCase().split("-")[0] === language);
+  return launchLocales.find((l) => l.toLowerCase().split("-")[0] === language);
 }
 
 export function negotiateLocale(input: {

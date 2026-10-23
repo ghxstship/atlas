@@ -79,6 +79,9 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
  * Most vendored code (KB) each function may parse at boot. These are about 25 percent above the
  * builds of 2026-10-20 and 2026-10-21; before A85 every function parsed 1,640 KB or more. Raise one
  * only after measuring that function's cold start (infra/runbooks/production.md, Edge Functions).
+ * notification-dispatch and sms-webhook carry every kind's copy in both launch locales at boot (push and
+ * SMS text is formatted synchronously), so they grow with the registry: A89 and A90 brought them to 164
+ * and 128, and their budgets are about 10 percent above that.
  */
 const BOOT_BUDGET_KB: Record<string, number> = {
   "api-token": 70,
@@ -91,12 +94,12 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,
-  "notification-dispatch": 160,
+  "notification-dispatch": 180,
   "org-lifecycle": 210,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
-  "sms-webhook": 128,
+  "sms-webhook": 145,
   "stripe-webhook": 84,
   "subprocessor-notices": 115,
   "upload-scan": 100,
