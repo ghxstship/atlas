@@ -106,3 +106,5 @@ The orchestrator's second block (1390 to 1399) sorts before A83 to A99's ranges,
 ## Amendment (2026-10-23): blocks for the owner decisions of 2026-10-23
 
 The work that follows the owner decisions of 2026-10-23 (ADR 0033) takes blocks after the orchestrator's third: 1600 to 1609 for record keys in record notifications, 1610 to 1619 for the canon rulings and Standard Library seeding (WP18), 1620 to 1629 for the notification and access decisions (quiet-hours bypass, delivered reports in the Inbox, expenses for the Field role, spend authority, engagement fields), 1630 to 1639 for reporting and blocking in Compass and Sign in with Apple, 1640 to 1649 for Checkout, and 1650 to 1659 for operations (the read-only backup login and inbound email).
+
+Within those blocks, 1600 adds private.record_key, a record's display key read as app.record_display_key reads it, and recreates the emitters of notifications about a record so that their message arguments carry the key the Inbox opens the record by: private.after_comment_mention and private.notify_comment_subscribers from 0580, private.notify_record_assignment from 1394 and A91's app.send_automation_notice from 1481.
