@@ -1,11 +1,11 @@
 -- 1600_record_keys_in_notifications.sql
 --
--- Orchestrator block (ADR 0022, 1600-1609), RRR-125. An Inbox item about a record opens the record (/{org}/r/{key})
--- when its notification carries the record's key (apps/atlas lib/inbox/describe.ts), but every emitter of a notification
--- about a record passed only its title, so an assignment opened My Work and a comment or a mention on a record opened
--- nothing. private.record_key reads the key, {project_key}-{record_number} as app.record_display_key does, and each of
--- those emitters is recreated from its latest definition with recordKey added to the message arguments and nothing else
--- changed:
+-- Record keys in record notifications (ADR 0022, 1600-1609), RRR-125. An Inbox item about a record opens the record
+-- (/{org}/r/{key}) when its notification carries the record's key (apps/atlas lib/inbox/describe.ts), but every emitter
+-- of a notification about a record passed only its title, so an assignment opened My Work and a comment or a mention on
+-- a record opened nothing. private.record_key reads the key, {project_key}-{record_number} as app.record_display_key
+-- does, and each of those emitters is recreated from its latest definition with recordKey added to the message arguments
+-- and nothing else changed:
 --   * private.after_comment_mention and private.notify_comment_subscribers (0580): mention.created and comment.created
 --     whose subject is a record (app.records); a comment on any other subject carries no key;
 --   * private.notify_record_assignment (1394): assignment.created;
