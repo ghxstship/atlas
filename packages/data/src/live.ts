@@ -56,13 +56,47 @@ export interface LiveChannelLike {
     filter: { event: "*"; schema: string; table: string; filter?: string },
     callback: (payload: LivePayload) => void,
   ): LiveChannelLike;
+  on(
+    type: "broadcast",
+    filter: { event: string },
+    callback: (message: { payload?: unknown }) => void,
+  ): LiveChannelLike;
+  on(type: "presence", filter: { event: "sync" }, callback: () => void): LiveChannelLike;
   subscribe(callback: (status: string, error?: Error) => void): LiveChannelLike;
+  send?(message: { type: "broadcast"; event: string; payload: unknown }): Promise<unknown>;
+  track?(state: Record<string, unknown>): Promise<unknown>;
+  presenceState?(): Record<string, readonly Record<string, unknown>[]>;
+}
+
+/** Channel settings for a room: private (authorized per topic), its presence key, never echoing itself. */
+export interface LiveChannelOptions {
+  readonly config: {
+    readonly private: boolean;
+    readonly broadcast: { readonly self: boolean };
+    readonly presence: { readonly key: string };
+  };
 }
 
 export interface LiveClientLike {
-  channel(topic: string): LiveChannelLike;
+  channel(topic: string, options?: LiveChannelOptions): LiveChannelLike;
   removeChannel(channel: LiveChannelLike): Promise<unknown>;
   disconnect(): unknown;
+}
+
+/** What a room tells its owner: broadcasts, who is present, and whether it is joined. */
+export interface LiveRoomHandlers {
+  onBroadcast(event: string, payload: Record<string, unknown>): void;
+  onPresence?(members: readonly Record<string, unknown>[]): void;
+  /** `joined` after every (re)join, `lost` when the channel drops; a rejoin should resync. */
+  onStatus?(status: "joined" | "lost"): void;
+}
+
+export interface LiveRoom {
+  /** Broadcasts to everyone else in the room; false when it could not be sent. */
+  send(event: string, payload: Record<string, unknown>): Promise<boolean>;
+  /** Shares this tab's presence (a name, a color). */
+  track(state: Record<string, unknown>): Promise<void>;
+  leave(): void;
 }
 
 export interface LiveClientOptions {
@@ -118,6 +152,15 @@ export interface LivePacing {
 export interface LiveHub {
   /** Starts watching topics; the returned function stops. */
   watch(topics: readonly LiveTopic[], listener: LiveListener, pacing?: LivePacing): () => void;
+  /**
+   * Joins a private broadcast room on the same socket (live co-editing, ADR 0044): Realtime
+   * authorizes the topic for the person's token, for broadcasts and presence alike.
+   */
+  room(
+    topic: string,
+    options: { readonly events: readonly string[]; readonly presenceKey: string },
+    handlers: LiveRoomHandlers,
+  ): LiveRoom;
   status(): LiveStatus;
   onStatus(listener: (status: LiveStatus) => void): () => void;
   close(): void;
@@ -223,6 +266,7 @@ export function createLiveHub(options: LiveHubOptions): LiveHub {
   let idleTimer: unknown = null;
   let cached: LiveToken | null = null;
   let closed = false;
+  let rooms = 0;
 
   const setStatus = (next: LiveStatus) => {
     if (next === current) return;
@@ -309,6 +353,29 @@ export function createLiveHub(options: LiveHubOptions): LiveHub {
     cached = null;
   };
 
+  const ensureClient = (): LiveClientLike => {
+    client ??= createClient(realtimeEndpoint(options.url), {
+      apiKey: options.apiKey,
+      accessToken,
+      reconnectAfterMs: (tries) => reconnectDelay(tries, random),
+    });
+    return client;
+  };
+
+  const scheduleIdle = () => {
+    idleTimer ??= clock.setTimeout(() => {
+      idleTimer = null;
+      if (watchers.size === 0 && rooms === 0) shutdown();
+    }, idleMs);
+  };
+
+  const cancelIdle = () => {
+    if (idleTimer !== null) {
+      clock.clearTimeout(idleTimer);
+      idleTimer = null;
+    }
+  };
+
   const rebuild = () => {
     rebuildTimer = null;
     if (closed) return;
@@ -324,23 +391,12 @@ export function createLiveHub(options: LiveHubOptions): LiveHub {
     dropChannel();
     if (topics.size === 0) {
       setStatus("idle");
-      idleTimer ??= clock.setTimeout(() => {
-        idleTimer = null;
-        if (watchers.size === 0) shutdown();
-      }, idleMs);
+      if (rooms === 0) scheduleIdle();
       return;
     }
-    if (idleTimer !== null) {
-      clock.clearTimeout(idleTimer);
-      idleTimer = null;
-    }
-    client ??= createClient(realtimeEndpoint(options.url), {
-      apiKey: options.apiKey,
-      accessToken,
-      reconnectAfterMs: (tries) => reconnectDelay(tries, random),
-    });
+    cancelIdle();
     channelCount += 1;
-    let next = client.channel(`live:${channelCount}`);
+    let next = ensureClient().channel(`live:${channelCount}`);
     for (const [key, topic] of topics) {
       next = next.on(
         "postgres_changes",
@@ -403,6 +459,71 @@ export function createLiveHub(options: LiveHubOptions): LiveHub {
         if (!watchers.delete(watcher)) return;
         if (watcher.timer !== null) clock.clearTimeout(watcher.timer);
         scheduleRebuild();
+      };
+    },
+    room(topic, { events, presenceKey }, handlers) {
+      if (closed) {
+        return {
+          send: () => Promise.resolve(false),
+          track: () => Promise.resolve(),
+          leave: () => undefined,
+        };
+      }
+      cancelIdle();
+      const owner = ensureClient();
+      let room = owner.channel(topic, {
+        config: { private: true, broadcast: { self: false }, presence: { key: presenceKey } },
+      });
+      for (const event of events) {
+        room = room.on("broadcast", { event }, (message) => {
+          const payload = message.payload;
+          if (payload && typeof payload === "object") {
+            handlers.onBroadcast(event, payload as Record<string, unknown>);
+          }
+        });
+      }
+      const joinedRoom = room;
+      if (handlers.onPresence) {
+        room = room.on("presence", { event: "sync" }, () => {
+          const state = joinedRoom.presenceState?.() ?? {};
+          handlers.onPresence?.(Object.values(state).flat());
+        });
+      }
+      rooms += 1;
+      let left = false;
+      let joined = false;
+      room.subscribe((status) => {
+        if (left) return;
+        if (status === "SUBSCRIBED") {
+          joined = true;
+          handlers.onStatus?.("joined");
+        } else if (
+          joined &&
+          (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED")
+        ) {
+          joined = false;
+          handlers.onStatus?.("lost");
+        }
+      });
+      return {
+        async send(event, payload) {
+          if (left || !joinedRoom.send) return false;
+          try {
+            return (await joinedRoom.send({ type: "broadcast", event, payload })) === "ok";
+          } catch {
+            return false;
+          }
+        },
+        async track(state) {
+          if (!left) await joinedRoom.track?.(state);
+        },
+        leave() {
+          if (left) return;
+          left = true;
+          rooms -= 1;
+          void owner.removeChannel(joinedRoom);
+          if (watchers.size === 0 && rooms === 0) scheduleIdle();
+        },
       };
     },
     status: () => current,

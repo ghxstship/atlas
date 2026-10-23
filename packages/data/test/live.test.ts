@@ -5,6 +5,7 @@ import {
   realtimeEndpoint,
   reconnectDelay,
   type LiveChannelLike,
+  type LiveChannelOptions,
   type LiveChange,
   type LiveClientLike,
   type LiveClientOptions,
@@ -47,7 +48,13 @@ function fakeClock() {
 
 interface FakeChannel extends LiveChannelLike {
   readonly topic: string;
+  readonly options: LiveChannelOptions | undefined;
   readonly bindings: { table: string; filter?: string; callback: (p: LivePayload) => void }[];
+  readonly broadcasts: Map<string, (message: { payload?: unknown }) => void>;
+  presenceSync: (() => void) | null;
+  presence: Record<string, readonly Record<string, unknown>[]>;
+  readonly sent: { event: string; payload: unknown }[];
+  readonly tracked: Record<string, unknown>[];
   status: ((status: string) => void) | null;
   removed: boolean;
 }
@@ -59,24 +66,49 @@ function fakeRealtime() {
     const record = { endpoint, options, disconnected: false };
     clients.push(record);
     return {
-      channel(topic) {
+      channel(topic, channelOptions) {
+        const on = (type: string, filter: Record<string, unknown>, callback: unknown) => {
+          if (type === "broadcast") {
+            channel.broadcasts.set(
+              String(filter["event"]),
+              callback as (m: { payload?: unknown }) => void,
+            );
+          } else if (type === "presence") {
+            channel.presenceSync = callback as () => void;
+          } else {
+            channel.bindings.push({
+              table: String(filter["table"]),
+              ...(filter["filter"] ? { filter: String(filter["filter"]) } : {}),
+              callback: callback as (p: LivePayload) => void,
+            });
+          }
+          return channel;
+        };
         const channel: FakeChannel = {
           topic,
+          options: channelOptions,
           bindings: [],
+          broadcasts: new Map(),
+          presenceSync: null,
+          presence: {},
+          sent: [],
+          tracked: [],
           status: null,
           removed: false,
-          on(_type, filter, callback) {
-            channel.bindings.push({
-              table: filter.table,
-              ...(filter.filter ? { filter: filter.filter } : {}),
-              callback,
-            });
-            return channel;
-          },
+          on: on as LiveChannelLike["on"],
           subscribe(callback) {
             channel.status = callback;
             return channel;
           },
+          send(message) {
+            channel.sent.push({ event: message.event, payload: message.payload });
+            return Promise.resolve(message.event === "fail" ? "error" : "ok");
+          },
+          track(state) {
+            channel.tracked.push(state);
+            return Promise.resolve("ok");
+          },
+          presenceState: () => channel.presence,
         };
         channels.push(channel);
         return channel;
@@ -426,5 +458,69 @@ describe("createLiveHub", () => {
     expect(seen).toEqual(["connecting", "live"]);
     hub.close();
     expect(hub.watch([{ table: "records" }], () => undefined)()).toBeUndefined();
+  });
+});
+
+describe("live rooms", () => {
+  it("joins a private room on the same socket, relays broadcasts and presence, and resyncs on rejoin", async () => {
+    const { hub, time, realtime } = setup();
+    hub.watch([{ table: "records" }], () => undefined);
+    time.advance(60);
+    const got: string[] = [];
+    const statuses: string[] = [];
+    let members: readonly Record<string, unknown>[] = [];
+    const room = hub.room(
+      "doc:6f1c7e0e-0000-4000-8000-000000000001",
+      { events: ["update"], presenceKey: "person-1" },
+      {
+        onBroadcast: (event, payload) => got.push(`${event}:${String(payload["u"])}`),
+        onPresence: (m) => (members = m),
+        onStatus: (s) => statuses.push(s),
+      },
+    );
+    expect(realtime.clients).toHaveLength(1);
+    const channel = realtime.channels.find((c) => c.topic.startsWith("doc:"));
+    expect(channel?.options).toEqual({
+      config: { private: true, broadcast: { self: false }, presence: { key: "person-1" } },
+    });
+    channel?.status?.("SUBSCRIBED");
+    channel?.broadcasts.get("update")?.({ payload: { u: "AQI=" } });
+    channel?.broadcasts.get("update")?.({ payload: "not an object" });
+    expect(got).toEqual(["update:AQI="]);
+    if (channel) channel.presence = { a: [{ name: "Erin" }], b: [{ name: "Dave" }] };
+    channel?.presenceSync?.();
+    expect(members).toEqual([{ name: "Erin" }, { name: "Dave" }]);
+    channel?.status?.("CHANNEL_ERROR");
+    channel?.status?.("SUBSCRIBED");
+    expect(statuses).toEqual(["joined", "lost", "joined"]);
+    expect(await room.send("update", { u: "AwQ=" })).toBe(true);
+    expect(await room.send("fail", {})).toBe(false);
+    await room.track({ name: "Carol" });
+    expect(channel?.tracked).toEqual([{ name: "Carol" }]);
+    room.leave();
+    room.leave();
+    expect(channel?.removed).toBe(true);
+    expect(await room.send("update", {})).toBe(false);
+  });
+
+  it("keeps the socket open while a room is joined, and closes it after the last one leaves", () => {
+    const { hub, time, realtime } = setup();
+    const room = hub.room(
+      "doc:x",
+      { events: [], presenceKey: "p" },
+      { onBroadcast: () => undefined },
+    );
+    time.advance(120_000);
+    expect(realtime.clients[0]?.disconnected).toBe(false);
+    room.leave();
+    time.advance(61_000);
+    expect(realtime.clients[0]?.disconnected).toBe(true);
+    hub.close();
+    const late = hub.room(
+      "doc:y",
+      { events: [], presenceKey: "p" },
+      { onBroadcast: () => undefined },
+    );
+    late.leave();
   });
 });
