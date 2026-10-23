@@ -12,9 +12,12 @@
 // Read replica (Section 5.1, A65-032): with XOS_READ_REPLICA_URL set to a Supabase read replica's API
 // origin, each run's definition and source rows are read there, falling back to the primary when the
 // replica errors or lags. Claims, run state, storage and deliveries stay on the primary.
+//
+// Resend, exceljs and pdfkit load only when a run needs them (A85), and the file and email copy load per
+// locale on first use.
 import { createClient } from "@supabase/supabase-js";
-import { Resend } from "resend";
 import {
+  lazyResendClient,
   mailpitMailer,
   readEmailEnv,
   readReplicaUrl,
@@ -28,7 +31,7 @@ import {
   supabaseResultFiles,
   supabaseResultStorage,
   type ReportMailer,
-} from "../_vendor/xos-platform.js";
+} from "../_vendor/report-run.js";
 import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
 
 function reportMailer(): ReportMailer {
@@ -41,7 +44,7 @@ function reportMailer(): ReportMailer {
       allowed: emailEnv.XOS_EMAIL_ALLOWLIST,
       deliverToAny: emailEnv.XOS_EMAIL_DELIVER_TO_ANY,
     };
-    return resendMailer(new Resend(emailEnv.RESEND_API_KEY), emailEnv.XOS_EMAIL_FROM, (to) =>
+    return resendMailer(lazyResendClient(emailEnv.RESEND_API_KEY), emailEnv.XOS_EMAIL_FROM, (to) =>
       recipientAllowed(to, policy),
     );
   }
@@ -71,11 +74,11 @@ serve(async (request) => {
         console.warn(`report-run: ${label} read from the primary (${String(reason)})`),
     }),
     storage: supabaseResultStorage(client),
-    labels: reportRunLabels("en-US"),
+    labels: await reportRunLabels("en-US"),
     deliveries: supabaseReportDeliveryStore(client),
     files: supabaseResultFiles(client),
     mailer: reportMailer(),
-    copy: reportDeliveryCopy("en-US"),
+    copy: await reportDeliveryCopy("en-US"),
     worker: `report-run:${crypto.randomUUID()}`,
   });
   return json(200, {

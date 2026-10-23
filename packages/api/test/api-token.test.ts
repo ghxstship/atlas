@@ -76,6 +76,27 @@ describe("api-token exchange", () => {
     expect(tokenClaims(ROW, "iss", 10)["exp"]).toBe(10 + TOKEN_TTL_SECONDS);
   });
 
+  it("exchanges a personal API token (A86) for its person's own sign-in", async () => {
+    const token = `xos_pat_${"b".repeat(48)}`;
+    const personal = { ...ROW, api_key_id: "t1", service_account_id: null };
+    const res = await handleTokenRequest(request(`Bearer ${token}`), deps(personal));
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { access_token: string };
+    const claims = JSON.parse(
+      Buffer.from(body.access_token.split(".")[1] as string, "base64url").toString(),
+    ) as Record<string, unknown>;
+    expect(claims).toMatchObject({
+      sub: ROW.user_id,
+      xos_api_key_id: "t1",
+      xos_service_account_id: null,
+      scopes: ["finance"],
+      amr: [{ method: "xos_api_key", timestamp: 1_800_000_000 }],
+    });
+    expect((await handleTokenRequest(request("Bearer xos_pat_short"), deps(personal))).status).toBe(
+      401,
+    );
+  });
+
   it("refuses other methods, missing or malformed keys, unknown keys and refused keys", async () => {
     expect((await handleTokenRequest(request(`Bearer ${KEY}`, "GET"), deps(ROW))).status).toBe(405);
     expect((await handleTokenRequest(request(null), deps(ROW))).status).toBe(401);

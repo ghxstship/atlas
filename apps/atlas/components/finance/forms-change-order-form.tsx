@@ -8,6 +8,7 @@ import { fieldError } from "./kit-field-error";
 import { useAfterSave } from "./kit-use-after-save";
 import { useFinanceT } from "./kit-use-finance-t";
 import { type Option } from "./kit.types";
+import { DraftEntry } from "@/components/aurora/entry/draft-entry";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { INITIAL, Submit } from "./forms.shared";
 import { type BudgetOption } from "./forms.types";
@@ -68,6 +69,25 @@ export function ChangeOrderForm({
         label={t("changeOrders.fields.orderType")}
         value={order?.orderTypeId ?? ""}
         options={[{ value: "", label: t("common.none") }, ...orderTypes]}
+      />
+      <DraftEntry
+        kind="change_order_description"
+        fields={{ title: "title", body: "reason" }}
+        instructionsFrom="title"
+        maxBody={20000}
+        context={[
+          ...(order
+            ? [{ collection: "change-orders", id: order.id, label: order.title }]
+            : budgetId
+              ? [
+                  {
+                    collection: "budgets",
+                    id: budgetId,
+                    label: budgets.find((b) => b.value === budgetId)?.label ?? "",
+                  },
+                ]
+              : []),
+        ]}
       />
       <Textarea
         id="co-reason"

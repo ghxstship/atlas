@@ -51,9 +51,23 @@ test("sign-up asks once for the email and records the Worker Terms acceptance", 
   await expectAccessible(page);
 
   await page.locator("#signup-terms").check();
+  // "16 or older" gates creation too (A82, Sections 14.3 and 14.9).
+  await page.locator("#signup-password").fill("Tidal-Copper-Ladder-4821");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(
+    page.getByText("Confirm that you are 16 or older. XOS accounts are for people 16 and over."),
+  ).toBeVisible();
+  await page.locator("#signup-age").check();
   await page.locator("#signup-password").fill("Tidal-Copper-Ladder-4821");
   await page.getByRole("button", { name: "Create account" }).click();
   await page.waitForURL((url) => url.pathname === "/home");
+  const [age] = await sql<{ surface: string }>(
+    `select c.surface from private.age_confirmations c
+       join app.people p on p.id = c.person_id join auth.users u on u.id = p.user_id
+      where u.email = $1`,
+    [email],
+  );
+  expect(age?.surface).toBe("Gateway");
 
   const accepted = await sql<{
     slug: string;

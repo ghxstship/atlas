@@ -6,7 +6,10 @@
   "license": "AGPL-3.0-only",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./env": "./src/env.ts",
+    "./messages": "./src/messages.ts",
+    "./transport": "./src/transport.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",

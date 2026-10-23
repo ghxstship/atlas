@@ -79,6 +79,7 @@ export async function SavedReportsView({ page }: { page: FinancePage }) {
     "reports.purchase-order-exposure",
     "reports.incidents",
     "reports.final-cost-report",
+    "reports.measurement",
   ];
   const runStatus = (s: string) => t(`reports.saved.status.${s}`);
   const finished = runs.data.filter((r) => r.status === "Succeeded");

@@ -26,7 +26,15 @@
       "account_role_band": "Solo un propietario de la cuenta puede dar o quitar el rol de propietario.",
       "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
       "slug_reserved": "Esa dirección web está reservada. Elige otra.",
-      "cross_org_reference": "Ese documento pertenece a otra organización. Vuelve a subirlo para esta."
+      "cross_org_reference": "Ese documento pertenece a otra organización. Vuelve a subirlo para esta.",
+      "personal_tokens_off": "Esa organización ya no permite tokens personales de API.",
+      "personal_token_scope_not_held": "Un token solo puede usar áreas en las que tiene alguna capacidad. Desmarque las demás.",
+      "personal_token_limit": "Ya tiene 10 tokens activos allí. Revoque uno primero.",
+      "personal_token_expiry": "Elija un vencimiento dentro de un año.",
+      "personal_token_revoked": "Este token ya está revocado.",
+      "step_up_required": "Confirme su identidad con su segundo factor y vuelva a intentarlo.",
+      "sole_account_owner": "Una cuenta de empresa conserva al menos un Propietario. Nombre primero a otra persona Propietario.",
+      "notification_channel_outside": "Una empresa solo configura Correo electrónico y Push."
     }
   },
   "common": {
@@ -1428,6 +1436,13 @@
         "denied": "Ese calendario no está disponible para usted.",
         "unexpected": "Algo salió mal. Inténtelo de nuevo."
       }
+    },
+    "surfaces": {
+      "errors": {
+        "jurisdiction": "Elija una jurisdicción de la lista.",
+        "category": "Elija una categoría de la lista.",
+        "member": "Elija un miembro del equipo."
+      }
     }
   },
   "shell": {
@@ -1491,7 +1506,8 @@
       "fullName": "Nombre completo",
       "email": "Correo electrónico",
       "password": "Contraseña",
-      "passwordHelp": "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos."
+      "passwordHelp": "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
+      "age": "Tengo 16 años o más."
     },
     "or": "o",
     "usePassword": "Usar contraseña",
@@ -1562,7 +1578,8 @@
       "email": "Escribe un correo como nombre@empresa.com.",
       "password": "Escribe una contraseña de al menos 12 caracteres con letras y números.",
       "passwordContext": "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Gateway.",
-      "terms": "Acepta los Términos para trabajadores para crear tu cuenta: marca la casilla sobre el botón."
+      "terms": "Acepta los Términos para trabajadores para crear tu cuenta: marca la casilla sobre el botón.",
+      "age": "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante."
     }
   },
   "work": {

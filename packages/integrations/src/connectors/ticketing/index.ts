@@ -1,4 +1,4 @@
-import { isPublicAddress, type HostResolver } from "@xos/platform";
+import { isPublicAddress, type HostResolver } from "@xos/platform/webhooks";
 import { ItemTally, type Connector, type SyncContext } from "../../framework/connector.ts";
 import { unwrap, type DbClient } from "../../framework/db.ts";
 import { IntegrationError } from "../../framework/errors.ts";

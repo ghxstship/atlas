@@ -1,4 +1,7 @@
 import type { DocumentBlock, DocumentColumn, DocumentModel, Paper } from "./model.ts";
+
+/** Page orientation: portrait by default; wide forms such as the WH-347 and OSHA 300 print landscape. */
+export type Orientation = "portrait" | "landscape";
 import { qrMatrix } from "./qr.ts";
 
 /**
@@ -80,13 +83,14 @@ export function printable(text: string, has: (codePoint: number) => boolean): st
 
 export async function renderDocumentPdf(
   model: DocumentModel,
-  options: { readonly paper: Paper },
+  options: { readonly paper: Paper; readonly orientation?: Orientation },
 ): Promise<Uint8Array> {
   const [{ default: PDFDocument }, font] = await Promise.all([import("pdfkit"), fonts()]);
   return new Promise((resolve, reject) => {
     // pdfkit's types lag the library: they omit the PDF/UA subset and a font given as bytes.
     const pdfOptions: Record<string, unknown> = {
       size: SIZES[options.paper],
+      layout: options.orientation ?? "portrait",
       margins: { top: MARGIN, left: MARGIN, right: MARGIN, bottom: MARGIN + FOOTER },
       pdfVersion: "1.7",
       subset: "PDF/UA",
@@ -99,6 +103,7 @@ export async function renderDocumentPdf(
         Title: model.title,
         Author: model.brand.legalEntity ?? model.brand.name,
         Subject: `${model.facts.recordKey} v${model.facts.templateVersion}`,
+        ...(model.watermark ? { Keywords: model.watermark.text } : {}),
         Creator: "XOS",
         Producer: "XOS",
         CreationDate: new Date(model.facts.generatedAtIso),
@@ -298,6 +303,15 @@ class Renderer {
     factsTable.end();
     this.style("regular", 6.5, MUTED);
     this.text(this.root, "P", facts.recordUrl, { x: factsX, y: fy + 2, width: factsWidth });
+    if (model.watermark) {
+      // Section 8.6: who received this copy and when, in the reading order; every page repeats it as an artifact.
+      this.style("semibold", 6.5, MUTED);
+      this.text(this.root, "P", model.watermark.text, {
+        x: factsX,
+        y: doc.y + 2,
+        width: factsWidth,
+      });
+    }
     const factsBottom = doc.y;
 
     const qrX = this.left + this.width - QR_SIZE;
@@ -342,6 +356,10 @@ class Renderer {
         doc.y += 4;
         return;
       }
+      case "image": {
+        this.image(block.bytes, block.alt);
+        return;
+      }
       case "paragraph": {
         const size = block.size === "large" ? 22 : BODY;
         this.style(block.size === "large" ? "semibold" : "regular", size);
@@ -381,6 +399,33 @@ class Renderer {
         return;
       }
     }
+  }
+
+  /** A PNG or JPEG fitted to the page width and the space left, as a Figure with alternative text. */
+  private image(bytes: Uint8Array, alt: string): void {
+    const { doc } = this;
+    if (!isEmbeddableImage(bytes)) return;
+    const buffer = Buffer.from(bytes);
+    const opened = doc.openImage(buffer) as { width: number; height: number };
+    const room = () => this.bottom - doc.y;
+    const fullPage = this.bottom - doc.page.margins.top;
+    const scale = Math.min(1, this.width / opened.width, fullPage / opened.height);
+    const height = opened.height * scale;
+    if (height > room()) {
+      doc.addPage();
+      doc.x = this.left;
+      doc.y = doc.page.margins.top;
+    }
+    const width = opened.width * scale;
+    const x = this.left + (this.width - width) / 2;
+    const y = doc.y;
+    this.root.add(
+      doc.struct("Figure", { alt: this.safe(alt) }, () => {
+        doc.image(buffer, x, y, { width, height });
+      }),
+    );
+    doc.x = this.left;
+    doc.y = y + height + GAP;
   }
 
   /**
@@ -534,7 +579,33 @@ class Renderer {
           { width: this.width / 2, align: "right", lineBreak: false },
         );
       }, "Pagination");
+      if (model.watermark) this.watermark(model.watermark.text);
       doc.page.margins.bottom = bottomMargin;
     }
+  }
+
+  /**
+   * The Section 8.6 watermark across the page: light, diagonal, and an artifact, since the header
+   * already carries the same text in the reading order.
+   */
+  private watermark(text: string): void {
+    const { doc } = this;
+    const value = this.safe(text);
+    const cx = doc.page.width / 2;
+    const cy = doc.page.height / 2;
+    const span = Math.hypot(doc.page.width, doc.page.height) * 0.7;
+    const size = Math.max(9, Math.min(26, span / (Math.max(value.length, 1) * 0.56)));
+    this.artifact(() => {
+      doc.save();
+      doc.opacity(0.16);
+      this.style("semibold", size, MUTED);
+      doc.rotate(-32, { origin: [cx, cy] });
+      doc.text(value, cx - span / 2, cy - size / 2, {
+        width: span,
+        align: "center",
+        lineBreak: false,
+      });
+      doc.restore();
+    });
   }
 }

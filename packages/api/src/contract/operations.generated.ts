@@ -881,11 +881,38 @@ export interface Components {
     content_base64: string;
     file_name: string;
   };
-  AuroraFilterRequest: { sentence: string; collections: Array<string>; time_zone: string };
+  AuroraFilterRequest: {
+    sentence: string;
+    collections: Array<string>;
+    time_zone: string;
+    fields?: Array<{
+      name: string;
+      type: "string" | "number" | "date" | "boolean" | "enum";
+      values?: Array<string>;
+      description?: string;
+      ops?: Array<"eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains">;
+    }>;
+  };
   AuroraMapColumnsRequest: {
     collection: string;
     columns: Array<{ header: string; samples: Array<string> }>;
     fields: Array<{ name: string; description: string }>;
+  };
+  AuroraPreview: { records: Array<Components["AuroraPreviewRecord"]>; vocabulary_terms: number };
+  AuroraPreviewRecord: {
+    collection: string;
+    id: string;
+    sent: boolean;
+    fields: Array<string>;
+    withheld: Array<string>;
+    data: Record<string, unknown> | null;
+  };
+  AuroraPreviewRequest: {
+    feature: "drafting" | "summaries";
+    kind?: "record_activity" | "project_week" | "gate_readiness";
+    subject_collection?: string;
+    subject_id?: string;
+    items: Array<{ collection: string; id: string }>;
   };
   AuroraProposal: { suggestion_id: string; operation_id: string; summary: string };
   AuroraResult: {
@@ -910,6 +937,162 @@ export interface Components {
     subject_id: string;
     items: Array<{ collection: string; id: string }>;
   };
+  Automation: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    name: string;
+    description: string | null;
+    trigger_event_type: string;
+    condition_match: "all" | "any";
+    owner_person_id: string;
+    enabled: boolean;
+    paused_at: string | null;
+    pause_reason: string | null;
+    conditions: Components["AutomationConditions"];
+    actions: Components["AutomationActions"];
+  };
+  AutomationAction:
+    | {
+        type: "create_task";
+        title: string;
+        project_id?: string | null;
+        phase_code: string;
+        xyz: "X" | "Y" | "Z";
+        due_in_days?: number | null;
+      }
+    | {
+        type: "update_status";
+        to_state:
+          "Proposed" | "Ready" | "Scheduled" | "Active" | "In Review" | "Complete" | "Canceled";
+        note?: string | null;
+      }
+    | { type: "update_status"; to_state: "Blocked" | "Deferred"; note: string }
+    | { type: "assign"; assignee_person_id: string }
+    | { type: "add_comment"; body: string }
+    | { type: "notify"; recipient_person_id: string; title: string; body?: string | null }
+    | { type: "call_webhook"; webhook_endpoint_id: string };
+  AutomationActions: Array<Components["AutomationAction"]>;
+  AutomationCondition:
+    | {
+        field: string;
+        operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+        value: string;
+      }
+    | { field: string; operator: "in"; value: string }
+    | { field: string; operator: "is_null"; value?: "true" | "false" | null };
+  AutomationConditionResult: {
+    field: string;
+    operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains";
+    value: string | null;
+    actual?: unknown;
+    matched: boolean;
+  };
+  AutomationConditions:
+    | {
+        all: Array<
+          | {
+              field: string;
+              operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+              value: string;
+            }
+          | { field: string; operator: "in"; value: string }
+          | { field: string; operator: "is_null"; value?: "true" | "false" | null }
+          | { all: Array<Components["AutomationCondition"]> }
+          | { any: Array<Components["AutomationCondition"]> }
+        >;
+      }
+    | {
+        any: Array<
+          | {
+              field: string;
+              operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+              value: string;
+            }
+          | { field: string; operator: "in"; value: string }
+          | { field: string; operator: "is_null"; value?: "true" | "false" | null }
+          | { all: Array<Components["AutomationCondition"]> }
+          | { any: Array<Components["AutomationCondition"]> }
+        >;
+      };
+  AutomationCreate: {
+    name: string;
+    description?: string | null;
+    trigger_event_type: string;
+    enabled?: boolean;
+    conditions: Components["AutomationConditions"];
+    actions: Components["AutomationActions"];
+  };
+  AutomationNoticeRequest: { recipient_person_id: string; title: string; body?: string };
+  AutomationNoticeResult: { notification_id: string | null };
+  AutomationPage: { data: Array<Components["Automation"]>; next_cursor: string | null };
+  AutomationRun: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    automation_id: string;
+    domain_event_id: string;
+    parent_run_id: string | null;
+    depth: number;
+    run_status: "Queued" | "Running" | "Retrying" | "Succeeded" | "Failed" | "Skipped";
+    event_payload: Record<string, unknown>;
+    owner_person_id: string | null;
+    attempts: number;
+    error_code: string | null;
+    error_message: string | null;
+    started_at: string | null;
+    finished_at: string | null;
+    duration_ms: number | null;
+  };
+  AutomationRunPage: { data: Array<Components["AutomationRun"]>; next_cursor: string | null };
+  AutomationRunStep: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    automation_run_id: string;
+    automation_action_id: string | null;
+    position: number;
+    action_type:
+      "create_task" | "update_status" | "assign" | "add_comment" | "notify" | "call_webhook";
+    operation_id: string | null;
+    step_status: "Succeeded" | "Failed" | "Skipped";
+    request_body: Record<string, unknown> | null;
+    response_body: Record<string, unknown> | null;
+    http_status: number | null;
+    error_code: string | null;
+    error_message: string | null;
+    started_at: string;
+    finished_at: string;
+    duration_ms: number;
+  };
+  AutomationRunStepPage: {
+    data: Array<Components["AutomationRunStep"]>;
+    next_cursor: string | null;
+  };
+  AutomationTestRequest: { event: Record<string, unknown> };
+  AutomationTestResult: {
+    matched: boolean;
+    conditions: Array<Components["AutomationConditionResult"]>;
+  };
+  AutomationUpdate: {
+    name?: string;
+    description?: string | null;
+    trigger_event_type?: string;
+    enabled?: boolean;
+    conditions?: Components["AutomationConditions"];
+    actions?: Components["AutomationActions"];
+  };
+  AutomationWebhookRequest: { webhook_endpoint_id: string };
+  AutomationWebhookResult: { webhook_delivery_id: string };
   AvailabilityBlock: {
     id: string;
     created_at: string;
@@ -2571,6 +2754,51 @@ export interface Components {
     details?: string | null;
   };
   DsarRequestPage: { data: Array<Components["DsarRequest"]>; next_cursor: string | null };
+  EarnedMediaItem: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    title: string;
+    outlet: string;
+    medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+    published_on: string;
+    url: string | null;
+    reach: number | null;
+    tone: "Positive" | "Neutral" | "Negative" | null;
+    source: "Manual" | "Import" | "Integration";
+    source_reference: string | null;
+    note: string | null;
+  };
+  EarnedMediaItemCreate: {
+    project_id: string;
+    title: string;
+    outlet: string;
+    medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+    published_on: string;
+    url?: string | null;
+    reach?: number | null;
+    tone?: "Positive" | "Neutral" | "Negative" | null;
+    source?: "Manual" | "Import" | "Integration";
+    source_reference?: string | null;
+    note?: string | null;
+  };
+  EarnedMediaItemPage: { data: Array<Components["EarnedMediaItem"]>; next_cursor: string | null };
+  EarnedMediaItemUpdate: {
+    title?: string;
+    outlet?: string;
+    medium?: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+    published_on?: string;
+    url?: string | null;
+    reach?: number | null;
+    tone?: "Positive" | "Neutral" | "Negative" | null;
+    source?: "Manual" | "Import" | "Integration";
+    source_reference?: string | null;
+    note?: string | null;
+  };
   EarningCode: {
     id: string;
     org_id: string;
@@ -4257,6 +4485,40 @@ export interface Components {
     membership_count: number;
     engagement_count: number;
   };
+  MeasurementMetric: {
+    metric_code: string;
+    family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
+    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+    base_unit_code: string;
+    aggregation: "Sum" | "Latest";
+    is_derived: boolean;
+    lower_bound: number | null;
+    upper_bound: number | null;
+    canon_domain: string | null;
+    canon_item: string | null;
+    canon_value_numeric: number | null;
+    canon_value_text: string | null;
+    canon_qualifier: string | null;
+    ordinal: number;
+  };
+  MeasurementMetricPage: {
+    data: Array<Components["MeasurementMetric"]>;
+    next_cursor: string | null;
+  };
+  MeasurementMetricTag: { metric_code: string; tag_id: string; tag: string };
+  MeasurementMetricTagPage: {
+    data: Array<Components["MeasurementMetricTag"]>;
+    next_cursor: string | null;
+  };
+  MeasurementUnit: {
+    unit_code: string;
+    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+    factor_to_base: number;
+    unit_system: "Metric" | "Imperial" | "Either";
+    is_display: boolean;
+    ordinal: number;
+  };
+  MeasurementUnitPage: { data: Array<Components["MeasurementUnit"]>; next_cursor: string | null };
   MedicalEncounter: {
     id: string;
     org_id: string;
@@ -5679,6 +5941,119 @@ export interface Components {
   };
   ProjectInboxCreate: { project_id: string };
   ProjectInboxPage: { data: Array<Components["ProjectInbox"]>; next_cursor: string | null };
+  ProjectMeasurement: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    metric_code: string;
+    measured_on: string;
+    value: number | null;
+    unit_code: string | null;
+    source: "Manual" | "Import" | "Integration";
+    source_reference: string | null;
+    source_uri: string | null;
+    note: string | null;
+  };
+  ProjectMeasurementCorrection: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_measurement_id: string;
+    correction_kind: "Corrected" | "Withdrawn" | "Restored";
+    previous_value: number | null;
+    previous_unit_code: string | null;
+    previous_measured_on: string;
+    value: number | null;
+    unit_code: string | null;
+    measured_on: string;
+    reason: string | null;
+  };
+  ProjectMeasurementCorrectionPage: {
+    data: Array<Components["ProjectMeasurementCorrection"]>;
+    next_cursor: string | null;
+  };
+  ProjectMeasurementCreate: {
+    project_id: string;
+    metric_code: string;
+    measured_on?: string;
+    value?: number | null;
+    unit_code?: string | null;
+    source?: "Manual" | "Import" | "Integration";
+    source_reference?: string | null;
+    source_uri?: string | null;
+    note?: string | null;
+  };
+  ProjectMeasurementPage: {
+    data: Array<Components["ProjectMeasurement"]>;
+    next_cursor: string | null;
+  };
+  ProjectMeasurementSummary: {
+    project_id: string;
+    metric_code: string;
+    family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
+    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+    base_unit_code: string;
+    aggregation: "Sum" | "Latest";
+    objective_id: string | null;
+    direction: "At Least" | "At Most" | null;
+    target_value: number | null;
+    target_unit_code: string | null;
+    target_base: number | null;
+    measured_count: number;
+    unmeasured_count: number;
+    measured_base: number | null;
+    last_measured_on: string | null;
+    outcome: "Met" | "Not Met" | "Incomplete" | "Unmeasured" | null;
+  };
+  ProjectMeasurementSummaryPage: {
+    data: Array<Components["ProjectMeasurementSummary"]>;
+    next_cursor: string | null;
+  };
+  ProjectMeasurementUpdate: {
+    measured_on?: string;
+    value?: number | null;
+    unit_code?: string | null;
+    source_reference?: string | null;
+    source_uri?: string | null;
+    note?: string | null;
+    correction_reason?: string;
+  };
+  ProjectObjective: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    metric_code: string;
+    direction: "At Least" | "At Most";
+    target_value: number;
+    unit_code: string;
+    note: string | null;
+  };
+  ProjectObjectiveCreate: {
+    project_id: string;
+    metric_code: string;
+    direction: "At Least" | "At Most";
+    target_value: number;
+    unit_code: string;
+    note?: string | null;
+  };
+  ProjectObjectivePage: { data: Array<Components["ProjectObjective"]>; next_cursor: string | null };
+  ProjectObjectiveUpdate: {
+    direction?: "At Least" | "At Most";
+    target_value?: number;
+    unit_code?: string;
+    note?: string | null;
+  };
   ProjectPage: { data: Array<Components["Project"]>; next_cursor: string | null };
   ProjectPhaseTransition: {
     id: string;
@@ -7022,6 +7397,41 @@ export interface Components {
   SettingValuePage: { data: Array<Components["SettingValue"]>; next_cursor: string | null };
   SettingValueUpdate: { value?: string | number | boolean };
   SettleClaimRequest: { returned: boolean; note?: string };
+  ShareLink: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    attachment_id: string;
+    attachment_version_id: string | null;
+    classification: Components["Classification"];
+    access_code_required: boolean;
+    recipient_email: string | null;
+    note: string | null;
+    expires_at: string | null;
+    failed_attempts: number;
+    open_count: number;
+    last_opened_at: string | null;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  ShareLinkCreate: {
+    attachment_id: string;
+    access_code_required?: boolean;
+    recipient_email?: string | null;
+    note?: string | null;
+    expires_at?: string | null;
+  };
+  ShareLinkPage: { data: Array<Components["ShareLink"]>; next_cursor: string | null };
+  ShareLinkToken: {
+    share_link_id: string;
+    token: string;
+    access_code: string | null;
+    classification: Components["Classification"];
+    expires_at: string | null;
+  };
   SharedAccessibilityNeeds: {
     accessibility_needs: Array<Components["AccessibilityNeed"]>;
     accessibility_notes: string | null;
@@ -7613,6 +8023,12 @@ export interface Components {
     notes: string | null;
   };
   StdVerbiagePage: { data: Array<Components["StdVerbiage"]>; next_cursor: string | null };
+  SubjectCommentRequest: {
+    subject_table: string;
+    subject_id: string;
+    body: string;
+    anchor?: string;
+  };
   Subscription: {
     id: string;
     org_id: string;
@@ -22468,6 +22884,15 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "comments.postOnSubject": {
+    module: "Platform";
+    method: "post";
+    path: "/comments/on-subject";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SubjectCommentRequest"];
+    responses: { 201: Components["Comment"] };
+  };
   "notifications.list": {
     module: "Platform";
     method: "get";
@@ -22743,6 +23168,243 @@ export interface Operations {
     };
     body: undefined;
     responses: { 200: Components["ProjectAuthorityPage"] };
+  };
+  "measurementMetrics.list": {
+    module: "Projects";
+    method: "get";
+    path: "/measurement-metrics";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["MeasurementMetricPage"] };
+  };
+  "measurementUnits.list": {
+    module: "Projects";
+    method: "get";
+    path: "/measurement-units";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["MeasurementUnitPage"] };
+  };
+  "measurementMetricTags.list": {
+    module: "Projects";
+    method: "get";
+    path: "/measurement-metric-tags";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["MeasurementMetricTagPage"] };
+  };
+  "projectObjectives.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-objectives";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectObjectivePage"] };
+  };
+  "projectObjectives.create": {
+    module: "Projects";
+    method: "post";
+    path: "/project-objectives";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectObjectiveCreate"];
+    responses: { 201: Components["ProjectObjective"] };
+  };
+  "projectObjectives.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-objectives/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectObjective"] };
+  };
+  "projectObjectives.update": {
+    module: "Projects";
+    method: "patch";
+    path: "/project-objectives/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ProjectObjectiveUpdate"];
+    responses: { 200: Components["ProjectObjective"] };
+  };
+  "projectObjectives.delete": {
+    module: "Projects";
+    method: "delete";
+    path: "/project-objectives/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "projectMeasurements.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurements";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementPage"] };
+  };
+  "projectMeasurements.create": {
+    module: "Projects";
+    method: "post";
+    path: "/project-measurements";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectMeasurementCreate"];
+    responses: { 201: Components["ProjectMeasurement"] };
+  };
+  "projectMeasurements.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurements/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurement"] };
+  };
+  "projectMeasurements.update": {
+    module: "Projects";
+    method: "patch";
+    path: "/project-measurements/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ProjectMeasurementUpdate"];
+    responses: { 200: Components["ProjectMeasurement"] };
+  };
+  "projectMeasurements.delete": {
+    module: "Projects";
+    method: "delete";
+    path: "/project-measurements/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "projectMeasurementCorrections.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurement-corrections";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementCorrectionPage"] };
+  };
+  "projectMeasurementCorrections.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurement-corrections/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementCorrection"] };
+  };
+  "earnedMediaItems.list": {
+    module: "Projects";
+    method: "get";
+    path: "/earned-media-items";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["EarnedMediaItemPage"] };
+  };
+  "earnedMediaItems.create": {
+    module: "Projects";
+    method: "post";
+    path: "/earned-media-items";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["EarnedMediaItemCreate"];
+    responses: { 201: Components["EarnedMediaItem"] };
+  };
+  "earnedMediaItems.get": {
+    module: "Projects";
+    method: "get";
+    path: "/earned-media-items/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["EarnedMediaItem"] };
+  };
+  "earnedMediaItems.update": {
+    module: "Projects";
+    method: "patch";
+    path: "/earned-media-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["EarnedMediaItemUpdate"];
+    responses: { 200: Components["EarnedMediaItem"] };
+  };
+  "earnedMediaItems.delete": {
+    module: "Projects";
+    method: "delete";
+    path: "/earned-media-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "projectMeasurementSummary.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurement-summary";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementSummaryPage"] };
   };
   "cueCalls.list": {
     module: "Show";
@@ -23136,6 +23798,15 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["AuroraBindCodeRequest"];
     responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.preview": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/preview";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraPreviewRequest"];
+    responses: { 200: Components["AuroraPreview"] };
   };
   "aiSuggestions.list": {
     module: "Settings";
@@ -24154,6 +24825,48 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["PartnerStandingGrant"] };
   };
+  "shareLinks.list": {
+    module: "Platform";
+    method: "get";
+    path: "/share-links";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ShareLinkPage"] };
+  };
+  "shareLinks.create": {
+    module: "Platform";
+    method: "post";
+    path: "/share-links";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShareLinkCreate"];
+    responses: { 201: Components["ShareLinkToken"] };
+  };
+  "shareLinks.get": {
+    module: "Platform";
+    method: "get";
+    path: "/share-links/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ShareLink"] };
+  };
+  "shareLinks.revoke": {
+    module: "Platform";
+    method: "post";
+    path: "/share-links/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ShareLink"] };
+  };
   "personCalendarFeeds.list": {
     module: "Platform";
     method: "get";
@@ -24297,6 +25010,141 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["InboundMessageDiscardRequest"];
     responses: { 200: Components["InboundMessage"] };
+  };
+  "automations.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automations";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationPage"] };
+  };
+  "automations.create": {
+    module: "Platform";
+    method: "post";
+    path: "/automations";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AutomationCreate"];
+    responses: { 201: Components["Automation"] };
+  };
+  "automations.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["Automation"] };
+  };
+  "automations.update": {
+    module: "Platform";
+    method: "patch";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationUpdate"];
+    responses: { 200: Components["Automation"] };
+  };
+  "automations.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "automations.test": {
+    module: "Platform";
+    method: "post";
+    path: "/automations/{id}/test";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationTestRequest"];
+    responses: { 200: Components["AutomationTestResult"] };
+  };
+  "automationRuns.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-runs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationRunPage"] };
+  };
+  "automationRuns.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-runs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AutomationRun"] };
+  };
+  "automationRuns.notify": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/notices";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationNoticeRequest"];
+    responses: { 201: Components["AutomationNoticeResult"] };
+  };
+  "automationRuns.deliverWebhook": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/webhook-deliveries";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationWebhookRequest"];
+    responses: { 201: Components["AutomationWebhookResult"] };
+  };
+  "automationRuns.retry": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/retry";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["AutomationRun"] };
+  };
+  "automationRunSteps.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-run-steps";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationRunStepPage"] };
+  };
+  "automationRunSteps.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-run-steps/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AutomationRunStep"] };
   };
   "workforceGroups.list": {
     module: "Workforce";
@@ -25890,7 +26738,28 @@ export interface ModuleOperations {
     | "gateEvidence.create"
     | "gateEvidence.get"
     | "gateEvidence.delete"
-    | "projectAuthorities.list";
+    | "projectAuthorities.list"
+    | "measurementMetrics.list"
+    | "measurementUnits.list"
+    | "measurementMetricTags.list"
+    | "projectObjectives.list"
+    | "projectObjectives.create"
+    | "projectObjectives.get"
+    | "projectObjectives.update"
+    | "projectObjectives.delete"
+    | "projectMeasurements.list"
+    | "projectMeasurements.create"
+    | "projectMeasurements.get"
+    | "projectMeasurements.update"
+    | "projectMeasurements.delete"
+    | "projectMeasurementCorrections.list"
+    | "projectMeasurementCorrections.get"
+    | "earnedMediaItems.list"
+    | "earnedMediaItems.create"
+    | "earnedMediaItems.get"
+    | "earnedMediaItems.update"
+    | "earnedMediaItems.delete"
+    | "projectMeasurementSummary.list";
   Activity: "activityEvents.list" | "activityEvents.get";
   Schedule:
     | "scheduleBaselines.list"
@@ -26978,6 +27847,7 @@ export interface ModuleOperations {
     | "aurora.summarize"
     | "aurora.mapColumns"
     | "aurora.bindCode"
+    | "aurora.preview"
     | "aiSuggestions.list"
     | "aiSuggestions.get"
     | "aiSuggestions.confirm"
@@ -27229,6 +28099,7 @@ export interface ModuleOperations {
     | "comments.get"
     | "comments.update"
     | "comments.delete"
+    | "comments.postOnSubject"
     | "notifications.list"
     | "notifications.get"
     | "notifications.update"
@@ -27318,6 +28189,10 @@ export interface ModuleOperations {
     | "partnerStandingGrants.get"
     | "partnerStandingGrants.record"
     | "partnerStandingGrants.end"
+    | "shareLinks.list"
+    | "shareLinks.create"
+    | "shareLinks.get"
+    | "shareLinks.revoke"
     | "personCalendarFeeds.list"
     | "personCalendarFeeds.create"
     | "personCalendarFeeds.get"
@@ -27331,7 +28206,20 @@ export interface ModuleOperations {
     | "inboundMessages.list"
     | "inboundMessages.get"
     | "inboundMessages.file"
-    | "inboundMessages.discard";
+    | "inboundMessages.discard"
+    | "automations.list"
+    | "automations.create"
+    | "automations.get"
+    | "automations.update"
+    | "automations.delete"
+    | "automations.test"
+    | "automationRuns.list"
+    | "automationRuns.get"
+    | "automationRuns.notify"
+    | "automationRuns.deliverWebhook"
+    | "automationRuns.retry"
+    | "automationRunSteps.list"
+    | "automationRunSteps.get";
   Workforce:
     | "workforceGroups.list"
     | "workforceGroups.create"

@@ -26,7 +26,15 @@
       "account_role_band": "Only an Account Owner can grant or remove Account Owner.",
       "slug_taken": "That web address is already in use. Choose another.",
       "slug_reserved": "That web address is reserved. Choose another.",
-      "cross_org_reference": "That document belongs to another organization. Upload it again for this one."
+      "cross_org_reference": "That document belongs to another organization. Upload it again for this one.",
+      "personal_tokens_off": "That organization does not allow personal API tokens anymore.",
+      "personal_token_scope_not_held": "A token can only use areas you hold a capability in. Clear the others.",
+      "personal_token_limit": "You already have 10 active tokens there. Revoke one first.",
+      "personal_token_expiry": "Choose an expiry within one year.",
+      "personal_token_revoked": "This token is already revoked.",
+      "step_up_required": "Confirm it is you with your second factor, then try again.",
+      "sole_account_owner": "A company account keeps at least one Account Owner. Make someone else an Account Owner first.",
+      "notification_channel_outside": "A company sets Email and Push only."
     }
   },
   "common": {
@@ -1428,6 +1436,13 @@
         "denied": "That feed is not available to you.",
         "unexpected": "Something went wrong. Try again."
       }
+    },
+    "surfaces": {
+      "errors": {
+        "jurisdiction": "Choose a jurisdiction from the list.",
+        "category": "Choose a category from the list.",
+        "member": "Choose a team member."
+      }
     }
   },
   "shell": {
@@ -1491,7 +1506,8 @@
       "fullName": "Full name",
       "email": "Email",
       "password": "Password",
-      "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names."
+      "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
+      "age": "I am 16 or older."
     },
     "or": "or",
     "usePassword": "Use a password",
@@ -1562,7 +1578,8 @@
       "email": "Enter an email address like name@company.com.",
       "password": "Enter a password of at least 12 characters with letters and numbers.",
       "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway.",
-      "terms": "Accept the Worker Terms to create your account: tick the box above the button."
+      "terms": "Accept the Worker Terms to create your account: tick the box above the button.",
+      "age": "Confirm that you are 16 or older. XOS accounts are for people 16 and over."
     }
   },
   "work": {

@@ -2,9 +2,10 @@
  * The report.run and report.deliver workers for the Edge bundle (A35, RRR-79; A43, RRR-87). The
  * workers live with the report builder in @xos/data (report-runs.ts, report-deliveries.ts), so a run
  * aggregates exactly as the preview does; this file re-exports them and adds the file headers and
- * the scheduled email copy from @xos/i18n.
+ * the scheduled email copy from @xos/i18n. Only the two namespaces the copy uses (workflow and
+ * reporting) are read, and each locale's pair loads the first time a run asks for that locale (A85).
  */
-import { defaultLocale, getMessages, isLocale } from "@xos/i18n";
+import { defaultLocale, isLocale, type Locale } from "@xos/i18n/locales";
 import type { DeliveryCopy } from "../../data/src/report-deliveries.ts";
 import type { RunLabels } from "../../data/src/report-runs.ts";
 
@@ -32,6 +33,28 @@ export { READ_REPLICA_ENV, readReplicaUrl } from "../../data/src/read-replica.ts
 
 type Tree = { readonly [key: string]: Tree | string };
 
+/** The workflow and reporting namespaces of each locale, loaded on first use. */
+const namespaces: Readonly<Record<Locale, () => Promise<Tree>>> = {
+  "en-US": async () => {
+    const [workflow, reporting] = await Promise.all([
+      import("@xos/i18n/messages/en-US/workflow.json", { with: { type: "json" } }),
+      import("@xos/i18n/messages/en-US/reporting.json", { with: { type: "json" } }),
+    ]);
+    return { workflow: workflow.default, reporting: reporting.default };
+  },
+  "es-US": async () => {
+    const [workflow, reporting] = await Promise.all([
+      import("@xos/i18n/messages/es-US/workflow.json", { with: { type: "json" } }),
+      import("@xos/i18n/messages/es-US/reporting.json", { with: { type: "json" } }),
+    ]);
+    return { workflow: workflow.default, reporting: reporting.default };
+  },
+};
+
+function messagesFor(locale: string): Promise<Tree> {
+  return namespaces[isLocale(locale) ? locale : defaultLocale]();
+}
+
 function lookup(tree: Tree, path: readonly string[]): string | null {
   let node: Tree | string | undefined = tree;
   for (const part of path) {
@@ -49,9 +72,9 @@ function fill(template: string, values: Readonly<Record<string, string | number>
 }
 
 /** Column headers and file copy of a run file in a locale (en-US when unknown). */
-export function reportRunLabels(locale: string): RunLabels {
+export async function reportRunLabels(locale: string): Promise<RunLabels> {
   const known = isLocale(locale) ? locale : defaultLocale;
-  const messages = getMessages(known) as unknown as Tree;
+  const messages = await messagesFor(known);
   const field = (source: string, key: string) =>
     lookup(messages, ["workflow", "builder", "fields", source, key]) ?? key;
   const file = (key: string) => lookup(messages, ["reporting", "file", key]) ?? key;
@@ -76,8 +99,8 @@ export function reportRunLabels(locale: string): RunLabels {
 }
 
 /** The scheduled report email in a locale (en-US when unknown). */
-export function reportDeliveryCopy(locale: string): DeliveryCopy {
-  const messages = getMessages(isLocale(locale) ? locale : defaultLocale) as unknown as Tree;
+export async function reportDeliveryCopy(locale: string): Promise<DeliveryCopy> {
+  const messages = await messagesFor(locale);
   const email = (key: string) => lookup(messages, ["reporting", "email", key]) ?? key;
   return {
     subject: (values) => fill(email("subject"), values),
