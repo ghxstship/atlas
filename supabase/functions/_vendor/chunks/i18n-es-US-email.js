@@ -344,6 +344,8 @@ var email_default$1 = {
       "You will get XOS notifications by text again. Message frequency varies. Message and data rates may apply. Reply HELP for help, STOP to opt out.",
     summary:
       "{orgName}: {count, plural, one {# update} other {# updates}} came in during your quiet hours. Most important: {body} {url} Reply STOP to opt out.",
+    summaryCount:
+      "{orgName}: {count, plural, one {# update} other {# updates}} came in during your quiet hours. Open your Inbox to read them: {url} Reply STOP to opt out.",
   },
   deletionCertificate: {
     subject: "Deletion certificate for {org}",
@@ -426,6 +428,8 @@ var email_default = {
       "Volverás a recibir las notificaciones de XOS por mensaje de texto. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde HELP para obtener ayuda o STOP para cancelar.",
     summary:
       "{orgName}: {count, plural, one {# novedad llegó} other {# novedades llegaron}} durante tus horas de silencio. Lo más importante: {body} {url} Responde STOP para cancelar.",
+    summaryCount:
+      "{orgName}: {count, plural, one {# novedad llegó} other {# novedades llegaron}} durante tus horas de silencio. Ábrelas en tu Bandeja de entrada: {url} Responde STOP para cancelar.",
   },
   deletionCertificate: {
     subject: "Certificado de eliminación de {org}",

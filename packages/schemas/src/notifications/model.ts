@@ -57,6 +57,27 @@ export interface KindDefinition {
   readonly copy: { readonly subject: string; readonly body: string };
 }
 
+/**
+ * One place a kind is created (RRR-125): the migration or module that calls private.notify with it and the test
+ * that observes the notification. Paths are relative to the repository root; an emitter may name a symbol after
+ * `#`, such as `supabase/migrations/1394_notification_kind_emitters.sql#private.notify_shift_change`.
+ */
+export interface KindEmitter {
+  readonly emitter: string;
+  readonly test: string;
+}
+
+/** Why nothing sends a kind yet, and the owner decision or work package it waits on. */
+export interface KindDeferral {
+  readonly reason: string;
+  readonly decision: string;
+}
+
+/** How a kind reaches people: its emitters, or the recorded reason nothing sends it yet. */
+export type KindEmission =
+  | { readonly status: "emitted"; readonly by: readonly KindEmitter[] }
+  | { readonly status: "deferred"; readonly deferral: KindDeferral };
+
 export interface NotificationKindRegistry {
   readonly version: number;
   readonly channels: readonly ChannelDefinition[];

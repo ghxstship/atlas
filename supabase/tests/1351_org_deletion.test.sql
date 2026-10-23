@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(50);
+select plan(51);
 
 create temporary table clock as
   select s.zone, (now() at time zone s.zone)::date as local_on, (now() at time zone 'UTC')::date as utc_on
@@ -71,6 +71,8 @@ select pg_temp.as_user('xavier');
 select is(app.recover_org_deletion(pg_temp.id('org_b')), pg_temp.id('del_b'), 'the Owner recovers the org within the window');
 select pg_temp.as_platform();
 select is(private.org_read_only_reason(pg_temp.id('org_b')), null, 'writes work again');
+select is((select count(*)::int from app.notifications where kind = 'organization.deletion_recovered'
+  and recipient_person_id = pg_temp.id('xavier') and subject_id = pg_temp.id('del_b')), 1, 'every Owner is told of the recovery');
 select pg_temp.as_user('xavier');
 select results_eq($$select plan_code, subscription_state::text from app.subscriptions where org_id = (select id from world where key = 'org_b') and subscription_state <> 'canceled'$$,
   $$values ('access'::text, 'active'::text)$$, 'and the org restarts on the Access plan');

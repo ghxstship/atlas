@@ -333,7 +333,8 @@
     "help": "XOS notifications: updates about your work from the organizations you belong to. Message frequency varies. Message and data rates may apply. Help: {helpContact}. Reply STOP to opt out.",
     "stop": "You will get no more texts from XOS notifications. Reply START to subscribe again.",
     "start": "You will get XOS notifications by text again. Message frequency varies. Message and data rates may apply. Reply HELP for help, STOP to opt out.",
-    "summary": "{orgName}: {count, plural, one {# update} other {# updates}} came in during your quiet hours. Most important: {body} {url} Reply STOP to opt out."
+    "summary": "{orgName}: {count, plural, one {# update} other {# updates}} came in during your quiet hours. Most important: {body} {url} Reply STOP to opt out.",
+    "summaryCount": "{orgName}: {count, plural, one {# update} other {# updates}} came in during your quiet hours. Open your Inbox to read them: {url} Reply STOP to opt out."
   },
   "deletionCertificate": {
     "subject": "Deletion certificate for {org}",

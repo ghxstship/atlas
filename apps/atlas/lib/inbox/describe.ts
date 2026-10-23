@@ -53,6 +53,10 @@ const TARGETS: Readonly<Record<string, string>> = {
   "app.feed_posts": "knowledge/feed",
   "app.surveys": "knowledge/feed",
   "app.workforce_events": "schedule/events",
+  // 1394: shift.assigned and shift.changed open the worker's shifts; assignment.created opens My Work, which lists
+  // the records a person is assigned to.
+  "app.shifts": "crew/shifts",
+  "app.records": "my-work",
   "app.training_courses": "knowledge/training",
   "app.recognitions": "people/recognition",
   "app.support_tickets": "people/help-desk",

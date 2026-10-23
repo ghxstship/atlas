@@ -628,6 +628,9 @@ function copyKeys(kind) {
 //#region ../schemas/src/notifications/parse.ts
 var CODE = /^[a-z][a-z_]*$/;
 var KIND = /^[a-z][a-z_]*\.[a-z][a-z_]*$/;
+/** A repository-relative file, optionally followed by `#symbol`. */
+var EMITTER = /^(apps|packages|supabase)\/[A-Za-z0-9_./()[\]-]+\.(ts|tsx|sql)(#[A-Za-z0-9_.]+)?$/;
+var TEST = /^(apps|packages|supabase)\/[A-Za-z0-9_./()[\]-]+\.(test\.tsx?|test\.sql|spec\.ts)$/;
 var channelSchema = z.strictObject({
   code: z.enum(NOTIFICATION_CHANNELS),
   default: z.boolean(),
@@ -650,6 +653,21 @@ var kindSchema = z.strictObject({
   channels: z.array(z.enum(NOTIFICATION_CHANNELS)).min(1).optional(),
   bypasses_quiet_hours: z
     .union([z.literal(true), z.strictObject({ starts_within_hours: z.int().min(1).max(72) })])
+    .optional(),
+  emitted_by: z
+    .array(
+      z.strictObject({
+        emitter: z.string().regex(EMITTER),
+        test: z.string().regex(TEST),
+      }),
+    )
+    .min(1)
+    .optional(),
+  deferred: z
+    .strictObject({
+      reason: z.string().trim().min(20).max(400),
+      decision: z.string().trim().min(5).max(200),
+    })
     .optional(),
 });
 z.strictObject({
@@ -724,6 +742,43 @@ function clip(text, limit) {
  * records status callbacks through app.record_sms_status.
  */
 var TWILIO_API = "https://api.twilio.com/2010-04-01";
+/** The GSM 03.38 default alphabet: one septet each. */
+var GSM7_BASIC = /* @__PURE__ */ new Set(
+  "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà",
+);
+/** Its extension table: two septets each (escape plus the character). */
+var GSM7_EXTENDED = /* @__PURE__ */ new Set("^{}\\[~]|€\f");
+/** Characters Twilio's Smart Encoding sends as their GSM look-alikes, so they never force UCS-2. */
+var SMART_ENCODING = {
+  "…": "...",
+  "‘": "'",
+  "’": "'",
+  "“": '"',
+  "”": '"',
+  "–": "-",
+  [String.fromCharCode(8212)]: "-",
+  "\xA0": " ",
+  " ": " ",
+  " ": " ",
+};
+/**
+ * The segments a text is billed as (the sms_segments meter): GSM-7 fits 160 septets in one segment and 153 in
+ * each part of a longer text; any other character makes the text UCS-2, 70 code units in one segment and 67 per
+ * part, as the Spanish "más" does.
+ */
+function smsSegments(body) {
+  const text = [...body].map((c) => SMART_ENCODING[c] ?? c).join("");
+  let septets = 0;
+  for (const c of text)
+    if (GSM7_BASIC.has(c)) septets += 1;
+    else if (GSM7_EXTENDED.has(c)) septets += 2;
+    else return text.length <= 70 ? 1 : Math.ceil(text.length / 67);
+  return septets <= 160 ? 1 : Math.ceil(septets / 153);
+}
+/** Segments to meter for a sent text: the provider's count when it gave one, else counted from the body. */
+function billedSegments(result, body) {
+  return result.segments !== void 0 && result.segments >= 1 ? result.segments : smsSegments(body);
+}
 /** The provider refused or failed the send. `permanent` errors are not retried. */
 var SmsSendError = class extends Error {
   code;
@@ -814,7 +869,15 @@ function twilioSmsProvider(options) {
         );
       }
       const reply = await response.json().catch(() => ({}));
-      if (response.ok && typeof reply.sid === "string") return { providerMessageId: reply.sid };
+      if (response.ok && typeof reply.sid === "string") {
+        const segments = Number.parseInt(String(reply.num_segments ?? ""), 10);
+        return Number.isInteger(segments) && segments >= 1
+          ? {
+              providerMessageId: reply.sid,
+              segments,
+            }
+          : { providerMessageId: reply.sid };
+      }
       const code = reply.code === void 0 ? String(response.status) : String(reply.code);
       throw new SmsSendError(
         `Twilio refused the message (${code}): ${typeof reply.message === "string" ? reply.message : `HTTP ${response.status}`}`,
@@ -905,7 +968,7 @@ function createSmsProvider(env, options = {}) {
 }
 /** The text of one SMS: the org, the kind's body, the link and the opt-out line (10DLC). */
 async function smsBody(claim, store) {
-  const recipient = await store.recipient(claim.recipientPersonId);
+  const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
   const locale = localeOf(recipient.locale);
   const text = notificationText(claim.kind, claim.messageArgs, locale, recipient.timeZone);
   return formatMessage(locale, "sms.message", {
@@ -915,8 +978,9 @@ async function smsBody(claim, store) {
   });
 }
 /**
- * Sends claimed SMS deliveries and records each outcome: Sent with Twilio's message SID, Bounced for an
- * error a retry cannot fix (an invalid or opted-out number), Failed otherwise, which retries with backoff.
+ * Sends claimed SMS deliveries and records each outcome: Sent with Twilio's message SID and the segments the
+ * text is billed as, Bounced for an error a retry cannot fix (an invalid or opted-out number), Failed
+ * otherwise, which retries with backoff.
  */
 async function dispatchSms(store, provider, limit = 50) {
   const claims = await store.claimSms(limit);
@@ -931,7 +995,13 @@ async function dispatchSms(store, provider, limit = 50) {
         body,
         deliveryId: claim.deliveryId,
       });
-      await store.record(claim.deliveryId, "Sent", result.providerMessageId, null);
+      await store.record(
+        claim.deliveryId,
+        "Sent",
+        result.providerMessageId,
+        null,
+        billedSegments(result, body),
+      );
       sent += 1;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -949,26 +1019,38 @@ async function dispatchSms(store, provider, limit = 50) {
 }
 /**
  * The text of a summary: one held text reads like any notification; several read as the count and the most
- * important one, with the Inbox link and the opt-out line (catalog `email.sms.summary`).
+ * important one, with the Inbox link and the opt-out line (catalog `email.sms.summary`). When the most
+ * important text cannot render, several held texts still go out as the count alone (`email.sms.summaryCount`),
+ * so one bad text never sinks the texts held with it.
  */
 async function smsSummaryBody(summary, store) {
-  const recipient = await store.recipient(summary.recipientPersonId);
+  const recipient = await store.recipient(summary.recipientPersonId, summary.orgId);
   const locale = localeOf(recipient.locale);
-  const text = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone);
   const args = {
     orgName: clip(await store.orgName(summary.orgId), 40),
     url: await store.inboxLink(summary.orgId),
   };
-  return summary.heldCount <= 1
-    ? formatMessage(locale, "sms.message", {
-        ...args,
-        body: clip(text.body, 300),
-      })
-    : formatMessage(locale, "sms.summary", {
-        ...args,
-        count: summary.heldCount,
-        body: clip(text.body, 200),
-      });
+  if (summary.heldCount <= 1) {
+    const text = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone);
+    return formatMessage(locale, "sms.message", {
+      ...args,
+      body: clip(text.body, 300),
+    });
+  }
+  let body;
+  try {
+    body = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone).body;
+  } catch {
+    return formatMessage(locale, "sms.summaryCount", {
+      ...args,
+      count: summary.heldCount,
+    });
+  }
+  return formatMessage(locale, "sms.summary", {
+    ...args,
+    count: summary.heldCount,
+    body: clip(body, 200),
+  });
 }
 /**
  * Sends one text per member and org whose quiet hours ended, settling every held delivery with its outcome:
@@ -987,7 +1069,13 @@ async function dispatchSmsSummaries(store, provider, limit = 50) {
         body,
         deliveryId: summary.deliveryIds[0] ?? "",
       });
-      await store.recordSummary(summary.deliveryIds, "Sent", result.providerMessageId, null);
+      await store.recordSummary(
+        summary.deliveryIds,
+        "Sent",
+        result.providerMessageId,
+        null,
+        billedSegments(result, body),
+      );
       sent += 1;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -1268,7 +1356,7 @@ function pushStore(db) {
         browsers: browsers(row["push_devices"]),
       }));
     },
-    recipient: (personId) => recipientProfile(db, personId),
+    recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
     deepLink: (claim) => compassLink(db, claim),
     async recordTickets(deliveryId, tickets) {
       await db.rpc("record_push_tickets", {
@@ -1323,10 +1411,9 @@ function webPushStore(db) {
     webLink: (claim, app) => webPushLink(db, claim, app),
   };
 }
-/** SmsStore over app.claim_notification_deliveries and app.record_notification_delivery. */
 /**
  * SmsStore and SmsSummaryStore over app.claim_notification_deliveries, app.claim_sms_summaries and their
- * record RPCs (1361, 1367).
+ * record RPCs (1361, 1367), which meter a sent text's billed segments (1393).
  */
 function smsStore(db, options) {
   const org = async (orgId) =>
@@ -1349,18 +1436,19 @@ function smsStore(db, options) {
         messageArgs: row["message_args"] ?? {},
       }));
     },
-    recipient: (personId) => recipientProfile(db, personId),
+    recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
     async orgName(orgId) {
       return text(await org(orgId), "name");
     },
     linkFor: (claim) => inbox(claim.orgId),
     inboxLink: inbox,
-    async record(deliveryId, outcome, providerMessageId, error) {
+    async record(deliveryId, outcome, providerMessageId, error, segments = 1) {
       await db.rpc("record_notification_delivery", {
         p_delivery_id: deliveryId,
         p_status: outcome,
         p_provider_message_id: providerMessageId,
         p_error: error,
+        p_segments: segments,
       });
     },
     async claimSummaries(limit) {
@@ -1378,12 +1466,13 @@ function smsStore(db, options) {
         };
       });
     },
-    async recordSummary(deliveryIds, outcome, providerMessageId, error) {
+    async recordSummary(deliveryIds, outcome, providerMessageId, error, segments = 1) {
       await db.rpc("record_sms_summary", {
         p_delivery_ids: [...deliveryIds],
         p_status: outcome,
         p_provider_message_id: providerMessageId,
         p_error: error,
+        p_segments: segments,
       });
     },
   };

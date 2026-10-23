@@ -14215,6 +14215,158 @@ export type Database = {
           },
         ];
       };
+      doc_snapshots: {
+        Row: {
+          base_updated_at: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          doc_key: string;
+          generation: number;
+          id: string;
+          last_seq: number;
+          org_id: string;
+          state: string | null;
+          subject_id: string;
+          subject_table: string;
+          text_snapshot: string | null;
+          through_seq: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          base_updated_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          doc_key: string;
+          generation?: number;
+          id?: string;
+          last_seq?: number;
+          org_id: string;
+          state?: string | null;
+          subject_id: string;
+          subject_table: string;
+          text_snapshot?: string | null;
+          through_seq?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          base_updated_at?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          doc_key?: string;
+          generation?: number;
+          id?: string;
+          last_seq?: number;
+          org_id?: string;
+          state?: string | null;
+          subject_id?: string;
+          subject_table?: string;
+          text_snapshot?: string | null;
+          through_seq?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "doc_snapshots_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "doc_snapshots_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "doc_snapshots_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      doc_updates: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          doc_id: string;
+          generation: number;
+          id: string;
+          org_id: string;
+          seq: number;
+          updated_at: string;
+          updated_by: string | null;
+          yjs_update: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          doc_id: string;
+          generation: number;
+          id?: string;
+          org_id: string;
+          seq: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          yjs_update: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          doc_id?: string;
+          generation?: number;
+          id?: string;
+          org_id?: string;
+          seq?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          yjs_update?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "doc_updates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "doc_updates_doc_id_fkey";
+            columns: ["doc_id"];
+            isOneToOne: false;
+            referencedRelation: "doc_snapshots";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "doc_updates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "doc_updates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       dock_slots: {
         Row: {
           checked_in_at: string | null;
@@ -58457,6 +58609,10 @@ export type Database = {
         Returns: string;
       };
       answer_help_desk_request: { Args: { p_body: string; p_ticket_id: string }; Returns: string };
+      append_doc_update: {
+        Args: { p_doc_id: string; p_generation: number; p_update: string };
+        Returns: number;
+      };
       apply_asset_scan: {
         Args: {
           p_action: Database["app"]["Enums"]["asset_scan_action"];
@@ -58624,6 +58780,22 @@ export type Database = {
         Returns: string;
       };
       block_profile: { Args: { p_handle: string; p_kind: string }; Returns: string };
+      bulk_update_asset_units: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_invoices: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_records: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_shifts: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
       calculate_payroll_run: {
         Args: { p_payroll_run_id: string; p_reason?: string };
         Returns: number;
@@ -58997,6 +59169,16 @@ export type Database = {
           p_write_action: Database["app"]["Enums"]["import_write_action"];
         };
         Returns: undefined;
+      };
+      compact_doc: {
+        Args: {
+          p_doc_id: string;
+          p_generation: number;
+          p_state: string;
+          p_text: string;
+          p_through: number;
+        };
+        Returns: Json;
       };
       complete_attachment_upload: {
         Args: { p_attachment_version_id: string; p_checksum_sha256: string };
@@ -59789,6 +59971,20 @@ export type Database = {
           viewport: string;
         }[];
       };
+      field_history: {
+        Args: { p_limit?: number; p_subject_id: string; p_subject_table: string };
+        Returns: {
+          actor_name: string;
+          actor_person_id: string;
+          changed_at: string;
+          event_id: string;
+          field: string;
+          masked: boolean;
+          new_value: Json;
+          old_value: Json;
+          operation: string;
+        }[];
+      };
       file_inbound_message: {
         Args: { p_inbound_message_id: string; p_record_id?: string; p_title?: string };
         Returns: string;
@@ -60401,6 +60597,15 @@ export type Database = {
         };
         Returns: string;
       };
+      open_doc: {
+        Args: {
+          p_doc_key: string;
+          p_since?: number;
+          p_subject_id: string;
+          p_subject_table: string;
+        };
+        Returns: Json;
+      };
       open_help_desk_request: {
         Args: {
           p_body: string;
@@ -60712,6 +60917,10 @@ export type Database = {
           viewed_at: string;
         }[];
       };
+      recipient_setting: {
+        Args: { p_org_id: string; p_person_id: string; p_setting_key: string };
+        Returns: string;
+      };
       recognition_count: { Args: { p_org_id: string; p_person_id: string }; Returns: number };
       recognize: {
         Args: {
@@ -60919,6 +61128,7 @@ export type Database = {
           p_delivery_id: string;
           p_error?: string;
           p_provider_message_id?: string;
+          p_segments?: number;
           p_status: Database["app"]["Enums"]["message_status"];
         };
         Returns: undefined;
@@ -61083,6 +61293,7 @@ export type Database = {
           p_delivery_ids: string[];
           p_error?: string;
           p_provider_message_id?: string;
+          p_segments?: number;
           p_status: Database["app"]["Enums"]["message_status"];
         };
         Returns: undefined;

@@ -95,7 +95,7 @@ async function dispatchEmail(store, transport, limit = 50) {
   let failed = 0;
   for (const claim of claims)
     try {
-      const recipient = await store.recipient(claim.recipientPersonId);
+      const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
       const locale = isLocale(recipient.locale) ? recipient.locale : "en-US";
       const sender = await store.senderFor(claim.orgId, claim.recipientPersonId);
       const { code, props } = await propsFor(claim, store);
@@ -244,7 +244,7 @@ async function dispatchPush(store, client, options = {}) {
   const recipients = /* @__PURE__ */ new Map();
   for (const claim of claims)
     try {
-      const recipient = await store.recipient(claim.recipientPersonId);
+      const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
       recipients.set(claim.deliveryId, recipient);
       if (claim.devices.length === 0) continue;
       const url = await store.deepLink(claim);

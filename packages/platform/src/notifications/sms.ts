@@ -37,6 +37,52 @@ export interface OutgoingSms {
 
 export interface SmsSendResult {
   readonly providerMessageId: string;
+  /** Segments the provider billed the text as, when it said; the sender otherwise counts them (smsSegments). */
+  readonly segments?: number;
+}
+
+/** The GSM 03.38 default alphabet: one septet each. */
+const GSM7_BASIC = new Set(
+  "@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà",
+);
+/** Its extension table: two septets each (escape plus the character). */
+const GSM7_EXTENDED = new Set("^{}\\[~]|€\f");
+/** Characters Twilio's Smart Encoding sends as their GSM look-alikes, so they never force UCS-2. */
+const SMART_ENCODING: Readonly<Record<string, string>> = {
+  "\u2026": "...", // ellipsis
+  "\u2018": "'", // curly single quotes
+  "\u2019": "'",
+  "\u201c": '"', // curly double quotes
+  "\u201d": '"',
+  "\u2013": "-", // en dash
+  // The em dash, built from its code point because the finish guard keeps the literal out of the source and bundle.
+  [String.fromCharCode(0x2014)]: "-",
+  "\u00a0": " ", // no-break space
+  "\u2009": " ", // thin space
+  "\u202f": " ", // narrow no-break space
+};
+
+/**
+ * The segments a text is billed as (the sms_segments meter): GSM-7 fits 160 septets in one segment and 153 in
+ * each part of a longer text; any other character makes the text UCS-2, 70 code units in one segment and 67 per
+ * part, as the Spanish "más" does.
+ */
+export function smsSegments(body: string): number {
+  const text = [...body].map((c) => SMART_ENCODING[c] ?? c).join("");
+  let septets = 0;
+  for (const c of text) {
+    if (GSM7_BASIC.has(c)) septets += 1;
+    else if (GSM7_EXTENDED.has(c)) septets += 2;
+    else return text.length <= 70 ? 1 : Math.ceil(text.length / 67);
+  }
+  return septets <= 160 ? 1 : Math.ceil(septets / 153);
+}
+
+/** Segments to meter for a sent text: the provider's count when it gave one, else counted from the body. */
+function billedSegments(result: SmsSendResult, body: string): number {
+  return result.segments !== undefined && result.segments >= 1
+    ? result.segments
+    : smsSegments(body);
 }
 
 /** The port every SMS goes through. */
@@ -153,8 +199,15 @@ export function twilioSmsProvider(options: TwilioOptions): SmsProvider {
         sid?: unknown;
         code?: unknown;
         message?: unknown;
+        num_segments?: unknown;
       };
-      if (response.ok && typeof reply.sid === "string") return { providerMessageId: reply.sid };
+      if (response.ok && typeof reply.sid === "string") {
+        // A Messaging Service may answer before it has split the text ("0"); the sender then counts it.
+        const segments = Number.parseInt(String(reply.num_segments ?? ""), 10);
+        return Number.isInteger(segments) && segments >= 1
+          ? { providerMessageId: reply.sid, segments }
+          : { providerMessageId: reply.sid };
+      }
       const code = reply.code === undefined ? String(response.status) : String(reply.code);
       const text = typeof reply.message === "string" ? reply.message : `HTTP ${response.status}`;
       throw new SmsSendError(
@@ -257,21 +310,24 @@ export function createSmsProvider(
 /** What the SMS sender needs from the database. */
 export interface SmsStore {
   claimSms(limit: number): Promise<readonly ClaimedSms[]>;
-  recipient(personId: string): Promise<Recipient>;
+  /** The recipient as an org writes to them: their name, its language for them and their time zone. */
+  recipient(personId: string, orgId: string): Promise<Recipient>;
   orgName(orgId: string): Promise<string>;
   /** Link that opens the notification, kept short for the text. */
   linkFor(claim: ClaimedSms): Promise<string>;
+  /** Records the outcome; a sent text counts its billed segments toward usage (1393). */
   record(
     deliveryId: string,
     outcome: DeliveryOutcome,
     providerMessageId: string | null,
     error: string | null,
+    segments?: number,
   ): Promise<void>;
 }
 
 /** The text of one SMS: the org, the kind's body, the link and the opt-out line (10DLC). */
 export async function smsBody(claim: ClaimedSms, store: SmsStore): Promise<string> {
-  const recipient = await store.recipient(claim.recipientPersonId);
+  const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
   const locale = localeOf(recipient.locale);
   const text = notificationText(claim.kind, claim.messageArgs, locale, recipient.timeZone);
   return formatMessage(locale, "sms.message", {
@@ -289,8 +345,9 @@ export interface SmsDispatchSummary {
 }
 
 /**
- * Sends claimed SMS deliveries and records each outcome: Sent with Twilio's message SID, Bounced for an
- * error a retry cannot fix (an invalid or opted-out number), Failed otherwise, which retries with backoff.
+ * Sends claimed SMS deliveries and records each outcome: Sent with Twilio's message SID and the segments the
+ * text is billed as, Bounced for an error a retry cannot fix (an invalid or opted-out number), Failed
+ * otherwise, which retries with backoff.
  */
 export async function dispatchSms(
   store: SmsStore,
@@ -305,7 +362,13 @@ export async function dispatchSms(
     try {
       const body = await smsBody(claim, store);
       const result = await provider.send({ to: claim.address, body, deliveryId: claim.deliveryId });
-      await store.record(claim.deliveryId, "Sent", result.providerMessageId, null);
+      await store.record(
+        claim.deliveryId,
+        "Sent",
+        result.providerMessageId,
+        null,
+        billedSegments(result, body),
+      );
       sent += 1;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -336,40 +399,52 @@ export interface ClaimedSmsSummary {
 /** What the summary sender needs from the database. */
 export interface SmsSummaryStore {
   claimSummaries(limit: number): Promise<readonly ClaimedSmsSummary[]>;
-  recipient(personId: string): Promise<Recipient>;
+  /** The recipient as an org writes to them: their name, its language for them and their time zone. */
+  recipient(personId: string, orgId: string): Promise<Recipient>;
   orgName(orgId: string): Promise<string>;
   /** The org's Inbox, where every held notification waits. */
   inboxLink(orgId: string): Promise<string>;
+  /** Records the outcome for every held delivery; a sent summary counts its billed segments (1393). */
   recordSummary(
     deliveryIds: readonly string[],
     outcome: DeliveryOutcome,
     providerMessageId: string | null,
     error: string | null,
+    segments?: number,
   ): Promise<void>;
 }
 
 /**
  * The text of a summary: one held text reads like any notification; several read as the count and the most
- * important one, with the Inbox link and the opt-out line (catalog `email.sms.summary`).
+ * important one, with the Inbox link and the opt-out line (catalog `email.sms.summary`). When the most
+ * important text cannot render, several held texts still go out as the count alone (`email.sms.summaryCount`),
+ * so one bad text never sinks the texts held with it.
  */
 export async function smsSummaryBody(
   summary: ClaimedSmsSummary,
   store: SmsSummaryStore,
 ): Promise<string> {
-  const recipient = await store.recipient(summary.recipientPersonId);
+  const recipient = await store.recipient(summary.recipientPersonId, summary.orgId);
   const locale = localeOf(recipient.locale);
-  const text = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone);
   const args = {
     orgName: clip(await store.orgName(summary.orgId), 40),
     url: await store.inboxLink(summary.orgId),
   };
-  return summary.heldCount <= 1
-    ? formatMessage(locale, "sms.message", { ...args, body: clip(text.body, 300) })
-    : formatMessage(locale, "sms.summary", {
-        ...args,
-        count: summary.heldCount,
-        body: clip(text.body, 200),
-      });
+  if (summary.heldCount <= 1) {
+    const text = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone);
+    return formatMessage(locale, "sms.message", { ...args, body: clip(text.body, 300) });
+  }
+  let body: string;
+  try {
+    body = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone).body;
+  } catch {
+    return formatMessage(locale, "sms.summaryCount", { ...args, count: summary.heldCount });
+  }
+  return formatMessage(locale, "sms.summary", {
+    ...args,
+    count: summary.heldCount,
+    body: clip(body, 200),
+  });
 }
 
 /**
@@ -393,7 +468,13 @@ export async function dispatchSmsSummaries(
         body,
         deliveryId: summary.deliveryIds[0] ?? "",
       });
-      await store.recordSummary(summary.deliveryIds, "Sent", result.providerMessageId, null);
+      await store.recordSummary(
+        summary.deliveryIds,
+        "Sent",
+        result.providerMessageId,
+        null,
+        billedSegments(result, body),
+      );
       sent += 1;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
