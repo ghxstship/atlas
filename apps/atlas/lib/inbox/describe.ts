@@ -53,10 +53,8 @@ const TARGETS: Readonly<Record<string, string>> = {
   "app.feed_posts": "knowledge/feed",
   "app.surveys": "knowledge/feed",
   "app.workforce_events": "schedule/events",
-  // 1394: shift.assigned and shift.changed open the worker's shifts; assignment.created opens My Work, which lists
-  // the records a person is assigned to.
+  // 1394: shift.assigned and shift.changed open the worker's shifts. Records open in inboxTarget.
   "app.shifts": "crew/shifts",
-  "app.records": "my-work",
   "app.training_courses": "knowledge/training",
   "app.recognitions": "people/recognition",
   "app.support_tickets": "people/help-desk",
@@ -73,8 +71,15 @@ const TARGETS: Readonly<Record<string, string>> = {
 
 export function inboxTarget(
   org: string,
-  item: Pick<InboxItem, "subjectTable" | "kind">,
+  item: Pick<InboxItem, "subjectTable" | "kind"> & { readonly args?: InboxItem["args"] },
 ): string | null {
+  // A record opens itself when the notification carries its key. Without the key only an assignment (1394) has
+  // somewhere to go: My Work lists the records a person is assigned to, not those they comment on or are mentioned in.
+  if (item.subjectTable === "app.records") {
+    const key = item.args?.["recordKey"];
+    if (key) return `/${org}/r/${encodeURIComponent(key)}`;
+    return item.kind === "assignment.created" ? `/${org}/my-work` : null;
+  }
   const path = item.subjectTable ? TARGETS[item.subjectTable] : undefined;
   if (path) return `/${org}/${path}`;
   if (item.kind.startsWith("billing.")) return `/${org}/settings/billing-and-plan`;

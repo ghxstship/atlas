@@ -255,6 +255,22 @@ describe("Inbox item copy", () => {
     );
     expect(inboxTarget("demo", { subjectTable: "unknown", kind: "x.y" })).toBeNull();
   });
+
+  it("opens a record itself when the item carries its key, and only an assignment in My Work otherwise", () => {
+    const keyed = { recordKey: "NWL-42" };
+    for (const kind of ["comment.created", "mention.created", "assignment.created"]) {
+      expect(inboxTarget("demo", { subjectTable: "app.records", kind, args: keyed })).toBe(
+        "/demo/r/NWL-42",
+      );
+    }
+    // My Work lists the records a person is assigned to: a comment or a mention on another record is not there.
+    expect(
+      inboxTarget("demo", { subjectTable: "app.records", kind: "comment.created" }),
+    ).toBeNull();
+    expect(
+      inboxTarget("demo", { subjectTable: "app.records", kind: "mention.created", args: {} }),
+    ).toBeNull();
+  });
 });
 
 describe("Inbox keyboard focus (journey 57)", () => {
