@@ -132,13 +132,15 @@ kinds:
   - kind: mention.created
     category: mentions
     emitted_by:
-      - emitter: supabase/migrations/0580_comments.sql#private.after_comment_mention
-        test: supabase/tests/0580_comments.test.sql
+      # 1600 redefines 0580's emitter so a mention on a record carries the record's key.
+      - emitter: supabase/migrations/1600_record_keys_in_notifications.sql#private.after_comment_mention
+        test: supabase/tests/1600_record_keys_in_notifications.test.sql
   - kind: assignment.created
     category: assignments
     emitted_by:
-      - emitter: supabase/migrations/1394_notification_kind_emitters.sql#private.notify_record_assignment
-        test: supabase/tests/1394_notification_kind_emitters.test.sql
+      # 1600 redefines 1394's emitter so the assignment carries the record's key.
+      - emitter: supabase/migrations/1600_record_keys_in_notifications.sql#private.notify_record_assignment
+        test: supabase/tests/1600_record_keys_in_notifications.test.sql
   - kind: approval.requested
     category: approvals
     push_category: approval_request
@@ -155,8 +157,9 @@ kinds:
   - kind: comment.created
     category: comments
     emitted_by:
-      - emitter: supabase/migrations/0580_comments.sql#private.notify_comment_subscribers
-        test: supabase/tests/0580_comments.test.sql
+      # 1600 redefines 0580's emitter so a comment on a record carries the record's key.
+      - emitter: supabase/migrations/1600_record_keys_in_notifications.sql#private.notify_comment_subscribers
+        test: supabase/tests/1600_record_keys_in_notifications.test.sql
   # Schedule (0520, 0800)
   - kind: shift.assigned
     category: schedule
@@ -349,8 +352,9 @@ kinds:
   - kind: automation.notice
     category: automations
     emitted_by:
-      - emitter: supabase/migrations/1481_automation_runs.sql#app.send_automation_notice
-        test: supabase/tests/1481_automation_runs.test.sql
+      # 1600 redefines 1481's emitter so a notice about a record carries the record's key.
+      - emitter: supabase/migrations/1600_record_keys_in_notifications.sql#app.send_automation_notice
+        test: supabase/tests/1600_record_keys_in_notifications.test.sql
   - kind: automation.failed
     category: automations
     emitted_by:

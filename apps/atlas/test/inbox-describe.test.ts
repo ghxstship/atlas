@@ -57,12 +57,15 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "announcement.posted": { title: "Wristband Change Friday" },
   "approval.requested": { title: "Purchase Order 41", actorName: "Demo Producer" },
   "approval.decided": { title: "Purchase Order 41", actorName: "Demo Admin", decision: "approved" },
-  "assignment.created": { title: "NWS-12 Production Meeting" },
-  // A91's automation kinds (1481), as app.send_automation_notice, the failure notice and the pause store them.
+  // Notifications about a record carry its key (1600).
+  "assignment.created": { title: "NWS-12 Production Meeting", recordKey: "NWS-12" },
+  // A91's automation kinds (1481), as app.send_automation_notice, the failure notice and the pause store them; a
+  // notice about a record carries its key (1600).
   "automation.notice": {
     automationName: "Pick up tasks",
     title: "New task: Call the venue",
     body: "Call the venue needs a look.",
+    recordKey: "NWS-14",
   },
   "automation.failed": {
     automationName: "Pick up tasks",
@@ -75,7 +78,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   },
   "billing.payment_failed": { days: "3" },
   "billing.read_only": {},
-  "comment.created": { title: "NWS-12 Production Meeting" },
+  "comment.created": { title: "NWS-12 Production Meeting", recordKey: "NWS-12" },
   "event.invited": { title: "Show Day Safety Briefing", startsAt: "2026-10-21T09:00:00+00:00" },
   "export.ready": { title: "Records export" },
   "help_request.assigned": { title: "Dock tablet will not sign in", team: "Site IT Desk" },
@@ -85,7 +88,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "invoice.submitted": { title: "INV-0042" },
   "invoice.scheduled": { title: "INV-0042" },
   "invoice.paid": { title: "INV-0042" },
-  "mention.created": { title: "NWS-12 Production Meeting" },
+  "mention.created": { title: "NWS-12 Production Meeting", recordKey: "NWS-12" },
   "message.received": { kind: "Text" },
   "occupancy.threshold": { title: "Main Gate", percent: "90", count: "450", permitted_load: "500" },
   "recognition.received": { title: "Re-rigged the stage left truss in record time." },
@@ -276,6 +279,11 @@ describe("Inbox item copy", () => {
         "/demo/r/NWL-42",
       );
     }
+    // An automation notice names its subject as the domain event does (records).
+    expect(
+      inboxTarget("demo", { subjectTable: "records", kind: "automation.notice", args: keyed }),
+    ).toBe("/demo/r/NWL-42");
+    expect(inboxTarget("demo", { subjectTable: "records", kind: "automation.notice" })).toBeNull();
     // My Work lists the records a person is assigned to: a comment or a mention on another record is not there.
     expect(
       inboxTarget("demo", { subjectTable: "app.records", kind: "comment.created" }),
@@ -283,6 +291,24 @@ describe("Inbox item copy", () => {
     expect(
       inboxTarget("demo", { subjectTable: "app.records", kind: "mention.created", args: {} }),
     ).toBeNull();
+  });
+
+  it("links every record item to the record its emitter keyed (1600)", () => {
+    const subjects: Readonly<Record<string, string>> = {
+      "assignment.created": "app.records",
+      "comment.created": "app.records",
+      "mention.created": "app.records",
+      "automation.notice": "records",
+    };
+    for (const [kind, subjectTable] of Object.entries(subjects)) {
+      const args = ARGS[kind] ?? {};
+      const out = describeInboxItem({ ...item(kind, args), subjectTable }, copyFor("en-US"), {
+        org: "demo",
+        orgName: "Demo Productions",
+        actorName: "Demo Owner",
+      });
+      expect(out.href, kind).toBe(`/demo/r/${args["recordKey"]}`);
+    }
   });
 });
 
