@@ -5,6 +5,13 @@ import type {
   ModelResponse,
   ToolResultContent,
 } from "@xos/ai";
+import {
+  fixtureBinding,
+  fixtureDocument,
+  fixtureDraft,
+  fixtureFilter,
+  fixtureSummary,
+} from "./fixture-entry";
 
 /**
  * Aurora's end-to-end fixture model (finding A24-007). Browser journeys 35 and 36 run Aurora
@@ -66,6 +73,13 @@ const CERTIFICATE_FIELDS: Readonly<
   valid_to: { value: "2027-09-30", excerpt: "POLICY EXPIRATION 2027-09-30", confidence: 0.9 },
 };
 
+/** Headers of the import journey's venues sheet that header similarity misses, and the fields they hold. */
+export const FIXTURE_COLUMN_MAP: Readonly<Record<string, string>> = {
+  Hall: "name",
+  "Region Code": "jurisdiction_id",
+  "Local Clock": "time_zone",
+};
+
 const usage = { inputTokens: 0, outputTokens: 0 };
 
 function toolCall(name: string, input: unknown, id: string): ModelResponse {
@@ -111,13 +125,43 @@ function questionOf(text: string): Question {
 export class FixtureModelClient implements ModelClient {
   async complete(request: ModelRequest): Promise<ModelResponse> {
     const tools = new Set((request.tools ?? []).map((t) => t.name));
-    if (tools.has("record_fields")) return this.extract(request);
+    if (tools.has("record_fields")) {
+      return (
+        fixtureDocument(request, documentText(request.messages[0]?.content ?? [])) ??
+        this.extract(request)
+      );
+    }
+    if (tools.has("map_columns")) return this.mapColumns(request);
     if (tools.has("answer")) return this.assist(request);
+    // The A95 entry points (fixture-entry.ts).
+    if (tools.has("build_filter")) return fixtureFilter(request);
+    if (tools.has("draft")) return fixtureDraft(request);
+    if (tools.has("summary")) return fixtureSummary(request);
+    if (tools.has("bind_code")) return fixtureBinding(request);
     return {
       content: [{ type: "text", text: "This fixture model answers only recorded journeys." }],
       stopReason: "end_turn",
       usage,
     };
+  }
+
+  /**
+   * The import wizard's journey (A83): the recorded headers of the e2e venues sheet map to their fields; any
+   * other header gets null, never a guess.
+   */
+  private mapColumns(request: ModelRequest): ModelResponse {
+    const blocks = (request.messages[0]?.content ?? []).map((c) =>
+      c.type === "text" ? c.text : "",
+    );
+    const columns = blocks
+      .filter((b) => b.startsWith('<data source="columns">'))
+      .flatMap((b) => rowsOf({ type: "tool_result", toolUseId: "", content: b }));
+    const mappings = columns.map((c) => {
+      const header = typeof c["header"] === "string" ? c["header"] : "";
+      const field = FIXTURE_COLUMN_MAP[header] ?? null;
+      return { column: header, field, confidence: field === null ? 0 : 0.82 };
+    });
+    return toolCall("map_columns", { mappings }, "fixture-map-columns");
   }
 
   private extract(request: ModelRequest): ModelResponse {

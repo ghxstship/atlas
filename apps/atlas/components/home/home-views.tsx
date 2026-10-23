@@ -289,7 +289,10 @@ export function ReadinessView({
             name: r.project.name,
             phase: r.closed ? t("closed") : phase(r),
             met: r.closed ? t("closed") : t("met", { met: r.blockingMet, total: r.blockingTotal }),
-            unmet: r.unmet.length > 0 ? r.unmet.map((c) => c.id).join(", ") : t("none"),
+            unmet:
+              r.unmet.length > 0
+                ? r.unmet.map((c) => `${c.statement.replace(/\.$/, "")} (${c.id})`).join("; ")
+                : t("none"),
           }))}
           onRowActivate={(row) => router.push(`/${org}/p/${String(row["key"])}/gates` as Route)}
         />
@@ -307,15 +310,18 @@ export function AlertsView({
   views,
   view,
   projectsHref,
+  timeZone,
 }: {
   org: string;
   alerts: readonly Alert[];
   views: readonly string[];
   view: string;
   projectsHref: string;
+  /** The org's time zone (getOrgTimeZone): an overdue record's due date is shown on its calendar. */
+  timeZone: string;
 }) {
   const t = useTranslations("home.alerts");
-  const text = useAlertText();
+  const text = useAlertText(timeZone);
   const router = useRouter();
   if (alerts.length === 0) {
     return <Empty sentence={t("empty")} action={t("emptyAction")} href={projectsHref} />;

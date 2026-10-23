@@ -10,7 +10,7 @@ import {
   type TemplateCode,
   type TemplateProps,
 } from "@xos/email";
-import { isLocale, type Locale } from "@xos/i18n";
+import { isLocale, type Locale } from "@xos/i18n/locales";
 
 /** An email delivery claimed from app.claim_notification_deliveries. */
 export interface ClaimedEmail {

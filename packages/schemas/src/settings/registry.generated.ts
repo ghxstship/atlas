@@ -253,7 +253,7 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.security",
     },
-    deferred: true,
+    deferred: false,
     hidden: false,
   },
   {
@@ -274,7 +274,7 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.security",
     },
-    deferred: true,
+    deferred: false,
     hidden: false,
   },
   {
@@ -295,7 +295,7 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.security",
     },
-    deferred: true,
+    deferred: false,
     hidden: false,
   },
   {
@@ -1190,6 +1190,27 @@ export const SETTINGS: readonly SettingDefinition[] = [
     help: "settings.fields.messageTranslation.help",
     pages: {
       org: "settings.communication",
+    },
+    deferred: false,
+    hidden: false,
+  },
+  {
+    key: "developer.personal_tokens",
+    contributor: "a86",
+    type: "boolean",
+    scopes: ["organization"],
+    capability: "org.api_keys.manage",
+    lockable: false,
+    default: false,
+    choices: [],
+    min: null,
+    max: null,
+    maxLength: null,
+    input: "text",
+    label: "settings.fields.personalTokens.label",
+    help: "settings.fields.personalTokens.help",
+    pages: {
+      org: "settings.api-keys-and-service-accounts",
     },
     deferred: false,
     hidden: false,

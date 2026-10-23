@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { cookies, headers } from "next/headers";
 import { negotiatedLocale } from "@/i18n/request";
 import { selectableLocales } from "@/i18n/negotiate";
+import { getAiFeatures } from "@/lib/aurora/features";
 import { getMyOrganizations, type OrgContext } from "@/lib/shell/context";
 import { createItems } from "@/lib/shell/create-menu";
 import { buildShellNav, NAV_ICONS, type NavLinkModel } from "@/lib/shell/nav-model";
@@ -39,7 +40,7 @@ function orDefault<T>(
  */
 export async function AppShell({ ctx, children }: { ctx: OrgContext; children: ReactNode }) {
   const person = ctx.viewer.person;
-  const [t, orgs, workspaces, locale, cookieStore, pinned, bindings, layout, headerStore] =
+  const [t, orgs, workspaces, locale, cookieStore, pinned, bindings, layout, headerStore, ai] =
     await Promise.all([
       getTranslate(),
       getMyOrganizations(),
@@ -50,6 +51,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       person ? listShortcutBindings(ctx.viewer.db, "Atlas") : null,
       person ? listSidebarLayout(ctx.viewer.db, ctx.org.id) : null,
       headers(),
+      getAiFeatures(ctx),
     ]);
   if (!workspaces.ok) {
     throw new Error(`Cannot list workspaces: ${JSON.stringify(workspaces.error)}`);
@@ -128,6 +130,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       theme={themeFromCookie(cookieStore.get(THEME_COOKIE)?.value)}
       email={ctx.viewer.email}
       canManageAi={ctx.capabilities.has("org.ai.write")}
+      aiFeatures={ai}
       preferences={settings.encoded}
       storedPreferences={cookieStore.get(PREFERENCES_COOKIE)?.value ?? ""}
       keys={keys}

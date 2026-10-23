@@ -20,6 +20,7 @@ const ORG_PAGES = [
   "modules",
   "views-and-defaults",
   "numbering",
+  "automations",
   "time-and-attendance",
   "scheduling",
   "payroll-and-time-off",

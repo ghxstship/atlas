@@ -63,6 +63,21 @@
     "sentence": "The offline storage on this device did not open. Try again. If it keeps happening, restart the phone.",
     "storageReset": "Compass had to reset its offline storage on this device. Changes made offline that had not uploaded could not be recovered. Everything else downloads again."
   },
+  "secondFactor": {
+    "title": "Verify It's You",
+    "sentence": "Enter the 6-digit code from your authenticator app.",
+    "code": "Code",
+    "verify": "Verify",
+    "invalid": "That code didn't match. Enter the code your app shows now.",
+    "requiredTitle": "Set Up a Second Factor",
+    "required": "Your organization requires a second factor for your role. Set up an authenticator app in Atlas or Gateway under Settings, Security, then try again.",
+    "useRecovery": "Use a Recovery Code Instead",
+    "useApp": "Use Your Authenticator App Instead",
+    "recoverySentence": "Enter one of the recovery codes you saved in Atlas or Gateway. Each code works once.",
+    "recoveryCode": "Recovery code",
+    "recoveryInvalid": "That recovery code didn't match, or it was already used.",
+    "recoveryLocked": "Too many wrong codes. Wait 15 minutes, then try again."
+  },
   "denial": {
     "roleTitle": "Not part of your role",
     "role": "Your role does not include this in Compass. Ask your organization if you need it.",
@@ -461,10 +476,18 @@
     "doneQueued": "{name}: saved. Your PIN is checked when the kiosk is back online.",
     "refused": {
       "pinLocked": "This PIN is locked after too many tries. Ask your supervisor to reset it.",
-      "deviceRevoked": "This kiosk was turned off in Atlas. Ask your supervisor to register it again.",
       "requestInvalid": "That punch could not be read. Start again.",
       "kioskDisabled": "Kiosks are off for this organization. Ask an admin to turn them on in Atlas.",
       "photoRequired": "This project asks for a photo at every kiosk punch. Start again and take the photo."
+    },
+    "unregistered": {
+      "title": "This device is no longer registered as a kiosk",
+      "sentence": "Workers cannot clock in here. A supervisor registers the kiosk again in Atlas, forgets this kiosk, then enters the new device key.",
+      "forget": "Forget this kiosk",
+      "confirmTitle": "Forget this kiosk?",
+      "confirmSentence": "This removes the device key from this device and returns it to kiosk setup.",
+      "confirm": "Forget Kiosk",
+      "supervisorRequired": "A supervisor must be signed in to forget this kiosk."
     },
     "exit": "Exit Kiosk",
     "digit": "Digit {digit}",

@@ -6,8 +6,10 @@ import enUS_advancing from "../messages/en-US/advancing.json" with { type: "json
 import enUS_assets from "../messages/en-US/assets.json" with { type: "json" };
 import enUS_aurora from "../messages/en-US/aurora.json" with { type: "json" };
 import enUS_auroraCertificates from "../messages/en-US/auroraCertificates.json" with { type: "json" };
+import enUS_authSecurity from "../messages/en-US/authSecurity.json" with { type: "json" };
 import enUS_canonBrowser from "../messages/en-US/canonBrowser.json" with { type: "json" };
 import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
+import enUS_compliance from "../messages/en-US/compliance.json" with { type: "json" };
 import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
 import enUS_docs from "../messages/en-US/docs.json" with { type: "json" };
@@ -27,6 +29,7 @@ import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json
 import enUS_myWork from "../messages/en-US/myWork.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
+import enUS_orgLifecycle from "../messages/en-US/orgLifecycle.json" with { type: "json" };
 import enUS_payouts from "../messages/en-US/payouts.json" with { type: "json" };
 import enUS_peek from "../messages/en-US/peek.json" with { type: "json" };
 import enUS_people from "../messages/en-US/people.json" with { type: "json" };
@@ -41,6 +44,7 @@ import enUS_reports from "../messages/en-US/reports.json" with { type: "json" };
 import enUS_savedViews from "../messages/en-US/savedViews.json" with { type: "json" };
 import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
 import enUS_settings from "../messages/en-US/settings.json" with { type: "json" };
+import enUS_settingsSurfaces from "../messages/en-US/settingsSurfaces.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
 import enUS_shipmentTracking from "../messages/en-US/shipmentTracking.json" with { type: "json" };
 import enUS_show from "../messages/en-US/show.json" with { type: "json" };
@@ -59,8 +63,10 @@ import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json
 import esUS_assets from "../messages/es-US/assets.json" with { type: "json" };
 import esUS_aurora from "../messages/es-US/aurora.json" with { type: "json" };
 import esUS_auroraCertificates from "../messages/es-US/auroraCertificates.json" with { type: "json" };
+import esUS_authSecurity from "../messages/es-US/authSecurity.json" with { type: "json" };
 import esUS_canonBrowser from "../messages/es-US/canonBrowser.json" with { type: "json" };
 import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
+import esUS_compliance from "../messages/es-US/compliance.json" with { type: "json" };
 import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
 import esUS_docs from "../messages/es-US/docs.json" with { type: "json" };
@@ -80,6 +86,7 @@ import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json
 import esUS_myWork from "../messages/es-US/myWork.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
+import esUS_orgLifecycle from "../messages/es-US/orgLifecycle.json" with { type: "json" };
 import esUS_payouts from "../messages/es-US/payouts.json" with { type: "json" };
 import esUS_peek from "../messages/es-US/peek.json" with { type: "json" };
 import esUS_people from "../messages/es-US/people.json" with { type: "json" };
@@ -94,6 +101,7 @@ import esUS_reports from "../messages/es-US/reports.json" with { type: "json" };
 import esUS_savedViews from "../messages/es-US/savedViews.json" with { type: "json" };
 import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
 import esUS_settings from "../messages/es-US/settings.json" with { type: "json" };
+import esUS_settingsSurfaces from "../messages/es-US/settingsSurfaces.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
 import esUS_shipmentTracking from "../messages/es-US/shipmentTracking.json" with { type: "json" };
 import esUS_show from "../messages/es-US/show.json" with { type: "json" };
@@ -114,8 +122,10 @@ export const enUS = {
   assets: enUS_assets,
   aurora: enUS_aurora,
   auroraCertificates: enUS_auroraCertificates,
+  authSecurity: enUS_authSecurity,
   canonBrowser: enUS_canonBrowser,
   compass: enUS_compass,
+  compliance: enUS_compliance,
   credentials: enUS_credentials,
   crew: enUS_crew,
   docs: enUS_docs,
@@ -135,6 +145,7 @@ export const enUS = {
   myWork: enUS_myWork,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
+  orgLifecycle: enUS_orgLifecycle,
   payouts: enUS_payouts,
   peek: enUS_peek,
   people: enUS_people,
@@ -149,6 +160,7 @@ export const enUS = {
   savedViews: enUS_savedViews,
   schedule: enUS_schedule,
   settings: enUS_settings,
+  settingsSurfaces: enUS_settingsSurfaces,
   shell: enUS_shell,
   shipmentTracking: enUS_shipmentTracking,
   show: enUS_show,
@@ -170,8 +182,10 @@ export const esUS = {
   assets: esUS_assets,
   aurora: esUS_aurora,
   auroraCertificates: esUS_auroraCertificates,
+  authSecurity: esUS_authSecurity,
   canonBrowser: esUS_canonBrowser,
   compass: esUS_compass,
+  compliance: esUS_compliance,
   credentials: esUS_credentials,
   crew: esUS_crew,
   docs: esUS_docs,
@@ -191,6 +205,7 @@ export const esUS = {
   myWork: esUS_myWork,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
+  orgLifecycle: esUS_orgLifecycle,
   payouts: esUS_payouts,
   peek: esUS_peek,
   people: esUS_people,
@@ -205,6 +220,7 @@ export const esUS = {
   savedViews: esUS_savedViews,
   schedule: esUS_schedule,
   settings: esUS_settings,
+  settingsSurfaces: esUS_settingsSurfaces,
   shell: esUS_shell,
   shipmentTracking: esUS_shipmentTracking,
   show: esUS_show,

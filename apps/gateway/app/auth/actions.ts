@@ -4,7 +4,9 @@ import type { Route } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { ageMetadata, confirmMinimumAge, minimumAgeConfirmed } from "@xos/data/consent";
 import { recordLegalAcceptances } from "@xos/data/settings";
+import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { authErrorKey } from "@/lib/auth/errors";
 import {
   clientIp,
@@ -66,9 +68,13 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
     .safeParse({ email: values.email, password: form.get("password") });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
   const db = await createServerSupabase();
-  const { error } = await db.auth.signInWithPassword(parsed.data);
+  const { data, error } = await db.auth.signInWithPassword(parsed.data);
   if (error) return { error: authErrorKey(error), values };
-  redirect(safeNext(form.get("next"), HOME) as Route);
+  const next = safeNext(form.get("next"), HOME);
+  // A person who holds a second factor verifies it before any page (A77). The proxy would ask too, but this
+  // response renders its target without passing the proxy, so the address bar would keep the target.
+  const holdsFactor = (data.user.factors ?? []).some((f) => f.status === "verified");
+  redirect((holdsFactor ? secondFactorRedirect(next, "") : next) as Route);
 }
 
 /** The terms box was ticked; account creation needs it (Section 14.4, finding A59-025). */
@@ -76,17 +82,29 @@ function acceptedTerms(form: FormData): boolean {
   return form.get("acceptTerms") === "yes";
 }
 
+/** The "16 or older" box was ticked; account creation needs it (Section 14.3, 14.9, A65-014). */
+function ageTicked(form: FormData): boolean {
+  return form.get("ageConfirmed") === "16";
+}
+
 export async function sendMagicLink(_: FormState, form: FormData): Promise<FormState> {
   const signUp = form.get("intent") === "sign-up";
   const values = {
     email: text(form, "email"),
-    ...(signUp ? { fullName: text(form, "fullName"), acceptTerms: text(form, "acceptTerms") } : {}),
+    ...(signUp
+      ? {
+          fullName: text(form, "fullName"),
+          acceptTerms: text(form, "acceptTerms"),
+          ageConfirmed: text(form, "ageConfirmed"),
+        }
+      : {}),
   };
   const parsed = email.safeParse(values.email);
   const errors: Record<string, string> = {};
   if (signUp && !values.fullName) errors["fullName"] = "fullName";
   if (!parsed.success) errors["email"] = "email";
   if (signUp && !acceptedTerms(form)) errors["acceptTerms"] = "terms";
+  if (signUp && !ageTicked(form)) errors["ageConfirmed"] = "age";
   if (!parsed.success || Object.keys(errors).length > 0) return { fieldErrors: errors, values };
   const next = safeNext(form.get("next"), HOME);
   const db = await createServerSupabase();
@@ -101,6 +119,7 @@ export async function sendMagicLink(_: FormState, form: FormData): Promise<FormS
             data: {
               ...(values.fullName ? { full_name: values.fullName } : {}),
               [PENDING_ACCEPTANCES]: signUpAcceptances(),
+              ...ageMetadata("Gateway"),
             },
           }
         : {}),
@@ -159,16 +178,20 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
     fullName: text(form, "fullName"),
     email: text(form, "email"),
     acceptTerms: text(form, "acceptTerms"),
+    ageConfirmed: text(form, "ageConfirmed"),
   };
   const parsed = z
     .object({ fullName: z.string().min(1).max(200), email, password: newPassword })
     .safeParse({ ...values, password: form.get("password") });
-  const terms = acceptedTerms(form) ? {} : { acceptTerms: "terms" };
+  const terms = {
+    ...(acceptedTerms(form) ? {} : { acceptTerms: "terms" }),
+    ...(ageTicked(form) ? {} : { ageConfirmed: "age" }),
+  };
   if (!parsed.success) return { fieldErrors: { ...fieldErrors(parsed.error), ...terms }, values };
   if (passwordHasContextWords(parsed.data.password, parsed.data)) {
     return { fieldErrors: { password: "passwordContext", ...terms }, values };
   }
-  if (!acceptedTerms(form)) return { fieldErrors: terms, values };
+  if (Object.keys(terms).length > 0) return { fieldErrors: terms, values };
   const next = safeNext(form.get("next"), HOME);
   const db = await createServerSupabase();
   const { data, error } = await db.auth.signUp({
@@ -177,7 +200,11 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
     options: {
       // private.handle_new_auth_user (0206) copies full_name into app.people; the accepted terms
       // wait in the metadata until a session can write them to the acceptance log.
-      data: { full_name: parsed.data.fullName, [PENDING_ACCEPTANCES]: signUpAcceptances() },
+      data: {
+        full_name: parsed.data.fullName,
+        [PENDING_ACCEPTANCES]: signUpAcceptances(),
+        ...ageMetadata("Gateway"),
+      },
       emailRedirectTo: siteUrl(env().GATEWAY_SITE_URL, "/auth/callback", next),
     },
   });
@@ -193,10 +220,20 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
  */
 export async function acceptSignUpTerms(_: FormState, form: FormData): Promise<FormState> {
   const next = safeNext(form.get("next"), HOME);
-  if (!acceptedTerms(form)) return { fieldErrors: { acceptTerms: "terms" } };
   const db = await createServerSupabase();
   const { data } = await db.auth.getUser();
   if (!data.user) redirect(`/auth/sign-in?next=${encodeURIComponent(next)}` as Route);
+  const age = await minimumAgeConfirmed(db);
+  const needsAge = !(age.ok && age.data);
+  const errors = {
+    ...(acceptedTerms(form) ? {} : { acceptTerms: "terms" }),
+    ...(needsAge && !ageTicked(form) ? { ageConfirmed: "age" } : {}),
+  };
+  if (Object.keys(errors).length > 0) return { fieldErrors: errors };
+  if (needsAge) {
+    const confirmed = await confirmMinimumAge(db, "Gateway", clientIp(await headers()));
+    if (!confirmed.ok) return { error: "unexpected", values: { acceptTerms: "yes" } };
+  }
   const recorded = await recordLegalAcceptances(db, {
     orgId: null,
     documents: signUpAcceptances(),

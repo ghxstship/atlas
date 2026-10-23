@@ -881,11 +881,38 @@ export interface Components {
     content_base64: string;
     file_name: string;
   };
-  AuroraFilterRequest: { sentence: string; collections: Array<string>; time_zone: string };
+  AuroraFilterRequest: {
+    sentence: string;
+    collections: Array<string>;
+    time_zone: string;
+    fields?: Array<{
+      name: string;
+      type: "string" | "number" | "date" | "boolean" | "enum";
+      values?: Array<string>;
+      description?: string;
+      ops?: Array<"eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains">;
+    }>;
+  };
   AuroraMapColumnsRequest: {
     collection: string;
     columns: Array<{ header: string; samples: Array<string> }>;
     fields: Array<{ name: string; description: string }>;
+  };
+  AuroraPreview: { records: Array<Components["AuroraPreviewRecord"]>; vocabulary_terms: number };
+  AuroraPreviewRecord: {
+    collection: string;
+    id: string;
+    sent: boolean;
+    fields: Array<string>;
+    withheld: Array<string>;
+    data: Record<string, unknown> | null;
+  };
+  AuroraPreviewRequest: {
+    feature: "drafting" | "summaries";
+    kind?: "record_activity" | "project_week" | "gate_readiness";
+    subject_collection?: string;
+    subject_id?: string;
+    items: Array<{ collection: string; id: string }>;
   };
   AuroraProposal: { suggestion_id: string; operation_id: string; summary: string };
   AuroraResult: {
@@ -910,6 +937,162 @@ export interface Components {
     subject_id: string;
     items: Array<{ collection: string; id: string }>;
   };
+  Automation: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    name: string;
+    description: string | null;
+    trigger_event_type: string;
+    condition_match: "all" | "any";
+    owner_person_id: string;
+    enabled: boolean;
+    paused_at: string | null;
+    pause_reason: string | null;
+    conditions: Components["AutomationConditions"];
+    actions: Components["AutomationActions"];
+  };
+  AutomationAction:
+    | {
+        type: "create_task";
+        title: string;
+        project_id?: string | null;
+        phase_code: string;
+        xyz: "X" | "Y" | "Z";
+        due_in_days?: number | null;
+      }
+    | {
+        type: "update_status";
+        to_state:
+          "Proposed" | "Ready" | "Scheduled" | "Active" | "In Review" | "Complete" | "Canceled";
+        note?: string | null;
+      }
+    | { type: "update_status"; to_state: "Blocked" | "Deferred"; note: string }
+    | { type: "assign"; assignee_person_id: string }
+    | { type: "add_comment"; body: string }
+    | { type: "notify"; recipient_person_id: string; title: string; body?: string | null }
+    | { type: "call_webhook"; webhook_endpoint_id: string };
+  AutomationActions: Array<Components["AutomationAction"]>;
+  AutomationCondition:
+    | {
+        field: string;
+        operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+        value: string;
+      }
+    | { field: string; operator: "in"; value: string }
+    | { field: string; operator: "is_null"; value?: "true" | "false" | null };
+  AutomationConditionResult: {
+    field: string;
+    operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains";
+    value: string | null;
+    actual?: unknown;
+    matched: boolean;
+  };
+  AutomationConditions:
+    | {
+        all: Array<
+          | {
+              field: string;
+              operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+              value: string;
+            }
+          | { field: string; operator: "in"; value: string }
+          | { field: string; operator: "is_null"; value?: "true" | "false" | null }
+          | { all: Array<Components["AutomationCondition"]> }
+          | { any: Array<Components["AutomationCondition"]> }
+        >;
+      }
+    | {
+        any: Array<
+          | {
+              field: string;
+              operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+              value: string;
+            }
+          | { field: string; operator: "in"; value: string }
+          | { field: string; operator: "is_null"; value?: "true" | "false" | null }
+          | { all: Array<Components["AutomationCondition"]> }
+          | { any: Array<Components["AutomationCondition"]> }
+        >;
+      };
+  AutomationCreate: {
+    name: string;
+    description?: string | null;
+    trigger_event_type: string;
+    enabled?: boolean;
+    conditions: Components["AutomationConditions"];
+    actions: Components["AutomationActions"];
+  };
+  AutomationNoticeRequest: { recipient_person_id: string; title: string; body?: string };
+  AutomationNoticeResult: { notification_id: string | null };
+  AutomationPage: { data: Array<Components["Automation"]>; next_cursor: string | null };
+  AutomationRun: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    automation_id: string;
+    domain_event_id: string;
+    parent_run_id: string | null;
+    depth: number;
+    run_status: "Queued" | "Running" | "Retrying" | "Succeeded" | "Failed" | "Skipped";
+    event_payload: Record<string, unknown>;
+    owner_person_id: string | null;
+    attempts: number;
+    error_code: string | null;
+    error_message: string | null;
+    started_at: string | null;
+    finished_at: string | null;
+    duration_ms: number | null;
+  };
+  AutomationRunPage: { data: Array<Components["AutomationRun"]>; next_cursor: string | null };
+  AutomationRunStep: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    automation_run_id: string;
+    automation_action_id: string | null;
+    position: number;
+    action_type:
+      "create_task" | "update_status" | "assign" | "add_comment" | "notify" | "call_webhook";
+    operation_id: string | null;
+    step_status: "Succeeded" | "Failed" | "Skipped";
+    request_body: Record<string, unknown> | null;
+    response_body: Record<string, unknown> | null;
+    http_status: number | null;
+    error_code: string | null;
+    error_message: string | null;
+    started_at: string;
+    finished_at: string;
+    duration_ms: number;
+  };
+  AutomationRunStepPage: {
+    data: Array<Components["AutomationRunStep"]>;
+    next_cursor: string | null;
+  };
+  AutomationTestRequest: { event: Record<string, unknown> };
+  AutomationTestResult: {
+    matched: boolean;
+    conditions: Array<Components["AutomationConditionResult"]>;
+  };
+  AutomationUpdate: {
+    name?: string;
+    description?: string | null;
+    trigger_event_type?: string;
+    enabled?: boolean;
+    conditions?: Components["AutomationConditions"];
+    actions?: Components["AutomationActions"];
+  };
+  AutomationWebhookRequest: { webhook_endpoint_id: string };
+  AutomationWebhookResult: { webhook_delivery_id: string };
   AvailabilityBlock: {
     id: string;
     created_at: string;
@@ -2395,6 +2578,28 @@ export interface Components {
     capability_code?: string | null;
     reason?: string;
   };
+  DeletionCertificate: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    deleted_org_id: string;
+    org_name: string;
+    org_slug: string;
+    basis: "cancellation" | "deletion_request";
+    requested_at: string;
+    due_at: string;
+    purged_at: string | null;
+    tables_purged: number | null;
+    rows_purged: number | null;
+    storage_objects_deleted: number;
+    document_sha256: string | null;
+    issued_at: string | null;
+    delivered_at: string | null;
+  };
+  DeletionCertificatePage: {
+    data: Array<Components["DeletionCertificate"]>;
+    next_cursor: string | null;
+  };
   DeptCode: string;
   DietaryNeed:
     | "Vegetarian"
@@ -2502,6 +2707,7 @@ export interface Components {
   };
   DocumentVersionCreate: { document_id: string; storage_uri: string; checksum_sha256: string };
   DocumentVersionPage: { data: Array<Components["DocumentVersion"]>; next_cursor: string | null };
+  DomainDnsRecord: { type: string; name: string; value: string; purpose: string };
   DoorGuest: {
     guest_list_entry_id: string;
     guest_name: string;
@@ -3455,6 +3661,33 @@ export interface Components {
   };
   ImportRowResultPage: { data: Array<Components["ImportRowResult"]>; next_cursor: string | null };
   ImportRowState: "Valid" | "Invalid" | "Written" | "Refused" | "Skipped";
+  InboundMessage: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    purpose: "Project Inbox" | "Reply";
+    inbound_address_id: string | null;
+    from_address: string;
+    subject_line: string | null;
+    body_text: string | null;
+    dkim_verified: boolean;
+    inbound_status: "Received" | "Verified" | "Filed" | "Rejected";
+    rejection_reason: string | null;
+    received_at: string;
+    filed_document_id: string | null;
+    filed_record_id: string | null;
+    filed_by: string | null;
+    filed_at: string | null;
+    discarded_at: string | null;
+    discarded_by: string | null;
+    discard_reason: string | null;
+  };
+  InboundMessageDiscardRequest: { reason?: string };
+  InboundMessageFileRequest: { title?: string; record_id?: string };
+  InboundMessagePage: { data: Array<Components["InboundMessage"]>; next_cursor: string | null };
   Incident: {
     id: string;
     org_id: string;
@@ -4029,6 +4262,7 @@ export interface Components {
     rank: number;
   };
   KnowledgeSourcePage: { data: Array<Components["KnowledgeSource"]>; next_cursor: string | null };
+  LeavePartnerRequest: { confirm_name: string };
   Limit: number;
   LineType: string;
   ListingReport: {
@@ -4779,6 +5013,25 @@ export interface Components {
     legal_entity_name?: string | null;
     suppress_powered_by?: boolean;
   };
+  OrgDeletionRequest: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    reason: string;
+    requested_at: string;
+    recover_until: string;
+    requested_by: string;
+    recovered_at: string | null;
+    recovered_by: string | null;
+  };
+  OrgDeletionRequestCreate: { confirm_name: string; reason: string };
+  OrgDeletionRequestPage: {
+    data: Array<Components["OrgDeletionRequest"]>;
+    next_cursor: string | null;
+  };
   OrgExport: {
     id: string;
     org_id: string;
@@ -4938,6 +5191,57 @@ export interface Components {
     min_dt_multiplier: number | null;
   };
   OvertimeRulePage: { data: Array<Components["OvertimeRule"]>; next_cursor: string | null };
+  OwnershipTransfer: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    from_person_id: string;
+    to_person_id: string;
+    previous_owner_outcome: "admin" | "leave";
+    offered_at: string;
+    expires_at: string;
+    accepted_at: string | null;
+    declined_at: string | null;
+    canceled_at: string | null;
+    canceled_by: string | null;
+    expired_at: string | null;
+  };
+  OwnershipTransferOfferRequest: {
+    to_person_id: string;
+    previous_owner_outcome: "admin" | "leave";
+  };
+  OwnershipTransferPage: {
+    data: Array<Components["OwnershipTransfer"]>;
+    next_cursor: string | null;
+  };
+  PartnerStandingGrant: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    partner_org_id: string;
+    capability_code: string;
+    agreement_reference: string;
+    valid_from: string;
+    valid_to: string;
+    record_grant_id: string;
+    ended_at: string | null;
+    ended_by: string | null;
+  };
+  PartnerStandingGrantPage: {
+    data: Array<Components["PartnerStandingGrant"]>;
+    next_cursor: string | null;
+  };
+  PartnerStandingGrantRecordRequest: {
+    capability_code: string;
+    valid_to: string;
+    agreement_reference: string;
+  };
   PassportReveal: { passport_number: string };
   PassportRevealRequest: { reason: string };
   PayPeriod: {
@@ -5127,6 +5431,19 @@ export interface Components {
     full_name: string | null;
     given_name: string | null;
     family_name: string | null;
+  };
+  PersonCalendarFeed: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    person_id: string;
+    token_hint: string;
+    last_accessed_at: string | null;
+    rotated_at: string | null;
+  };
+  PersonCalendarFeedPage: {
+    data: Array<Components["PersonCalendarFeed"]>;
+    next_cursor: string | null;
   };
   PersonPage: { data: Array<Components["Person"]>; next_cursor: string | null };
   PersonProfile: {
@@ -5532,6 +5849,19 @@ export interface Components {
     time_zone: string;
     venue_id?: string | null;
   };
+  ProjectInbox: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    local_part: string;
+    disabled_at: string | null;
+  };
+  ProjectInboxCreate: { project_id: string };
+  ProjectInboxPage: { data: Array<Components["ProjectInbox"]>; next_cursor: string | null };
   ProjectPage: { data: Array<Components["Project"]>; next_cursor: string | null };
   ProjectPhaseTransition: {
     id: string;
@@ -6875,6 +7205,41 @@ export interface Components {
   SettingValuePage: { data: Array<Components["SettingValue"]>; next_cursor: string | null };
   SettingValueUpdate: { value?: string | number | boolean };
   SettleClaimRequest: { returned: boolean; note?: string };
+  ShareLink: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    attachment_id: string;
+    attachment_version_id: string | null;
+    classification: Components["Classification"];
+    access_code_required: boolean;
+    recipient_email: string | null;
+    note: string | null;
+    expires_at: string | null;
+    failed_attempts: number;
+    open_count: number;
+    last_opened_at: string | null;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  ShareLinkCreate: {
+    attachment_id: string;
+    access_code_required?: boolean;
+    recipient_email?: string | null;
+    note?: string | null;
+    expires_at?: string | null;
+  };
+  ShareLinkPage: { data: Array<Components["ShareLink"]>; next_cursor: string | null };
+  ShareLinkToken: {
+    share_link_id: string;
+    token: string;
+    access_code: string | null;
+    classification: Components["Classification"];
+    expires_at: string | null;
+  };
   SharedAccessibilityNeeds: {
     accessibility_needs: Array<Components["AccessibilityNeed"]>;
     accessibility_notes: string | null;
@@ -7466,6 +7831,12 @@ export interface Components {
     notes: string | null;
   };
   StdVerbiagePage: { data: Array<Components["StdVerbiage"]>; next_cursor: string | null };
+  SubjectCommentRequest: {
+    subject_table: string;
+    subject_id: string;
+    body: string;
+    anchor?: string;
+  };
   Subscription: {
     id: string;
     org_id: string;
@@ -7475,6 +7846,7 @@ export interface Components {
     updated_by: string | null;
     plan_code: string;
     subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
+    trial_ends_at: string | null;
     extra_seats: number;
     seats_grandfathered: boolean;
   };
@@ -8511,6 +8883,11 @@ export interface Components {
     verification_token: string;
     last_checked_at: string | null;
     auto_join_role_id: string | null;
+    provisioning_status:
+      "Not Started" | "Requested" | "Pending DNS" | "Active" | "Failed" | "Released";
+    dns_records: Array<Components["DomainDnsRecord"]>;
+    tls_ready: boolean;
+    provisioning_error: string | null;
   };
   VerifiedDomainCreate: {
     hostname: string;
@@ -18733,6 +19110,15 @@ export interface Operations {
     body: Components["CreateClientOrganizationRequest"];
     responses: { 201: Components["CreateClientOrganizationResult"] };
   };
+  "organizations.leavePartner": {
+    module: "Identity";
+    method: "post";
+    path: "/organizations/leave-partner";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["LeavePartnerRequest"];
+    responses: { 200: Components["Organization"] };
+  };
   "memberships.list": {
     module: "Identity";
     method: "get";
@@ -19308,6 +19694,15 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "verifiedDomains.check": {
+    module: "Identity";
+    method: "post";
+    path: "/verified-domains/{id}/check";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["VerifiedDomain"] };
   };
   "offboardingChecklists.list": {
     module: "Identity";
@@ -22297,6 +22692,15 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "comments.postOnSubject": {
+    module: "Platform";
+    method: "post";
+    path: "/comments/on-subject";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SubjectCommentRequest"];
+    responses: { 201: Components["Comment"] };
+  };
   "notifications.list": {
     module: "Platform";
     method: "get";
@@ -22431,6 +22835,15 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "calendarFeeds.rotate": {
+    module: "Platform";
+    method: "post";
+    path: "/calendar-feeds/{id}/rotate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["CalendarFeedToken"] };
   };
   "trashItems.list": {
     module: "Platform";
@@ -22956,6 +23369,15 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["AuroraBindCodeRequest"];
     responses: { 200: Components["AuroraResult"] };
+  };
+  "aurora.preview": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/preview";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraPreviewRequest"];
+    responses: { 200: Components["AuroraPreview"] };
   };
   "aiSuggestions.list": {
     module: "Settings";
@@ -23805,6 +24227,495 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["WholesaleBillingRequest"];
     responses: { 201: Components["WholesaleStatement"] };
+  };
+  "ownershipTransfers.list": {
+    module: "Platform";
+    method: "get";
+    path: "/ownership-transfers";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["OwnershipTransferPage"] };
+  };
+  "ownershipTransfers.get": {
+    module: "Platform";
+    method: "get";
+    path: "/ownership-transfers/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.offer": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/offer";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["OwnershipTransferOfferRequest"];
+    responses: { 201: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.accept": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/{id}/accept";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.decline": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/{id}/decline";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.cancel": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/{id}/cancel";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "orgDeletionRequests.list": {
+    module: "Platform";
+    method: "get";
+    path: "/org-deletion-requests";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["OrgDeletionRequestPage"] };
+  };
+  "orgDeletionRequests.get": {
+    module: "Platform";
+    method: "get";
+    path: "/org-deletion-requests/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["OrgDeletionRequest"] };
+  };
+  "orgDeletionRequests.request": {
+    module: "Platform";
+    method: "post";
+    path: "/org-deletion-requests/request";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["OrgDeletionRequestCreate"];
+    responses: { 201: Components["OrgDeletionRequest"] };
+  };
+  "orgDeletionRequests.recover": {
+    module: "Platform";
+    method: "post";
+    path: "/org-deletion-requests/{id}/recover";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OrgDeletionRequest"] };
+  };
+  "deletionCertificates.list": {
+    module: "Platform";
+    method: "get";
+    path: "/deletion-certificates";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["DeletionCertificatePage"] };
+  };
+  "deletionCertificates.get": {
+    module: "Platform";
+    method: "get";
+    path: "/deletion-certificates/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["DeletionCertificate"] };
+  };
+  "partnerStandingGrants.list": {
+    module: "Platform";
+    method: "get";
+    path: "/partner-standing-grants";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["PartnerStandingGrantPage"] };
+  };
+  "partnerStandingGrants.get": {
+    module: "Platform";
+    method: "get";
+    path: "/partner-standing-grants/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["PartnerStandingGrant"] };
+  };
+  "partnerStandingGrants.record": {
+    module: "Platform";
+    method: "post";
+    path: "/partner-standing-grants/record";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["PartnerStandingGrantRecordRequest"];
+    responses: { 201: Components["PartnerStandingGrant"] };
+  };
+  "partnerStandingGrants.end": {
+    module: "Platform";
+    method: "post";
+    path: "/partner-standing-grants/{id}/end";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["PartnerStandingGrant"] };
+  };
+  "shareLinks.list": {
+    module: "Platform";
+    method: "get";
+    path: "/share-links";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ShareLinkPage"] };
+  };
+  "shareLinks.create": {
+    module: "Platform";
+    method: "post";
+    path: "/share-links";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShareLinkCreate"];
+    responses: { 201: Components["ShareLinkToken"] };
+  };
+  "shareLinks.get": {
+    module: "Platform";
+    method: "get";
+    path: "/share-links/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ShareLink"] };
+  };
+  "shareLinks.revoke": {
+    module: "Platform";
+    method: "post";
+    path: "/share-links/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ShareLink"] };
+  };
+  "personCalendarFeeds.list": {
+    module: "Platform";
+    method: "get";
+    path: "/person-calendar-feeds";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["PersonCalendarFeedPage"] };
+  };
+  "personCalendarFeeds.create": {
+    module: "Platform";
+    method: "post";
+    path: "/person-calendar-feeds";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 201: Components["CalendarFeedToken"] };
+  };
+  "personCalendarFeeds.get": {
+    module: "Platform";
+    method: "get";
+    path: "/person-calendar-feeds/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["PersonCalendarFeed"] };
+  };
+  "personCalendarFeeds.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/person-calendar-feeds/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "personCalendarFeeds.rotate": {
+    module: "Platform";
+    method: "post";
+    path: "/person-calendar-feeds/{id}/rotate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["CalendarFeedToken"] };
+  };
+  "projectInboxes.list": {
+    module: "Platform";
+    method: "get";
+    path: "/project-inboxes";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectInboxPage"] };
+  };
+  "projectInboxes.create": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectInboxCreate"];
+    responses: { 201: Components["ProjectInbox"] };
+  };
+  "projectInboxes.get": {
+    module: "Platform";
+    method: "get";
+    path: "/project-inboxes/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "projectInboxes.replace": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes/{id}/replace";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "projectInboxes.disable": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes/{id}/disable";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "inboundMessages.list": {
+    module: "Platform";
+    method: "get";
+    path: "/inbound-messages";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["InboundMessagePage"] };
+  };
+  "inboundMessages.get": {
+    module: "Platform";
+    method: "get";
+    path: "/inbound-messages/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["InboundMessage"] };
+  };
+  "inboundMessages.file": {
+    module: "Platform";
+    method: "post";
+    path: "/inbound-messages/{id}/file";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InboundMessageFileRequest"];
+    responses: { 200: Components["InboundMessage"] };
+  };
+  "inboundMessages.discard": {
+    module: "Platform";
+    method: "post";
+    path: "/inbound-messages/{id}/discard";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InboundMessageDiscardRequest"];
+    responses: { 200: Components["InboundMessage"] };
+  };
+  "automations.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automations";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationPage"] };
+  };
+  "automations.create": {
+    module: "Platform";
+    method: "post";
+    path: "/automations";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AutomationCreate"];
+    responses: { 201: Components["Automation"] };
+  };
+  "automations.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["Automation"] };
+  };
+  "automations.update": {
+    module: "Platform";
+    method: "patch";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationUpdate"];
+    responses: { 200: Components["Automation"] };
+  };
+  "automations.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "automations.test": {
+    module: "Platform";
+    method: "post";
+    path: "/automations/{id}/test";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationTestRequest"];
+    responses: { 200: Components["AutomationTestResult"] };
+  };
+  "automationRuns.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-runs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationRunPage"] };
+  };
+  "automationRuns.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-runs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AutomationRun"] };
+  };
+  "automationRuns.notify": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/notices";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationNoticeRequest"];
+    responses: { 201: Components["AutomationNoticeResult"] };
+  };
+  "automationRuns.deliverWebhook": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/webhook-deliveries";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationWebhookRequest"];
+    responses: { 201: Components["AutomationWebhookResult"] };
+  };
+  "automationRuns.retry": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/retry";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["AutomationRun"] };
+  };
+  "automationRunSteps.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-run-steps";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationRunStepPage"] };
+  };
+  "automationRunSteps.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-run-steps/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AutomationRunStep"] };
   };
   "workforceGroups.list": {
     module: "Workforce";
@@ -26486,6 +27397,7 @@ export interface ModuleOperations {
     | "aurora.summarize"
     | "aurora.mapColumns"
     | "aurora.bindCode"
+    | "aurora.preview"
     | "aiSuggestions.list"
     | "aiSuggestions.get"
     | "aiSuggestions.confirm"
@@ -26550,6 +27462,7 @@ export interface ModuleOperations {
     | "organizations.get"
     | "organizations.update"
     | "organizations.createClient"
+    | "organizations.leavePartner"
     | "memberships.list"
     | "memberships.get"
     | "memberships.leave"
@@ -26606,6 +27519,7 @@ export interface ModuleOperations {
     | "verifiedDomains.get"
     | "verifiedDomains.update"
     | "verifiedDomains.delete"
+    | "verifiedDomains.check"
     | "offboardingChecklists.list"
     | "offboardingChecklists.get"
     | "offboardingChecklists.update"
@@ -26735,6 +27649,7 @@ export interface ModuleOperations {
     | "comments.get"
     | "comments.update"
     | "comments.delete"
+    | "comments.postOnSubject"
     | "notifications.list"
     | "notifications.get"
     | "notifications.update"
@@ -26748,6 +27663,7 @@ export interface ModuleOperations {
     | "calendarFeeds.create"
     | "calendarFeeds.get"
     | "calendarFeeds.delete"
+    | "calendarFeeds.rotate"
     | "trashItems.list"
     | "trashItems.restore"
     | "templates.list"
@@ -26806,7 +27722,54 @@ export interface ModuleOperations {
     | "supportSessions.end"
     | "wholesaleStatements.list"
     | "wholesaleStatements.get"
-    | "wholesaleStatements.run";
+    | "wholesaleStatements.run"
+    | "ownershipTransfers.list"
+    | "ownershipTransfers.get"
+    | "ownershipTransfers.offer"
+    | "ownershipTransfers.accept"
+    | "ownershipTransfers.decline"
+    | "ownershipTransfers.cancel"
+    | "orgDeletionRequests.list"
+    | "orgDeletionRequests.get"
+    | "orgDeletionRequests.request"
+    | "orgDeletionRequests.recover"
+    | "deletionCertificates.list"
+    | "deletionCertificates.get"
+    | "partnerStandingGrants.list"
+    | "partnerStandingGrants.get"
+    | "partnerStandingGrants.record"
+    | "partnerStandingGrants.end"
+    | "shareLinks.list"
+    | "shareLinks.create"
+    | "shareLinks.get"
+    | "shareLinks.revoke"
+    | "personCalendarFeeds.list"
+    | "personCalendarFeeds.create"
+    | "personCalendarFeeds.get"
+    | "personCalendarFeeds.delete"
+    | "personCalendarFeeds.rotate"
+    | "projectInboxes.list"
+    | "projectInboxes.create"
+    | "projectInboxes.get"
+    | "projectInboxes.replace"
+    | "projectInboxes.disable"
+    | "inboundMessages.list"
+    | "inboundMessages.get"
+    | "inboundMessages.file"
+    | "inboundMessages.discard"
+    | "automations.list"
+    | "automations.create"
+    | "automations.get"
+    | "automations.update"
+    | "automations.delete"
+    | "automations.test"
+    | "automationRuns.list"
+    | "automationRuns.get"
+    | "automationRuns.notify"
+    | "automationRuns.deliverWebhook"
+    | "automationRuns.retry"
+    | "automationRunSteps.list"
+    | "automationRunSteps.get";
   Workforce:
     | "workforceGroups.list"
     | "workforceGroups.create"

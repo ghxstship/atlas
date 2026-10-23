@@ -70,6 +70,12 @@ email_templates:
   - code: dsar_received
     transactional: true
     description: Acknowledges a data subject request and states its due date.
+  - code: subprocessor_confirm
+    transactional: true
+    description: Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).
+  - code: subprocessor_notice
+    transactional: false
+    description: Announces a Subprocessor List change at least 30 days before it applies.
 
 categories:
   - code: mentions
@@ -102,6 +108,9 @@ categories:
   - code: imports
     urgent: false
     order: 10
+  - code: automations
+    urgent: false
+    order: 11
   - code: messages
     urgent: false
     order: 40
@@ -195,12 +204,24 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/0806_workforce_site_operations.sql#app.record_weather_reading
         test: supabase/tests/0806_workforce_site_operations.test.sql
-  # Account (0520, 0560, 1203)
+  # Account (0520, 0560, 1203, 1560, 1561)
   - kind: account.security_changed
     category: account
     deferred:
-      reason: "Security changes (password, email, phone, second factors, passkeys) happen in Supabase Auth and in A77's sign-in and step-up work, and none of those paths calls private.notify yet."
-      decision: "A77 (RRR-122, auth and step-up) emits it from its security change paths; no owner decision pending"
+      reason: "Security changes (password, email, phone, second factors, passkeys) happen in Supabase Auth and in the sign-in and step-up work, and none of those paths calls private.notify yet. A99's recovery codes and sessions send their own kinds."
+      decision: "A follow-up to A77 and A99 (RRR-122, RRR-144) emits it from the password, email, phone and factor change paths; no owner decision pending"
+  - kind: account.recovery_code_used
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1560_recovery_codes.sql#app.redeem_recovery_code
+        test: supabase/tests/1560_recovery_codes.test.sql
+  - kind: account.session_signed_out
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1561_signed_in_sessions.sql#app.sign_out_my_session
+        test: supabase/tests/1561_signed_in_sessions.test.sql
+      - emitter: supabase/migrations/1561_signed_in_sessions.sql#app.sign_out_my_other_sessions
+        test: supabase/tests/1561_signed_in_sessions.test.sql
   - kind: billing.payment_failed
     category: account
     emitted_by:
@@ -216,6 +237,59 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1203_break_glass_sessions.sql#app.start_break_glass
         test: supabase/tests/1203_break_glass_sessions.test.sql
+  # Org lifecycle: trial, deletion and recovery, ownership, white label, partners (A79, 1350 to 1355)
+  - kind: billing.trial_ending
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1350_org_trials.sql#private.run_trials
+        test: supabase/tests/1350_org_trials.test.sql
+  - kind: billing.trial_ended
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1350_org_trials.sql#private.expire_trial
+        test: supabase/tests/1350_org_trials.test.sql
+  - kind: organization.deletion_requested
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1351_org_deletion.sql#app.request_org_deletion
+        test: supabase/tests/1351_org_deletion.test.sql
+  - kind: organization.deletion_recovered
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1351_org_deletion.sql#app.recover_org_deletion
+        test: supabase/tests/1351_org_deletion.test.sql
+  - kind: organization.ownership_offered
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1352_ownership_transfers.sql#app.offer_ownership_transfer
+        test: supabase/tests/1352_ownership_transfers.test.sql
+  - kind: organization.ownership_accepted
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1352_ownership_transfers.sql#app.accept_ownership_transfer
+        test: supabase/tests/1352_ownership_transfers.test.sql
+  - kind: organization.ownership_declined
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1352_ownership_transfers.sql#app.decline_ownership_transfer
+        test: supabase/tests/1352_ownership_transfers.test.sql
+  - kind: organization.white_label_reverting
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1355_white_label_provisioning.sql#private.track_white_label_grace
+        test: supabase/tests/1355_white_label_provisioning.test.sql
+  - kind: organization.white_label_reverted
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1355_white_label_provisioning.sql#private.track_white_label_grace
+        test: supabase/tests/1355_white_label_provisioning.test.sql
+      - emitter: supabase/migrations/1355_white_label_provisioning.sql#private.revert_white_label
+        test: supabase/tests/1355_white_label_provisioning.test.sql
+  - kind: partner.client_left
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1562_step_up_roles_keys_billing.sql#app.leave_partner
+        test: supabase/tests/1354_partner_exit_standing_grants.test.sql
   # Reports and imports (0520)
   - kind: report.delivered
     category: reports
@@ -235,6 +309,22 @@ kinds:
     deferred:
       reason: "The export_ready template needs an absolute download link and its expiry (packages/platform dispatch.ts), which only the app can build once an export file is stored; export jobs (0530) notify nobody yet."
       decision: "The export runner emits it with the signed link; no owner decision pending"
+  # Automations (1481, ADR 0047): the notify action's message, a run that failed, an automation paused fail closed
+  - kind: automation.notice
+    category: automations
+    emitted_by:
+      - emitter: supabase/migrations/1481_automation_runs.sql#app.send_automation_notice
+        test: supabase/tests/1481_automation_runs.test.sql
+  - kind: automation.failed
+    category: automations
+    emitted_by:
+      - emitter: supabase/migrations/1481_automation_runs.sql#private.settle_automation_run
+        test: supabase/tests/1481_automation_runs.test.sql
+  - kind: automation.paused
+    category: automations
+    emitted_by:
+      - emitter: supabase/migrations/1481_automation_runs.sql#private.pause_automation
+        test: supabase/tests/1481_automation_runs.test.sql
   # Workforce suite (0800)
   - kind: message.received
     category: messages

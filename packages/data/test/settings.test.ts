@@ -7,6 +7,7 @@ import {
   EMPTY_BRAND,
   type BrandInput,
   getOrgBrand,
+  getOrgSettingValue,
   getPersona,
   listBrandFonts,
   listDisabledModules,
@@ -14,6 +15,7 @@ import {
   listOrgDomains,
   listOrgLegalAcceptances,
   listSettingValues,
+  readOrgTimeZone,
   recordLegalAcceptances,
   removeFavorite,
   removeOrgDomain,
@@ -116,6 +118,33 @@ describe("resolved settings", () => {
       error: { kind: "not-found" },
     });
   });
+
+  it("reads the org's locale.time_zone, falling back to UTC (A95)", async () => {
+    const zone = (value: string | null) =>
+      okResponse([
+        {
+          setting_key: "locale.time_zone",
+          value_text: value,
+          value_boolean: null,
+          value_integer: null,
+          source: "Organization",
+          locked: false,
+          value_type: "Text",
+        },
+      ]);
+    const { db } = fakeClient({
+      "rpc:resolve_settings": [
+        zone("America/New_York"),
+        zone("Mars/Olympus_Mons"),
+        zone(null),
+        errorResponse("42501", "denied"),
+      ],
+    });
+    expect(await readOrgTimeZone(db, "o1")).toBe("America/New_York");
+    expect(await readOrgTimeZone(db, "o1")).toBe("UTC");
+    expect(await readOrgTimeZone(db, "o1")).toBe("UTC");
+    expect(await readOrgTimeZone(db, "o1")).toBe("UTC");
+  });
 });
 
 describe("setting values", () => {
@@ -147,6 +176,35 @@ describe("setting values", () => {
       locked: false,
     });
     expect((await listSettingValues(db, "o1")).ok).toBe(false);
+  });
+
+  it("reads the org's own value, never a person's (A71)", async () => {
+    const { db, calls } = fakeClient({
+      "from:setting_values": [
+        okResponse({ value_text: "America/Los_Angeles", value_boolean: null, value_integer: null }),
+        okResponse(null),
+        errorResponse("08000", "down"),
+      ],
+    });
+    expect(await getOrgSettingValue(db, "o1", "locale.time_zone")).toEqual({
+      ok: true,
+      data: "America/Los_Angeles",
+    });
+    // Only the Organization row of this org: app.resolve_settings would rank a person's value first.
+    expect(calls[0]?.steps).toEqual(
+      expect.arrayContaining([
+        ["eq", ["org_id", "o1"]],
+        ["eq", ["setting_key", "locale.time_zone"]],
+        ["eq", ["scope_kind", "Organization"]],
+        ["eq", ["scope_id", "o1"]],
+        ["is", ["deleted_at", null]],
+      ]),
+    );
+    expect(await getOrgSettingValue(db, "o1", "payroll.week_start")).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect((await getOrgSettingValue(db, "o1", "payroll.week_start")).ok).toBe(false);
   });
 
   it("sets each value type in its own column and returns refusals", async () => {

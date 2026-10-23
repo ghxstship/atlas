@@ -18,11 +18,27 @@ export interface PlatformDb {
   ): Promise<Readonly<Record<string, unknown>> | null>;
 }
 
+/** What PostgREST says about a failed call, beyond its message. */
+export interface PlatformDbErrorDetails {
+  /** The SQLSTATE or PostgREST code, such as XR001 for a refusal. */
+  readonly code?: string | null;
+  /** The hint, which names the rule of an XR001 refusal. */
+  readonly hint?: string | null;
+}
+
 /** A database call failed; carries the PostgREST message (refusals keep their rule code). */
 export class PlatformDbError extends Error {
-  constructor(operation: string, message: string) {
+  /** The database's own message, without the operation in front. */
+  readonly databaseMessage: string;
+  readonly code: string | null;
+  readonly hint: string | null;
+
+  constructor(operation: string, message: string, details: PlatformDbErrorDetails = {}) {
     super(`${operation}: ${message}`);
     this.name = "PlatformDbError";
+    this.databaseMessage = message;
+    this.code = details.code ?? null;
+    this.hint = details.hint ?? null;
   }
 }
 
@@ -32,7 +48,7 @@ export function supabaseDb(client: SupabaseClient): PlatformDb {
   return {
     async rpc(fn, args) {
       const { data, error } = await app.rpc(fn, { ...args });
-      if (error !== null) throw new PlatformDbError(fn, error.message);
+      if (error !== null) throw new PlatformDbError(fn, error.message, error);
       return data;
     },
     async selectOne(table, columns, match) {
@@ -44,6 +60,65 @@ export function supabaseDb(client: SupabaseClient): PlatformDb {
         .maybeSingle();
       if (error !== null) throw new PlatformDbError(table, error.message);
       return (data as Readonly<Record<string, unknown>> | null) ?? null;
+    },
+  };
+}
+
+export interface RestDbOptions {
+  /** The project URL (SUPABASE_URL). */
+  readonly url: string;
+  /** The service role key, sent as the apikey and the bearer token, as supabase-js sends it. */
+  readonly serviceKey: string;
+  readonly fetch?: (url: string, init: RequestInit) => Promise<Response>;
+}
+
+/**
+ * PlatformDb over PostgREST with plain fetch: the same requests supabaseDb makes through supabase-js
+ * (POST /rpc/<fn> and a one-row GET, in the app schema) and the same errors, without loading
+ * supabase-js. The Edge Functions use it, so a cold start parses only what the function calls (A85).
+ */
+export function restDb(options: RestDbOptions): PlatformDb {
+  const base = `${options.url.replace(/\/+$/, "")}/rest/v1`;
+  const send = options.fetch ?? ((url: string, init: RequestInit) => fetch(url, init));
+  const auth = { apikey: options.serviceKey, Authorization: `Bearer ${options.serviceKey}` };
+
+  async function call(operation: string, url: string, init: RequestInit): Promise<unknown> {
+    const response = await send(url, init);
+    const body = await response.text();
+    if (!response.ok) {
+      let problem: { message?: unknown; code?: unknown; hint?: unknown } = {};
+      try {
+        problem = JSON.parse(body) as typeof problem;
+      } catch {
+        // Not a PostgREST error body (a gateway error page): the text itself is the message.
+      }
+      const message =
+        typeof problem.message === "string" ? problem.message : body || response.statusText;
+      throw new PlatformDbError(operation, message, {
+        code: typeof problem.code === "string" ? problem.code : null,
+        hint: typeof problem.hint === "string" ? problem.hint : null,
+      });
+    }
+    return body === "" ? null : (JSON.parse(body) as unknown);
+  }
+
+  return {
+    rpc(fn, args) {
+      return call(fn, `${base}/rpc/${encodeURIComponent(fn)}`, {
+        method: "POST",
+        headers: { ...auth, "Content-Type": "application/json", "Content-Profile": "app" },
+        body: JSON.stringify(args),
+      });
+    },
+    async selectOne(table, columns, match) {
+      const query = new URLSearchParams({ select: columns.replace(/\s+/g, "") });
+      for (const [column, value] of Object.entries(match)) query.append(column, `eq.${value}`);
+      query.set("limit", "1");
+      const data = await call(table, `${base}/${encodeURIComponent(table)}?${query.toString()}`, {
+        method: "GET",
+        headers: { ...auth, "Accept-Profile": "app" },
+      });
+      return rows(data)[0] ?? null;
     },
   };
 }

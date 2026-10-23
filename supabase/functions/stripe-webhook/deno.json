@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "lib": ["deno.window", "dom"]
+  },
+  "imports": {
+    "stripe": "npm:stripe@23.0.0"
+  }
+}

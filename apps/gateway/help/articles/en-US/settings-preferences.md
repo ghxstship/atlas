@@ -13,7 +13,7 @@ Preferences holds your personal defaults:
 - **Date format**: follow the language, or year-month-day everywhere.
 - **Units** for distances, weights and areas.
 - **Theme**: system, light or dark.
-- **Week starts on** Sunday or Monday, on calendars and timesheets.
+- **Week starts on** Sunday or Monday, on your calendars. Timesheets and pay periods follow the org's week.
 - **Translate messages** written in another language.
 
 Some settings here apply in Atlas only, such as the start page, density and persona.

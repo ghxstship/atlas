@@ -95,8 +95,29 @@ caller, the same on both hosts. The API sends no CORS headers on either host.
 3. Verify the domain in Resend. Then set Supabase SMTP (`promote-to-production.md`, step 6) and the function
    secrets `RESEND_API_KEY` and `XOS_EMAIL_FROM`.
 
-Reply by email (`XOS_INBOUND_DOMAIN`) needs its own domain and MX records pointing at the provider that posts
-to `inbound-email`. That domain is not chosen yet.
+Reply by email and project inboxes (`XOS_INBOUND_DOMAIN`, ADR 0040) need their own receiving domain, with MX
+records pointing at the inbound mail provider that posts each parsed message to the `inbound-email` Edge
+Function. That domain is not chosen yet. **OWNER**, once it is:
+
+1. Pick a subdomain used only for receiving, written here as `<inbound domain>` (for example
+   `inbound.<your domain>`), and choose an inbound provider that parses mail, checks DKIM and can post JSON to
+   a URL with a bearer secret.
+2. At the DNS host, add the provider's MX records for `<inbound domain>`, exactly as the provider lists them:
+
+   | Name               | Type | Value                                                |
+   | ------------------ | ---- | ---------------------------------------------------- |
+   | `<inbound domain>` | MX   | `<priority> <provider's inbound mail host>`, per row |
+
+3. Point the provider's webhook at `https://<project ref>.supabase.co/functions/v1/inbound-email` with the
+   header `Authorization: Bearer <XOS_INBOUND_SECRET>`, and have it store the raw message where it can be read
+   later, sending that path as `rawObjectPath`.
+4. Set the function secrets `XOS_INBOUND_SECRET` (a new random value the provider also holds) and
+   `XOS_INBOUND_DOMAIN=<inbound domain>`, and set `XOS_INBOUND_DOMAIN=<inbound domain>` on the `atlas` Vercel
+   project too, so Project Settings shows each project's full inbox address. Redeploy Atlas.
+5. Check: create a project inbox in Atlas (Project Settings, Project inbox), forward one message to it, and
+   find it on the project's Documents tab.
+
+Until then project inbox addresses show only their local part, and no mail arrives.
 
 ### Universal links to Compass
 
@@ -159,7 +180,17 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, each every minute) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, each every minute; `infra/runbooks/integrations.md`) still exist: `select jobname, schedule from cron.job order by 1;`.
+
+How the functions are bundled (A85, RRR-130):
+
+- Each function has its own bundle entry and its own import map. `supabase/functions/_vendor/<function>.js` holds the platform code that function uses, `_vendor/core.js` the logger, request observer and database seam every function shares, and `_vendor/chunks/` the code several functions share or load on demand. `supabase/functions/<function>/deno.json` lists only the npm packages that function imports, pinned from `supabase/functions/deno.json`. `supabase functions deploy` picks up each function's `deno.json` itself; pass no `--import-map`.
+- All of these files are generated: `pnpm --filter @xos/platform bundle:edge`. The `@xos/platform` tests fail when a generated file is stale, missing or extra, when a function loads an npm package at boot that it did not load before, or when its boot code passes its budget (`packages/platform/test/edge-bundle.test.ts`). A new npm package must be pinned in `supabase/functions/deno.json` before the build will use it.
+- A new function (for example A79's `org-lifecycle`): add `packages/platform/edge/entries/<function>.ts` exporting exactly what its `index.ts` uses, imported module by module (never through a package's index, which pulls every module in). In `index.ts`, import those from `../_vendor/<function>.js` and the logger or database seam from `../_vendor/core.js` (or through `_shared/runtime.ts`). Load a heavy package with a dynamic `import()` where a request may not need it. Run `bundle:edge`, then add the function's boot and lazy packages and its boot budget to `packages/platform/test/edge-bundle.test.ts`. The test fails for a function directory with no entry; a function that uses nothing but the shared core goes in that test's `CORE_ONLY` list instead.
+- Deploy with the CLI's default Docker bundling. Never pass `--use-api`: server-side bundling allows 5 MB per function and `report-run` is about 9 MB compressed (69 MB as an eszip, mostly exceljs and pdfkit, which load only for .xlsx and PDF runs). Local bundling allows 20 MB.
+- Cold starts: `kiosk-punch`, `api-token`, `email-unsubscribe` and `webhook-dispatch` load no npm package; `stripe-webhook` loads only Stripe; `scim`, `integration-worker`, `integration-inbound`, `import-run` and `upload-scan` load only supabase-js (`import-run` loads exceljs when it reads a workbook); React Email and Resend load only when `notification-dispatch` or `report-run` sends. The hosted limits are 2 s of CPU and 256 MB a request. A function that answers HTTP 546 hit one of them: check whether its boot code grew (`bundle:edge`, then the budget test) before raising anything.
+
+Kiosk re-keying: a kiosk whose device key was retired or revoked in Atlas answers every punch with `kiosk_device_unregistered`, and Compass shows "This device is no longer registered as a kiosk". Register a new kiosk in Atlas, then on the device, signed in as a supervisor, choose **Forget this kiosk** and enter the new key (Compass help, Kiosk).
 
 ### 3. Apps
 
@@ -211,6 +242,7 @@ Values live in Vercel, the Supabase project, EAS and GitHub. They are never comm
 | `XOS_LOG_LEVEL`               | `info` (`debug` on Preview)                                       |
 | `COMPASS_APPLE_TEAM_IDS`      | The Apple team id, once the developer account exists              |
 | `COMPASS_ANDROID_CERT_SHA256` | The Play app signing certificate fingerprint, once the app exists |
+| `XOS_INBOUND_DOMAIN`          | `<inbound domain>`, once the receiving domain exists (ADR 0040)   |
 
 ### Gateway (Vercel project `gateway`)
 
@@ -235,13 +267,16 @@ None. The site is built from the repository and the OpenAPI document. Project se
 
 | Secret                                                    | Notes                                                                                                          |
 | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`                                                                      |
+| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`, `integration-worker` and `automation-run` (ADR 0047)                |
 | `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)       |
 | `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key |
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, after **OWNER** approves real-recipient email              |
 | `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | Reply by email                                                                                                 |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | Live Stripe keys, once the owner opens billing                                                                 |
 | `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | The private address and port of clamd ("Upload scanning (ClamAV)" below); the port defaults to 3310            |
+| `XOS_SLACK_SIGNING_SECRET`                                | Slack events and slash commands (`integration-inbound`), `infra/runbooks/integrations.md`                      |
+| `XOS_XERO_WEBHOOK_KEY`                                    | Xero change notices (`integration-inbound`), once the Xero app exists                                          |
+| `XOS_QUICKBOOKS_VERIFIER_TOKEN`                           | QuickBooks Online change notices (`integration-inbound`), once the app exists                                  |
 | `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | The Edge Functions' Sentry DSN; `production`; `info`                                                           |
 | `XOS_PUSH_TRANSPORT`, `EXPO_ACCESS_TOKEN`                 | `expo` to send push ("Push and SMS" below); the access token only if enhanced push security is on              |
 | `XOS_SMS_TRANSPORT`, `TWILIO_ACCOUNT_SID`                 | `twilio` to send SMS; the account SID, `AC<32 hex characters>`                                                 |
@@ -342,6 +377,28 @@ becomes downloadable after the next run.
 
 Renovate proposes new `clamav/clamav` tags. Update ADR 0001 and `infra/scanning/docker-compose.yaml`
 together. Roll hosts one at a time; while one restarts, scans retry with backoff.
+
+## Legal change notices (OWNER)
+
+Section 14.4 needs 30 days' notice before a material change to a legal document or a new subprocessor. Both
+start with one call in the SQL editor of the production project, after the new text is published at `/legal`
+(A82, migrations 1382 and 1383). Each refuses a date less than 30 days ahead and records the notice time from
+the database, which is the evidence of the notice.
+
+```sql
+-- A material change: Atlas asks whoever accepts terms for each org (Org), or Gateway asks each person
+-- who accepted an earlier version (Personal), until they accept the new version.
+select app.announce_legal_change('terms-of-service', '2.0.0', 'Org', '<what changes, in plain words>', date '<effective date>');
+-- Withdraw a notice sent by mistake:
+select app.withdraw_legal_change('terms-of-service', '2.0.0');
+
+-- A Subprocessor List change: emails every confirmed subscriber and every Owner and Admin who has not
+-- opted out; the subprocessor-notices worker sends them.
+select app.queue_subprocessor_notice('<list version>', '<what changes, in plain words>', date '<effective date>');
+```
+
+A subprocessor notice emails real recipients, which `legal/policies/change-management.md` section 5 makes a
+stop condition: the owner approves each one before it is queued.
 
 ## Stripe catalogue (OWNER, test mode)
 

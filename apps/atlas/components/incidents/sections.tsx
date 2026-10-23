@@ -78,6 +78,7 @@ import {
 } from "@/lib/incidents/actions";
 import { can, chooseView, type ModulePage } from "@/lib/operations/context";
 import { instantToLocal } from "@/lib/operations/time";
+import { IncidentOshaPanel } from "@/components/compliance/osha-panels";
 import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
@@ -289,7 +290,10 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
         page.project ? (
           <ReportForm page={page} project={page.project} severities={severities} />
         ) : (
-          chooseProjectNotice(page, section)
+          chooseProjectNotice(page, section, {
+            choose: t("incidents.chooseProject"),
+            none: t("incidents.noProjects"),
+          })
         )
       ) : null}
       {body}
@@ -517,6 +521,7 @@ async function IncidentRecord({
       }
     >
       <DocumentActions org={page.ctx.org.slug} kind="incident-report" id={incident.id} />
+      <IncidentOshaPanel ctx={page.ctx} incidentId={incident.id} members={memberList} />
       {moves.length > 0 && (canDispatch || canWrite) ? (
         <RecordSection id="incident-move" title={t("incidents.moveHeading")}>
           {moves
@@ -1339,7 +1344,10 @@ export async function RadioChannelsSection({ page }: { page: ModulePage }) {
             </ActionForm>
           </RecordSection>
         ) : (
-          chooseProjectNotice(page, section)
+          chooseProjectNotice(page, section, {
+            choose: t("incidents.radio.chooseProject"),
+            none: t("incidents.noProjects"),
+          })
         )
       ) : null}
       {channels.length === 0 ? (

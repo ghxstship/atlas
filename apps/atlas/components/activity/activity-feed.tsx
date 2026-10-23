@@ -1,7 +1,7 @@
 "use client";
 
 import type { ActivityEntry } from "@xos/data/activity";
-import { ActivityFeedItem, Button, EmptyState, SegmentedControl } from "@xos/ui";
+import { Button, EmptyState, SegmentedControl } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -9,7 +9,8 @@ import { useState } from "react";
 import { CollectionViews } from "@/components/views/collection-views";
 // The table is an alternative to the feed (A24-009).
 import { DataTable } from "@/components/lazy-ui";
-import { useDescribe } from "./describe";
+import { ActivityLine } from "./activity-line";
+import { collapseRepeats, useDescribe } from "./describe";
 
 export type ActivityView = "feed" | "list" | "table";
 
@@ -128,39 +129,30 @@ export function ActivityFeed({
         />
       ) : view === "list" ? (
         <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
-          {shown.map((e) => {
-            const d = describe(e);
-            return (
-              <li key={e.id} className="flex flex-wrap items-baseline gap-8 py-8 text-text-13">
-                <time
-                  dateTime={e.at}
-                  className="w-(--ui-props-label) shrink-0 text-text-secondary tabular-nums"
-                >
-                  {when(e.at)}
-                </time>
-                <span className="font-medium text-text-primary">{d.actor}</span>
-                <span className="text-text-secondary">{d.action}</span>
-                <span className="text-text-primary">{d.target}</span>
-              </li>
-            );
-          })}
+          {collapseRepeats(shown, describe).map(({ entry: e, description: d, count }) => (
+            <li key={e.id} className="flex flex-wrap items-baseline gap-8 py-8 text-text-13">
+              <time
+                dateTime={e.at}
+                className="w-(--ui-props-label) shrink-0 text-text-secondary tabular-nums"
+              >
+                {when(e.at)}
+              </time>
+              <span className="font-medium text-text-primary">{d.actor}</span>
+              <span className="text-text-secondary">{d.action}</span>
+              <span className="text-text-primary">{d.target}</span>
+              {count > 1 ? (
+                <span className="text-text-secondary">{t("times", { count })}</span>
+              ) : null}
+            </li>
+          ))}
         </ul>
       ) : (
         <ol className="m-0 flex list-none flex-col gap-4 p-0">
-          {shown.map((e) => {
-            const d = describe(e);
-            return (
-              <li key={e.id}>
-                <ActivityFeedItem
-                  actor={d.actor}
-                  action={d.action}
-                  target={d.target}
-                  time={when(e.at)}
-                  {...(d.comment ? { comment: d.comment } : {})}
-                />
-              </li>
-            );
-          })}
+          {collapseRepeats(shown, describe).map(({ entry: e, description: d, count }) => (
+            <li key={e.id}>
+              <ActivityLine description={d} time={when(e.at)} count={count} />
+            </li>
+          ))}
         </ol>
       )}
       <div className="flex gap-8">

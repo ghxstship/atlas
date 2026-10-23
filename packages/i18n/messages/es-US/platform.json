@@ -75,7 +75,7 @@
     "org_cancel_has_clients": "Un socio con organizaciones cliente no puede cancelar. Pase primero cada cliente a facturación directa.",
     "org_not_canceled": "Esta organización no está cancelada.",
     "org_reactivation_window": "Una organización se puede reactivar durante los 30 días posteriores a su cancelación.",
-    "org_read_only": "Esta organización está cancelada y en solo lectura. El Propietario puede reactivarla en Configuración, Zona de peligro.",
+    "org_read_only": "Esta organización está en solo lectura en este momento. El aviso en la parte superior de la página explica por qué y qué lo levanta.",
     "inbox_action_unknown": "Un elemento de la Bandeja se aprueba, se rechaza o se marca como Listo.",
     "inbox_action_not_offered": "Solo una solicitud de aprobación se aprueba o se rechaza desde la Bandeja.",
     "inbox_snooze_window": "Posponga un elemento hasta por 30 días.",
@@ -84,7 +84,42 @@
     "approval_approver_capability": "Aprobar este documento requiere su permiso de aprobación.",
     "approval_one_step_per_approver": "Usted ya decidió un paso de esta aprobación. El siguiente paso necesita otra persona.",
     "approval_rejection_reason": "Diga por qué cuando rechace una aprobación.",
-    "sod_approval_requester": "Usted solicitó esta aprobación, así que otra persona la decide."
+    "sod_approval_requester": "Usted solicitó esta aprobación, así que otra persona la decide.",
+    "calendar_feed_limit": "Tiene 20 calendarios suscritos. Revoque uno antes de agregar otro.",
+    "calendar_feed_revoked": "Un calendario revocado sigue revocado. Agregue uno nuevo.",
+    "calendar_feed_token": "El enlace de un calendario solo cambia cuando obtiene un enlace nuevo.",
+    "inbound_message_triaged": "Este mensaje ya se archivó o se descartó.",
+    "inbound_message_unverified": "El remitente de este mensaje no se verificó, así que no se puede archivar. Descártelo.",
+    "inbound_message_record": "Archive el mensaje en un registro de este proyecto que usted pueda abrir.",
+    "inbound_message_document": "Archive el mensaje como documento de este proyecto.",
+    "inbound_message_filing": "Al archivar se asignan juntos el documento y el estado Archivado.",
+    "inbound_message_immutable": "El correo recibido solo se archiva o se descarta.",
+    "project_inbox_disabled": "Una dirección de bandeja desactivada sigue desactivada. Cree una dirección nueva.",
+    "project_inbox_immutable": "Una dirección de bandeja nunca cambia. Reemplace la dirección.",
+    "import_google_sheets_off": "La importación desde un enlace de Google Sheets está desactivada para esta organización.",
+    "import_google_drive_required": "Conecte Google Drive en Configuración, Integraciones, antes de importar un enlace de Google Sheets.",
+    "import_sheet_not_detected": "Las hojas se pueden importar cuando se haya leído el libro.",
+    "import_sheet_empty": "Esa hoja no tiene filas que importar.",
+    "import_target_not_allowed": "No puede importar en ese destino en esta organización.",
+    "import_sheet_taken": "Ya hay una importación abierta de esta hoja.",
+    "import_link_invalid": "Pegue un enlace que empiece con https://docs.google.com/spreadsheets/d/.",
+    "warehouse_plan": "La entrega al almacén de datos es parte del plan Enterprise.",
+    "warehouse_provider_unavailable": "La entrega a ese proveedor aún no está disponible. Use S3 o un bucket compatible con S3.",
+    "warehouse_private_endpoint": "El punto de acceso de un bucket debe ser una dirección HTTPS pública.",
+    "warehouse_confidential_capability": "Entregar columnas confidenciales requiere la capacidad de exportación confidencial.",
+    "warehouse_provider_fixed": "Un destino conserva su proveedor. Agregue otro destino.",
+    "warehouse_fields_service_only": "Los datos de credencial y de entrega solo cambian con sus propios formularios.",
+    "warehouse_credential_empty": "Una credencial de bucket necesita un valor.",
+    "warehouse_credential_too_large": "Una credencial de bucket tiene como máximo 16 KB.",
+    "warehouse_credential_format": "La credencial debe ser JSON con access_key_id y secret_access_key.",
+    "warehouse_credential_required": "Guarde la credencial del bucket antes de la primera entrega.",
+    "warehouse_destination_paused": "Reanude el destino antes de entregarle datos.",
+    "warehouse_delivery_in_progress": "Ya hay una entrega en camino a este destino.",
+    "integration_inbound_reason": "Indique por qué se debe intentar de nuevo el webhook.",
+    "integration_inbound_not_dead_letter": "Solo se puede reenviar un webhook que falló definitivamente.",
+    "integration_inbound_secret_short": "Un secreto de webhook tiene al menos 16 caracteres.",
+    "integration_inbound_secret_long": "Un secreto de webhook tiene como máximo 1024 caracteres.",
+    "integration_disconnected": "Esa conexión está desconectada y no puede cambiar."
   },
   "partner": {
     "sections": "Secciones de la consola de socio",
@@ -235,7 +270,14 @@
       "targetHelp": "Cada fila se convierte en un registro de este tipo.",
       "file": "Hoja de cálculo",
       "fileHelp": ".csv o .xlsx, hasta 10 MB. La primera fila con texto es la fila de encabezados.",
-      "submit": "Subir y leer"
+      "submit": "Subir y leer",
+      "source": "Leer desde",
+      "sourceFile": "Un archivo",
+      "sourceSheets": "Un enlace de Google Sheets",
+      "link": "Enlace de Google Sheets",
+      "linkHelp": "Pegue el enlace de una hoja de cálculo compartida con la cuenta de Google que conectó Google Drive en Configuración, Integraciones.",
+      "linkSubmit": "Leer la hoja",
+      "linkInvalid": "Pegue un enlace que empiece con https://docs.google.com/spreadsheets/d/."
     },
     "past": {
       "title": "Importaciones recientes",
@@ -274,17 +316,27 @@
       "reading": "Leyendo la hoja de cálculo. Esta página se actualiza sola.",
       "validating": "Revisando cada fila. Esta página se actualiza sola.",
       "committing": "Escribiendo las filas. Esta página se actualiza sola.",
-      "scanning": "Revisando el archivo en busca de virus antes de leerlo. Esta página se actualiza sola."
+      "scanning": "Revisando el archivo en busca de virus antes de leerlo. Esta página se actualiza sola.",
+      "fetching": "Leyendo la hoja de Google. Esta página se actualiza sola."
     },
     "failed": {
       "title": "No se pudo procesar esta importación",
       "body": "No se pudo leer o escribir el archivo. Verifique que sea una hoja de cálculo .csv o .xlsx e inicie una nueva importación.",
       "infected": "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó y no se importó nada. Revise el archivo en su computadora con su antivirus y suba una copia limpia.",
-      "scanFailed": "No se pudo revisar este archivo en busca de virus, así que no se leyó. Guárdelo de nuevo como .csv o .xlsx e inicie una nueva importación."
+      "scanFailed": "No se pudo revisar este archivo en busca de virus, así que no se leyó. Guárdelo de nuevo como .csv o .xlsx e inicie una nueva importación.",
+      "google_drive_not_connected": "Google Drive no está conectado, así que no se pudo leer la hoja. Pida a un administrador que lo conecte en Configuración, Integraciones, y luego inicie una importación nueva.",
+      "google_sheet_not_shared": "La hoja no está compartida con la cuenta de Google que conectó Google Drive. Compártala con esa cuenta y luego inicie una importación nueva.",
+      "google_sheet_not_found": "El enlace no lleva a ninguna hoja de cálculo. Revise el enlace e inicie una importación nueva.",
+      "google_drive_credential_refused": "Google rechazó la conexión de Google Drive. Pida a un administrador que vuelva a conectar Google Drive y luego inicie una importación nueva.",
+      "google_drive_credential_malformed": "La conexión de Google Drive no tiene un token válido. Pida a un administrador que vuelva a conectar Google Drive y luego inicie una importación nueva.",
+      "google_sheet_unavailable": "Google no respondió después de varios intentos. Inicie una importación nueva en unos minutos.",
+      "google_sheet_too_large": "La hoja de cálculo es demasiado grande para importarla desde un enlace (más de 50 hojas o 500,000 celdas). Descárguela como .xlsx y suba ese archivo.",
+      "google_sheet_empty": "La hoja de cálculo no tiene hojas con celdas que leer.",
+      "google_sheet_link_invalid": "El enlace no es de una hoja de cálculo de Google Sheets. Inicie una importación nueva con el enlace de la hoja."
     },
     "map": {
       "title": "Asignar las columnas",
-      "intro": "Confirme qué contiene cada columna. Las sugerencias vienen de los encabezados; omita cualquier columna que no necesite.",
+      "intro": "Confirme qué contiene cada columna. Las sugerencias vienen de sus asignaciones guardadas, del mapa de columnas del Playbook y de los nombres de las columnas; omita las columnas que no necesite.",
       "noColumns": "No se encontró una fila de encabezados. Verifique que la primera fila con texto contenga los nombres de las columnas.",
       "columns": "Columnas",
       "column": "Columna {header}",
@@ -293,7 +345,13 @@
       "required": "obligatorio",
       "suggested": "Sugerido",
       "missing": "Asigne primero estos campos obligatorios: {fields}.",
-      "confirm": "Confirmar la asignación"
+      "confirm": "Confirmar la asignación",
+      "sources": {
+        "Profile": "Según su asignación guardada",
+        "Playbook": "Según el mapa de columnas del Playbook",
+        "Header": "Según el nombre de la columna",
+        "Assistant": "Sugerido por Aurora"
+      }
     },
     "fields": {
       "name": "Nombre",
@@ -379,6 +437,29 @@
       "result": "{reverted, plural, one {# fila revertida} other {# filas revertidas}}, {kept, plural, =0 {ninguna conservada} one {# conservada} other {# conservadas}}.",
       "keptTitle": "Filas conservadas",
       "keptRow": "Fila {row}: {reason}"
+    },
+    "sheetLine": "Hoja {sheet}",
+    "sheets": {
+      "title": "Hojas de este libro",
+      "intro": "Cada hoja se importa por separado, en el destino que le corresponde. El destino propuesto viene de la hoja del Playbook con el mismo nombre o de los nombres de las columnas.",
+      "caption": "Hojas de este libro",
+      "thisImport": "Esta importación",
+      "open": "Abrir su importación",
+      "none": "Ninguno propuesto",
+      "fromPlaybook": "{target}, según el Playbook",
+      "importIt": "Importar esta hoja",
+      "importLabel": "Importar la hoja {sheet}",
+      "target": "Importar {sheet} en",
+      "summary": "{rows, plural, =0 {Sin filas} one {# fila} other {# filas}}. Destino propuesto: {target}."
+    },
+    "aurora": {
+      "button": "Sugerir con Aurora",
+      "note": "Aurora solo ve los nombres de las columnas, nunca los valores de su hoja. Usted confirma cada asignación.",
+      "running": "Aurora está leyendo los nombres de las columnas.",
+      "noAnswer": "Aurora no tiene sugerencias: {missing}",
+      "failed": "Aurora no pudo sugerir asignaciones. Asigne las columnas usted.",
+      "applied": "{count, plural, one {Aurora sugirió # columna. Revísela antes de confirmar.} other {Aurora sugirió # columnas. Revíselas antes de confirmar.}}",
+      "none": "Aurora no encontró nada que agregar a las sugerencias actuales."
     }
   },
   "objects": {
@@ -456,14 +537,15 @@
     "fyi": "Para su información",
     "aRecord": "un registro",
     "someone": "Alguien",
-    "generic": "Actualización",
     "otherKind": "Notificación",
     "kinds": {
       "access": {
         "break_glass_started": "Acceso de emergencia tomado"
       },
       "account": {
-        "security_changed": "Cambió la seguridad de la cuenta"
+        "security_changed": "Cambió la seguridad de la cuenta",
+        "recovery_code_used": "Código de recuperación usado",
+        "session_signed_out": "Sesión cerrada"
       },
       "announcement": {
         "posted": "Anuncio publicado"
@@ -475,9 +557,16 @@
       "assignment": {
         "created": "Nueva asignación"
       },
+      "automation": {
+        "notice": "Mensaje de una automatización",
+        "failed": "Falló una automatización",
+        "paused": "Automatización en pausa"
+      },
       "billing": {
         "payment_failed": "Pago fallido",
-        "read_only": "La organización está en modo de solo lectura"
+        "read_only": "La organización está en modo de solo lectura",
+        "trial_ending": "La prueba termina pronto",
+        "trial_ended": "La prueba terminó"
       },
       "comment": {
         "created": "Nuevo comentario"
@@ -511,6 +600,18 @@
       },
       "occupancy": {
         "threshold": "Se alcanzó el umbral de ocupación"
+      },
+      "organization": {
+        "deletion_requested": "Eliminación de la organización solicitada",
+        "deletion_recovered": "Organización recuperada",
+        "ownership_offered": "Propiedad ofrecida",
+        "ownership_accepted": "Propiedad aceptada",
+        "ownership_declined": "Propiedad rechazada",
+        "white_label_reverting": "La marca blanca termina pronto",
+        "white_label_reverted": "Marca blanca finalizada"
+      },
+      "partner": {
+        "client_left": "Una organización cliente se fue"
       },
       "recognition": {
         "received": "Reconocimiento recibido"
@@ -556,8 +657,10 @@
       "approve": "aprobar",
       "reject": "rechazar",
       "done": "listo",
-      "snooze": "posponer hasta mañana"
-    }
+      "snooze": "posponer hasta mañana",
+      "open": "abrir"
+    },
+    "open": "Abrir"
   },
   "access": {
     "why": {
@@ -635,5 +738,213 @@
   "uploadScan": {
     "infected": "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó. Nadie puede abrirlo. Revise el archivo en su dispositivo y suba una copia limpia.",
     "scanFailed": "No se pudo revisar este archivo en busca de virus, así que sigue cerrado. Súbalo de nuevo, o guárdelo antes en otro formato."
+  },
+  "calendarFeeds": {
+    "feed": {
+      "member": "Mi horario en {org}",
+      "project": "{project} en {org}",
+      "person": "Mi trabajo"
+    },
+    "title": "Calendarios suscritos",
+    "description": "Suscríbase desde Google Calendar, Apple Calendar u Outlook para ver allí sus turnos, reuniones, hitos y fechas límite. Un calendario muestra solo lo que usted puede ver, y las aplicaciones lo actualizan aproximadamente cada hora.",
+    "secret": "Cualquier persona con el enlace de un calendario puede leerlo, así que manténgalo en privado. Si se divulga, obtenga un enlace nuevo o revoque el calendario.",
+    "none": "Todavía no tiene calendarios suscritos en esta organización.",
+    "listLabel": "Sus calendarios suscritos",
+    "mine": "Mi horario",
+    "projectFeed": "Proyecto: {project}",
+    "hint": "Enlace que termina en {hint}",
+    "created": "Agregado el {date}",
+    "lastFetched": "Última consulta el {date}",
+    "neverFetched": "Ninguna aplicación lo ha consultado todavía",
+    "rotated": "Enlace nuevo emitido el {date}",
+    "addTitle": "Agregar un calendario",
+    "scopeLabel": "Calendario",
+    "scopeMine": "Mi horario",
+    "projectLabel": "Proyecto",
+    "projectHelp": "Un calendario de proyecto muestra los turnos, reuniones, hitos y fechas límite del proyecto que usted puede ver.",
+    "add": "Agregar calendario",
+    "rotate": "Obtener un enlace nuevo",
+    "rotateLabel": "Obtener un enlace nuevo para {feed}",
+    "rotateTitle": "¿Obtener un enlace nuevo?",
+    "rotateBody": "El enlace actual deja de funcionar de inmediato. Los calendarios suscritos a él dejan de actualizarse hasta que se suscriba de nuevo con el enlace nuevo.",
+    "revoke": "Revocar",
+    "revokeLabel": "Revocar {feed}",
+    "revokeTitle": "¿Revocar este calendario?",
+    "revokeBody": "El enlace deja de funcionar de inmediato y no se puede volver a activar. Los calendarios suscritos a él dejan de actualizarse.",
+    "cancel": "Cancelar",
+    "linkTitle": "El enlace de su calendario",
+    "linkHelp": "Copie el enlace ahora. Se muestra solo una vez; después de salir de esta página solo podrá obtener uno nuevo.",
+    "linkLabel": "Enlace de suscripción",
+    "copy": "Copiar enlace",
+    "copied": "Enlace copiado.",
+    "openInCalendar": "Abrir en mi aplicación de calendario",
+    "revoked": "Calendario revocado.",
+    "errors": {
+      "calendar_feed_limit": "Tiene 20 calendarios. Revoque uno antes de agregar otro.",
+      "calendar_feed_revoked": "Este calendario fue revocado. Agregue uno nuevo.",
+      "denied": "Ese calendario o proyecto no está disponible para usted.",
+      "invalid": "Elija un proyecto para un calendario de proyecto.",
+      "unexpected": "Algo salió mal. Inténtelo de nuevo."
+    }
+  },
+  "projectInbox": {
+    "title": "Bandeja de correo del proyecto",
+    "description": "Reenvíe correo a la dirección del proyecto. Cada mensaje espera aquí hasta que un coordinador lo archive como documento, opcionalmente en un registro, o lo descarte.",
+    "address": "Dirección de la bandeja",
+    "addressPending": "Dirección {local}. El correo empezará a llegar cuando su organización configure el dominio de recepción.",
+    "noAddress": "Este proyecto todavía no tiene dirección de bandeja.",
+    "noAddressReader": "Este proyecto todavía no tiene dirección de bandeja. Alguien que administre la configuración del proyecto puede crearla.",
+    "create": "Crear dirección de bandeja",
+    "replace": "Reemplazar dirección",
+    "replaceTitle": "¿Reemplazar la dirección de la bandeja?",
+    "replaceBody": "La dirección actual deja de aceptar correo de inmediato. Dé la nueva dirección a todas las personas que reenvían correo aquí.",
+    "disable": "Desactivar bandeja",
+    "disableTitle": "¿Desactivar la bandeja del proyecto?",
+    "disableBody": "La dirección deja de aceptar correo de inmediato. El correo ya recibido se queda aquí.",
+    "copy": "Copiar dirección",
+    "copied": "Dirección copiada.",
+    "listLabel": "Mensajes de la bandeja del proyecto",
+    "toFile": "{count, plural, one {# mensaje por archivar} other {# mensajes por archivar}}",
+    "nothingToFile": "Nada por archivar. El correo reenviado a la dirección de la bandeja llega aquí.",
+    "showAll": "Mostrar archivados y descartados",
+    "showOpen": "Mostrar solo el correo por archivar",
+    "from": "De {from}",
+    "received": "Recibido el {date}",
+    "noSubject": "Sin asunto",
+    "state": {
+      "open": "Por archivar",
+      "rejected": "Remitente no verificado",
+      "filed": "Archivado",
+      "discarded": "Descartado"
+    },
+    "rejectedHelp": "El dominio del remitente no confirmó este mensaje, así que podría ser falso. No se puede archivar; descártelo o pida al remitente que lo envíe de nuevo.",
+    "filedAs": "Archivado como {document} por {name} el {date}",
+    "filedTo": "En el registro {record}",
+    "discardedBy": "Descartado por {name} el {date}",
+    "discardedReason": "Motivo: {reason}",
+    "someone": "alguien",
+    "file": "Archivar",
+    "fileTitle": "Archivar como documento",
+    "fileBody": "El mensaje se convierte en un documento de este proyecto. Su asunto, remitente y texto se publican como comentario en el documento y en el registro que elija.",
+    "documentTitle": "Título del documento",
+    "record": "Registro",
+    "noRecord": "Sin registro",
+    "discard": "Descartar",
+    "discardTitle": "¿Descartar este mensaje?",
+    "openDocument": "Abrir documentos"
+  },
+  "warehouse": {
+    "title": "Entrega al almacén de datos",
+    "description": "Archivos Parquet o CSV con los datos de su organización cada noche en su propio bucket, para su almacén de datos. Las columnas restringidas nunca se entregan.",
+    "enterpriseOnly": "La entrega al almacén de datos es parte del plan Enterprise.",
+    "readOnly": "Cambiar la entrega al almacén de datos requiere la capacidad Programar la entrega de informes y al almacén de datos.",
+    "loadError": "No se pudo cargar la entrega al almacén de datos.",
+    "empty": "Aún no hay destinos. Agregue su bucket abajo.",
+    "docs": "Leer el esquema publicado",
+    "add": {
+      "heading": "Agregar un destino",
+      "provider": "Proveedor",
+      "providerHelp": "S3 funciona con Amazon S3 y con cualquier servicio compatible con S3.",
+      "unavailable": "{provider} (aún no disponible)",
+      "name": "Nombre",
+      "nameHelp": "Cómo reconoce este destino, por ejemplo Lago de análisis.",
+      "bucket": "Bucket",
+      "region": "Región",
+      "regionHelp": "Por ejemplo us-east-1. Use auto para Cloudflare R2.",
+      "endpoint": "Punto de acceso",
+      "endpointHelp": "Solo para un servicio que no sea Amazon S3: su dirección HTTPS.",
+      "prefix": "Carpeta",
+      "prefixHelp": "Carpeta dentro del bucket. Cada entrega escribe una carpeta con fecha dentro de ella.",
+      "format": "Formato",
+      "hour": "Hora de entrega",
+      "hourHelp": "Una hora entera de 0 a 23 según el reloj de su organización ({zone}), definido en Configuración, Idioma y región.",
+      "confidential": "Entregar también las columnas confidenciales",
+      "confidentialHelp": "Las columnas restringidas nunca se entregan.",
+      "submit": "Agregar destino",
+      "added": "Destino agregado. Ahora guarde su credencial."
+    },
+    "destinations": "Destinos",
+    "line": "{provider}, bucket {bucket}, {format}, cada noche a las {hour}:00 ({zone})",
+    "states": {
+      "Active": "Activo",
+      "Paused": "En pausa"
+    },
+    "next": "Próxima entrega {when}",
+    "last": "Última entrega {when}",
+    "never": "Aún no se ha entregado",
+    "lastError": "Último error: {error}",
+    "confidentialOn": "Se entregan las columnas confidenciales.",
+    "credential": {
+      "label": "Credencial del bucket (JSON)",
+      "help": "JSON con access_key_id y secret_access_key, y session_token para credenciales temporales. Se guarda en Vault y no se vuelve a mostrar.",
+      "submit": "Guardar credencial",
+      "saved": "Credencial guardada.",
+      "stored": "Credencial guardada {when}",
+      "missing": "Aún no hay credencial guardada."
+    },
+    "actions": {
+      "deliverNow": "Entregar ahora",
+      "queued": "Entrega en cola. Empieza en menos de un minuto.",
+      "pause": "Pausar",
+      "resume": "Reanudar",
+      "remove": "Eliminar destino",
+      "removed": "Destino eliminado. Su credencial se destruyó."
+    },
+    "deliveries": {
+      "title": "Entregas recientes",
+      "empty": "Aún no hay entregas.",
+      "started": "Inicio",
+      "state": "Estado",
+      "trigger": "Iniciada por",
+      "tables": "Tablas",
+      "rows": "Filas",
+      "withheld": "Columnas omitidas",
+      "error": "Error",
+      "manual": "Entregar ahora",
+      "nightly": "Programa nocturno"
+    },
+    "deliveryStates": {
+      "Queued": "En cola",
+      "Running": "En curso",
+      "Delivered": "Entregada",
+      "Retrying": "Reintentando",
+      "Failed": "Fallida"
+    },
+    "withheld": {
+      "title": "Columnas que nunca se entregan",
+      "intro": "Las columnas restringidas nunca salen de XOS en una entrega. Las columnas confidenciales solo van a un destino que las incluya.",
+      "restricted": "{table}.{column}: restringida, nunca se entrega",
+      "confidential": "{table}.{column}: confidencial, solo si se incluye"
+    }
+  },
+  "inbound": {
+    "title": "Webhooks de proveedores",
+    "description": "Cambios y enlaces que los proveedores conectados envían a XOS. Un webhook que falla definitivamente espera aquí hasta que usted lo reenvíe.",
+    "loadError": "No se pudieron cargar los webhooks de proveedores.",
+    "empty": "Ningún webhook de proveedor ha fallado definitivamente.",
+    "caption": "Webhooks fallidos",
+    "line": "{provider}, {kind}, recibido {when}, {attempts} intentos",
+    "kinds": {
+      "Link Unfurl": "vista previa de enlace",
+      "Change Notice": "aviso de cambio"
+    },
+    "error": "Error: {error}",
+    "retry": "Intentar de nuevo",
+    "retryLabel": "Intentar de nuevo el webhook de {provider}",
+    "reason": "Por qué intentarlo de nuevo",
+    "reasonHelp": "Por ejemplo, se reinstaló el token.",
+    "retried": "Reenviado. Se ejecuta en menos de un minuto.",
+    "secrets": {
+      "title": "Secretos de webhook",
+      "intro": "Los webhooks salientes de Teams, los canales de Google Calendar y las suscripciones de Microsoft Graph firman lo que envían con un secreto de la conexión. Dirija el proveedor al punto de acceso y guarde aquí el mismo secreto.",
+      "endpoint": "Punto de acceso: {url}",
+      "stored": "Secreto guardado {when}",
+      "missing": "No hay secreto guardado",
+      "label": "Secreto de webhook de {name}",
+      "help": "Al menos 16 caracteres. Se guarda en Vault y no se vuelve a mostrar.",
+      "submit": "Guardar secreto",
+      "saved": "Secreto guardado.",
+      "connection": "{name} ({provider})"
+    }
   }
 }

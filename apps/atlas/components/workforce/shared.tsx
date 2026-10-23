@@ -1,4 +1,5 @@
 import { listMembers, listRoles, type Member } from "@xos/data";
+import { departmentsInUse, getDepartmentsInUse } from "@xos/data/org-setup";
 import { listDepartments, listProjects, type ProjectSummary } from "@xos/data/projects";
 import { listGroups, type Group } from "@xos/data/workforce-chat";
 import type { Audience } from "@xos/data/workforce-shared";
@@ -24,14 +25,17 @@ export interface OrgPickers {
   readonly groups: readonly Group[];
   readonly teams: readonly { id: string; name: string }[];
   readonly members: readonly Member[];
-  /** Canon departments (code and name), the targets of a Department audience on feed posts. */
+  /**
+   * Canon departments (code and name), the targets of a Department audience on feed posts: the departments the
+   * org works in once it chose them (Settings, Departments and Disciplines in Use, 1430), else every one.
+   */
   readonly departments: readonly { code: string; label: string }[];
 }
 
 /** Projects, roles, groups, teams, members and canon departments; an unreadable list is empty. */
 export async function orgPickers(ctx: OrgContext): Promise<OrgPickers> {
   const db = ctx.viewer.db;
-  const [projects, roles, groups, teams, members, departments] = await Promise.all([
+  const [projects, roles, groups, teams, members, departments, inUse] = await Promise.all([
     listProjects(db, ctx.org.id),
     listRoles(db, ctx.org.id),
     listGroups(db, ctx.org.id),
@@ -43,6 +47,7 @@ export async function orgPickers(ctx: OrgContext): Promise<OrgPickers> {
       .order("name"),
     listMembers(db, ctx.org.id),
     listDepartments(db),
+    getDepartmentsInUse(db, ctx.org.id),
   ]);
   return {
     projects: projects.ok ? projects.data : [],
@@ -50,7 +55,9 @@ export async function orgPickers(ctx: OrgContext): Promise<OrgPickers> {
     groups: groups.ok ? groups.data.filter((g) => g.archivedAt === null) : [],
     teams: (teams.data ?? []).map((t) => ({ id: t.id, name: t.name })),
     members: members.ok ? members.data : [],
-    departments: departments.ok ? departments.data : [],
+    departments: departments.ok
+      ? departmentsInUse(departments.data, inUse.ok ? inUse.data.departments : [])
+      : [],
   };
 }
 
