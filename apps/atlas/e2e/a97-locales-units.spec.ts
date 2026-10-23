@@ -31,6 +31,14 @@ async function chooseLanguage(page: Page, name: string) {
   await page.getByRole("menuitem", { name, exact: true }).click();
 }
 
+/** Opens the "More fields" part of a settings form when the field sits there. */
+async function reveal(page: Page, field: ReturnType<Page["locator"]>) {
+  if (await field.isVisible()) return;
+  const form = page.getByRole("form", { name: "Settings on this page" });
+  await form.getByRole("button", { name: "More fields" }).first().click();
+  await expect(field).toBeVisible();
+}
+
 /** Sets one personal preference on Preferences, if it is not set to that value already. */
 async function setPreference(page: Page, label: string, value: string) {
   await page.goto(`/${ORG}/me/preferences`);
@@ -38,6 +46,7 @@ async function setPreference(page: Page, label: string, value: string) {
   const form = page.getByRole("form", { name: "Settings on this page" });
   const select = form.getByLabel(label, { exact: true });
   if ((await select.inputValue()) === value) return;
+  await reveal(page, select);
   await select.selectOption(value);
   await form.getByRole("button", { name: "Save", exact: true }).click();
   await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
@@ -53,6 +62,7 @@ async function clearPreference(page: Page, label: string) {
     name: /^(Use the inherited value|Reset to the platform default)$/,
   });
   if ((await clear.count()) === 0) return;
+  await reveal(page, clear.first());
   await clear.first().click();
   await form.getByRole("button", { name: "Save", exact: true }).click();
   await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
@@ -105,7 +115,7 @@ test("locale.units switches the weather board between metric and the jurisdictio
     // By default units follow the project's jurisdiction: Miami-Dade measures in mph and miles.
     await setPreference(page, "Units", "jurisdiction");
     await page.goto(weather);
-    const thresholds = page.getByRole("region", { name: "Thresholds" });
+    const thresholds = page.getByRole("region", { name: "Thresholds" }).first();
     await expect(thresholds).toContainText("mph");
     await expect(page.getByLabel("Hazard").first()).toContainText("Wind gusts (mph)");
 
@@ -120,12 +130,28 @@ test("locale.units switches the weather board between metric and the jurisdictio
   }
 });
 
+/** Locks or unlocks the org's time zone on Settings, Localization (the demo org locks it at New York). */
+async function setOrgZoneLock(page: Page, locked: boolean) {
+  await page.goto(`/${ORG}/settings/localization`);
+  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
+  const form = page.getByRole("form", { name: "Settings on this page" });
+  const zone = form.locator("li").filter({ has: page.getByLabel("Time zone", { exact: true }) });
+  const lock = zone.getByRole("button", { name: "Lock value" });
+  if ((await lock.getAttribute("aria-pressed")) === String(locked)) return;
+  await reveal(page, lock);
+  await lock.click();
+  await form.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
+}
+
 test("me.time_zone_display shows shift times in the event's zone or the person's own, labeled", async ({
   page,
 }) => {
-  await signIn(page, "producer@example.com");
+  // The owner may unlock the org's time zone for the run; the lock is put back at the end.
+  await signIn(page, "owner@example.com");
   const shifts = `/${ORG}/crew/shifts?view=table&week=2027-03-08`;
   try {
+    await setOrgZoneLock(page, false);
     await setPreference(page, "Time zone", "Asia/Tokyo");
     await setPreference(page, "Show schedule times in", "event");
     await page.goto(shifts);
@@ -141,5 +167,6 @@ test("me.time_zone_display shows shift times in the event's zone or the person's
   } finally {
     await clearPreference(page, "Show schedule times in");
     await clearPreference(page, "Time zone");
+    await setOrgZoneLock(page, true);
   }
 });
