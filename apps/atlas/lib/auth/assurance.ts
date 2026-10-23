@@ -76,7 +76,8 @@ export function orgAuthRedirect(
 ): string | null {
   if (decision === "ok") return null;
   if (decision === "mfa") return secondFactorRedirect(path, search, org);
-  const reason = decision === "idle" ? "idle" : "lifetime";
+  const reason =
+    decision === "idle" ? "idle" : decision === "signed-out" ? "signed-out" : "lifetime";
   return `${SESSION_ENDED_PATH}?org=${encodeURIComponent(org)}&reason=${reason}&next=${nextOf(path, search)}`;
 }
 

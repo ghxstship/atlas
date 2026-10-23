@@ -139,6 +139,7 @@ describe("org auth status and the guard's decision", () => {
     sessionExpiresAt: "2026-10-20T16:00:00Z",
     sessionExpired: false,
     idleTimeoutMinutes: 60,
+    sessionEnded: false,
   };
   const now = Date.parse("2026-10-20T10:00:00Z");
 
@@ -186,6 +187,12 @@ describe("org auth status and the guard's decision", () => {
         { lastSeenAt: now, now },
       ),
     ).toBe("session-expired");
+  });
+
+  it("signs in again when the session was signed out from another device (A99)", () => {
+    expect(
+      orgAuthDecision({ ...base, sessionEnded: true, mfaRequired: true }, { lastSeenAt: now, now }),
+    ).toBe("signed-out");
   });
 
   it("counts idle time from the later of the last request and the sign-in", () => {

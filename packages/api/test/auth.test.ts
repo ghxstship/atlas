@@ -39,7 +39,14 @@ function fakeSupabase(
     person?: boolean;
     allowedIps?: readonly string[];
     /** The row app.my_org_auth_status answers (migration 1330); a session that meets every rule by default. */
-    sessionRules?: { mfa_required?: boolean; mfa_verified?: boolean; session_expired?: boolean };
+    sessionRules?: {
+      mfa_required?: boolean;
+      mfa_verified?: boolean;
+      session_expired?: boolean;
+      session_ended?: boolean;
+    };
+    /** The row app.my_oauth_access answers for an app's token (migration 1563); none by default. */
+    oauthAccess?: { oauth_app_id: string; org_id: string; scopes: string[] } | null;
   } = {},
 ) {
   const calls: string[] = [];
@@ -70,7 +77,9 @@ function fakeSupabase(
         );
       }
       if (key === "xos_live_bare") return json({ detail: "Refused." }, 422);
-      if (key !== "xos_live_valid") return json({ detail: "unknown" }, 401);
+      if (key !== "xos_live_valid" && key !== "xos_pat_valid") {
+        return json({ detail: "unknown" }, 401);
+      }
       return json({
         access_token: jwt({ sub: SA_USER_ID, org_id: ORG_A.id }),
         token_type: "bearer",
@@ -98,6 +107,9 @@ function fakeSupabase(
       const enforced = list !== undefined;
       const allowed = list === undefined || list.includes(body.p_ip ?? "");
       return json([{ enforced, allowed, covered: allowed }]);
+    }
+    if (url.pathname === "/rest/v1/rpc/my_oauth_access") {
+      return json(options.oauthAccess ? [options.oauthAccess] : []);
     }
     if (url.pathname === "/rest/v1/rpc/my_org_auth_status") {
       return json([
@@ -202,6 +214,20 @@ describe("org session rules: security.mfa_policy and security.session_hours (A77
     const { authenticate } = fakeSupabase([ORG_A], { sessionRules: { session_expired: true } });
     await expect(resolve(authenticate, { authorization: `Bearer ${VALID}` })).rejects.toMatchObject(
       { body: { status: 401 } },
+    );
+  });
+
+  it("exchanges a personal API token (A86) like an API key", async () => {
+    const { authenticate, exchanges } = fakeSupabase([ORG_A]);
+    const context = await resolve(authenticate, { authorization: "Bearer xos_pat_valid" });
+    expect(context?.credential).toBe("api_key");
+    expect(exchanges.at(-1)).toBe("Bearer xos_pat_valid");
+  });
+
+  it("refuses a session signed out from another device (A99, migration 1561)", async () => {
+    const { authenticate } = fakeSupabase([ORG_A], { sessionRules: { session_ended: true } });
+    await expect(resolve(authenticate, { authorization: `Bearer ${VALID}` })).rejects.toMatchObject(
+      { body: { status: 401, detail: expect.stringContaining("signed out") } },
     );
   });
 
@@ -510,5 +536,46 @@ describe("API key tokens presented as bearer JWTs", () => {
   it("leaves an ordinary session unscoped", () => {
     expect(apiKeyTokenScopes({ amr: [{ method: "password", timestamp: 1 }] })).toBeNull();
     expect(apiKeyTokenScopes({})).toBeNull();
+  });
+});
+
+describe("OAuth app tokens (A99, ADR 0055, migration 1563)", () => {
+  const APP_TOKEN = jwt({ client_id: "0f8fad5b-d9cb-469f-a165-70867728950e", scope: "email" });
+
+  it("acts for the person in the app's org only, within the live grant's groups", async () => {
+    const { authenticate, calls } = fakeSupabase([ORG_A, ORG_B], {
+      oauthAccess: { oauth_app_id: "app-1", org_id: ORG_B.id, scopes: ["projects", "work"] },
+      sessionRules: { mfa_required: true },
+    });
+    const context = await resolve(authenticate, { authorization: `Bearer ${APP_TOKEN}` });
+    expect(context).toMatchObject({
+      credential: "oauth",
+      scopes: ["projects", "work"],
+      org: { id: ORG_B.id },
+      personId: PERSON_ID,
+    });
+    // An app is exempt from the org session rules, like an API key.
+    expect(calls.some((c) => c.startsWith("/rest/v1/rpc/my_org_auth_status"))).toBe(false);
+  });
+
+  it("is no credential for a client no registered app owns, or once the grant is revoked", async () => {
+    const unknown = fakeSupabase([ORG_A], { oauthAccess: null });
+    expect(
+      await resolve(unknown.authenticate, { authorization: `Bearer ${APP_TOKEN}` }),
+    ).toBeNull();
+    const revoked = fakeSupabase([ORG_A], {
+      oauthAccess: { oauth_app_id: "app-1", org_id: ORG_A.id, scopes: [] },
+    });
+    expect(
+      await resolve(revoked.authenticate, { authorization: `Bearer ${APP_TOKEN}` }),
+    ).toBeNull();
+  });
+
+  it("binds no org when the person left the app's org", async () => {
+    const { authenticate } = fakeSupabase([ORG_A], {
+      oauthAccess: { oauth_app_id: "app-1", org_id: ORG_B.id, scopes: ["projects"] },
+    });
+    const context = await resolve(authenticate, { authorization: `Bearer ${APP_TOKEN}` });
+    expect(context?.org).toBeNull();
   });
 });

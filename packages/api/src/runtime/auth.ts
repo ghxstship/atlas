@@ -5,7 +5,12 @@
  *   `@supabase/ssr`) for Atlas pages, with a
  *   same-origin check on state-changing methods because cookies ride along cross-site;
  * - `Authorization: Bearer xos_live_...` API keys, exchanged for a short-lived JWT acting as the
- *   key's service account (`createApiKeyExchange`), limited to the key's scopes.
+ *   key's service account (`createApiKeyExchange`), limited to the key's scopes; personal API
+ *   tokens (`xos_pat_...`, A86) take the same exchange and act as their person.
+ * - `Authorization: Bearer <OAuth access token>`: a Supabase Auth JWT issued by its OAuth 2.1 server to an
+ *   app an org registered (A99, ADR 0055). It carries `client_id`; the app acts for the person within
+ *   the capability groups of their live grant, in the org that registered the app only
+ *   (`app.my_oauth_access`), and the database applies the same limits on its own (migration 1563).
  *
  * The token's signature is verified against the project's published keys (runtime/jwt.ts), or by
  * Supabase Auth for a token only Auth can judge, and every query runs through a client carrying
@@ -26,6 +31,7 @@
  */
 import { createHash } from "node:crypto";
 import { getCurrentPerson, listMyOrganizations } from "@xos/data";
+import { getMyOAuthAccess } from "@xos/data/oauth";
 import { clientAddress } from "@xos/data/client-address";
 import { createCallerClient } from "@xos/data/client";
 import type { XosClient } from "@xos/data";
@@ -87,8 +93,8 @@ export function networkRefused() {
   );
 }
 
-/** What an org's security settings say about a session (A77, migration 1330). */
-export type SessionRule = "ok" | "mfa" | "session-expired";
+/** What an org's security settings say about a session (A77, migration 1330; A99, migration 1561). */
+export type SessionRule = "ok" | "mfa" | "session-expired" | "signed-out";
 
 /**
  * Whether a session meets an org's security settings (A77, migration 1330, `app.my_org_auth_status`): a second
@@ -112,16 +118,19 @@ export function createSessionRulesCheck(ttlMs: number, now: () => number = Date.
         mfa_verified?: boolean;
         session_expired?: boolean;
         session_expires_at?: string | null;
+        session_ended?: boolean;
       }[]
     )[0];
     const rule: SessionRule =
       row === undefined
         ? "ok"
-        : row.session_expired === true
-          ? "session-expired"
-          : row.mfa_required === true && row.mfa_verified !== true
-            ? "mfa"
-            : "ok";
+        : row.session_ended === true
+          ? "signed-out"
+          : row.session_expired === true
+            ? "session-expired"
+            : row.mfa_required === true && row.mfa_verified !== true
+              ? "mfa"
+              : "ok";
     if (ttlMs > 0) {
       const ends = row?.session_expires_at ? Date.parse(row.session_expires_at) : Infinity;
       if (entries.size >= 10_000) entries.clear();
@@ -136,10 +145,47 @@ export function sessionRuleRefused(rule: Exclude<SessionRule, "ok">) {
   return unauthorized(
     rule === "mfa"
       ? "This organization requires a second factor for your role. Verify one in Atlas or Gateway, then send a token from that session."
-      : "Your session has run longer than this organization allows. Sign in again, then send the new token.",
+      : rule === "signed-out"
+        ? "This session was signed out. Sign in again, then send the new token."
+        : "Your session has run longer than this organization allows. Sign in again, then send the new token.",
   );
 }
+
+/** What an OAuth app's token may do: the registered app's org and the person's live grant (A99). */
+export interface OAuthAccess {
+  readonly orgId: string;
+  readonly scopes: readonly string[];
+}
+
+/**
+ * Reads an OAuth app token's access (`app.my_oauth_access`, migration 1563), reusing it for `ttlMs` per token. No
+ * entry for a client no registered app owns; a revoked grant reads as no scopes.
+ */
+export function createOAuthAccessCheck(ttlMs: number, now: () => number = Date.now) {
+  const entries = new Map<string, { access: OAuthAccess | null; until: number }>();
+  return async (db: XosClient, token: string): Promise<OAuthAccess | null> => {
+    const key = createHash("sha256").update(token).digest("hex");
+    const hit = entries.get(key);
+    if (hit !== undefined && hit.until > now()) return hit.access;
+    entries.delete(key);
+    const result = await getMyOAuthAccess(db);
+    if (!result.ok)
+      throw new Error(`Cannot read the app's access: ${JSON.stringify(result.error)}`);
+    const access =
+      result.data === null ? null : { orgId: result.data.orgId, scopes: result.data.scopes };
+    if (ttlMs > 0) {
+      if (entries.size >= 10_000) entries.clear();
+      entries.set(key, { access, until: now() + ttlMs });
+    }
+    return access;
+  };
+}
 export const API_KEY_PREFIX = "xos_live_";
+/**
+ * Personal API tokens (A86, migration 1432) are exchanged like API keys: app.exchange_api_key resolves them to
+ * their person's own sign-in, limited to the token's scopes.
+ */
+export const PERSONAL_TOKEN_PREFIX = "xos_pat_";
 export const SUPPORTED_LOCALES = ["en-US", "es-US"] as const;
 
 export interface SupabaseAuthOptions {
@@ -267,7 +313,10 @@ function readCredential(request: Request, options: SupabaseAuthOptions): Credent
     const token = match[1] as string;
     return {
       token,
-      kind: token.startsWith(API_KEY_PREFIX) ? "api-key" : "session-bearer",
+      kind:
+        token.startsWith(API_KEY_PREFIX) || token.startsWith(PERSONAL_TOKEN_PREFIX)
+          ? "api-key"
+          : "session-bearer",
       cookies,
     };
   }
@@ -423,6 +472,7 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
   const identityOf = createIdentityCache(options.identityTtlMs ?? 30_000, options.now);
   const networkAllows = createNetworkCheck(options.identityTtlMs ?? 30_000, options.now);
   const sessionRule = createSessionRulesCheck(options.identityTtlMs ?? 30_000, options.now);
+  const oauthAccess = createOAuthAccessCheck(options.identityTtlMs ?? 30_000, options.now);
   const admit = async (
     context: RequestContext,
     request: Request,
@@ -492,6 +542,27 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
 
     const identity = await identityOf(db, user.id);
     const personId = identity?.personId ?? null;
+    if (typeof jwtClaims(credential.token)["client_id"] === "string") {
+      // An OAuth app's token (A99): its registered org and the person's live grant, nothing else. A client no
+      // registered app owns, or a revoked grant, is not a credential.
+      const access = await oauthAccess(db, credential.token);
+      if (access === null || access.scopes.length === 0) return null;
+      const appOrgs = (identity?.orgs ?? []).filter((o) => o.id === access.orgId);
+      return admit(
+        {
+          user,
+          personId,
+          org: resolveOrg(appOrgs, [{ id: access.orgId }]),
+          locale: negotiateLocale(request.headers.get("accept-language"), locales),
+          db,
+          credential: "oauth",
+          scopes: access.scopes,
+          requestId,
+        },
+        request,
+        appOrgs,
+      );
+    }
     const claim = jwtClaims(credential.token)["org_id"];
     const lastOrg =
       credential.kind === "session-cookie"

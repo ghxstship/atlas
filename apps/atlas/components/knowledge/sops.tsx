@@ -16,6 +16,7 @@ import {
   publishSopAction,
   updateSopAction,
 } from "@/app/[org]/knowledge/actions";
+import { DraftEntry } from "@/components/aurora/entry/draft-entry";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
@@ -175,6 +176,14 @@ export async function SopsSection({
         </KitSection>
         {canWrite ? (
           <KitSection id="sop-edit" title={t("sops.edit")}>
+            <DraftEntry
+              kind="sop"
+              formId={`sop-edit-${sop.id}`}
+              fields={{ title: "title", body: "body" }}
+              context={[{ collection: "sops", id: sop.id, label: `${sop.code} ${sop.title}` }]}
+              instructionsFrom="title"
+              maxBody={20000}
+            />
             <EntityForm
               id={`sop-edit-${sop.id}`}
               action={updateSopAction}
@@ -285,6 +294,14 @@ export async function SopsSection({
             </button>
           </form>
         ) : null}
+        <DraftEntry
+          kind="sop"
+          formId="sop-create"
+          fields={{ title: "title", body: "body" }}
+          context={[]}
+          instructionsFrom="title"
+          maxBody={20000}
+        />
         <EntityForm
           id="sop-create"
           action={createSopAction}

@@ -1,4 +1,6 @@
 import { getSubscription, listRoles, listWorkspaces } from "@xos/data";
+import type { Route } from "next";
+import Link from "next/link";
 import {
   getOrgBrand,
   listBrandFonts,
@@ -334,7 +336,11 @@ async function LegalPanel({ ctx }: SettingsPanelProps) {
   );
 }
 
-async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
+/**
+ * The workspace values of every workspace on Settings, Workspaces, each heading linking to that workspace's own
+ * settings page (A86, ADR 0006 amendment of 2026-10-21); on that page (`params.workspaceSlug`), the one workspace.
+ */
+export async function WorkspaceOverridesPanel({ ctx, params }: SettingsPanelProps) {
   const t = await getTranslate();
   const defs = workspaceSettings();
   const [workspaces, stored, refs] = await Promise.all([
@@ -346,9 +352,11 @@ async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
   if (workspaces.data.length === 0) {
     return <p className="m-0 text-text-13 text-text-secondary">{t("settings.workspaces.none")}</p>;
   }
+  const one = params["workspaceSlug"];
+  const shown = one === undefined ? workspaces.data : workspaces.data.filter((w) => w.slug === one);
   return (
     <>
-      {workspaces.data.map((w) => (
+      {shown.map((w) => (
         <section
           key={w.id}
           aria-labelledby={`ws-${w.id}`}
@@ -357,6 +365,14 @@ async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
           <Heading id={`ws-${w.id}`}>
             {t("settings.workspaces.overrides", { name: w.name })}
           </Heading>
+          {one === undefined ? (
+            <Link
+              href={`/${ctx.org.slug}/settings/workspaces/${w.slug}` as Route}
+              className="text-text-13 text-accent-text underline"
+            >
+              {t("settingsSurfaces.workspace.open", { name: w.name })}
+            </Link>
+          ) : null}
           <SettingsForm
             org={ctx.org.slug}
             group="org"
@@ -424,7 +440,13 @@ async function TeamsPanel({ ctx }: SettingsPanelProps) {
     <ul className="m-0 flex max-w-layout-form list-none flex-col divide-y divide-border-subtle p-0">
       {data.map((team) => (
         <li key={team.id} className="flex flex-col gap-2 py-8">
-          <span className="text-label-13 font-medium">{team.name}</span>
+          {/* Each team has its own settings page (A86, ADR 0006 amendment of 2026-10-21). */}
+          <Link
+            href={`/${ctx.org.slug}/settings/teams/${team.id}` as Route}
+            className="text-label-13 font-medium text-accent-text underline"
+          >
+            {team.name}
+          </Link>
           <span className="text-text-12 text-text-secondary">
             {t("settings.teams.members", {
               count: team.team_members.filter((m) => m.deleted_at === null).length,

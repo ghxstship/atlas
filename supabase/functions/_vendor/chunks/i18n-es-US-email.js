@@ -80,6 +80,15 @@ var email_default$1 = {
         subject: "Your account security changed",
         body: "A security setting on your account changed: {change}. If this was not you, reset your password now.",
       },
+      recovery_code_used: {
+        subject: "A recovery code was used on your account",
+        body: "Someone signed in or confirmed an action with one of your recovery codes. {remaining, plural, =0 {You have no codes left: make a new set in Security.} one {You have # code left.} other {You have # codes left.}} If this was not you, change your password and make new codes now.",
+      },
+      session_signed_out: {
+        subject:
+          "{count, plural, one {A session was signed out} other {# sessions were signed out}}",
+        body: "{count, plural, one {A session on your account was signed out} other {# sessions on your account were signed out}} from Settings, Security. If this was not you, change your password and check your sessions.",
+      },
     },
     report: {
       delivered: {
@@ -211,6 +220,20 @@ var email_default$1 = {
       client_left: {
         subject: "{org} left your partner account",
         body: "{org} is now a direct customer. Your support sessions and standing grants for it have ended, and it no longer appears on your wholesale statements.",
+      },
+    },
+    automation: {
+      notice: {
+        subject: "{title}",
+        body: "{body} Sent by the automation {automationName}.",
+      },
+      failed: {
+        subject: "Automation failed: {automationName}",
+        body: "A run of {automationName} failed: {error}",
+      },
+      paused: {
+        subject: "Automation paused: {automationName}",
+        body: "{automationName} is off because {reason, select, owner_left_org {{ownerName} is no longer a member} owner_lost_capability {{ownerName} can no longer manage automations} owner_cannot_sign_in {{ownerName} has no sign-in} other {the API refused to act as {ownerName}}}. Turn it on again in Settings, Automations, and it runs as you.",
       },
     },
   },
@@ -360,6 +383,14 @@ var email_default = {
         subject: "Cambió la seguridad de tu cuenta",
         body: "Cambió un ajuste de seguridad de tu cuenta: {change}. Si no fuiste tú, restablece tu contraseña ahora.",
       },
+      recovery_code_used: {
+        subject: "Se usó un código de recuperación en tu cuenta",
+        body: "Alguien inició sesión o confirmó una acción con uno de tus códigos de recuperación. {remaining, plural, =0 {No te quedan códigos: crea un juego nuevo en Seguridad.} one {Te queda # código.} other {Te quedan # códigos.}} Si no fuiste tú, cambia tu contraseña y crea códigos nuevos ahora.",
+      },
+      session_signed_out: {
+        subject: "{count, plural, one {Se cerró una sesión} other {Se cerraron # sesiones}}",
+        body: "{count, plural, one {Se cerró una sesión de tu cuenta} other {Se cerraron # sesiones de tu cuenta}} desde Configuración, Seguridad. Si no fuiste tú, cambia tu contraseña y revisa tus sesiones.",
+      },
     },
     report: {
       delivered: {
@@ -491,6 +522,20 @@ var email_default = {
       client_left: {
         subject: "{org} dejó su cuenta de socio",
         body: "{org} ahora es un cliente directo. Sus sesiones de soporte y permisos permanentes para esa organización terminaron, y ya no aparece en sus estados mayoristas.",
+      },
+    },
+    automation: {
+      notice: {
+        subject: "{title}",
+        body: "{body} Enviado por la automatización {automationName}.",
+      },
+      failed: {
+        subject: "Falló la automatización: {automationName}",
+        body: "Una ejecución de {automationName} falló: {error}",
+      },
+      paused: {
+        subject: "Automatización en pausa: {automationName}",
+        body: "{automationName} está desactivada porque {reason, select, owner_left_org {{ownerName} ya no es miembro} owner_lost_capability {{ownerName} ya no puede gestionar automatizaciones} owner_cannot_sign_in {{ownerName} no tiene inicio de sesión} other {la API se negó a actuar como {ownerName}}}. Actívala de nuevo en Configuración, Automatizaciones, y se ejecutará a tu nombre.",
       },
     },
   },

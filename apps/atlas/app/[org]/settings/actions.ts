@@ -8,6 +8,7 @@ import {
   setMemberRole,
   type DataError,
 } from "@xos/data";
+import { requireSecondFactor } from "@xos/data/auth-assurance";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -40,6 +41,7 @@ const KNOWN_REFUSALS = new Set([
   "seat_limit_reached",
   "seat_limit_upgrade",
   "not_member",
+  "step_up_required",
 ]);
 
 function errorKey(error: DataError): string {
@@ -115,6 +117,10 @@ export async function setMemberRoleAction(
     .object({ membershipId: z.uuid(), roleId: z.uuid() })
     .safeParse({ membershipId: form.get("membershipId"), roleId: form.get("roleId") });
   if (!parsed.success) return { error: "not-found" };
+  // A role change asks for a second factor in the last 15 minutes (S9-08, migration 1562); checking first opens the
+  // step-up dialog before any write, and the role guard refuses on its own.
+  const check = await requireSecondFactor(ctx.viewer.db);
+  if (!check.ok) return { error: check.rule };
   const result = await setMemberRole(ctx.viewer.db, parsed.data);
   if (!result.ok) return { error: errorKey(result.error) };
   revalidatePath(`/${ctx.org.slug}/settings/members`);

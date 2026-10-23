@@ -1165,6 +1165,7 @@ __all__ = [
     "Comment",
     "CommentCreate",
     "CommentUpdate",
+    "SubjectCommentRequest",
     "NotificationPage",
     "Notification",
     "NotificationUpdate",
@@ -1230,6 +1231,9 @@ __all__ = [
     "AuroraSummarizeRequest",
     "AuroraMapColumnsRequest",
     "AuroraBindCodeRequest",
+    "AuroraPreview",
+    "AuroraPreviewRecord",
+    "AuroraPreviewRequest",
     "AiSuggestionPage",
     "AiSuggestion",
     "AiSuggestionState",
@@ -1341,6 +1345,25 @@ __all__ = [
     "InboundMessage",
     "InboundMessageFileRequest",
     "InboundMessageDiscardRequest",
+    "AutomationPage",
+    "Automation",
+    "AutomationConditions",
+    "AutomationCondition",
+    "AutomationActions",
+    "AutomationAction",
+    "AutomationCreate",
+    "AutomationUpdate",
+    "AutomationTestResult",
+    "AutomationConditionResult",
+    "AutomationTestRequest",
+    "AutomationRunPage",
+    "AutomationRun",
+    "AutomationNoticeResult",
+    "AutomationNoticeRequest",
+    "AutomationWebhookResult",
+    "AutomationWebhookRequest",
+    "AutomationRunStepPage",
+    "AutomationRunStep",
     "WorkforceGroupPage",
     "WorkforceGroup",
     "WorkforceGroupCreate",
@@ -19227,6 +19250,22 @@ class CommentUpdate(TypedDict, total=False):
     source: Literal["App", "Email", "API"]
 
 
+class _SubjectCommentRequestRequired(TypedDict):
+    #: Table of the subject, one of app.comment_subjects without its schema.
+    subject_table: str
+    #: Identifier of the row commented on.
+    subject_id: str
+    #: Comment text.
+    body: str
+
+
+class SubjectCommentRequest(_SubjectCommentRequestRequired, total=False):
+    """A comment on a subject row, posted in its main thread or the thread of an anchor."""
+
+    #: Part of the subject the thread is anchored to; absent for the main thread.
+    anchor: str
+
+
 class NotificationPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -20055,15 +20094,20 @@ class AuroraAskRequest(_AuroraAskRequestRequired, total=False):
     history: List[Dict[str, Any]]
 
 
-class AuroraFilterRequest(TypedDict):
-    """A sentence to turn into a saved view."""
-
+class _AuroraFilterRequestRequired(TypedDict):
     #: The sentence to turn into a filter.
     sentence: str
     #: Collections the filter may target.
     collections: List[str]
-    #: IANA time zone the local time was entered in.
+    #: Time zone the caller works in. Relative dates such as this month or overdue resolve on the org's calendar (its locale.time_zone setting), never on UTC.
     time_zone: str
+
+
+class AuroraFilterRequest(_AuroraFilterRequestRequired, total=False):
+    """A sentence to turn into a saved view."""
+
+    #: A page's own filters, offered instead of the API fields of the first collection: names, types, values and operators only, never record data. Restricted columns are never offered.
+    fields: List[Dict[str, Any]]
 
 
 class _AuroraExtractRequestRequired(TypedDict):
@@ -20133,6 +20177,50 @@ class AuroraBindCodeRequest(TypedDict):
     description: Optional[str]
     #: Catalog elements found for the code.
     candidates: List[Dict[str, Any]]
+
+
+class AuroraPreview(TypedDict):
+    """What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered."""
+
+    #: Each record the request names, in order, with the gate readiness a gate summary adds.
+    records: List[AuroraPreviewRecord]
+    #: Verbiage library terms a draft follows.
+    vocabulary_terms: int
+
+
+class AuroraPreviewRecord(TypedDict):
+    """One record as a model would see it."""
+
+    #: Collection of the record.
+    collection: str
+    #: Identifier of the record.
+    id: str
+    #: False when the record cannot be read or its whole table is never sent to a model.
+    sent: bool
+    #: Fields that would be sent.
+    fields: List[str]
+    #: Fields left out: Restricted columns and masked values.
+    withheld: List[str]
+    #: The values that would be sent; null when nothing of the record is sent.
+    data: Optional[Dict[str, Any]]
+
+
+class _AuroraPreviewRequestRequired(TypedDict):
+    #: The feature whose request is previewed.
+    feature: Literal["drafting", "summaries"]
+    #: The records the request names: a draft's context or a summary's items, read with the caller's permissions.
+    items: List[Dict[str, Any]]
+
+
+class AuroraPreviewRequest(_AuroraPreviewRequestRequired, total=False):
+    """A drafting or summary request to preview before it is sent."""
+
+    #: For summaries, what is summarized.
+    kind: Literal["record_activity", "project_week", "gate_readiness"]
+    #: For summaries, the collection summarized.
+    subject_collection: str
+    #: Identifier of the record or project summarized.
+    subject_id: str
 
 
 class AiSuggestionPage(TypedDict):
@@ -21887,6 +21975,258 @@ class InboundMessageDiscardRequest(TypedDict, total=False):
 
     #: Why the mail is discarded.
     reason: str
+
+
+class AutomationPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Automation]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Automation(TypedDict):
+    """An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422)."""
+
+    #: Identifier of the automation.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Name shown in Settings, Automations.
+    name: str
+    #: What the automation is for.
+    description: Optional[str]
+    #: Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+    trigger_event_type: str
+    #: How the top-level conditions combine; set from the conditions document.
+    condition_match: Literal["all", "any"]
+    #: Identifier of the person the actions run as.
+    owner_person_id: str
+    #: True while new events start runs.
+    enabled: bool
+    #: When the engine turned the automation off because a run could not act as the owner; null otherwise. Turning it on again clears it.
+    paused_at: Optional[str]
+    #: Why the engine paused it: owner_left_org, owner_lost_capability, owner_cannot_sign_in or owner_access_refused.
+    pause_reason: Optional[str]
+    conditions: AutomationConditions
+    actions: AutomationActions
+
+
+class _AutomationCreateRequired(TypedDict):
+    #: Name shown in Settings, Automations.
+    name: str
+    #: Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+    trigger_event_type: str
+    conditions: AutomationConditions
+    actions: AutomationActions
+
+
+class AutomationCreate(_AutomationCreateRequired, total=False):
+    """Fields accepted when creating a Automation."""
+
+    #: What the automation is for.
+    description: Optional[str]
+    #: True while new events start runs.
+    enabled: bool
+
+
+class AutomationUpdate(TypedDict, total=False):
+    """Fields accepted when updating a Automation. Omitted fields are unchanged."""
+
+    #: Name shown in Settings, Automations.
+    name: str
+    #: What the automation is for.
+    description: Optional[str]
+    #: Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+    trigger_event_type: str
+    #: True while new events start runs.
+    enabled: bool
+    conditions: AutomationConditions
+    actions: AutomationActions
+
+
+class AutomationTestResult(TypedDict):
+    """A dry run of an automation's conditions: nothing runs and nothing is written."""
+
+    #: Whether the conditions hold for the sample event.
+    matched: bool
+    #: Each condition in document order.
+    conditions: List[AutomationConditionResult]
+
+
+class _AutomationConditionResultRequired(TypedDict):
+    #: Path into the event.
+    field: str
+    #: Filter operator.
+    operator: Literal["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"]
+    #: Value compared.
+    value: Optional[str]
+    #: Whether the condition held.
+    matched: bool
+
+
+class AutomationConditionResult(_AutomationConditionResultRequired, total=False):
+    """One condition of a dry run."""
+
+    #: Value found in the event; null when missing.
+    actual: Any
+
+
+class AutomationTestRequest(TypedDict):
+    """A sample event to test an automation against."""
+
+    #: A sample event body, as a webhook receives it; app.sample_automation_event gives the org's latest of the trigger type.
+    event: Dict[str, Any]
+
+
+class AutomationRunPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AutomationRun]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AutomationRun(TypedDict):
+    """One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice."""
+
+    #: Identifier of the automation run.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the automation that ran.
+    automation_id: str
+    #: Identifier of the domain event that started the run.
+    domain_event_id: str
+    #: Identifier of the run whose action raised the event, when an automation caused it.
+    parent_run_id: Optional[str]
+    #: Automation runs that led to this one; 0 for an event a person raised.
+    depth: int
+    #: Queued, Running, Retrying after a failure the job queue retries with backoff, Succeeded, Failed, or Skipped (loop_depth, rate_limited, or the automation was off).
+    run_status: Literal["Queued", "Running", "Retrying", "Succeeded", "Failed", "Skipped"]
+    #: The event as webhooks send it: the run's input.
+    event_payload: Dict[str, Any]
+    #: Identifier of the person the run acted as.
+    owner_person_id: Optional[str]
+    #: Times the worker started the run.
+    attempts: int
+    #: Rule code of the failure or skip.
+    error_code: Optional[str]
+    #: Why the run failed or was skipped.
+    error_message: Optional[str]
+    #: When the worker first started the run.
+    started_at: Optional[str]
+    #: When the run reached Succeeded, Failed or Skipped.
+    finished_at: Optional[str]
+    #: Milliseconds from the first start to the end.
+    duration_ms: Optional[int]
+
+
+class AutomationNoticeResult(TypedDict):
+    """The notification an automation sent."""
+
+    #: Identifier of the notification created.
+    notification_id: Optional[str]
+
+
+class _AutomationNoticeRequestRequired(TypedDict):
+    #: Identifier of the member who receives the notification.
+    recipient_person_id: str
+    #: Notification title.
+    title: str
+
+
+class AutomationNoticeRequest(_AutomationNoticeRequestRequired, total=False):
+    """A notification an automation sends during a run."""
+
+    #: Message; the title is repeated when absent.
+    body: str
+
+
+class AutomationWebhookResult(TypedDict):
+    """The delivery a run queued."""
+
+    #: Identifier of the webhook delivery queued.
+    webhook_delivery_id: str
+
+
+class AutomationWebhookRequest(TypedDict):
+    """The endpoint a run's event is delivered to."""
+
+    #: Identifier of the the org's webhook endpoint.
+    webhook_endpoint_id: str
+
+
+class AutomationRunStepPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AutomationRunStep]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AutomationRunStep(TypedDict):
+    """One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed."""
+
+    #: Identifier of the automation run step.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the run the step belongs to.
+    automation_run_id: str
+    #: Identifier of the action the step ran.
+    automation_action_id: Optional[str]
+    #: Position of the action, 1 first.
+    position: int
+    #: What the action does.
+    action_type: Literal["create_task", "update_status", "assign", "add_comment", "notify", "call_webhook"]
+    #: Public API operation called.
+    operation_id: Optional[str]
+    #: Outcome of the action.
+    step_status: Literal["Succeeded", "Failed", "Skipped"]
+    #: Body sent, with templates filled in from the event.
+    request_body: Optional[Dict[str, Any]]
+    #: Identifying fields of the answer, or the problem it reported.
+    response_body: Optional[Dict[str, Any]]
+    #: HTTP status the API answered.
+    http_status: Optional[int]
+    #: Rule code of the failure.
+    error_code: Optional[str]
+    #: Why the step failed.
+    error_message: Optional[str]
+    #: When the step started.
+    started_at: str
+    #: When the step ended.
+    finished_at: str
+    #: Milliseconds the step took.
+    duration_ms: int
 
 
 class WorkforceGroupPage(TypedDict):
@@ -24509,3 +24849,15 @@ LoyaltyProgramKind = Literal["Airline", "Hotel", "Car Rental", "Rail"]
 
 #: A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.
 WorkDetailCategory = Literal["Emergency Contacts", "Uniform Sizes", "Dietary Needs", "Accessibility Needs", "Travel Profile", "Passport"]
+
+#: One condition: a path of the event, an API filter operator (ADR 0003) and a text value. Numbers compare numerically, strings by code point; contains folds ASCII case or finds an array element; every operator but is_null is false on a missing value.
+AutomationCondition = Dict[str, Any]
+
+#: An automation's conditions: {"all": [...]} or {"any": [...]} of conditions and one-level groups, at most 20 in all. An empty list always holds.
+AutomationConditions = Dict[str, Any]
+
+#: One action, run in order as the owner through a public API operation: create_task (records.create), update_status (records.transition), assign (records.update), add_comment (comments.postOnSubject), notify (automationRuns.notify) or call_webhook (automationRuns.deliverWebhook).
+AutomationAction = Dict[str, Any]
+
+#: An automation's 1 to 10 actions, in the order they run.
+AutomationActions = List[AutomationAction]

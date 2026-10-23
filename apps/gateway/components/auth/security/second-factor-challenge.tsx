@@ -1,16 +1,22 @@
 "use client";
 
 import { InlineAlert, Select } from "@xos/ui";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import type { StepUpOptions } from "@/app/auth/security-actions";
 import { CodeForm } from "./code-form";
 import { errorText, useSecurityCopy } from "./copy";
 import { SecurityKeyButton } from "./security-key-button";
 
+/** The recovery code form loads only when the person asks for it (A99). */
+const RecoveryCodeForm = dynamic(() =>
+  import("./recovery-code-form").then((m) => m.RecoveryCodeForm),
+);
+
 /**
  * Asks for one of the person's verified second factors: a code for an authenticator app, the browser prompt for
- * a security key. With several factors the person picks one. At sign-in it continues to `next`; for step-up it
- * runs `onVerified`.
+ * a security key. With several factors the person picks one. A person who holds recovery codes can use one instead
+ * (A99). At sign-in it continues to `next`; for step-up it runs `onVerified`.
  */
 export function SecondFactorChallenge({
   options,
@@ -28,9 +34,32 @@ export function SecondFactorChallenge({
   const [selected, setSelected] = useState(
     () => (usable.find((f) => f.type === "totp") ?? usable[0])?.id ?? "",
   );
+  const [recovery, setRecovery] = useState(false);
   const factor = usable.find((f) => f.id === selected) ?? usable[0];
-  if (!factor) return <InlineAlert tone="warning">{errorText(t, "unsupported")}</InlineAlert>;
   const optional = (value: string | undefined) => (value === undefined ? {} : { next: value });
+  const switcher = options.recoveryCodes ? (
+    <button
+      type="button"
+      className="min-h-touch-min self-start text-text-13 font-medium text-accent-text underline"
+      onClick={() => setRecovery((on) => !on)}
+    >
+      {t(recovery ? "recovery.useFactor" : "recovery.useInstead")}
+    </button>
+  ) : null;
+  if (recovery || (!factor && options.recoveryCodes)) {
+    return (
+      <div className="flex flex-col gap-12">
+        <RecoveryCodeForm
+          mode={mode}
+          idPrefix={`${mode}-recovery`}
+          {...optional(next)}
+          {...(onVerified ? { onVerified } : {})}
+        />
+        {factor ? switcher : null}
+      </div>
+    );
+  }
+  if (!factor) return <InlineAlert tone="warning">{errorText(t, "unsupported")}</InlineAlert>;
   return (
     <div className="flex flex-col gap-12">
       {usable.length > 1 ? (
@@ -71,6 +100,7 @@ export function SecondFactorChallenge({
           />
         </>
       )}
+      {switcher}
     </div>
   );
 }
