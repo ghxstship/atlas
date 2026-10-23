@@ -296,7 +296,8 @@
     "audit": "Audit log",
     "org": "Organization settings and members",
     "data": "Data, exports and Restricted fields",
-    "me": "Your own account"
+    "me": "Your own account",
+    "workforce": "Site Operations"
   },
   "apiKeys": {
     "title": "API keys",

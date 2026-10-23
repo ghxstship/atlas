@@ -296,7 +296,8 @@
     "audit": "Registro de auditoría",
     "org": "Configuración y miembros de la organización",
     "data": "Datos, exportaciones y campos Restricted",
-    "me": "Tu propia cuenta"
+    "me": "Tu propia cuenta",
+    "workforce": "Operaciones del sitio"
   },
   "apiKeys": {
     "title": "Claves de API",
