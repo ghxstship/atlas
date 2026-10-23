@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(36);
+select plan(38);
 
 create function pg_temp.as_op(p_key text) returns void
 language plpgsql as $$
@@ -96,6 +96,9 @@ select is((select count(*)::int from app.notifications where recipient_person_id
   'a Member who manages no listings does not');
 select is((select count(*)::int from app.notifications where recipient_person_id = pg_temp.id('ivy') and kind = 'listing_report.decided'), 1,
   'a reporter the org works with is told the outcome');
+select is((select string_agg(distinct n.message_args ->> 'actorName', ', ') from app.notifications n
+           where n.subject_id = pg_temp.id('opp_one') and n.kind in ('listing.moderated', 'listing_report.decided')), 'XOS',
+  'the notices name the platform as their actor, never the operator who decided (1590)');
 select is((select count(*)::int from app.domain_events where event_type = 'listing.moderated' and subject_id = pg_temp.id('decision_one')), 1,
   'and listing.moderated is emitted');
 select is((select count(*)::int from app.platform_operator_actions where action = 'listing.moderated'
@@ -130,6 +133,9 @@ select is((select action::text || ' ' || ground::text from app.moderation_action
   'Restored No Violation', 'by a new decision linked to the appeal');
 select is((select count(*)::int from app.notifications where recipient_person_id = pg_temp.id('carol') and kind = 'moderation_appeal.decided'), 1,
   'the appellant is told the outcome');
+select is((select string_agg(distinct n.message_args ->> 'actorName', ', ') from app.notifications n
+           where n.subject_id = pg_temp.id('opp_one') and n.kind in ('moderation_appeal.decided', 'listing.moderated')), 'XOS',
+  'so do the outcome and the notice of the restoration, from the operator who decided the appeal (1590)');
 select pg_temp.as_user('carol');
 select is((select appeal_state::text from app.moderation_appeals where id = pg_temp.id('appeal_one')), 'Reversed', 'and reads it');
 

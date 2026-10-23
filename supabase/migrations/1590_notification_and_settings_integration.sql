@@ -14,6 +14,11 @@
 -- 1393's app.claim_sms_summaries, which no later migration redefines, is recreated too: its suppression, category drop
 -- and claim updates matched a delivery's queue rows on sent_at alone, so they also stamped the row a release had retired
 -- (deleted_at set, sent_at null) when the text was held again. They now touch only the live row.
+--
+-- 1393's actor rule names the signed-in person when an emitter passes no actorName. A90's moderation emitters (1473)
+-- pass none and run in an operator's console session, so the operator's name would land in notifications the tenant
+-- reads. private.notify_moderation_decision and app.console_decide_appeal, which no later migration redefines, are
+-- recreated from 1473 to name the platform instead, as their copy does (we removed, we reviewed).
 
 -- 1. private.notify (from 1461, with 1393's actor and bypass window) ----------------------------------------------------
 
@@ -400,6 +405,130 @@ $$;
 
 comment on function app.claim_sms_summaries(integer) is 'SMS sender API (service role): claims the members whose held texts are due (their quiet hours ended), one row per member and org with every held delivery, the count and the most important text (an urgent category first, then the latest). Holds again a member still inside quiet hours, until then or until a held text''s bypass window opens, and releases a held text whose window has opened to go on its own (1393); suppresses, with the reason, the held texts of someone who left the org, lost their verified number, is suppressed or withdrew consent. A suppression limited to a category drops only the held texts of that category (1393). Settling and claiming touch only a delivery''s live queue row, never one a release retired (1590). A claimed summary is due again after 10 minutes unless its outcome is recorded.';
 
+-- 4. A90's moderation notifications (from 1473) name the platform as their actor ----------------------------------------
+
+create or replace function private.notify_moderation_decision(p_action_id uuid)
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_action app.moderation_actions;
+  v_opp app.opportunities;
+  v_person uuid;
+  v_count integer := 0;
+  v_args jsonb;
+begin
+  select * into v_action from app.moderation_actions m where m.id = p_action_id;
+  select * into v_opp from app.opportunities o where o.id = v_action.opportunity_id;
+  -- The platform decides, and the copy speaks as we: the notifications name it as the actor, so private.notify does
+  -- not fall back to the signed-in operator and write their name where the tenant reads it (1590).
+  v_args := jsonb_build_object('title', v_opp.title, 'action', v_action.action, 'ground', v_action.ground,
+    'ruleReference', v_action.rule_reference, 'statement', v_action.statement_of_reasons,
+    'appealUntil', v_action.decided_at + interval '6 months', 'actorName', 'XOS');
+  -- The affected party: the org's marketplace managers and the listing's author while still a member.
+  for v_person in
+    select distinct m.person_id from app.memberships m
+    where m.org_id = v_opp.org_id and m.deleted_at is null and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now())
+      and (m.person_id = v_opp.created_by
+           or private.person_capability_reach(m.person_id, v_opp.org_id, 'opportunities.marketplace.manage', true) = 'organization')
+  loop
+    if private.notify(v_opp.org_id, v_person, 'listing.moderated', 'opportunities', v_opp.id, v_opp.project_id, v_args) is not null then
+      v_count := v_count + 1;
+    end if;
+  end loop;
+  -- Each reporter whose report this decision decided: reported before it and after any earlier decision.
+  for v_person in
+    select distinct r.reporter_person_id from app.listing_reports r
+    where r.opportunity_id = v_opp.id and r.deleted_at is null and r.reported_at <= v_action.decided_at
+      and not exists (select 1 from app.moderation_actions e
+                      where e.opportunity_id = v_opp.id and e.id <> v_action.id and e.decided_at >= r.reported_at
+                        and e.decided_at < v_action.decided_at)
+  loop
+    if private.notify(v_opp.org_id, v_person, 'listing_report.decided', 'opportunities', v_opp.id, v_opp.project_id,
+         jsonb_build_object('title', v_opp.title, 'action', v_action.action, 'statement', v_action.statement_of_reasons,
+           'actorName', 'XOS')) is not null then
+      v_count := v_count + 1;
+    end if;
+  end loop;
+  return v_count;
+end;
+$$;
+
+comment on function private.notify_moderation_decision(uuid) is 'Sends a moderation decision''s statement of reasons to the affected party, the org''s marketplace managers and the listing''s author (listing.moderated), and its outcome to each reporter whose report it decided (listing_report.decided), where the notification queue reaches them (private.notify). Returns how many were notified. The notifications name the platform as the actor, never the operator who decided (1590).';
+
+create or replace function app.console_decide_appeal(
+  p_appeal_id uuid,
+  p_outcome app.moderation_appeal_state,
+  p_statement text,
+  p_action app.moderation_action_kind default null,
+  p_ground app.moderation_ground default null,
+  p_rule_reference text default null,
+  p_facts text default null
+)
+returns uuid
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_operator uuid := private.require_platform_operator('moderation.decide');
+  v_appeal app.moderation_appeals;
+  v_action app.moderation_actions;
+  v_opp app.opportunities;
+  v_new uuid;
+begin
+  select * into v_appeal from app.moderation_appeals a where a.id = p_appeal_id and a.deleted_at is null for update;
+  if v_appeal.id is null then
+    raise exception using errcode = '42501', message = 'appeal not found';
+  end if;
+  select * into v_action from app.moderation_actions m where m.id = v_appeal.moderation_action_id;
+  select * into v_opp from app.opportunities o where o.id = v_action.opportunity_id;
+  if v_appeal.appeal_state <> 'Open' then
+    perform private.refuse('moderation_appeal_decided', 'This appeal has already been decided.');
+  end if;
+  if v_action.decided_by = v_operator then
+    perform private.refuse('moderation_appeal_same_operator', 'Another operator decides this appeal: you made the decision it appeals.');
+  end if;
+  if p_outcome is null or p_outcome = 'Open' then
+    perform private.refuse('moderation_appeal_outcome', 'Uphold the decision or reverse it.');
+  end if;
+  if p_statement is null or char_length(btrim(p_statement)) not between 1 and 4000 then
+    perform private.refuse('moderation_statement', 'Write the reasons the appellant receives, in up to 4,000 characters.');
+  end if;
+  update app.moderation_appeals
+  set appeal_state = p_outcome, decided_by = v_operator, decision_statement = btrim(p_statement), decided_at = now()
+  where id = v_appeal.id;
+
+  if p_outcome = 'Reversed' then
+    if v_action.action in ('Removed', 'Restricted') then
+      v_new := private.record_moderation_decision(v_opp.id, v_action.listing_report_id, 'Restored', 'No Violation',
+        coalesce(nullif(btrim(p_rule_reference), ''), v_action.rule_reference, 'Appeal'),
+        coalesce(nullif(btrim(p_facts), ''), btrim(p_statement)), p_statement, v_appeal.id, v_operator);
+    else
+      if p_action not in ('Removed', 'Restricted') or p_action is null then
+        perform private.refuse('moderation_appeal_new_decision', 'Reversing a decision to take no action needs the new decision: remove or restrict the listing, with its ground, rule and facts.');
+      end if;
+      v_new := private.record_moderation_decision(v_opp.id, v_action.listing_report_id, p_action, p_ground,
+        p_rule_reference, p_facts, p_statement, v_appeal.id, v_operator);
+    end if;
+  end if;
+
+  -- The appellant hears from the platform, not from the operator who decided (1590).
+  perform private.notify(v_appeal.org_id, v_appeal.appellant_person_id, 'moderation_appeal.decided', 'opportunities', v_opp.id,
+    v_opp.project_id, jsonb_build_object('title', v_opp.title, 'outcome', p_outcome, 'statement', btrim(p_statement),
+      'actorName', 'XOS'));
+  perform private.log_operator_action('moderation_appeal.decided', v_appeal.org_id, 'app.moderation_appeals', v_appeal.id,
+    p_statement, jsonb_build_object('outcome', p_outcome, 'new_decision', v_new));
+  return v_appeal.id;
+end;
+$$;
+
+comment on function app.console_decide_appeal(uuid, app.moderation_appeal_state, text, app.moderation_action_kind, app.moderation_ground, text, text) is 'An operator (moderation.decide) who did not make the decision appealed upholds or reverses the appeal with a statement (Digital Services Act article 20). Reversing a removal or restriction restores the listing; reversing no action records the new decision given. The appellant is told the outcome, by the platform rather than the operator (1590). Returns the appeal id.';
+
 -- Privileges (create or replace keeps them; restated for review) -------------------------------------------------------
 
 revoke all on function private.notify(uuid, uuid, text, text, uuid, uuid, jsonb) from public, anon, authenticated;
@@ -407,3 +536,6 @@ revoke all on function app.claim_notification_deliveries(app.notification_channe
 grant execute on function app.claim_notification_deliveries(app.notification_channel, integer) to service_role;
 revoke all on function app.claim_sms_summaries(integer) from public, anon, authenticated;
 grant execute on function app.claim_sms_summaries(integer) to service_role;
+revoke all on function private.notify_moderation_decision(uuid) from public, anon, authenticated;
+revoke all on function app.console_decide_appeal(uuid, app.moderation_appeal_state, text, app.moderation_action_kind, app.moderation_ground, text, text) from public, anon;
+grant execute on function app.console_decide_appeal(uuid, app.moderation_appeal_state, text, app.moderation_action_kind, app.moderation_ground, text, text) to authenticated;
