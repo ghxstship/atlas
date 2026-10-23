@@ -1,0 +1,70 @@
+appId: pro.ghxstship.compass
+# A person in two orgs: the combined Today, the org switcher and the runtime brand (Section 4.5.7 org
+# switching, Section 12 Mobile; A65-011 part 3). Seed 1500_a93 makes the Demo Multi-Org Crew a Field member
+# of Demo Productions (platform brand) and of Demo Harbor Stages (branded "Harbor Stages", amber accent),
+# with one shift today in each, on each project's own calendar (New York and Los Angeles).
+# Named after its file: config.yaml orders flows by name.
+name: multi-org-today
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: orgs@example.com
+- extendedWaitUntil:
+    visible:
+      id: "combined-today"
+    timeout: 60000
+# Both orgs on one Today, each under its brand chip, with its own shift and day sheet.
+- assertVisible: "Today in all your organizations"
+# Each brand chip reads as "Organization: <brand name>" to VoiceOver, which is what Maestro matches on iOS.
+- assertVisible: "Organization: Harbor Stages"
+- assertVisible: "Organization: Demo Productions"
+- scrollUntilVisible:
+    element:
+      id: "today-org-shift-01920000-0000-7000-8000-000000150032"
+    direction: DOWN
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: "today-org-shift-01920000-0000-7000-8000-000000150031"
+    direction: DOWN
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Load-in at the pier from noon. Crew parking at Gate 3."
+    direction: DOWN
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: "org-switcher"
+    direction: UP
+    timeout: 20000
+# The switcher lists both orgs; choosing Harbor Stages makes its projects and brand drive Compass.
+- tapOn:
+    id: "org-switcher"
+# Each row reads "<org>, Member" (or Engaged) to VoiceOver; the brand chip beside it has no "Member".
+- assertVisible: ".*Harbor Stages.*Member.*"
+- tapOn: ".*Harbor Stages.*Member.*"
+- extendedWaitUntil:
+    visible: "Harbor Stages Pier Week"
+    timeout: 15000
+- assertVisible: "Organization: Harbor Stages. Change organization"
+# Schedule now reads the Harbor Stages shift only.
+- tapOn:
+    id: "tab-schedule"
+- extendedWaitUntil:
+    visible:
+      id: "schedule-shift-01920000-0000-7000-8000-000000150032"
+    timeout: 20000
+- assertNotVisible:
+    id: "schedule-shift-01920000-0000-7000-8000-000000150031"
+# Back to Demo Productions, in the platform brand.
+- tapOn:
+    id: "tab-today"
+- tapOn:
+    id: "org-switcher"
+- tapOn: ".*Demo Productions.*Member.*"
+- extendedWaitUntil:
+    visible: "Organization: Demo Productions. Change organization"
+    timeout: 15000
+- runFlow:
+    file: ../subflows/sign-out.yaml

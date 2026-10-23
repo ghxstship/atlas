@@ -90,8 +90,18 @@ export function unitSystemForRegion(region: string | null | undefined): UnitSyst
   return region && IMPERIAL_REGIONS.has(region.toUpperCase()) ? "imperial" : "metric";
 }
 
-/** The region of a locale (`es-US` is US, `fr` is FR), or null when it has none. */
+/**
+ * The region of a locale (`es-US` is US, `fr` is FR), or null when it has none. Hermes, the engine Compass
+ * runs on, has no `Intl.Locale`; there the region is read from the tag itself (`es-US` is US, `fr` none),
+ * so a phone never stops on a locale lookup (A93 found the incident report crashing on it).
+ */
 export function regionOfLocale(locale: string): string | null {
+  if (typeof Intl.Locale !== "function") {
+    return (
+      /^[a-z]{2,3}(?:-[A-Za-z]{4})?-([A-Za-z]{2}|\d{3})(?:-|$)/.exec(locale)?.[1]?.toUpperCase() ??
+      null
+    );
+  }
   try {
     return new Intl.Locale(locale).maximize().region ?? null;
   } catch (error) {

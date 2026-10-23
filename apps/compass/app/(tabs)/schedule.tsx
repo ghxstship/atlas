@@ -26,6 +26,7 @@ import {
   useRoleTitle,
 } from "../../src/screens/common";
 import { Button, EmptyState, InlineAlert, Screen, ShiftCard, Text } from "../../src/ui";
+import { WalletButton } from "../../src/screens/WalletButton";
 
 export default function ScheduleScreen(): ReactElement {
   const { t } = useTranslation();
@@ -107,6 +108,9 @@ export default function ScheduleScreen(): ReactElement {
               label={t(`compass.schedule.${action}`)}
               onPress={() => act(s, action)}
             />
+          ) : s.shift_state === "Accepted" ? (
+            // An accepted shift as a pass in Wallet (Section 11.10 item 14, A65-011 part 4).
+            <WalletButton kind="shift" id={s.id} testID={`shift-wallet-${s.id}`} />
           ) : undefined
         }
       />

@@ -264,6 +264,40 @@ export {
 } from "./scanning/worker.ts";
 export { scanStore, supabaseStorage } from "./scanning/stores.ts";
 export {
+  buildPkpass,
+  passJson,
+  readAppleWalletEnv,
+  unconfiguredPassSigner,
+  webCryptoPassSigner,
+  type ApplePassConfig,
+  type AppleSignerKeys,
+  type AppleWalletEnv,
+  type PassSigner,
+  type WalletLabels,
+  type WalletPass,
+} from "./wallet/apple.ts";
+export {
+  GOOGLE_SAVE_URL,
+  genericObject,
+  googleSaveUrl,
+  readGoogleWalletEnv,
+  unconfiguredJwtSigner,
+  webCryptoJwtSigner,
+  type GoogleWalletConfig,
+  type GoogleWalletEnv,
+  type JwtSigner,
+} from "./wallet/google.ts";
+export {
+  PKPASS_TYPE,
+  callerPassLoader,
+  parseWalletRequest,
+  passFromRow,
+  walletPassResponse,
+  type WalletDeps,
+  type WalletRequest,
+  type WalletResponse,
+} from "./wallet/handler.ts";
+export {
   CLAMAV_DEFAULT_PORT,
   isLocalDevelopment,
   passThroughScanner,

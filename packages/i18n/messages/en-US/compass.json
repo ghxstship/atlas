@@ -246,6 +246,45 @@
     "orgChip": "{org}",
     "nextCueAt": "Planned for {day} at {time}"
   },
+  "orgs": {
+    "title": "Organizations",
+    "chip": "Organization: {org}",
+    "switch": "Organization: {org}. Change organization",
+    "switchHint": "Lists the organizations you work for.",
+    "change": "Change",
+    "member": "Member",
+    "engaged": "Engaged",
+    "combinedTitle": "Today in all your organizations",
+    "nothingToday": "Nothing today."
+  },
+  "glance": {
+    "today": "Today",
+    "noCue": "No cue today.",
+    "cueLine": "Next cue: {cue} at {time}",
+    "onShiftTitle": "On shift at {project}",
+    "onBreakTitle": "On break at {project}",
+    "since": "Since {time}",
+    "cueTitle": "Next cue: {cue}",
+    "cueBody": "{project} at {time}",
+    "channel": "Shift and next cue"
+  },
+  "wallet": {
+    "holder": "Name",
+    "credential": "Credential",
+    "role": "Role",
+    "project": "Project",
+    "starts": "Starts",
+    "ends": "Ends",
+    "validUntil": "Valid until",
+    "organization": "Organization",
+    "addApple": "Add to Apple Wallet",
+    "addGoogle": "Add to Google Wallet",
+    "adding": "Getting your pass",
+    "notConfigured": "Wallet passes are not set up for your organization yet. Show the badge here instead.",
+    "notFound": "This pass is not yours to add.",
+    "offline": "Connect to the internet to add the pass. Once added, it works offline.",
+    "failed": "The pass could not be added. Try again."
+  },
   "clock": {
     "in": "Clock In",
     "onShift": "On Shift",

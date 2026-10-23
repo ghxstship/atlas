@@ -10,6 +10,7 @@ import { access, type Denial, type Feature } from "../domain/access";
 import { queueAnnouncement } from "../domain/announce";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { countKey } from "../runtime/i18n";
+import { OrgSwitcher } from "./OrgSwitcher";
 import {
   announce,
   Banner,
@@ -77,7 +78,16 @@ export function ProjectPicker(): ReactElement | null {
   if (!resolved) return null;
   const current = resolved.projects.find((p) => p.id === projectId);
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: theme.space["8"] }}>
+    <View
+      style={{
+        flexDirection: "row",
+        flexWrap: "wrap",
+        alignItems: "center",
+        gap: theme.space["8"],
+      }}
+    >
+      {/* The active org in its brand, and the switch for a person in several orgs (Section 4.5.7). */}
+      <OrgSwitcher />
       <Button
         testID="project-picker"
         variant="secondary"

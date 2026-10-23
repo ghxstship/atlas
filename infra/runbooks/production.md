@@ -839,6 +839,57 @@ Each runs the preflight, then `eas build --platform <ios|android> --profile prod
 
 Retaking the store screenshots after a UI change: `apps/compass/scripts/store-screenshots.sh` (local stack and simulator only; its header lists what it needs).
 
+#### Over-the-air updates (EAS Update)
+
+Each build profile takes updates from the channel of its name (`development`, `preview`, `production`, `tenant-<slug>`; ADR 0049 item 5). The runtime version is the native fingerprint, so an update only reaches binaries built from the same native code: JavaScript and assets only. Anything that changes native code (a new module, a config plugin, `app.json` native fields) needs a new store build. Stage every production update:
+
+```sh
+cd apps/compass
+npx eas update --channel production --rollout-percentage 10 --message "<what changed>"
+npx eas update:edit --rollout-percentage 50    # then 100, watching Sentry between steps
+```
+
+Local and Maestro builds never fetch updates; set `XOS_UPDATES=1` to try one on a local build.
+
+### Compass tenant builds (Enterprise)
+
+An org on a plan with `branded_compass_build` gets its own app (Section 12 Mobile, ADR 0049 item 6): its name, bundle identifier, icon, splash and store listing. The engineering side is one command; the accounts are the tenant's.
+
+1. **Generate the tenant's profiles** (from `apps/compass`, values from the org's brand in Atlas):
+
+   ```sh
+   pnpm tenant:profile --slug <slug> --org <org slug> --name "<app name>" --bundle-id <reverse.domain.app> \
+     --accent "<the org's accent, #RRGGBB>" --hosts atlas:<atlas host>,gateway:<gateway host>
+   pnpm tenant:check
+   ```
+
+   It writes `tenants/<slug>.json`, `tenants/<slug>/store.config.json` and the `tenant-<slug>` build and submit profiles in `eas.json`.
+
+2. **OWNER (with the tenant):** put the tenant's 1024 x 1024 icon (PNG, no transparency) at `tenants/<slug>/icon.png` and its splash at `tenants/<slug>/splash.png`; create the tenant's EAS project (`npx eas project:init` with the tenant's slug) and put its id in `tenants/<slug>.json` `easProjectId`; register `<bundle id>`, `<bundle id>.clock-activity` and the App Group `group.<bundle id>` in the tenant's Apple Developer account; fill `submit.tenant-<slug>` in `eas.json` and the listing; set the same EAS environment variables as production (step 3 above). A tenant build stops while its EAS project, icon, splash or listing is missing.
+3. **Build and submit** (TestFlight and the Play internal track only, as for the platform app):
+
+   ```sh
+   node --experimental-strip-types scripts/store-preflight.ts ios tenant-<slug>
+   npx eas build --profile tenant-<slug> --platform all --auto-submit
+   ```
+
+### Wallet passes (OWNER)
+
+Compass adds a person's own badge and accepted shifts to Apple Wallet and Google Wallet through the `wallet-pass` Edge Function (ADR 0049 item 9). Until these secrets are set the function answers 503 and Compass explains that passes are not set up yet:
+
+```sh
+npx supabase secrets set --project-ref <project-ref> \
+  APPLE_PASS_TYPE_ID=pass.<reverse domain> APPLE_TEAM_ID=<10 characters> \
+  APPLE_PASS_CERT_PEM="$(cat pass.pem)" APPLE_PASS_KEY_PEM="$(cat pass-key.pem)" APPLE_WWDR_CERT_PEM="$(cat wwdr.pem)"
+npx supabase secrets set --project-ref <project-ref> \
+  GOOGLE_WALLET_ISSUER_ID=<issuer id> GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL=<name>@<project>.iam.gserviceaccount.com \
+  GOOGLE_WALLET_PRIVATE_KEY_PEM="$(cat wallet-key.pem)"
+npx supabase functions deploy wallet-pass --project-ref <project-ref>
+```
+
+- **Apple:** in Certificates, Identifiers and Profiles, register a Pass Type ID and create its certificate; export it from Keychain Access as a .p12 and convert it: `openssl pkcs12 -in pass.p12 -clcerts -nokeys -out pass.pem` and `openssl pkcs12 -in pass.p12 -nocerts -nodes | openssl pkcs8 -topk8 -nocrypt -out pass-key.pem`. Download Apple's WWDR intermediate (G4) and convert it to PEM. Delete the local files afterwards.
+- **Google:** in the Google Pay and Wallet Console, create the issuer; in Google Cloud, create a service account with a JSON key, add its email as a user of the issuer, and take the key's `private_key` as the PEM.
+
 ### OWNER stop: public store submission
 
 Submitting to the public App Store (App Review for release) or promoting to the Play production track (or closed and open tracks that reach the public) is a Section 19.8 stop condition. The listing, screenshots, privacy labels (App Privacy and the Play Data safety form), age rating and review notes are ready in `apps/compass/store/`; the release owner sets up the review accounts (`apps/compass/store/review-notes.md`), checks the open questions in `apps/compass/store/README.md` and `docs/release-checklist.md` (Compass store release), then stops and asks the owner. Only the owner presses Submit for Review or promotes to production. `store.config.json` keeps `automaticRelease` false, so even an approved version waits for the owner to release it.

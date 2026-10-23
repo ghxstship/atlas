@@ -20,6 +20,8 @@ export const COMPASS_SETTING_KEYS: readonly string[] = [
   "me.haptics",
   "me.sounds",
   "locale.units",
+  // The person's own calendar for items with no project (A71); kept only when they set it themselves.
+  "locale.time_zone",
   "me.time_zone_display",
   "time.geofence_required",
   "time.kiosk_enabled",

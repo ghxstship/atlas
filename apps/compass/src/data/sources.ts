@@ -341,6 +341,21 @@ export function sourcesFor(audience: Audience): readonly Source[] {
   return [...(isInternal(audience) ? INTERNAL_SOURCES : EXTERNAL_SOURCES), ...CANON_SOURCES];
 }
 
+/**
+ * The sources for a person in several orgs (Section 4.5.7): the app tables when they are a member of any
+ * org, the api_external views when any org engages them, and canon once. A table can then come from both;
+ * the downloader merges its rows before writing, and each row still passes its own org's scope.
+ */
+export function sourcesForAudiences(audiences: readonly Audience[]): readonly Source[] {
+  const internal = audiences.some((a) => isInternal(a));
+  const external = audiences.some((a) => !isInternal(a));
+  return [
+    ...(internal ? INTERNAL_SOURCES : []),
+    ...(external ? EXTERNAL_SOURCES : []),
+    ...CANON_SOURCES,
+  ];
+}
+
 /** Local rows keyed by id; a mapped row without an id is dropped rather than stored under a bad key. */
 export function toLocalRows(
   source: Source,

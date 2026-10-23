@@ -15,6 +15,7 @@ import {
   queuedPunchMutation,
   serializeContext,
   type ActivityContent,
+  type NextCue,
   type QueuedPunch,
 } from "../domain/liveActivity";
 import { deviceClock } from "./platform";
@@ -32,6 +33,8 @@ export function useClockLiveActivity(
   context: PunchContext | null,
   labels: ClockLabels,
   replies: { readonly clockedIn: string; readonly alreadyIn: string },
+  /** The next cue, shown beside the shift timer, or alone while clocked out when it is close (A65-011). */
+  nextCue: NextCue | null = null,
 ): string | null {
   const shown = useRef<ActivityContent | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
@@ -45,7 +48,7 @@ export function useClockLiveActivity(
       .then(() => native.prepareClockIn(payload))
       .catch((error: unknown) => setFailure(message(error)));
   }, [payload]);
-  const next = activityContent(snapshot, Date.now());
+  const next = activityContent(snapshot, Date.now(), nextCue);
   const contextJson = context ? serializeContext(context) : null;
   const labelsJson = JSON.stringify(labels);
   // One value key: the effect reruns only when what the activity shows, or its context, changes.
@@ -59,14 +62,18 @@ export function useClockLiveActivity(
     ];
     if (!native || !activityChanged(shown.current, content)) return;
     const previous = shown.current;
-    // Starting needs the punch context the lock screen buttons will use; wait until scope has loaded.
-    if (previous === null && content !== null && ctx === null) return;
+    // Starting on shift needs the punch context the lock screen buttons will use; wait until scope has
+    // loaded. The cue state has no buttons and needs none.
+    const punching = content !== null && content.state !== "cue";
+    if ((previous === null || previous.state === "cue") && punching && ctx === null) return;
     shown.current = content;
     const run = async () => {
       if (!native.isSupported()) return;
+      const startLabels = JSON.parse(labelText) as ClockLabels;
       if (content === null) await native.end();
-      else if (previous === null && ctx !== null)
-        await native.start(JSON.parse(labelText) as ClockLabels, content, ctx);
+      // From nothing, or from the cue alone to a shift: start (or restart) with the punch context.
+      else if (previous === null || (previous.state === "cue" && punching))
+        await native.start(startLabels, content, punching ? (ctx ?? "") : "");
       else await native.update(content);
     };
     run().then(

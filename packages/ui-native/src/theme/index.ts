@@ -40,6 +40,14 @@ export interface ThemeOptions {
   readonly textScale?: number;
   readonly highContrast?: boolean;
   readonly reduceMotion?: boolean;
+  /**
+   * A tenant brand's colors per theme (Section 12): token values that replace the platform's in that theme.
+   * The app passes only overrides it has checked against the contrast pairs; a theme left out keeps the
+   * platform colors.
+   */
+  readonly brandColors?: Readonly<
+    Partial<Record<ThemeName, Readonly<Partial<Record<ColorToken, string>>>>>
+  >;
 }
 
 /** Everything a native component reads to draw itself: base tokens plus the active theme's colors. */
@@ -105,15 +113,16 @@ function reducedDurations(): NativeDurations {
  */
 export function createTheme(name: ThemeName, options: ThemeOptions = {}): XosNativeTheme {
   const theme = themeTokens[name];
+  const branded = { ...theme.color, ...options.brandColors?.[name] };
   const color = options.highContrast
     ? {
-        ...theme.color,
+        ...branded,
         textSecondary: theme.color.textPrimary,
         textTertiary: theme.color.textPrimary,
         borderSubtle: theme.color.borderStrong,
         borderControl: theme.color.borderStrong,
       }
-    : theme.color;
+    : branded;
   return {
     name,
     dark: name === "dark",
@@ -175,12 +184,26 @@ export function ThemeProvider({
   const textScale = options?.textScale ?? 1;
   const highContrast = options?.highContrast ?? false;
   const reduceMotion = options?.reduceMotion ?? false;
+  const brand = options?.brandColors?.[name];
+  // One key for the brand's colors, so a new options object with the same colors keeps the theme.
+  const brandKey = brand ? JSON.stringify(brand) : "";
   const value = useMemo(
     () =>
-      textScale === 1 && !highContrast && !reduceMotion
+      textScale === 1 && !highContrast && !reduceMotion && brandKey === ""
         ? themes[name]
-        : createTheme(name, { textScale, highContrast, reduceMotion }),
-    [name, textScale, highContrast, reduceMotion],
+        : createTheme(name, {
+            textScale,
+            highContrast,
+            reduceMotion,
+            ...(brandKey
+              ? {
+                  brandColors: {
+                    [name]: JSON.parse(brandKey) as Partial<Record<ColorToken, string>>,
+                  },
+                }
+              : {}),
+          }),
+    [name, textScale, highContrast, reduceMotion, brandKey],
   );
   return createElement(
     ThemeContext.Provider,

@@ -95,10 +95,15 @@ describe("eas.json", () => {
     expect(read("eas.json")).not.toMatch(/eyJ[A-Za-z0-9_-]{10,}|sk_(live|test)_|-----BEGIN/);
   });
 
-  it("uses no EAS Update channel, because Compass ships no expo-updates", () => {
+  it("gives every build profile its own EAS Update channel (A93)", async () => {
+    // expo-updates ships (pinned), and each profile's builds take updates from the channel of its name, so
+    // a preview update never reaches a store build. Tenant profiles use tenant-<slug> (tenant-builds.test.ts).
     const deps = readJson("package.json")["dependencies"] as Record<string, string>;
-    expect(deps["expo-updates"]).toBeUndefined();
-    for (const profile of Object.values(easJson.build)) expect(profile["channel"]).toBeUndefined();
+    expect(deps["expo-updates"]).toMatch(/^\d+\.\d+\.\d+$/);
+    for (const name of ["development", "preview", "production"]) {
+      const profile = await easJsonLib.EasJsonUtils.getBuildProfileAsync(accessor, "ios", name);
+      expect(profile["channel"]).toBe(name);
+    }
   });
 
   it("submits iOS to TestFlight and Android to the internal track only", async () => {

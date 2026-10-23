@@ -1,0 +1,96 @@
+appId: pro.ghxstship.compass
+# Resumable uploads (Section 13 Media; A65-011 part 4): a photo taken offline survives an app restart and
+# uploads through Supabase Storage's resumable (TUS) endpoint once the server answers, and the report it
+# belongs to is filed once.
+# Named after its file: config.yaml orders flows by name.
+name: field-resumable-upload
+# Goes offline: airplane mode on Android, the network helper on iOS (apps/compass/scripts/maestro-network.ts).
+tags:
+  - airplane-mode
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: tech@example.com
+- setLocation:
+    latitude: 25.7752
+    longitude: -80.1855
+- tapOn:
+    id: "tab-more"
+- tapOn:
+    id: "more-incidents"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: enabled
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: offline
+      - assertTrue: ${output.network.ok}
+- tapOn:
+    id: "incident-report"
+- assertVisible: "Step 1 of 3"
+- tapOn: "Level 2 - Major"
+- tapOn:
+    id: "incident-next"
+- tapOn:
+    id: "incident-title"
+- inputText: "Cable cover lifted at Dock B"
+- hideKeyboard
+- tapOn:
+    id: "incident-photo"
+- tapOn:
+    id: "photo-take"
+- assertVisible: "1 attached"
+- tapOn:
+    id: "incident-submit"
+- extendedWaitUntil:
+    visible:
+      id: "incident-filed"
+    timeout: 10000
+- extendedWaitUntil:
+    visible: ".*changes waiting to upload.*"
+    timeout: 15000
+# Compass closes and opens again while still offline: the report and its photo are still queued, the photo
+# copied out of the caches when it was queued.
+- stopApp
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible:
+      id: "tab-bar"
+    timeout: 60000
+- extendedWaitUntil:
+    visible: ".*changes waiting to upload.*"
+    timeout: 30000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: disabled
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: online
+      - assertTrue: ${output.network.ok}
+# The retry backoff grows while the server is away, so the drain may wait for the next attempt.
+- extendedWaitUntil:
+    notVisible:
+      id: "sync-queued|sync-offline"
+    timeout: 180000
+- runScript:
+    file: ../scripts/incident-filed-once.js
+    env:
+      EMAIL: tech@example.com
+      TITLE: "Cable cover lifted at Dock B"
+- assertTrue: ${output.filed.status == 200 && output.filed.incidents == 1 && output.filed.photos == 1}

@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
@@ -134,6 +134,11 @@ export const APP_ICON = "./assets/icon.png";
 /** The EAS build profiles that reach testers or the stores. */
 export const RELEASE_PROFILES = ["preview", "production"] as const;
 
+/** A release profile: preview, production, or a tenant's branded build (`tenant-<slug>`, withTenant). */
+export function isReleaseProfile(profile: string): boolean {
+  return (RELEASE_PROFILES as readonly string[]).includes(profile) || profile.startsWith("tenant-");
+}
+
 type Env = Readonly<Record<string, string | undefined>>;
 
 function isHttpsUrl(value: string | undefined): boolean {
@@ -155,7 +160,7 @@ function isHttpsUrl(value: string | undefined): boolean {
  */
 export function releaseConfigProblems(env: Env, iconPresent = true): string[] {
   const profile = env["EAS_BUILD_PROFILE"] ?? "";
-  if (env["EAS_BUILD"] !== "true" || !(RELEASE_PROFILES as readonly string[]).includes(profile)) {
+  if (env["EAS_BUILD"] !== "true" || !isReleaseProfile(profile)) {
     return [];
   }
   const problems: string[] = [];
@@ -185,7 +190,8 @@ export function withStoreBuild(config: ExpoConfig, env: Env, iconPresent = false
   const googleServices = env["GOOGLE_SERVICES_JSON"];
   return {
     ...config,
-    ...(iconPresent ? { icon: APP_ICON } : {}),
+    // A tenant build already carries its own icon (withTenant).
+    ...(iconPresent && !config.icon ? { icon: APP_ICON } : {}),
     ios: {
       ...config.ios,
       ...(teamId && APPLE_TEAM_ID.test(teamId) ? { appleTeamId: teamId } : {}),
@@ -197,17 +203,206 @@ export function withStoreBuild(config: ExpoConfig, env: Env, iconPresent = false
   };
 }
 
+/**
+ * EAS Update (Section 13 Distribution: "Over-the-air updates via EAS Update apply only to JavaScript changes
+ * and follow staged rollout"). Each build profile in eas.json names its channel (development, preview,
+ * production, tenant-<slug>); `eas update --channel <name> --rollout-percentage <n>` stages an update.
+ * The fingerprint runtime version changes with any native change, so an update only ever reaches binaries
+ * built from the same native code: JavaScript and assets only. Updates run in EAS builds (and with
+ * XOS_UPDATES=1); local and Maestro builds always run their embedded bundle.
+ */
+export function withUpdates(config: ExpoConfig, env: Env): ExpoConfig {
+  const projectId = (config.extra?.["eas"] as { projectId?: string } | undefined)?.projectId;
+  if (!projectId) return config;
+  return {
+    ...config,
+    runtimeVersion: { policy: "fingerprint" },
+    updates: {
+      ...config.updates,
+      url: `https://u.expo.dev/${projectId}`,
+      enabled: env["EAS_BUILD"] === "true" || env["XOS_UPDATES"] === "1",
+      checkAutomatically: "ON_LOAD",
+      fallbackToCacheTimeout: 0,
+    },
+  };
+}
+
+/**
+ * Enterprise branded builds (Section 12 Mobile: "a dedicated branded build through EAS build profiles
+ * generated per tenant: bundle identifier, app name, icon, splash and store listing metadata"). Each tenant
+ * has a definition at tenants/<slug>.json, written by scripts/tenant-profile.ts, which also adds the
+ * `tenant-<slug>` build and submit profiles to eas.json; that build profile sets XOS_TENANT=<slug>. Values
+ * that wait on the tenant's own accounts (its EAS project, Apple team, App Store Connect app) are OWNER_
+ * tokens until filled, and a release build stops while any is left (releaseConfigProblems).
+ */
+export interface TenantBuild {
+  readonly slug: string;
+  /** The XOS org the build is for; Compass opens on it and wears its brand before sign-in. */
+  readonly orgSlug: string;
+  readonly name: string;
+  readonly bundleIdentifier: string;
+  readonly androidPackage: string;
+  readonly scheme: string;
+  /** Uppercase #RRGGBB: the splash and adaptive icon background, and the brand before sign-in. */
+  readonly accent: string;
+  /** Paths relative to apps/compass. */
+  readonly icon: string;
+  readonly splash: string;
+  readonly storeConfig: string;
+  /** The tenant's EAS project (a UUID), an OWNER_ token until created. */
+  readonly easProjectId: string;
+  /** Universal link hosts on the tenant's custom domains, as XOS_UNIVERSAL_LINK_HOSTS spells them. */
+  readonly universalLinkHosts: string;
+}
+
+export const TENANT_SLUG = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?$/;
+const BUNDLE_ID = /^[A-Za-z][A-Za-z0-9-]*(?:\.[A-Za-z][A-Za-z0-9-]*)+$/;
+const ANDROID_PACKAGE = /^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)+$/;
+const SCHEME = /^[a-z][a-z0-9+.-]{1,40}$/;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const OWNER_TOKEN = /^OWNER_[A-Z0-9_]+$/;
+const HEX = /^#[0-9A-F]{6}$/;
+const LOCAL_PATH = /^\.\/tenants\/[a-z0-9-]+\/[A-Za-z0-9._-]+$/;
+
+/** Why a tenant definition cannot build; empty when it can. */
+export function tenantProblems(value: unknown): string[] {
+  if (value === null || typeof value !== "object")
+    return ["the tenant definition is not an object"];
+  const t = value as Record<string, unknown>;
+  const problems: string[] = [];
+  const check = (key: keyof TenantBuild, ok: (v: string) => boolean, what: string) => {
+    const v = t[key];
+    if (typeof v !== "string" || !ok(v)) problems.push(`${key} must be ${what}`);
+  };
+  check("slug", (v) => TENANT_SLUG.test(v), "lowercase letters, digits and dashes");
+  check("orgSlug", (v) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(v), "the XOS org slug");
+  check("name", (v) => v.trim().length > 0 && v.length <= 30, "1 to 30 characters");
+  check("bundleIdentifier", (v) => BUNDLE_ID.test(v), "a reverse-DNS iOS bundle identifier");
+  check("androidPackage", (v) => ANDROID_PACKAGE.test(v), "a lowercase Android package name");
+  check("scheme", (v) => SCHEME.test(v), "a lowercase URL scheme");
+  check("accent", (v) => HEX.test(v), "an uppercase #RRGGBB color");
+  check("icon", (v) => LOCAL_PATH.test(v), "a file under ./tenants/<slug>/");
+  check("splash", (v) => LOCAL_PATH.test(v), "a file under ./tenants/<slug>/");
+  check("storeConfig", (v) => LOCAL_PATH.test(v), "a file under ./tenants/<slug>/");
+  check("easProjectId", (v) => UUID.test(v) || OWNER_TOKEN.test(v), "a UUID or an OWNER_ token");
+  check(
+    "universalLinkHosts",
+    (v) => v === "" || universalLinkHosts(v).length === v.split(",").length,
+    "empty or atlas:<host>,gateway:<host>",
+  );
+  if (
+    typeof t["bundleIdentifier"] === "string" &&
+    t["bundleIdentifier"] === "pro.ghxstship.compass"
+  )
+    problems.push("bundleIdentifier must differ from the platform build's");
+  return problems;
+}
+
+export function readTenant(projectRoot: string, slug: string): TenantBuild {
+  if (!TENANT_SLUG.test(slug)) throw new Error(`XOS_TENANT "${slug}" is not a tenant slug.`);
+  const file = join(projectRoot, "tenants", `${slug}.json`);
+  if (!existsSync(file))
+    throw new Error(`No tenant definition at tenants/${slug}.json; run scripts/tenant-profile.ts.`);
+  const value = JSON.parse(readFileSync(file, "utf8")) as unknown;
+  const problems = tenantProblems(value);
+  if (problems.length > 0)
+    throw new Error(`tenants/${slug}.json is not valid:\n- ${problems.join("\n- ")}`);
+  return value as TenantBuild;
+}
+
+/** The App Group a build's app and widget extension share: `group.` and the app's bundle identifier. */
+export function appGroupFor(bundleIdentifier: string): string {
+  return `group.${bundleIdentifier}`;
+}
+
+export function withTenant(config: ExpoConfig, tenant: TenantBuild): ExpoConfig {
+  const projectId = OWNER_TOKEN.test(tenant.easProjectId) ? undefined : tenant.easProjectId;
+  return {
+    ...config,
+    name: tenant.name,
+    slug: `xos-compass-${tenant.slug}`,
+    scheme: tenant.scheme,
+    icon: tenant.icon,
+    // The launch screen: the tenant's splash art on its accent (expo-splash-screen's config plugin).
+    plugins: [
+      ...(config.plugins ?? []),
+      [
+        "expo-splash-screen",
+        {
+          image: tenant.splash,
+          backgroundColor: tenant.accent,
+          imageWidth: 200,
+          resizeMode: "contain",
+        },
+      ],
+    ],
+    ios: {
+      ...config.ios,
+      bundleIdentifier: tenant.bundleIdentifier,
+      entitlements: {
+        ...config.ios?.entitlements,
+        "com.apple.security.application-groups": [appGroupFor(tenant.bundleIdentifier)],
+      },
+    },
+    android: {
+      ...config.android,
+      package: tenant.androidPackage,
+      adaptiveIcon: { foregroundImage: tenant.icon, backgroundColor: tenant.accent },
+    },
+    extra: {
+      ...config.extra,
+      eas: { ...(config.extra?.["eas"] as object | undefined), projectId },
+      tenant: {
+        slug: tenant.slug,
+        orgSlug: tenant.orgSlug,
+        name: tenant.name,
+        accent: tenant.accent,
+      },
+    },
+  };
+}
+
+/** What stops a tenant's release build: values still waiting on the tenant's accounts, or missing art. */
+export function tenantReleaseProblems(
+  tenant: TenantBuild,
+  env: Env,
+  fileExists: (path: string) => boolean,
+): string[] {
+  const profile = env["EAS_BUILD_PROFILE"] ?? "";
+  if (env["EAS_BUILD"] !== "true" || !profile.startsWith("tenant-")) return [];
+  const problems: string[] = [];
+  if (OWNER_TOKEN.test(tenant.easProjectId))
+    problems.push(`tenants/${tenant.slug}.json easProjectId is still ${tenant.easProjectId}`);
+  for (const path of [tenant.icon, tenant.splash, tenant.storeConfig]) {
+    if (!fileExists(path)) problems.push(`the tenant file ${path} is missing`);
+  }
+  return problems;
+}
+
 export default ({ config, projectRoot }: ConfigContext): ExpoConfig => {
   refuseTestOnlySwitches(process.env);
+  const slug = process.env["XOS_TENANT"];
+  const tenant = slug ? readTenant(projectRoot, slug) : null;
+  const exists = (path: string) => existsSync(join(projectRoot, path));
+  if (tenant) {
+    const problems = tenantReleaseProblems(tenant, process.env, exists);
+    if (problems.length > 0)
+      throw new Error(
+        `Compass tenant build "${tenant.slug}" is missing configuration:\n- ${problems.join("\n- ")}\n` +
+          "Fill the tenant's OWNER_ values (infra/runbooks/production.md, Compass tenant builds).",
+      );
+  }
+  const hosts = tenant
+    ? tenant.universalLinkHosts
+    : (process.env["XOS_UNIVERSAL_LINK_HOSTS"] ?? PRODUCTION_LINK_HOSTS);
+  const linked = withGoogleSignIn(
+    withUniversalLinks(config as ExpoConfig, universalLinkHosts(hosts)),
+    process.env["EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID"],
+  );
+  const branded = tenant ? withTenant(linked, tenant) : linked;
   return withStoreBuild(
-    withGoogleSignIn(
-      withUniversalLinks(
-        config as ExpoConfig,
-        universalLinkHosts(process.env["XOS_UNIVERSAL_LINK_HOSTS"] ?? PRODUCTION_LINK_HOSTS),
-      ),
-      process.env["EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID"],
-    ),
+    withUpdates(branded, process.env),
     process.env,
-    existsSync(join(projectRoot, APP_ICON)),
+    tenant ? exists(tenant.icon) : exists(APP_ICON),
   );
 };

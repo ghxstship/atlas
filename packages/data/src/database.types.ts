@@ -60198,6 +60198,21 @@ export type Database = {
           signed_in_at: string;
         }[];
       };
+      my_org_brands: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          accent_hex: string;
+          font_family: string;
+          logo_dark_path: string;
+          logo_light_path: string;
+          name: string;
+          neutral_tint_hex: string;
+          org_id: string;
+          org_slug: string;
+          radius_scale: Database["app"]["Enums"]["brand_radius_scale"];
+          suppress_powered_by: boolean;
+        }[];
+      };
       my_orgs_allowing_personal_tokens: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -60295,6 +60310,24 @@ export type Database = {
       my_upload_scan_status: {
         Args: { p_bucket_id: string; p_object_name: string };
         Returns: Database["app"]["Enums"]["scan_status"];
+      };
+      my_wallet_pass: {
+        Args: { p_id: string; p_kind: string };
+        Returns: {
+          accent_hex: string;
+          barcode: string;
+          ends_at: string;
+          holder_name: string;
+          kind: string;
+          org_id: string;
+          org_name: string;
+          project_name: string;
+          serial: string;
+          starts_at: string;
+          time_zone: string;
+          title: string;
+          voided: boolean;
+        }[];
       };
       my_work_detail_sharing: {
         Args: Record<PropertyKey, never>;
