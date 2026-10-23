@@ -1,6 +1,7 @@
-/* global http, json, output, SUPABASE_URL, SUPABASE_ANON_KEY, EMAIL, XOS_DEMO_PASSWORD, DESCRIPTION */
+/* global http, json, output, SUPABASE_URL, SUPABASE_ANON_KEY, EMAIL, XOS_DEMO_PASSWORD, DESCRIPTION, SINCE */
 // A92 "see it filed once": signs in as the submitter over the auth API and counts the expenses described as
-// DESCRIPTION and the receipts filed with them (1490), as Atlas's expenses page reads them. Leaves
+// DESCRIPTION and filed since SINCE (the flow's start, so a rerun on the same stack counts only its own), and the
+// receipts filed with them (1490), as Atlas's expenses page reads them. Leaves
 // { status, expenses, receipts, amount, state } in output.expense. Maestro runs scripts in Rhino, so this file
 // is ES5.
 var auth = http.post(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
@@ -16,7 +17,8 @@ var headers = {
 var res = http.get(
   SUPABASE_URL +
     "/rest/v1/expenses?select=id,amount_minor,expense_state&description=eq." +
-    encodeURIComponent(DESCRIPTION),
+    encodeURIComponent(DESCRIPTION) +
+    (typeof SINCE !== "undefined" && SINCE ? "&created_at=gte." + encodeURIComponent(SINCE) : ""),
   { headers: headers },
 );
 var rows = json(res.body);

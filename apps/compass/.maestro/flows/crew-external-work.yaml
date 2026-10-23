@@ -8,6 +8,21 @@ name: crew-external-work
 # Goes offline: airplane mode on Android, the network helper on iOS (apps/compass/scripts/maestro-network.ts).
 tags:
   - airplane-mode
+# Back online however the flow ends, so a failure part way through never leaves the gateway down for the next flow.
+onFlowComplete:
+  - runFlow:
+      when:
+        platform: Android
+      commands:
+        - setAirplaneMode: disabled
+  - runFlow:
+      when:
+        platform: iOS
+      commands:
+        - runScript:
+            file: ../scripts/network.js
+            env:
+              STEP: online
 ---
 - runFlow:
     file: ../subflows/sign-in.yaml
@@ -62,9 +77,10 @@ tags:
     visible:
       id: "external-section-travel"
     timeout: 30000
-# Each end of a flight in its own zone: out of LAX at 9:00 AM, in to MIA at 8:05 PM.
+# Each end of a flight in its own zone: out of LAX at 9:00 AM, in to MIA at 8:05 PM. Hermes writes a narrow
+# no-break space before AM and PM, so the pattern takes any character there.
 - assertVisible: ".*LAX → MIA.*"
-- assertVisible: ".*Departs .*Jun 3.*9:00 AM.*Arrives .*Jun 3.*8:05 PM.*"
+- assertVisible: ".*Departs .*Jun 3.*9:00.AM.*Arrives .*Jun 3.*8:05.PM.*"
 - runFlow:
     file: ../subflows/open-route.yaml
     env:
@@ -75,17 +91,3 @@ tags:
     timeout: 30000
 - assertVisible: ".*Certificate of Insurance.*"
 - assertVisible: "Done"
-- runFlow:
-    when:
-      platform: Android
-    commands:
-      - setAirplaneMode: disabled
-- runFlow:
-    when:
-      platform: iOS
-    commands:
-      - runScript:
-          file: ../scripts/network.js
-          env:
-            STEP: online
-      - assertTrue: ${output.network.ok}

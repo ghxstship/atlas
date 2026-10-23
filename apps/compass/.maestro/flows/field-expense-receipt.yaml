@@ -8,11 +8,28 @@ name: field-expense-receipt
 # Goes offline: airplane mode on Android, the network helper on iOS (apps/compass/scripts/maestro-network.ts).
 tags:
   - airplane-mode
+# Back online however the flow ends, so a failure part way through never leaves the gateway down for the next flow.
+onFlowComplete:
+  - runFlow:
+      when:
+        platform: Android
+      commands:
+        - setAirplaneMode: disabled
+  - runFlow:
+      when:
+        platform: iOS
+      commands:
+        - runScript:
+            file: ../scripts/network.js
+            env:
+              STEP: online
 ---
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
       EMAIL: producer@example.com
+# The check at the end counts only expenses filed from here on, so the flow can run again on the same stack.
+- evalScript: ${output.since = new Date().toISOString()}
 - tapOn:
     id: "tab-more"
 - scrollUntilVisible:
@@ -108,4 +125,5 @@ tags:
     env:
       EMAIL: producer@example.com
       DESCRIPTION: "Ice and water for the crew"
+      SINCE: ${output.since}
 - assertTrue: ${output.expense.status == 200 && output.expense.expenses == 1 && output.expense.receipts == 1 && output.expense.amount == 4250}
