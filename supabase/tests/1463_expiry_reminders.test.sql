@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(21);
+select plan(23);
 
 select pg_temp.as_user('alice');
 select app.set_setting(pg_temp.id('org_a'), 'locale.time_zone', 'Organization', pg_temp.id('org_a'), p_value_text => 'Pacific/Kiritimati');
@@ -96,6 +96,8 @@ select is((select n.message_args ->> 'kind' from app.notifications n where n.sub
 
 select is(pg_temp.reminded('onboarding_items', :'v_item_ivy', 'ivy'), '14',
   'an onboarding item 10 days out reminds at its requirement''s own window of 14 days');
+select is((select n.kind from app.notifications n where n.subject_table = 'onboarding_items' and n.recipient_person_id = pg_temp.id('ivy')),
+  'onboarding.item_expiring', 'as an onboarding.item_expiring notification');
 select ok((select n.message_args ->> 'gatewayPath' from app.notifications n where n.subject_table = 'onboarding_items'
            and n.recipient_person_id = pg_temp.id('ivy')) like '/work/engagements/ENG-%', 'linking an external party to the engagement in Gateway');
 select is((select string_agg(d.channel::text, ',' order by d.channel) from app.notification_deliveries d
@@ -107,6 +109,8 @@ select is((select count(*)::integer from private.expiry_reminders_sent r where r
            and r.recipient_person_id in (pg_temp.id('fiona'), pg_temp.id('sam'))), 0, 'not its Finance or plain members');
 
 select is(pg_temp.reminded('engagement_documents', :'v_doc', 'art'), '1', 'a signed agreement expiring tomorrow reminds at 1');
+select is((select n.kind from app.notifications n where n.subject_table = 'engagement_documents' and n.recipient_person_id = pg_temp.id('art')),
+  'document.expiring', 'as a document.expiring notification');
 select is(pg_temp.reminded('engagement_documents', :'v_doc_old', 'art'), null, 'an expired one does not');
 
 select results_eq($$select r.org_id, r.notification_id from private.expiry_reminders_sent r where r.subject_id = $$ || quote_literal(:'v_nina_cert'),

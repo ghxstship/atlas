@@ -304,10 +304,19 @@ kinds:
   # reporter, and the decision on an appeal (EU Digital Services Act articles 16, 17 and 20)
   - kind: listing.moderated
     category: account
+    emitted_by:
+      - emitter: supabase/migrations/1473_moderation_console.sql#private.notify_moderation_decision
+        test: supabase/tests/1473_moderation_console.test.sql
   - kind: listing_report.decided
     category: account
+    emitted_by:
+      - emitter: supabase/migrations/1473_moderation_console.sql#private.notify_moderation_decision
+        test: supabase/tests/1473_moderation_console.test.sql
   - kind: moderation_appeal.decided
     category: account
+    emitted_by:
+      - emitter: supabase/migrations/1473_moderation_console.sql#app.console_decide_appeal
+        test: supabase/tests/1473_moderation_console.test.sql
   # Reports and imports (0520)
   - kind: report.delivered
     category: reports
@@ -380,9 +389,21 @@ kinds:
   - kind: opportunity.matched
     category: opportunities
     channels: [In App, Email, Push]
+    emitted_by:
+      - emitter: supabase/migrations/1462_saved_search_alerts.sql#private.notify_saved_search_matches
+        test: supabase/tests/1462_saved_search_alerts.test.sql
   - kind: onboarding.item_expiring
     category: expiry_reminders
+    emitted_by:
+      - emitter: supabase/migrations/1463_expiry_reminders.sql#private.send_expiry_reminders
+        test: supabase/tests/1463_expiry_reminders.test.sql
   - kind: certification.expiring
     category: expiry_reminders
+    emitted_by:
+      - emitter: supabase/migrations/1463_expiry_reminders.sql#private.send_expiry_reminders
+        test: supabase/tests/1463_expiry_reminders.test.sql
   - kind: document.expiring
     category: expiry_reminders
+    emitted_by:
+      - emitter: supabase/migrations/1463_expiry_reminders.sql#private.send_expiry_reminders
+        test: supabase/tests/1463_expiry_reminders.test.sql
