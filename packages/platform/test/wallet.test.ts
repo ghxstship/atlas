@@ -47,13 +47,34 @@ import {
   type JwtSigner,
 } from "../src/wallet/google.ts";
 import {
+  callerPassLoader,
+  parseWalletRequest,
   passFromRow,
-  walletLabels,
   walletPassResponse,
   type WalletDeps,
 } from "../src/wallet/handler.ts";
 
-const labels = walletLabels("en-US");
+/** The labels Compass sends from its catalog (compass.wallet), in English and Spanish. */
+const labels = {
+  holder: "Name",
+  credential: "Credential",
+  role: "Role",
+  project: "Project",
+  starts: "Starts",
+  ends: "Ends",
+  validUntil: "Valid until",
+  organization: "Organization",
+};
+const spanish = {
+  holder: "Nombre",
+  credential: "Credencial",
+  role: "Puesto",
+  project: "Proyecto",
+  starts: "Empieza",
+  ends: "Termina",
+  validUntil: "Válida hasta",
+  organization: "Organización",
+};
 const credential: WalletPass = {
   kind: "credential",
   serial: "01920000-0000-7000-8000-000000000001",
@@ -178,7 +199,7 @@ describe("the Apple pass", () => {
   });
 
   it("lays out a shift as an event ticket, relevant at its start, with no barcode", () => {
-    const json = passJson(shift, config, walletLabels("es-US"));
+    const json = passJson(shift, config, spanish);
     expect(json["relevantDate"]).toBe(shift.startsAt);
     expect(json["barcodes"]).toBeUndefined();
     expect(json["eventTicket"]).toMatchObject({
@@ -444,7 +465,7 @@ describe("the wallet-pass function", () => {
 
   it("answers a signed pkpass for Apple Wallet and a save link for Google Wallet", async () => {
     const apple = await walletPassResponse(
-      { kind: "credential", id: credential.serial, platform: "apple" },
+      { kind: "credential", id: credential.serial, platform: "apple", labels },
       deps(),
     );
     expect(apple.status).toBe(200);
@@ -452,7 +473,7 @@ describe("the wallet-pass function", () => {
     expect(apple.headers["cache-control"]).toBe("no-store");
     expect(apple.body).toBeInstanceOf(Uint8Array);
     const google = await walletPassResponse(
-      { kind: "shift", id: credential.serial, platform: "google", locale: "es-US" },
+      { kind: "shift", id: credential.serial, platform: "google", locale: "es-US", labels },
       deps(),
     );
     expect(JSON.parse(google.body as string)).toEqual({
@@ -463,12 +484,12 @@ describe("the wallet-pass function", () => {
   it("refuses a bad request, a pass that is not the caller's, and a wallet that is not set up", async () => {
     expect((await walletPassResponse({ kind: "ticket" }, deps())).status).toBe(422);
     const missing = await walletPassResponse(
-      { kind: "credential", id: "01920000-0000-7000-8000-00000000ffff", platform: "apple" },
+      { kind: "credential", id: "01920000-0000-7000-8000-00000000ffff", platform: "apple", labels },
       deps(),
     );
     expect(missing.status).toBe(404);
     const off = await walletPassResponse(
-      { kind: "credential", id: credential.serial, platform: "apple" },
+      { kind: "credential", id: credential.serial, platform: "apple", labels },
       deps({ apple: null }),
     );
     expect(off.status).toBe(503);
@@ -477,7 +498,7 @@ describe("the wallet-pass function", () => {
       status: 503,
     });
     const unsigned = await walletPassResponse(
-      { kind: "credential", id: credential.serial, platform: "google" },
+      { kind: "credential", id: credential.serial, platform: "google", labels },
       deps({
         google: {
           config: { issuerId: "1", serviceAccountEmail: "x" },
@@ -486,6 +507,67 @@ describe("the wallet-pass function", () => {
       }),
     );
     expect(unsigned.status).toBe(503);
+  });
+
+  it("checks the request without a parser library: kind, wallet, id, language and every label", () => {
+    const ok = { kind: "credential", id: credential.serial, platform: "apple", labels };
+    expect(parseWalletRequest(ok)).toEqual({ ...ok, locale: "en-US" });
+    expect(parseWalletRequest({ ...ok, locale: "es-US" })?.locale).toBe("es-US");
+    for (const bad of [
+      null,
+      "text",
+      { ...ok, kind: "ticket" },
+      { ...ok, platform: "samsung" },
+      { ...ok, id: "not-a-uuid" },
+      { ...ok, locale: "Spanish!" },
+      { ...ok, labels: null },
+      { ...ok, labels: { ...labels, holder: "" } },
+      { ...ok, labels: { ...labels, project: "x".repeat(61) } },
+      { kind: "shift", id: credential.serial, platform: "google" },
+    ])
+      expect(parseWalletRequest(bad)).toBeNull();
+  });
+
+  it("reads the caller's own pass over PostgREST with the caller's token, never the service role", async () => {
+    const calls: { url: string; init: RequestInit }[] = [];
+    const answer = (status: number, body: unknown) =>
+      (async (url: string, init: RequestInit) => {
+        calls.push({ url, init });
+        return new Response(JSON.stringify(body), { status });
+      }) as unknown as typeof fetch;
+    const load = callerPassLoader({
+      supabaseUrl: "https://api.example.test/",
+      anonKey: "public-anon-key",
+      authorization: "Bearer caller-token",
+      fetch: answer(200, [
+        { kind: "shift", serial: credential.serial, starts_at: credential.startsAt, voided: false },
+      ]),
+    });
+    expect(await load("shift", credential.serial)).toMatchObject({ kind: "shift", voided: false });
+    expect(calls[0]?.url).toBe("https://api.example.test/rest/v1/rpc/my_wallet_pass");
+    expect(calls[0]?.init.headers).toMatchObject({
+      apikey: "public-anon-key",
+      authorization: "Bearer caller-token",
+      "content-profile": "app",
+    });
+    expect(JSON.parse(String(calls[0]?.init.body))).toEqual({
+      p_kind: "shift",
+      p_id: credential.serial,
+    });
+    const none = callerPassLoader({
+      supabaseUrl: "https://api.example.test",
+      anonKey: "k",
+      authorization: "Bearer t",
+      fetch: answer(200, []),
+    });
+    expect(await none("credential", credential.serial)).toBeNull();
+    const refused = callerPassLoader({
+      supabaseUrl: "https://api.example.test",
+      anonKey: "k",
+      authorization: "Bearer t",
+      fetch: answer(401, { message: "JWT expired" }),
+    });
+    await expect(refused("credential", credential.serial)).rejects.toThrow(/HTTP 401/);
   });
 
   it("reads app.my_wallet_pass rows", () => {

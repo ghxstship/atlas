@@ -264,8 +264,9 @@ export {
 } from "./wallet/google.ts";
 export {
   PKPASS_TYPE,
+  callerPassLoader,
+  parseWalletRequest,
   passFromRow,
-  walletLabels,
   walletPassResponse,
   type WalletDeps,
   type WalletRequest,

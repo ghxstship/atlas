@@ -70,6 +70,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
     lazy: ["@react-email/components", "react/jsx-runtime", "resend"],
   },
   "upload-scan": { boot: ["@supabase/supabase-js"], lazy: [] },
+  "wallet-pass": { boot: [], lazy: [] },
   "webhook-dispatch": { boot: [], lazy: [] },
 };
 
@@ -97,6 +98,8 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "stripe-webhook": 84,
   "subprocessor-notices": 115,
   "upload-scan": 100,
+  // A93: the pass builders and Web Crypto signers (about 30 KB) and the design tokens chunk (about 33 KB).
+  "wallet-pass": 120,
   "webhook-dispatch": 70,
 };
 

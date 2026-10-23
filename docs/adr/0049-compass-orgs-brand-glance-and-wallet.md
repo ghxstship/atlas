@@ -87,6 +87,7 @@ Compass previously read only a person's first membership. Its offline store held
      - The Apple signer writes the CMS SignedData of the manifest with Web Crypto: SHA-256, the Pass Type ID certificate and the WWDR intermediate, and signed attributes. No crypto library is added to the Edge runtime.
      - The Google signer writes an RS256 JWT.
      - Both read their keys from Edge Function secrets. Until the secrets are set, the function answers 503 `wallet_not_configured`, and Compass says so.
+   - The function has its own Edge bundle (`packages/platform/edge/entries/wallet-pass.ts`, A85) and loads no npm package. It checks the request itself and reads the pass over PostgREST with `fetch`. Compass sends the pass labels from its own catalog in the request, so the function carries no message catalog.
    - The badge pass's QR is the badge's own `XOSCR1` payload, so gates scan it.
    - Pass colors are the org's accent when white labels pass on it, else the platform token.
    - iOS shows Apple's own `PKAddPassButton` (new `compass-wallet` module), as Apple's guidelines ask. Android shows a Compass button for Google Wallet.

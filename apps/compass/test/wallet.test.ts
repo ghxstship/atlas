@@ -4,7 +4,7 @@
  */
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { toBase64, walletOutcome, walletRequest } from "../src/domain/wallet";
+import { toBase64, walletLabels, walletOutcome, walletRequest } from "../src/domain/wallet";
 
 const bytes = (text: string) => new TextEncoder().encode(text);
 
@@ -50,11 +50,18 @@ describe("the wallet-pass answer", () => {
   });
 
   it("asks for the pass by kind, id, wallet and language, and encodes the pass for PassKit", () => {
-    expect(walletRequest("credential", "c1", "apple", "es-US")).toEqual({
+    const labels = walletLabels((key) => `t(${key})`);
+    expect(labels).toMatchObject({
+      holder: "t(compass.wallet.holder)",
+      validUntil: "t(compass.wallet.validUntil)",
+    });
+    expect(Object.keys(labels)).toHaveLength(8);
+    expect(walletRequest("credential", "c1", "apple", "es-US", labels)).toEqual({
       kind: "credential",
       id: "c1",
       platform: "apple",
       locale: "es-US",
+      labels,
     });
     for (const sample of ["", "a", "ab", "abc", "añ/ü"]) {
       expect(toBase64(bytes(sample))).toBe(Buffer.from(sample).toString("base64"));

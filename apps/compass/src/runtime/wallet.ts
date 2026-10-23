@@ -12,6 +12,7 @@ import {
   walletOutcome,
   walletRequest,
   type WalletKind,
+  type WalletLabels,
   type WalletPlatform,
 } from "../domain/wallet";
 
@@ -28,6 +29,7 @@ export async function addToWallet(
   kind: WalletKind,
   id: string,
   locale: string,
+  labels: WalletLabels,
 ): Promise<string | null> {
   const platform = deviceWallet();
   if (!platform) return "compass.wallet.failed";
@@ -38,7 +40,7 @@ export async function addToWallet(
     response = await fetch(`${supabaseUrl.replace(/\/+$/, "")}/functions/v1/wallet-pass`, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
-      body: JSON.stringify(walletRequest(kind, id, platform, locale)),
+      body: JSON.stringify(walletRequest(kind, id, platform, locale, labels)),
     });
   } catch {
     return "compass.wallet.offline";

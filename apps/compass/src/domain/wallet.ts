@@ -7,14 +7,54 @@
 export type WalletPlatform = "apple" | "google";
 export type WalletKind = "credential" | "shift";
 
-/** The request body the wallet-pass function reads. */
+/** The labels a pass shows, in the person's language (compass.wallet in the catalog). */
+export interface WalletLabels {
+  readonly holder: string;
+  readonly credential: string;
+  readonly role: string;
+  readonly project: string;
+  readonly starts: string;
+  readonly ends: string;
+  readonly validUntil: string;
+  readonly organization: string;
+}
+
+const LABEL_KEYS: readonly (keyof WalletLabels)[] = [
+  "holder",
+  "credential",
+  "role",
+  "project",
+  "starts",
+  "ends",
+  "validUntil",
+  "organization",
+];
+
+/** The pass labels from the catalog: compass.wallet.<key>. */
+export function walletLabels(t: (key: string) => string): WalletLabels {
+  return Object.fromEntries(
+    LABEL_KEYS.map((key) => [key, t(`compass.wallet.${key}`)]),
+  ) as unknown as WalletLabels;
+}
+
+/**
+ * The request body the wallet-pass function reads. The labels travel with it, so the function needs no
+ * message catalog of its own (A85: a small cold start).
+ */
 export function walletRequest(
   kind: WalletKind,
   id: string,
   platform: WalletPlatform,
   locale: string,
-): { kind: WalletKind; id: string; platform: WalletPlatform; locale: string } {
-  return { kind, id, platform, locale };
+  labels: WalletLabels,
+): {
+  kind: WalletKind;
+  id: string;
+  platform: WalletPlatform;
+  locale: string;
+  labels: WalletLabels;
+} {
+  return { kind, id, platform, locale, labels };
 }
 
 export type WalletOutcome =

@@ -7,7 +7,7 @@ import { useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { AddPassButton } from "../../modules/compass-wallet";
-import type { WalletKind } from "../domain/wallet";
+import { walletLabels, type WalletKind } from "../domain/wallet";
 import { useCompass } from "../runtime/CompassProvider";
 import { addToWallet, deviceWallet } from "../runtime/wallet";
 import { Button, InlineAlert, useTheme } from "../ui";
@@ -32,7 +32,7 @@ export function WalletButton({
     if (busy) return;
     setBusy(true);
     setProblem(null);
-    void addToWallet(client, config.supabaseUrl, kind, id, i18n.language)
+    void addToWallet(client, config.supabaseUrl, kind, id, i18n.language, walletLabels(t))
       .then((key) => setProblem(key ? t(key) : null))
       .finally(() => setBusy(false));
   };
