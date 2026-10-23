@@ -3,10 +3,12 @@
 import { lazyResendClient, readEmailEnv, recipientAllowed } from "./chunks/email-env.js";
 import { defaultLocale, isLocale } from "./chunks/i18n-locales.js";
 import {
+  READ_REPLICA_ENV,
   REPORT_DELIVER_JOB,
   REPORT_RESULTS_BUCKET,
   REPORT_RUN_JOB,
   mailpitMailer,
+  readReplicaUrl,
   resendMailer,
   runReportDeliveries,
   runReportJobs,
@@ -104,12 +106,14 @@ async function reportDeliveryCopy(locale) {
 }
 //#endregion
 export {
+  READ_REPLICA_ENV,
   REPORT_DELIVER_JOB,
   REPORT_RESULTS_BUCKET,
   REPORT_RUN_JOB,
   lazyResendClient,
   mailpitMailer,
   readEmailEnv,
+  readReplicaUrl,
   recipientAllowed,
   reportDeliveryCopy,
   reportRunLabels,
