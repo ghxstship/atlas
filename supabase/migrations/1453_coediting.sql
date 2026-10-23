@@ -103,6 +103,7 @@ create table app.doc_snapshots (
 );
 
 create unique index doc_snapshots_subject_key on app.doc_snapshots (subject_table, subject_id, doc_key);
+create index doc_snapshots_field_idx on app.doc_snapshots (subject_table, doc_key);
 
 call private.install_domain_table('app.doc_snapshots');
 call private.describe('app.doc_snapshots', 'One live co-edited document per row and field (Section 5, Section 7.3): the merged Yjs state, the update sequence it covers and a plain text projection. Readable by whoever can read the row it belongs to; written only through app.open_doc, app.append_doc_update and app.compact_doc.', array[
