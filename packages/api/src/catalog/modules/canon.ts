@@ -393,11 +393,10 @@ export const additions = defineAdditions("Canon", {
       since: "1.0.0-draft.2",
       resources: ["canonPhaseCoverage"],
       change:
-        "Removes `declared_gap`; adds `gate`, `phase`, `element_count`, `category_count` and `has_active_element`.",
+        "Adds `gate`, `phase`, `element_count`, `category_count`, `has_active_element` and `declared_gap_reason`.",
       reason:
-        "The view xpms.v_phase_coverage (0104) reports per phase its gate, label, element and category counts and whether an element is Active; it declares no gaps.",
+        "The view xpms.v_phase_coverage (0104, 1610) reports per phase its gate, label, element and category counts, whether an element is Active, and the declared gap the owner ratified for a phase without one (xpms.declared_gap, owner decision 39) with its reason.",
       apply: editShape({
-        remove: ["declared_gap"],
         add: {
           gate: { schema: orNull(fields.int("Gate ordinal.", 3)) },
           phase: { schema: orNull(canonLabel("Phase label.", "Advance")) },
@@ -408,6 +407,14 @@ export const additions = defineAdditions("Canon", {
           has_active_element: {
             schema: orNull(
               fields.bool("True when at least one participating element is Active.", true),
+            ),
+          },
+          declared_gap_reason: {
+            schema: orNull(
+              fields.text(
+                "Why the phase has no Active element, as its declared gap states it; null without one.",
+                "No Scope item is Active yet; the Item Catalog proposes every one.",
+              ),
             ),
           },
         },
