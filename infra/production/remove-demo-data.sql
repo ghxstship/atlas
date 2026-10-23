@@ -67,7 +67,7 @@ create temp table demo_email_domains (domain text primary key);
 create temp table demo_seed_tables (table_name text primary key);
 
 -- BEGIN GENERATED SEED MARKERS (infra/production/src/cli.ts generate)
--- Derived from 29 seed files: 236 fixed ids, 3 email domain(s), 241 seeded tables.
+-- Derived from 30 seed files: 244 fixed ids, 3 email domain(s), 243 seeded tables.
 insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000000000001'::uuid),
   ('01920000-0000-7000-8000-000000000101'::uuid),
@@ -304,7 +304,15 @@ insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000010800906'::uuid),
   ('01920000-0000-7000-8000-000010900001'::uuid),
   ('01920000-0000-7000-8000-000010900002'::uuid),
-  ('01920000-0000-7000-8000-000010900003'::uuid);
+  ('01920000-0000-7000-8000-000010900003'::uuid),
+  ('01920000-0000-7000-8000-000014900101'::uuid),
+  ('01920000-0000-7000-8000-000014900701'::uuid),
+  ('01920000-0000-7000-8000-000014900801'::uuid),
+  ('01920000-0000-7000-8000-000014900811'::uuid),
+  ('01920000-0000-7000-8000-000014900812'::uuid),
+  ('01920000-0000-7000-8000-000014900813'::uuid),
+  ('01920000-0000-7000-8000-000014900821'::uuid),
+  ('01920000-0000-7000-8000-000014900822'::uuid);
 insert into pg_temp.demo_email_domains (domain) values
   ('example.com'),
   ('group.calendar.example.com'),
@@ -410,6 +418,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.offer_versions'),
   ('app.offers'),
   ('app.onboarding_requirements'),
+  ('app.onboarding_verifications'),
   ('app.opportunities'),
   ('app.opportunity_invitations'),
   ('app.opportunity_positions'),
@@ -434,6 +443,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.payment_applications'),
   ('app.payments'),
   ('app.payroll_runs'),
+  ('app.per_diems'),
   ('app.person_certifications'),
   ('app.person_emergency_contacts'),
   ('app.person_languages'),
