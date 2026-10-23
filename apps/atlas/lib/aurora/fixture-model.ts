@@ -5,6 +5,13 @@ import type {
   ModelResponse,
   ToolResultContent,
 } from "@xos/ai";
+import {
+  fixtureBinding,
+  fixtureDocument,
+  fixtureDraft,
+  fixtureFilter,
+  fixtureSummary,
+} from "./fixture-entry";
 
 /**
  * Aurora's end-to-end fixture model (finding A24-007). Browser journeys 35 and 36 run Aurora
@@ -118,9 +125,19 @@ function questionOf(text: string): Question {
 export class FixtureModelClient implements ModelClient {
   async complete(request: ModelRequest): Promise<ModelResponse> {
     const tools = new Set((request.tools ?? []).map((t) => t.name));
-    if (tools.has("record_fields")) return this.extract(request);
+    if (tools.has("record_fields")) {
+      return (
+        fixtureDocument(request, documentText(request.messages[0]?.content ?? [])) ??
+        this.extract(request)
+      );
+    }
     if (tools.has("map_columns")) return this.mapColumns(request);
     if (tools.has("answer")) return this.assist(request);
+    // The A95 entry points (fixture-entry.ts).
+    if (tools.has("build_filter")) return fixtureFilter(request);
+    if (tools.has("draft")) return fixtureDraft(request);
+    if (tools.has("summary")) return fixtureSummary(request);
+    if (tools.has("bind_code")) return fixtureBinding(request);
     return {
       content: [{ type: "text", text: "This fixture model answers only recorded journeys." }],
       stopReason: "end_turn",

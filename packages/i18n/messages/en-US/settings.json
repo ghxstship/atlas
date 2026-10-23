@@ -272,6 +272,10 @@
     "messageTranslation": {
       "label": "Translate chat messages",
       "help": "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default."
+    },
+    "personalTokens": {
+      "label": "Allow personal API tokens",
+      "help": "Members can create their own API tokens in Personal settings, Developer. A token acts as its member, limited to the areas they choose, and expires within a year. Turning this off stops every token at once."
     }
   },
   "choices": {
@@ -465,10 +469,24 @@
     "teams": "Teams group members who share work. Each team lists its members.",
     "workspaces": "Workspaces divide the org by office or venue group. Override settings for each one here.",
     "accessReviews": "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled.",
+    "calendarFeeds": "Subscribe to your schedule, or to a project you work on, from any calendar app.",
+    "apiKeysAndServiceAccounts": "Let your servers call the XOS API through service accounts and their keys, and decide whether members may create personal tokens.",
+    "webhooks": "Send signed events to your other systems as they happen, and send a delivery again when one fails.",
+    "spendAuthority": "Set how much each role or person may approve, per document type and currency.",
+    "separationOfDuties": "The rules that keep one person from doing both halves of a sensitive act.",
+    "customFields": "Add the fields your records need to projects, venues, vendors and more.",
+    "canonExtensions": "Disciplines and categories your organization adds to the canon.",
+    "dataAndPrivacy": "Answer data requests, place legal holds, and see exports, classification and retention.",
+    "auditLog": "The latest audited changes to access and settings, and the way to the full log.",
+    "automations": "Scheduled reports, recurring work, approval policies and webhooks: what runs without anyone pressing a button.",
+    "connectedApps": "Apps you allowed to act for you, and a way to disconnect them.",
+    "developer": "Personal API tokens for your own scripts in this organization.",
+    "payoutAndTax": "Where organizations pay you and the tax forms you signed.",
+    "workspace": "What this workspace sets differently from the organization, and who works in it.",
+    "team": "Who is on this team. Teams use their workspace's and the organization's settings.",
     "partner": "Your partner agency's client orgs, wholesale terms and the way into the Partner console.",
     "usage": "What the organization uses against its plan: seats, field members, projects and engagements.",
-    "templates": "Templates the organization reuses for projects, documents and packets.",
-    "calendarFeeds": "Subscribe to your schedule, or to a project you work on, from any calendar app."
+    "templates": "Templates the organization reuses for projects, documents and packets."
   },
   "accessControls": {
     "saved": "Saved.",
@@ -787,6 +805,10 @@
         "label": "Imports and exports",
         "help": "Imports that finished and exports ready to download."
       },
+      "automations": {
+        "label": "Automations",
+        "help": "Messages from automations, failed runs and paused automations."
+      },
       "messages": {
         "label": "Messages",
         "help": "New chat messages to you or your groups."
@@ -797,5 +819,198 @@
       }
     }
   },
-  "notInEffect": "Saved, but not in effect yet."
+  "notInEffect": "Saved, but not in effect yet.",
+  "automations": {
+    "intro": "When an event happens in your organization and the conditions hold, the actions run as the automation's owner, with that person's access.",
+    "notInPlan": "Automations need the Pro plan or above. Your automations stay here: you can turn them off or delete them.",
+    "upgrade": "Billing and Plan",
+    "readOnly": "You can see automations. Changing them needs the automations permission.",
+    "loadFailed": "Automations could not be loaded. Reload the page.",
+    "new": "New automation",
+    "empty": "No automations yet. Automate a step that repeats.",
+    "list": {
+      "caption": "Automations",
+      "name": "Automation",
+      "trigger": "When",
+      "status": "On",
+      "lastRun": "Last run",
+      "owner": "Runs as",
+      "actions": "Actions"
+    },
+    "toggle": "Run {name}",
+    "paused": "Paused: {reason, select, owner_left_org {{owner} left the organization} owner_lost_capability {{owner} can no longer manage automations} owner_cannot_sign_in {{owner} has no sign-in} owner_access_refused {the API refused to act as {owner}} other {it could not run}}. Turn it on to run it as you.",
+    "never": "Never ran",
+    "edit": "Edit {name}",
+    "history": "Runs of {name}",
+    "delete": "Delete {name}",
+    "deleteConfirm": "Delete {name}? Its run history stays.",
+    "deleted": "Automation deleted.",
+    "runs": {
+      "title": "Recent runs",
+      "caption": "Recent automation runs",
+      "empty": "No runs yet. Runs appear here when a matching event happens.",
+      "automation": "Automation",
+      "event": "Event",
+      "status": "Status",
+      "when": "When",
+      "duration": "Took",
+      "details": "Details",
+      "older": "Older runs"
+    },
+    "runStatus": {
+      "Queued": "Queued",
+      "Running": "Running",
+      "Retrying": "Retrying",
+      "Succeeded": "Succeeded",
+      "Failed": "Failed",
+      "Skipped": "Skipped"
+    },
+    "run": {
+      "title": "Run of {name}",
+      "event": "Event",
+      "caused": "Started by another automation, {depth, plural, one {# level} other {# levels}} deep.",
+      "attempts": "{count, plural, one {# attempt} other {# attempts}}",
+      "error": "Why",
+      "steps": "Steps",
+      "noSteps": "No steps ran.",
+      "retry": "Retry",
+      "retried": "The run is queued again.",
+      "sent": "Sent",
+      "answered": "Answered",
+      "ms": "{ms} ms",
+      "http": "HTTP {status}",
+      "close": "Close",
+      "loadFailed": "This run could not be loaded."
+    },
+    "stepStatus": {
+      "Succeeded": "Succeeded",
+      "Failed": "Failed",
+      "Skipped": "Skipped"
+    },
+    "editor": {
+      "titleNew": "New automation",
+      "titleEdit": "Edit automation",
+      "loading": "Loading the automation.",
+      "loadFailed": "The automation could not be loaded.",
+      "name": "Name",
+      "description": "Description",
+      "trigger": "When this happens",
+      "triggerHelp": "The event that starts a run: the same list webhooks use.",
+      "conditions": "Conditions",
+      "matchLabel": "Run when",
+      "match": {
+        "all": "All of these hold",
+        "any": "Any of these holds"
+      },
+      "groupMatch": {
+        "all": "All of",
+        "any": "Any of"
+      },
+      "noConditions": "No conditions: every event of this type runs the automation.",
+      "field": "Field",
+      "fieldHelp": "A path in the event, such as data.record_kind.",
+      "operator": "Test",
+      "value": "Value",
+      "valueHelpIn": "Separate values with commas.",
+      "addCondition": "Add condition",
+      "addGroup": "Add group",
+      "group": "Group {number}",
+      "removeCondition": "Remove condition",
+      "removeGroup": "Remove group",
+      "actions": "Then do this",
+      "addAction": "Add action",
+      "action": "Action {number}",
+      "actionType": "Action",
+      "removeAction": "Remove action",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "enabled": "On",
+      "enabledHelp": "Turning it on makes you the person it runs as.",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saved": "Automation saved.",
+      "templateHelp": "Insert values from the event with double braces, such as {example}.",
+      "operators": {
+        "eq": "is",
+        "ne": "is not",
+        "lt": "is less than",
+        "lte": "is at most",
+        "gt": "is more than",
+        "gte": "is at least",
+        "in": "is one of",
+        "is_null": "is empty",
+        "contains": "contains"
+      },
+      "isNull": {
+        "true": "Empty",
+        "false": "Not empty"
+      },
+      "actionTypes": {
+        "create_task": "Create a task",
+        "update_status": "Change the record's status",
+        "assign": "Assign the record",
+        "add_comment": "Comment on the subject",
+        "notify": "Notify a member",
+        "call_webhook": "Send the event to a webhook"
+      },
+      "fields": {
+        "title": "Title",
+        "taskTitleHelp": "Start with a verb, such as Review {example}.",
+        "project": "Project",
+        "eventProject": "The event's project",
+        "phase": "Phase",
+        "xyz": "XYZ tag",
+        "xyzOptions": {
+          "X": "X, Resource",
+          "Y": "Y, Process",
+          "Z": "Z, Timeline"
+        },
+        "dueInDays": "Due in days",
+        "dueHelp": "Due at 17:00 on your organization's calendar. Leave empty for no due date.",
+        "toState": "New status",
+        "note": "Blocker or replan reason",
+        "noteHelp": "Needed for Blocked and Deferred.",
+        "assignee": "Assign to",
+        "recipient": "Notify",
+        "message": "Message",
+        "comment": "Comment",
+        "endpoint": "Webhook endpoint",
+        "noEndpoints": "No webhook endpoints yet. Add one in Settings, Webhooks.",
+        "choose": "Choose"
+      },
+      "test": {
+        "title": "Test with a sample event",
+        "help": "Nothing runs and nothing is saved.",
+        "event": "Sample event (JSON)",
+        "loadLatest": "Use the latest event",
+        "run": "Test",
+        "matched": "The conditions hold for this event.",
+        "notMatched": "The conditions do not hold for this event.",
+        "invalidJson": "The sample event is not valid JSON.",
+        "found": "Found: {value}",
+        "missing": "Missing",
+        "held": "Holds",
+        "failed": "Does not hold",
+        "preview": "What the actions would send"
+      }
+    },
+    "errors": {
+      "invalid": "Check the automation: {detail}",
+      "automation_conditions_invalid": "A condition is not complete: {detail}",
+      "automation_actions_invalid": "An action is not complete: {detail}",
+      "automation_action_needs_record": "Changing a status or an owner needs a trigger whose subject is a record, such as record.created.",
+      "automation_action_needs_commentable_subject": "This trigger's subject does not take comments.",
+      "automation_person_not_member": "Choose a member of this organization.",
+      "automation_webhook_unknown": "Choose one of this organization's webhook endpoints.",
+      "automation_project_unknown": "Choose a project of this organization.",
+      "automation_trigger_unknown": "Choose a trigger from the list.",
+      "automation_name_length": "A name is 1 to 120 characters.",
+      "automation_changed": "Someone changed this automation since you opened it. Reload the page and try again.",
+      "plan_feature_required": "Automations need the Pro plan or above.",
+      "automation_off": "Turn the automation on before retrying its runs.",
+      "automation_run_not_failed": "Only a failed run can be retried.",
+      "denied": "You cannot change automations.",
+      "unexpected": "Something went wrong. Try again."
+    }
+  }
 }

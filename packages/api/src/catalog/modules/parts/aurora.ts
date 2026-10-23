@@ -285,7 +285,52 @@ const FilterBody = z
       .min(1)
       .max(20)
       .meta({ description: "Collections the filter may target.", example: ["permits"] }),
-    time_zone: fields.timeZone(),
+    time_zone: fields.timeZone().meta({
+      description:
+        "Time zone the caller works in. Relative dates such as this month or overdue resolve on the org's calendar (its locale.time_zone setting), never on UTC.",
+      example: "America/New_York",
+    }),
+    fields: z
+      .array(
+        z.object({
+          name: z
+            .string()
+            .regex(/^[a-z][a-z0-9_.]*$/)
+            .max(64)
+            .meta({
+              description: "Filter name as the page's query string writes it.",
+              example: "overdue",
+            }),
+          type: z
+            .enum(["string", "number", "date", "boolean", "enum"])
+            .meta({ description: "Value type.", example: "boolean" }),
+          values: z
+            .array(z.string().min(1).max(200))
+            .max(200)
+            .optional()
+            .meta({
+              description: "The values an enum filter takes.",
+              example: ["Issued", "Approved"],
+            }),
+          description: z.string().min(1).max(300).optional().meta({
+            description: "What the filter means, in a sentence.",
+            example: "Unpaid invoices past their due date on the org's calendar.",
+          }),
+          ops: z
+            .array(z.enum(["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"]))
+            .min(1)
+            .optional()
+            .meta({ description: "The only operators the filter takes.", example: ["eq"] }),
+        }),
+      )
+      .min(1)
+      .max(40)
+      .optional()
+      .meta({
+        description:
+          "A page's own filters, offered instead of the API fields of the first collection: names, types, values and operators only, never record data. Restricted columns are never offered.",
+        example: [{ name: "overdue", type: "boolean", ops: ["eq"] }],
+      }),
   })
   .meta({ id: "AuroraFilterRequest", description: "A sentence to turn into a saved view." });
 
@@ -404,6 +449,82 @@ const BindCodeBody = z
   })
   .meta({ id: "AuroraBindCodeRequest", description: "An unknown scanned code to bind." });
 
+const collectionRef = z.object({
+  collection: z.string().regex(/^[a-z][a-z0-9-]*$/),
+  id: z.uuid(),
+});
+
+const PreviewBody = z
+  .object({
+    feature: z
+      .enum(["drafting", "summaries"])
+      .meta({ description: "The feature whose request is previewed.", example: "drafting" }),
+    kind: z
+      .enum(["record_activity", "project_week", "gate_readiness"])
+      .optional()
+      .meta({ description: "For summaries, what is summarized.", example: "gate_readiness" }),
+    subject_collection: z
+      .string()
+      .regex(/^[a-z][a-z0-9-]*$/)
+      .optional()
+      .meta({ description: "For summaries, the collection summarized.", example: "projects" }),
+    subject_id: fields.ref("record or project summarized").optional(),
+    items: z
+      .array(collectionRef)
+      .max(100)
+      .meta({
+        description:
+          "The records the request names: a draft's context or a summary's items, read with the caller's permissions.",
+        example: [{ collection: "sops", id: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }],
+      }),
+  })
+  .meta({
+    id: "AuroraPreviewRequest",
+    description: "A drafting or summary request to preview before it is sent.",
+  });
+
+const PreviewRecord = z
+  .object({
+    collection: z
+      .string()
+      .meta({ description: "Collection of the record.", example: "change-orders" }),
+    id: fields.ref("record"),
+    sent: fields.bool(
+      "False when the record cannot be read or its whole table is never sent to a model.",
+      true,
+    ),
+    fields: z
+      .array(z.string())
+      .meta({ description: "Fields that would be sent.", example: ["title", "reason"] }),
+    withheld: z.array(z.string()).meta({
+      description: "Fields left out: Restricted columns and masked values.",
+      example: ["agreed_rate_minor"],
+    }),
+    data: z
+      .record(z.string(), z.unknown())
+      .nullable()
+      .meta({
+        description: "The values that would be sent; null when nothing of the record is sent.",
+        example: { title: "Extra rigging points", reason: null },
+      }),
+  })
+  .meta({ id: "AuroraPreviewRecord", description: "One record as a model would see it." });
+
+const AuroraPreview = z
+  .object({
+    records: z.array(PreviewRecord).meta({
+      description:
+        "Each record the request names, in order, with the gate readiness a gate summary adds.",
+      example: [],
+    }),
+    vocabulary_terms: fields.int("Verbiage library terms a draft follows.", 12),
+  })
+  .meta({
+    id: "AuroraPreview",
+    description:
+      "What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered.",
+  });
+
 const action = (verb: string, summary: string, description: string, body: z.ZodType): ActionSpec =>
   collectionAction(verb, { summary, description, body, response: AuroraResult });
 
@@ -472,6 +593,13 @@ export const auroraResources: readonly ResourceSpec[] = [
         "Suggests the catalog element an unknown scanned code identifies, only from the candidates given, and proposes `catalogBindings.create` for confirmation.",
         BindCodeBody,
       ),
+      collectionAction("preview", {
+        summary: "Preview what a request would send",
+        description:
+          "Reads the records a drafting or summary request names, as the request would (the caller's permissions, Restricted columns, masked values and excluded tables removed), and returns what would be sent. A gate readiness summary adds the project's gate criteria. No model is called and nothing is metered (A95).",
+        body: PreviewBody,
+        response: AuroraPreview,
+      }),
     ],
   }),
   resource("Settings", "/ai-suggestions", AiSuggestion, {

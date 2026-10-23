@@ -7,6 +7,7 @@ import * as settlements from "@xos/data/settlements";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
 import { exponentOf, getExponents } from "@/lib/finance/money";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 
@@ -273,6 +274,15 @@ export async function saveExpenseAction(_: ActionState, form: FormData): Promise
     ...common,
     budgetLineId: line.data,
   });
+  // A form Aurora filled from a receipt closes its suggestions with the expense written (A95).
+  if (result.ok) {
+    await applySuggestions(
+      ctx.viewer.db,
+      suggestionIds(form),
+      result.data.id,
+      "Saved from the expense form after review.",
+    );
+  }
   return finish(ctx, result, result.ok ? { id: result.data.id } : {});
 }
 
@@ -396,6 +406,15 @@ export async function saveInvoiceAction(_: ActionState, form: FormData): Promise
     direction: direction.data,
     currency: code.data,
   });
+  // A form Aurora filled from a document closes its suggestions with the invoice written (A95).
+  if (result.ok) {
+    await applySuggestions(
+      ctx.viewer.db,
+      suggestionIds(form),
+      result.data.id,
+      "Saved from the invoice form after review.",
+    );
+  }
   return finish(ctx, result, result.ok ? { id: result.data.id } : {});
 }
 

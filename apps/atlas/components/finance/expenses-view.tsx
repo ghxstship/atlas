@@ -8,6 +8,7 @@ import {
   type Expense,
 } from "@xos/data/finance";
 import { getNode } from "@xos/ia";
+import { expenseAsk } from "@/lib/aurora/finance-ask";
 import type { FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { toInputValue, exponentOf } from "@/lib/finance/money";
@@ -232,6 +233,7 @@ export async function ExpensesView({ page }: { page: FinancePage }) {
       }))}
       detail={detail}
       sheet={sheet}
+      ask={expenseAsk(page, c)}
     />
   );
 }

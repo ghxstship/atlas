@@ -1,0 +1,451 @@
+{
+  "title": "XOS automation",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/AutomationDefinition",
+  "$defs": {
+    "AutomationDefinition": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Name shown in Settings, Automations.",
+          "example": "Pick up new tasks"
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string",
+              "maxLength": 500
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "trigger_event_type": {
+          "type": "string",
+          "pattern": "^[a-z][a-z_]*\\.[a-z][a-z_]*$",
+          "description": "Domain event type from the catalog (GET /webhook-events).",
+          "example": "record.created"
+        },
+        "conditions": {
+          "$ref": "#/$defs/AutomationConditions"
+        },
+        "actions": {
+          "$ref": "#/$defs/AutomationActions"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": ["name", "trigger_event_type", "conditions", "actions"],
+      "additionalProperties": false,
+      "description": "An automation: its trigger, conditions and actions."
+    },
+    "AutomationConditions": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "all": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/AutomationCondition"
+                  },
+                  {
+                    "$ref": "#/$defs/AutomationConditionGroup"
+                  }
+                ]
+              }
+            }
+          },
+          "required": ["all"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "any": {
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/AutomationCondition"
+                  },
+                  {
+                    "$ref": "#/$defs/AutomationConditionGroup"
+                  }
+                ]
+              }
+            }
+          },
+          "required": ["any"],
+          "additionalProperties": false
+        }
+      ],
+      "description": "An automation's conditions: {\"all\": [...]} or {\"any\": [...]} of conditions and one-level groups, at most 20 in all. An empty list always holds.",
+      "example": {
+        "all": [
+          {
+            "field": "data.record_kind",
+            "operator": "eq",
+            "value": "Task"
+          }
+        ]
+      }
+    },
+    "AutomationCondition": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "field": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+              "description": "Path into the event, such as data.record_kind.",
+              "example": "data.record_kind"
+            },
+            "operator": {
+              "type": "string",
+              "enum": ["eq", "ne", "lt", "lte", "gt", "gte", "contains"]
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 1000,
+              "description": "Value compared, as text.",
+              "example": "Task"
+            }
+          },
+          "required": ["field", "operator", "value"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "field": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+              "description": "Path into the event, such as data.record_kind.",
+              "example": "data.record_kind"
+            },
+            "operator": {
+              "type": "string",
+              "const": "in"
+            },
+            "value": {
+              "type": "string",
+              "maxLength": 1000,
+              "pattern": "[^, ]",
+              "description": "Comma-separated values, each trimmed.",
+              "example": "Build, Task"
+            }
+          },
+          "required": ["field", "operator", "value"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "field": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]*(\\.[a-z0-9_]+){0,7}$",
+              "description": "Path into the event, such as data.record_kind.",
+              "example": "data.record_kind"
+            },
+            "operator": {
+              "type": "string",
+              "const": "is_null"
+            },
+            "value": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": ["true", "false"],
+                  "description": "true (or absent) holds for a missing value, false for a present one."
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["field", "operator"],
+          "additionalProperties": false
+        }
+      ],
+      "description": "One condition: a path of the event, an API filter operator (ADR 0003) and a text value. Numbers compare numerically, strings by code point; contains folds ASCII case or finds an array element; every operator but is_null is false on a missing value."
+    },
+    "AutomationConditionGroup": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "all": {
+              "minItems": 1,
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/AutomationCondition"
+              }
+            }
+          },
+          "required": ["all"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "any": {
+              "minItems": 1,
+              "maxItems": 20,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/AutomationCondition"
+              }
+            }
+          },
+          "required": ["any"],
+          "additionalProperties": false
+        }
+      ],
+      "description": "A group of conditions that all, or any one, must hold. Groups nest one level."
+    },
+    "AutomationActions": {
+      "minItems": 1,
+      "maxItems": 10,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/AutomationAction"
+      },
+      "description": "An automation's 1 to 10 actions, in the order they run.",
+      "example": [
+        {
+          "type": "add_comment",
+          "body": "Picked up {{data.title}}."
+        }
+      ]
+    },
+    "AutomationAction": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "create_task"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Text; event paths in double braces are filled in, such as {{data.title}}.",
+              "example": "Review {{data.title}}"
+            },
+            "project_id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "description": "Project the Task goes in, under its engagement root; null for the event's project.",
+                  "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "phase_code": {
+              "type": "string",
+              "pattern": "^[A-Z]{3}$",
+              "description": "Gated phase of the Task.",
+              "example": "SCP"
+            },
+            "xyz": {
+              "type": "string",
+              "enum": ["X", "Y", "Z"],
+              "description": "Declared XYZ tag of the Task.",
+              "example": "Y"
+            },
+            "due_in_days": {
+              "description": "Due at 17:00 on the org's calendar this many days after the run.",
+              "example": 2,
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 365
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["type", "title", "phase_code", "xyz"],
+          "additionalProperties": false
+        },
+        {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "update_status"
+                },
+                "to_state": {
+                  "type": "string",
+                  "enum": [
+                    "Proposed",
+                    "Ready",
+                    "Scheduled",
+                    "Active",
+                    "In Review",
+                    "Complete",
+                    "Canceled"
+                  ],
+                  "description": "Record state the subject record moves to."
+                },
+                "note": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000,
+                      "description": "Text; event paths in double braces are filled in, such as {{data.title}}.",
+                      "example": "Picked up {{data.title}}."
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": ["type", "to_state"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "const": "update_status"
+                },
+                "to_state": {
+                  "type": "string",
+                  "enum": ["Blocked", "Deferred"]
+                },
+                "note": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000,
+                  "description": "The blocker (Blocked) or the replan reason (Deferred).",
+                  "example": "Picked up {{data.title}}."
+                }
+              },
+              "required": ["type", "to_state", "note"],
+              "additionalProperties": false
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "assign"
+            },
+            "assignee_person_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "description": "Member who becomes the subject record's owner.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            }
+          },
+          "required": ["type", "assignee_person_id"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "add_comment"
+            },
+            "body": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "description": "Text; event paths in double braces are filled in, such as {{data.title}}.",
+              "example": "Picked up {{data.title}}."
+            }
+          },
+          "required": ["type", "body"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "notify"
+            },
+            "recipient_person_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "description": "Member who receives the notification.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200,
+              "description": "Text; event paths in double braces are filled in, such as {{data.title}}.",
+              "example": "Review {{data.title}}"
+            },
+            "body": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000,
+                  "description": "Text; event paths in double braces are filled in, such as {{data.title}}.",
+                  "example": "Picked up {{data.title}}."
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["type", "recipient_person_id", "title"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "const": "call_webhook"
+            },
+            "webhook_endpoint_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "description": "The org's webhook endpoint.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            }
+          },
+          "required": ["type", "webhook_endpoint_id"],
+          "additionalProperties": false
+        }
+      ],
+      "description": "One action, run in order as the owner through a public API operation: create_task (records.create), update_status (records.transition), assign (records.update), add_comment (comments.postOnSubject), notify (automationRuns.notify) or call_webhook (automationRuns.deliverWebhook)."
+    }
+  }
+}

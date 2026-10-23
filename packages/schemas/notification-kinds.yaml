@@ -102,6 +102,9 @@ categories:
   - code: imports
     urgent: false
     order: 10
+  - code: automations
+    urgent: false
+    order: 11
   - code: messages
     urgent: false
     order: 40
@@ -150,8 +153,12 @@ kinds:
   - kind: weather.alert
     category: safety
     bypasses_quiet_hours: true
-  # Account (0520, 0560, 1203)
+  # Account (0520, 0560, 1203, 1560, 1561)
   - kind: account.security_changed
+    category: account
+  - kind: account.recovery_code_used
+    category: account
+  - kind: account.session_signed_out
     category: account
   - kind: billing.payment_failed
     category: account
@@ -190,6 +197,13 @@ kinds:
   - kind: export.ready
     category: imports
     email_template: export_ready
+  # Automations (1481, ADR 0047): the notify action's message, a run that failed, an automation paused fail closed
+  - kind: automation.notice
+    category: automations
+  - kind: automation.failed
+    category: automations
+  - kind: automation.paused
+    category: automations
   # Workforce suite (0800)
   - kind: message.received
     category: messages

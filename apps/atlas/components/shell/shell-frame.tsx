@@ -34,6 +34,9 @@ import type { ShellKeys } from "@/lib/shell/shell-keys";
 import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
 import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
+import type { AiFeature } from "@xos/data/ai";
+import { AiFeaturesProvider } from "@/components/aurora/ai-features";
+import { ASK_FILTER_EVENT } from "@/components/aurora/entry/ask-event";
 import { AuroraCenter, openAurora } from "@/components/aurora/aurora-center";
 import { HelpCenter, openHelpArticle } from "@/components/help/help-center";
 import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
@@ -63,6 +66,8 @@ export interface ShellFrameProps {
   readonly email: string | null;
   /** Whether the viewer can turn AI features on (org.ai.write), for the Aurora panel. */
   readonly canManageAi: boolean;
+  /** The Aurora features the viewer may use now, for the AI entry points on every page (A95). */
+  readonly aiFeatures: readonly AiFeature[];
   /** The person's display preferences resolved from their settings (encoded as the cookie keeps them). */
   readonly preferences: string;
   /** The preferences cookie this page was rendered with. */
@@ -150,6 +155,7 @@ export function ShellFrame(props: ShellFrameProps) {
           else if (id === "help") openHelpArticle("");
           else if (id === "focus-mode") setFocus((f) => !f);
           else if (id === "aurora") openAurora(true);
+          else if (id === "ask-filter") window.dispatchEvent(new CustomEvent(ASK_FILTER_EVENT));
         },
       },
     };
@@ -424,7 +430,7 @@ export function ShellFrame(props: ShellFrameProps) {
               preferences={displayPreferences}
               timeZone={props.viewerTimeZone ?? null}
             >
-              {props.children}
+              <AiFeaturesProvider features={props.aiFeatures}>{props.children}</AiFeaturesProvider>
             </PreferencesProvider>
           </div>
         </AppShell>

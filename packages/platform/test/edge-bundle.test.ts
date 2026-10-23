@@ -44,6 +44,7 @@ const CORE_ONLY: readonly string[] = [
  */
 const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "api-token": { boot: [], lazy: [] },
+  "automation-run": { boot: ["@supabase/supabase-js", "zod"], lazy: [] },
   "email-unsubscribe": { boot: [], lazy: [] },
   "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
   "fx-rates-ecb": { boot: [], lazy: [] },
@@ -79,6 +80,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
  */
 const BOOT_BUDGET_KB: Record<string, number> = {
   "api-token": 70,
+  "automation-run": 100,
   "email-unsubscribe": 64,
   "file-download": 64,
   "fx-rates-ecb": 64,
