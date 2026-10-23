@@ -111,6 +111,12 @@ categories:
   - code: feed
     urgent: false
     order: 41
+  - code: opportunities
+    urgent: false
+    order: 50
+  - code: expiry_reminders
+    urgent: false
+    order: 51
 
 kinds:
   # Mentions, assignments, approvals and comments (0520, 1140)
@@ -217,3 +223,13 @@ kinds:
     category: assignments
   - kind: help_request.assigned
     category: assignments
+  # Marketplace alerts and expiry reminders (A89: 1462 matcher, 1463 reminder job)
+  - kind: opportunity.matched
+    category: opportunities
+    channels: [In App, Email, Push]
+  - kind: onboarding.item_expiring
+    category: expiry_reminders
+  - kind: certification.expiring
+    category: expiry_reminders
+  - kind: document.expiring
+    category: expiry_reminders

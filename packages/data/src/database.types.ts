@@ -1292,14 +1292,21 @@ export type Database = {
         Row: {
           alerts_enabled: boolean | null;
           cat_urid: string | null;
+          certification_name: string | null;
           created_at: string | null;
           currency_code: string | null;
+          disc_code: string | null;
           ends_before: string | null;
           id: string | null;
           jurisdiction_id: string | null;
           min_rate_minor: number | null;
           name: string | null;
+          near_label: string | null;
+          near_latitude: number | null;
+          near_longitude: number | null;
           org_id: string | null;
+          query_text: string | null;
+          radius_km: number | null;
           role_code: string | null;
           role_type: Database["app"]["Enums"]["external_role_type"] | null;
           starts_after: string | null;
@@ -1308,14 +1315,21 @@ export type Database = {
         Insert: {
           alerts_enabled?: boolean | null;
           cat_urid?: string | null;
+          certification_name?: string | null;
           created_at?: string | null;
           currency_code?: string | null;
+          disc_code?: string | null;
           ends_before?: string | null;
           id?: string | null;
           jurisdiction_id?: string | null;
           min_rate_minor?: number | null;
           name?: string | null;
+          near_label?: string | null;
+          near_latitude?: number | null;
+          near_longitude?: number | null;
           org_id?: string | null;
+          query_text?: string | null;
+          radius_km?: number | null;
           role_code?: string | null;
           role_type?: Database["app"]["Enums"]["external_role_type"] | null;
           starts_after?: string | null;
@@ -1323,14 +1337,21 @@ export type Database = {
         Update: {
           alerts_enabled?: boolean | null;
           cat_urid?: string | null;
+          certification_name?: string | null;
           created_at?: string | null;
           currency_code?: string | null;
+          disc_code?: string | null;
           ends_before?: string | null;
           id?: string | null;
           jurisdiction_id?: string | null;
           min_rate_minor?: number | null;
           name?: string | null;
+          near_label?: string | null;
+          near_latitude?: number | null;
+          near_longitude?: number | null;
           org_id?: string | null;
+          query_text?: string | null;
+          radius_km?: number | null;
           role_code?: string | null;
           role_type?: Database["app"]["Enums"]["external_role_type"] | null;
           starts_after?: string | null;
@@ -29784,6 +29805,89 @@ export type Database = {
           },
         ];
       };
+      passed_opportunities: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          opportunity_id: string;
+          org_id: string;
+          passed_at: string;
+          person_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          opportunity_id: string;
+          org_id: string;
+          passed_at?: string;
+          person_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          opportunity_id?: string;
+          org_id?: string;
+          passed_at?: string;
+          person_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "passed_opportunities_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "passed_opportunities_opportunity_id_fkey";
+            columns: ["opportunity_id"];
+            isOneToOne: false;
+            referencedRelation: "opportunities";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "passed_opportunities_opportunity_id_fkey";
+            columns: ["opportunity_id"];
+            isOneToOne: false;
+            referencedRelation: "opportunity_position_counts";
+            referencedColumns: ["opportunity_id"];
+          },
+          {
+            foreignKeyName: "passed_opportunities_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "passed_opportunities_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "passed_opportunities_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       pay_period_state_transitions: {
         Row: {
           created_at: string;
@@ -31452,6 +31556,68 @@ export type Database = {
           },
           {
             foreignKeyName: "person_notification_preferences_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      person_notification_settings: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          person_id: string;
+          quiet_hours_end: string | null;
+          quiet_hours_start: string | null;
+          time_zone: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          person_id: string;
+          quiet_hours_end?: string | null;
+          quiet_hours_start?: string | null;
+          time_zone: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          person_id?: string;
+          quiet_hours_end?: string | null;
+          quiet_hours_start?: string | null;
+          time_zone?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "person_notification_settings_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_notification_settings_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_notification_settings_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -41212,17 +41378,24 @@ export type Database = {
         Row: {
           alerts_enabled: boolean;
           cat_urid: string | null;
+          certification_name: string | null;
           created_at: string;
           created_by: string | null;
           currency_code: string | null;
           deleted_at: string | null;
+          disc_code: string | null;
           ends_before: string | null;
           id: string;
           jurisdiction_id: string | null;
           min_rate_minor: number | null;
           name: string;
+          near_label: string | null;
+          near_latitude: number | null;
+          near_longitude: number | null;
           org_id: string | null;
           person_id: string;
+          query_text: string | null;
+          radius_km: number | null;
           role_code: string | null;
           role_type: Database["app"]["Enums"]["external_role_type"] | null;
           starts_after: string | null;
@@ -41233,17 +41406,24 @@ export type Database = {
         Insert: {
           alerts_enabled?: boolean;
           cat_urid?: string | null;
+          certification_name?: string | null;
           created_at?: string;
           created_by?: string | null;
           currency_code?: string | null;
           deleted_at?: string | null;
+          disc_code?: string | null;
           ends_before?: string | null;
           id?: string;
           jurisdiction_id?: string | null;
           min_rate_minor?: number | null;
           name: string;
+          near_label?: string | null;
+          near_latitude?: number | null;
+          near_longitude?: number | null;
           org_id?: string | null;
           person_id: string;
+          query_text?: string | null;
+          radius_km?: number | null;
           role_code?: string | null;
           role_type?: Database["app"]["Enums"]["external_role_type"] | null;
           starts_after?: string | null;
@@ -41253,17 +41433,24 @@ export type Database = {
         Update: {
           alerts_enabled?: boolean;
           cat_urid?: string | null;
+          certification_name?: string | null;
           created_at?: string;
           created_by?: string | null;
           currency_code?: string | null;
           deleted_at?: string | null;
+          disc_code?: string | null;
           ends_before?: string | null;
           id?: string;
           jurisdiction_id?: string | null;
           min_rate_minor?: number | null;
           name?: string;
+          near_label?: string | null;
+          near_latitude?: number | null;
+          near_longitude?: number | null;
           org_id?: string | null;
           person_id?: string;
+          query_text?: string | null;
+          radius_km?: number | null;
           role_code?: string | null;
           role_type?: Database["app"]["Enums"]["external_role_type"] | null;
           starts_after?: string | null;
@@ -46073,6 +46260,239 @@ export type Database = {
           },
           {
             foreignKeyName: "subscriptions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      supplier_diversity_certifications: {
+        Row: {
+          account_id: string | null;
+          certificate_number: string | null;
+          certifying_body: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          diversity_kind: Database["app"]["Enums"]["supplier_diversity_kind"];
+          evidence_path: string | null;
+          expires_on: string | null;
+          id: string;
+          issued_on: string | null;
+          person_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          account_id?: string | null;
+          certificate_number?: string | null;
+          certifying_body: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          diversity_kind: Database["app"]["Enums"]["supplier_diversity_kind"];
+          evidence_path?: string | null;
+          expires_on?: string | null;
+          id?: string;
+          issued_on?: string | null;
+          person_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          account_id?: string | null;
+          certificate_number?: string | null;
+          certifying_body?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          diversity_kind?: Database["app"]["Enums"]["supplier_diversity_kind"];
+          evidence_path?: string | null;
+          expires_on?: string | null;
+          id?: string;
+          issued_on?: string | null;
+          person_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "supplier_diversity_certifications_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_diversity_certifications_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_diversity_certifications_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_diversity_certifications_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      supplier_diversity_events: {
+        Row: {
+          account_id: string | null;
+          action: string;
+          actor_person_id: string | null;
+          created_at: string;
+          id: string;
+          org_id: string | null;
+          person_id: string | null;
+          request_id: string | null;
+          supplier_diversity_certification_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          account_id?: string | null;
+          action: string;
+          actor_person_id?: string | null;
+          created_at?: string;
+          id?: string;
+          org_id?: string | null;
+          person_id?: string | null;
+          request_id?: string | null;
+          supplier_diversity_certification_id: string;
+        };
+        Update: {
+          account_id?: string | null;
+          action?: string;
+          actor_person_id?: string | null;
+          created_at?: string;
+          id?: string;
+          org_id?: string | null;
+          person_id?: string | null;
+          request_id?: string | null;
+          supplier_diversity_certification_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "supplier_diversity_events_account_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_diversity_events_actor_person_id_fkey";
+            columns: ["actor_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_diversity_events_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_diversity_events_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_diversity_events_supplier_diversity_certification_fkey";
+            columns: ["supplier_diversity_certification_id"];
+            isOneToOne: false;
+            referencedRelation: "supplier_diversity_certifications";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      supplier_diversity_shares: {
+        Row: {
+          consent_record_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          revoked_at: string | null;
+          shared_at: string;
+          supplier_diversity_certification_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          consent_record_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          revoked_at?: string | null;
+          shared_at?: string;
+          supplier_diversity_certification_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          consent_record_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          revoked_at?: string | null;
+          shared_at?: string;
+          supplier_diversity_certification_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "supplier_diversity_shares_consent_record_id_fkey";
+            columns: ["consent_record_id"];
+            isOneToOne: false;
+            referencedRelation: "consent_records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_diversity_shares_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_diversity_shares_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_diversity_shares_supplier_diversity_certification_fkey";
+            columns: ["supplier_diversity_certification_id"];
+            isOneToOne: false;
+            referencedRelation: "supplier_diversity_certifications";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "supplier_diversity_shares_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -58430,6 +58850,15 @@ export type Database = {
         Args: { p_engagement_thread_id: string; p_party_thread_id: string };
         Returns: string;
       };
+      marketplace_places: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          label: string;
+          latitude: number;
+          listing_count: number;
+          longitude: number;
+        }[];
+      };
       message_translation_enabled: { Args: { p_org_id: string }; Returns: boolean };
       minimum_age_confirmed: { Args: Record<PropertyKey, never>; Returns: boolean };
       my_access_paths: {
@@ -58642,6 +59071,19 @@ export type Database = {
           id: string;
           name: string;
           slug: string;
+        }[];
+      };
+      my_supplier_diversity: {
+        Args: { p_account_id?: string };
+        Returns: {
+          certificate_number_last4: string;
+          certifying_body: string;
+          diversity_kind: Database["app"]["Enums"]["supplier_diversity_kind"];
+          evidence_path: string;
+          expires_on: string;
+          id: string;
+          issued_on: string;
+          shares: Json;
         }[];
       };
       my_upload_scan_status: {
@@ -59696,6 +60138,7 @@ export type Database = {
       revoke_self_billing: { Args: { p_engagement_id: string }; Returns: undefined };
       revoke_share_link: { Args: { p_share_link_id: string }; Returns: string };
       revoke_shared_report: { Args: { p_shared_report_id: string }; Returns: string };
+      revoke_supplier_diversity_share: { Args: { p_share_id: string }; Returns: undefined };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
       rotate_calendar_feed: {
         Args: { p_calendar_feed_id: string };
@@ -59765,6 +60208,64 @@ export type Database = {
         Returns: string;
       };
       scim_user_for_email: { Args: { p_email: string }; Returns: string };
+      search_marketplace: {
+        Args: {
+          p_cat_urid?: string;
+          p_certification_name?: string;
+          p_currency_code?: string;
+          p_disc_code?: string;
+          p_ends_before?: string;
+          p_include_passed?: boolean;
+          p_limit?: number;
+          p_min_pay_minor?: number;
+          p_near_latitude?: number;
+          p_near_longitude?: number;
+          p_org_id?: string;
+          p_query?: string;
+          p_radius_km?: number;
+          p_role_types?: Database["app"]["Enums"]["external_role_type"][];
+          p_sort?: string;
+          p_starts_after?: string;
+        };
+        Returns: {
+          availability_points: number;
+          cat_urid: string;
+          certification_points: number;
+          certifications_met: number;
+          certifications_required: number;
+          currency_code: string;
+          deadline_at: string;
+          description: string;
+          distance_km: number;
+          ends_on: string;
+          id: string;
+          is_passed: boolean;
+          is_saved: boolean;
+          jurisdiction_id: string;
+          location_points: number;
+          minimum_age: number;
+          opportunity_state: Database["app"]["Enums"]["opportunity_state"];
+          org_id: string;
+          org_name: string;
+          org_verified: boolean;
+          pay_max_minor: number;
+          pay_min_minor: number;
+          position_count: number;
+          rate_on_request: boolean;
+          rate_type: Database["app"]["Enums"]["rate_type"];
+          recommendation_score: number;
+          role_code: string;
+          role_type: Database["app"]["Enums"]["external_role_type"];
+          skill_points: number;
+          starts_on: string;
+          title: string;
+          venue_latitude: number;
+          venue_locality: string;
+          venue_longitude: number;
+          venue_name: string;
+          visibility: Database["app"]["Enums"]["opportunity_visibility"];
+        }[];
+      };
       seat_usage: {
         Args: { p_org_id: string };
         Returns: {
@@ -59853,6 +60354,10 @@ export type Database = {
         Returns: undefined;
       };
       set_my_passport_number: { Args: { p_passport_number: string }; Returns: undefined };
+      set_my_quiet_hours: {
+        Args: { p_quiet_hours_end?: string; p_quiet_hours_start?: string; p_time_zone: string };
+        Returns: undefined;
+      };
       set_org_legal_entity_tax_identifier: {
         Args: { p_legal_entity_id: string; p_tax_identifier: string };
         Returns: undefined;
@@ -59948,6 +60453,10 @@ export type Database = {
         };
         Returns: string;
       };
+      share_supplier_diversity: {
+        Args: { p_certification_id: string; p_notice_version?: string; p_org_id: string };
+        Returns: string;
+      };
       share_work_details: {
         Args: {
           p_categories: Database["app"]["Enums"]["work_detail_category"][];
@@ -59985,6 +60494,24 @@ export type Database = {
           starts_on: string;
           time_zone: string;
           valid_to: string;
+        }[];
+      };
+      shared_supplier_diversity: {
+        Args: { p_org_id: string };
+        Returns: {
+          account_id: string;
+          account_name: string;
+          certificate_number: string;
+          certificate_number_masked: boolean;
+          certification_id: string;
+          certifying_body: string;
+          diversity_kind: Database["app"]["Enums"]["supplier_diversity_kind"];
+          expires_on: string;
+          issued_on: string;
+          person_id: string;
+          person_name: string;
+          share_id: string;
+          shared_at: string;
         }[];
       };
       shared_work_details: { Args: { p_engagement_id: string }; Returns: Json };
@@ -60129,6 +60656,13 @@ export type Database = {
         }[];
       };
       subscribe_external_account: { Args: { p_account_id: string }; Returns: string };
+      supplier_diversity_programs: {
+        Args: { p_account_id?: string };
+        Returns: {
+          org_id: string;
+          org_name: string;
+        }[];
+      };
       survey_results: { Args: { p_survey_id: string }; Returns: Json };
       sync_subscription_from_stripe: {
         Args: {
@@ -61036,6 +61570,16 @@ export type Database = {
       submittal_kind:
         "Shop Drawing" | "Product Data" | "Sample" | "Method Statement" | "Certificate" | "Other";
       subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
+      supplier_diversity_kind:
+        | "Minority-Owned"
+        | "Women-Owned"
+        | "Veteran-Owned"
+        | "Service-Disabled Veteran-Owned"
+        | "Disability-Owned"
+        | "LGBTQ+-Owned"
+        | "Small Disadvantaged Business"
+        | "HUBZone"
+        | "Other";
       support_category:
         "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
       support_channel: "In App" | "Email" | "Chat" | "Priority Queue" | "Dedicated Channel";
@@ -67598,6 +68142,17 @@ export const Constants = {
         "Other",
       ],
       subscription_state: ["trialing", "active", "past_due", "read_only", "canceled"],
+      supplier_diversity_kind: [
+        "Minority-Owned",
+        "Women-Owned",
+        "Veteran-Owned",
+        "Service-Disabled Veteran-Owned",
+        "Disability-Owned",
+        "LGBTQ+-Owned",
+        "Small Disadvantaged Business",
+        "HUBZone",
+        "Other",
+      ],
       support_category: ["Question", "Problem", "Access", "Billing", "Account", "Feature Request"],
       support_channel: ["In App", "Email", "Chat", "Priority Queue", "Dedicated Channel"],
       support_queue: ["Organization", "Platform"],

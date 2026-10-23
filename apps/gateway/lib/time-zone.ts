@@ -25,6 +25,14 @@ export const getPersonTimeZone = cache(async (ctx: GatewayContext): Promise<stri
   return zoneOrUtc(typeof value === "string" ? value : null);
 });
 
+/** The person's own time zone when they chose one, or null: for forms that must never assume UTC. */
+export async function getChosenTimeZone(ctx: GatewayContext): Promise<string | null> {
+  const settings = await resolveSettings(ctx.db, { orgId: NO_ORG });
+  if (!settings.ok) return null;
+  const value = settings.data.get("locale.time_zone")?.value;
+  return typeof value === "string" && isTimeZone(value) ? value : null;
+}
+
 /** Today on the person's own calendar, as `YYYY-MM-DD`. */
 export async function personToday(ctx: GatewayContext): Promise<string> {
   return todayIn(await getPersonTimeZone(ctx));

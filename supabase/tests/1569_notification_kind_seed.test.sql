@@ -49,7 +49,9 @@ select set_eq(
   ('imports', false, 10),
   ('automations', false, 11),
   ('messages', false, 40),
-  ('feed', false, 41)$$,
+  ('feed', false, 41),
+  ('opportunities', false, 50),
+  ('expiry_reminders', false, 51)$$,
   'notification categories match notification-kinds.yaml');
 
 select set_eq(
@@ -226,7 +228,22 @@ select set_eq(
   ('help_request.assigned', 'In App', 'assignments', null::text),
   ('help_request.assigned', 'Email', 'assignments', 'notification'),
   ('help_request.assigned', 'SMS', 'assignments', null::text),
-  ('help_request.assigned', 'Push', 'assignments', null::text)$$,
+  ('help_request.assigned', 'Push', 'assignments', null::text),
+  ('opportunity.matched', 'In App', 'opportunities', null::text),
+  ('opportunity.matched', 'Email', 'opportunities', 'notification'),
+  ('opportunity.matched', 'Push', 'opportunities', null::text),
+  ('onboarding.item_expiring', 'In App', 'expiry_reminders', null::text),
+  ('onboarding.item_expiring', 'Email', 'expiry_reminders', 'notification'),
+  ('onboarding.item_expiring', 'SMS', 'expiry_reminders', null::text),
+  ('onboarding.item_expiring', 'Push', 'expiry_reminders', null::text),
+  ('certification.expiring', 'In App', 'expiry_reminders', null::text),
+  ('certification.expiring', 'Email', 'expiry_reminders', 'notification'),
+  ('certification.expiring', 'SMS', 'expiry_reminders', null::text),
+  ('certification.expiring', 'Push', 'expiry_reminders', null::text),
+  ('document.expiring', 'In App', 'expiry_reminders', null::text),
+  ('document.expiring', 'Email', 'expiry_reminders', 'notification'),
+  ('document.expiring', 'SMS', 'expiry_reminders', null::text),
+  ('document.expiring', 'Push', 'expiry_reminders', null::text)$$,
   'notification kinds by channel match notification-kinds.yaml');
 
 select set_eq(

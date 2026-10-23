@@ -2,7 +2,7 @@ import { listOpportunitiesById, listSavedOpportunities } from "@xos/data/gateway
 import { getNode } from "@xos/ia";
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
-import { ActionButton } from "@/components/actions/action-button";
+import { SwipeActions } from "@/components/explore/swipe-actions";
 import { OpportunityLinkCard } from "@/components/page/opportunity-card";
 import {
   childTabLinks,
@@ -13,7 +13,7 @@ import {
   ViewSwitcher,
 } from "@/components/page/page";
 import { EmptyStateLink, Tag } from "@/components/ui";
-import { unsaveOpportunityAction } from "@/lib/actions/marketplace";
+import { saveOpportunityAction, unsaveOpportunityAction } from "@/lib/actions/marketplace";
 import { childTabs } from "@/lib/shell/nav-model";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
@@ -72,17 +72,35 @@ export default async function SavedPage({ searchParams }: PageProps<"/explore/sa
         >
           {saved.data.map((s) => {
             const o = byId.get(s.opportunityId);
+            const title = o?.title ?? t("gateway.explore.saved.closed");
             return (
-              <li key={s.id} className="flex flex-col gap-8">
-                {o ? <OpportunityLinkCard opportunity={o} locale={locale} t={t} /> : null}
-                <div className="flex items-center gap-8">
-                  {!s.open ? <Tag tone="warning">{t("gateway.explore.saved.closed")}</Tag> : null}
-                  <ActionButton
-                    action={unsaveOpportunityAction.bind(null, s.id)}
-                    label={t("gateway.explore.detail.unsave")}
-                    variant="ghost"
-                  />
-                </div>
+              <li key={s.id}>
+                {/* Swipe left to remove on a phone; the Remove button and the R key do the same. */}
+                <SwipeActions
+                  label={t("gateway.explore.swipe.actions", { title })}
+                  failed={t("gateway.explore.swipe.failed")}
+                  left={{
+                    label: t("gateway.explore.detail.unsave"),
+                    action: unsaveOpportunityAction.bind(null, s.id),
+                    icon: "Trash2",
+                    shortcut: "r",
+                    done: t("gateway.explore.swipe.removed", { title }),
+                    hides: true,
+                    undo: {
+                      label: t("gateway.explore.swipe.undo"),
+                      action: saveOpportunityAction.bind(null, s.opportunityId),
+                    },
+                  }}
+                >
+                  <div className="flex flex-col gap-8">
+                    {o ? <OpportunityLinkCard opportunity={o} locale={locale} t={t} /> : null}
+                    {!s.open ? (
+                      <div>
+                        <Tag tone="warning">{t("gateway.explore.saved.closed")}</Tag>
+                      </div>
+                    ) : null}
+                  </div>
+                </SwipeActions>
               </li>
             );
           })}

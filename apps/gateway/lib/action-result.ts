@@ -31,6 +31,8 @@ export const KNOWN_REFUSALS = [
   "slug_taken",
   "slug_reserved",
   "cross_org_reference",
+  "supplier_diversity_no_program",
+  "time_zone_unknown",
   // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
   "personal_tokens_off",
   "personal_token_scope_not_held",

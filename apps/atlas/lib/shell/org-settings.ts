@@ -95,6 +95,15 @@ export function engagementsToRate<E extends { readonly orgRated: boolean }>(
   return ratingPromptsOn(get) ? completed.filter((e) => !e.orgRated) : [];
 }
 
+/**
+ * Whether the org runs a supplier diversity program (gateway.supplier_diversity_program, A89 migration 1464):
+ * only then do vendors and freelancers share supplier diversity certifications with it, and only then does
+ * Vendors, Directory list the ones shared. Off by default.
+ */
+export function supplierDiversityProgramOn(get: SettingLookup): boolean {
+  return get("gateway.supplier_diversity_program") === true;
+}
+
 const VISIBILITY_RANK = { Invited: 0, Pool: 0, Network: 1, Public: 2 } as const;
 
 /**

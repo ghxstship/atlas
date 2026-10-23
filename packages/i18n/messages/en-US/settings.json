@@ -276,6 +276,10 @@
     "personalTokens": {
       "label": "Allow personal API tokens",
       "help": "Members can create their own API tokens in Personal settings, Developer. A token acts as its member, limited to the areas they choose, and expires within a year. Turning this off stops every token at once."
+    },
+    "supplierDiversityProgram": {
+      "label": "Supplier diversity program",
+      "help": "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden."
     }
   },
   "choices": {
@@ -816,6 +820,14 @@
       "feed": {
         "label": "Feed",
         "help": "Announcements, surveys and recognition."
+      },
+      "opportunities": {
+        "label": "Opportunities",
+        "help": "New opportunities that match your saved searches."
+      },
+      "expiry_reminders": {
+        "label": "Expiry reminders",
+        "help": "Certifications, documents and onboarding items that expire in 30, 7 and 1 days."
       }
     }
   },

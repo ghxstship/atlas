@@ -9,7 +9,8 @@ import type { NotificationKindRegistry } from "./model.ts";
  * bypass list (ADR 0033 decision 35); 1369 adds A79's org lifecycle kinds (A79's range runs before 1367, which
  * creates the bypass table the seed fills), 1387 the Subprocessor List emails (A82, Section 14.4), 1489 the
  * automations category and kinds (A91, ADR 0047, never applied anywhere: its kinds moved into 1569) and 1569 the
- * account notices of recovery codes and signed-out sessions (A99, ADR 0055).
+ * account notices of recovery codes and signed-out sessions (A99, ADR 0055), with A89's marketplace match and
+ * expiry reminders (A89's own seeds never merged; 1569 carries its kinds).
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
   "supabase/migrations/1569_notification_kind_seed.sql";

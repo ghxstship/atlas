@@ -6,7 +6,7 @@ import {
   listOnboardingItems,
   listRepresentations,
   listSharedRecords,
-  searchOpportunities,
+  searchMarketplace,
   type Engagement,
 } from "@xos/data/gateway";
 import { startOfDayIn } from "@xos/data/calendar";
@@ -81,7 +81,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       listOnboardingItems(ctx.db),
       listMyApplications(ctx.db),
       listRepresentations(ctx.db),
-      searchOpportunities(ctx.db, {
+      searchMarketplace(ctx.db, {
         limit: 6,
         ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
       }),

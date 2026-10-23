@@ -186,6 +186,33 @@ var email_default$1 = {
         body: "{actorName} took emergency full access to {orgName} for one hour. Reason: {reason}",
       },
     },
+    opportunity: {
+      matched: {
+        subject:
+          "{count, plural, one {New match for {searchName}: {title}} other {# new matches for {searchName}}}",
+        body: "{count, plural, one {{orgName} published {title}, which matches your saved search {searchName}.} other {{orgName} published # opportunities that match your saved search {searchName}, including {title}.}}",
+      },
+    },
+    onboarding: {
+      item_expiring: {
+        subject: "{title} expires {days, plural, =0 {today} one {in # day} other {in # days}}",
+        body: "Your {title} for {orgName} expires on {expiresOn}. Renew it before then to keep your onboarding complete.",
+      },
+    },
+    certification: {
+      expiring: {
+        subject:
+          "Your {title} certification expires {days, plural, =0 {today} one {in # day} other {in # days}}",
+        body: "Your {title} certification expires on {expiresOn}. Renew it and update your profile so organizations see it is current.",
+      },
+    },
+    document: {
+      expiring: {
+        subject:
+          "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires {days, plural, =0 {today} one {in # day} other {in # days}}",
+        body: "{kind, select, passport {Your passport expires on {expiresOn}. Renew it before you travel for work.} insurance {Your {title} certificate of insurance on file with {orgName} expires on {expiresOn}. Send the renewed certificate before then.} other {{title} for {orgName} expires on {expiresOn}. Check whether it needs renewing.}}",
+      },
+    },
     organization: {
       deletion_requested: {
         subject: "Your organization will be deleted",
@@ -486,6 +513,33 @@ var email_default = {
       break_glass_started: {
         subject: "Acceso de emergencia en {orgName}",
         body: "{actorName} tomó acceso completo de emergencia a {orgName} durante una hora. Motivo: {reason}",
+      },
+    },
+    opportunity: {
+      matched: {
+        subject:
+          "{count, plural, one {Nueva coincidencia para {searchName}: {title}} other {# nuevas coincidencias para {searchName}}}",
+        body: "{count, plural, one {{orgName} publicó {title}, que coincide con su búsqueda guardada {searchName}.} other {{orgName} publicó # oportunidades que coinciden con su búsqueda guardada {searchName}, entre ellas {title}.}}",
+      },
+    },
+    onboarding: {
+      item_expiring: {
+        subject: "{title} vence {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+        body: "Su {title} para {orgName} vence el {expiresOn}. Renuévelo antes de esa fecha para mantener completa su incorporación.",
+      },
+    },
+    certification: {
+      expiring: {
+        subject:
+          "Su certificación {title} vence {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+        body: "Su certificación {title} vence el {expiresOn}. Renuévela y actualice su perfil para que las organizaciones vean que está vigente.",
+      },
+    },
+    document: {
+      expiring: {
+        subject:
+          "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+        body: "{kind, select, passport {Su pasaporte vence el {expiresOn}. Renuévelo antes de viajar por trabajo.} insurance {Su certificado de seguro {title} registrado con {orgName} vence el {expiresOn}. Envíe el certificado renovado antes de esa fecha.} other {{title} para {orgName} vence el {expiresOn}. Revise si necesita renovarlo.}}",
       },
     },
     organization: {

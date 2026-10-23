@@ -276,6 +276,10 @@
     "personalTokens": {
       "label": "Permitir tokens personales de API",
       "help": "Los miembros pueden crear sus propios tokens de API en Configuración personal, Desarrollador. Un token actúa como su miembro, limitado a las áreas que elija, y vence en menos de un año. Si lo desactiva, todos los tokens dejan de funcionar al instante."
+    },
+    "supplierDiversityProgram": {
+      "label": "Programa de diversidad de proveedores",
+      "help": "Permite que proveedores y profesionales independientes compartan sus certificaciones de diversidad de proveedores con su organización. Cada uno comparte con un consentimiento aparte y puede revocarlo en cualquier momento. Desactivado, no se puede compartir nada y las certificaciones compartidas quedan ocultas."
     }
   },
   "choices": {
@@ -816,6 +820,14 @@
       "feed": {
         "label": "Noticias",
         "help": "Anuncios, encuestas y reconocimientos."
+      },
+      "opportunities": {
+        "label": "Oportunidades",
+        "help": "Nuevas oportunidades que coinciden con sus búsquedas guardadas."
+      },
+      "expiry_reminders": {
+        "label": "Recordatorios de vencimiento",
+        "help": "Certificaciones, documentos y elementos de incorporación que vencen en 30, 7 y 1 días."
       }
     }
   },

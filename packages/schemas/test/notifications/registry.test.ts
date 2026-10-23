@@ -49,12 +49,18 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "automations",
       "messages",
       "feed",
+      "opportunities",
+      "expiry_reminders",
     ]);
     expect(registry.categories.filter((c) => c.urgent).map((c) => c.code)).toEqual([
       "safety",
       "account",
     ]);
-    expect(registry.kinds).toHaveLength(43);
+    expect(registry.kinds).toHaveLength(47);
+    expect(notificationKind("opportunity.matched")).toMatchObject({
+      category: "opportunities",
+      channels: ["In App", "Email", "Push"],
+    });
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",

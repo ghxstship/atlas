@@ -39,6 +39,11 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "account.recovery_code_used": ["remaining"],
   "account.session_signed_out": ["count"],
   "billing.payment_failed": ["days"],
+  // Marketplace matches and expiry reminders (A89, migrations 1462 and 1463).
+  "opportunity.matched": ["count", "searchName"],
+  "onboarding.item_expiring": ["days", "expiresOn"],
+  "certification.expiring": ["days", "expiresOn"],
+  "document.expiring": ["days", "expiresOn"],
 };
 
 /** Where a notification's subject opens, by the table it names (paths under /{org}). */
@@ -102,6 +107,7 @@ function values(
   if (startsAt) out["startsAt"] = startsAt;
   else delete out["startsAt"];
   if (a["days"] !== undefined) out["days"] = Number(a["days"]);
+  if (a["count"] !== undefined) out["count"] = Number(a["count"]);
   return out;
 }
 

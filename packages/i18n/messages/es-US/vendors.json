@@ -288,5 +288,31 @@
     "requiredNameHelp": "La parte que los proveedores deben nombrar, por ejemplo el propietario del recinto.",
     "project": "Proyecto",
     "everyProject": "Todos los proyectos"
+  },
+  "diversity": {
+    "title": "Diversidad de proveedores",
+    "lead": "Certificaciones que proveedores y profesionales independientes compartieron con su organización para su programa de diversidad de proveedores. Cada una se compartió con un consentimiento aparte y puede revocarse; cada consulta queda registrada.",
+    "off": "Su organización no tiene un programa de diversidad de proveedores, así que nadie puede compartirle certificaciones de diversidad.",
+    "turnOn": "Actívelo en Ajustes",
+    "empty": "Nadie ha compartido todavía una certificación de diversidad de proveedores.",
+    "what": "certificaciones de diversidad de proveedores",
+    "owner": "Compartida por",
+    "kind": "Certificación",
+    "certifyingBody": "Certificada por",
+    "number": "Número de certificado",
+    "expires": "Vence",
+    "masked": "Oculto: requiere acceso a identificadores oficiales",
+    "none": "Ninguno",
+    "kinds": {
+      "minorityOwned": "Empresa de propiedad de minorías",
+      "womenOwned": "Empresa de propiedad de mujeres",
+      "veteranOwned": "Empresa de propiedad de veteranos",
+      "serviceDisabledVeteranOwned": "Empresa de propiedad de veteranos con discapacidad por servicio",
+      "disabilityOwned": "Empresa de propiedad de personas con discapacidad",
+      "lgbtqOwned": "Empresa de propiedad LGBTQ+",
+      "smallDisadvantagedBusiness": "Pequeña empresa en desventaja",
+      "hubzone": "Empresa HUBZone",
+      "other": "Otra certificación"
+    }
   }
 }

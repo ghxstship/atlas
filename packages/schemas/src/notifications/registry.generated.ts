@@ -96,6 +96,16 @@ export const NOTIFICATION_CATEGORIES: readonly CategoryDefinition[] = [
     urgent: false,
     order: 41,
   },
+  {
+    code: "opportunities",
+    urgent: false,
+    order: 50,
+  },
+  {
+    code: "expiry_reminders",
+    urgent: false,
+    order: 51,
+  },
 ];
 
 /** React Email templates. */
@@ -672,6 +682,54 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     copy: {
       subject: "kinds.help_request.assigned.subject",
       body: "kinds.help_request.assigned.body",
+    },
+  },
+  {
+    kind: "opportunity.matched",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "Push"],
+    copy: {
+      subject: "kinds.opportunity.matched.subject",
+      body: "kinds.opportunity.matched.body",
+    },
+  },
+  {
+    kind: "onboarding.item_expiring",
+    category: "expiry_reminders",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.onboarding.item_expiring.subject",
+      body: "kinds.onboarding.item_expiring.body",
+    },
+  },
+  {
+    kind: "certification.expiring",
+    category: "expiry_reminders",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.certification.expiring.subject",
+      body: "kinds.certification.expiring.body",
+    },
+  },
+  {
+    kind: "document.expiring",
+    category: "expiry_reminders",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.document.expiring.subject",
+      body: "kinds.document.expiring.body",
     },
   },
 ];

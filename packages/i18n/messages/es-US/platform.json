@@ -631,6 +631,18 @@
       },
       "weather": {
         "alert": "Alerta meteorológica"
+      },
+      "opportunity": {
+        "matched": "Nueva oportunidad coincidente"
+      },
+      "onboarding": {
+        "item_expiring": "Elemento de incorporación por vencer"
+      },
+      "certification": {
+        "expiring": "Certificación por vencer"
+      },
+      "document": {
+        "expiring": "Documento por vencer"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

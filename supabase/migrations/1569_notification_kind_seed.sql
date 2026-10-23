@@ -4,7 +4,7 @@
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
--- 9 email templates, 13 categories, 43 kinds (172 kind and channel rows),
+-- 9 email templates, 15 categories, 47 kinds (187 kind and channel rows),
 -- 4 kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows the registry does not name are left in place and fail the
 -- drift test (1569_notification_kind_seed.test.sql); the quiet-hours bypass list is replaced as a set.
@@ -35,7 +35,7 @@ on conflict (code) do update set description = excluded.description, transaction
 -- Categories (orders move aside first, so a reordering never collides) -------
 
 update private.notification_categories set sort_order = -sort_order
-where code in ('mentions', 'assignments', 'approvals', 'comments', 'schedule', 'finance', 'safety', 'account', 'reports', 'imports', 'automations', 'messages', 'feed');
+where code in ('mentions', 'assignments', 'approvals', 'comments', 'schedule', 'finance', 'safety', 'account', 'reports', 'imports', 'automations', 'messages', 'feed', 'opportunities', 'expiry_reminders');
 
 insert into private.notification_categories (code, urgent, sort_order) values
   ('mentions', false, 1),
@@ -50,7 +50,9 @@ insert into private.notification_categories (code, urgent, sort_order) values
   ('imports', false, 10),
   ('automations', false, 11),
   ('messages', false, 40),
-  ('feed', false, 41)
+  ('feed', false, 41),
+  ('opportunities', false, 50),
+  ('expiry_reminders', false, 51)
 on conflict (code) do update set urgent = excluded.urgent, sort_order = excluded.sort_order;
 
 -- Kinds by channel ------------------------------------------------------------
@@ -227,7 +229,22 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('help_request.assigned', 'In App'::app.notification_channel, 'assignments', null),
   ('help_request.assigned', 'Email'::app.notification_channel, 'assignments', 'notification'),
   ('help_request.assigned', 'SMS'::app.notification_channel, 'assignments', null),
-  ('help_request.assigned', 'Push'::app.notification_channel, 'assignments', null)
+  ('help_request.assigned', 'Push'::app.notification_channel, 'assignments', null),
+  ('opportunity.matched', 'In App'::app.notification_channel, 'opportunities', null),
+  ('opportunity.matched', 'Email'::app.notification_channel, 'opportunities', 'notification'),
+  ('opportunity.matched', 'Push'::app.notification_channel, 'opportunities', null),
+  ('onboarding.item_expiring', 'In App'::app.notification_channel, 'expiry_reminders', null),
+  ('onboarding.item_expiring', 'Email'::app.notification_channel, 'expiry_reminders', 'notification'),
+  ('onboarding.item_expiring', 'SMS'::app.notification_channel, 'expiry_reminders', null),
+  ('onboarding.item_expiring', 'Push'::app.notification_channel, 'expiry_reminders', null),
+  ('certification.expiring', 'In App'::app.notification_channel, 'expiry_reminders', null),
+  ('certification.expiring', 'Email'::app.notification_channel, 'expiry_reminders', 'notification'),
+  ('certification.expiring', 'SMS'::app.notification_channel, 'expiry_reminders', null),
+  ('certification.expiring', 'Push'::app.notification_channel, 'expiry_reminders', null),
+  ('document.expiring', 'In App'::app.notification_channel, 'expiry_reminders', null),
+  ('document.expiring', 'Email'::app.notification_channel, 'expiry_reminders', 'notification'),
+  ('document.expiring', 'SMS'::app.notification_channel, 'expiry_reminders', null),
+  ('document.expiring', 'Push'::app.notification_channel, 'expiry_reminders', null)
 on conflict (kind, channel) do update
   set category_code = excluded.category_code, email_template_code = excluded.email_template_code;
 

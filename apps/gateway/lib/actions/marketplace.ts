@@ -4,8 +4,13 @@ import {
   applicationMode,
   applyToOpportunity,
   getOpportunity,
+  listMarketplacePlaces,
+  passOpportunity,
   removeSavedSearch,
+  restoreSavedSearch,
   saveOpportunity,
+  undoPass,
+  unsaveListing,
   unsaveOpportunity,
   reportListing,
   saveSearch,
@@ -15,6 +20,7 @@ import {
   submitSlate,
   APP_ENUMS,
 } from "@xos/data/gateway";
+import { parseExploreQuery, resolvePlace } from "@/lib/explore";
 import {
   SHAREABLE_SECTIONS,
   shareProfileSections,
@@ -160,33 +166,69 @@ export interface SimpleState {
   readonly done?: boolean;
 }
 
+/**
+ * Saves the current Explore search with alerts. The form carries Explore's query string, parsed again
+ * here with the page's own rules, so the saved search holds exactly the filters the person saw
+ * (discipline, category, certification, place and radius included); a role filter is saved when
+ * exactly one role type is chosen.
+ */
 export async function saveSearchAction(_: SimpleState, form: FormData): Promise<SimpleState> {
   const ctx = await getGatewayContext();
   if (!ctx) return { outcome: "notFound" };
-  const parsed = z
-    .object({
-      name: z.string().trim().min(1).max(200),
-      roleType: z.string().optional(),
-      startsAfter: z.iso.date().optional(),
-      endsBefore: z.iso.date().optional(),
-    })
-    .safeParse({
-      name: form.get("name"),
-      roleType: form.get("roleType") || undefined,
-      startsAfter: form.get("startsAfter") || undefined,
-      endsBefore: form.get("endsBefore") || undefined,
-    });
-  if (!parsed.success) return { outcome: "invalid" };
-  const roleType = z.enum(APP_ENUMS.external_role_type).safeParse(parsed.data.roleType);
+  const name = z.string().trim().min(1).max(200).safeParse(form.get("name"));
+  const search = z
+    .string()
+    .max(2000)
+    .safeParse(form.get("search") ?? "");
+  if (!name.success || !search.success) return { outcome: "invalid" };
+  const params = new URLSearchParams(search.data);
+  const query: Record<string, string | string[]> = {};
+  for (const key of new Set(params.keys())) {
+    const values = params.getAll(key);
+    query[key] = values.length > 1 ? values : (values[0] ?? "");
+  }
+  const parsed = parseExploreQuery(query);
+  const places = parsed.near ? await listMarketplacePlaces(ctx.db) : null;
+  const near = places?.ok ? resolvePlace(parsed, places.data) : null;
   const result = await saveSearch(ctx.db, {
     personId: ctx.personId,
-    name: parsed.data.name,
-    roleType: roleType.success ? roleType.data : null,
-    startsAfter: parsed.data.startsAfter ?? null,
-    endsBefore: parsed.data.endsBefore ?? null,
+    name: name.data,
+    roleType: parsed.roles.length === 1 ? (parsed.roles[0] ?? null) : null,
+    startsAfter: parsed.from || null,
+    endsBefore: parsed.to || null,
     orgId: ctx.brand.kind === "org" ? ctx.brand.org.orgId : null,
+    query: parsed.q || null,
+    discCode: parsed.disc || null,
+    catUrid: parsed.cat || null,
+    certificationName: parsed.cert || null,
+    near,
+    minPayMinor: parsed.filter.minPayMinor ?? null,
   });
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
+}
+
+/** Restores a saved search just removed (Undo). */
+export async function restoreSavedSearchAction(savedSearchId: string): Promise<ActionResult> {
+  return toAction(
+    await restoreSavedSearch(await createServerSupabase(), z.uuid().parse(savedSearchId)),
+  );
+}
+
+/** Passes on a listing (swipe left, or the Pass button); it leaves Explore until undone. */
+export async function passOpportunityAction(opportunityId: string): Promise<ActionResult> {
+  return toAction(
+    await passOpportunity(await createServerSupabase(), z.uuid().parse(opportunityId)),
+  );
+}
+
+/** Undoes a pass. */
+export async function undoPassAction(opportunityId: string): Promise<ActionResult> {
+  return toAction(await undoPass(await createServerSupabase(), z.uuid().parse(opportunityId)));
+}
+
+/** Removes a listing from Saved by the listing, from Explore's card. */
+export async function unsaveListingAction(opportunityId: string): Promise<ActionResult> {
+  return toAction(await unsaveListing(await createServerSupabase(), z.uuid().parse(opportunityId)));
 }
 
 export async function reportListingAction(_: SimpleState, form: FormData): Promise<SimpleState> {

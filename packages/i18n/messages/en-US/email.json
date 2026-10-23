@@ -183,6 +183,30 @@
         "body": "{actorName} took emergency full access to {orgName} for one hour. Reason: {reason}"
       }
     },
+    "opportunity": {
+      "matched": {
+        "subject": "{count, plural, one {New match for {searchName}: {title}} other {# new matches for {searchName}}}",
+        "body": "{count, plural, one {{orgName} published {title}, which matches your saved search {searchName}.} other {{orgName} published # opportunities that match your saved search {searchName}, including {title}.}}"
+      }
+    },
+    "onboarding": {
+      "item_expiring": {
+        "subject": "{title} expires {days, plural, =0 {today} one {in # day} other {in # days}}",
+        "body": "Your {title} for {orgName} expires on {expiresOn}. Renew it before then to keep your onboarding complete."
+      }
+    },
+    "certification": {
+      "expiring": {
+        "subject": "Your {title} certification expires {days, plural, =0 {today} one {in # day} other {in # days}}",
+        "body": "Your {title} certification expires on {expiresOn}. Renew it and update your profile so organizations see it is current."
+      }
+    },
+    "document": {
+      "expiring": {
+        "subject": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires {days, plural, =0 {today} one {in # day} other {in # days}}",
+        "body": "{kind, select, passport {Your passport expires on {expiresOn}. Renew it before you travel for work.} insurance {Your {title} certificate of insurance on file with {orgName} expires on {expiresOn}. Send the renewed certificate before then.} other {{title} for {orgName} expires on {expiresOn}. Check whether it needs renewing.}}"
+      }
+    },
     "organization": {
       "deletion_requested": {
         "subject": "Your organization will be deleted",
