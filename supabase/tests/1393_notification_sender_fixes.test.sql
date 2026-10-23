@@ -10,7 +10,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(48);
+select plan(49);
 
 -- A fixed-offset zone where it is now night (22:00 to 06:00) or day (10:00 to 16:00).
 create function pg_temp.zone(p_night boolean) returns text
@@ -228,6 +228,12 @@ select lives_ok(format($$select private.hold_sms_for_summary(%L, %L, %L, %L)$$,
 select is((select concat_ws('|', count(*) filter (where q.deleted_at is null and q.sent_at is null), count(*) filter (where q.deleted_at is not null))
            from app.sms_summary_queue q where q.notification_delivery_id = (pg_temp.sms((select id from n where key = 'shift_settled'))).id),
   '1|1', 'it opens one live row and retires the settled one');
+select private.hold_sms_for_summary((pg_temp.sms((select id from n where key = 'shift_settled'))).id,
+  (pg_temp.sms((select id from n where key = 'shift_settled'))).notification_created_at, pg_temp.id('frank@org_a'), now() + interval '5 hours');
+select is((select string_agg(concat_ws('|', (q.due_at = now() + interval '5 hours')::text, (q.sent_at is null)::text), ',')
+           from app.sms_summary_queue q
+           where q.notification_delivery_id = (pg_temp.sms((select id from n where key = 'shift_settled'))).id and q.deleted_at is null),
+  'true|true', 'holding it once more moves that live row instead of adding one');
 
 -- 5. A recipient's language and zone in the org, live values only -------------------------------------------------------
 create function pg_temp.profile(p_person text, p_org text) returns text

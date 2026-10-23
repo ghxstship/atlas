@@ -452,19 +452,20 @@ begin
   update app.notification_deliveries set message_status = 'Digest', deliver_after = p_until
   where id = p_delivery_id and notification_created_at = p_created;
   -- A text held again after its row was settled (a released shift change whose shift started before it went) retires
-  -- the settled row first, so the insert below never meets sms_summary_queue_delivery_key and fails the whole claim.
+  -- the settled row, which keeps its history, and opens a new one.
   update app.sms_summary_queue set deleted_at = now()
   where notification_delivery_id = p_delivery_id and sent_at is not null and deleted_at is null;
-  update app.sms_summary_queue set due_at = p_until
-  where notification_delivery_id = p_delivery_id and sent_at is null and deleted_at is null;
-  if not found then
-    insert into app.sms_summary_queue (notification_delivery_id, notification_created_at, membership_id, due_at)
-    values (p_delivery_id, p_created, p_membership_id, p_until);
-  end if;
+  -- The delivery's one live row (sms_summary_queue_delivery_key) is written by an upsert on that key, so holding a text
+  -- can never raise a unique violation, which app.claim_notification_deliveries does not catch: the failure would stop
+  -- the claim, leave the text Queued at the head of the queue and fail every later SMS claim the same way.
+  insert into app.sms_summary_queue (notification_delivery_id, notification_created_at, membership_id, due_at)
+  values (p_delivery_id, p_created, p_membership_id, p_until)
+  on conflict (notification_delivery_id) where deleted_at is null
+  do update set due_at = excluded.due_at, sent_at = null;
 end;
 $$;
 
-comment on function private.hold_sms_for_summary(uuid, timestamptz, uuid, timestamptz) is 'Holds an SMS delivery for the member''s next summary (status Digest, never claimed on its own) until quiet hours end. A text held again after its queue row was settled gets a new live row; the settled one is retired (1393).';
+comment on function private.hold_sms_for_summary(uuid, timestamptz, uuid, timestamptz) is 'Holds an SMS delivery for the member''s next summary (status Digest, never claimed on its own) until quiet hours end, in the delivery''s one live queue row. A text held again after its queue row was settled gets a new live row and the settled one is retired; the row is written by an upsert on the live-row key, so a hold never fails the claim that calls it (1393).';
 
 create or replace function app.claim_notification_deliveries(p_channel app.notification_channel, p_limit integer default 50)
 returns table (
