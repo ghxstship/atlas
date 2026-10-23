@@ -304,11 +304,12 @@ begin
       select format('SOP-%s', lpad((coalesce(max(substring(o.code from 5)::integer), 0) + 1)::text, 3, '0')) into v_code
       from app.sops o where o.org_id = p_org_id and o.deleted_at is null;
     end if;
+    -- The body reads as the SOP page's "Start from the Standard Library" template does: the prerequisites and
+    -- hazards, then each procedure step, as paragraphs.
     insert into app.sops (org_id, code, title, body, std_sop_id)
     values (p_org_id, v_code, v_sop.title,
-      coalesce(nullif(concat_ws(E'\n\n', v_sop.prerequisites_and_hazards,
-        nullif(concat_ws(E'\n', '1. ' || v_sop.procedure_step_1, '2. ' || v_sop.procedure_step_2,
-          '3. ' || v_sop.procedure_step_3, '4. ' || v_sop.procedure_step_4), '')), ''), v_sop.title),
+      coalesce(nullif(concat_ws(E'\n\n', v_sop.prerequisites_and_hazards, v_sop.procedure_step_1,
+        v_sop.procedure_step_2, v_sop.procedure_step_3, v_sop.procedure_step_4), ''), v_sop.title),
       v_sop.sop_id);
     v_n := v_n + 1;
   end loop;

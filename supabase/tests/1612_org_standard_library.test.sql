@@ -26,7 +26,8 @@ select is(
 select is((select count(*)::int from app.sops where org_id = pg_temp.id('new_org') and std_sop_id is not null and published_at is null), 34,
   'the 34 SOPs arrive as drafts naming their standard SOP');
 select is((select count(*)::int from app.sops s join xpms.std_sop x on x.sop_id = s.std_sop_id
-  where s.org_id = pg_temp.id('new_org') and s.title = x.title and s.body like '%1. %'), 34, 'each SOP carries its title and numbered steps');
+  where s.org_id = pg_temp.id('new_org') and s.title = x.title and strpos(s.body, x.procedure_step_1) > 0), 34,
+  'each SOP carries its title and procedure steps');
 select is((select count(*)::int from app.verbiage_terms where org_id = pg_temp.id('new_org') and std_verbiage_id is not null and definition like '%.'), 213,
   'the 213 verbiage terms are copied with sentence definitions');
 select is((select count(*)::int from app.documents where org_id = pg_temp.id('new_org') and std_document_id is not null and project_id is null), 34,
