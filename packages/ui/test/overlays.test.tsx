@@ -739,6 +739,41 @@ describe("navigation", () => {
     await expectAccessible(container);
   });
 
+  it("lists items under an item, indented and named for screen readers", async () => {
+    const { container } = render(
+      <Sidebar
+        active="Northwind Summer Series"
+        groups={[
+          {
+            items: [
+              {
+                label: "Projects",
+                icon: "FolderKanban",
+                href: "/projects",
+                itemsLabel: "Recent projects",
+                items: [
+                  { label: "Northwind Summer Series", icon: "Folder", href: "/p/NWL" },
+                  { label: "All Projects", icon: "List", href: "/projects/all" },
+                ],
+              },
+            ],
+          },
+        ]}
+      />,
+    );
+    const recent = screen.getByRole("list", { name: "Recent projects" });
+    expect(
+      within(recent)
+        .getAllByRole("link")
+        .map((l) => l.textContent),
+    ).toEqual(["Northwind Summer Series", "All Projects"]);
+    expect(
+      screen.getByRole("link", { name: "Northwind Summer Series" }).getAttribute("aria-current"),
+    ).toBe("page");
+    expect(screen.getByRole("link", { name: "Projects" }).getAttribute("aria-current")).toBeNull();
+    await expectAccessible(container);
+  });
+
   it("renders the Gateway top bar and the phone tab bar", async () => {
     const onSearch = vi.fn();
     const { container } = render(
