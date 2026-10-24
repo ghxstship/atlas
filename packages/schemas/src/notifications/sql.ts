@@ -11,10 +11,12 @@ import type { NotificationKindRegistry } from "./model.ts";
  * automations category and kinds (A91, ADR 0047, never applied anywhere: its kinds moved into 1569) and 1569 the
  * account notices of recovery codes and signed-out sessions (A99, ADR 0055), with A89's marketplace match and
  * expiry reminders and A90's marketplace moderation kinds (1473); A89's and A90's own seeds never merged, so 1569
- * carries their kinds.
+ * carries their kinds. 1620 applies the owner decisions of 2026-10-23: shift.assigned, account.security_changed and
+ * access.break_glass_started join the bypass list (ADR 0033 decision 62), and report.delivered reaches only the Inbox and a
+ * push (ADR 0033 decision 77).
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/1569_notification_kind_seed.sql";
+  "supabase/migrations/1620_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(
@@ -79,6 +81,27 @@ function rows(registry: NotificationKindRegistry): Rows {
   };
 }
 
+/**
+ * The channel rows of each kind that names its own channels, for the channels it leaves out: a kind seeded on every
+ * channel before it named fewer (report.delivered, ADR 0033 decision 77) would otherwise keep the rows of the others.
+ */
+function narrowedChannelsSql(registry: NotificationKindRegistry): string {
+  const narrowed = registry.kinds.filter((k) => k.channels.length < registry.channels.length);
+  if (narrowed.length === 0) return "";
+  const where = narrowed
+    .map(
+      (k) =>
+        `(kind = ${literal(k.kind)} and channel not in (${k.channels.map(literal).join(", ")}))`,
+    )
+    .join("\n   or ");
+  return `
+-- Channels a kind that names its own channels does not reach ---------------
+
+delete from private.notification_templates
+where ${where};
+`;
+}
+
 /** The bypass list as SQL: replaced as a set, since only the registry writes it. */
 function bypassSql(bypass: readonly (readonly string[])[]): string {
   if (bypass.length === 0) return "delete from private.notification_quiet_hours_bypass;\n";
@@ -93,9 +116,10 @@ on conflict (kind) do update set starts_within = excluded.starts_within;
 
 /**
  * Renders the seed migration: an upsert of every channel default, email template, category and
- * kind-by-channel row. Output is a pure function of the registry. It never deletes: a row the registry
- * does not name (for example a kind another branch added in SQL) stays, and the drift test fails on it
- * until the kind is added to notification-kinds.yaml.
+ * kind-by-channel row. Output is a pure function of the registry. It deletes only what the registry alone
+ * writes: the bypass list, replaced as a set, and the rows of a declared kind on a channel it no longer
+ * reaches. A row of a kind the registry does not name (for example a kind another branch added in SQL)
+ * stays, and the drift test fails on it until the kind is added to notification-kinds.yaml.
  */
 export function renderNotificationSeedSql(registry: NotificationKindRegistry): string {
   const r = rows(registry);
@@ -107,8 +131,9 @@ export function renderNotificationSeedSql(registry: NotificationKindRegistry): s
 -- Notification kind registry version ${registry.version} (Section 3.15, A65-021): ${r.channels.length} channel defaults,
 -- ${r.templates.length} email templates, ${r.categories.length} categories, ${registry.kinds.length} kinds (${r.kinds.length} kind and channel rows),
 -- ${r.bypass.length} kinds that bypass quiet hours (ADR 0033 decision 35).
--- Upserts the reference rows of 0520. Rows the registry does not name are left in place and fail the
--- drift test (${fileName(NOTIFICATION_KIND_DRIFT_TEST)}); the quiet-hours bypass list is replaced as a set.
+-- Upserts the reference rows of 0520. Rows of kinds the registry does not name are left in place and fail the
+-- drift test (${fileName(NOTIFICATION_KIND_DRIFT_TEST)}); a kind that names its own channels loses the rows of
+-- the others, and the quiet-hours bypass list is replaced as a set.
 
 -- Channel defaults ------------------------------------------------------------
 
@@ -137,7 +162,7 @@ insert into private.notification_templates (kind, channel, category_code, email_
 ${valuesBlock(r.kinds)}
 on conflict (kind, channel) do update
   set category_code = excluded.category_code, email_template_code = excluded.email_template_code;
-
+${narrowedChannelsSql(registry)}
 -- Kinds that bypass quiet hours (replaced as a set) -------------------------
 
 ${bypassSql(r.bypass)}

@@ -194,8 +194,9 @@ export const TABLE_RULES: readonly TableRule[] = [
   { table: "zones", anyOf: [internalOrg] },
   // Memberships joined to people's names: no single replicable table holds it.
   { table: "kiosk_roster", anyOf: [{ ...internalOrg, restOnly: true }] },
-  // Expenses (Section 4.3 item 11, A92): budget lines joined to their budget's project and currency, and the
-  // person's own expenses. Neither has a sync rule yet, so the REST downloader serves both.
+  // Expenses (Section 4.3 item 11, A92): the budget lines the person may post to with their budget's project and
+  // currency (app.expense_budget_lines, 1622), and the person's own expenses. Neither has a sync rule yet, so the
+  // REST downloader serves both.
   { table: "budget_lines", anyOf: [{ ...internalProject, restOnly: true }] },
   {
     table: "expenses",

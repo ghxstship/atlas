@@ -351,7 +351,8 @@ export const ROLE_ACCOUNTS = {
 
 /**
  * An engagement on the demo project for one of seed 1080's external parties, in Onboarding, with
- * the party's account as counterparty when it has one.
+ * the party's account as counterparty when it has one. A Client or Sponsor engagement carries no
+ * role, classification or pay terms (migration 1624), so those stay NULL for them.
  */
 export async function roleEngagement(input: {
   person: string;
@@ -363,12 +364,14 @@ export async function roleEngagement(input: {
   rateMinor?: number | null;
   applicationId?: string | null;
 }): Promise<EngagementFixture> {
+  const worker = input.roleType !== "Client" && input.roleType !== "Sponsor";
+  const payBasis = worker ? (input.payBasis === undefined ? "Day Rate" : input.payBasis) : null;
   const [row] = await sql<{ id: string }>(
     `insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification,
        pay_basis, arrangement, agreed_rate_minor, currency_code, start_date, end_date, application_id)
      values ($1, $2,
        (select c.id from app.counterparties c where c.org_id = $3 and c.organization_id = $4 and c.deleted_at is null limit 1),
-       $5, $6, $7, $8, 'Per Engagement', $9, 'USD', '2027-06-04', '2027-06-06', $10)
+       $5, $6, $7, $8, $11, $9, $12, '2027-06-04', '2027-06-06', $10)
      returning id`,
     [
       PROJECT,
@@ -376,11 +379,15 @@ export async function roleEngagement(input: {
       DEMO.org,
       input.account ?? null,
       input.roleType,
-      input.roleCode ?? (input.roleType === "Artist" ? "2000.50.02" : "5000.51.02"),
-      input.workerClassification ?? "INDEPENDENT_CONTRACTOR",
-      input.payBasis === undefined ? "Day Rate" : input.payBasis,
-      input.rateMinor ?? null,
+      worker
+        ? (input.roleCode ?? (input.roleType === "Artist" ? "2000.50.02" : "5000.51.02"))
+        : null,
+      worker ? (input.workerClassification ?? "INDEPENDENT_CONTRACTOR") : null,
+      payBasis,
+      worker ? (input.rateMinor ?? null) : null,
       input.applicationId ?? null,
+      payBasis === null ? null : "Per Engagement",
+      worker ? "USD" : null,
     ],
     PEOPLE.owner,
   );

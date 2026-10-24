@@ -24,10 +24,8 @@ select pg_temp.as_user('cleo');
 insert into world values ('acct_c', app.create_external_account('Coral Group', 'coral-group'));
 select pg_temp.as_user('alice');
 insert into world values ('cp_c_a', app.create_counterparty(pg_temp.id('org_a'), null, null, pg_temp.id('acct_c')));
-with e as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification, pay_basis,
-    arrangement, start_date)
-  values (pg_temp.id('prj_a'), pg_temp.id('cleo'), pg_temp.id('cp_c_a'), 'Client', '5000.51.02', 'INDEPENDENT_CONTRACTOR',
-    'Day Rate', 'Per Engagement', '2027-06-01') returning id) insert into world select 'eng_client_a', id from e;
+with e as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, start_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('cleo'), pg_temp.id('cp_c_a'), 'Client', '2027-06-01') returning id) insert into world select 'eng_client_a', id from e;
 select pg_temp.as_platform();
 
 -- Party submission ------------------------------------------------------------------------------------------------------------------------
