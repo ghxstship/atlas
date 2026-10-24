@@ -3,7 +3,7 @@
 // with XOS_INBOUND_SECRET. Mail that is not for XOS answers 200, so the provider does not retry it.
 import { z } from "zod";
 import {
-  inboundRawReferences,
+  inboundOrgs,
   inboundStore,
   parseResendEvent,
   receiveInbound,
@@ -56,7 +56,7 @@ async function fromResend(request: Request): Promise<Response> {
   const db = serviceDb();
   const outcome = await receiveResendEmail(event, {
     store: inboundStore(db),
-    references: inboundRawReferences(db),
+    orgs: inboundOrgs(db),
     rawMail: storageRawMailStore({
       url: env("SUPABASE_URL"),
       serviceKey: env("SUPABASE_SERVICE_ROLE_KEY"),

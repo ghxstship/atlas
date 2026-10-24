@@ -1,12 +1,12 @@
 /**
  * Resend's inbound mail (ADR 0033, decision 60; ADR 0040): a Svix-signed `email.received` event with metadata only.
  * The message is read from the Receiving API (full-access key), its DKIM verdict is Resend's own, its raw file goes to
- * the inbound-mail bucket (Resend keeps mail 30 days), and it is filed through receiveInbound like any parsed message.
+ * the inbound-mail bucket under its org, and it is filed through receiveInbound like any parsed message.
  */
 import { z } from "zod";
 import type { PlatformDb } from "../stores.ts";
 import type { FetchLike } from "../webhooks/dispatch.ts";
-import { localPartFor, receiveInbound, type InboundStore } from "./parse.ts";
+import { inboundMessageId, localPartFor, receiveInbound, type InboundStore } from "./parse.ts";
 
 export const RESEND_API_URL = "https://api.resend.com";
 /** The bucket raw messages are kept in (migration 1651); its file size limit is the same 50 MiB. */
@@ -140,6 +140,14 @@ const ENTITIES: Readonly<Record<string, string>> = {
   nbsp: " ",
 };
 
+/** A numeric character reference as HTML decodes it: U+FFFD for zero, a surrogate or a number past U+10FFFF. */
+function characterReference(digits: string, radix: number): string {
+  const code = parseInt(digits, radix);
+  return code > 0 && code <= 0x10ffff && (code < 0xd800 || code > 0xdfff)
+    ? String.fromCodePoint(code)
+    : "\ufffd";
+}
+
 /** Text from an HTML-only body: no scripts, styles or quoted blockquotes, block ends as line breaks, entities decoded. */
 export function htmlToText(html: string): string {
   return html
@@ -149,8 +157,8 @@ export function htmlToText(html: string): string {
     .replace(/<[^>]+>/g, "")
     .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (entity, code: string) => {
       if (code.startsWith("#x") || code.startsWith("#X"))
-        return String.fromCodePoint(parseInt(code.slice(2), 16));
-      if (code.startsWith("#")) return String.fromCodePoint(parseInt(code.slice(1), 10));
+        return characterReference(code.slice(2), 16);
+      if (code.startsWith("#")) return characterReference(code.slice(1), 10);
       return ENTITIES[code.toLowerCase()] ?? entity;
     })
     .replace(/\u00a0/g, " ")
@@ -193,17 +201,21 @@ export function storageRawMailStore(options: {
   };
 }
 
-/** Whether a message already records a raw object: a redelivery of mail the database took. */
-export interface InboundRawReferences {
-  referenced(objectName: string): Promise<boolean>;
+/** The org mail to a local part goes to (app.inbound_email_org); whether it holds a message naming a raw file. */
+export interface InboundOrgs {
+  orgFor(localPart: string): Promise<string | null>;
+  referenced(orgId: string, messageId: string, objectName: string): Promise<boolean>;
 }
 
-export function inboundRawReferences(db: PlatformDb): InboundRawReferences {
+export function inboundOrgs(db: PlatformDb): InboundOrgs {
   return {
-    async referenced(objectName) {
-      return (
-        (await db.selectOne("inbound_messages", "id", { raw_object_path: objectName })) !== null
-      );
+    async orgFor(localPart) {
+      const org = await db.rpc("inbound_email_org", { p_local_part: localPart });
+      return typeof org === "string" ? org : null;
+    },
+    async referenced(orgId, messageId, objectName) {
+      const match = { org_id: orgId, message_id_header: messageId, raw_object_path: objectName };
+      return (await db.selectOne("inbound_messages", "id", match)) !== null;
     },
   };
 }
@@ -211,7 +223,7 @@ export function inboundRawReferences(db: PlatformDb): InboundRawReferences {
 export interface ResendInboundDeps {
   readonly store: InboundStore;
   readonly rawMail: RawMailStore;
-  readonly references: InboundRawReferences;
+  readonly orgs: InboundOrgs;
   /** A full-access Resend API key. */
   readonly apiKey: string;
   readonly inboundDomain: string;
@@ -219,7 +231,10 @@ export interface ResendInboundDeps {
 }
 
 export type ResendInboundOutcome =
-  | { readonly status: "ignored"; readonly reason: "event-type" | "not-for-inbound-domain" }
+  | {
+      readonly status: "ignored";
+      readonly reason: "event-type" | "not-for-inbound-domain" | "no-inbox";
+    }
   | {
       readonly status: "received";
       readonly inboundMessageId: string | null;
@@ -257,10 +272,9 @@ async function downloadRaw(url: string, send: FetchLike): Promise<Uint8Array<Arr
 }
 
 /**
- * Files one `email.received` event; mail for no address on the inbound domain is ignored before any call to Resend.
- * Recipients come from To, Cc, Bcc and forwarded-for; DKIM passes only on Resend's `pass`. The raw file, recorded as
- * `resend/<id>.eml` (`resend:<id>` over 50 MiB), is stored only for mail the database took, now or on an earlier
- * delivery, so spam to an address with no inbox leaves nothing in storage.
+ * Files one `email.received` event. Mail with no inbox or valid reply address on the inbound domain is ignored before
+ * any call to Resend. DKIM passes only on Resend's `pass`. The raw file, `<org id>/resend/<id>.eml` (`resend:<id>`
+ * over 50 MiB), is stored only for mail the database took, now or on an earlier delivery.
  */
 export async function receiveResendEmail(
   event: ResendReceivedEvent,
@@ -274,19 +288,22 @@ export async function receiveResendEmail(
     ...event.data.bcc,
     ...event.data.received_for,
   ];
-  if (localPartFor(listed, deps.inboundDomain) === null) {
-    return { status: "ignored", reason: "not-for-inbound-domain" };
-  }
+  const localPart = localPartFor(listed, deps.inboundDomain);
+  if (localPart === null) return { status: "ignored", reason: "not-for-inbound-domain" };
+  const orgId = await deps.orgs.orgFor(localPart);
+  if (orgId === null) return { status: "ignored", reason: "no-inbox" };
 
   const email = await fetchReceivedEmail(event.data.email_id, deps.apiKey, send);
   const raw = email.raw ? await downloadRaw(email.raw.download_url, send) : null;
-  const rawObjectPath = raw === null ? `resend:${email.id}` : `resend/${email.id}.eml`;
-
+  const rawObjectPath = raw === null ? `resend:${email.id}` : `${orgId}/resend/${email.id}.eml`;
+  const messageId = await inboundMessageId(
+    email.message_id || event.data.message_id || `<${email.id}@resend>`,
+  );
+  // The event's recipients first: the local part the org was found for.
   const recipients = [
-    ...new Set([...email.to, ...email.cc, ...email.bcc, ...email.received_for, ...listed]),
+    ...new Set([...listed, ...email.to, ...email.cc, ...email.bcc, ...email.received_for]),
   ];
-  const messageId = email.message_id || event.data.message_id || `<${email.id}@resend>`;
-  const inboundMessageId = await receiveInbound(
+  const filed = await receiveInbound(
     deps.store,
     {
       to: recipients,
@@ -301,9 +318,9 @@ export async function receiveResendEmail(
   );
   if (
     raw !== null &&
-    (inboundMessageId !== null || (await deps.references.referenced(rawObjectPath)))
+    (filed !== null || (await deps.orgs.referenced(orgId, messageId, rawObjectPath)))
   ) {
     await deps.rawMail.put(rawObjectPath, raw);
   }
-  return { status: "received", inboundMessageId, rawObjectPath };
+  return { status: "received", inboundMessageId: filed, rawObjectPath };
 }

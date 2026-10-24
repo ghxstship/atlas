@@ -34,7 +34,7 @@ function localPartFor(recipients, inboundDomain) {
   for (const recipient of recipients) {
     const address = (/<([^>]+)>/.exec(recipient)?.[1] ?? recipient).trim().toLowerCase();
     const at = address.lastIndexOf("@");
-    if (at > 0 && address.slice(at + 1) === domain) return address.slice(0, at);
+    if (at > 0 && address.slice(at + 1) === domain) return postgresText(address.slice(0, at));
   }
   return null;
 }
@@ -44,24 +44,38 @@ var MAX_INBOUND_BODY_CHARS = 1e5;
 function clip(text, max) {
   return text.length <= max ? text : Array.from(text).slice(0, max).join("");
 }
+var UNPAIRED_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+/** Without NUL (text refuses it), and with U+FFFD for an unpaired surrogate (JSON refuses it). */
+function postgresText(text) {
+  return text.replaceAll("\0", "").replace(UNPAIRED_SURROGATE, "�");
+}
+/** The Message-ID as sent, or past 998 bytes (more than the per-org index holds) a stand-in from its SHA-256. */
+async function inboundMessageId(messageId) {
+  const id = postgresText(messageId);
+  const bytes = new TextEncoder().encode(id);
+  if (bytes.byteLength <= 998) return id;
+  const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
+  return `<${Array.from(digest, (b) => b.toString(16).padStart(2, "0")).join("")}.sha256@message-id.invalid>`;
+}
 /**
- * Files one inbound message. Returns the inbound message id, or null when it was not for XOS or was ignored. A sender
- * address no mailbox can have (under 3 or over 320 characters) is ignored, and a body over 100,000 characters is cut,
- * so the row always fits and a provider never retries a message the database would refuse.
+ * Files one inbound message: its id, or null when it was not for XOS or was ignored. Each field is made to fit the row,
+ * so a provider never retries a message the database would refuse.
  */
 async function receiveInbound(store, message, inboundDomain) {
   const localPart = localPartFor(message.to, inboundDomain);
   if (localPart === null) return null;
-  const from = (/<([^>]+)>/.exec(message.from)?.[1] ?? message.from).trim().toLowerCase();
-  if (from.length < 3 || from.length > 320) return null;
+  const sender = postgresText(message.from);
+  const from = (/<([^>]+)>/.exec(sender)?.[1] ?? sender).trim().toLowerCase();
+  const fromLength = Array.from(from).length;
+  if (fromLength < 3 || fromLength > 320) return null;
   return store.receive({
     localPart,
     from,
-    subject: message.subject,
-    messageId: message.messageId,
+    subject: postgresText(message.subject),
+    messageId: await inboundMessageId(message.messageId),
     dkimVerified: message.dkimPass,
-    bodyText: clip(stripQuotedText(message.text), MAX_INBOUND_BODY_CHARS),
-    rawObjectPath: message.rawObjectPath,
+    bodyText: clip(stripQuotedText(postgresText(message.text)), MAX_INBOUND_BODY_CHARS),
+    rawObjectPath: postgresText(message.rawObjectPath),
   });
 }
 //#endregion
@@ -69,7 +83,7 @@ async function receiveInbound(store, message, inboundDomain) {
 /**
  * Resend's inbound mail (ADR 0033, decision 60; ADR 0040): a Svix-signed `email.received` event with metadata only.
  * The message is read from the Receiving API (full-access key), its DKIM verdict is Resend's own, its raw file goes to
- * the inbound-mail bucket (Resend keeps mail 30 days), and it is filed through receiveInbound like any parsed message.
+ * the inbound-mail bucket under its org, and it is filed through receiveInbound like any parsed message.
  */
 var RESEND_API_URL = "https://api.resend.com";
 /** The bucket raw messages are kept in (migration 1651); its file size limit is the same 50 MiB. */
@@ -184,6 +198,13 @@ var ENTITIES = {
   apos: "'",
   nbsp: " ",
 };
+/** A numeric character reference as HTML decodes it: U+FFFD for zero, a surrogate or a number past U+10FFFF. */
+function characterReference(digits, radix) {
+  const code = parseInt(digits, radix);
+  return code > 0 && code <= 1114111 && (code < 55296 || code > 57343)
+    ? String.fromCodePoint(code)
+    : "�";
+}
 /** Text from an HTML-only body: no scripts, styles or quoted blockquotes, block ends as line breaks, entities decoded. */
 function htmlToText(html) {
   return html
@@ -193,8 +214,8 @@ function htmlToText(html) {
     .replace(/<[^>]+>/g, "")
     .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (entity, code) => {
       if (code.startsWith("#x") || code.startsWith("#X"))
-        return String.fromCodePoint(parseInt(code.slice(2), 16));
-      if (code.startsWith("#")) return String.fromCodePoint(parseInt(code.slice(1), 10));
+        return characterReference(code.slice(2), 16);
+      if (code.startsWith("#")) return characterReference(code.slice(1), 10);
       return ENTITIES[code.toLowerCase()] ?? entity;
     })
     .replace(/\u00a0/g, " ")
@@ -226,12 +247,19 @@ function storageRawMailStore(options) {
     },
   };
 }
-function inboundRawReferences(db) {
+function inboundOrgs(db) {
   return {
-    async referenced(objectName) {
-      return (
-        (await db.selectOne("inbound_messages", "id", { raw_object_path: objectName })) !== null
-      );
+    async orgFor(localPart) {
+      const org = await db.rpc("inbound_email_org", { p_local_part: localPart });
+      return typeof org === "string" ? org : null;
+    },
+    async referenced(orgId, messageId, objectName) {
+      const match = {
+        org_id: orgId,
+        message_id_header: messageId,
+        raw_object_path: objectName,
+      };
+      return (await db.selectOne("inbound_messages", "id", match)) !== null;
     },
   };
 }
@@ -261,10 +289,9 @@ async function downloadRaw(url, send) {
   return bytes.byteLength > 52428800 ? null : bytes;
 }
 /**
- * Files one `email.received` event; mail for no address on the inbound domain is ignored before any call to Resend.
- * Recipients come from To, Cc, Bcc and forwarded-for; DKIM passes only on Resend's `pass`. The raw file, recorded as
- * `resend/<id>.eml` (`resend:<id>` over 50 MiB), is stored only for mail the database took, now or on an earlier
- * delivery, so spam to an address with no inbox leaves nothing in storage.
+ * Files one `email.received` event. Mail with no inbox or valid reply address on the inbound domain is ignored before
+ * any call to Resend. DKIM passes only on Resend's `pass`. The raw file, `<org id>/resend/<id>.eml` (`resend:<id>`
+ * over 50 MiB), is stored only for mail the database took, now or on an earlier delivery.
  */
 async function receiveResendEmail(event, deps) {
   if (event.type !== "email.received")
@@ -279,25 +306,34 @@ async function receiveResendEmail(event, deps) {
     ...event.data.bcc,
     ...event.data.received_for,
   ];
-  if (localPartFor(listed, deps.inboundDomain) === null)
+  const localPart = localPartFor(listed, deps.inboundDomain);
+  if (localPart === null)
     return {
       status: "ignored",
       reason: "not-for-inbound-domain",
     };
+  const orgId = await deps.orgs.orgFor(localPart);
+  if (orgId === null)
+    return {
+      status: "ignored",
+      reason: "no-inbox",
+    };
   const email = await fetchReceivedEmail(event.data.email_id, deps.apiKey, send);
   const raw = email.raw ? await downloadRaw(email.raw.download_url, send) : null;
-  const rawObjectPath = raw === null ? `resend:${email.id}` : `resend/${email.id}.eml`;
+  const rawObjectPath = raw === null ? `resend:${email.id}` : `${orgId}/resend/${email.id}.eml`;
+  const messageId = await inboundMessageId(
+    email.message_id || event.data.message_id || `<${email.id}@resend>`,
+  );
   const recipients = [
     .../* @__PURE__ */ new Set([
+      ...listed,
       ...email.to,
       ...email.cc,
       ...email.bcc,
       ...email.received_for,
-      ...listed,
     ]),
   ];
-  const messageId = email.message_id || event.data.message_id || `<${email.id}@resend>`;
-  const inboundMessageId = await receiveInbound(
+  const filed = await receiveInbound(
     deps.store,
     {
       to: recipients,
@@ -312,18 +348,18 @@ async function receiveResendEmail(event, deps) {
   );
   if (
     raw !== null &&
-    (inboundMessageId !== null || (await deps.references.referenced(rawObjectPath)))
+    (filed !== null || (await deps.orgs.referenced(orgId, messageId, rawObjectPath)))
   )
     await deps.rawMail.put(rawObjectPath, raw);
   return {
     status: "received",
-    inboundMessageId,
+    inboundMessageId: filed,
     rawObjectPath,
   };
 }
 //#endregion
 export {
-  inboundRawReferences,
+  inboundOrgs,
   inboundStore,
   parseResendEvent,
   receiveInbound,

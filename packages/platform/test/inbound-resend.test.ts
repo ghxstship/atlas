@@ -3,11 +3,14 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   MAX_INBOUND_BODY_CHARS,
+  MAX_MESSAGE_ID_BYTES,
   MAX_RAW_MESSAGE_BYTES,
   htmlToText,
-  inboundRawReferences,
+  inboundMessageId,
+  inboundOrgs,
   inboundStore,
   parseResendEvent,
+  postgresText,
   receiveInbound,
   receiveResendEmail,
   storageRawMailStore,
@@ -30,6 +33,9 @@ const RECEIVED = JSON.parse(fixture("received-email.json").toString("utf8")) as 
 const RAW = new Uint8Array(fixture("raw.eml"));
 const EMAIL_ID = "4ef9a417-02e9-4d39-ad75-9611e0fcc33c";
 const DOMAIN = "inbound.ghxstship.tech";
+const ORG = "0192f0c4-7a10-7c3e-9d41-5b2e8f6a1c07";
+const RAW_PATH = `${ORG}/resend/${EMAIL_ID}.eml`;
+const MESSAGE_ID = "<plot-v4.20261023@bayside-audio.test>";
 
 // A signing secret in Resend's format, `whsec_` and base64 key bytes, made here rather than stored.
 const KEY = Buffer.from("xos inbound-email test signing key");
@@ -71,14 +77,24 @@ function fakeResend(
 }
 
 /**
- * The database answers receive_inbound_email with `filed` (null when it took nothing: no inbox, or a redelivery) and
- * finds a message by raw object name only in `existing`.
+ * The database answers inbound_email_org with `org` (null for no inbox and no valid reply address),
+ * receive_inbound_email with `filed` (null when it took nothing, such as a redelivery), and finds a message only when
+ * its org, Message-ID and raw object name match one in `existing`.
  */
-function fakeStores(filed: string | null = "msg-1", existing: readonly string[] = []) {
+function fakeStores(
+  filed: string | null = "msg-1",
+  existing: readonly string[] = [],
+  org: string | null = ORG,
+) {
+  const orgLookups: Readonly<Record<string, unknown>>[] = [];
   const received: Readonly<Record<string, unknown>>[] = [];
   const looked: Readonly<Record<string, string>>[] = [];
   const db: PlatformDb = {
     async rpc(fn, args) {
+      if (fn === "inbound_email_org") {
+        orgLookups.push(args);
+        return org;
+      }
       expect(fn).toBe("receive_inbound_email");
       received.push(args);
       return filed;
@@ -86,7 +102,13 @@ function fakeStores(filed: string | null = "msg-1", existing: readonly string[] 
     async selectOne(table, columns, match) {
       expect([table, columns]).toEqual(["inbound_messages", "id"]);
       looked.push(match);
-      return existing.includes(match["raw_object_path"] ?? "") ? { id: "msg-0" } : null;
+      const held = existing.some(
+        (path) =>
+          match["org_id"] === ORG &&
+          match["message_id_header"] === MESSAGE_ID &&
+          match["raw_object_path"] === path,
+      );
+      return held ? { id: "msg-0" } : null;
     },
   };
   const stored: { name: string; bytes: Uint8Array }[] = [];
@@ -97,7 +119,8 @@ function fakeStores(filed: string | null = "msg-1", existing: readonly string[] 
   };
   return {
     store: inboundStore(db),
-    references: inboundRawReferences(db),
+    orgs: inboundOrgs(db),
+    orgLookups,
     received,
     looked,
     rawMail,
@@ -192,6 +215,12 @@ describe("Resend events and bodies", () => {
     expect(parseResendEvent(JSON.stringify({ type: "email.received", data: {} }))).toBeNull();
   });
 
+  it("decodes a character reference Postgres would refuse, or no character at all, as U+FFFD, as HTML does", () => {
+    expect(htmlToText("<p>&#0;&#99999999;&#x110000;&#xD800;&#xdfff;&#65;&#x1F3A4;</p>")).toBe(
+      "\ufffd\ufffd\ufffd\ufffd\ufffdA\u{1F3A4}",
+    );
+  });
+
   it("turns an HTML body into text without quoted blocks, scripts or tags", () => {
     expect(
       htmlToText(
@@ -210,7 +239,7 @@ describe("receiveResendEmail", () => {
     const outcome = await receiveResendEmail(event(), {
       store: stores.store,
       rawMail: stores.rawMail,
-      references: stores.references,
+      orgs: stores.orgs,
       apiKey: "re_test_receiving",
       inboundDomain: DOMAIN,
       fetch: resend.send,
@@ -218,8 +247,9 @@ describe("receiveResendEmail", () => {
     expect(outcome).toEqual({
       status: "received",
       inboundMessageId: "msg-1",
-      rawObjectPath: `resend/${EMAIL_ID}.eml`,
+      rawObjectPath: RAW_PATH,
     });
+    expect(stores.orgLookups).toEqual([{ p_local_part: "nwl-3f9a1c0d7e" }]);
     expect(resend.calls[0]?.url).toBe(`https://api.resend.com/emails/receiving/${EMAIL_ID}`);
     expect(resend.calls[0]?.init.headers).toMatchObject({
       Authorization: "Bearer re_test_receiving",
@@ -229,16 +259,16 @@ describe("receiveResendEmail", () => {
     );
     expect(stores.looked).toEqual([]);
     expect(stores.stored).toHaveLength(1);
-    expect(stores.stored[0]?.name).toBe(`resend/${EMAIL_ID}.eml`);
+    expect(stores.stored[0]?.name).toBe(RAW_PATH);
     expect(Buffer.from(stores.stored[0]?.bytes ?? []).equals(Buffer.from(RAW))).toBe(true);
     expect(stores.received[0]).toEqual({
       p_local_part: "nwl-3f9a1c0d7e",
       p_from_address: "rigging@bayside-audio.test",
       p_subject_line: "Rigging plot v4",
-      p_message_id_header: "<plot-v4.20261023@bayside-audio.test>",
+      p_message_id_header: MESSAGE_ID,
       p_dkim_verified: true,
       p_body_text: "Updated plot attached.\nLoad in moves to 07:00.",
-      p_raw_object_path: `resend/${EMAIL_ID}.eml`,
+      p_raw_object_path: RAW_PATH,
     });
   });
 
@@ -270,7 +300,24 @@ describe("receiveResendEmail", () => {
     );
     expect(outcome).toEqual({ status: "ignored", reason: "not-for-inbound-domain" });
     expect(resend.calls).toHaveLength(0);
+    expect(stores.orgLookups).toHaveLength(0);
     expect(stores.received).toHaveLength(0);
+  });
+
+  it("ignores mail to an address with no inbox, or a forged reply address, before any call to Resend", async () => {
+    const resend = fakeResend();
+    const stores = fakeStores("msg-1", [], null);
+    const outcome = await receiveResendEmail(event(), {
+      ...stores,
+      apiKey: "re_test_receiving",
+      inboundDomain: DOMAIN,
+      fetch: resend.send,
+    });
+    expect(outcome).toEqual({ status: "ignored", reason: "no-inbox" });
+    expect(stores.orgLookups).toEqual([{ p_local_part: "nwl-3f9a1c0d7e" }]);
+    expect(resend.calls).toHaveLength(0);
+    expect(stores.received).toHaveLength(0);
+    expect(stores.stored).toHaveLength(0);
   });
 
   it("ignores other events", async () => {
@@ -331,12 +378,12 @@ describe("receiveResendEmail", () => {
     );
     expect(stores.received[0]).toMatchObject({
       p_body_text: "Updated plot attached.\nLoad in moves to 07:00.",
-      p_message_id_header: "<plot-v4.20261023@bayside-audio.test>",
+      p_message_id_header: MESSAGE_ID,
     });
     expect(stores2.received[0]?.["p_message_id_header"]).toBe(`<${EMAIL_ID}@resend>`);
   });
 
-  it("stores nothing for mail the database did not take, such as spam to an address with no inbox", async () => {
+  it("stores nothing for mail the database did not take, looking for an earlier delivery by org and Message-ID", async () => {
     const stores = fakeStores(null);
     const outcome = await receiveResendEmail(event(), {
       ...stores,
@@ -347,21 +394,51 @@ describe("receiveResendEmail", () => {
     expect(outcome).toEqual({
       status: "received",
       inboundMessageId: null,
-      rawObjectPath: `resend/${EMAIL_ID}.eml`,
+      rawObjectPath: RAW_PATH,
     });
-    expect(stores.looked).toEqual([{ raw_object_path: `resend/${EMAIL_ID}.eml` }]);
+    expect(stores.looked).toEqual([
+      { org_id: ORG, message_id_header: MESSAGE_ID, raw_object_path: RAW_PATH },
+    ]);
     expect(stores.stored).toHaveLength(0);
   });
 
   it("stores the raw file again on a redelivery the database already holds, after an upload failed", async () => {
-    const stores = fakeStores(null, [`resend/${EMAIL_ID}.eml`]);
+    const stores = fakeStores(null, [RAW_PATH]);
     await receiveResendEmail(event(), {
       ...stores,
       apiKey: "re_test_receiving",
       inboundDomain: DOMAIN,
       fetch: fakeResend().send,
     });
-    expect(stores.stored.map((s) => s.name)).toEqual([`resend/${EMAIL_ID}.eml`]);
+    expect(stores.stored.map((s) => s.name)).toEqual([RAW_PATH]);
+  });
+
+  it("files an HTML-only message whose references or text Postgres would refuse, instead of failing and being retried", async () => {
+    const stores = fakeStores();
+    await receiveResendEmail(event(), {
+      ...stores,
+      apiKey: "re_test_receiving",
+      inboundDomain: DOMAIN,
+      fetch: fakeResend({
+        email: { text: null, html: "<p>Plot &#99999999; v4 &#0;&#xD800; ready</p>" },
+      }).send,
+    });
+    const stores2 = fakeStores();
+    await receiveResendEmail(event(), {
+      ...stores2,
+      apiKey: "re_test_receiving",
+      inboundDomain: DOMAIN,
+      fetch: fakeResend({ email: { text: "Plot\u0000 v4 \ud800ready", subject: "Rig\u0000ging" } })
+        .send,
+    });
+    expect(stores.received[0]?.["p_body_text"]).toBe("Plot \ufffd v4 \ufffd\ufffd ready");
+    expect(stores2.received[0]).toMatchObject({
+      p_body_text: "Plot v4 \ufffdready",
+      p_subject_line: "Rigging",
+    });
+    expect(JSON.stringify([...stores.received, ...stores2.received])).not.toMatch(
+      /\\u0000|\\ud[89a-f]/i,
+    );
   });
 
   it("keeps no raw file over 50 MiB or without one, and records Resend's copy instead", async () => {
@@ -415,9 +492,9 @@ describe("storageRawMailStore", () => {
         return new Response("{}", { status: 200 });
       },
     });
-    await store.put(`resend/${EMAIL_ID}.eml`, RAW);
+    await store.put(RAW_PATH, RAW);
     expect(calls[0]?.url).toBe(
-      `https://ref.supabase.test/storage/v1/object/inbound-mail/resend/${EMAIL_ID}.eml`,
+      `https://ref.supabase.test/storage/v1/object/inbound-mail/${ORG}/resend/${EMAIL_ID}.eml`,
     );
     expect(calls[0]?.init).toMatchObject({
       method: "POST",
@@ -454,7 +531,7 @@ describe("receiveInbound bounds", () => {
         messageId: "<long@bayside-audio.test>",
         dkimPass: true,
         text,
-        rawObjectPath: "resend/long.eml",
+        rawObjectPath: `${ORG}/resend/long.eml`,
       },
       DOMAIN,
     );
@@ -471,7 +548,7 @@ describe("receiveInbound bounds", () => {
       messageId: "<x@bayside-audio.test>",
       dkimPass: true,
       text: "x",
-      rawObjectPath: "resend/x.eml",
+      rawObjectPath: `${ORG}/resend/x.eml`,
     };
     await expect(
       receiveInbound(stores.store, { ...message, from: `${"a".repeat(320)}@x.test` }, DOMAIN),
@@ -479,6 +556,49 @@ describe("receiveInbound bounds", () => {
     await expect(
       receiveInbound(stores.store, { ...message, from: "<>" }, DOMAIN),
     ).resolves.toBeNull();
+    // Two characters, though four UTF-16 code units: char_length counts two, under the minimum.
+    await expect(
+      receiveInbound(stores.store, { ...message, from: "\u{1F3A4}\u{1F3A4}" }, DOMAIN),
+    ).resolves.toBeNull();
     expect(stores.received).toHaveLength(0);
+  });
+
+  it("drops NUL and replaces unpaired surrogates in every field, which Postgres would refuse", async () => {
+    expect(postgresText("a\u0000b\ud800c\udc00d\u{1F3A4}")).toBe("ab\ufffdc\ufffdd\u{1F3A4}");
+    const stores = fakeStores();
+    await receiveInbound(
+      stores.store,
+      {
+        to: [`nwl-3f9a1c0d7e\u0000@${DOMAIN}`],
+        from: "rigging\u0000@bayside-audio.test",
+        subject: "Plot\udc00",
+        messageId: "<plot\u0000@bayside-audio.test>",
+        dkimPass: true,
+        text: "Updated\u0000 plot\ud83c",
+        rawObjectPath: `${ORG}/resend/x\u0000.eml`,
+      },
+      DOMAIN,
+    );
+    expect(stores.received[0]).toEqual({
+      p_local_part: "nwl-3f9a1c0d7e",
+      p_from_address: "rigging@bayside-audio.test",
+      p_subject_line: "Plot\ufffd",
+      p_message_id_header: "<plot@bayside-audio.test>",
+      p_dkim_verified: true,
+      p_body_text: "Updated plot\ufffd",
+      p_raw_object_path: `${ORG}/resend/x.eml`,
+    });
+  });
+
+  it("keeps a Message-ID up to 998 bytes and stands in a digest for a longer one, the same on a redelivery", async () => {
+    const fits = `<${"m".repeat(MAX_MESSAGE_ID_BYTES - 17)}@northwind.test>`;
+    expect(new TextEncoder().encode(fits).byteLength).toBe(MAX_MESSAGE_ID_BYTES);
+    await expect(inboundMessageId(fits)).resolves.toBe(fits);
+    const long = `<${"\u00e9".repeat(MAX_MESSAGE_ID_BYTES)}@northwind.test>`;
+    const standIn = await inboundMessageId(long);
+    expect(standIn).toMatch(/^<[0-9a-f]{64}\.sha256@message-id\.invalid>$/);
+    await expect(inboundMessageId(long)).resolves.toBe(standIn);
+    await expect(inboundMessageId(`${long} `)).resolves.not.toBe(standIn);
+    await expect(inboundMessageId(standIn)).resolves.toBe(standIn);
   });
 });
