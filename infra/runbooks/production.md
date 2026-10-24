@@ -217,6 +217,11 @@ supabase db push
   `main` never migrates it. `supabase db push` asks for the database password, which the owner types
   (decision 75).
 - Never load `supabase/seeds` into production; they are the demo tenant.
+- Then put back any Realtime channel rule the project lacks:
+  `supabase db query --linked "select private.ensure_realtime_channel_policies();"`. It answers the names of the
+  rules it created, usually none (`{}`). Realtime creates `realtime.messages` itself, the first time it starts and
+  in some upgrades, and the co-editing rooms refuse every join until their rules exist (ADR 0044, decision 6). The
+  `xos_ensure_realtime_channel_policies` job does the same every minute.
 - Then run `infra/drills/key-tables.sql` read-only in the production SQL editor and keep the output with the release.
 - Database advisors: Dashboard, Advisors. Zero errors (gate 11).
 
