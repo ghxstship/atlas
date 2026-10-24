@@ -47254,6 +47254,7 @@ export type Database = {
         Row: {
           account_id: string | null;
           certificate_number: string | null;
+          certificate_number_last4: string | null;
           certifying_body: string;
           created_at: string;
           created_by: string | null;
@@ -47271,6 +47272,7 @@ export type Database = {
         Insert: {
           account_id?: string | null;
           certificate_number?: string | null;
+          certificate_number_last4?: string | null;
           certifying_body: string;
           created_at?: string;
           created_by?: string | null;
@@ -47287,6 +47289,7 @@ export type Database = {
         Update: {
           account_id?: string | null;
           certificate_number?: string | null;
+          certificate_number_last4?: string | null;
           certifying_body?: string;
           created_at?: string;
           created_by?: string | null;
@@ -47340,6 +47343,7 @@ export type Database = {
           id: string;
           org_id: string | null;
           person_id: string | null;
+          reason: string | null;
           request_id: string | null;
           supplier_diversity_certification_id: string;
         };
@@ -47352,6 +47356,7 @@ export type Database = {
           id?: string;
           org_id?: string | null;
           person_id?: string | null;
+          reason?: string | null;
           request_id?: string | null;
           supplier_diversity_certification_id: string;
         };
@@ -47363,6 +47368,7 @@ export type Database = {
           id?: string;
           org_id?: string | null;
           person_id?: string | null;
+          reason?: string | null;
           request_id?: string | null;
           supplier_diversity_certification_id?: string;
         };
@@ -61678,6 +61684,10 @@ export type Database = {
         Args: { p_engagement_id: string; p_reason: string };
         Returns: string;
       };
+      reveal_shared_supplier_diversity_number: {
+        Args: { p_reason: string; p_share_id: string };
+        Returns: string;
+      };
       revise_offer: {
         Args: {
           p_amount_minor: number;
@@ -62007,6 +62017,10 @@ export type Database = {
         Returns: string;
       };
       set_subprocessor_notice_subscription: { Args: { p_subscribed: boolean }; Returns: boolean };
+      set_supplier_diversity_certificate_number: {
+        Args: { p_certificate_number: string; p_certification_id: string };
+        Returns: undefined;
+      };
       set_tax_form_address: {
         Args: {
           p_legal_name: string;
@@ -62021,6 +62035,17 @@ export type Database = {
       set_thread_subscription: {
         Args: { p_comment_thread_id: string; p_subscribed: boolean };
         Returns: undefined;
+      };
+      set_vendor_bank_account: {
+        Args: {
+          p_account_holder: string;
+          p_account_number: string;
+          p_bank_name: string;
+          p_routing_number?: string;
+          p_vendor_bank_account_id?: string;
+          p_vendor_id: string;
+        };
+        Returns: string;
       };
       set_venue_location: {
         Args: { p_latitude: number; p_longitude: number; p_venue_id: string };
@@ -62109,8 +62134,7 @@ export type Database = {
         Returns: {
           account_id: string;
           account_name: string;
-          certificate_number: string;
-          certificate_number_masked: boolean;
+          certificate_number_last4: string;
           certification_id: string;
           certifying_body: string;
           diversity_kind: Database["app"]["Enums"]["supplier_diversity_kind"];
