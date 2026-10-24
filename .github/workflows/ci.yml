@@ -445,6 +445,8 @@ jobs:
       - name: Write the app environment from the stack
         run: |
           ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          # Without a key the app exits at boot (lib/env.ts) and the failure shows only later.
+          test -n "$ANON" || { echo "::error title=Supabase status::no anon key; is the stack healthy?"; exit 1; }
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
       - run: pnpm turbo run build --filter=@xos/${{ matrix.app }}^...
@@ -454,6 +456,12 @@ jobs:
           CLOCK="--require $GITHUB_WORKSPACE/packages/testing/clock/node-clock.cjs"
           (cd apps/${{ matrix.app }} && NODE_OPTIONS="$CLOCK" nohup pnpm exec next dev --port "$PORT" > /tmp/app.log 2>&1 &)
           for i in $(seq 90); do curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in" && break; sleep 2; done
+          # A server that never answers fails here, its last lines in the annotation; in the container,
+          # Playwright would try to start one itself and exit 127.
+          if ! curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in"; then
+            echo "::error title=next dev did not answer::$(tail -n 20 /tmp/app.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+            exit 1
+          fi
           echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
       - name: Core screens in the pinned Playwright image
         run: packages/testing/ci/visual-in-container.sh ${{ matrix.app }}
