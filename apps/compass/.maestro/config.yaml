@@ -43,5 +43,9 @@ executionOrder:
     - settings-identity-account
     - settings-identity-security
     - settings-identity-organizations
+    - settings-payout-and-tax
+    - settings-calendar-feeds
+    - settings-connected-apps
+    - settings-developer
     - account-delete
     - settings-sunlight-sign-out

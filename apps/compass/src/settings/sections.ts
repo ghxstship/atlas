@@ -17,6 +17,10 @@ export const NATIVE_SECTIONS: ReadonlySet<string> = new Set([
   "settings.account",
   "settings.security",
   "settings.organizations",
+  "settings.payout-and-tax",
+  "settings.calendar-feeds",
+  "settings.connected-apps",
+  "settings.developer",
 ]);
 
 /** How the list groups the sections: who you are, how Compass behaves for you, and your work. */

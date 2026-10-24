@@ -115,5 +115,35 @@
     "leaveAccountBody": "You lose access to {org}'s company account at once. Your own profile and documents stay yours.",
     "accountsNone": "You don't belong to a company account.",
     "createInGateway": "Opens Gateway, Settings, Organizations."
+  },
+  "payoutTax": {
+    "noPayouts": "No payout destinations yet. Each organization sets up where it pays you with its payment provider, usually during onboarding.",
+    "signed": "Signed {date}",
+    "address": {
+      "needed": "Mailing address needed",
+      "complete": "Mailing address on file"
+    },
+    "addAddress": "Add Address",
+    "editAddress": "Edit Address",
+    "addressHelp": "Organizations need the name and mailing address on your W-9 for the 1099-NEC they file at year end. Offline, it saves on this phone and uploads when you're back online.",
+    "addressIncomplete": "Give the street address, city and postal code as they appear on the form.",
+    "giveTaxForm": "Give a Tax Form",
+    "giveTaxFormReason": "Opens Gateway. A tax form goes to the organization that asks for it, from that engagement's onboarding, and Compass has no engagement screen."
+  },
+  "calendarFeeds": {
+    "share": "Copy or Share Link",
+    "linkHelp": "Copy or share the link now. It's shown only once; after you leave this screen you can only get a new one.",
+    "rotated": "New link issued. The old link stopped working.",
+    "revoked": "Feed revoked. Its link stopped working."
+  },
+  "connections": {
+    "gone": "That's no longer there. The list is up to date.",
+    "disconnected": "{app} can no longer act for you."
+  },
+  "developer": {
+    "description": "Tokens let your own scripts call the XOS API as you, each in one organization and limited to the areas you chose. Revoke one as soon as you stop using it or think someone else has it.",
+    "create": "Create a Token in Gateway",
+    "createReason": "Opens Gateway. A token is shown only once and belongs on the computer that runs your script, so create it there. Creating one also asks for your second factor.",
+    "revoked": "{name} is revoked. Scripts using it stop working at once."
   }
 }

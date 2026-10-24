@@ -58,7 +58,7 @@ describe("Compass settings sections (A110)", () => {
     expect(settingsSections("crew", urls, { personalTokens: false })).toHaveLength(13);
   });
 
-  it("opens the identity group natively and every other section in Gateway", () => {
+  it("opens the identity group and A112's work sections natively, and the rest in Gateway", () => {
     const sections = settingsSections("field", urls, { personalTokens: true });
     const native = sections.filter((s) => s.target.kind === "native").map((s) => s.id);
     expect(native).toEqual([
@@ -67,6 +67,10 @@ describe("Compass settings sections (A110)", () => {
       "settings.account",
       "settings.security",
       "settings.organizations",
+      "settings.payout-and-tax",
+      "settings.calendar-feeds",
+      "settings.connected-apps",
+      "settings.developer",
     ]);
     expect(new Set(native)).toEqual(NATIVE_SECTIONS);
     expect(sections.find((s) => s.id === "settings.profile")?.target).toEqual({
@@ -78,8 +82,8 @@ describe("Compass settings sections (A110)", () => {
       url: "https://gateway.example.test/settings/notifications",
     });
     expect(sections.find((s) => s.id === "settings.developer")?.target).toEqual({
-      kind: "gateway",
-      url: "https://gateway.example.test/settings/developer",
+      kind: "native",
+      route: "/settings/developer",
     });
   });
 
