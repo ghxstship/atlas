@@ -254,12 +254,17 @@ type Inflate = (input: Uint8Array, maxOutputLength: number) => Uint8Array;
 
 /** A running allowance for inflated bytes of one kind, read from one file. */
 class Budget {
-  constructor(
-    private readonly label: string,
-    private left: number,
-    private readonly limits: PdfWatermarkLimits,
-    private readonly inflate: Inflate,
-  ) {}
+  private readonly label: string;
+  private left: number;
+  private readonly limits: PdfWatermarkLimits;
+  private readonly inflate: Inflate;
+
+  constructor(label: string, left: number, limits: PdfWatermarkLimits, inflate: Inflate) {
+    this.label = label;
+    this.left = left;
+    this.limits = limits;
+    this.inflate = inflate;
+  }
 
   get otherFilterBytes(): number {
     return this.limits.otherFilterBytes;
