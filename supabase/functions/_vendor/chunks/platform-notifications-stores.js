@@ -416,6 +416,54 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "content_report.filed",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content_report.filed.subject",
+      body: "kinds.content_report.filed.body",
+    },
+  },
+  {
+    kind: "content_report.overdue",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content_report.overdue.subject",
+      body: "kinds.content_report.overdue.body",
+    },
+  },
+  {
+    kind: "content_report.decided",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content_report.decided.subject",
+      body: "kinds.content_report.decided.body",
+    },
+  },
+  {
+    kind: "content.removed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content.removed.subject",
+      body: "kinds.content.removed.body",
+    },
+  },
+  {
     kind: "report.delivered",
     category: "reports",
     emailTemplate: "report_delivery",
@@ -677,7 +725,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1569_notification_kind_seed.sql"
+"supabase/migrations/1639_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
