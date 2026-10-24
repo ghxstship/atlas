@@ -10,6 +10,13 @@ import { billingStatus } from "@/lib/billing/stripe";
 import { ADDONS, OFFERS, PLANS } from "@/lib/plans.generated";
 import { getTranslate } from "@/lib/shell/translate";
 
+/** Refusals that keep an org from Checkout whatever plan it chooses, shown instead of the plan buttons. */
+const STANDING_REFUSALS = [
+  "billing_through_partner",
+  "sandbox_not_billable",
+  "org_read_only",
+] as const;
+
 /**
  * Billing and Plan (Section 16, Section 4.5.6 item 36; Owner only). Shows the current plan and its seat
  * usage, the plans of packages/schemas/plans.yaml with their prices, seats, extra-seat prices, limits
@@ -19,8 +26,11 @@ import { getTranslate } from "@/lib/shell/translate";
  * owner sets the Stripe key. An org on a trial or Access chooses a self-serve plan and term and pays in
  * Stripe Checkout; an org that pays through Stripe changes its plan, card or cancellation in the Stripe
  * customer portal. While a paid checkout waits for its subscription to sync, the page says Stripe is confirming
- * and offers no second Checkout. Until the key is set the page says billing is not open yet, and the buttons
- * answer the same. Buying extra seats and packs stays disabled; Enterprise is sold by quote and never checks out.
+ * and offers no second Checkout. Checkout is offered only where the database would open it (migration 1641): a
+ * client org its partner bills, a sandbox and a read-only org see why instead. Coming back from a Checkout that
+ * carried the trial over, the page says the card is saved, since nothing is charged before the trial ends. Until the
+ * key is set the page says billing is not open yet, and the buttons answer the same. Buying extra seats and packs
+ * stays disabled; Enterprise is sold by quote and never checks out.
  */
 export default async function BillingSettingsPage({
   params,
@@ -50,12 +60,20 @@ export default async function BillingSettingsPage({
   const stripe: BillingAccount | null = account?.ok ? account.data : null;
   const paid = stripe?.paidThroughStripe === true;
   const awaiting = stripe?.awaitingSubscription === true;
-  const buying = billing.open && !paid && !awaiting;
+  // The rule that refuses every plan's Checkout for the org now (1641); paying and awaiting are among its rules.
+  const refusal = stripe?.checkoutRefusal ?? null;
+  const buying = billing.open && stripe !== null && refusal === null;
+  const blocked = billing.open && refusal !== null && !paid && !awaiting;
+  const standing = STANDING_REFUSALS.find((r) => r === refusal);
   const current = subscription.data.planCode;
   const trialing = subscription.data.state === "trialing";
   const term = search["term"] === "annual" ? "Annual" : "Monthly";
   const checkout =
-    search["checkout"] === "done" ? "done" : search["checkout"] === "canceled" ? "canceled" : null;
+    search["checkout"] === "done" ||
+    search["checkout"] === "trial" ||
+    search["checkout"] === "canceled"
+      ? search["checkout"]
+      : null;
   const usage = seats.data;
   const org = ctx.org.slug;
   const page = `/${org}/settings/billing-and-plan`;
@@ -74,15 +92,28 @@ export default async function BillingSettingsPage({
       <SectionHeader node="settings.billing-and-plan" />
       <BillingLifecycleNotice
         ctx={ctx}
-        billing={{ open: billing.open, portal: stripe?.hasStripeCustomer === true, awaiting }}
+        billing={{
+          open: billing.open,
+          portal: stripe?.hasStripeCustomer === true,
+          checkout: buying,
+        }}
       />
       <p className="m-0 text-text-14">{t("current", { org: ctx.org.name, plan: name(current) })}</p>
       {billing.open ? null : <InlineAlert tone="info">{t("notAvailable")}</InlineAlert>}
+      {blocked ? (
+        <InlineAlert tone="info">
+          {standing ? t(`refusals.${standing}`) : t("refusals.other")}
+        </InlineAlert>
+      ) : null}
       {checkout === "done" && paid ? (
         <InlineAlert tone="success">
           {t("checkoutDone", { org: ctx.org.name, plan: name(current) })}
         </InlineAlert>
-      ) : checkout === "done" || awaiting ? (
+      ) : checkout === "trial" && paid ? (
+        <InlineAlert tone="success">
+          {t("checkoutTrialDone", { org: ctx.org.name, plan: name(current) })}
+        </InlineAlert>
+      ) : checkout === "done" || checkout === "trial" || awaiting ? (
         <InlineAlert tone="success">{t("checkoutPending")}</InlineAlert>
       ) : checkout === "canceled" ? (
         <InlineAlert tone="info">{t("checkoutCanceled")}</InlineAlert>

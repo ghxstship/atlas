@@ -1163,7 +1163,8 @@
         "selected": "(selected)"
       },
       "checkoutDone": "Payment received. {org} is on the {plan} plan.",
-      "checkoutPending": "Payment received. Stripe is confirming it, and the plan shown here updates in a moment.",
+      "checkoutTrialDone": "Your card is saved. {org} is on the {plan} plan, and nothing is charged until the trial ends.",
+      "checkoutPending": "Checkout is complete. Stripe is confirming it, and the plan shown here updates in a moment.",
       "checkoutCanceled": "Checkout was canceled, and nothing was charged.",
       "redirecting": "Opening Stripe…",
       "portal": {
@@ -1202,7 +1203,7 @@
       "seatUsageUnlimited": "{used, plural, one {# seat} other {# seats}} in use. Your plan has unlimited seats.",
       "extraSeats": "{count, plural, one {Includes # extra seat} other {Includes # extra seats}} bought on top of the plan.",
       "grandfathered": "Your subscription started before plans had seat limits, so it keeps unlimited seats. Changing plan applies the new seat limits.",
-      "seatsFull": "Every seat is in use. Buy extra seats or upgrade the plan to add members above Field.",
+      "seatsFull": "Every seat is in use. Upgrade the plan to add members above Field, or contact support to add extra seats to a paid plan.",
       "seatsFullUpgrade": "Every seat is in use, and your plan sells no extra seats. Upgrade the plan to add members above Field.",
       "buySeats": "Buy extra seats",
       "contactSales": "Talk to sales",

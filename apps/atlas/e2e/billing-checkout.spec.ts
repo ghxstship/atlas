@@ -122,10 +122,15 @@ test("an Owner on the Pro trial pays for Core in Checkout and manages it in the 
     checkout_state: "Open",
   });
 
-  // Paying sends the webhook events; Atlas shows the paid plan.
+  // Paying sends the webhook events; Atlas shows the paid plan. The trial carried over, so the card is only saved.
   await page.getByRole("button", { name: "Pay and subscribe" }).click();
-  await page.waitForURL(`**/${slug}/settings/billing-and-plan?checkout=done`);
-  await expect(page.getByText(`Payment received. ${name} is on the Core plan.`)).toBeVisible();
+  await page.waitForURL(`**/${slug}/settings/billing-and-plan?checkout=trial`);
+  await expect(
+    page.getByText(
+      `Your card is saved. ${name} is on the Core plan, and nothing is charged until the trial ends.`,
+    ),
+  ).toBeVisible();
+  await expect(page.getByText(/^Payment received/)).toHaveCount(0);
   await expect(page.getByTestId("billing-lifecycle")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Billing portal" })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Choose / })).toHaveCount(0);

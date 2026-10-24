@@ -157,7 +157,8 @@
     "readOnlyTitle": "Solo lectura por falta de pago",
     "readOnlyBody": "Un pago falló el {since} y la organización pasó a solo lectura el {date}. Actualice el método de pago para recuperar el acceso completo. No se eliminó ningún dato.",
     "updatePayment": "Actualizar el método de pago",
-    "notConnected": "El pago en línea aún no está conectado. Contacte a soporte para agregar una tarjeta o actualizar el método de pago."
+    "notConnected": "El pago en línea aún no está conectado. Contacte a soporte para agregar una tarjeta o actualizar el método de pago.",
+    "contactSupport": "Contacte a soporte para actualizar el método de pago."
   },
   "home": {
     "trial": "{org} está en una prueba de Pro hasta el {date}."

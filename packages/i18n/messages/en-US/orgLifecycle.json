@@ -157,7 +157,8 @@
     "readOnlyTitle": "Read-only for non-payment",
     "readOnlyBody": "A payment failed on {since}, and the organization became read-only on {date}. Update the payment method to restore full access. No data has been deleted.",
     "updatePayment": "Update the payment method",
-    "notConnected": "Online payment is not connected yet. Contact support to add a card or update the payment method."
+    "notConnected": "Online payment is not connected yet. Contact support to add a card or update the payment method.",
+    "contactSupport": "Contact support to update the payment method."
   },
   "home": {
     "trial": "{org} is on a Pro trial until {date}."

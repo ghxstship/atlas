@@ -8,8 +8,10 @@ import type { OrgContext } from "@/lib/shell/context";
  * ADR 0033 decision 59: XOS launches on the trial and the Access plan, and billing opens when the owner
  * sets STRIPE_SECRET_KEY. Without the key, Billing and Plan says billing is not open yet, its Choose buttons
  * and the trial notice's Add a card stay disabled, and both server actions answer billing_not_open without
- * reaching Stripe. With the key, each failure of the Checkout and portal flow comes back as its refusal, and a
- * paid checkout whose subscription has not synced yet offers no second Checkout.
+ * reaching Stripe. With the key, each failure of the Checkout and portal flow comes back as its refusal, a paid
+ * checkout whose subscription has not synced yet offers no second Checkout, an org the database always refuses
+ * (migration 1641) sees why instead of the buttons, and coming back from a Checkout that carried the trial says the
+ * card is saved rather than that a payment was received.
  */
 const config = vi.hoisted(() => ({ key: undefined as string | undefined }));
 const platform = vi.hoisted(() => ({
@@ -156,6 +158,7 @@ beforeEach(() => {
     awaitingSubscription: false,
     interval: null,
     currentPeriodEnd: null,
+    checkoutRefusal: null,
   };
   data.banner = TRIAL;
 });
@@ -187,14 +190,14 @@ describe("billing before the owner sets the Stripe key", () => {
       expect(disabled).toContain(`choose(shell.plans.${plan.code}.name)`);
     }
     const [notice] = ofType(tree, BillingLifecycleNotice);
-    expect(notice?.props["billing"]).toEqual({ open: false, portal: false, awaiting: false });
+    expect(notice?.props["billing"]).toEqual({ open: false, portal: false, checkout: false });
     expect(data.getBillingAccount).not.toHaveBeenCalled();
   });
 
   it("keeps the trial notice's Add a card disabled, and says how to get it done", async () => {
     const notice = await BillingLifecycleNotice({
       ctx,
-      billing: { open: false, portal: false, awaiting: false },
+      billing: { open: false, portal: false, checkout: false },
     });
     expect(ofType(notice, CheckoutButton)).toEqual([]);
     const [button] = ofType(notice, Button);
@@ -226,6 +229,7 @@ describe("billing once the key is set", () => {
       livemode: false,
       customerEmail: "owner@northwind.test",
       successUrl: "https://atlas.test/northwind-live/settings/billing-and-plan?checkout=done",
+      trialSuccessUrl: "https://atlas.test/northwind-live/settings/billing-and-plan?checkout=trial",
       cancelUrl: "https://atlas.test/northwind-live/settings/billing-and-plan?checkout=canceled",
     });
   });
@@ -280,9 +284,11 @@ describe("billing once the key is set", () => {
     expect(ofType(tree, CheckoutButton).map((b) => b.props["plan"])).toEqual(
       PLANS.filter((p) => p.selfServe).map((p) => p.code),
     );
+    const [shown] = ofType(tree, BillingLifecycleNotice);
+    expect(shown?.props["billing"]).toEqual({ open: true, portal: false, checkout: true });
     const notice = await BillingLifecycleNotice({
       ctx,
-      billing: { open: true, portal: false, awaiting: false },
+      billing: { open: true, portal: false, checkout: true },
     });
     expect(ofType(notice, CheckoutButton).map((b) => b.props["plan"])).toEqual(["pro"]);
   });
@@ -294,19 +300,79 @@ describe("billing once the key is set", () => {
       awaitingSubscription: true,
       interval: null,
       currentPeriodEnd: null,
+      checkoutRefusal: "checkout_completed",
     };
     const tree = await page();
     expect(ofType(tree, InlineAlert).map(textOf)).toContain("checkoutPending");
     expect(ofType(tree, CheckoutButton)).toEqual([]);
     expect(elements(tree).some((e) => e.type === "nav")).toBe(false);
+    expect(ofType(tree, InlineAlert).map(textOf)).not.toContain("refusals.other");
     const [notice] = ofType(tree, BillingLifecycleNotice);
-    expect(notice?.props["billing"]).toEqual({ open: true, portal: false, awaiting: true });
+    expect(notice?.props["billing"]).toEqual({ open: true, portal: false, checkout: false });
     const trial = await BillingLifecycleNotice({
       ctx,
-      billing: { open: true, portal: false, awaiting: true },
+      billing: { open: true, portal: false, checkout: false },
     });
     expect(ofType(trial, CheckoutButton)).toEqual([]);
     expect(ofType(trial, Button)[0]?.props["disabled"]).toBe(true);
     expect(ofType(trial, InlineAlert)).toEqual([]);
+  });
+
+  it("offers no Checkout to an org the database always refuses, and says why", async () => {
+    for (const rule of ["billing_through_partner", "sandbox_not_billable", "org_read_only"]) {
+      data.account = { ...(data.account as object), checkoutRefusal: rule };
+      const tree = await page();
+      expect(ofType(tree, InlineAlert).map(textOf)).toContain(`refusals.${rule}`);
+      expect(ofType(tree, CheckoutButton)).toEqual([]);
+      expect(elements(tree).some((e) => e.type === "nav")).toBe(false);
+      expect(ofType(tree, Button).map(textOf)).not.toContain("choose(shell.plans.core.name)");
+      const [notice] = ofType(tree, BillingLifecycleNotice);
+      expect(notice?.props["billing"]).toEqual({ open: true, portal: false, checkout: false });
+    }
+  });
+
+  it("sends an overdue org with no Stripe customer to support, without saying payment is not connected", async () => {
+    data.banner = {
+      trialPlan: null,
+      trialEndsAt: null,
+      billingState: "past_due",
+      pastDueSince: "2026-10-20T12:00:00Z",
+    };
+    const notice = await BillingLifecycleNotice({
+      ctx,
+      billing: { open: true, portal: false, checkout: false },
+    });
+    expect(ofType(notice, BillingPortalButton)).toEqual([]);
+    expect(ofType(notice, Button)[0]?.props["disabled"]).toBe(true);
+    expect(ofType(notice, InlineAlert).map(textOf)).toEqual(["billing.contactSupport"]);
+    const portalOpen = await BillingLifecycleNotice({
+      ctx,
+      billing: { open: true, portal: true, checkout: false },
+    });
+    expect(ofType(portalOpen, BillingPortalButton)).toHaveLength(1);
+    expect(ofType(portalOpen, InlineAlert)).toEqual([]);
+  });
+
+  it("says the card is saved after a Checkout that carried the trial, and a payment after one that charged", async () => {
+    data.account = {
+      paidThroughStripe: true,
+      hasStripeCustomer: true,
+      awaitingSubscription: false,
+      interval: "Monthly",
+      currentPeriodEnd: "2026-11-05T05:00:00Z",
+      checkoutRefusal: "billing_already_subscribed",
+    };
+    const alerts = async (checkout: string) =>
+      ofType(await page({ checkout }), InlineAlert).map(textOf);
+    expect(await alerts("trial")).toContain(
+      "checkoutTrialDone(Northwind Live,shell.plans.pro.name)",
+    );
+    expect(await alerts("trial")).not.toContain(
+      "checkoutDone(Northwind Live,shell.plans.pro.name)",
+    );
+    expect(await alerts("done")).toContain("checkoutDone(Northwind Live,shell.plans.pro.name)");
+    expect(await alerts("done")).not.toContain("refusals.other");
+    data.account = { ...(data.account as object), paidThroughStripe: false, checkoutRefusal: null };
+    expect(await alerts("trial")).toEqual(["checkoutPending"]);
   });
 });
