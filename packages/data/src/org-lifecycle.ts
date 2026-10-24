@@ -47,14 +47,28 @@ export interface OrgBannerStatus {
     readonly offeredBy: string;
     readonly expiresAt: string;
   } | null;
+  /** What plan limits made read-only (A107, 1721): the plan and how many projects, seats and field seats. */
+  readonly overLimit: {
+    readonly planCode: string;
+    readonly projects: number;
+    readonly seats: number;
+    readonly fieldSeats: number;
+  } | null;
+  /** The limit the caller's own seat is past, when it is read-only. */
+  readonly ownSeatReadOnly: OwnSeatLimit | null;
 }
+
+export type OwnSeatLimit = "seats" | "field_members";
 
 const READ_ONLY_REASONS: readonly ReadOnlyReason[] = ["deletion", "canceled", "dunning"];
 const BILLING_STATES: readonly BillingState[] = ["past_due", "read_only"];
+const OWN_SEAT_LIMITS: readonly OwnSeatLimit[] = ["seats", "field_members"];
 
 export function toBannerStatus(r: Raw | undefined): OrgBannerStatus {
   const reason = strOrNull(r?.["read_only_reason"]);
   const billing = strOrNull(r?.["billing_state"]);
+  const overLimitPlan = strOrNull(r?.["over_limit_plan"]);
+  const ownSeat = strOrNull(r?.["own_seat_read_only"]);
   return {
     readOnlyReason: READ_ONLY_REASONS.includes(reason as ReadOnlyReason)
       ? (reason as ReadOnlyReason)
@@ -76,10 +90,21 @@ export function toBannerStatus(r: Raw | undefined): OrgBannerStatus {
           expiresAt: str(r["ownership_expires_at"]),
         }
       : null,
+    overLimit: overLimitPlan
+      ? {
+          planCode: overLimitPlan,
+          projects: num(r?.["read_only_projects"]),
+          seats: num(r?.["read_only_seats"]),
+          fieldSeats: num(r?.["read_only_field_seats"]),
+        }
+      : null,
+    ownSeatReadOnly: OWN_SEAT_LIMITS.includes(ownSeat as OwnSeatLimit)
+      ? (ownSeat as OwnSeatLimit)
+      : null,
   };
 }
 
-/** Everything the org banners show, in one call (app.org_banner_status, 1353 and 1355). Members only. */
+/** Everything the org banners show, in one call (app.org_banner_status, 1353, 1355 and 1721). Members only. */
 export function getOrgBannerStatus(db: XosClient, orgId: string): Promise<Result<OrgBannerStatus>> {
   return rpc(db, "org_banner_status", { p_org_id: orgId }, (data) =>
     toBannerStatus(((data as Raw[] | null) ?? [])[0]),
