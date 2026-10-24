@@ -142,14 +142,17 @@ comment on function private.after_passkey_change() is 'After a passkey is added 
 revoke all on function private.after_passkey_change() from public, anon, authenticated;
 
 -- Supabase Auth creates auth.webauthn_credentials in its own migrations (2026-03, passkeys) before these run, locally and
--- on the hosted project; an older Auth without passkeys simply has nothing to watch.
+-- on the hosted project, and its default privileges give postgres TRIGGER on it; an older Auth without passkeys simply
+-- has nothing to watch. supautils lets postgres drop triggers only on the auth tables it lists, and this one is not
+-- among them: a later change replaces the trigger (create or replace) or the function, never drops it.
 do $$
 begin
-  if to_regclass('auth.webauthn_credentials') is not null then
+  if to_regclass('auth.webauthn_credentials') is not null
+     and has_table_privilege('auth.webauthn_credentials', 'TRIGGER') then
     create trigger xos_notify_passkey_change after insert or delete on auth.webauthn_credentials
       for each row execute function private.after_passkey_change();
   else
-    raise notice 'auth.webauthn_credentials does not exist: passkey changes send no notice';
+    raise notice 'auth.webauthn_credentials is missing or not ours to watch: passkey changes send no notice';
   end if;
 end;
 $$;

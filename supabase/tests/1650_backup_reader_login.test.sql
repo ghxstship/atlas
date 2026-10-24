@@ -380,12 +380,20 @@ declare
   v record;
 begin
   for v in
-    select t.tgname, t.tgrelid::regclass as rel
+    select t.tgname, t.tgrelid::regclass as rel, t.tgfoid::regproc as fn
     from pg_trigger t join pg_class c on c.oid = t.tgrelid join pg_namespace n on n.oid = c.relnamespace
     join pg_proc f on f.oid = t.tgfoid join pg_namespace fn on fn.oid = f.pronamespace
     where n.nspname in ('auth', 'storage') and not t.tgisinternal and fn.nspname in ('app', 'private', 'xpms')
   loop
-    execute format('drop trigger %I on %s', v.tgname, v.rel);
+    begin
+      execute format('drop trigger %I on %s', v.tgname, v.rel);
+    exception when insufficient_privilege then
+      -- postgres may drop triggers only on the tables supautils.drop_trigger_grants lists, which leaves out
+      -- auth.webauthn_credentials (1700's passkey notice). Such a trigger is put out of shape by name instead, so
+      -- platform.sql must still give it back exactly.
+      execute format('create or replace trigger %I after truncate on %s for each statement execute function %s()',
+        v.tgname, v.rel, v.fn);
+    end;
   end loop;
   for v in select policyname, format('%I.%I', schemaname, tablename) as rel from pg_policies where schemaname = 'storage' loop
     execute format('drop policy %I on %s', v.policyname, v.rel);

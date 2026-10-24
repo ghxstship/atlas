@@ -416,7 +416,8 @@ the branch. Rollback: point the secret and variables back.
 - Synthetic checks green against production and staging.
 - The hosted Data API's exposed schemas still match `[api] schemas` in `supabase/config.toml` (step 5).
 - The account security notice triggers (migration 1700, ADR 0064) exist on staging and production. They sit on
-  Supabase Auth's tables, which a dump of the `app` and `private` schemas leaves out. This query lists
+  Supabase Auth's tables, outside the `app` and `private` schemas (the weekly backup's `platform.sql` carries them,
+  as it does 0206's `xos_create_person`). This query lists
   `xos_notify_security_change` on `auth.users`, `xos_notify_factor_change` on `auth.mfa_factors` and
   `xos_notify_passkey_change` on `auth.webauthn_credentials`; a missing one means a password, second factor or
   passkey change there tells nobody:
