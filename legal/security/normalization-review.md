@@ -9,21 +9,21 @@ owner: A22 Security Review (RRR-41); A108 (RRR-153) for batch-c
 
 Section 18 gate 29 asks an independent agent to review every migration for Third Normal Form and to
 file a finding for any violation not listed in the denormalization register. A22 reviewed main
-d36918a (170 migrations). A108 reviewed the 194 migrations added after it on batch-c d98ffa44 and
+d36918a (170 migrations). A108 reviewed the 196 migrations added after it on batch-c 288be004 and
 turned the method into catalog lints, so a migration added after the review fails `supabase test
 db` until its exceptions are registered (ADR 0068).
 
-## Review of batch-c d98ffa44 (A108)
+## Review of batch-c 288be004 (A108)
 
 ### Scope
 
-- Every migration added after d36918a, 194 files from `0808_workforce_form_media` to
-  `1640_checkout`:
+- Every migration added after d36918a, 196 files from `0808_workforce_form_media` to
+  `1671_person_push_delivery`:
   `git diff --name-only --diff-filter=A d36918a..batch-c -- supabase/migrations`. Two earlier
   migrations were edited in that range, `0101_xpms_tables` and `0150_xpms_canon_seed` (owner
   decision 25 and A47-001); the catalog checks cover their result because they read the whole
   schema.
-- The schema after `supabase db reset` of batch-c d98ffa44: 586 `app`, 93 `private` and 96 `xpms`
+- The schema after `supabase db reset` of batch-c 288be004: 587 `app`, 93 `private` and 96 `xpms`
   tables, no materialized views.
 - The register is `docs/adr/denormalization-register.yaml`, with its generated view
   `docs/adr/denormalization-register.md`. Each column the method finds is listed there with a kind
@@ -56,14 +56,14 @@ The A22 method below, run as catalog queries over the migrated schema and kept a
 
 ### Results
 
-| Area                        | In the 194 migrations                                                                                                                                          |
+| Area                        | In the 196 migrations                                                                                                                                          |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | JSON columns (9)            | All within the ADR 0002 exceptions: 6 provider payloads (automation runs, inbound integration events, DNS records, platform email arguments) and 3 audit diffs |
 | Array columns (5)           | Work Details enum sets and the person's access log (1340), reviewed in pgTAP 1280 before the register existed                                                  |
 | Stored values (18)          | 10 facts and 4 inputs; the 4 wholesale statement totals of 1060 are stored beside their lines: [A108-002](../qa/findings/A108-002.md)                          |
 | Restated columns (57 pairs) | 25 own, 17 facts; 15 copies through a required key are not registered: [A108-003](../qa/findings/A108-003.md)                                                  |
-| Tenant exceptions (17)      | 12 person-owned and 5 platform tables, each with its reason (decision 69)                                                                                      |
-| Closed lists (44)           | Held as text with a check constraint in 30 migrations: [A108-001](../qa/findings/A108-001.md)                                                                  |
+| Tenant exceptions (18)      | 13 person-owned and 5 platform tables, each with its reason (decision 69)                                                                                      |
+| Closed lists (45)           | Held as text with a check constraint in 31 migrations: [A108-001](../qa/findings/A108-001.md)                                                                  |
 | Materialized views          | None                                                                                                                                                           |
 
 The lints run over the whole schema, so they also listed older columns the d36918a review did not
@@ -72,7 +72,7 @@ lists (listed in A108-001), and two stored values whose derived entries already 
 (`app.form_submissions.score` beside `max_score`, `app.occupancy_counters.alert_level_percent`
 beside `current_count`), which joined those entries.
 
-137 of the 194 migrations add nothing the method looks at. 35 have a finding.
+138 of the 196 migrations add nothing the method looks at. 36 have a finding.
 
 ### Observations below the finding threshold
 
@@ -83,7 +83,7 @@ beside `current_count`), which joined those entries.
   table, key and column, and `value_text` keeps the Playbook value as imported. It is evidence of the
   import, not a second home for the canon value, so it is not a restatement.
 - A restatement under an own name (a child `name` copied from its parent) is not caught by the lint,
-  so the 12 own-name pairs in the 194 migrations were read by hand. Each is the row's own value,
+  so the 12 own-name pairs in the 196 migrations were read by hand. Each is the row's own value,
   except `app.automation_run_steps.position`, which keeps the action's position as the run found it:
   a fact of the run, not a violation.
 
@@ -288,6 +288,8 @@ beside `current_count`), which joined those entries.
 | 1623_opportunity_spend_authority                      | 2 functions                                          | Clean                                                                                                                                                                                                                                                                                                                              |
 | 1624_client_sponsor_engagement_fields                 | 3 views, 2 functions                                 | Clean                                                                                                                                                                                                                                                                                                                              |
 | 1640_checkout                                         | 1 table, 1 enum, 9 functions                         | Clean                                                                                                                                                                                                                                                                                                                              |
+| 1670_person_push_devices                              | 1 table, 1 column, 7 functions                       | tenant exceptions: 1 person-owned; 1 closed list in text: `app.person_push_devices.platform` ([A108-001](../qa/findings/A108-001.md))                                                                                                                                                                                              |
+| 1671_person_push_delivery                             | 6 functions                                          | Clean                                                                                                                                                                                                                                                                                                                              |
 
 ## Review of main d36918a (A22)
 
