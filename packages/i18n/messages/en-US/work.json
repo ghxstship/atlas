@@ -751,6 +751,7 @@
     "field": "{name}: {value}",
     "announce": "{title}, with {fields}",
     "choose": "Choose a match for {token}",
-    "matches": "Matches: {count}"
+    "matches": "Matches: {count}",
+    "untitled": "Untitled"
   }
 }

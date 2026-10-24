@@ -1,4 +1,6 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -330,6 +332,20 @@ describe("QuickAdd with a resolver", () => {
     const chips = screen.getByText("Colgar truss").parentElement as HTMLElement;
     expect(within(chips).getByText("viernes 8am")).toBeTruthy();
     expect(within(chips).getByRole("button", { name: /^Quitar vie, 9 de oct/ })).toBeTruthy();
+  });
+
+  it("takes up a line typed before the page hydrated", async () => {
+    const field = <QuickAdd referenceDate={monday} onSubmit={() => undefined} />;
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(field);
+    document.body.append(container);
+    (container.querySelector("input") as HTMLInputElement).value = "Rig the truss Friday";
+    await act(async () => {
+      hydrateRoot(container, field);
+    });
+    expect(await screen.findByText("Rig the truss")).toBeTruthy();
+    expect(screen.getByText("Friday")).toBeTruthy();
+    container.remove();
   });
 
   it("without the app's copy, names chips as typed and lists them in the announcement", async () => {

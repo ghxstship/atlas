@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useT } from "../lib/context.tsx";
 import { Icon } from "../Icon/Icon.tsx";
 import { Kbd } from "../Kbd/Kbd.tsx";
@@ -29,6 +29,11 @@ export function QuickAdd({
   const [text, setText] = useState(value ?? "");
   const [saving, setSaving] = useState(false);
   const input = useRef<HTMLInputElement>(null);
+  // A line typed before the page hydrated is in the field but not in state: take it up.
+  useEffect(() => {
+    const early = input.current?.value ?? "";
+    if (early !== "") setText(early);
+  }, []);
   const quick = useQuickAdd({
     text,
     ...(referenceDate ? { referenceDate } : {}),

@@ -41,6 +41,8 @@ test("one line sets a record's date, owner, category, kind and scope; plain crea
 }) => {
   const slug = await newOrgWithProject(page);
   await page.goto(`/${slug}/work/all-records`);
+  // The row loads with the page's other client code; a first visit under next dev compiles it.
+  await page.waitForLoadState("networkidle");
   const field = page.getByRole("textbox", { name: "Quick add a record" });
   await expect(field).toBeVisible();
 
@@ -120,6 +122,7 @@ test("the Create menu adds a record from its search field, and a kind's name sti
 test("one line plans a Draft shift with its role, person, scope and times", async ({ page }) => {
   const slug = await newOrgWithProject(page);
   await page.goto(`/${slug}/crew/shifts`);
+  await page.waitForLoadState("networkidle");
   const field = page.getByRole("textbox", { name: "Quick add a shift" });
   await field.fill(`#stagehand @me ~${KEY}-E01 Friday 8am-4pm`);
   const chips = chipsOf(field);

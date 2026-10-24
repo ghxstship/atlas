@@ -138,7 +138,7 @@ export function ShellCreate({
   const kind = kindToken ? quick.resolutions?.[quickAddKey(kindToken)] : undefined;
   const quickItem: CommandItem = {
     label: t("quickAdd.item", {
-      title: quick.parse.title || tRoot("work.record.untitled"),
+      title: quick.parse.title || tRoot("work.quickAdd.untitled"),
       kind: kind?.status === "resolved" ? kind.label : tRoot(`work.kinds.${DEFAULT_KIND}`),
     }),
     icon: "Plus",

@@ -751,6 +751,7 @@
     "field": "{name}: {value}",
     "announce": "{title}, con {fields}",
     "choose": "Elegir una coincidencia para {token}",
-    "matches": "Coincidencias: {count}"
+    "matches": "Coincidencias: {count}",
+    "untitled": "Sin título"
   }
 }
