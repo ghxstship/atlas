@@ -2,7 +2,7 @@ import { fetchTicketFile, openShareLink, SHARE_TOKEN } from "@xos/data/share-lin
 import { isLocale } from "@xos/i18n";
 import { getLocale } from "next-intl/server";
 import { env } from "@/lib/env";
-import { copyForViewer, fileResponse } from "@/lib/files/deliver";
+import { copyForViewer, copyRecordUrl, fileResponse } from "@/lib/files/deliver";
 import { observability } from "@/lib/observability";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -13,7 +13,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
  * Function trades for the bytes. A Confidential image goes out as a PDF carrying the recipient's email
  * and the time; anything else goes out as stored. A refusal returns to the page with its reason.
  * Failures go to the redacting logger, never the console, so neither the token nor the ticket reaches
- * a log (A69-012).
+ * a log (A69-012), and a watermarked copy links to the file in Atlas, never to this link (A69-013).
  */
 export async function POST(
   request: Request,
@@ -65,7 +65,7 @@ export async function POST(
     viewerEmail: opened.data.recipientEmail,
     orgName: opened.data.orgName,
     locale: isLocale(negotiated) ? negotiated : "en-US",
-    sourceUrl: new URL(`/share/${token}`, config.ATLAS_SITE_URL).toString(),
+    sourceUrl: copyRecordUrl(opened.data.versionId, config.ATLAS_SITE_URL),
   });
   return fileResponse(copy);
 }
