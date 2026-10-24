@@ -8,6 +8,7 @@ import { DrawerForm } from "@/components/crew/forms-drawer-form";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { CrewRecord } from "@/components/crew/record";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink } from "@/components/ui";
 import {
   flatParams,
@@ -280,7 +281,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/p
       }
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }

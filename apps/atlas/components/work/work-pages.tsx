@@ -18,6 +18,8 @@ import {
 import { getNode } from "@xos/ia";
 import { getLocale } from "next-intl/server";
 import type { ReactNode } from "react";
+import { collectionPeek } from "@/components/shell/collection-peek";
+import { PeekHandoff } from "@/components/shell/peek-handoff";
 import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
@@ -163,17 +165,20 @@ export async function WorkOrdersPage({
           open={param(search, "create") === "1"}
         />
       }
-      peek={peek}
+      peek={collectionPeek(peekId, peek)}
     />
   );
 }
 
-/** The record peek for `?peek=KEY` on pages whose rows are records. */
+/**
+ * The record peek for `?peek=KEY` on pages whose rows are records; a key that names no record the
+ * viewer can read goes to the shell's peek.
+ */
 async function recordPeek(ctx: OrgContext, search: SearchParams): Promise<ReactNode> {
   const key = param(search, "peek");
   if (!key) return null;
   const detail = await loadRecordDetail(ctx, key);
-  if (!detail) return null;
+  if (!detail) return <PeekHandoff recordKey={key} />;
   return (
     <RecordPeek
       org={ctx.org.slug}

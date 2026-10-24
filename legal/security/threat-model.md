@@ -48,7 +48,7 @@ than the database allows.
 | A69-004 | Medium   | Service role and Edge Functions | Fixed        |
 | A69-005 | Medium   | Exports and logs                | Fixed        |
 | A69-006 | Medium   | Integrations (sync runs)        | Fixed        |
-| A69-007 | High     | Tenant member to app            | Mitigated    |
+| A69-007 | High     | Tenant member to app            | Fixed        |
 | A69-008 | Medium   | Exports and logs                | Fixed        |
 | A69-009 | Medium   | Tenant member to app            | Fixed        |
 | A69-010 | Low      | Tenant member to app            | Partly fixed |
@@ -62,7 +62,7 @@ than the database allows.
 4. API key to the api-token JWT
 5. Service role and Edge Functions
 6. Webhooks: Stripe, inbound email and kiosk punch
-7. Compass offline sync: `apply_sync_mutation` and PowerSync
+7. Compass offline sync: `apply_sync_mutation` and the REST downloader
 8. Integrations: Vault credentials, SCIM, SSO just-in-time joins and OAuth grants
 9. Aurora AI: prompt injection, tool scopes and data exfiltration
 10. Storage buckets
@@ -126,25 +126,28 @@ Signed-in members reach `app` under RLS: 481 tables, all with RLS on, and 1,135 
 `private.has_capability`, `private.project_ids_with`, `private.orgs_with_capability` and the scope
 helpers (ADR 0008, ADR 0016).
 
-| STRIDE | Threat                                                                         | Control                                                                                                                                                  | Evidence                                                                                     |
-| ------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| S      | Using another member's session                                                 | Supabase Auth JWTs; same-origin check on cookie writes; step-up (aal2) for Restricted exports, SCIM tokens and break-glass                               | `packages/api/test/security/auth-attacks.test.ts`; A02 and A30 suites                        |
-| S      | Signing in with a stolen password where the org chose to require MFA (A69-007) | Not enforced: no screen enrolls or verifies a second factor. The MFA policy, session length and idle timeout keep their defaults and refuse other values | 1299 suite; owner decision in A69-007                                                        |
-| S      | Claiming an allowed address past the IP allow-list (A69-003)                   | Atlas and the API read the entry the trusted proxy appended past `XOS_TRUSTED_PROXY_HOPS`                                                                | `client-address.test.ts`; API and Atlas auth suites; Semgrep `xos-forwarded-for-first-entry` |
-| E      | Break-glass reach outside the session that passed the second factor (A69-009)  | The emergency branch applies only to the holder's own aal2 session, never through a delegation; expiry is audited                                        | 1298 suite                                                                                   |
-| T      | Writing into another tenant                                                    | RLS on every table; `org_id` derived by trigger; cross-org references refused                                                                            | `9902` and `9903` security suites; `9909` for the resources added since A22 (A69-011)        |
-| T      | A lower band writing (Viewer, Collaborator, Field)                             | Capability reach (own, assigned, organization) checked in every write policy and RPC                                                                     | `9904_security_viewer_band`; `9907` (A22-003); 0205 and 0400 suites                          |
-| R      | Denying an action                                                              | Append-only audit ledger with 7-year retention; domain events written only by triggers                                                                   | 0501 suite                                                                                   |
-| I      | Reading another tenant's rows                                                  | RLS read policies; owner-rights views limited to reference, masking and self-filtering views                                                             | `9901` security suite; `9900` view allowlist                                                 |
-| I      | Reading Restricted columns (pay, bank, tax, medical)                           | Column SELECT revoked; reads through `*_masked` views that check the restricted-read capability                                                          | `9900` masking assertion; 0363 suite                                                         |
-| D      | Expensive list queries starving the database                                   | Indexed policy columns; gate 17 benchmark under 50 ms at p95 on 1,000,000 rows                                                                           | `0399_rls_benchmark.psql`; 0943 suite                                                        |
-| E      | Granting oneself a role or capability                                          | Granting limits (own band and below, capabilities held); separation of duties; at least one Owner kept                                                   | 0206 suite                                                                                   |
-| E      | A SECURITY DEFINER function without its own check                              | Empty search path on every function; reviewed list of anon RPCs; static triage of every org-scoped RPC                                                   | `9900`; review notes below                                                                   |
+| STRIDE | Threat                                                                         | Control                                                                                                                                                                                                             | Evidence                                                                                            |
+| ------ | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| S      | Using another member's session                                                 | Supabase Auth JWTs; same-origin check on cookie writes; step-up (aal2) for Restricted exports, SCIM tokens and break-glass                                                                                          | `packages/api/test/security/auth-attacks.test.ts`; A02 and A30 suites                               |
+| S      | Signing in with a stolen password where the org chose to require MFA (A69-007) | Atlas and Gateway ask a person who holds a second factor for it after the first. The org MFA policy and session length are enforced where Atlas, the API and Compass check a session, and the idle timeout in Atlas | 1299 and 1330 suites; `apps/atlas/e2e/a77-auth.spec.ts`; the Atlas, API and Compass assurance tests |
+| S      | Claiming an allowed address past the IP allow-list (A69-003)                   | Atlas and the API read the entry the trusted proxy appended past `XOS_TRUSTED_PROXY_HOPS`                                                                                                                           | `client-address.test.ts`; API and Atlas auth suites; Semgrep `xos-forwarded-for-first-entry`        |
+| E      | Break-glass reach outside the session that passed the second factor (A69-009)  | The emergency branch applies only to the holder's own aal2 session, never through a delegation; expiry is audited                                                                                                   | 1298 suite                                                                                          |
+| T      | Writing into another tenant                                                    | RLS on every table; `org_id` derived by trigger; cross-org references refused                                                                                                                                       | `9902` and `9903` security suites; `9909` for the resources added since A22 (A69-011)               |
+| T      | A lower band writing (Viewer, Collaborator, Field)                             | Capability reach (own, assigned, organization) checked in every write policy and RPC                                                                                                                                | `9904_security_viewer_band`; `9907` (A22-003); 0205 and 0400 suites                                 |
+| R      | Denying an action                                                              | Append-only audit ledger with 7-year retention; domain events written only by triggers                                                                                                                              | 0501 suite                                                                                          |
+| I      | Reading another tenant's rows                                                  | RLS read policies; owner-rights views limited to reference, masking and self-filtering views                                                                                                                        | `9901` security suite; `9900` view allowlist                                                        |
+| I      | Reading Restricted columns (pay, bank, tax, medical)                           | Column SELECT revoked; reads through `*_masked` views that check the restricted-read capability                                                                                                                     | `9900` masking assertion; 0363 suite                                                                |
+| D      | Expensive list queries starving the database                                   | Indexed policy columns; gate 17 benchmark under 50 ms at p95 on 1,000,000 rows                                                                                                                                      | `0399_rls_benchmark.psql`; 0943 suite                                                               |
+| E      | Granting oneself a role or capability                                          | Granting limits (own band and below, capabilities held); separation of duties; at least one Owner kept                                                                                                              | 0206 suite                                                                                          |
+| E      | A SECURITY DEFINER function without its own check                              | Empty search path on every function; reviewed list of anon RPCs; static triage of every org-scoped RPC                                                                                                              | `9900`; review notes below                                                                          |
 
 The IP allow-list (1201) is applied where Atlas and the API check credentials, not by RLS, which
 cannot see the caller's address. Residual risk (A69-010, ADR 0034 decision 5): a direct call to the
 Supabase endpoint, or an API request bound to one org, still reads another member org's rows from
 outside that org's networks. The API now checks every member org when a request is bound to none.
+The org MFA policy and session length (1330) share the gap: a direct call to the Supabase endpoint
+with a session token is not checked against them. The owner accepted both for launch (ADR 0033
+decision 55); the plan is to route all data access through the API.
 
 Review notes: every one of the 268 SECURITY DEFINER functions in `app` that authenticated may
 execute was triaged for an explicit person, membership or capability check. Six had no such check in
@@ -211,16 +214,20 @@ Unsubscribe by GET is honored for one-click links; mail scanners that prefetch l
 ## 7. Compass offline sync
 
 Devices queue mutations offline and replay them through `app.apply_sync_mutation`, which calls only
-RPCs listed in `private.sync_rpcs`. PowerSync streams rows filtered by `private.sync_scope_grants`.
+RPCs listed in `private.sync_rpcs`. Devices download their copy over REST
+(`apps/compass/src/data/downloader.ts`): the app tables under row-level security, external parties only
+through the `api_external` views, and every row passes the device-side scope check before it is stored.
+PowerSync, which would stream rows filtered by `private.sync_scope_grants`, is deferred (ADR 0033,
+decision 51).
 
-| STRIDE | Threat                                         | Control                                                                                                  | Evidence                                      |
-| ------ | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| S      | Replaying another person's mutation id         | A stored mutation id is bound to its person and RPC; a mismatch is refused                               | 0364 suite                                    |
-| T      | Replay running with the owner's rights         | Every replayable RPC is SECURITY DEFINER with its own checks; `sync_call` refuses invoker RPCs (A22-002) | `9906` (A22-002); 0935 suite                  |
-| R      | Losing the record of what a device did         | `app.sync_mutations` keeps each result with device id and person                                         | 0364 suite                                    |
-| I      | A device storing another party's rows          | Sync scope grants mirror the RLS helpers, refreshed by triggers and nightly                              | 0942 and 0944 suites; `infra/powersync` tests |
-| D      | A device flooding replays                      | Advisory lock per mutation id; idempotent results                                                        | 0364 suite                                    |
-| E      | Replaying an RPC that is not meant for devices | Allowlist in `private.sync_rpcs`; unknown arguments refused                                              | 0364 and 0935 suites                          |
+| STRIDE | Threat                                         | Control                                                                                                                                     | Evidence                                        |
+| ------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| S      | Replaying another person's mutation id         | A stored mutation id is bound to its person and RPC; a mismatch is refused                                                                  | 0364 suite                                      |
+| T      | Replay running with the owner's rights         | Every replayable RPC is SECURITY DEFINER with its own checks; `sync_call` refuses invoker RPCs (A22-002)                                    | `9906` (A22-002); 0935 suite                    |
+| R      | Losing the record of what a device did         | `app.sync_mutations` keeps each result with device id and person                                                                            | 0364 suite                                      |
+| I      | A device storing another party's rows          | Downloads read through row-level security and the `api_external` views; the device-side scope check refuses rows outside the person's scope | 1022 suite; `download.test.ts`, `scope.test.ts` |
+| D      | A device flooding replays                      | Advisory lock per mutation id; idempotent results                                                                                           | 0364 suite                                      |
+| E      | Replaying an RPC that is not meant for devices | Allowlist in `private.sync_rpcs`; unknown arguments refused                                                                                 | 0364 and 0935 suites                            |
 
 ## 8. Integrations: Vault, SCIM, SSO and OAuth
 

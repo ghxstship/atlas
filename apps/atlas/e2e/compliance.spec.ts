@@ -379,6 +379,25 @@ test.describe("re-acceptance", () => {
 });
 
 test.describe("compliance forms", () => {
+  // The forms sit behind compliance.us_forms, off by default (migration 1593, ADR 0033 decision 54); the demo org has
+  // it on for these journeys only.
+  test.beforeAll(async () => {
+    await localSql(
+      `insert into app.feature_flag_overrides (org_id, flag_key, enabled, reason)
+       select o.id, 'compliance.us_forms', true, 'E2E: the compliance forms journeys.'
+         from app.organizations o where o.slug = $1
+       on conflict (org_id, flag_key) where deleted_at is null do update set enabled = true`,
+      [ORG],
+    );
+  });
+  test.afterAll(async () => {
+    await localSql(
+      `update app.feature_flag_overrides f set deleted_at = now() from app.organizations o
+        where o.id = f.org_id and o.slug = $1 and f.flag_key = 'compliance.us_forms' and f.deleted_at is null`,
+      [ORG],
+    );
+  });
+
   test("an Owner keeps the OSHA log of an establishment and records a case from an incident", async ({
     page,
   }) => {

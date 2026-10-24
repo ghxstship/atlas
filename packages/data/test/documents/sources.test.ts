@@ -422,6 +422,8 @@ describe("generateDocument", () => {
     "from:setting_values": [okResponse(null)],
   });
 
+  // The file's only render loads pdfkit and fontkit first: a quarter of a second on a laptop, but
+  // seconds on a CI runner busy with every package's tests, hence the longer timeout.
   it("renders the record as a named PDF with the template version", async () => {
     const { db } = fakeClient(queues());
     let linked: string | null = null;

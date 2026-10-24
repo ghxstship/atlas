@@ -13,6 +13,7 @@ import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { CrewRecord } from "@/components/crew/record";
 import { Avatar, InlineAlert } from "@/components/crew/ui";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, getProjects, withParams } from "@/lib/crew/context";
 import { workforceRoles } from "@/lib/people/roles";
@@ -308,7 +309,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/p
       }
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }

@@ -28,8 +28,11 @@ const MODES = [
 /* Engine-specific checks run in browser-checks.spec.ts, which waits for tiles and sync. */
 const SKIP_SCREENSHOT = new Set(["browser-checks-engines--map-view-tiles"]);
 
+/* addon-a11y runs axe by itself after every render in the preview. Two runs at once fail with "Axe
+   is already running" whenever the addon's run is still going when this suite's starts (the open
+   Dialog on a busy machine, with 10.6.1 as with 10.6.2), so the addon waits for a manual run here. */
 async function open(page: Page, id: string, globals: string): Promise<void> {
-  await page.goto(`/iframe.html?id=${id}&viewMode=story&globals=${globals}`);
+  await page.goto(`/iframe.html?id=${id}&viewMode=story&globals=${globals};a11y.manual:!true`);
   await page.locator("#storybook-root > *").first().waitFor({ state: "attached" });
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await page.waitForLoadState("networkidle");

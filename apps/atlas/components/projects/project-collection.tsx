@@ -21,6 +21,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { phaseCode, PROJECT_STATE_ORDER, stateIcon } from "@/lib/projects/format";
 import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
 // Views other than the default table, and the peek, load when shown (A24-009).
 import {
@@ -358,7 +359,8 @@ export function ProjectCollection({
     <TemplateCollection
       header={header}
       filters={filters}
-      peek={
+      peek={collectionPeek(
+        peekKey,
         peek ? (
           <Drawer
             open
@@ -398,8 +400,8 @@ export function ProjectCollection({
               ]}
             />
           </Drawer>
-        ) : undefined
-      }
+        ) : undefined,
+      )}
     >
       {body}
       {(view === "timeline" || view === "calendar") && undated > 0 ? (

@@ -18,7 +18,7 @@ This policy makes sure changes to XOS 4.0 are authorized, tested, reviewed, reco
 
 | Type      | Definition                                                                                                                | Path                                                                                               |
 | --------- | ------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Standard  | Any code, migration, configuration or documentation change in the repository                                              | Pull request, CI, maintainer review, merge, progressive rollout                                    |
+| Standard  | Any code, migration, configuration or documentation change in the repository                                              | Pull request, CI, maintainer review, merge, release as Section 4 sets                              |
 | Emergency | A change needed immediately to fix a SEV1 or SEV2 incident or a Critical vulnerability                                    | Expedited review by one maintainer, full CI, retrospective review within 2 business days           |
 | Contract  | A change to a frozen contract: schema conventions, the Playbook column map, a sitemap, OpenAPI v1, capabilities or tokens | Architecture Decision Record in `docs/adr/` approved by the orchestrator, then a standard change   |
 | Canon     | A change to canon data                                                                                                    | Data migration from the canon importer with updated source hashes; ratification recorded as data   |
@@ -35,7 +35,8 @@ This policy makes sure changes to XOS 4.0 are authorized, tested, reviewed, reco
 
 ## 4. Release
 
-- Releases roll out progressively to 5, 25 and then 100 percent, with automatic rollback on error-rate regression.
+- Atlas releases roll out in stages of 5, 25 and then 100 percent. A release owner approves each stage when the release gate's error-rate and latency checks pass, and the release rolls back when they regress.
+- The other web applications release directly. Every web application can be rolled back at once to its previous deployment.
 - Risky features ship behind a database-backed flag with a kill switch.
 - Mobile releases go through TestFlight and Play internal testing before production. Over-the-air updates apply only to JavaScript changes, follow staged rollout, and are scoped to their native build.
 - Releases are tagged, with release notes and a CycloneDX SBOM.

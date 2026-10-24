@@ -8,12 +8,14 @@ import Link from "next/link";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { EmptyStateLink } from "@/components/ui";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
 import { Panel, RunReconciliationForm } from "./forms";
-import { pickView, Property, withQuery, type Search } from "./shared";
+import { isRowId, pickView, Property, withQuery, type Search } from "./shared";
 import { InlineAlert, PageHeader, ReconciliationTable, StateChip, Tag, TemplateRecord } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
 
@@ -75,8 +77,10 @@ export async function ReconciliationCollection({
   const projectOf = (id: string) => projects.find((p) => p.id === id);
   const projectLabel = (p: { key: string; name: string }) => `${p.key} · ${p.name}`;
   const fixedProject = actx.project !== null && search["project"] === undefined;
+  // A key that is no run id (a record key from elsewhere) goes to the shell's peek; an id
+  // outside the list answers 404.
   const peekRun = peekId ? runs.find((r) => r.id === peekId) : undefined;
-  if (peekId && !peekRun) notFound();
+  if (peekId && isRowId(peekId) && !peekRun) notFound();
   const latest = projects
     .map((p) => ({ project: p, run: runs.find((r) => r.projectId === p.id) }))
     .filter(
@@ -198,23 +202,26 @@ export async function ReconciliationCollection({
           }))}
         />
       )}
-      {peekRun ? (
-        <PeekPanel
-          title={t("advancing.reconciliation.runTitle", { date: when(peekRun.reconciledAt) })}
-          state={runState(peekRun).state}
-          stateLabel={t(`advancing.reconciliation.states.${runState(peekRun).key}`)}
-          properties={[
-            {
-              label: t("advancing.common.project"),
-              value: projectOf(peekRun.projectId)?.key ?? "",
-            },
-            { label: t("advancing.reconciliation.results.met"), value: peekRun.met },
-            { label: t("advancing.reconciliation.results.gap"), value: peekRun.gap },
-            { label: t("advancing.reconciliation.results.unknown"), value: peekRun.unknown },
-            { label: t("advancing.reconciliation.gate3"), value: peekRun.gate3Gaps },
-          ]}
-        />
-      ) : null}
+      {collectionPeek(
+        peekId,
+        peekRun ? (
+          <PeekPanel
+            title={t("advancing.reconciliation.runTitle", { date: when(peekRun.reconciledAt) })}
+            state={runState(peekRun).state}
+            stateLabel={t(`advancing.reconciliation.states.${runState(peekRun).key}`)}
+            properties={[
+              {
+                label: t("advancing.common.project"),
+                value: projectOf(peekRun.projectId)?.key ?? "",
+              },
+              { label: t("advancing.reconciliation.results.met"), value: peekRun.met },
+              { label: t("advancing.reconciliation.results.gap"), value: peekRun.gap },
+              { label: t("advancing.reconciliation.results.unknown"), value: peekRun.unknown },
+              { label: t("advancing.reconciliation.gate3"), value: peekRun.gate3Gaps },
+            ]}
+          />
+        ) : null,
+      )}
     </div>
   );
 }
@@ -230,7 +237,7 @@ async function RunPage({
 }) {
   const result = await getReconciliation(actx.ctx.viewer.db, runId);
   if (!result.ok) {
-    if (result.error.kind === "not-found") notFound();
+    if (peekRowMissing(result.error)) notFound();
     throw new Error(`Cannot read reconciliation: ${JSON.stringify(result.error)}`);
   }
   const run = result.data;

@@ -16,12 +16,12 @@ Fixes made by A47 on its branch are marked (A47).
 
 ## Summary
 
-| Status           | Gates                                                                     | Count |
-| ---------------- | ------------------------------------------------------------------------- | ----- |
-| Pass             | 1, 2, 3, 13, 15, 18, 23, 25, 32, 33                                       | 10    |
-| Partial          | 4, 5, 6, 8, 9, 10, 11, 12, 14, 16, 17, 19, 20, 22, 24, 26, 28, 29, 30, 31 | 20    |
-| Blocked on owner | 7, 21                                                                     | 2     |
-| Fail             | 27                                                                        | 1     |
+| Status           | Gates                                                              | Count |
+| ---------------- | ------------------------------------------------------------------ | ----- |
+| Pass             | 1, 2, 3, 5, 13, 15, 18, 23, 25, 27, 31, 32, 33                     | 13    |
+| Partial          | 4, 6, 8, 9, 10, 11, 12, 14, 16, 17, 19, 20, 22, 24, 26, 28, 29, 30 | 18    |
+| Blocked on owner | 7, 21                                                              | 2     |
+| Fail             | None                                                               | 0     |
 
 ## Section 18 gates
 
@@ -82,15 +82,15 @@ received the current migrations, so no item is complete.
 
 ## Owner decisions
 
-| Decision                                                                                                                                                       | Unblocks                     | Where                                                                         |
-| -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------- |
-| Add the `ANTHROPIC_API_KEY` repository secret and an eval budget                                                                                               | Gate 21                      | GitHub repository settings, Secrets and variables, Actions; Anthropic Console |
-| Run the Firefox and WebKit e2e legs in CI                                                                                                                      | Gate 6                       | `packages/testing/ci/proposed-jobs.yml` (`e2e` engine matrix)                 |
-| A macOS runner or self-hosted Mac for Maestro, and an Android emulator job                                                                                     | Gates 7, 22, 26              | GitHub Actions runners                                                        |
-| Counsel review of FSL-1.1-Apache-2.0 (`sentry` 0.45.0 under `@sentry/nextjs`) and LGPL-3.0-or-later (`@img/sharp-libvips-*`); `buffers` was removed (ADR 0034) | Gate 11 license check        | `pnpm --filter @xos/config licenses:check`                                    |
-| Turn on CodeQL default setup                                                                                                                                   | Gate 11                      | GitHub repository settings, Code security                                     |
-| Add the repository secrets `SUPABASE_ACCESS_TOKEN` (staging advisors) and `VERCEL_AUTOMATION_BYPASS_SECRET` (ZAP baseline against staging), A94                | Gate 11, Section 9 DAST      | GitHub repository settings, Secrets; `infra/security/README.md`, Owner steps  |
-| Facts in `legal/OWNER_INPUTS.md` Part A, then counsel review                                                                                                   | Section 20.1 item 9          | `legal/OWNER_INPUTS.md`                                                       |
-| Canon rulings that `canon:check` waits on                                                                                                                      | Gate 14, Section 20.1 item 7 | RRR-52                                                                        |
-| Paid reliability items: point-in-time recovery, log drains, 1-minute regional synthetics, PowerSync hosting                                                    | Section 20.1 item 11         | `infra/README.md` Cost rules                                                  |
-| Run clamd (`clamav/clamav:1.5.4`, chosen in ADR 0034) and set `XOS_CLAMAV_HOST` in production                                                                  | ADR 0034                     | `infra/runbooks/production.md`, Upload scanning (ClamAV)                      |
+| Decision                                                                                                                                                                                    | Unblocks                     | Where                                                                         |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------- |
+| Add the `ANTHROPIC_API_KEY` repository secret and an eval budget                                                                                                                            | Gate 21                      | GitHub repository settings, Secrets and variables, Actions; Anthropic Console |
+| Run the Firefox and WebKit e2e legs in CI                                                                                                                                                   | Gate 6                       | `packages/testing/ci/proposed-jobs.yml` (`e2e` engine matrix)                 |
+| A macOS runner or self-hosted Mac for Maestro, and an Android emulator job                                                                                                                  | Gates 7, 22, 26              | GitHub Actions runners                                                        |
+| Counsel review of FSL-1.1-Apache-2.0 (`sentry` 0.45.0 under `@sentry/nextjs`) and LGPL-3.0-or-later (`@img/sharp-libvips-*`); `buffers` was removed (ADR 0034)                              | Gate 11 license check        | `pnpm --filter @xos/config licenses:check`                                    |
+| Turn on CodeQL default setup                                                                                                                                                                | Gate 11                      | GitHub repository settings, Code security                                     |
+| Add the repository secrets `SUPABASE_ACCESS_TOKEN` (staging advisors) and `VERCEL_AUTOMATION_BYPASS_SECRET` (ZAP baseline against staging), A94                                             | Gate 11, Section 9 DAST      | GitHub repository settings, Secrets; `infra/security/README.md`, Owner steps  |
+| Facts in `legal/OWNER_INPUTS.md` Part A, then counsel review                                                                                                                                | Section 20.1 item 9          | `legal/OWNER_INPUTS.md`                                                       |
+| Canon rulings that `canon:check` waits on: given 2026-10-23 (ADR 0033, decision 39); WP18 applies them                                                                                      | Gate 14, Section 20.1 item 7 | RRR-66                                                                        |
+| Paid reliability items: point-in-time recovery, and a Better Stack account for log drains and 1-minute regional checks (ADR 0033, decision 45); PowerSync hosting is deferred (decision 51) | Section 20.1 item 11         | `infra/README.md` Cost rules                                                  |
+| Run clamd (`clamav/clamav:1.5.4`, chosen in ADR 0034) and set `XOS_CLAMAV_HOST` in production                                                                                               | ADR 0034                     | `infra/runbooks/production.md`, Upload scanning (ClamAV)                      |
