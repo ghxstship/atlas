@@ -28,6 +28,27 @@ describe("environment", () => {
     expect(message).toContain(".env.example");
   });
 
+  it("takes a Stripe key, and a local fake of Stripe only with a test mode key", () => {
+    expect(parseEnv({ ...valid, STRIPE_SECRET_KEY: "sk_test_abcdefghij" }).STRIPE_SECRET_KEY).toBe(
+      "sk_test_abcdefghij",
+    );
+    expect(() => parseEnv({ ...valid, STRIPE_SECRET_KEY: "pk_test_abcdefghij" })).toThrow(
+      /STRIPE_SECRET_KEY/,
+    );
+    const fake = { ...valid, STRIPE_API_URL: "http://127.0.0.1:12111" };
+    expect(parseEnv({ ...fake, STRIPE_SECRET_KEY: "sk_test_abcdefghij" }).STRIPE_API_URL).toBe(
+      "http://127.0.0.1:12111",
+    );
+    expect(() => parseEnv(fake)).toThrow(/STRIPE_API_URL: needs a test mode STRIPE_SECRET_KEY/);
+    expect(() =>
+      parseEnv({
+        ...valid,
+        STRIPE_SECRET_KEY: "sk_test_abcdefghij",
+        STRIPE_API_URL: "https://api.stripe.example.test",
+      }),
+    ).toThrow(/STRIPE_API_URL/);
+  });
+
   it("reads the API host as a bare host name and the docs site as a URL", () => {
     const config = parseEnv({
       ...valid,

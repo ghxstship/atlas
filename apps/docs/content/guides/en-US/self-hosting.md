@@ -102,6 +102,7 @@ Atlas and Gateway validate their environment when they start and name every miss
 | `XOS_TRUSTED_PROXY_HOPS`      | Optional | Optional | Trusted proxies in front of the one that appends the client address; `0` by default      |
 | `XOS_INBOUND_DOMAIN`          | Optional |          | The domain project inbox mail is received on, so Project Settings shows full addresses   |
 | `XOS_READ_REPLICA_URL`        | Optional |          | A read replica's Data API origin; the full org export reads there, then the primary      |
+| `STRIPE_SECRET_KEY`           | Optional |          | Your Stripe secret key, for Checkout and the customer portal; unset, billing is closed   |
 
 Neither app ever receives the service role key. Every Supabase call runs on the server with the signed-in person's session.
 
