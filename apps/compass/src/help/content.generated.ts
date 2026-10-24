@@ -126,7 +126,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Their posts, comments on posts, shout-outs and messages, in every conversation, and the notifications about them. A post that asks you to acknowledge it still shows. They are not told, and their work with you carries on as before.",
+                v: "Their posts, comments on posts, shout-outs and messages, in every conversation, and the notifications about them. A post that asks you to acknowledge it still shows. In the directory you each see the other by name only, without a preferred name or headline. They are not told, and their work with you carries on as before.",
               },
             ],
           },
@@ -2296,7 +2296,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Sus publicaciones, sus comentarios en publicaciones, sus reconocimientos y sus mensajes, en todas las conversaciones, y las notificaciones sobre ellos. Una publicación que te pide confirmar la lectura se sigue mostrando. No se le avisa, y su trabajo contigo sigue como antes.",
+                v: "Sus publicaciones, sus comentarios en publicaciones, sus reconocimientos y sus mensajes, en todas las conversaciones, y las notificaciones sobre ellos. Una publicación que te pide confirmar la lectura se sigue mostrando. En el directorio cada uno ve al otro solo por su nombre, sin nombre preferido ni titular. No se le avisa, y su trabajo contigo sigue como antes.",
               },
             ],
           },

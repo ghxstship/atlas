@@ -10,7 +10,7 @@ Blocked People lists everyone you blocked. You block someone from the three dots
 
 ## What a block hides
 
-Their posts, comments on posts, shout-outs and messages, in every conversation, and the notifications about them. A post that asks you to acknowledge it still shows. They are not told, and their work with you carries on as before.
+Their posts, comments on posts, shout-outs and messages, in every conversation, and the notifications about them. A post that asks you to acknowledge it still shows. In the directory you each see the other by name only, without a preferred name or headline. They are not told, and their work with you carries on as before.
 
 ## Unblock
 

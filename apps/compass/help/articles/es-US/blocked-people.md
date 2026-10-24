@@ -10,7 +10,7 @@ Personas bloqueadas muestra a todas las personas que bloqueaste. Bloqueas a algu
 
 ## Lo que oculta un bloqueo
 
-Sus publicaciones, sus comentarios en publicaciones, sus reconocimientos y sus mensajes, en todas las conversaciones, y las notificaciones sobre ellos. Una publicación que te pide confirmar la lectura se sigue mostrando. No se le avisa, y su trabajo contigo sigue como antes.
+Sus publicaciones, sus comentarios en publicaciones, sus reconocimientos y sus mensajes, en todas las conversaciones, y las notificaciones sobre ellos. Una publicación que te pide confirmar la lectura se sigue mostrando. En el directorio cada uno ve al otro solo por su nombre, sin nombre preferido ni titular. No se le avisa, y su trabajo contigo sigue como antes.
 
 ## Desbloquear
 
