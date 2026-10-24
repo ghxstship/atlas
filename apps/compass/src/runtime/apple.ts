@@ -130,8 +130,12 @@ export function appleRevoker(client: XosClient, supabaseUrl: string): AppleRevok
  * when Supabase Auth does not answer.
  */
 export async function accountSignsInWithApple(client: XosClient): Promise<boolean> {
-  const { data, error } = await client.auth.getUser();
-  if (!error && data.user) return signedInWithApple(data.user.identities);
+  try {
+    const { data, error } = await client.auth.getUser();
+    if (!error && data.user) return signedInWithApple(data.user.identities);
+  } catch (error) {
+    console.warn("Reading the account's sign-in methods failed", error);
+  }
   const session = (await client.auth.getSession()).data.session;
   return signedInWithApple(session?.user.identities);
 }
