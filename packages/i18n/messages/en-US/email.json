@@ -274,6 +274,26 @@
         "subject": "{outcome, select, Reversed {We reversed our decision on {title}} other {We kept our decision on {title}}}",
         "body": "{outcome, select, Reversed {Another reviewer agreed with your appeal and reversed the decision.} other {Another reviewer looked at your appeal and kept the decision.}} {statement}"
       }
+    },
+    "content_report": {
+      "filed": {
+        "subject": "{subject, select, comment {A comment was reported} message {A message was reported} other {A post was reported}}",
+        "body": "Someone reported a {subject, select, comment {comment} message {message} other {post}} for {reason, select, harassment {harassment or bullying} hate {hate speech or symbols} sexual_content {sexual content} violence {violence or threats} spam {spam or a scam} other {something else}}. Review it within 24 hours in Atlas, People, Reported Content."
+      },
+      "overdue": {
+        "subject": "A reported {subject, select, comment {comment} message {message} other {post}} has waited more than 24 hours",
+        "body": "A {subject, select, comment {comment} message {message} other {post}} reported more than 24 hours ago still waits for a decision. Review it in Atlas, People, Reported Content."
+      },
+      "decided": {
+        "subject": "{action, select, Removed {The {subject, select, comment {comment} message {message} other {post}} you reported was removed} other {Your report was reviewed}}",
+        "body": "Your organization's moderators reviewed the {subject, select, comment {comment} message {message} other {post}} you reported. {statement}"
+      }
+    },
+    "content": {
+      "removed": {
+        "subject": "{subject, select, comment {Your comment was removed} message {Your message was removed} other {Your post was removed}}",
+        "body": "Your organization's moderators removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
+      }
     }
   },
   "notification": {

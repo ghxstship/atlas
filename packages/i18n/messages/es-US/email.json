@@ -274,6 +274,26 @@
         "subject": "{outcome, select, Reversed {Revertimos nuestra decisión sobre {title}} other {Mantuvimos nuestra decisión sobre {title}}}",
         "body": "{outcome, select, Reversed {Otra persona revisó tu apelación, estuvo de acuerdo y revirtió la decisión.} other {Otra persona revisó tu apelación y mantuvo la decisión.}} {statement}"
       }
+    },
+    "content_report": {
+      "filed": {
+        "subject": "{subject, select, comment {Se denunció un comentario} message {Se denunció un mensaje} other {Se denunció una publicación}}",
+        "body": "Alguien denunció {subject, select, comment {un comentario} message {un mensaje} other {una publicación}} por {reason, select, harassment {acoso o intimidación} hate {discurso o símbolos de odio} sexual_content {contenido sexual} violence {violencia o amenazas} spam {spam o estafa} other {otro motivo}}. Revísalo en 24 horas en Atlas, Personas, Contenido denunciado."
+      },
+      "overdue": {
+        "subject": "{subject, select, comment {Un comentario denunciado} message {Un mensaje denunciado} other {Una publicación denunciada}} lleva más de 24 horas en espera",
+        "body": "{subject, select, comment {Un comentario denunciado} message {Un mensaje denunciado} other {Una publicación denunciada}} hace más de 24 horas sigue esperando una decisión. Revísalo en Atlas, Personas, Contenido denunciado."
+      },
+      "decided": {
+        "subject": "{action, select, Removed {{subject, select, comment {Se eliminó el comentario que denunciaste} message {Se eliminó el mensaje que denunciaste} other {Se eliminó la publicación que denunciaste}}} other {Se revisó tu denuncia}}",
+        "body": "Los moderadores de tu organización revisaron {subject, select, comment {el comentario} message {el mensaje} other {la publicación}} que denunciaste. {statement}"
+      }
+    },
+    "content": {
+      "removed": {
+        "subject": "{subject, select, comment {Se eliminó tu comentario} message {Se eliminó tu mensaje} other {Se eliminó tu publicación}}",
+        "body": "Los moderadores de tu organización eliminaron tu {subject, select, comment {comentario} message {mensaje} other {publicación}} según {ruleReference}. {statement}"
+      }
     }
   },
   "notification": {

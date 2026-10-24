@@ -11,6 +11,7 @@
   "lockValue": "Lock value",
   "discard": "Discard",
   "unsaved": "{count, plural, one {# unsaved change} other {# unsaved changes}}",
+  "chosen": "{count, number} of {total, number} chosen",
   "loadFailed": "These settings could not be loaded. Reload the page to try again.",
   "registryHeading": "Settings on this page",
   "personalSections": "Personal settings sections",
@@ -716,7 +717,6 @@
     "failed": "The sidebar was not saved. Try again."
   },
   "notifications": {
-    "category": "Category",
     "channels": {
       "inApp": "In app",
       "email": "Email",
@@ -724,7 +724,7 @@
       "push": "Push"
     },
     "cellLabel": "{category} by {channel}",
-    "notOffered": "Nothing in {category} is sent by {channel}.",
+    "noChannels": "No channels",
     "urgent": "Urgent: never waits for the email digest.",
     "save": "Save notification settings",
     "saved": "Notification settings saved.",
@@ -754,7 +754,7 @@
       "locked": "Required by your organization",
       "smsNote": "Texts go only to a verified phone number you agreed to receive texts on. Reply STOP to any text to stop them.",
       "quietTitle": "Quiet hours and digest",
-      "quietDescription": "During quiet hours, push notifications wait until the end and texts arrive together as one message. Texts also wait between 21:00 and 08:00 in your time zone unless you set your own quiet hours. Safety alerts and changes to a shift starting within 12 hours always arrive at once.",
+      "quietDescription": "During quiet hours, push notifications wait until the end and texts arrive together as one message. Texts also wait between 21:00 and 08:00 in your time zone unless you set your own quiet hours. Safety alerts, changes to your sign-in security, a recovery code used on your account, emergency access taken in your organization and a new or changed shift starting within 12 hours always arrive at once.",
       "quietStart": "Quiet hours start",
       "quietEnd": "Quiet hours end",
       "timeZone": "Time zone",
@@ -1028,6 +1028,32 @@
       "automation_run_not_failed": "Only a failed run can be retried.",
       "denied": "You cannot change automations.",
       "unexpected": "Something went wrong. Try again."
+    }
+  },
+  "standardLibrary": {
+    "title": "XOS Standard Library",
+    "description": "Emergency codes, SOPs, verbiage, the radio plan, vendor classes and their entitlements, enumerations, the Roles Library, labor rates and the document library, copied into your organization so you can edit them. An organization receives its copy when it is created.",
+    "adopt": "Adopt Standard Library",
+    "adoptHelp": "Copies every Standard Library row your organization does not hold yet. Nothing you edited or removed changes, so running it again is safe.",
+    "complete": "Your organization holds a copy of the whole Standard Library.",
+    "copied": "{count, plural, =0 {Nothing left to copy: your organization already holds every Standard Library row it can.} one {Copied # row.} other {Copied # rows.}}",
+    "held": "{adopted} of {standard}",
+    "heldLabel": "Rows your organization holds",
+    "libraryLabel": "Library",
+    "loadError": "The Standard Library status could not be loaded. Reload the page to try again.",
+    "manageOnly": "Only people who manage canon extensions can adopt the Standard Library.",
+    "skipped": "A row your organization already has under the same name keeps your version, so a library can show fewer rows than the Standard Library holds.",
+    "libraries": {
+      "document_library": "Document & Asset Library",
+      "emergency_codes": "Emergency Codes",
+      "enumerations": "Enumerations",
+      "labor_rate_cards": "Labor Rate Cards",
+      "radio_channels": "Radio Channels",
+      "roles": "Roles Library",
+      "sops": "SOP Library",
+      "vendor_classes": "Vendor Classes",
+      "vendor_entitlements": "Vendor Entitlements",
+      "verbiage": "Verbiage Library"
     }
   }
 }

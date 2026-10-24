@@ -220,3 +220,11 @@ Storybook 10.6.2 was 11 days old when it was taken, short of the two-week minimu
 | ------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
 | UI      | `storybook`, `@storybook/react-vite`, `@storybook/addon-a11y`, `@storybook/addon-themes` (10.6.2 fixes GHSA-f2ph-cmg5-wxc8) | 10.6.2  |
 | Compass | `react-native-nfc-manager`                                                                                                  | 4.0.0   |
+
+## Amendment (2026-10-24): the supply-chain install runs on Node 22.23.3 (RRR-139)
+
+CI's license check, its SBOM and the release SBOM install production dependencies on Node 22.23.3 instead of `.nvmrc`'s 22.14.0. pnpm leaves out an optional package whose `engines` the running Node misses, so on 22.14.0 that install lacked `@napi-rs/lzma-linux-x64-gnu` 1.5.1 (MIT, an optional dependency of rollup 4.64.7 through `@sentry/nextjs`, which needs Node 22.20), a package Vercel's 22.x install holds (`infra/runbooks/production.md`). `pnpm licenses list` checks only os, cpu and libc, so it looked for the missing package and failed. 22.23.3, released 2026-09-23, is the newest Node 22 release at least two weeks old on 2026-10-24 (22.23.4 came out on 2026-10-20). It is pinned exactly, like every other toolchain version here, so the license report and the SBOM do not change with the day the job runs. Every other job, and contributors, keep 22.14.0 from `.nvmrc`; moving the toolchain to a newer 22 remains a separate decision.
+
+| Area         | Tool                                                                                            | Version |
+| ------------ | ----------------------------------------------------------------------------------------------- | ------- |
+| Supply chain | Node.js for the production install of the license check and the SBOMs (`ci.yml`, `release.yml`) | 22.23.3 |

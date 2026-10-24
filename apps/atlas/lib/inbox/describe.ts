@@ -47,6 +47,11 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "onboarding.item_expiring": ["days", "expiresOn"],
   "certification.expiring": ["days", "expiresOn"],
   "document.expiring": ["days", "expiresOn"],
+  // Reported content (ADR 0033 decision 57, 1630): what was reported, and the outcome or the statement of reasons.
+  "content_report.filed": ["subject"],
+  "content_report.overdue": ["subject"],
+  "content_report.decided": ["subject", "action", "statement"],
+  "content.removed": ["subject", "ruleReference", "statement"],
 };
 
 /** Where a notification's subject opens, by the table it names (paths under /{org}). */
@@ -62,6 +67,8 @@ const TARGETS: Readonly<Record<string, string>> = {
   "app.recognitions": "people/recognition",
   "app.support_tickets": "people/help-desk",
   "app.chat_messages": "people/chat",
+  // A new or overdue report opens the moderators' queue; a decision opens nothing (its notice carries the statement).
+  "app.content_reports": "people/moderation",
   "app.weather_alerts": "site-ops/weather",
   "app.occupancy_counters": "site-ops/occupancy",
   invoices: "finance/invoices",
@@ -82,6 +89,12 @@ export function inboxTarget(
     readonly args?: InboxItem["args"];
   },
 ): string | null {
+  // A delivered report (ADR 0033 decision 77, 1621) opens the report in Saved reports, with its panel open.
+  if (item.subjectTable === "app.report_definitions") {
+    return item.subjectId
+      ? `/${org}/reports/saved-reports?peek=${encodeURIComponent(item.subjectId)}`
+      : `/${org}/reports/saved-reports`;
+  }
   // A record opens itself by the key its notification carries (1600). Without one (a notification sent before 1600)
   // only an assignment has somewhere to go: My Work lists the records a person is assigned to, not those they comment
   // on or are mentioned in.

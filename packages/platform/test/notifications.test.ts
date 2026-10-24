@@ -453,9 +453,14 @@ describe("push through the Expo push service (ADR 0030)", () => {
     expect(() => readPushEnv({ XOS_PUSH_TRANSPORT: "fcm" })).toThrow(/XOS_PUSH_TRANSPORT/);
     const recording = new RecordingPushClient();
     const message = { to: "ExponentPushToken[x]" } as PushMessage;
-    await expect(recording.send([message])).resolves.toEqual([
-      { status: "ok", id: "recorded-push-1" },
-    ]);
+    const [ticket] = await recording.send([message]);
+    expect(ticket).toEqual({
+      status: "ok",
+      id: expect.stringMatching(/^recorded-push-[0-9a-f]{8}-1$/),
+    });
+    // Each run of the sender makes a new client; its ticket ids never repeat an earlier run's.
+    const [next] = await new RecordingPushClient().send([message]);
+    expect(next).not.toEqual(ticket);
     await expect(recording.receipts(["a"])).resolves.toEqual({ a: { status: "ok" } });
     expect(recording.sent).toHaveLength(1);
   });
@@ -1424,8 +1429,19 @@ describe("texts held by quiet hours go out as one summary", () => {
   });
 
   it("keeps the bypass list short and in the registry", () => {
+    // ADR 0033 decision 62 (1620) adds a new shift within 12 hours, security changes (with a recovery code used)
+    // and emergency access.
     expect(
       NOTIFICATION_KINDS.filter((k) => k.quietHoursBypass !== null).map((k) => k.kind),
-    ).toEqual(["shift.changed", "incident.reported", "occupancy.threshold", "weather.alert"]);
+    ).toEqual([
+      "shift.assigned",
+      "shift.changed",
+      "incident.reported",
+      "occupancy.threshold",
+      "weather.alert",
+      "account.security_changed",
+      "account.recovery_code_used",
+      "access.break_glass_started",
+    ]);
   });
 });

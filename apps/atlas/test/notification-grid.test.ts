@@ -1,8 +1,8 @@
 /**
- * A104: the notification grids of Personal settings, Notifications and Settings, Notifications offer a switch only
- * for the channels a category's kinds reach (notificationCategoryChannels, from the notification registry). The
- * other columns of the row stay, empty, with a sentence for assistive technology, and the save actions never write
- * a choice for them. Opportunities, whose one kind is never texted, has no SMS switch.
+ * A104: the notification grids of Personal settings, Notifications and Settings, Notifications offer a box only
+ * for the channels a category's kinds reach (notificationCategoryChannels, from the notification registry), and
+ * the save actions never write a choice for the others. Opportunities, whose one kind is never texted, has no SMS
+ * box.
  */
 import { getMessages } from "@xos/i18n";
 import {
@@ -85,11 +85,11 @@ const settings = {
   digestHour: 8,
 };
 
-/** The table row of a category, by its label. */
-function row(html: string, label: string): string {
-  const at = html.indexOf(`>${label}</span>`);
+/** The group of a category (gate 27's closed fieldset), by its label. */
+function group(html: string, label: string): string {
+  const at = html.indexOf(`>${label}</legend>`);
   expect(at, label).toBeGreaterThan(-1);
-  return html.slice(html.lastIndexOf("<tr", at), html.indexOf("</tr>", at));
+  return html.slice(html.lastIndexOf("<fieldset", at), html.indexOf("</fieldset>", at));
 }
 
 beforeEach(() => {
@@ -98,7 +98,7 @@ beforeEach(() => {
 });
 
 describe("notification grids show only the channels a category reaches", () => {
-  it("leaves Opportunities without an SMS switch on a member's grid, and says why", () => {
+  it("leaves Opportunities without an SMS box on a member's grid", () => {
     const html = render(
       createElement(MyNotificationsForm, {
         org: "demo",
@@ -108,17 +108,18 @@ describe("notification grids show only the channels a category reaches", () => {
         sms: { phone: null, mayText: false },
       }),
     );
-    const opportunities = row(html, "Opportunities");
+    const opportunities = group(html, "Opportunities");
     expect(opportunities).not.toContain('name="cell.opportunities.SMS"');
     expect(opportunities).toContain('name="cell.opportunities.Email"');
-    expect(opportunities).toContain("Nothing in Opportunities is sent by Text (SMS).");
     expect(html).not.toContain('name="was.opportunities.SMS"');
-    // Every row keeps one cell per column, so the switches line up under their channel.
-    expect(opportunities.match(/<td/g)).toHaveLength(NOTIFICATION_CHANNELS.length);
-    expect(row(html, "Safety")).toContain('name="cell.safety.SMS"');
+    // The group holds one box per channel the category reaches, and no other.
+    expect(opportunities.match(/name="cell\.opportunities\.[^"]+"/g)).toHaveLength(
+      notificationCategoryChannels("opportunities").length,
+    );
+    expect(group(html, "Safety")).toContain('name="cell.safety.SMS"');
   });
 
-  it("offers a switch on every grid exactly where a kind of the category is delivered", () => {
+  it("offers a box on every grid exactly where a kind of the category is delivered", () => {
     const mine = render(
       createElement(MyNotificationsForm, {
         org: "demo",

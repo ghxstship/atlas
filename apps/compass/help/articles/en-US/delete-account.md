@@ -19,3 +19,5 @@ Time and pay records, tax forms and engagement records for 7 years, as the law r
 ## Confirm
 
 Type your sign-in email, confirm it is you, then hold **Delete My Account** for 2 seconds.
+
+If you sign in with Apple, Compass shows Apple's sheet once more, so it can stop using your Apple Account. If it cannot, your account is still deleted, and Compass tells you to remove it from Sign in with Apple in your Apple Account settings.
