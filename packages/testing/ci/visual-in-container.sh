@@ -10,7 +10,8 @@
 # mounted at its own path, so its installed node_modules resolve inside the container. On Docker
 # Desktop, set VISUAL_FORWARD_PORTS to the app's port (forward-ports.mjs explains why).
 #
-# Pass VISUAL_UPDATE_SNAPSHOTS=missing, changed or all to write baselines.
+# The stack and the app run on the visual clock (visual-clock.sh); pass its E2E_CLOCK_OFFSET_MS so
+# the browsers follow it. Pass VISUAL_UPDATE_SNAPSHOTS=missing, changed or all to write baselines.
 set -eu
 
 app=${1:?usage: visual-in-container.sh <atlas|gateway> [playwright arguments]}
@@ -22,6 +23,7 @@ exec docker run --rm --platform linux/amd64 --network host --ipc=host \
   -e HOME=/root \
   -e CI \
   -e E2E_BASE_URL \
+  -e E2E_CLOCK_OFFSET_MS \
   -e E2E_SUPABASE_URL \
   -e E2E_SUPABASE_ANON_KEY \
   -e VISUAL_UPDATE_SNAPSHOTS \

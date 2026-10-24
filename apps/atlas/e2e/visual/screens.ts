@@ -25,15 +25,10 @@ export const SCREENS: readonly Screen[] = [
   { name: "project-overview", path: `/${DEMO_ORG}/p/NWS/overview`, person: "producer" },
   { name: "inbox", path: `/${DEMO_ORG}/inbox`, person: "producer" },
   { name: "my-work", path: `/${DEMO_ORG}/my-work`, person: "producer" },
-  // The table view of a fixed week, the opening weekend of 12 to 14 March 2027 (seed 0113). "This
-  // week" moves with the calendar and the seed's shifts dated from the day it ran (0217, 1090) fall in
-  // or out of it by weekday, so the shot drifted every day (A71). Only a run in that week itself
-  // would see those shifts.
-  {
-    name: "crew-shifts",
-    path: `/${DEMO_ORG}/crew/shifts?view=table&week=2027-03-08`,
-    person: "producer",
-  },
+  // This week in the table view, as the producer opens it. At the visual clock (stable.ts) the week is
+  // always the one the seed's shifts dated from the reset fall in (0217, 1090, 1500); on the real
+  // clock those shifts fell in or out of it by weekday and the shot drifted every day.
+  { name: "crew-shifts", path: `/${DEMO_ORG}/crew/shifts?view=table`, person: "producer" },
   { name: "finance-budgets", path: `/${DEMO_ORG}/finance/budgets`, person: "producer" },
   { name: "record", path: `/${DEMO_ORG}/r/NWS-12`, person: "producer" },
   { name: "settings-general", path: `/${DEMO_ORG}/settings/general`, person: "owner" },
