@@ -1,14 +1,17 @@
 -- pgTAP: migration 1650, the weekly production backup's read-only login (ADR 0033, decision 47; RRR-139). xos_backup
 -- logs in, bypasses row security as pg_dump needs, and reads every table and sequence of app, private and xpms, now and
--- later, and the storage buckets and object list. It reaches the accounts and the worker schedules only through
--- private.backup_account_rows and private.backup_cron_schedules, and the account rows they return restore exactly. It
--- holds no membership, writes nothing, executes no other owner-rights function, and reads nothing in Vault or auth.
+-- later, and the storage buckets and object list. It reaches the accounts, the worker schedules and the migration
+-- versions only through private.backup_account_rows, private.backup_cron_schedules and
+-- private.backup_migration_versions, and the account rows restore exactly, but for their one-time tokens, which come
+-- back empty. private.backup_platform_objects gives back XOS's triggers, policies and grants on auth and storage
+-- exactly. It holds no membership, writes nothing, executes no other owner-rights function, and reads nothing in Vault
+-- or auth.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(33);
+select plan(41);
 
 select pg_temp.as_platform();
 
@@ -75,11 +78,14 @@ language sql stable as $$
   where n.nspname in ('vault', 'auth')
 $$;
 
--- The account tables as one text per table, to compare before and after a restore.
+-- The account tables as one text per table, to compare before and after a restore; the users' one-time tokens, which
+-- the backup leaves out, apart.
 create function pg_temp.accounts_digest() returns text
 language sql stable as $$
   select string_agg(t.digest, ' ' order by t.name) from (
-    select 'users' as name, md5(coalesce(string_agg(x::text, '|' order by x.id), '')) as digest from auth.users x
+    select 'users' as name, md5(coalesce(string_agg((to_jsonb(x) - array['confirmation_token', 'recovery_token',
+      'email_change_token_new', 'email_change_token_current', 'phone_change_token', 'reauthentication_token'])::text,
+      '|' order by x.id), '')) as digest from auth.users x
     union all select 'identities', md5(coalesce(string_agg(x::text, '|' order by x.id), '')) from auth.identities x
     union all select 'mfa_factors', md5(coalesce(string_agg(x::text, '|' order by x.id), '')) from auth.mfa_factors x
     union all select 'sso_providers', md5(coalesce(string_agg(x::text, '|' order by x.id), '')) from auth.sso_providers x
@@ -168,14 +174,16 @@ select set_eq(
   $$select p.oid::regprocedure::text from pg_proc p
     where p.prosecdef and has_function_privilege('xos_backup', p.oid, 'EXECUTE')
       and has_schema_privilege('xos_backup', p.pronamespace, 'USAGE')$$,
-  $$values ('private.backup_account_rows()'), ('private.backup_cron_schedules()')$$,
-  'the only owner-rights functions the login may run are the two backup readers');
+  $$values ('private.backup_account_rows()'), ('private.backup_cron_schedules()'), ('private.backup_migration_versions()')$$,
+  'the only owner-rights functions the login may run are the three backup readers');
 
 select is_empty(
   $$select r.rolname::text from pg_roles r
     where r.rolname <> 'xos_backup' and not r.rolsuper and r.rolname <> 'postgres'
       and (has_function_privilege(r.oid, 'private.backup_account_rows()', 'EXECUTE')
-        or has_function_privilege(r.oid, 'private.backup_cron_schedules()', 'EXECUTE'))$$,
+        or has_function_privilege(r.oid, 'private.backup_cron_schedules()', 'EXECUTE')
+        or has_function_privilege(r.oid, 'private.backup_migration_versions()', 'EXECUTE')
+        or has_function_privilege(r.oid, 'private.backup_platform_objects()', 'EXECUTE'))$$,
   'no other role, anon, authenticated and service_role included, may run the backup readers');
 
 -- 4. Later migrations --------------------------------------------------------------------------------------------------
@@ -199,7 +207,9 @@ drop table app.zz_backup_probe;
 
 create temporary table cron_rows (s text);
 create temporary table account_rows (s text);
-grant select, insert on cron_rows, account_rows to public;
+create temporary table migration_rows (s text);
+create temporary table platform_rows (s text);
+grant select, insert on cron_rows, account_rows, migration_rows, platform_rows to public;
 
 select is(pg_temp.count_as_backup('select count(*) from app.organizations'), (select count(*) from app.organizations),
   'with row security off, as pg_dump runs, the login reads every row of a table under policies');
@@ -236,6 +246,15 @@ select ok(
     'select private.run_nightly_retention()')),
   'with the job''s name, schedule and command');
 
+select is(pg_temp.as_backup('insert into pg_temp.migration_rows select s from private.backup_migration_versions() s'), 'ok',
+  'the login reads the migration versions through private.backup_migration_versions');
+
+select ok(
+  (select array_agg(s order by s) from migration_rows)
+    = (select array_agg(m.version order by m.version) from supabase_migrations.schema_migrations m)
+    and exists (select 1 from migration_rows where s = '1650'),
+  'every applied version, this one included, so a restore can record the migration history again');
+
 -- 6. The accounts round-trip --------------------------------------------------------------------------------------------
 
 -- One account of every kind the function reads: a user with an email identity and a TOTP factor, and an org's SAML
@@ -253,6 +272,11 @@ values ('00000000-0000-4000-8000-000000001652', '00000000-0000-4000-8000-0000000
 insert into auth.saml_providers (id, sso_provider_id, entity_id, metadata_xml, attribute_mapping, created_at, updated_at)
 values ('00000000-0000-4000-8000-000000001653', '00000000-0000-4000-8000-000000001651', 'https://idp.northwind.test',
   '<EntityDescriptor entityID="https://idp.northwind.test"/>', '{"keys": {}}', now(), now());
+-- Alice has a link of every kind outstanding.
+update auth.users set confirmation_token = 'tok1650confirm', recovery_token = 'tok1650recover',
+  email_change_token_new = 'tok1650emailnew', email_change_token_current = 'tok1650emailcur',
+  phone_change_token = 'tok1650phone', reauthentication_token = 'tok1650reauth'
+where id = pg_temp.id('alice_user');
 
 create temporary table digest_before as select pg_temp.accounts_digest() as d;
 
@@ -271,6 +295,9 @@ select is_empty(
        or (s like 'insert into auth.users %' and split_part(s, ')', 1) ~ '\mconfirmed_at\M')
        or (s like 'insert into auth.identities %' and split_part(s, ')', 1) ~ '\memail\M')$$,
   'none touches another auth table or sets a generated column (users.confirmed_at, identities.email)');
+
+select is_empty($$select left(s, 80) from account_rows where s ~ 'tok1650'$$,
+  'no INSERT carries a one-time token');
 
 -- Restore them into emptied tables, as data.sql does with triggers off, and compare every row.
 set local session_replication_role = replica;
@@ -294,6 +321,83 @@ set local session_replication_role = origin;
 
 select is(pg_temp.accounts_digest(), (select d from digest_before),
   'the INSERTs restore every account row exactly, generated columns recomputed');
+
+select is_empty(
+  $$select id::text from auth.users
+    where concat(confirmation_token, recovery_token, email_change_token_new, email_change_token_current,
+      phone_change_token, reauthentication_token) <> ''
+       or confirmation_token is null or recovery_token is null$$,
+  'every one-time token comes back empty, not null, which Supabase Auth reads as no link pending');
+
+-- 7. XOS's objects on auth and storage --------------------------------------------------------------------------------
+
+-- Every trigger, policy and grant the function covers, as the catalogs describe them.
+create function pg_temp.platform_digest() returns text
+language sql stable as $$
+  select string_agg(x, E'\n' order by x) from (
+    select pg_get_triggerdef(t.oid) || ' ' || t.tgenabled::text as x
+    from pg_trigger t join pg_class c on c.oid = t.tgrelid join pg_namespace n on n.oid = c.relnamespace
+    join pg_proc f on f.oid = t.tgfoid join pg_namespace fn on fn.oid = f.pronamespace
+    where n.nspname in ('auth', 'storage') and not t.tgisinternal and fn.nspname in ('app', 'private', 'xpms')
+    union all
+    select concat_ws(' | ', tablename, policyname, permissive, roles::text, cmd, qual, with_check) from pg_policies where schemaname = 'storage'
+    union all
+    select concat_ws(' | ', 'grants', has_schema_privilege('xos_backup', 'storage', 'USAGE'),
+      has_table_privilege('xos_backup', 'storage.buckets', 'SELECT'), has_table_privilege('xos_backup', 'storage.objects', 'SELECT'))
+  ) d
+$$;
+
+create function pg_temp.run_platform_rows() returns void
+language plpgsql as $$
+declare
+  v_statement text;
+begin
+  for v_statement in select s from platform_rows loop
+    execute v_statement;
+  end loop;
+end $$;
+
+create temporary table platform_before as select pg_temp.platform_digest() as d;
+
+select is(pg_temp.as_backup('insert into pg_temp.platform_rows select s from private.backup_platform_objects() s'), 'ok',
+  'the login reads XOS''s triggers, policies and grants on auth and storage through private.backup_platform_objects');
+
+select ok(
+  exists (select 1 from platform_rows where s like 'CREATE OR REPLACE TRIGGER xos_create_person AFTER INSERT ON auth.users %')
+    and exists (select 1 from platform_rows where s like 'CREATE OR REPLACE TRIGGER t90_queue_object_scan AFTER INSERT OR UPDATE ON storage.objects %')
+    and (select count(*) from platform_rows where s like 'drop policy if exists %') = (select count(*) from pg_policies where schemaname = 'storage')
+    and (select count(*) from platform_rows where s like 'grant % to xos_backup;') = 3,
+  'one statement per XOS trigger on auth.users and storage.objects, per storage policy, and per grant of section 3');
+
+select pg_temp.run_platform_rows();
+select is(pg_temp.platform_digest(), (select d from platform_before),
+  'run over the live objects, each statement replaces its own by name and changes nothing');
+
+-- A project restored from the schema dump has none of them. Each DROP POLICY IF EXISTS then notes that it found none.
+set local client_min_messages = warning;
+do $$
+declare
+  v record;
+begin
+  for v in
+    select t.tgname, t.tgrelid::regclass as rel
+    from pg_trigger t join pg_class c on c.oid = t.tgrelid join pg_namespace n on n.oid = c.relnamespace
+    join pg_proc f on f.oid = t.tgfoid join pg_namespace fn on fn.oid = f.pronamespace
+    where n.nspname in ('auth', 'storage') and not t.tgisinternal and fn.nspname in ('app', 'private', 'xpms')
+  loop
+    execute format('drop trigger %I on %s', v.tgname, v.rel);
+  end loop;
+  for v in select policyname, format('%I.%I', schemaname, tablename) as rel from pg_policies where schemaname = 'storage' loop
+    execute format('drop policy %I on %s', v.policyname, v.rel);
+  end loop;
+  revoke select on storage.buckets, storage.objects from xos_backup;
+  revoke usage on schema storage from xos_backup;
+end;
+$$;
+
+select pg_temp.run_platform_rows();
+select is(pg_temp.platform_digest(), (select d from platform_before),
+  'platform.sql gives a restored project back every trigger, storage policy and grant exactly');
 
 select * from finish();
 rollback;
