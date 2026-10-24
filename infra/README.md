@@ -23,13 +23,13 @@ Everything runs on free tiers or on plans already paid for:
 - **GitHub Actions and Pages.** Free for a public repository: synthetics every 5 minutes, the status page and the weekly backup.
 - **Sentry Developer plan.** Free: errors and a 5 percent trace sample.
 - **Vercel and Supabase logs.** Included in the current plans.
-- **PowerSync Cloud Free plan for staging.** The owner confirms the plan's limits before creating the instance.
 
-Four Section 5.1 and Section 9 targets need paid services, so they are blocked items, not assumptions:
+Three Section 5.1 and Section 9 targets need paid services, so they are blocked items, not assumptions:
 
 1. point-in-time recovery (the 1 hour RPO);
-2. log drains;
-3. 1-minute synthetic checks from five regions;
-4. production PowerSync hosting.
+2. log drains, on Better Stack (ADR 0033, decision 45);
+3. 1-minute synthetic checks from five regions, on Better Stack (the same decision).
 
-Rolling Releases on Vercel apply only if the current plan includes them.
+PowerSync hosting is not needed for launch: Compass launches on REST sync and PowerSync is deferred (ADR 0033, decision 51).
+
+The Vercel plan includes Rolling Releases for one project, which `atlas` uses; `gateway` relies on Instant Rollback (ADR 0033, decision 50).

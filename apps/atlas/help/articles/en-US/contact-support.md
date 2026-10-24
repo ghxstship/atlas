@@ -19,8 +19,8 @@ You can choose to attach diagnostics: the page you were on, the app version, you
 Admins can also contact the platform team from **Settings, Help and support**. How you are answered depends on your plan:
 
 - **Core:** email, first response within 2 business days.
-- **Pro:** email and in-app chat, within 1 business day.
+- **Pro:** email, within 1 business day.
 - **Team:** priority queue, within 8 business hours.
 - **Enterprise:** a dedicated channel, within 1 hour for severity 1.
 
-The Access plan includes the help center and community forum. The platform team never sees your organization's data unless an owner grants a support session.
+The Access plan includes the help center. The platform team never sees your organization's data unless an owner grants a support session.

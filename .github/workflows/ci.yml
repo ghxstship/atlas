@@ -440,6 +440,11 @@ jobs:
       # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
       - run: infra/ci/supabase-images.sh start
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
+      # Every core screen is a picture of the demo tenant at one instant, so nothing on it moves
+      # with the date of the run: the database is migrated and seeded with its clock there, and
+      # next dev and the browsers follow it (E2E_CLOCK_OFFSET_MS, packages/testing/ci/visual-clock.sh).
+      - name: Put the stack on the visual clock
+        run: packages/testing/ci/visual-clock.sh >> "$GITHUB_ENV"
       - name: Write the app environment from the stack
         run: |
           ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
@@ -449,7 +454,8 @@ jobs:
       - name: Start next dev
         run: |
           PORT=$([ "${{ matrix.app }}" = atlas ] && echo 3006 || echo 3127)
-          (cd apps/${{ matrix.app }} && nohup pnpm exec next dev --port "$PORT" > /tmp/app.log 2>&1 &)
+          CLOCK="--require $GITHUB_WORKSPACE/packages/testing/clock/node-clock.cjs"
+          (cd apps/${{ matrix.app }} && NODE_OPTIONS="$CLOCK" nohup pnpm exec next dev --port "$PORT" > /tmp/app.log 2>&1 &)
           for i in $(seq 90); do curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in" && break; sleep 2; done
           echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
       - name: Core screens in the pinned Playwright image

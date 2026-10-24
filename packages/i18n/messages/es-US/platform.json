@@ -196,7 +196,7 @@
       "venues": "Recintos del cliente",
       "endSession": "Terminar la sesión de soporte",
       "priceTitle": "Lo que cobra a este cliente",
-      "priceHelp": "Usted factura a sus clientes mediante Stripe Connect al precio que define. El cliente nunca lo ve aquí.",
+      "priceHelp": "Usted factura a este cliente por su cuenta. XOS guarda aquí el precio como referencia para usted y nunca se lo muestra al cliente.",
       "priceAmount": "Precio mensual",
       "priceCurrency": "Moneda",
       "priceSave": "Guardar el precio",

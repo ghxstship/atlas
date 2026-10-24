@@ -298,13 +298,13 @@ Before the first tag, the owner confirms the names are theirs. Publishing under 
 
 ## 6. Repository settings (orchestrator)
 
-| Setting                                   | Value                                                                                                                                                                          |
-| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Settings, Pages, Source                   | Deploy from a branch: `gh-pages`, root                                                                                                                                         |
-| Settings, Pages, Custom domain (optional) | `status.ghxstship.tech` with a CNAME record; no purchase needed for a subdomain of an owned domain                                                                             |
-| Settings, Variables (Actions)             | `XOS_STAGING_ATLAS_URL`, `XOS_STAGING_GATEWAY_URL`, `XOS_STAGING_SUPABASE_URL`, `XOS_STAGING_SUPABASE_ANON_KEY` (public by design), `XOS_STAGING_POWERSYNC_URL` once it exists |
-| Settings, Secrets (Actions)               | `XOS_SYNTHETIC_EMAIL`, `XOS_SYNTHETIC_PASSWORD`, `XOS_ALERT_WEBHOOK_URL`, `STAGING_DB_URL`                                                                                     |
-| Branch protection                         | Leave `status-data` and `gh-pages` unprotected so the workflow can force-push them; `main` is untouched                                                                        |
+| Setting                        | Value                                                                                                                                                                          |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Settings, Pages, Source        | Deploy from a branch: `gh-pages`, root                                                                                                                                         |
+| Settings, Pages, Custom domain | `status.ghxstship.tech` with a CNAME record (ADR 0033, decision 72); no purchase needed for a subdomain of an owned domain                                                     |
+| Settings, Variables (Actions)  | `XOS_STAGING_ATLAS_URL`, `XOS_STAGING_GATEWAY_URL`, `XOS_STAGING_SUPABASE_URL`, `XOS_STAGING_SUPABASE_ANON_KEY` (public by design), `XOS_STAGING_POWERSYNC_URL` once it exists |
+| Settings, Secrets (Actions)    | `XOS_SYNTHETIC_EMAIL`, `XOS_SYNTHETIC_PASSWORD`, `XOS_ALERT_WEBHOOK_URL`, `STAGING_DB_URL`                                                                                     |
+| Branch protection              | Leave `status-data` and `gh-pages` unprotected so the workflow can force-push them; `main` is untouched                                                                        |
 
 ## 7. Supabase stack images: GHCR first
 
@@ -368,4 +368,4 @@ To apply the result:
 
 ## Frequency and regions
 
-Section 5.1 asks for checks every minute from five regions. GitHub Actions on the free tier gives every 5 minutes from one region (`us-east`, the primary region). A 1-minute, five-region check needs a paid monitoring service, so it is a blocked item for the owner. The checks are plain Node scripts with no dependencies, so any scheduler that runs Node 22 can run them per region with `XOS_SYNTHETICS_REGION` set.
+Section 5.1 asks for checks every minute from five regions. GitHub Actions on the free tier gives every 5 minutes from one region (`us-east`, the primary region). A 1-minute, five-region check needs a paid monitoring service: the owner chose Better Stack (ADR 0033, decision 45), and its monitors run once the owner's account exists. The checks are plain Node scripts with no dependencies, so any scheduler that runs Node 22 can run them per region with `XOS_SYNTHETICS_REGION` set.
