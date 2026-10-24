@@ -4,6 +4,25 @@ import { PlatformDbError, recipientProfile } from "./platform-stores.js";
 import { isLocale } from "./i18n-locales.js";
 import { formatMessage } from "./email-messages.js";
 import { z } from "zod";
+//#region ../ia/src/handoff.ts
+/** The Compass URL scheme (apps/compass/app.json `scheme`). */
+var COMPASS_SCHEME = "compass";
+var RECORD_KEY = /^[A-Z]{2,5}-[1-9][0-9]{0,17}$/;
+/** True for a record display key such as `NWS-12`. */
+function isRecordKey(value) {
+  return RECORD_KEY.test(value);
+}
+/** The route Compass opens for the item. */
+function compassRoute(target) {
+  return target.kind === "record"
+    ? `/r/${encodeURIComponent(target.recordKey)}?org=${encodeURIComponent(target.org)}`
+    : `/e/${encodeURIComponent(target.engagementKey)}`;
+}
+/** The Compass scheme link, which opens Compass directly where it is installed. */
+function compassSchemeUrl(target) {
+  return `${COMPASS_SCHEME}:/${compassRoute(target)}`;
+}
+//#endregion
 //#region ../schemas/src/notifications/registry.generated.ts
 /** The templates index: every notification kind. */
 var NOTIFICATION_KINDS = [
@@ -72,7 +91,7 @@ var NOTIFICATION_KINDS = [
     category: "schedule",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: { startsWithinHours: 12 },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.shift.assigned.subject",
@@ -192,7 +211,7 @@ var NOTIFICATION_KINDS = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.account.security_changed.subject",
@@ -204,7 +223,7 @@ var NOTIFICATION_KINDS = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.account.recovery_code_used.subject",
@@ -252,7 +271,7 @@ var NOTIFICATION_KINDS = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.access.break_glass_started.subject",
@@ -416,60 +435,12 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
-    kind: "content_report.filed",
-    category: "safety",
-    emailTemplate: "notification",
-    pushCategory: null,
-    quietHoursBypass: null,
-    channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.content_report.filed.subject",
-      body: "kinds.content_report.filed.body",
-    },
-  },
-  {
-    kind: "content_report.overdue",
-    category: "safety",
-    emailTemplate: "notification",
-    pushCategory: null,
-    quietHoursBypass: null,
-    channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.content_report.overdue.subject",
-      body: "kinds.content_report.overdue.body",
-    },
-  },
-  {
-    kind: "content_report.decided",
-    category: "account",
-    emailTemplate: "notification",
-    pushCategory: null,
-    quietHoursBypass: null,
-    channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.content_report.decided.subject",
-      body: "kinds.content_report.decided.body",
-    },
-  },
-  {
-    kind: "content.removed",
-    category: "account",
-    emailTemplate: "notification",
-    pushCategory: null,
-    quietHoursBypass: null,
-    channels: ["In App", "Email", "SMS", "Push"],
-    copy: {
-      subject: "kinds.content.removed.subject",
-      body: "kinds.content.removed.body",
-    },
-  },
-  {
     kind: "report.delivered",
     category: "reports",
-    emailTemplate: "report_delivery",
+    emailTemplate: "notification",
     pushCategory: null,
     quietHoursBypass: null,
-    channels: ["In App", "Email", "SMS", "Push"],
+    channels: ["In App", "Push"],
     copy: {
       subject: "kinds.report.delivered.subject",
       body: "kinds.report.delivered.body",
@@ -725,7 +696,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1639_notification_kind_seed.sql"
+"supabase/migrations/1620_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
@@ -1268,25 +1239,6 @@ async function handleTwilioWebhook(request, store, options) {
   return twiml(formatMessage("en-US", key, { helpContact: options.helpContact }));
 }
 //#endregion
-//#region ../ia/src/handoff.ts
-/** The Compass URL scheme (apps/compass/app.json `scheme`). */
-var COMPASS_SCHEME = "compass";
-var RECORD_KEY = /^[A-Z]{2,5}-[1-9][0-9]{0,17}$/;
-/** True for a record display key such as `NWS-12`. */
-function isRecordKey(value) {
-  return RECORD_KEY.test(value);
-}
-/** The route Compass opens for the item. */
-function compassRoute(target) {
-  return target.kind === "record"
-    ? `/r/${encodeURIComponent(target.recordKey)}?org=${encodeURIComponent(target.org)}`
-    : `/e/${encodeURIComponent(target.engagementKey)}`;
-}
-/** The Compass scheme link, which opens Compass directly where it is installed. */
-function compassSchemeUrl(target) {
-  return `${COMPASS_SCHEME}:/${compassRoute(target)}`;
-}
-//#endregion
 //#region src/notifications/stores.ts
 function rows(data) {
   return Array.isArray(data) ? data : [];
@@ -1322,12 +1274,23 @@ function browsers(value) {
     return subscriptionId !== null && d["token"] === null ? [subscriptionId] : [];
   });
 }
-/** The record key and org slug of a notification about a record, or null. */
+/** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin, with no query. */
+var GATEWAY_PATH = /^\/(?!\/)[A-Za-z0-9._~/-]{0,199}$/;
+/**
+ * The record key and org slug of a notification about a record, or null: the key it carries (message_args.recordKey,
+ * 1600), else the record's and its project's.
+ */
 async function recordTarget(db, claim) {
   const slug = optionalText(
     await db.selectOne("organizations", "slug", { id: claim.orgId }),
     "slug",
   );
+  const carried = claim.messageArgs?.["recordKey"];
+  if (typeof carried === "string" && isRecordKey(carried))
+    return {
+      slug,
+      recordKey: carried,
+    };
   if (claim.subjectId === null || !["records", "app.records"].includes(claim.subjectTable ?? ""))
     return {
       slug,
@@ -1349,36 +1312,37 @@ async function recordTarget(db, claim) {
   };
 }
 /**
- * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, else the
- * org's Inbox; in Gateway, Home. A path, never a full URL: the service worker resolves it on its own origin.
+ * Where a push opens in Gateway (A101): the page its emitter names (gatewayPath), such as a marketplace match's listing
+ * or Explore Alerts (1462); a match that names none opens Explore Alerts, and anything else Home.
+ */
+function gatewayPushPath(claim) {
+  const path = claim.messageArgs?.["gatewayPath"];
+  if (typeof path === "string" && GATEWAY_PATH.test(path)) return path;
+  return claim.kind === "opportunity.matched" ? "/explore/alerts" : "/home";
+}
+/**
+ * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, a delivered
+ * report's report (ADR 0033 decision 77), else the org's Inbox; in Gateway the page the notification names, else Home.
+ * A path, never a full URL: the service worker resolves it on its own origin.
  */
 async function webPushLink(db, claim, app) {
-  if (app === "Gateway") return "/home";
+  if (app === "Gateway") return gatewayPushPath(claim);
   const target = await recordTarget(db, claim);
   if (target.slug === null) return "/";
+  if (claim.subjectTable === "app.report_definitions" && claim.subjectId !== null)
+    return `/${target.slug}/reports/saved-reports?peek=${encodeURIComponent(claim.subjectId)}`;
   return target.recordKey === null
     ? `/${target.slug}/inbox`
     : `/${target.slug}/r/${target.recordKey}`;
 }
 /** The Compass deep link of a notification: the record screen for a record, else the Inbox. */
 async function compassLink(db, claim) {
-  const inbox = `${COMPASS_SCHEME}://inbox`;
-  if (claim.subjectId === null || !["records", "app.records"].includes(claim.subjectTable ?? ""))
-    return inbox;
-  const record = await db.selectOne("records", "project_id, record_number", {
-    id: claim.subjectId,
-  });
-  const projectId = optionalText(record, "project_id");
-  if (record === null || projectId === null) return inbox;
-  const project = await db.selectOne("projects", "project_key", { id: projectId });
-  const org = await db.selectOne("organizations", "slug", { id: claim.orgId });
-  const recordKey = `${optionalText(project, "project_key") ?? ""}-${String(record["record_number"] ?? "")}`;
-  const slug = optionalText(org, "slug");
-  if (slug === null || !isRecordKey(recordKey)) return inbox;
+  const target = await recordTarget(db, claim);
+  if (target.slug === null || target.recordKey === null) return `${COMPASS_SCHEME}://inbox`;
   return compassSchemeUrl({
     kind: "record",
-    org: slug,
-    recordKey,
+    org: target.slug,
+    recordKey: target.recordKey,
   });
 }
 /** PushStore over app.claim_notification_deliveries, app.record_push_tickets and the receipt RPCs. */
@@ -1554,6 +1518,7 @@ export {
   dispatchSms,
   dispatchSmsSummaries,
   handleTwilioWebhook,
+  isRecordKey,
   localeOf,
   notificationKind,
   notificationText,

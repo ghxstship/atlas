@@ -568,7 +568,10 @@
     "title": "Inbox",
     "needsYou": "Needs You",
     "fyi": "For Your Information",
-    "empty": "You're all caught up. Approvals and messages appear here."
+    "empty": "You're all caught up. Approvals and messages appear here.",
+    "update": "Update",
+    "updateFrom": "Update from {org}",
+    "new": "New"
   },
   "more": {
     "title": "More",

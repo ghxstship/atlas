@@ -8419,6 +8419,87 @@ export type Database = {
           },
         ];
       };
+      billing_checkouts: {
+        Row: {
+          billing_interval: Database["app"]["Enums"]["billing_interval"];
+          checkout_state: Database["app"]["Enums"]["billing_checkout_state"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expires_at: string;
+          finished_at: string | null;
+          id: string;
+          livemode: boolean;
+          org_id: string;
+          plan_code: string;
+          stripe_checkout_session_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          billing_interval: Database["app"]["Enums"]["billing_interval"];
+          checkout_state?: Database["app"]["Enums"]["billing_checkout_state"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at: string;
+          finished_at?: string | null;
+          id?: string;
+          livemode: boolean;
+          org_id: string;
+          plan_code: string;
+          stripe_checkout_session_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          billing_interval?: Database["app"]["Enums"]["billing_interval"];
+          checkout_state?: Database["app"]["Enums"]["billing_checkout_state"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string;
+          finished_at?: string | null;
+          id?: string;
+          livemode?: boolean;
+          org_id?: string;
+          plan_code?: string;
+          stripe_checkout_session_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "billing_checkouts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "billing_checkouts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "billing_checkouts_plan_code_fkey";
+            columns: ["plan_code"];
+            isOneToOne: false;
+            referencedRelation: "plans";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "billing_checkouts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       billing_draws: {
         Row: {
           amount_requested_minor: number;
@@ -8792,6 +8873,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "budgets";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
           },
           {
             foreignKeyName: "budget_lines_cost_center_id_fkey";
@@ -10303,6 +10391,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "change_order_lines_change_order_id_fkey";
             columns: ["change_order_id"];
             isOneToOne: false;
@@ -10522,6 +10617,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "budgets";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
           },
           {
             foreignKeyName: "change_orders_created_by_fkey";
@@ -11589,243 +11691,6 @@ export type Database = {
           },
         ];
       };
-      content_moderation_decisions: {
-        Row: {
-          action: Database["app"]["Enums"]["content_moderation_action"];
-          author_person_id: string | null;
-          chat_message_id: string | null;
-          comment_id: string | null;
-          created_at: string;
-          created_by: string | null;
-          decided_at: string;
-          decided_by: string;
-          deleted_at: string | null;
-          facts: string;
-          feed_post_id: string | null;
-          ground: Database["app"]["Enums"]["moderation_ground"];
-          id: string;
-          org_id: string;
-          rule_reference: string;
-          statement_of_reasons: string;
-          subject_kind: Database["app"]["Enums"]["content_subject_kind"];
-          updated_at: string;
-          updated_by: string | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          action: Database["app"]["Enums"]["content_moderation_action"];
-          author_person_id?: string | null;
-          chat_message_id?: string | null;
-          comment_id?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          decided_at?: string;
-          decided_by: string;
-          deleted_at?: string | null;
-          facts: string;
-          feed_post_id?: string | null;
-          ground: Database["app"]["Enums"]["moderation_ground"];
-          id?: string;
-          org_id: string;
-          rule_reference: string;
-          statement_of_reasons: string;
-          subject_kind: Database["app"]["Enums"]["content_subject_kind"];
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Update: {
-          action?: Database["app"]["Enums"]["content_moderation_action"];
-          author_person_id?: string | null;
-          chat_message_id?: string | null;
-          comment_id?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          decided_at?: string;
-          decided_by?: string;
-          deleted_at?: string | null;
-          facts?: string;
-          feed_post_id?: string | null;
-          ground?: Database["app"]["Enums"]["moderation_ground"];
-          id?: string;
-          org_id?: string;
-          rule_reference?: string;
-          statement_of_reasons?: string;
-          subject_kind?: Database["app"]["Enums"]["content_subject_kind"];
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "content_moderation_decisions_author_person_id_fkey";
-            columns: ["author_person_id"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_moderation_decisions_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_moderation_decisions_decided_by_fkey";
-            columns: ["decided_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_moderation_decisions_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_moderation_decisions_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      content_reports: {
-        Row: {
-          author_person_id: string | null;
-          chat_message_id: string | null;
-          comment_id: string | null;
-          content_excerpt: string;
-          content_moderation_decision_id: string | null;
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          details: string | null;
-          due_at: string;
-          escalated_at: string | null;
-          feed_post_id: string | null;
-          id: string;
-          org_id: string;
-          reason: Database["app"]["Enums"]["content_report_reason"];
-          reported_at: string;
-          reporter_person_id: string;
-          subject_kind: Database["app"]["Enums"]["content_subject_kind"];
-          updated_at: string;
-          updated_by: string | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          author_person_id?: string | null;
-          chat_message_id?: string | null;
-          comment_id?: string | null;
-          content_excerpt: string;
-          content_moderation_decision_id?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          details?: string | null;
-          due_at: string;
-          escalated_at?: string | null;
-          feed_post_id?: string | null;
-          id?: string;
-          org_id: string;
-          reason: Database["app"]["Enums"]["content_report_reason"];
-          reported_at?: string;
-          reporter_person_id: string;
-          subject_kind: Database["app"]["Enums"]["content_subject_kind"];
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Update: {
-          author_person_id?: string | null;
-          chat_message_id?: string | null;
-          comment_id?: string | null;
-          content_excerpt?: string;
-          content_moderation_decision_id?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          details?: string | null;
-          due_at?: string;
-          escalated_at?: string | null;
-          feed_post_id?: string | null;
-          id?: string;
-          org_id?: string;
-          reason?: Database["app"]["Enums"]["content_report_reason"];
-          reported_at?: string;
-          reporter_person_id?: string;
-          subject_kind?: Database["app"]["Enums"]["content_subject_kind"];
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "content_reports_author_person_id_fkey";
-            columns: ["author_person_id"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_reports_chat_message_id_fkey";
-            columns: ["chat_message_id"];
-            isOneToOne: false;
-            referencedRelation: "chat_messages";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_reports_comment_id_fkey";
-            columns: ["comment_id"];
-            isOneToOne: false;
-            referencedRelation: "comments";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_reports_content_moderation_decision_id_fkey";
-            columns: ["content_moderation_decision_id"];
-            isOneToOne: false;
-            referencedRelation: "content_moderation_decisions";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_reports_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_reports_feed_post_id_fkey";
-            columns: ["feed_post_id"];
-            isOneToOne: false;
-            referencedRelation: "feed_posts";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_reports_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_reports_reporter_person_id_fkey";
-            columns: ["reporter_person_id"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_reports_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       contingency_draws: {
         Row: {
           amount_minor: number;
@@ -11897,6 +11762,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "contingency_draws_from_budget_line_id_fkey";
+            columns: ["from_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "contingency_draws_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
@@ -11922,6 +11794,13 @@ export type Database = {
             columns: ["to_budget_line_id"];
             isOneToOne: false;
             referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contingency_draws_to_budget_line_id_fkey";
+            columns: ["to_budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -16239,12 +16118,12 @@ export type Database = {
           pay_basis: string | null;
           person_id: string | null;
           project_id: string;
-          role_code: string;
+          role_code: string | null;
           role_type: Database["app"]["Enums"]["external_role_type"];
           start_date: string;
           updated_at: string;
           updated_by: string | null;
-          worker_classification: string;
+          worker_classification: string | null;
         };
         ComputedFields: never;
         Insert: {
@@ -16267,12 +16146,12 @@ export type Database = {
           pay_basis?: string | null;
           person_id?: string | null;
           project_id: string;
-          role_code: string;
+          role_code?: string | null;
           role_type: Database["app"]["Enums"]["external_role_type"];
           start_date: string;
           updated_at?: string;
           updated_by?: string | null;
-          worker_classification: string;
+          worker_classification?: string | null;
         };
         Update: {
           agreed_rate_minor?: number | null;
@@ -16294,12 +16173,12 @@ export type Database = {
           pay_basis?: string | null;
           person_id?: string | null;
           project_id?: string;
-          role_code?: string;
+          role_code?: string | null;
           role_type?: Database["app"]["Enums"]["external_role_type"];
           start_date?: string;
           updated_at?: string;
           updated_by?: string | null;
-          worker_classification?: string;
+          worker_classification?: string | null;
         };
         Relationships: [
           {
@@ -16883,6 +16762,13 @@ export type Database = {
             columns: ["budget_line_id"];
             isOneToOne: false;
             referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "expenses_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -23682,6 +23568,13 @@ export type Database = {
             columns: ["budget_line_id"];
             isOneToOne: false;
             referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -32440,6 +32333,83 @@ export type Database = {
           },
         ];
       };
+      person_push_devices: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expo_push_token: string | null;
+          id: string;
+          last_seen_at: string;
+          person_id: string;
+          platform: string;
+          revoked_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          web_app: string | null;
+          web_auth: string | null;
+          web_endpoint: string | null;
+          web_p256dh: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expo_push_token?: string | null;
+          id?: string;
+          last_seen_at?: string;
+          person_id: string;
+          platform: string;
+          revoked_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          web_app?: string | null;
+          web_auth?: string | null;
+          web_endpoint?: string | null;
+          web_p256dh?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expo_push_token?: string | null;
+          id?: string;
+          last_seen_at?: string;
+          person_id?: string;
+          platform?: string;
+          revoked_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          web_app?: string | null;
+          web_auth?: string | null;
+          web_endpoint?: string | null;
+          web_p256dh?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "person_push_devices_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_push_devices_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_push_devices_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       person_references: {
         Row: {
           contact_email: string | null;
@@ -33485,6 +33455,13 @@ export type Database = {
             columns: ["budget_line_id"];
             isOneToOne: false;
             referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "po_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -35961,8 +35938,9 @@ export type Database = {
           notification_created_at: string;
           notification_delivery_id: string;
           org_id: string;
+          person_push_device_id: string | null;
           push_service: string;
-          push_subscription_id: string;
+          push_subscription_id: string | null;
           receipt_checked_at: string | null;
           updated_at: string;
           updated_by: string | null;
@@ -35980,8 +35958,9 @@ export type Database = {
           notification_created_at: string;
           notification_delivery_id: string;
           org_id: string;
+          person_push_device_id?: string | null;
           push_service?: string;
-          push_subscription_id: string;
+          push_subscription_id?: string | null;
           receipt_checked_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -35998,8 +35977,9 @@ export type Database = {
           notification_created_at?: string;
           notification_delivery_id?: string;
           org_id?: string;
+          person_push_device_id?: string | null;
           push_service?: string;
-          push_subscription_id?: string;
+          push_subscription_id?: string | null;
           receipt_checked_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -36024,6 +36004,13 @@ export type Database = {
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "push_tickets_person_push_device_id_fkey";
+            columns: ["person_push_device_id"];
+            isOneToOne: false;
+            referencedRelation: "person_push_devices";
             referencedColumns: ["id"];
           },
           {
@@ -41237,6 +41224,13 @@ export type Database = {
             columns: ["budget_line_id"];
             isOneToOne: false;
             referencedRelation: "budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "requisitions_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
             referencedColumns: ["id"];
           },
           {
@@ -55584,6 +55578,13 @@ export type Database = {
             referencedRelation: "budgets";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "budget_lines_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
+          },
         ];
       };
       budget_line_facts: {
@@ -55804,6 +55805,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "change_order_lines_budget_line_id_fkey";
+            columns: ["budget_line_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "change_orders_budget_id_fkey";
             columns: ["budget_id"];
             isOneToOne: false;
@@ -55830,6 +55838,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "budgets";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "change_orders_budget_id_fkey";
+            columns: ["budget_id"];
+            isOneToOne: false;
+            referencedRelation: "expense_budget_lines";
+            referencedColumns: ["budget_id"];
           },
           {
             foreignKeyName: "change_orders_project_id_fkey";
@@ -56339,6 +56354,65 @@ export type Database = {
           },
           {
             foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      expense_budget_lines: {
+        Row: {
+          budget_id: string | null;
+          budget_name: string | null;
+          currency_code: string | null;
+          description: string | null;
+          id: string | null;
+          is_baseline: boolean | null;
+          line_number: number | null;
+          org_id: string | null;
+          project_id: string | null;
+          urid: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "budget_lines_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "budgets_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "budgets_project_id_fkey";
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
@@ -59073,6 +59147,14 @@ export type Database = {
         }[];
       };
       begin_automation_run: { Args: { p_job_id?: string; p_run_id: string }; Returns: Json };
+      begin_billing_checkout: {
+        Args: { p_livemode: boolean; p_org_id: string; p_plan_code: string };
+        Returns: {
+          open_session_ids: string[];
+          stripe_customer_id: string;
+          trial_ends_at: string;
+        }[];
+      };
       begin_file_import: {
         Args: { p_link_id: string };
         Returns: {
@@ -59098,7 +59180,17 @@ export type Database = {
         };
         Returns: string;
       };
-      block_member: { Args: { p_membership_id: string }; Returns: string };
+      billing_account: {
+        Args: { p_livemode: boolean; p_org_id: string };
+        Returns: {
+          awaiting_subscription: boolean;
+          billing_interval: Database["app"]["Enums"]["billing_interval"];
+          current_period_end: string;
+          has_stripe_customer: boolean;
+          paid_through_stripe: boolean;
+        }[];
+      };
+      billing_portal_customer: { Args: { p_livemode: boolean; p_org_id: string }; Returns: string };
       block_profile: { Args: { p_handle: string; p_kind: string }; Returns: string };
       bulk_update_asset_units: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
@@ -59761,33 +59853,6 @@ export type Database = {
           size_bytes: number;
         }[];
       };
-      content_moderation_queue: {
-        Args: { p_open?: boolean; p_org_id: string };
-        Returns: {
-          author_name: string;
-          author_person_id: string;
-          content_excerpt: string;
-          due_at: string;
-          first_reported_at: string;
-          last_action: Database["app"]["Enums"]["content_moderation_action"];
-          last_decided_at: string;
-          open_reports: number;
-          overdue: boolean;
-          reasons: Database["app"]["Enums"]["content_report_reason"][];
-          removed: boolean;
-          subject_id: string;
-          subject_kind: Database["app"]["Enums"]["content_subject_kind"];
-          total_reports: number;
-        }[];
-      };
-      content_report_detail: {
-        Args: {
-          p_org_id: string;
-          p_subject_id: string;
-          p_subject_kind: Database["app"]["Enums"]["content_subject_kind"];
-        };
-        Returns: Json;
-      };
       conversation_read_receipts: {
         Args: { p_conversation_id: string };
         Returns: {
@@ -60040,19 +60105,6 @@ export type Database = {
           p_response: string;
         };
         Returns: undefined;
-      };
-      decide_content_report: {
-        Args: {
-          p_action: Database["app"]["Enums"]["content_moderation_action"];
-          p_facts: string;
-          p_ground: Database["app"]["Enums"]["moderation_ground"];
-          p_org_id: string;
-          p_rule_reference: string;
-          p_statement: string;
-          p_subject_id: string;
-          p_subject_kind: Database["app"]["Enums"]["content_subject_kind"];
-        };
-        Returns: string;
       };
       decide_deliverable: {
         Args: {
@@ -60370,6 +60422,13 @@ export type Database = {
           p_run_id: string;
         };
         Returns: Database["app"]["Enums"]["automation_run_status"];
+      };
+      finish_billing_checkout_from_stripe: {
+        Args: {
+          p_checkout_state: Database["app"]["Enums"]["billing_checkout_state"];
+          p_stripe_checkout_session_id: string;
+        };
+        Returns: boolean;
       };
       finish_file_import: {
         Args: { p_checksum_sha256: string; p_imported_version: string; p_link_id: string };
@@ -61329,6 +61388,17 @@ export type Database = {
         };
         Returns: string;
       };
+      record_billing_checkout: {
+        Args: {
+          p_billing_interval: Database["app"]["Enums"]["billing_interval"];
+          p_expires_at: string;
+          p_livemode: boolean;
+          p_org_id: string;
+          p_plan_code: string;
+          p_stripe_checkout_session_id: string;
+        };
+        Returns: string[];
+      };
       record_chat_message_translation: {
         Args: {
           p_body: string;
@@ -61757,6 +61827,10 @@ export type Database = {
         Args: { p_checksum_sha256: string; p_object_name: string; p_title: string };
         Returns: string;
       };
+      register_push_device: {
+        Args: { p_expo_push_token: string; p_platform: string };
+        Returns: string;
+      };
       register_web_push: {
         Args: { p_app: string; p_auth: string; p_endpoint: string; p_p256dh: string };
         Returns: number;
@@ -61777,15 +61851,6 @@ export type Database = {
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };
       reply_address_local_part: {
         Args: { p_person_id: string; p_subject_id: string };
-        Returns: string;
-      };
-      report_content: {
-        Args: {
-          p_details?: string;
-          p_reason: Database["app"]["Enums"]["content_report_reason"];
-          p_subject_id: string;
-          p_subject_kind: Database["app"]["Enums"]["content_subject_kind"];
-        };
         Returns: string;
       };
       report_delivery: {
@@ -63167,6 +63232,7 @@ export type Database = {
       availability_kind: "Available" | "Unavailable" | "Tentative";
       availability_visibility: "Private" | "Shared on Application" | "Public";
       background_check_result: "Pending" | "Clear" | "Consider" | "Suspended" | "Canceled";
+      billing_checkout_state: "Open" | "Completed" | "Expired";
       billing_interval: "Monthly" | "Annual";
       brand_radius_scale: "Compact" | "Default" | "Rounded";
       budget_line_type: "Cost" | "Labor" | "Fee" | "Contingency";
@@ -63183,10 +63249,6 @@ export type Database = {
       client_approval_subject: "Change Order" | "Record";
       comment_source: "App" | "Email" | "API";
       consent_source: "Web" | "Mobile" | "Email" | "SMS" | "Import" | "Support";
-      content_moderation_action: "Removed" | "No Action";
-      content_report_reason:
-        "Harassment" | "Hate" | "Sexual Content" | "Violence" | "Spam" | "Other";
-      content_subject_kind: "Feed Post" | "Comment" | "Chat Message";
       conversation_kind: "Direct" | "Group";
       correction_state: "Proposed" | "Approved" | "Rejected";
       cost_center_kind: "Standing" | "Overhead" | "Event";
@@ -69691,6 +69753,7 @@ export const Constants = {
       availability_kind: ["Available", "Unavailable", "Tentative"],
       availability_visibility: ["Private", "Shared on Application", "Public"],
       background_check_result: ["Pending", "Clear", "Consider", "Suspended", "Canceled"],
+      billing_checkout_state: ["Open", "Completed", "Expired"],
       billing_interval: ["Monthly", "Annual"],
       brand_radius_scale: ["Compact", "Default", "Rounded"],
       budget_line_type: ["Cost", "Labor", "Fee", "Contingency"],
@@ -69707,9 +69770,6 @@ export const Constants = {
       client_approval_subject: ["Change Order", "Record"],
       comment_source: ["App", "Email", "API"],
       consent_source: ["Web", "Mobile", "Email", "SMS", "Import", "Support"],
-      content_moderation_action: ["Removed", "No Action"],
-      content_report_reason: ["Harassment", "Hate", "Sexual Content", "Violence", "Spam", "Other"],
-      content_subject_kind: ["Feed Post", "Comment", "Chat Message"],
       conversation_kind: ["Direct", "Group"],
       correction_state: ["Proposed", "Approved", "Rejected"],
       cost_center_kind: ["Standing", "Overhead", "Event"],

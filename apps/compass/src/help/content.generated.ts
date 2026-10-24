@@ -719,6 +719,22 @@ export const COMPASS_HELP: HelpContent = {
           },
           {
             t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Your notifications join them: approvals, mentions and assignments under ",
+              },
+              { t: "strong", v: "Needs You" },
+              { t: "text", v: ", everything else under " },
+              { t: "strong", v: "For Your Information" },
+              {
+                t: "text",
+                v: ". A notification about a record opens the record. One about something Compass has no screen for, such as a new match for a saved search, opens the page in Gateway.",
+              },
+            ],
+          },
+          {
+            t: "p",
             c: [{ t: "text", v: "When nothing needs you, Inbox says you are all caught up." }],
           },
           { t: "h2", v: "Approve from notifications" },
@@ -727,7 +743,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Inbox offers to turn on notifications. With them on, you can approve or reject timesheets and other requests right from the alert, with a reason when you reject.",
+                v: "Inbox offers to turn on notifications. With them on, you can approve or reject timesheets and other requests right from the alert, with a reason when you reject. Tapping any other alert opens what it is about, even when Compass was closed.",
               },
             ],
           },
@@ -2901,6 +2917,22 @@ export const COMPASS_HELP: HelpContent = {
           },
           {
             t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tus notificaciones se suman: aprobaciones, menciones y asignaciones en ",
+              },
+              { t: "strong", v: "Te necesita" },
+              { t: "text", v: ", y todo lo demás en " },
+              { t: "strong", v: "Para tu información" },
+              {
+                t: "text",
+                v: ". Una notificación sobre un registro abre el registro. Una sobre algo que Compass no tiene en pantalla, como una nueva coincidencia de una búsqueda guardada, abre la página en Gateway.",
+              },
+            ],
+          },
+          {
+            t: "p",
             c: [{ t: "text", v: "Cuando nada te necesita, la Bandeja dice que estás al día." }],
           },
           { t: "h2", v: "Aprobar desde las notificaciones" },
@@ -2909,7 +2941,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "La Bandeja te ofrece activar las notificaciones. Con ellas activadas, puedes aprobar o rechazar hojas de horas y otras solicitudes desde la misma alerta, con un motivo cuando rechazas.",
+                v: "La Bandeja te ofrece activar las notificaciones. Con ellas activadas, puedes aprobar o rechazar hojas de horas y otras solicitudes desde la misma alerta, con un motivo cuando rechazas. Al tocar cualquier otra alerta se abre aquello de lo que trata, aunque Compass estuviera cerrado.",
               },
             ],
           },

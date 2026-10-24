@@ -81,8 +81,17 @@ const RECORD_TABLES: ReadonlySet<string> = new Set(["app.records", "records"]);
 
 export function inboxTarget(
   org: string,
-  item: Pick<InboxItem, "subjectTable" | "kind"> & { readonly args?: InboxItem["args"] },
+  item: Pick<InboxItem, "subjectTable" | "kind"> & {
+    readonly subjectId?: InboxItem["subjectId"];
+    readonly args?: InboxItem["args"];
+  },
 ): string | null {
+  // A delivered report (ADR 0033 decision 77, 1621) opens the report in Saved reports, with its panel open.
+  if (item.subjectTable === "app.report_definitions") {
+    return item.subjectId
+      ? `/${org}/reports/saved-reports?peek=${encodeURIComponent(item.subjectId)}`
+      : `/${org}/reports/saved-reports`;
+  }
   // A record opens itself by the key its notification carries (1600). Without one (a notification sent before 1600)
   // only an assignment has somewhere to go: My Work lists the records a person is assigned to, not those they comment
   // on or are mentioned in.
