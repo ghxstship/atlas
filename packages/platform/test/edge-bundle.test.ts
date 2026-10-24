@@ -39,8 +39,9 @@ const CORE_ONLY: readonly string[] = [
 
 /**
  * The npm packages each function loads when it boots, and the ones it loads only when a request needs
- * them (A85, RRR-130). Stripe only where billing happens; Resend and React Email only where email is
- * sent, and lazily there. kiosk-punch and the other small functions load no package at all.
+ * them (A85, RRR-130). Stripe only where billing happens, and there only once a request carries a
+ * signature to check; Resend and React Email only where email is sent, and lazily there. kiosk-punch
+ * and the other small functions load no package at all.
  */
 const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "api-token": { boot: [], lazy: [] },
@@ -66,7 +67,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   // A87: plain fetch to PostgREST and Supabase's built-in gte-small model, no package.
   "search-embed": { boot: [], lazy: [] },
   "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
-  "stripe-webhook": { boot: ["stripe"], lazy: [] },
+  "stripe-webhook": { boot: [], lazy: ["stripe"] },
   "subprocessor-notices": {
     boot: ["intl-messageformat", "zod"],
     lazy: ["@react-email/components", "react/jsx-runtime", "resend"],

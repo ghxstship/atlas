@@ -142,7 +142,7 @@ function optionalText(
   return typeof value === "string" ? value : null;
 }
 
-/** BillingStore over the 0560 RPCs. */
+/** BillingStore over the 0560, 1250 and 1640 RPCs. */
 export function billingStore(db: PlatformDb): BillingStore {
   return {
     async recordStripeEvent(event) {
@@ -199,6 +199,13 @@ export function billingStore(db: PlatformDb): BillingStore {
         p_paid_at: input.paidAt.toISOString(),
       });
       return String(id);
+    },
+    async finishCheckout(sessionId, state) {
+      const known = await db.rpc("finish_billing_checkout_from_stripe", {
+        p_stripe_checkout_session_id: sessionId,
+        p_checkout_state: state,
+      });
+      return known === true;
     },
   };
 }
