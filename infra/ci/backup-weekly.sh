@@ -8,10 +8,15 @@
 # migration 1650 (the production job, ADR 0033 decision 47). The CLI always switches to the postgres
 # role, which that login cannot, so the script runs pg_dumpall, pg_dump and psql itself from the
 # Postgres image the pinned CLI resolves (`supabase services`), the client `supabase db dump` would use:
-#   - roles.sql and schema.sql with the CLI's own flags, schema exclusions and filters (2.120.0);
-#   - data.sql: every table of the application schemas and the storage tables the login may read,
+#   - roles.sql and schema.sql with the CLI's own flags, schema exclusions and filters (2.120.0),
+#     two of them corrected (see below);
+#   - data.sql: every table of the application schemas and the storage buckets and object list,
 #     from one snapshot, then the accounts as INSERTs (private.backup_account_rows);
-#   - cron.sql: the worker schedules as cron.schedule calls (private.backup_cron_schedules).
+#   - platform.sql: XOS's triggers, policies and grants on the auth and storage tables, which the
+#     schema dump leaves out with those schemas (private.backup_platform_objects);
+#   - cron.sql: the worker schedules as cron.schedule calls (private.backup_cron_schedules);
+#   - migrations.txt: the applied migration versions (private.backup_migration_versions), which no
+#     dump holds, for `supabase migration repair` after a restore.
 # XOS_BACKUP_DOCKER_NETWORK names the Docker network the client joins (host on a runner).
 # Needs the Supabase CLI, gpg, and Docker for --reader. Never prints the connection string.
 set -euo pipefail
@@ -59,7 +64,9 @@ client() {
 dump_with_reader() {
   IMAGE="$(pinned_client)"
 
-  # As `supabase db dump --role-only` writes it, without switching to the postgres role.
+  # As `supabase db dump --role-only` writes it, without switching to the postgres role, and leaving
+  # out one more kind of line: a grant on a server parameter to a reserved role, such as SET on
+  # log_min_messages to supabase_realtime_admin. Every new project has it, and postgres may not repeat it.
   {
     client pg_dumpall --roles-only --quote-all-identifier --no-role-passwords --no-comments |
       sed -E 's/^\\(un)?restrict .*$/-- &/' |
@@ -68,12 +75,17 @@ dump_with_reader() {
       sed -E "s/ (NOSUPERUSER|NOREPLICATION)//g" |
       sed -E "s/^-- (.* SET \"(pgaudit.*|pgrst.*|session_replication_role|statement_timeout|track_io_timing)\" .*)/\1/" |
       sed -E "s/GRANT \".*\" TO \"($RESERVED_ROLES)\"/-- &/" |
+      sed -E "s/^GRANT .+ ON PARAMETER .+ TO \"($RESERVED_ROLES)\"/-- &/" |
       sed -E "/^--/d" |
       uniq
     echo "RESET ALL;"
   } >"$WORK/roles.sql"
 
-  # As `supabase db dump` writes the schema.
+  # As `supabase db dump` writes the schema, but for one filter. The CLI leaves out every GRANT and
+  # REVOKE that names a platform schema anywhere, which also drops those on an application function
+  # taking a platform type: app.store_search_embedding takes an extensions.vector, so its REVOKE from
+  # PUBLIC went missing and anyone could run it on the restored project. This leaves out only the
+  # grants and revokes on an object in a platform schema.
   client pg_dump --schema-only --quote-all-identifier --exclude-schema "$PLATFORM_SCHEMAS" |
     sed -E 's/^\\(un)?restrict .*$/-- &/' |
     sed -E 's/^CREATE SCHEMA "/CREATE SCHEMA IF NOT EXISTS "/' |
@@ -91,8 +103,7 @@ dump_with_reader() {
     sed -E 's/^ALTER FOREIGN DATA WRAPPER (.+) OWNER TO /-- &/' |
     sed -E 's/^ALTER DEFAULT PRIVILEGES FOR ROLE "supabase_admin"/-- &/' |
     sed -E 's/^GRANT ALL ON FOREIGN DATA WRAPPER (.+) TO "postgres" WITH GRANT OPTION/-- &/' |
-    sed -E "s/^GRANT (.+) ON (.+) \"($PLATFORM_SCHEMAS)\"/-- &/" |
-    sed -E "s/^REVOKE (.+) ON (.+) \"($PLATFORM_SCHEMAS)\"/-- &/" |
+    sed -E "s/^(GRANT|REVOKE) (.+) ON (SCHEMA|TABLE|SEQUENCE|FUNCTION|PROCEDURE|TYPE|DOMAIN|FOREIGN TABLE) \"($PLATFORM_SCHEMAS)\"/-- &/" |
     sed -E 's/^(CREATE EXTENSION IF NOT EXISTS "pg_tle").+/\1;/' |
     sed -E 's/^(CREATE EXTENSION IF NOT EXISTS "pgsodium").+/\1;/' |
     sed -E 's/^(CREATE EXTENSION IF NOT EXISTS "pgmq").+/\1;/' |
@@ -102,7 +113,7 @@ dump_with_reader() {
     sed -E 's/^SET transaction_timeout = 0;/-- &/' |
     sed -E "/^--/d" >"$WORK/schema.sql"
 
-  # Every application schema whole and the storage tables the login may read, as --table patterns, so
+  # Every application schema whole and the storage buckets and object list, as --table patterns, so
   # one pg_dump reads them from one snapshot. A table the login cannot read fails the dump rather than
   # leaving the backup short. The accounts follow, read just after it in their own transaction.
   local tables=() pattern
@@ -112,8 +123,7 @@ dump_with_reader() {
 select format('%I.*', n.nspname) from pg_catalog.pg_namespace n
 where n.nspname !~ ('^(' || replace(:'platform', '*', '.*') || ')$')
 union all
-select format('%I.%I', n.nspname, c.relname) from pg_catalog.pg_class c join pg_catalog.pg_namespace n on n.oid = c.relnamespace
-where n.nspname = 'storage' and c.relkind in ('r', 'p') and has_table_privilege(c.oid, 'SELECT')
+select unnest(array['storage.buckets', 'storage.objects'])
 order by 1;
 SQL
   )
@@ -125,8 +135,10 @@ SQL
     echo "RESET ALL;"
   } >"$WORK/data.sql"
 
+  client psql -X -A -t -v ON_ERROR_STOP=1 -c 'select private.backup_platform_objects()' >"$WORK/platform.sql"
   client psql -X -A -t -v ON_ERROR_STOP=1 -c 'select private.backup_cron_schedules()' >"$WORK/cron.sql"
-  FILES=(roles.sql schema.sql data.sql cron.sql)
+  client psql -X -A -t -v ON_ERROR_STOP=1 -c 'select private.backup_migration_versions()' >"$WORK/migrations.txt"
+  FILES=(roles.sql schema.sql data.sql platform.sql cron.sql migrations.txt)
 }
 
 if [[ "$MODE" == --reader ]]; then
