@@ -40,6 +40,8 @@ const DYNAMIC = [
   "expense-line-",
   "expense-aurora-",
   "external-",
+  "settings-section-",
+  "settings-privacy-section-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

@@ -15,6 +15,8 @@ import {
   type SyncStatus,
 } from "@xos/sync";
 import type { ThemePreference } from "@xos/ui-native/theme";
+import { touchMySession } from "@xos/data/account-security";
+import type { XosClient } from "@xos/data/client";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import {
@@ -28,6 +30,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
+import { Platform } from "react-native";
 import { downloadAll, type DownloadReport } from "../data/downloader";
 import { secondFactorGate, type ChallengeFactor, type SecondFactorGate } from "./assurance";
 import {
@@ -51,6 +54,8 @@ import {
   type OrgBrand,
 } from "../domain/brand";
 import { inOrg, personTimeZone } from "../domain/orgs";
+import { readDefaultOrg } from "../settings/organizations";
+import { compassUserAgent } from "../settings/security";
 import {
   enqueueApplying,
   resolveOverQueue,
@@ -483,7 +488,9 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
         if (held(gate)) return null;
         storedOrg = await SecureStore.getItemAsync(ORG_KEY).catch(() => null);
         if (storedOrg) chosenOrgRef.current = true;
-        return resolveIdentity(client, session.user.id, storedOrg);
+        // A device that never chose an org opens on the person's default (Settings, Organizations; ADR 0070).
+        const preferred = storedOrg ?? (await readDefaultOrg(client, session.user.id));
+        return resolveIdentity(client, session.user.id, preferred);
       })
       .then(async (next) => {
         if (!live || next === null) return;
@@ -551,6 +558,21 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     if (!store) return;
     void store.list(BRANDS_TABLE).then((rows) => setBrands(brandMap(rows)));
   }, [store]);
+  // This device in the person's Sessions and devices (A99, 1561), read as "Compass on iOS"; the database writes at
+  // most once a minute. Compass cannot see its public address, so it records none.
+  useEffect(() => {
+    if (phase.kind !== "ready" || !network.isConnected) return;
+    void touchMySession(client as unknown as XosClient, {
+      surface: "Compass",
+      clientAddress: null,
+      place: null,
+      userAgent: compassUserAgent(
+        Constants.expoConfig?.version ?? "",
+        Platform.OS,
+        Platform.Version,
+      ),
+    });
+  }, [client, phase.kind, network.isConnected]);
   // An Enterprise branded build opens on its own org until the person picks another (Section 12 Mobile).
   useEffect(() => {
     if (chosenOrgRef.current || !contexts) return;
