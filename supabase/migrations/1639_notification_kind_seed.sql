@@ -4,10 +4,11 @@
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
--- 9 email templates, 15 categories, 54 kinds (215 kind and channel rows),
--- 4 kinds that bypass quiet hours (ADR 0033 decision 35).
--- Upserts the reference rows of 0520. Rows the registry does not name are left in place and fail the
--- drift test (1639_notification_kind_seed.test.sql); the quiet-hours bypass list is replaced as a set.
+-- 9 email templates, 15 categories, 54 kinds (213 kind and channel rows),
+-- 8 kinds that bypass quiet hours (ADR 0033 decision 35).
+-- Upserts the reference rows of 0520. Rows of kinds the registry does not name are left in place and fail the
+-- drift test (1639_notification_kind_seed.test.sql); a kind that names its own channels loses the rows of
+-- the others, and the quiet-hours bypass list is replaced as a set.
 
 -- Channel defaults ------------------------------------------------------------
 
@@ -211,8 +212,6 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('content.removed', 'SMS'::app.notification_channel, 'account', null),
   ('content.removed', 'Push'::app.notification_channel, 'account', null),
   ('report.delivered', 'In App'::app.notification_channel, 'reports', null),
-  ('report.delivered', 'Email'::app.notification_channel, 'reports', 'report_delivery'),
-  ('report.delivered', 'SMS'::app.notification_channel, 'reports', null),
   ('report.delivered', 'Push'::app.notification_channel, 'reports', null),
   ('import.finished', 'In App'::app.notification_channel, 'imports', null),
   ('import.finished', 'Email'::app.notification_channel, 'imports', 'import_finished'),
@@ -276,16 +275,26 @@ insert into private.notification_templates (kind, channel, category_code, email_
 on conflict (kind, channel) do update
   set category_code = excluded.category_code, email_template_code = excluded.email_template_code;
 
+-- Channels a kind that names its own channels does not reach ---------------
+
+delete from private.notification_templates
+where (kind = 'report.delivered' and channel not in ('In App', 'Push'))
+   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'));
+
 -- Kinds that bypass quiet hours (replaced as a set) -------------------------
 
 delete from private.notification_quiet_hours_bypass
-where kind not in ('shift.changed', 'incident.reported', 'occupancy.threshold', 'weather.alert');
+where kind not in ('shift.assigned', 'shift.changed', 'incident.reported', 'occupancy.threshold', 'weather.alert', 'account.security_changed', 'account.recovery_code_used', 'access.break_glass_started');
 
 insert into private.notification_quiet_hours_bypass (kind, starts_within) values
+  ('shift.assigned', interval '12 hours'),
   ('shift.changed', interval '12 hours'),
   ('incident.reported', null::interval),
   ('occupancy.threshold', null::interval),
-  ('weather.alert', null::interval)
+  ('weather.alert', null::interval),
+  ('account.security_changed', null::interval),
+  ('account.recovery_code_used', null::interval),
+  ('access.break_glass_started', null::interval)
 on conflict (kind) do update set starts_within = excluded.starts_within;
 
 comment on table private.notification_templates is 'Which category each notification kind belongs to and which email template renders it, seeded from packages/schemas/notification-kinds.yaml (Section 3.15). Copy for every channel comes from the i18n catalogs keyed by kind.';
