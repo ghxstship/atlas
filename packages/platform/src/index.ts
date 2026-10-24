@@ -1,9 +1,12 @@
 export {
   BillingNotConfiguredError,
+  billingConfigured,
   billingEnvSchema,
+  billingLivemode,
   createStripeClient,
   isTestKey,
   readBillingEnv,
+  stripeHost,
   type BillingEnv,
   type StripeClient,
 } from "./billing/env.ts";
@@ -20,17 +23,28 @@ export {
 export {
   MAX_ADDON_QUANTITY,
   MAX_EXTRA_SEATS,
+  PORTAL_CONFIGURATION_KEY,
   PriceNotFoundError,
   createAddonCheckoutSession,
   createCheckoutSession,
   createPortalSession,
+  findPortalConfiguration,
   stripeTrialEnd,
   MIN_STRIPE_TRIAL_MS,
   resolvePriceId,
   setExtraSeats,
   type AddonCheckoutRequest,
   type CheckoutRequest,
+  type OpenedCheckout,
 } from "./billing/checkout.ts";
+export {
+  CheckoutCompletedError,
+  expireCheckoutSession,
+  openBillingPortal,
+  startPlanCheckout,
+  type CheckoutAccountStore,
+  type PlanCheckoutRequest,
+} from "./billing/upgrade.ts";
 export {
   StripeSignatureError,
   handleStripeWebhook,

@@ -47,7 +47,7 @@ These Terms of Service (the "Terms") are a subscription agreement between GHXSTS
 
 3.4 **Security settings.** The Customer controls the security settings available on its Plan, including multi-factor authentication requirements by role, session lifetime, IP allow-lists and single sign-on. The Customer is responsible for configuring them to suit its risk.
 
-3.5 **Export controls and sanctions.** The Customer represents that neither it nor any of its Members is located in, organized under the laws of, or ordinarily resident in a country or region subject to comprehensive United States sanctions, or named on a United States government restricted party list. The Customer will not use the Service in violation of United States export control or sanctions laws or the comparable laws that apply to it. We screen signups against restricted jurisdictions and may refuse or suspend access to comply with these laws.
+3.5 **Export controls and sanctions.** The Customer represents that neither it nor any of its Members is located in, organized under the laws of, or ordinarily resident in a country or region subject to comprehensive United States sanctions, or named on a United States government restricted party list. The Customer will not use the Service in violation of United States export control or sanctions laws or the comparable laws that apply to it. We may screen signups against restricted jurisdictions, and may refuse or suspend access to comply with these laws.
 
 ## 4. Customer Responsibilities
 
@@ -55,9 +55,9 @@ These Terms of Service (the "Terms") are a subscription agreement between GHXSTS
 
 4.2 **Lawful basis and notices.** The Customer is responsible for having a lawful basis for the personal data it puts into the Service and for giving the notices and obtaining the consents that the law requires, including consent to SMS messages, consent to background checks, and notices to workers about time and location capture.
 
-4.3 **Employment and engagement decisions.** The Customer alone decides whom to engage, how to classify each worker, what to pay, and whether a background check result affects an engagement. The Service records the Customer's decisions and their basis. GHXSTSHIP does not make worker classification decisions, does not give legal, tax or employment advice, and is not an employer, staffing agency or joint employer of any person the Customer engages.
+4.3 **Employment and engagement decisions.** The Customer alone decides whom to engage, how to classify each worker, what to pay, and whether a background check result affects an engagement. The Service records the classification the Customer chooses for an engagement; the Customer keeps the basis for its decisions. GHXSTSHIP does not make worker classification decisions, does not give legal, tax or employment advice, and is not an employer, staffing agency or joint employer of any person the Customer engages.
 
-4.4 **Regulated records.** The Service provides tools that support the Customer's obligations, such as overtime rules, certified payroll export, OSHA incident forms, 1099-NEC data export and pay range requirements. The Customer remains responsible for the accuracy of the rules it configures and the records it files with any authority.
+4.4 **Regulated records.** The Service provides tools that support the Customer's obligations, such as overtime rules, 1099-NEC data export and pay range requirements. The Customer remains responsible for the accuracy of the rules it configures and the records it files with any authority.
 
 4.5 **Medical information.** Medical encounter records are restricted to Members who hold the Medical capability. The Customer will grant that capability only to people who need it. GHXSTSHIP does not offer the Service as a covered entity or business associate service under HIPAA unless the parties sign a separate business associate agreement.
 
@@ -67,7 +67,7 @@ These Terms of Service (the "Terms") are a subscription agreement between GHXSTS
 
 | Plan       | Summary                                                                                                                                                                                                      |
 | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Access     | Free for a single producer: Atlas for 1 seat and 1 active project, Compass for 10 crew, Gateway for engaged parties, community support                                                                       |
+| Access     | Free for a single producer: Atlas for 1 seat and 1 active project, Compass for 10 crew, Gateway for engaged parties, support through the help center                                                         |
 | Core       | Unlimited projects, approvals, advancing, procurement, accounting export and Aurora AI with 500 requests a month                                                                                             |
 | Pro        | Adds white label, custom domain, automations, API keys, webhooks, public marketplace listings and 2,000 Aurora AI requests a month                                                                           |
 | Team       | Adds custom roles, IP allow-list, audit export, payroll export, priority support and 10,000 Aurora AI requests a month                                                                                       |

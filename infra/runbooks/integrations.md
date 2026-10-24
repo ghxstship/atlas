@@ -120,8 +120,8 @@ zapier-platform validate
 zapier-platform push
 ```
 
-Then invite testers, and submit the app for public listing in the Zapier developer platform when the owner
-decides to publish (Zapier reviews it).
+Then invite testers. The apps open as an invite-only beta and go to public listing after it (ADR 0033, decision 70):
+submit the app for public listing in the Zapier developer platform once the beta is done (Zapier reviews it).
 
 What changed between platform 17 and 19, and where the app stands (checked against the 19.1.0 schema offline,
 with no errors):
@@ -145,7 +145,8 @@ moving to a newer platform, read its release notes at `https://docs.zapier.com/p
 **Make.** In Make, Custom Apps, create the app "XOS", then copy each section of
 `packages/integrations/automation/make/xos.make.json` into the matching tab: Base, the `xos-api-key` connection,
 the `xos-event` webhook (attach and detach) and each module (communication, mappable parameters, interface). Test
-with a scenario against staging, then request publication (Make reviews it) when the owner decides to publish.
+with a scenario against staging, then share the app with the invited beta testers, and request publication (Make
+reviews it) once the beta is done (ADR 0033, decision 70).
 
 ## 6. After setup
 

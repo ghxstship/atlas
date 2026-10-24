@@ -228,7 +228,7 @@
     "required": "Fill in the subject and the description to send the request.",
     "errors": {
       "denied": "You cannot send this request. Only org admins contact platform support; send it to your admins instead.",
-      "noChannel": "Your plan includes the help center and community forum. Upgrade to contact platform support.",
+      "noChannel": "Your plan includes the help center. Upgrade to contact platform support.",
       "invalid": "The request is missing something. Check the subject and description.",
       "unexpected": "The request could not be sent. Try again in a moment."
     },
