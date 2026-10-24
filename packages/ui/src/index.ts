@@ -435,6 +435,11 @@ export {
   ColorPicker,
   DiffViewer,
   parseQuickAdd,
+  finalizeQuickAdd,
+  quickAddKey,
+  zonedInstant,
+  useQuickAdd,
+  QuickAddChips,
   contrastRatio,
   type FilterBuilderProps,
   type QuickAddProps,
@@ -442,6 +447,16 @@ export {
   type DiffViewerProps,
   type QuickAddResult,
   type QuickAddToken,
+  type QuickAddCandidate,
+  type QuickAddChipsProps,
+  type QuickAddController,
+  type QuickAddOptions,
+  type QuickAddParse,
+  type QuickAddResolution,
+  type QuickAddResolver,
+  type QuickAddSpan,
+  type QuickAddTokenType,
+  type UseQuickAddOptions,
 } from "./Editing/Editing.tsx";
 
 /* Grids */

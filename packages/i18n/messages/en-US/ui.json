@@ -362,7 +362,20 @@
     "source": "Source"
   },
   "quickAdd": {
-    "label": "Quick add"
+    "label": "Quick add",
+    "types": {
+      "person": "Person",
+      "tag": "Tag",
+      "kind": "Kind",
+      "scope": "Scope",
+      "date": "Date"
+    },
+    "field": "{name}: {value}",
+    "announce": "{title}, with {fields}",
+    "announceTitle": "{title}, no other fields",
+    "remove": "Remove {name}: {value}",
+    "choose": "Choose a match for {token}",
+    "matches": "Matches: {count}"
   },
   "radio": {
     "assignment": "Assignment",

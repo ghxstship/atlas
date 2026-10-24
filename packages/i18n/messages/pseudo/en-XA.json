@@ -363,7 +363,20 @@
       "source": "[Söûrçé ··]"
     },
     "quickAdd": {
-      "label": "[Qûîçk àdd ···]"
+      "label": "[Qûîçk àdd ···]",
+      "types": {
+        "person": "[Pérsöñ ··]",
+        "tag": "[Tàg ·]",
+        "kind": "[Kîñd ·]",
+        "scope": "[Sçöpé ··]",
+        "date": "[Dàté ·]"
+      },
+      "field": "[{name}: {value} ······]",
+      "announce": "[{title}, wîth {fields} ········]",
+      "announceTitle": "[{title}, ñö öthér fîélds ·········]",
+      "remove": "[Rémövé {name}: {value} ········]",
+      "choose": "[Çhöösé à màtçh för {token} ··········]",
+      "matches": "[Màtçhés: {count} ······]"
     },
     "radio": {
       "assignment": "[Àssîgñméñt ···]",
