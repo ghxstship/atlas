@@ -311,6 +311,8 @@ function ContactsCard({
     setForm({ ...NEW_CONTACT });
     onSaved();
   });
+  // Removing a contact keeps a new one half typed.
+  const removal = useOnlineSave(onSaved);
   const set = (name: string) => (value: string) => setForm((f) => ({ ...f, [name]: value }));
   const field = (
     name: string,
@@ -354,7 +356,7 @@ function ContactsCard({
             label: t(`${W}.removeNamed`, { name: c.fullName }),
             icon: "trash-2",
             tone: "danger",
-            onAction: () => void save.run(() => removeEmergencyContact(db, c.id)),
+            onAction: () => void removal.run(() => removeEmergencyContact(db, c.id)),
           }}
         />
       ))}
@@ -381,6 +383,7 @@ function ContactsCard({
         </>
       ) : null}
       <SaveNotice state={save.state} testID="work-contacts" />
+      <SaveNotice state={removal.state} testID="work-contacts-removal" />
     </Card>
   );
 }
