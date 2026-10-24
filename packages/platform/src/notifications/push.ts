@@ -531,16 +531,19 @@ export function expoPushClient(options: ExpoPushOptions = {}): PushClient {
 
 /**
  * Records pushes instead of sending them: tests, local development and every environment without
- * XOS_PUSH_TRANSPORT=expo. Every message gets an accepted ticket and every receipt is ok.
+ * XOS_PUSH_TRANSPORT=expo. Every message gets an accepted ticket and every receipt is ok. Ticket ids carry a
+ * random prefix per client, since each run of the sender makes a new client and app.push_tickets keeps every
+ * ticket id unique.
  */
 export class RecordingPushClient implements PushClient {
   readonly name = "record";
   readonly sent: PushMessage[] = [];
+  private readonly run = crypto.randomUUID().slice(0, 8);
 
   async send(messages: readonly PushMessage[]): Promise<PushTicket[]> {
     return messages.map((m) => {
       this.sent.push(m);
-      return { status: "ok", id: `recorded-push-${this.sent.length}` };
+      return { status: "ok", id: `recorded-push-${this.run}-${this.sent.length}` };
     });
   }
 

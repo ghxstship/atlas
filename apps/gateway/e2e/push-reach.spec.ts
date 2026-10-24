@@ -20,13 +20,19 @@ test.use({ reducedMotion: "reduce" });
 test.setTimeout(180_000);
 const expect = baseExpect.configure({ timeout: 20_000 });
 
-/** PlatformDb over the fixtures' postgres connection, so the push worker runs here as it does in its Edge Function. */
+/**
+ * PlatformDb over the fixtures' postgres connection, so the push worker runs here as it does in its Edge Function.
+ * Tickets go to jsonb parameters as JSON, as supabase-js sends them; node-postgres would send an array literal.
+ */
 const platformDb: PlatformDb = {
   async rpc(fn, args) {
     const names = Object.keys(args);
     const rows = await sql<Record<string, unknown>>(
       `select * from app.${fn}(${names.map((n, i) => `${n} => $${i + 1}`).join(", ")})`,
-      names.map((n) => args[n]),
+      names.map((n) => {
+        const value = args[n];
+        return value !== null && typeof value === "object" ? JSON.stringify(value) : value;
+      }),
     );
     const [first] = rows;
     return rows.length === 1 && first && Object.keys(first).join() === fn ? first[fn] : rows;
@@ -47,9 +53,14 @@ test("A101: a marketplace alert pushes the crew person's own browser and Compass
   const run = uniqueId();
   const endpoint = `https://push.example.test/send/gateway-crew-${run}`;
   const token = `ExponentPushToken[crew-compass-${run}]`;
-  // Earlier runs' saved searches would match too, and a listing is notified once per person; start with none.
+  // Earlier runs' saved searches would match too, and a listing is notified once per person; start with none,
+  // and with none of the person's own devices from earlier runs.
   await sql(
     `update app.saved_searches set deleted_at = now() where person_id = $1 and deleted_at is null`,
+    [DEMO.crew],
+  );
+  await sql(
+    `update app.person_push_devices set deleted_at = now() where person_id = $1 and deleted_at is null`,
     [DEMO.crew],
   );
 
@@ -78,8 +89,8 @@ test("A101: a marketplace alert pushes the crew person's own browser and Compass
   await expect(page.getByText("Search saved. Manage it under Alerts.")).toBeVisible();
   const opp = await publishCrewOpportunity(false);
   await sql("select private.match_saved_searches()");
-  const [delivery] = await sql<{ id: string }>(
-    `select d.id from app.notifications n
+  const [delivery] = await sql<{ id: string; notification: string }>(
+    `select d.id, n.id as notification from app.notifications n
        join app.notification_deliveries d on d.notification_id = n.id and d.notification_created_at = n.created_at
       where n.recipient_person_id = $1 and n.kind = 'opportunity.matched' and n.subject_id = $2 and d.channel = 'Push'`,
     [DEMO.crew, opp.id],
@@ -108,12 +119,18 @@ test("A101: a marketplace alert pushes the crew person's own browser and Compass
     [delivery?.id],
   );
   expect(status?.status).toBe("Sent");
-  expect(expo.sent.filter((m) => m.to === token).map((m) => m.data["kind"])).toEqual([
-    "opportunity.matched",
-  ]);
+  // Only this match's pushes: a delivery left due by an earlier run goes to the person's devices too.
+  const mine = delivery?.notification;
+  expect(
+    expo.sent
+      .filter((m) => m.to === token && m.data["notificationId"] === mine)
+      .map((m) => m.data["kind"]),
+  ).toEqual(["opportunity.matched"]);
 
   // The browser push opens the listing it names, in Gateway.
-  const pushed = web.sent.filter((s) => s.device.endpoint === endpoint).map((s) => s.payload.url);
+  const pushed = web.sent
+    .filter((s) => s.device.endpoint === endpoint && s.payload.tag === mine)
+    .map((s) => s.payload.url);
   expect(pushed).toEqual([`/explore/${opp.key}`]);
   await page.goto(pushed[0] ?? "/");
   await expect(page.getByRole("form", { name: `Apply for ${opp.title}` })).toBeVisible();

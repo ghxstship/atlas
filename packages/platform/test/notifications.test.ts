@@ -453,9 +453,14 @@ describe("push through the Expo push service (ADR 0030)", () => {
     expect(() => readPushEnv({ XOS_PUSH_TRANSPORT: "fcm" })).toThrow(/XOS_PUSH_TRANSPORT/);
     const recording = new RecordingPushClient();
     const message = { to: "ExponentPushToken[x]" } as PushMessage;
-    await expect(recording.send([message])).resolves.toEqual([
-      { status: "ok", id: "recorded-push-1" },
-    ]);
+    const [ticket] = await recording.send([message]);
+    expect(ticket).toEqual({
+      status: "ok",
+      id: expect.stringMatching(/^recorded-push-[0-9a-f]{8}-1$/),
+    });
+    // Each run of the sender makes a new client; its ticket ids never repeat an earlier run's.
+    const [next] = await new RecordingPushClient().send([message]);
+    expect(next).not.toEqual(ticket);
     await expect(recording.receipts(["a"])).resolves.toEqual({ a: { status: "ok" } });
     expect(recording.sent).toHaveLength(1);
   });
