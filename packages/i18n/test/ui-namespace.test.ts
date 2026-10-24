@@ -31,10 +31,18 @@ describe("ICU messages", () => {
     );
   });
 
+  // One assertion per locale: an expect for each of the 17,000 messages took nine tenths of the
+  // test's time, and the first locale ran past the 5 s timeout on a CI runner.
   it.each(locales)("%s: every message parses as ICU", (locale) => {
+    const invalid: string[] = [];
     for (const [key, message] of flatten(getMessages(locale))) {
-      expect(() => icuArguments(message), `${locale} ${key}`).not.toThrow();
+      try {
+        icuArguments(message);
+      } catch (error) {
+        invalid.push(`${key}: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
+    expect(invalid).toEqual([]);
   });
 
   it("es-US uses the same ICU arguments as en-US for every key", () => {
