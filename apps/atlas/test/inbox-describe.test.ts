@@ -263,6 +263,7 @@ describe("Inbox item copy", () => {
     const changes = [
       "password",
       "password_set",
+      "password_removed",
       "email",
       "phone",
       "factor_added",
@@ -318,7 +319,7 @@ describe("Inbox item copy", () => {
     expect(validated).toEqual({
       summary: "Import ready to review: Crew import",
       detail:
-        "Crew import is checked: 12 rows are ready to write and 1 needs fixing. Review it, then commit the import.",
+        "Crew import is checked: 12 rows are ready to write, 1 needs fixing and 2 were skipped. Review it, then commit the import.",
       href: "/demo/import?import=0192b0c4-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
     });
     const committed = describeInboxItem(

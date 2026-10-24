@@ -76,7 +76,7 @@
     "account": {
       "security_changed": {
         "subject": "Cambió la seguridad de tu cuenta",
-        "body": "{change, select, password {Se cambió tu contraseña.} password_set {Se agregó una contraseña a tu cuenta.} email {Se cambió el correo electrónico con el que inicias sesión.} phone {Se cambió el número de teléfono de tu cuenta.} factor_added {Se agregó {factorType, select, totp {una app de autenticación} webauthn {una llave de seguridad o llave de acceso} phone {un teléfono} other {un segundo factor}} a tu verificación en dos pasos.} factor_removed {Se quitó {factorType, select, totp {una app de autenticación} webauthn {una llave de seguridad o llave de acceso} phone {un teléfono} other {un segundo factor}} de tu verificación en dos pasos.} passkey_added {Se agregó una llave de acceso a tu cuenta.} passkey_removed {Se quitó una llave de acceso de tu cuenta.} recovery_codes {Se creó un juego nuevo de códigos de recuperación y tus códigos anteriores ya no sirven.} other {Cambió un ajuste de seguridad de tu cuenta.}} Si no fuiste tú, restablece tu contraseña ahora."
+        "body": "{change, select, password {Se cambió tu contraseña.} password_set {Se agregó una contraseña a tu cuenta.} password_removed {Se quitó la contraseña de tu cuenta.} email {Se cambió el correo electrónico con el que inicias sesión.} phone {Se cambió el número de teléfono de tu cuenta.} factor_added {Se agregó {factorType, select, totp {una app de autenticación} webauthn {una llave de seguridad o llave de acceso} phone {un teléfono} other {un segundo factor}} a tu verificación en dos pasos.} factor_removed {Se quitó {factorType, select, totp {una app de autenticación} webauthn {una llave de seguridad o llave de acceso} phone {un teléfono} other {un segundo factor}} de tu verificación en dos pasos.} passkey_added {Se agregó una llave de acceso a tu cuenta.} passkey_removed {Se quitó una llave de acceso de tu cuenta.} recovery_codes {Se creó un juego nuevo de códigos de recuperación y tus códigos anteriores ya no sirven.} other {Cambió un ajuste de seguridad de tu cuenta.}} Si no fuiste tú, restablece tu contraseña ahora."
       },
       "recovery_code_used": {
         "subject": "Se usó un código de recuperación en tu cuenta",
@@ -96,7 +96,7 @@
     "import": {
       "finished": {
         "subject": "{stage, select, validated {Importación lista para revisar: {title}} other {Importación terminada: {title}}}",
-        "body": "{stage, select, validated {{title} está revisada: {written, plural, one {# fila está lista} other {# filas están listas}} para escribir y {refused, plural, one {# necesita} other {# necesitan}} corrección. Revísala y luego confirma la importación.} other {{title} terminó: {written, plural, one {# fila escrita} other {# filas escritas}}, {refused, plural, one {# rechazada} other {# rechazadas}} y {skipped, plural, one {# omitida} other {# omitidas}}.}}"
+        "body": "{stage, select, validated {{title} está revisada: {written, plural, one {# fila está lista} other {# filas están listas}} para escribir, {refused, plural, one {# necesita} other {# necesitan}} corrección y {skipped, plural, one {# se omitió} other {# se omitieron}}. Revísala y luego confirma la importación.} other {{title} terminó: {written, plural, one {# fila escrita} other {# filas escritas}}, {refused, plural, one {# rechazada} other {# rechazadas}} y {skipped, plural, one {# omitida} other {# omitidas}}.}}"
       }
     },
     "export": {

@@ -8,7 +8,8 @@
 --
 --   * private.after_auth_user_security_change, a trigger on auth.users, sends change 'password' when a password
 --     replaces another (a reset or a change), 'password_set' when a sign-in without one gets its first (an invite
---     accepted, or a Google sign-in that adds a password), 'email' when the sign-in email changes (Supabase Auth
+--     accepted, or a Google sign-in that adds a password), 'password_removed' when a password is cleared (Supabase
+--     Auth does so when an unconfirmed sign-in links Google), 'email' when the sign-in email changes (Supabase Auth
 --     writes it once the change is confirmed) and 'phone' when the phone number is added, changed or removed. A new
 --     sign-up is an insert and sends nothing.
 --   * private.after_mfa_factor_change, a trigger on auth.mfa_factors, sends 'factor_added' when a second factor is
@@ -40,7 +41,9 @@ declare
 begin
   foreach v_change in array array[
     case when nullif(new.encrypted_password, '') is distinct from nullif(old.encrypted_password, '') then
-      case when nullif(old.encrypted_password, '') is null then 'password_set' else 'password' end end,
+      case when nullif(old.encrypted_password, '') is null then 'password_set'
+           when nullif(new.encrypted_password, '') is null then 'password_removed'
+           else 'password' end end,
     case when nullif(new.email, '') is distinct from nullif(old.email, '') then 'email' end,
     case when nullif(new.phone, '') is distinct from nullif(old.phone, '') then 'phone' end]
   loop
@@ -55,7 +58,7 @@ begin
 end;
 $$;
 
-comment on function private.after_auth_user_security_change() is 'After Supabase Auth changes a sign-in''s password, email or phone, sends the person account.security_changed once per change (change password, password_set, email or phone; A104). A notice that fails is a warning and never blocks the change.';
+comment on function private.after_auth_user_security_change() is 'After Supabase Auth changes a sign-in''s password, email or phone, sends the person account.security_changed once per change (change password, password_set, password_removed, email or phone; A104). A notice that fails is a warning and never blocks the change.';
 revoke all on function private.after_auth_user_security_change() from public, anon, authenticated;
 
 create trigger xos_notify_security_change after update of encrypted_password, email, phone on auth.users

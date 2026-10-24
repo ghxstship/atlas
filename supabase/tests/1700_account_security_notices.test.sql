@@ -1,6 +1,6 @@
 -- pgTAP: migration 1700, account security notices (A104, RRR-149; follow-ups of A77 and A99). Every change to how a
 -- person signs in creates exactly one account.security_changed notification for them, through the org they chose last:
--- a password set or changed, the sign-in email or phone changed (auth.users), a second factor verified or a verified one
+-- a password set, changed or removed, the sign-in email or phone changed (auth.users), a second factor verified or a verified one
 -- removed (auth.mfa_factors), and a new set of recovery codes (app.generate_recovery_codes). Nothing else on the sign-in
 -- sends one: an unfinished enrollment, a write that changes nothing, a factor deleted with its sign-in. Creation only:
 -- whether the notice waits out quiet hours is 1620's bypass list (orch-notify-access).
@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(34);
+select plan(36);
 
 -- account.security_changed notifications of a person, all of them or those of one change.
 create function pg_temp.notices(p_person text, p_change text default null) returns integer
@@ -81,6 +81,10 @@ update auth.users set encrypted_password = extensions.crypt('third-password-3', 
   phone = '15555550161', phone_confirmed_at = now()
 where id = pg_temp.id('erin_user');
 select is(pg_temp.notices('erin'), 2, 'two changes in one write create a notice each');
+update auth.users set encrypted_password = '' where id = pg_temp.id('erin_user');
+select is(pg_temp.notices('erin', 'password_removed'), 1,
+  'a password cleared (as Supabase Auth does when an unconfirmed sign-in links Google) says it was removed');
+select is(pg_temp.notices('erin', 'password'), 0, 'never that it was changed');
 
 select lives_ok($$update auth.users set encrypted_password = extensions.crypt('fourth-password-4', extensions.gen_salt('bf', 4))
   where id = pg_temp.id('nina_user')$$, 'a sign-in that belongs to no org still changes its password');
