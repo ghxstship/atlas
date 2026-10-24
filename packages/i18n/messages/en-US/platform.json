@@ -196,7 +196,7 @@
       "venues": "Client venues",
       "endSession": "End the support session",
       "priceTitle": "What you charge this client",
-      "priceHelp": "You bill clients through Stripe Connect at the price you set. It never shows to the client here.",
+      "priceHelp": "You invoice this client yourself. XOS keeps the price here for your reference and never shows it to the client.",
       "priceAmount": "Monthly price",
       "priceCurrency": "Currency",
       "priceSave": "Save the price",

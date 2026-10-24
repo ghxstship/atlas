@@ -22,7 +22,7 @@
   "channels": {
     "In App": "In app",
     "Email": "Email, first response within 2 business days",
-    "Chat": "Email and in-app chat, first response within 1 business day",
+    "Chat": "Email, first response within 1 business day",
     "Priority Queue": "Priority queue, first response within 8 business hours",
     "Dedicated Channel": "Dedicated channel, 1 hour for severity 1"
   },
@@ -55,7 +55,7 @@
     "empty": "No support requests yet. Members send requests from Help, Contact support.",
     "emptyFiltered": "No requests match this filter. Choose All requests to see every request.",
     "contactPlatform": "Contact platform support",
-    "noPlatform": "Your plan includes the help center and community forum. Upgrade to Core or above to contact platform support.",
+    "noPlatform": "Your plan includes the help center. Upgrade to Core or above to contact platform support.",
     "terms": "Your plan: {terms}",
     "readOnly": "You can see support requests but not answer them. Ask an admin with Help and support access."
   },

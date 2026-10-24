@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { usComplianceFormsOn } from "@/lib/compliance/flag";
 import {
   complianceFormFile,
   fileResponse,
@@ -12,7 +13,8 @@ import { getOrgContext } from "@/lib/shell/context";
  * (`?year=`), Form 301 of a case, as PDF/UA-1 or `?format=csv`. The WH-347 certified payroll numbers
  * the week it issues, so it is a POST from Settings, Payroll and Time Off, never a link. Everything is
  * read as the viewer; anything they may not read is 404, and a database refusal (the WH-347 needs
- * the restricted export capability and step-up authentication) is 403 with its rule.
+ * the restricted export capability and step-up authentication) is 403 with its rule. An org with
+ * the compliance.us_forms flag off (ADR 0033 decision 54, migration 1593) has no forms: 404.
  */
 async function serve(
   form: string,
@@ -25,7 +27,7 @@ async function serve(
   if ((form === "certified-payroll") !== (method === "POST"))
     return new Response(null, { status: 405 });
   const ctx = await getOrgContext(org);
-  if (!ctx) return new Response(null, { status: 404 });
+  if (!ctx || !(await usComplianceFormsOn(ctx))) return new Response(null, { status: 404 });
   const request = formRequest(form, id, values);
   if (!request) return new Response(null, { status: 400 });
   const file = await complianceFormFile(ctx, request);

@@ -40,9 +40,9 @@ You must not:
 When publishing opportunities, applying, bidding, rating or engaging through Gateway and Compass, you must:
 
 - publish only real opportunities with honest descriptions, and include a pay range wherever the Service's jurisdiction rules require one
-- not ask applicants about protected characteristics such as race, color, religion, sex, sexual orientation, gender identity, national origin, age, disability or genetic information. Voluntary equal employment questions, where an organization runs that reporting, are stored apart from applications and never shown to selectors
-- run background checks only through the provider integration and only with the candidate's disclosure and authorization, following pre-adverse and adverse action steps and applicable fair-chance rules
-- make your own worker classification decisions and record their basis. XOS never makes them for you
+- not ask applicants about protected characteristics such as race, color, religion, sex, sexual orientation, gender identity, national origin, age, disability or genetic information, and not collect voluntary equal employment answers through application questions, which selectors can read. Run that reporting outside the Service
+- run background checks only through a consumer reporting agency and only with the candidate's disclosure and authorization, following pre-adverse and adverse action steps and applicable fair-chance rules
+- make your own worker classification decisions and keep a record of their basis. XOS never makes them for you
 - not offer, request or accept payment or other incentives for ratings, not post ratings for engagements that did not happen, and not ask anyone to remove or suppress a truthful rating
 - not use Do Not Engage flags, ratings or internal notes to discriminate unlawfully
 - not set a minimum age below 16 for any opportunity, and respect child labor laws for any age requirement you set

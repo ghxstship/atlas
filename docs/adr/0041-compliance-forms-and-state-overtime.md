@@ -83,6 +83,7 @@ The sanctioned way to add California is a canon `xpms.wage_hour_rule` row. Canon
 
 - Payroll in California venues now pays daily overtime and double time; runs elsewhere are unchanged (the federal weekly rule alone).
 - A covered contractor can issue its weekly certified payroll and keep its OSHA records in XOS, but the WH-347 is complete only with the provider's deductions and net pay, and it must still be signed.
+  - _Amended 2026-10-23:_ ADR 0033 decision 54 defers the WH-347 and the OSHA forms past launch. They sit behind the `compliance.us_forms` feature flag, off by default (migration 1593), until counsel answers the open questions below; while it is off, Atlas offers neither and the database refuses their writes.
 - The OSHA forms are the 2004 revision. Electronic submission through OSHA's Injury Tracking Application has its own file layout, which this does not produce.
 
 ## Open questions for the owner and counsel
