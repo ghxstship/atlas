@@ -1,10 +1,16 @@
 import type { Row } from "@xos/sync";
-import { useRouter } from "expo-router";
-import type { ReactElement } from "react";
+import * as Linking from "expo-linking";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { dispatchQueue, type IncidentRow, type Severity } from "../../src/domain/incidents";
+import {
+  inboxRecordKey,
+  inboxTarget,
+  type InboxNotificationRow,
+} from "../../src/domain/notifications";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
-import { useNotificationPermission } from "../../src/runtime/notifications";
+import { useInboxNotifications, useNotificationPermission } from "../../src/runtime/notifications";
 import {
   formatDay,
   ProjectPicker,
@@ -17,16 +23,22 @@ import { Button, Card, EmptyState, ListRow, Screen, Text } from "../../src/ui";
 /**
  * One inbox model (Section 11.10 item 5): Needs You first, then For Your Information. Compass fills it
  * from what it already holds on the device: shifts waiting for acceptance, open incidents for dispatchers,
- * conflicts in the offline queue. Notifications from A18 join when push delivery reaches Compass.
+ * conflicts in the offline queue. The person's notifications join from the server (A101): approvals,
+ * mentions and assignments under Needs You, the rest under For Your Information. A notification opens the
+ * record it is about, as its push does, or the Gateway page it names when Compass has no screen for it.
  */
 export default function InboxScreen(): ReactElement {
   const { t } = useTranslation();
   const roleTitle = useRoleTitle();
   const router = useRouter();
-  const { resolved, projectId, status } = useCompass();
+  const { config, resolved, projectId, status } = useCompass();
   const canDispatch = useAllowed("incidents.dispatch");
   const identity = resolved?.identity;
   const permission = useNotificationPermission();
+  const notifications = useInboxNotifications();
+  // Read again whenever the Inbox comes into view, so a notification that just arrived is listed.
+  const { reload } = notifications;
+  useFocusEffect(useCallback(() => reload(), [reload]));
   const { rows: shifts } = useRows<
     Row & {
       project_id: string;
@@ -79,6 +91,44 @@ export default function InboxScreen(): ReactElement {
         ]
       : []),
   ];
+  const notificationRow = (n: InboxNotificationRow): ReactElement => {
+    const target = inboxTarget(n);
+    const title = typeof n.args["title"] === "string" ? n.args["title"].trim() : "";
+    const org = typeof n.args["orgName"] === "string" ? n.args["orgName"].trim() : "";
+    const subtitle = [
+      inboxRecordKey(n),
+      formatDay(n.createdAt),
+      n.read ? null : t("compass.inbox.new"),
+    ].filter((part): part is string => part !== null && part !== "");
+    return (
+      <ListRow
+        key={n.id}
+        testID={`inbox-notification-${n.id}`}
+        icon="bell"
+        title={
+          title !== ""
+            ? title
+            : org !== ""
+              ? t("compass.inbox.updateFrom", { org })
+              : t("compass.inbox.update")
+        }
+        subtitle={subtitle.join(" · ")}
+        {...(target === null
+          ? {}
+          : {
+              onPress:
+                target.kind === "route"
+                  ? () => router.push(target.route as never)
+                  : () =>
+                      void Linking.openURL(
+                        `${config.gatewayUrl.replace(/\/+$/, "")}${target.path}`,
+                      ),
+            })}
+      />
+    );
+  };
+  const needsNotifications = notifications.rows.filter((n) => n.section === "Needs You");
+  const fyiNotifications = notifications.rows.filter((n) => n.section !== "Needs You");
   return (
     <Screen testID="inbox" title={t("compass.inbox.title")}>
       <ProjectPicker />
@@ -102,7 +152,7 @@ export default function InboxScreen(): ReactElement {
           ) : null}
         </Card>
       ) : null}
-      {needs.length === 0 ? (
+      {needs.length === 0 && notifications.rows.length === 0 ? (
         <EmptyState
           testID="inbox-empty"
           icon="inbox"
@@ -110,7 +160,8 @@ export default function InboxScreen(): ReactElement {
           actionLabel={t("compass.scan.goToday")}
           onAction={() => router.navigate("/today")}
         />
-      ) : (
+      ) : null}
+      {needs.length > 0 || needsNotifications.length > 0 ? (
         <Card title={t("compass.inbox.needsYou")}>
           {needs.map((n) => (
             <ListRow
@@ -122,8 +173,14 @@ export default function InboxScreen(): ReactElement {
               onPress={() => router.push(n.go)}
             />
           ))}
+          {needsNotifications.map(notificationRow)}
         </Card>
-      )}
+      ) : null}
+      {fyiNotifications.length > 0 ? (
+        <Card testID="inbox-fyi" title={t("compass.inbox.fyi")}>
+          {fyiNotifications.map(notificationRow)}
+        </Card>
+      ) : null}
     </Screen>
   );
 }

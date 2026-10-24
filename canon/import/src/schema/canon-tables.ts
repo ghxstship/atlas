@@ -786,7 +786,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
   {
     name: "dim_role",
     comment:
-      "The 61 workforce roles (Bible tab 27) with function name, job title and staffing ratio. Role codes share the URID shape.",
+      "The 61 workforce roles (Bible tab 27) with function name, job title and staffing ratio. Role codes share the URID shape. Tab 27 no longer decides which role codes exist: owner decision 39 (2026-10-23) retires it as their authority in favor of the Roles Library, xpms.role (ruling D12).",
     primaryKey: ["role_code"],
     columns: [
       {
@@ -875,7 +875,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
         nullable: true,
         references: "dim_department(dept_code)",
         comment:
-          "Department class of a revenue or expense account, derived from the class digit; NULL for balance sheet accounts (decision D13: postings resolve by class).",
+          "Department class of a revenue or expense account, derived from the class digit; NULL for balance sheet accounts (decision D13: postings resolve by class, after an explicit item GL default and before a counterparty type's, as owner decision 39 reads D13).",
         generated:
           "(case when account_type in ('Revenue', 'Expense') then substr(account_code, 2, 1) || '000' end)",
       },
@@ -938,7 +938,8 @@ export const CANON_TABLES: readonly TableSpec[] = [
         type: "code",
         nullable: true,
         references: "dim_gl_account(account_code)",
-        comment: "DEFAULT GL ACCOUNT from the Playbook Counterparty Types sheet.",
+        comment:
+          "DEFAULT GL ACCOUNT from the Playbook Counterparty Types sheet: the counterparty GL default ruling D13 allows (owner decision 39), used when the line's class gives no account of the type.",
       },
       ...sourceMeta,
     ],
@@ -1007,7 +1008,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
         nullable: true,
         references: "dim_phase(phase_code)",
         comment:
-          "Lifecycle gate, relabeled to 4.0; NULL where canon names a value that is not a gated phase (held in xpms.intake).",
+          "Lifecycle gate, relabeled to 4.0; NULL where canon names a value that is not a gated phase (held in xpms.intake). A name an owner ruling reads as a gated phase takes that phase (decision 39: Show is OPR).",
       },
       { name: "xyz", type: "xyz", comment: "Schema family tag." },
     ],
@@ -1015,7 +1016,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
   {
     name: "dim_unit_dimension",
     comment:
-      "Physical dimensions of units (count, length, time and so on). Canon 4.0 states none; rows arrive through intake.",
+      "Physical dimensions of units (count, length, time and so on). Owner decision 39 (2026-10-23) ratifies time; any other dimension arrives through intake.",
     primaryKey: ["dimension_code"],
     columns: [
       { name: "dimension_code", type: "code", comment: "Dimension code." },
@@ -1025,7 +1026,7 @@ export const CANON_TABLES: readonly TableSpec[] = [
   {
     name: "dim_unit_alias",
     comment:
-      "Unit bases used by canon (the Item Catalog unit_basis values). A unit without a dimension refuses arithmetic rather than guessing.",
+      "Unit bases used by canon (the Item Catalog unit_basis values, and hour and week, which owner decision 39 adds with the time dimension). A unit without a dimension refuses arithmetic rather than guessing.",
     primaryKey: ["alias"],
     columns: [
       { name: "alias", type: "text", comment: "Unit basis as written in canon." },
@@ -1188,14 +1189,16 @@ export const CANON_TABLES: readonly TableSpec[] = [
         type: "code",
         nullable: true,
         references: "dim_gl_account(account_code)",
-        comment: "Purchase account.",
+        comment:
+          "Purchase account: the item's explicit GL default (ruling D13 as owner decision 39 reads it), which a posting uses before its class's account.",
       },
       {
         name: "sales_account",
         type: "code",
         nullable: true,
         references: "dim_gl_account(account_code)",
-        comment: "Sales account.",
+        comment:
+          "Sales account: the item's explicit GL default on the revenue side (ruling D13 as owner decision 39 reads it).",
       },
       {
         name: "default_cost_center",
