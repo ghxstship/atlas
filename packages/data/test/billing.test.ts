@@ -122,7 +122,7 @@ describe("billing portal and summary", () => {
     });
   });
 
-  it("maps the billing summary: paid, or paid and waiting for the subscription to sync", async () => {
+  it("maps the billing summary: paid, paid and waiting for the subscription to sync, or free to check out", async () => {
     const { db } = fakeClient({
       "rpc:billing_account": [
         okResponse([
@@ -132,6 +132,7 @@ describe("billing portal and summary", () => {
             awaiting_subscription: false,
             billing_interval: "Annual",
             current_period_end: "2027-10-23T12:00:00+00:00",
+            checkout_refusal: "billing_already_subscribed",
           },
         ]),
         okResponse([
@@ -141,6 +142,17 @@ describe("billing portal and summary", () => {
             awaiting_subscription: true,
             billing_interval: null,
             current_period_end: null,
+            checkout_refusal: "checkout_completed",
+          },
+        ]),
+        okResponse([
+          {
+            paid_through_stripe: false,
+            has_stripe_customer: false,
+            awaiting_subscription: false,
+            billing_interval: null,
+            current_period_end: null,
+            checkout_refusal: null,
           },
         ]),
       ],
@@ -153,6 +165,7 @@ describe("billing portal and summary", () => {
         awaitingSubscription: false,
         interval: "Annual",
         currentPeriodEnd: "2027-10-23T12:00:00+00:00",
+        checkoutRefusal: "billing_already_subscribed",
       },
     });
     await expect(getBillingAccount(db, org, false)).resolves.toEqual({
@@ -163,7 +176,12 @@ describe("billing portal and summary", () => {
         awaitingSubscription: true,
         interval: null,
         currentPeriodEnd: null,
+        checkoutRefusal: "checkout_completed",
       },
+    });
+    await expect(getBillingAccount(db, org, false)).resolves.toMatchObject({
+      ok: true,
+      data: { paidThroughStripe: false, checkoutRefusal: null },
     });
   });
 });

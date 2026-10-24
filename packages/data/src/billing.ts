@@ -2,7 +2,7 @@ import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Billing and Plan's billing calls (ADR 0033 decision 59, migration 1640): the checks before Atlas
+ * Billing and Plan's billing calls (ADR 0033 decision 59, migrations 1640 and 1641): the checks before Atlas
  * opens Stripe Checkout or the customer portal, the record of each Checkout session it opens, and the summary
  * of the org's Stripe billing. Every call runs as the signed-in person, so the database decides who may: the
  * Owner (org.billing.manage) after a second factor in the last 15 minutes. Refusals come back with their rule.
@@ -102,6 +102,12 @@ export interface BillingAccount {
   readonly awaitingSubscription: boolean;
   readonly interval: BillingInterval | null;
   readonly currentPeriodEnd: string | null;
+  /**
+   * The rule that refuses every plan's Checkout for the org now (migration 1641), so the page offers Checkout only
+   * where it opens: billing_through_partner, sandbox_not_billable, org_read_only, billing_already_subscribed or
+   * checkout_completed. Null when Checkout opens once the Owner passes step-up.
+   */
+  readonly checkoutRefusal: string | null;
 }
 
 /** app.billing_account, for people with org.billing.read. */
@@ -124,5 +130,6 @@ export async function getBillingAccount(
     awaitingSubscription: row.awaiting_subscription,
     interval: interval === "Monthly" || interval === "Annual" ? interval : null,
     currentPeriodEnd: textOrNull(row.current_period_end),
+    checkoutRefusal: textOrNull(row.checkout_refusal),
   });
 }
