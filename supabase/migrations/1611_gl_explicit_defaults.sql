@@ -9,7 +9,8 @@
 --      default is one (a receivable to a Sponsor under a class with no revenue account).
 -- Items whose explicit account is their class's (all but five) post exactly as before. Recreated from their latest
 -- definitions with only the account lookup changed: app.approve_expense (0321), private.post_invoice (1305) and the
--- view app.budget_line_amounts (0321).
+-- views app.budget_line_amounts (0321) and app.change_order_line_facts (0480), which report the account a line posts
+-- to. app.budget_line_facts (0480) reads its account from budget_line_amounts; only its comment changes.
 
 create or replace function private.gl_account_for_line(
   p_urid text,
@@ -208,3 +209,17 @@ where bl.deleted_at is null;
 
 comment on view app.budget_line_amounts is 'Budget line amounts, derived: extended amount (NULL when unpriced, never zero), contingency moved in and out, the GL account (the item''s explicit default, else by class: decision D13 as owner decision 39 reads it) and approved spend.';
 comment on column app.budget_line_amounts.account_code is 'Expense account the line posts to: the priced item''s explicit GL default, else the URID class''s expense account.';
+comment on column app.budget_line_facts.account_code is 'Expense account the line posts to (app.budget_line_amounts): the priced item''s explicit GL default, else the URID class''s expense account (decision D13 as owner decision 39 reads it); NULL when neither gives one.';
+
+create or replace view app.change_order_line_facts with (security_invoker = true) as
+select l.id as change_order_line_id, c.id as change_order_id, c.project_id, c.budget_id, c.change_order_state,
+  l.budget_line_id, l.urid, left(l.urid, 4) as dept_code,
+  private.gl_account_for_line(l.urid, 'Expense', case when bl.urid = l.urid then bl.element_id end) as account_code,
+  bl.cost_center_id, private.extended_minor(l.quantity, l.unit_price_minor) as extended_minor,
+  (l.unit_price_minor is null) as is_unpriced
+from app.change_order_lines l
+join app.change_orders c on c.id = l.change_order_id
+left join app.budget_lines bl on bl.id = l.budget_line_id
+where l.deleted_at is null and c.deleted_at is null;
+
+comment on column app.change_order_line_facts.account_code is 'Expense account of the change: the explicit GL default of the item the adjusted budget line prices, when the change keeps that line''s URID, else the URID class''s expense account (decision D13 as owner decision 39 reads it).';
