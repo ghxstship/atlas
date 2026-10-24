@@ -163,8 +163,8 @@ select throws_ok($$select * from app.create_share_link((select id from k where k
   'a Confidential link names its recipient');
 select throws_ok($$select * from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '45 days', false, 'ana@venue.test')$$,
   'XR001', null, 'a Confidential link expires within 30 days');
-select throws_ok($$select * from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', true, 'ana@venue.test')$$,
-  'XR001', null, 'a Confidential PDF cannot carry the watermark, so it is not shared by link');
+select lives_ok($$select * from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', true, 'ana@venue.test')$$,
+  'a Confidential PDF carries the watermark on every page since 1690, so it may be shared by link');
 insert into k select 'conf', l.share_link_id, l.token || ' ' || l.access_code
 from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '7 days', false, 'Ana@Venue.test') l;
 select matches((select split_part(val, ' ', 2) from k where key = 'conf'), '^[0-9]{6}$',
