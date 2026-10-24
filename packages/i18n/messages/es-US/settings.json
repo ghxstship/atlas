@@ -1029,5 +1029,31 @@
       "denied": "No puedes cambiar automatizaciones.",
       "unexpected": "Algo salió mal. Inténtalo de nuevo."
     }
+  },
+  "standardLibrary": {
+    "title": "Biblioteca Estándar de XOS",
+    "description": "Códigos de emergencia, SOP, terminología, el plan de radio, las clases de proveedor y sus derechos, enumeraciones, la Biblioteca de Roles, tarifas laborales y la biblioteca de documentos, copiados en tu organización para que puedas editarlos. Una organización recibe su copia cuando se crea.",
+    "adopt": "Adoptar la Biblioteca Estándar",
+    "adoptHelp": "Copia cada fila de la Biblioteca Estándar que tu organización aún no tiene. Nada de lo que editaste o quitaste cambia, así que puedes volver a ejecutarlo sin riesgo.",
+    "complete": "Tu organización tiene una copia de toda la Biblioteca Estándar.",
+    "copied": "{count, plural, =0 {No queda nada por copiar: tu organización ya tiene cada fila de la Biblioteca Estándar que puede tener.} one {Se copió # fila.} other {Se copiaron # filas.}}",
+    "held": "{adopted} de {standard}",
+    "heldLabel": "Filas que tiene tu organización",
+    "libraryLabel": "Biblioteca",
+    "loadError": "No se pudo cargar el estado de la Biblioteca Estándar. Vuelve a cargar la página para intentarlo de nuevo.",
+    "manageOnly": "Solo quienes administran las extensiones del canon pueden adoptar la Biblioteca Estándar.",
+    "skipped": "Si tu organización ya tiene una fila con el mismo nombre, se conserva tu versión, así que una biblioteca puede mostrar menos filas que la Biblioteca Estándar.",
+    "libraries": {
+      "document_library": "Biblioteca de documentos y activos",
+      "emergency_codes": "Códigos de emergencia",
+      "enumerations": "Enumeraciones",
+      "labor_rate_cards": "Tarifas laborales",
+      "radio_channels": "Canales de radio",
+      "roles": "Biblioteca de Roles",
+      "sops": "Biblioteca de SOP",
+      "vendor_classes": "Clases de proveedor",
+      "vendor_entitlements": "Derechos por clase de proveedor",
+      "verbiage": "Biblioteca de terminología"
+    }
   }
 }
