@@ -61235,6 +61235,7 @@ export type Database = {
           updates: number;
         }[];
       };
+      inbound_email_org: { Args: { p_local_part: string }; Returns: string };
       integration_inbound_secrets_stored: {
         Args: { p_org_id: string };
         Returns: {
