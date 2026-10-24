@@ -300,7 +300,8 @@ prints names and digests, never values.
 `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`, `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`,
 `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY` (true only at cutover, once `mail.ghxstship.tech` passes its
 SPF, DKIM and DMARC checks and `XOS_POSTAL_ADDRESS` holds the postal address; ADR 0033, decision 41),
-`XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN` (`inbound.ghxstship.tech`, decision 60), `STRIPE_SECRET_KEY`,
+`RESEND_INBOUND_WEBHOOK_SECRET`, `RESEND_RECEIVING_API_KEY` and `XOS_INBOUND_DOMAIN` (`inbound.ghxstship.tech`,
+decision 60; `production.md`, Email), `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET` (test keys until Atlas Checkout ships and billing opens with live keys, decision 59), `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`, `SENTRY_DSN`, `XOS_ENVIRONMENT` (`production`),
 `XOS_LOG_LEVEL` (`info`). Unset `XOS_REPORT_MAILPIT_URL`, which only a local stack uses.
 

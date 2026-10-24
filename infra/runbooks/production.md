@@ -135,32 +135,68 @@ The operator console for the platform team. The owner created the project and at
    `v=DMARC1; p=quarantine; rua=mailto:<the DMARC report mailbox>`. Keep the reports coming; a sender that appears
    later goes back to `p=none` until it is fixed or removed.
 
-Reply by email and project inboxes (`XOS_INBOUND_DOMAIN`, ADR 0040) need their own receiving domain, with MX
-records pointing at the inbound mail provider that posts each parsed message to the `inbound-email` Edge
-Function. The domain is `inbound.ghxstship.tech`, written below as `<inbound domain>`, and the provider is
-Resend's inbound mail, already on the Subprocessor List, if it meets the requirements in step 1 (ADR 0033,
-decision 60). The operations work for this choice is in migrations 1650 to 1659 (ADR 0022); follow its notes
-when it lands. **OWNER**:
+Reply by email and project inboxes (`XOS_INBOUND_DOMAIN`, ADR 0040) receive on `inbound.ghxstship.tech`, a
+subdomain used only for receiving, through Resend's inbound mail (ADR 0033, decision 60). Resend is already on the
+Subprocessor List, and its row names inbound mail.
 
-1. In Resend, set up inbound mail for `inbound.ghxstship.tech`, used only for receiving. Confirm that it parses
-   mail, checks DKIM, keeps the raw message and can post JSON to a URL with a bearer secret. If it cannot, stop:
-   any other provider is a new subprocessor and needs 30 days' notice before it receives mail.
-2. At the DNS host, add the provider's MX records for `<inbound domain>`, exactly as the provider lists them:
+Resend meets ADR 0040's requirements (checked 2026-10-23 against Resend's documentation; RRR-139). Two things are
+wired differently: the webhook carries metadata only, and it is signed instead of sent with a bearer secret.
+`inbound-email` takes both:
 
-   | Name               | Type | Value                                                |
-   | ------------------ | ---- | ---------------------------------------------------- |
-   | `<inbound domain>` | MX   | `<priority> <provider's inbound mail host>`, per row |
+- **Parsing:** Resend parses each message. Its `email.received` webhook carries only metadata (sender, recipients,
+  subject, Message-ID, attachment names), so `inbound-email` reads the text, the HTML and the rest from Resend's
+  Receiving API (`GET /emails/receiving/{id}`). That API refuses sending-only keys, so it needs a full-access key of
+  its own.
+- **DKIM:** the received email's `authentication.dkim` is computed by Resend's own mail server, so a sender cannot forge
+  it. Only `pass` counts as verified; `gray` (unsigned, or signed by a domain other than the From domain), `fail` and
+  the rest do not, and such mail is never filed.
+- **Raw message:** Resend keeps a received message for 30 days, behind a signed download URL. `inbound-email` copies it
+  into the private `inbound-mail` bucket (migration 1651) as `resend/<email id>.eml`, which `raw_object_path` records
+  and an org purge finds. Resend publishes no size limit; a message over 50 MiB, the bucket's limit, is filed without
+  its raw copy and records `resend:<email id>` instead.
+- **Authentication:** Resend signs each webhook the Svix way (HMAC-SHA256 over the id, timestamp and raw body, with the
+  endpoint's `whsec_` signing secret) instead of sending a bearer secret. `inbound-email` refuses a bad signature and
+  any timestamp more than five minutes off. `XOS_INBOUND_SECRET` is only for a provider that posts parsed messages.
+- **Retries:** a failed delivery is retried immediately, then after 5 seconds, 5 minutes, 30 minutes, 2, 5, 10 and 10
+  hours; then Resend disables the endpoint and emails the team. Messages can be replayed from the dashboard. Redelivered
+  mail is filed once (Message-ID per org), and its raw copy is overwritten with the same file.
+- **Attachments:** listed in the event and downloadable from Resend's Attachments API; XOS does not copy them onto the
+  filed document yet (ADR 0040).
 
-3. Point the provider's webhook at `https://<project ref>.supabase.co/functions/v1/inbound-email` with the
-   header `Authorization: Bearer <XOS_INBOUND_SECRET>`, and have it store the raw message where it can be read
-   later, sending that path as `rawObjectPath`.
-4. Set the function secrets `XOS_INBOUND_SECRET` (a new random value the provider also holds) and
-   `XOS_INBOUND_DOMAIN=<inbound domain>`, and set `XOS_INBOUND_DOMAIN=<inbound domain>` on the `atlas` Vercel
-   project too, so Project Settings shows each project's full inbox address. Redeploy Atlas.
-5. Check: create a project inbox in Atlas (Project Settings, Project inbox), forward one message to it, and
-   find it on the project's Documents tab.
+**OWNER**, in order:
 
-Until then project inbox addresses show only their local part, and no mail arrives.
+1. In Resend, Domains, add `inbound.ghxstship.tech` with receiving enabled and sending turned off. Receiving was in
+   early access when this was written; if the account does not offer it, ask Resend support before going further,
+   since any other provider is a new subprocessor and needs 30 days' notice. Resend then lists the domain's records.
+2. At the DNS host of `ghxstship.tech`, add exactly the records Resend lists for `inbound.ghxstship.tech`: its DKIM
+   TXT record, which verifies the domain, and the receiving MX record. Copy the MX host and priority from Resend's page
+   (its documentation names hosts such as `inbound-smtp.<region>.amazonaws.com`); the name has no other MX record, so
+   Resend's is the lowest priority, as Resend requires. The sending records (SPF, return path) are not needed on a
+   receive-only domain.
+
+   | Name                               | Type | Value                                             |
+   | ---------------------------------- | ---- | ------------------------------------------------- |
+   | `inbound.ghxstship.tech`           | MX   | `<priority> <Resend's receiving host>`, as listed |
+   | Resend's DKIM name under `inbound` | TXT  | As Resend lists it                                |
+
+   Click "I've added the record" in Resend and wait until receiving shows Verified.
+
+3. In Resend, Webhooks, add the endpoint `https://<project ref>.supabase.co/functions/v1/inbound-email` with the
+   event `email.received` only. Copy its signing secret.
+4. In Resend, API Keys, create a key with full access named for its use, for example `inbound-email receiving`. Keep
+   `RESEND_API_KEY` sending-only.
+5. Set the function secrets from your secret store: `RESEND_INBOUND_WEBHOOK_SECRET` (the signing secret),
+   `RESEND_RECEIVING_API_KEY` (the full-access key) and `XOS_INBOUND_DOMAIN=inbound.ghxstship.tech`. Set
+   `XOS_INBOUND_DOMAIN=inbound.ghxstship.tech` on the `atlas` Vercel project too, so Project Settings shows each
+   project's full inbox address, and redeploy Atlas. Migration 1651 and the `inbound-email` function ship with the
+   release (Deploy order).
+6. Check: create a project inbox in Atlas (Project Settings, Project inbox) and forward one message to it from an
+   address that signs with DKIM, such as Gmail. In Resend, the webhook's message shows a 200 answer with an
+   `inbound_message_id`; in Supabase, Storage, `inbound-mail` holds `resend/<email id>.eml`; in Atlas, the message is on
+   the project's Documents tab, ready to file.
+
+To rotate, create the new key or roll the signing secret in Resend, set the secret, then delete the old key. Until step
+5, project inbox addresses show only their local part, and no mail arrives.
 
 ### Universal links to Compass
 
@@ -180,14 +216,14 @@ Until then project inbox addresses show only their local part, and no mail arriv
 
 ### DNS records still needed
 
-| Name                          | Type    | For                            | Value from                                             |
-| ----------------------------- | ------- | ------------------------------ | ------------------------------------------------------ |
-| `api`                         | CNAME   | Vercel project `atlas`         | Vercel, when the domain is added                       |
-| `docs`                        | CNAME   | Vercel project `docs`          | Vercel, when the domain is added                       |
-| Resend's records under `mail` | TXT, MX | SPF, return path, DKIM         | Resend, Domains, `mail.ghxstship.tech`                 |
-| `_dmarc.mail`                 | TXT     | DMARC                          | The owner's policy (above)                             |
-| `inbound`                     | MX      | Resend's inbound mail          | Resend, inbound domain (decision 60)                   |
-| `status`                      | CNAME   | The status page (GitHub Pages) | `infra/ci/README.md`, Repository settings; decision 72 |
+| Name                             | Type    | For                            | Value from                                              |
+| -------------------------------- | ------- | ------------------------------ | ------------------------------------------------------- |
+| `api`                            | CNAME   | Vercel project `atlas`         | Vercel, when the domain is added                        |
+| `docs`                           | CNAME   | Vercel project `docs`          | Vercel, when the domain is added                        |
+| Resend's records under `mail`    | TXT, MX | SPF, return path, DKIM         | Resend, Domains, `mail.ghxstship.tech`                  |
+| `_dmarc.mail`                    | TXT     | DMARC                          | The owner's policy (above)                              |
+| Resend's records under `inbound` | MX, TXT | Receiving, DKIM                | Resend, Domains, `inbound.ghxstship.tech` (decision 60) |
+| `status`                         | CNAME   | The status page (GitHub Pages) | `infra/ci/README.md`, Repository settings; decision 72  |
 
 `atlas` and `gateway` resolve already, and `console`, `atlas-staging` and `gateway-staging` exist (decisions 63 and 79). Passkeys on the web need nothing at the apex `ghxstship.tech`.
 
@@ -321,7 +357,9 @@ None. The site is built from the repository and the OpenAPI document. Project se
 | `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)                                                  |
 | `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key                                            |
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, at cutover, once the domain passes its checks and `XOS_POSTAL_ADDRESS` is set (ADR 0033, decision 41) |
-| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | Reply by email and project inboxes; `XOS_INBOUND_DOMAIN=inbound.ghxstship.tech`                                                                           |
+| `RESEND_INBOUND_WEBHOOK_SECRET`                           | The signing secret of Resend's `inbound-email` webhook (Email, above)                                                                                     |
+| `RESEND_RECEIVING_API_KEY`                                | A full-access Resend key for the Receiving API; `RESEND_API_KEY` stays sending-only                                                                       |
+| `XOS_INBOUND_DOMAIN`                                      | `inbound.ghxstship.tech`, for reply by email and project inboxes. `XOS_INBOUND_SECRET` is not needed with Resend                                          |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | Live Stripe keys, once billing opens after Atlas Checkout ships (ADR 0033, decision 59); test keys until then                                             |
 | `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | The private address and port of clamd ("Upload scanning (ClamAV)" below); the port defaults to 3310                                                       |
 | `XOS_SLACK_SIGNING_SECRET`                                | Slack events and slash commands (`integration-inbound`), `infra/runbooks/integrations.md`                                                                 |

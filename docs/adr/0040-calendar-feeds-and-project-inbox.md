@@ -102,3 +102,26 @@ people's feeds from a few addresses, and keep polling links that were revoked lo
 - Attachments of inbound mail are not copied onto the filed document yet. `app.inbound_message_attachments`
   exists, but the pipeline does not write it.
 - Follow-ups: a signed relay of the client address (item 3), and attachments on filed mail.
+
+## Amendment (2026-10-23): Resend's inbound mail
+
+ADR 0033 decision 60 chose Resend's inbound mail on `inbound.ghxstship.tech`, if it met the requirements of item 7. It
+does (RRR-139, migration 1651), wired two ways differently from the generic pipeline:
+
+- **Signed, metadata-only webhook.** Resend posts an `email.received` event signed the Svix way. `inbound-email`
+  verifies it with `RESEND_INBOUND_WEBHOOK_SECRET` over the raw body, refusing a timestamp more than five minutes off,
+  then reads the message from Resend's Receiving API with `RESEND_RECEIVING_API_KEY`, a full-access key, since that API
+  refuses sending-only keys. The message then goes through `receiveInbound` and `app.receive_inbound_email` unchanged.
+  The bearer path with `XOS_INBOUND_SECRET` stays for a provider that posts a parsed message, such as a self-hoster's.
+- **DKIM** is Resend's own verdict, `authentication.dkim`, computed by its receiving server; only `pass` verifies.
+- **Recipients** come from To, Cc, Bcc and the forwarded-for addresses, so forwarded and blind-copied mail finds its
+  inbox. Mail for no address on the inbound domain is ignored before any call to Resend.
+- **The raw message** is kept in the private `inbound-mail` bucket as `resend/<email id>.eml`, because Resend keeps a
+  received message for 30 days and inbound mail is kept two years. A message over 50 MiB, the bucket's limit, records
+  `resend:<email id>` and is filed without its raw copy.
+- **Bounds.** A body over 100,000 characters is cut and a sender address over 320 characters ignored, on either path, so
+  the database never refuses a message that the provider would then retry for a day.
+
+Follow-ups: raw messages stay in the bucket when their row ages out after two years, because SQL cannot delete storage
+objects (a Storage API sweep, as for sandboxes, would remove them); and attachments on filed mail, which Resend's
+Attachments API serves.
