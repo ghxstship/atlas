@@ -9,6 +9,7 @@ import { untyped } from "./untyped.ts";
  *   * `globalSearch`: app.global_search, SECURITY INVOKER, so the reader's row level security decides every
  *     row; it takes the structured request `@xos/data/search-query` builds and an optional query vector;
  *   * `recentItems` and `recordRecentView`: what the person opened, newest first, at most 50;
+ *   * `recentProjects`: the projects the person opened most recently, for the sidebar (migration 1740);
  *   * `searchContext`: the person, the org's calendar and whether the org has semantic search on.
  */
 
@@ -53,8 +54,17 @@ export interface SearchContext {
   readonly semanticEnabled: boolean;
 }
 
-/** Tables a recent view may name (app.recent_views.subject_table). */
-export type RecentViewTable = "records" | "incidents" | "documents" | "sops" | "handbook_articles";
+/** Tables a recent view may name (app.recent_views.subject_table; projects since migration 1740). */
+export type RecentViewTable =
+  "records" | "incidents" | "documents" | "sops" | "handbook_articles" | "projects";
+
+/** A project the person opened recently (app.recent_projects). */
+export interface RecentProject {
+  readonly id: string;
+  readonly key: string;
+  readonly name: string;
+  readonly viewedAt: string;
+}
 
 const TYPES = new Set<SearchResultType>([
   "record",
@@ -148,6 +158,24 @@ export async function recentItems(
     });
   }
   return ok(items);
+}
+
+/** The projects the person opened most recently in an org, newest first (Section 4.5.2). */
+export async function recentProjects(
+  db: XosClient,
+  orgId: string,
+  limit = 5,
+): Promise<Result<readonly RecentProject[]>> {
+  const { data, error } = await db.rpc("recent_projects", { p_org_id: orgId, p_limit: limit });
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((row) => ({
+      id: row.project_id,
+      key: row.project_key,
+      name: row.name,
+      viewedAt: row.viewed_at,
+    })),
+  );
 }
 
 /**

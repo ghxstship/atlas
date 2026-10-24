@@ -543,6 +543,21 @@ export async function removeFavorite(db: XosClient, favoriteId: string): Promise
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
+/**
+ * Puts the person's favorites in an org in the order given (app.reorder_favorites, migration 1740): one update
+ * that runs as the caller, so only their own favorites change. Returns how many took a position.
+ */
+export async function reorderFavorites(
+  db: XosClient,
+  input: { readonly orgId: string; readonly favoriteIds: readonly string[] },
+): Promise<Result<number>> {
+  const { data, error } = await db.rpc("reorder_favorites", {
+    p_org_id: input.orgId,
+    p_favorite_ids: [...input.favoriteIds],
+  });
+  return error ? fail(toDataError(error)) : ok(data);
+}
+
 // Persona -------------------------------------------------------------------------------------------
 
 /**
