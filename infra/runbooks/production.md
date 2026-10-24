@@ -366,6 +366,7 @@ A preview or production build on EAS stops in `apps/compass/app.config.ts` when 
 | PyPI trusted publisher (no secret)              | pypi.org | `publish-packages.yml`                                              |
 | `EXPO_TOKEN`                                    | Secret   | A Compass build workflow, if builds move to CI                      |
 | `STAGING_DB_URL`                                | Secret   | `backup-weekly.yml`                                                 |
+| `PRODUCTION_BACKUP_DB_URL`                      | Secret   | `backup-weekly.yml`, in the `production-backup` environment         |
 | `XOS_SYNTHETIC_EMAIL`, `XOS_SYNTHETIC_PASSWORD` | Secret   | `synthetics.yml`                                                    |
 | `XOS_ALERT_WEBHOOK_URL`                         | Secret   | `synthetics.yml`, alerts to on-call                                 |
 | `ANTHROPIC_API_KEY`                             | Secret   | `ai-evals` (gate 21)                                                |

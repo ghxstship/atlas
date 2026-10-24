@@ -328,7 +328,8 @@ and Edge Functions use the HTTPS API and are not affected. What is affected: the
 `supabase db push`, and any GitHub Actions job that connects to Postgres (runner addresses change on every run).
 The owner decided to leave them off for now (ADR 0033, decision 47): the weekly production backup is a CI job with
 its own read-only login, and GitHub runners connect from changing addresses. Revisit when that job moves to a fixed
-address.
+address. Once migration 1650 is on production, set that login up: `backup-and-restore.md`, Set up the production
+backup login.
 
 Verify: a connection from an unlisted address is refused; the API still works. Rollback: allow all again.
 
@@ -393,8 +394,9 @@ Rollback: Vercel Instant Rollback to the previous deployment, with the previous 
 
 The plan is in "Staging branch plan" below. When the staging branch exists:
 
-- GitHub secret `STAGING_DB_URL` = the staging branch's direct connection string (it feeds `backup-weekly.yml`
-  and the load-test instructions). It must no longer point at this project.
+- GitHub secret `STAGING_DB_URL` = the staging branch's Session pooler connection string, port 5432 (it feeds
+  `backup-weekly.yml` and the load-test instructions). GitHub's hosted runners have no IPv6, and a direct host is IPv6
+  without the IPv4 add-on. It must no longer point at this project.
 - GitHub variables `XOS_STAGING_*` (synthetics) = the branch's API URL and anon key; the synthetic account is
   created on the branch.
 - Vercel `atlas`, `gateway` and `console`, Preview environment: `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the branch,

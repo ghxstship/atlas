@@ -7,7 +7,7 @@
 | `restore-drill.sh`   | Backup and restore drill (`infra/drills/release-drill.sh`: row counts, key-table checksums, pgTAP smoke) on the stack `supabase db start` built, in the `database` job | Yes                                                              |
 | `powersync-check.sh` | Sync rules against the migrated catalog; writes the publication SQL                                                                                                    | `continue-on-error` until the A17 rule fixes land, then blocking |
 | `synthetics.sh`      | Synthetic checks against staging, the status history and the status page                                                                                               | Its own scheduled workflow; a failed run notifies on-call        |
-| `backup-weekly.sh`   | Encrypted weekly logical backup of staging                                                                                                                             | Its own scheduled workflow; needs the owner's public key first   |
+| `backup-weekly.sh`   | Encrypted weekly logical backup of staging, and of production with its own read-only login (`--reader`, ADR 0033 decision 47)                                          | Its own scheduled workflow; needs the owner's public key first   |
 | `oasdiff.sh`         | Gate 20: breaking changes in the OpenAPI document since the latest `v*` tag                                                                                            | Yes; passes with a notice until the first tag                    |
 | `supabase-images.sh` | Pulls the Supabase CLI's images from GHCR before every `supabase start` and `supabase db start` in `ci.yml` and `nightly.yml` (section 7)                              | No; warns and leaves the pull to the CLI                         |
 
@@ -104,42 +104,14 @@ jobs:
 
 The branches are force-pushed as single commits, so the repository does not grow with every run. The history file is the only state, and it keeps 90 days.
 
-## 3. New workflow `.github/workflows/backup-weekly.yml`
+## 3. Workflow `.github/workflows/backup-weekly.yml`
 
-```yaml
-name: Weekly backup
+The workflow is in the repository since 2026-10-23 (RRR-139), so this section no longer copies it. It runs every Monday at 06:23 UTC and on demand, with two jobs that use only the actions ADR 0001 already pins:
 
-on:
-  schedule:
-    - cron: "23 6 * * 1"
-  workflow_dispatch:
+- **`staging`**, as this section first wrote it: `supabase db dump` with `STAGING_DB_URL`, a repository secret.
+- **`production`** (ADR 0033, decision 47): `infra/ci/backup-weekly.sh production <dir> --reader` with `PRODUCTION_BACKUP_DB_URL`, a secret of the `production-backup` environment, which only `main` may use. It logs in as `xos_backup`, the read-only login of migration 1650. The CLI cannot dump as that login, because it always switches to the `postgres` role, so the script runs pg_dumpall, pg_dump and psql from the `supabase/postgres` image the pinned CLI names (`supabase services`), with the CLI's own flags and filters, and adds the accounts and `cron.sql`.
 
-permissions:
-  contents: read
-
-jobs:
-  staging:
-    name: Encrypted logical backup of staging
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
-        with:
-          version: 2.120.0
-      - name: Dump and encrypt
-        env:
-          XOS_BACKUP_DB_URL: ${{ secrets.STAGING_DB_URL }}
-        run: infra/ci/backup-weekly.sh staging "$RUNNER_TEMP/backup"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: xos-staging-backup
-          path: ${{ runner.temp }}/backup/*.gpg
-          retention-days: 35
-          if-no-files-found: error
-```
-
-This job fails on purpose until the owner commits `infra/backup/backup-public-key.asc` and the orchestrator adds the `STAGING_DB_URL` secret. Artifacts count against the free 500 MB artifact storage of the account; a staging dump is well under it at 35 days' retention.
+Both encrypt to `infra/backup/backup-public-key.asc` and upload `xos-<environment>-backup` kept 35 days. Each fails on purpose until the owner commits that key and sets its secret (`infra/runbooks/backup-and-restore.md`, Set up the production backup login). At 35 days' retention the account's artifact storage holds five archives of each project.
 
 ## 4. `ci.yml`, new job `api-breaking-changes` (gate 20)
 
@@ -304,6 +276,7 @@ Before the first tag, the owner confirms the names are theirs. Publishing under 
 | Settings, Pages, Custom domain | `status.ghxstship.tech` with a CNAME record (ADR 0033, decision 72); no purchase needed for a subdomain of an owned domain                                                     |
 | Settings, Variables (Actions)  | `XOS_STAGING_ATLAS_URL`, `XOS_STAGING_GATEWAY_URL`, `XOS_STAGING_SUPABASE_URL`, `XOS_STAGING_SUPABASE_ANON_KEY` (public by design), `XOS_STAGING_POWERSYNC_URL` once it exists |
 | Settings, Secrets (Actions)    | `XOS_SYNTHETIC_EMAIL`, `XOS_SYNTHETIC_PASSWORD`, `XOS_ALERT_WEBHOOK_URL`, `STAGING_DB_URL`                                                                                     |
+| Settings, Environments         | `production-backup`, deployment branches `main` only, with the secret `PRODUCTION_BACKUP_DB_URL` (the owner sets it; `infra/runbooks/backup-and-restore.md`)                   |
 | Branch protection              | Leave `status-data` and `gh-pages` unprotected so the workflow can force-push them; `main` is untouched                                                                        |
 
 ## 7. Supabase stack images: GHCR first
