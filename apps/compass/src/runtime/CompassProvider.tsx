@@ -3,6 +3,7 @@
  * shared with every screen through context.
  */
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
+import type { XosClient } from "@xos/data";
 import {
   OFFLINE,
   SyncEngine,
@@ -40,6 +41,7 @@ import {
   type OrgContext,
   type ResolvedIdentity,
 } from "../data/identity";
+import { settingsRoutes } from "../data/settingsRoutes";
 import { SupabaseUploader } from "../data/uploader";
 import {
   brandFromRow,
@@ -381,6 +383,8 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
         accessToken: async () =>
           (await client.auth.getSession()).data.session?.access_token ?? null,
         orgId: () => orgRef.current,
+        // Settings writes that are not RPCs, such as a party preference (ADR 0071).
+        routes: settingsRoutes(client as unknown as XosClient),
         deviceId: id,
         clock: deviceClock,
         // Photos, voice notes and documents upload resumably (TUS) and survive restarts (A65-011).

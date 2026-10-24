@@ -35,6 +35,7 @@
     "@xos/help": "workspace:*",
     "@xos/i18n": "workspace:*",
     "@xos/ia": "workspace:*",
+    "@xos/schemas": "workspace:*",
     "@xos/sync": "workspace:*",
     "@xos/tokens": "workspace:*",
     "@xos/ui-native": "workspace:*",
