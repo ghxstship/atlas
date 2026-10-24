@@ -26,6 +26,12 @@ describe("isSensitiveKey", () => {
     "bank_account",
     "date_of_birth",
     "notes",
+    "ticket",
+    "p_ticket",
+    "downloadTicket",
+    "access_code",
+    "p_access_code",
+    "accessCode",
   ])("treats %s as sensitive", (key) => {
     expect(isSensitiveKey(key)).toBe(true);
   });
@@ -39,6 +45,9 @@ describe("isSensitiveKey", () => {
     "project_name",
     "duration_ms",
     "code",
+    "ticket_id",
+    "support_ticket_id",
+    "ticket_class",
   ])("keeps %s", (key) => {
     expect(isSensitiveKey(key)).toBe(false);
   });
@@ -74,6 +83,57 @@ describe("redactString", () => {
     expect(redactUrl(`/sign/xdoc_${hex}`)).toBe("/sign/[token]");
     expect(redactUrl(`/auth/invite/xinv_${hex}`)).toBe("/auth/invite/[token]");
     expect(redactString("xadv_short")).toBe("xadv_short");
+  });
+
+  // A69-012: share links carry their token in the path, the file route trades it for a download
+  // ticket, and kiosk keys, subprocessor notice links and personal access tokens share the shape.
+  it("replaces share link tokens, download tickets and the other prefixed secrets", () => {
+    const hex = "d".repeat(64);
+    for (const prefix of ["xshr", "xdlt", "xkio", "xspn", "xspu", "xos_pat"]) {
+      expect(redactString(`${prefix}_${hex}`), prefix).toBe("[token]");
+      expect(redactString(`${prefix.toUpperCase()}_${hex.toUpperCase()}`), prefix).toBe("[token]");
+    }
+    expect(redactUrl(`/share/xshr_${hex}`)).toBe("/share/[token]");
+    expect(redactUrl(`/share/xshr_${hex}/file?reason=share_link_invalid`)).toBe(
+      "/share/[token]/file",
+    );
+    expect(redactString(`POST https://atlas.example.test/share/xshr_${hex}/file 303`)).toBe(
+      "POST https://atlas.example.test/share/[token]/file 303",
+    );
+    expect(redactString(`file-download: {"ticket":"xdlt_${hex}"}`)).toBe(
+      'file-download: {"ticket":"[token]"}',
+    );
+    expect(redactString(`https://atlas.example.test/legal/subprocessors?confirm=xspn_${hex}`)).toBe(
+      "https://atlas.example.test/legal/subprocessors?confirm=[token]",
+    );
+    expect(redactString("GET /share/xshr_MISTYPED-or-truncated 404")).toBe(
+      "GET /share/[token] 404",
+    );
+    expect(redactUrl("/share/abc")).toBe("/share/[token]");
+    expect(redactString("/share/")).toBe("/share/");
+    expect(redactString("at /usr/share/zoneinfo/UTC")).toBe("at /usr/share/zoneinfo/UTC");
+    expect(redactString("at file:///usr/share/nodejs/undici/index.js:12:3")).toBe(
+      "at file:///usr/share/nodejs/undici/index.js:12:3",
+    );
+    // After a percent escape: Next's encoded router state header and a sign-in redirect.
+    const tree = encodeURIComponent(
+      JSON.stringify([
+        "",
+        { children: ["share", { children: [["token", `xshr_${hex}`, "d", null], {}] }] },
+      ]),
+    );
+    expect(redactString(tree)).not.toContain(hex);
+    expect(redactString(`/auth/mfa?next=%2Fshare%2Fxshr_${hex}%2Ffile`)).toBe(
+      "/auth/mfa?next=%2Fshare%2F[token]%2Ffile",
+    );
+    expect(redactString(`next=%252Fshare%252Fxshr_${hex}`)).toBe("next=%252Fshare%252F[token]");
+    expect(redactString("GET /files/share/new 200")).toBe("GET /files/share/new 200");
+    expect(redactString("?ticket=abc&access_code=123456")).toBe(
+      `?ticket=${REDACTED}&access_code=${REDACTED}`,
+    );
+    expect(
+      redact({ p_token: `xshr_${hex}`, p_access_code: "123456", p_ticket: "xdlt_short" }),
+    ).toEqual({ p_token: REDACTED, p_access_code: REDACTED, p_ticket: REDACTED });
   });
 
   // A84: calendar feed links and signed reply addresses.
@@ -113,6 +173,14 @@ describe("redactString", () => {
 
   it("replaces IPv6 addresses", () => {
     expect(redactString("from 2001:db8:85a3:0:0:8a2e:370:7334")).toBe("from [ip]");
+  });
+
+  it("stays linear on long runs that look almost like a match", () => {
+    const started = performance.now();
+    redactString("deadbeef".repeat(8000), 100);
+    redactString(`${"a/".repeat(16000)}/share/x`, 100);
+    redactString("/".repeat(64000), 100);
+    expect(performance.now() - started).toBeLessThan(250);
   });
 
   it("truncates long strings", () => {

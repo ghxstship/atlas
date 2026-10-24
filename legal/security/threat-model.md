@@ -53,6 +53,7 @@ than the database allows.
 | A69-009 | Medium   | Tenant member to app            | Fixed        |
 | A69-010 | Low      | Tenant member to app            | Partly fixed |
 | A69-011 | Low      | Tenant member to app            | Fixed        |
+| A69-012 | Medium   | Exports and logs                | Partly fixed |
 
 ## Trust boundaries
 
@@ -294,11 +295,12 @@ public (ADR 0034 amendment, `1265_public_upload_staging` suite).
 
 ## 11. Exports and logs
 
-| STRIDE | Threat                                                  | Control                                                                                                   | Evidence                                                   |
-| ------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| T      | A cell in a CSV export running as a formula (A69-005)   | `csvField()` neutralizes a leading `=`, `+`, `-`, `@`, tab or carriage return; plain numbers stay numbers | `csv.test.ts`; Semgrep `xos-csv-quoting-outside-csv-field` |
-| I      | Link tokens in request logs and error reports (A69-008) | The redactor replaces `xadv_`, `xagr_`, `xcal_`, `xdoc_`, `xinv_`, `xlnk_` and `xos_scim_` tokens         | `redact.test.ts`                                           |
-| I      | Personal data in error reports                          | One redactor for logs, traces and Sentry; `sendDefaultPii` off; `beforeSend` scrubs                       | `infra/observability` suites                               |
+| STRIDE | Threat                                                   | Control                                                                                                                                                                                                                                                                                          | Evidence                                                   |
+| ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| T      | A cell in a CSV export running as a formula (A69-005)    | `csvField()` neutralizes a leading `=`, `+`, `-`, `@`, tab or carriage return; plain numbers stay numbers                                                                                                                                                                                        | `csv.test.ts`; Semgrep `xos-csv-quoting-outside-csv-field` |
+| I      | Link tokens in request logs and error reports (A69-008)  | The redactor replaces `xadv_`, `xagr_`, `xcal_`, `xdoc_`, `xinv_`, `xlnk_` and `xos_scim_` tokens                                                                                                                                                                                                | `redact.test.ts`                                           |
+| I      | Share link tokens and download tickets in logs (A69-012) | The redactor also replaces `xshr_`, `xdlt_`, `xkio_`, `xspn_`, `xspu_` and `xos_pat_` tokens, whatever follows a leading `/share/`, tokens after a percent escape, and `ticket` and `access_code` keys; span header attributes are dropped. Residual: the platform request log keeps token paths | `redact.test.ts`                                           |
+| I      | Personal data in error reports                           | One redactor for logs, traces and Sentry; Sentry `dataCollection` off except kept headers; `beforeSend` scrubs                                                                                                                                                                                   | `infra/observability` suites                               |
 
 XLSX files write strings as strings (exceljs) and PDFs draw text (pdfkit), so neither runs content.
 
