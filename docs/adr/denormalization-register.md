@@ -431,37 +431,38 @@ Columns named like a total, count, sum, balance, score, percent or readiness tha
 
 ADR 0002 puts `org_id` and the audit columns on every tenant table. The identity rows of Section 4.8.1 and platform tables belong to no org, and ADR 0019 item 10 keeps person-owned rows outside an org, which ADR 0033 decision 69 accepts as a stated exception.
 
-| Table                                     | Kind         | Why                                                                                                                  |
-| ----------------------------------------- | ------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `app.active_org_selections`               | person-owned | One row per sign-in, keyed by user_id (ADR 0007 item 1, migration 0920).                                             |
-| `app.blocks`                              | person-owned | Blocks keyed by person_id, readable only by the blocker (A52, migration 1206).                                       |
-| `app.capabilities`                        | platform     | Capability registry rows generated from capabilities.yaml.                                                           |
-| `app.capability_modules`                  | platform     | Capability modules generated from capabilities.yaml.                                                                 |
-| `app.deletion_certificates`               | platform     | The record of an org's deletion, kept after the org and its members are gone (A79, migration 1351).                  |
-| `app.feedback_submissions`                | person-owned | Feedback a person sends the platform team, keyed by person_id, read by the sender and staff (A96, migration 1531).   |
-| `app.organizations`                       | identity     | The tenant itself (Section 4.8.1).                                                                                   |
-| `app.people`                              | identity     | One human across orgs (Section 4.8.1).                                                                               |
-| `app.person_calendar_feeds`               | person-owned | A person's own calendar feed across their engagements, keyed by person_id (A84, migration 1410).                     |
-| `app.person_certifications`               | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                       |
-| `app.person_emergency_contacts`           | person-owned | Work Details keyed by person_id, readable only by the person (A78, migration 1340).                                  |
-| `app.person_languages`                    | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                       |
-| `app.person_links`                        | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                       |
-| `app.person_loyalty_programs`             | person-owned | Work Details keyed by person_id, readable only by the person (A78, migration 1340).                                  |
-| `app.person_notification_preferences`     | person-owned | Notification choices of external parties, keyed by person_id (A44, migration 1131).                                  |
-| `app.person_notification_settings`        | person-owned | A person's own quiet hours for orgs they are not a member of, keyed by person_id (A89, migration 1461).              |
-| `app.person_profiles`                     | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                       |
-| `app.person_references`                   | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                       |
-| `app.person_skills`                       | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                       |
-| `app.person_work_details`                 | person-owned | Work Details keyed by person_id, readable only by the person (A78, migration 1340).                                  |
-| `app.plans`                               | platform     | Subscription plans generated from plans.yaml.                                                                        |
-| `app.platform_operator_actions`           | platform     | Append-only ledger of the operator console; target_org_id names the tenant an action touched (A90, migration 1470).  |
-| `app.platform_operators`                  | platform     | The platform team, owned by no tenant (A90, migration 1470).                                                         |
-| `app.portfolio_items`                     | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                       |
-| `app.product_events`                      | platform     | Consent-gated product analytics events, which by design name no person and no org (A96, migration 1532).             |
-| `app.profile_section_visibility`          | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                       |
-| `app.shortcut_bindings`                   | person-owned | Keyboard shortcut bindings keyed by person_id, readable only by the person (A81, migration 1370).                    |
-| `app.subscription_state_transition_rules` | platform     | Allowed subscription state transitions, the same for every org.                                                      |
-| `app.supplier_diversity_certifications`   | person-owned | Owned by a person or an external account and read only by the owner (A89, migration 1464).                           |
-| `app.supplier_diversity_events`           | person-owned | The certifications' access log, written only by the database; org_id names an org's read (A89, migration 1464).      |
-| `app.system_banners`                      | platform     | Platform-wide banners (A90, migration 1474).                                                                         |
-| `app.work_detail_events`                  | person-owned | The person's Work Details access log, written only by the database; org_id names an org's act (A78, migration 1340). |
+| Table                                     | Kind         | Why                                                                                                                       |
+| ----------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `app.active_org_selections`               | person-owned | One row per sign-in, keyed by user_id (ADR 0007 item 1, migration 0920).                                                  |
+| `app.blocks`                              | person-owned | Blocks keyed by person_id, readable only by the blocker (A52, migration 1206).                                            |
+| `app.capabilities`                        | platform     | Capability registry rows generated from capabilities.yaml.                                                                |
+| `app.capability_modules`                  | platform     | Capability modules generated from capabilities.yaml.                                                                      |
+| `app.deletion_certificates`               | platform     | The record of an org's deletion, kept after the org and its members are gone (A79, migration 1351).                       |
+| `app.feedback_submissions`                | person-owned | Feedback a person sends the platform team, keyed by person_id, read by the sender and staff (A96, migration 1531).        |
+| `app.organizations`                       | identity     | The tenant itself (Section 4.8.1).                                                                                        |
+| `app.people`                              | identity     | One human across orgs (Section 4.8.1).                                                                                    |
+| `app.person_calendar_feeds`               | person-owned | A person's own calendar feed across their engagements, keyed by person_id (A84, migration 1410).                          |
+| `app.person_certifications`               | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                            |
+| `app.person_emergency_contacts`           | person-owned | Work Details keyed by person_id, readable only by the person (A78, migration 1340).                                       |
+| `app.person_languages`                    | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                            |
+| `app.person_links`                        | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                            |
+| `app.person_loyalty_programs`             | person-owned | Work Details keyed by person_id, readable only by the person (A78, migration 1340).                                       |
+| `app.person_notification_preferences`     | person-owned | Notification choices of external parties, keyed by person_id (A44, migration 1131).                                       |
+| `app.person_notification_settings`        | person-owned | A person's own quiet hours for orgs they are not a member of, keyed by person_id (A89, migration 1461).                   |
+| `app.person_profiles`                     | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                            |
+| `app.person_push_devices`                 | person-owned | A person's own push devices, keyed by person_id, which carry an org's push only through the claim (A101, migration 1670). |
+| `app.person_references`                   | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                            |
+| `app.person_skills`                       | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                            |
+| `app.person_work_details`                 | person-owned | Work Details keyed by person_id, readable only by the person (A78, migration 1340).                                       |
+| `app.plans`                               | platform     | Subscription plans generated from plans.yaml.                                                                             |
+| `app.platform_operator_actions`           | platform     | Append-only ledger of the operator console; target_org_id names the tenant an action touched (A90, migration 1470).       |
+| `app.platform_operators`                  | platform     | The platform team, owned by no tenant (A90, migration 1470).                                                              |
+| `app.portfolio_items`                     | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                            |
+| `app.product_events`                      | platform     | Consent-gated product analytics events, which by design name no person and no org (A96, migration 1532).                  |
+| `app.profile_section_visibility`          | person-owned | Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).                            |
+| `app.shortcut_bindings`                   | person-owned | Keyboard shortcut bindings keyed by person_id, readable only by the person (A81, migration 1370).                         |
+| `app.subscription_state_transition_rules` | platform     | Allowed subscription state transitions, the same for every org.                                                           |
+| `app.supplier_diversity_certifications`   | person-owned | Owned by a person or an external account and read only by the owner (A89, migration 1464).                                |
+| `app.supplier_diversity_events`           | person-owned | The certifications' access log, written only by the database; org_id names an org's read (A89, migration 1464).           |
+| `app.system_banners`                      | platform     | Platform-wide banners (A90, migration 1474).                                                                              |
+| `app.work_detail_events`                  | person-owned | The person's Work Details access log, written only by the database; org_id names an org's act (A78, migration 1340).      |

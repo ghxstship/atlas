@@ -1572,6 +1572,9 @@ tenant_exceptions:
   - table: app.person_profiles
     kind: person-owned
     note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.person_push_devices
+    kind: person-owned
+    note: A person's own push devices, keyed by person_id, which carry an org's push only through the claim (A101, migration 1670).
   - table: app.person_references
     kind: person-owned
     note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).

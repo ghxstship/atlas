@@ -397,6 +397,7 @@ insert into register_tenant_exceptions values
   ('app.person_notification_preferences', 'person-owned'),
   ('app.person_notification_settings', 'person-owned'),
   ('app.person_profiles', 'person-owned'),
+  ('app.person_push_devices', 'person-owned'),
   ('app.person_references', 'person-owned'),
   ('app.person_skills', 'person-owned'),
   ('app.person_work_details', 'person-owned'),
