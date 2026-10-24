@@ -56,3 +56,19 @@ paths = ['''^packages/api/src/catalog/frozen-v1\.digest\.json$''']
 regexTarget = "secret"
 regexes = ['''^[0-9a-f]{64}$''']
 
+
+[[allowlists]]
+description = "Reviewed fake values and non-secret identifiers on batch-c (2026-10-24)"
+regexTarget = "secret"
+regexes = [
+  # Fixtures: a fake anon key (read-replica test), a fake Drive token (import worker test), the session id an e2e
+  # journey inserts, and an earlier spelling of the custom-domain verification token fixture
+  '''^anon-key-for-tests-0123456789$''',
+  '''^ya29-fixture$''',
+  '''^6f1c3a52-0d1e-4b8e-9a4f-1d2c3b4a5e6f$''',
+  '''^xos-verify-6f1c2d$''',
+  # A message key the certified payroll panel passes as its success copy
+  '''^compliance\.wh347\.saved$''',
+  # Keyboard shortcut chords in the generated shortcut registry
+  '''^(Mod|Ctrl)\+Shift\+Tab$''',
+]
