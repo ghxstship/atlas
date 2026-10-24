@@ -484,8 +484,41 @@ export async function BlocksSection({
               b.contractTotal.currencyCode,
               exponents.get(b.contractTotal.currencyCode ?? "") ?? 2,
             ) ?? tc("unpriced"),
+          id: b.id,
+          label: b.key,
           href: peekHref(b.key),
+          fullHref: hrefWith(base, search, { peek: b.key, full: "1", edit: null }),
+          ...(scope.access.can(b.projectId, "hospitality.accommodation.write")
+            ? { trashMessage: tc("deleted", { key: b.key }) }
+            : {}),
         }))}
+        bulk={
+          writable.length > 0
+            ? {
+                org: scope.ctx.org.slug,
+                resource: "accommodation_blocks",
+                fields: [
+                  {
+                    key: "counterparty_id",
+                    label: t("blocks.fields.hotel"),
+                    options: [
+                      { value: null, label: tc("none") },
+                      ...hotels.data.map((c) => ({
+                        value: c.id,
+                        label: c.name ?? tc("notSet"),
+                      })),
+                    ],
+                  },
+                ],
+              }
+            : null
+        }
+        trash={{
+          org: scope.ctx.org.slug,
+          label: tc("delete"),
+          run: deleteBlockAction,
+          restore: restoreBlockAction,
+        }}
       />
     );
   } else if (view === "calendar") {
