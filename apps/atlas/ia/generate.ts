@@ -7,6 +7,7 @@ import {
   type SitemapNode,
 } from "@xos/ia";
 import { getMessages } from "@xos/i18n";
+import type { PlanRegistry } from "@xos/schemas/plans";
 import { parse } from "yaml";
 import { packNodes } from "./client-sitemap-codec";
 import { IMPLEMENTED } from "./implemented";
@@ -256,6 +257,7 @@ export function generateFiles(
   plans: readonly PlanSummary[] = [],
   addons: readonly AddonSummary[] = [],
   offers: readonly OfferSummary[] = [],
+  registry: PlanRegistry | null = null,
 ): Map<string, string> {
   const issues = validateSitemap(sitemap, { messages: getMessages("en-US") });
   if (issues.length > 0) throw new Error(`ia/sitemap.yaml is invalid:\n${formatIssues(issues)}`);
@@ -307,6 +309,21 @@ export const ADDONS: readonly AddonSummary[] = ${JSON.stringify(addons)};
 export const OFFERS: readonly OfferSummary[] = ${JSON.stringify(offers)};
 `,
   );
+  if (registry !== null) {
+    files.set(
+      "lib/billing/plan-registry.generated.ts",
+      `${GENERATED_STAMP.replace("ia/sitemap.yaml", "packages/schemas/plans.yaml")}
+import type { PlanRegistry } from "@xos/schemas/plans";
+
+/**
+ * The validated plan registry, for the billing actions only (ADR 0033 decision 59): Checkout
+ * resolves each price by its Stripe lookup key at runtime, so no price id lives here (ADR 0018). Server
+ * code imports it; it never reaches the browser.
+ */
+export const PLAN_REGISTRY: PlanRegistry = ${JSON.stringify(registry)};
+`,
+    );
+  }
   for (const node of generatedNodes(sitemap)) {
     files.set(pageFile(node.route), pageSource(node.id, node.route));
   }

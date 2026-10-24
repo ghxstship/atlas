@@ -1,5 +1,6 @@
 import { dayOf, getOrgBannerStatus, readOnlyOn, windowLastDay } from "@xos/data/org-lifecycle";
 import { getTranslations } from "next-intl/server";
+import { BillingPortalButton, CheckoutButton } from "@/components/settings/billing-forms";
 import { Button, Card, InlineAlert } from "@/components/ui";
 import { getFormatters } from "@/lib/platform/format";
 import type { OrgContext } from "@/lib/shell/context";
@@ -7,12 +8,23 @@ import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 /**
  * The trial and dunning state at the top of Billing and Plan (A79; Section 14.7 and Section 16), where the
- * org banners send the Owner to fix billing. Adding a card and updating the payment method run through
- * Stripe Checkout and the customer portal (@xos/platform billing), which Atlas does not reach yet (ADR 0035,
- * gaps); until then the button stays disabled and the copy says how to get it done. Dates are days on the
- * org's calendar.
+ * org banners send the Owner to fix billing. Once billing is open (ADR 0033 decision 59), adding a
+ * card opens Stripe Checkout for the trial's plan, carrying the rest of the trial so nothing is charged
+ * before it ends, and updating the payment method opens the Stripe customer portal. Until then the button
+ * stays disabled and the copy says how to get it done; while a paid checkout waits for its subscription to
+ * sync, it stays disabled and the page says Stripe is confirming. Dates are days on the org's calendar.
  */
-export async function BillingLifecycleNotice({ ctx }: { ctx: OrgContext }) {
+export async function BillingLifecycleNotice({
+  ctx,
+  billing,
+}: {
+  ctx: OrgContext;
+  /**
+   * Whether billing is open, whether the org has a Stripe customer whose portal can open, and whether a paid
+   * checkout still waits for its subscription to sync.
+   */
+  billing: { readonly open: boolean; readonly portal: boolean; readonly awaiting: boolean };
+}) {
   const status = await getOrgBannerStatus(ctx.viewer.db, ctx.org.id);
   if (!status.ok) return null;
   const s = status.data;
@@ -23,6 +35,19 @@ export async function BillingLifecycleNotice({ ctx }: { ctx: OrgContext }) {
   ) => string;
   const [{ date }, zone] = await Promise.all([getFormatters(ctx), getOrgTimeZone(ctx)]);
   const readOnly = s.billingState === "read_only";
+  const action = s.billingState ? t("billing.updatePayment") : t("banners.trialAction");
+  const button =
+    s.billingState && billing.open && billing.portal ? (
+      <BillingPortalButton org={ctx.org.slug} label={action} variant="primary" />
+    ) : !s.billingState && billing.open && !billing.awaiting && s.trialPlan ? (
+      <CheckoutButton
+        org={ctx.org.slug}
+        plan={s.trialPlan}
+        interval="Monthly"
+        label={action}
+        variant="primary"
+      />
+    ) : null;
   return (
     <Card>
       <section
@@ -46,12 +71,18 @@ export async function BillingLifecycleNotice({ ctx }: { ctx: OrgContext }) {
                 date: s.trialEndsAt ? date(windowLastDay(s.trialEndsAt, zone)) : "",
               })}
         </p>
-        <div>
-          <Button variant="primary" disabled>
-            {s.billingState ? t("billing.updatePayment") : t("banners.trialAction")}
-          </Button>
-        </div>
-        <InlineAlert tone="info">{t("billing.notConnected")}</InlineAlert>
+        {button ?? (
+          <>
+            <div>
+              <Button variant="primary" disabled>
+                {action}
+              </Button>
+            </div>
+            {billing.awaiting ? null : (
+              <InlineAlert tone="info">{t("billing.notConnected")}</InlineAlert>
+            )}
+          </>
+        )}
       </section>
     </Card>
   );
