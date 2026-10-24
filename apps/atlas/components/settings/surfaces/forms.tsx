@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  Button,
-  Checkbox,
-  Dialog,
-  InlineAlert,
-  Input,
-  MoreFields,
-  Select,
-  Textarea,
-} from "@xos/ui";
+import { Button, Checkbox, Dialog, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import {
   useActionState,
@@ -103,27 +94,6 @@ export interface SecretCopy {
   readonly copied: string;
 }
 
-/** Fields a form shows before More fields (Section 11.10, Section 18 gate 27). */
-const VISIBLE_FIELDS = 7;
-
-/**
- * How many options of each checkbox group show before More fields: every other field takes one of
- * the seven places, and the groups share what is left in order. Each option is a field to the person
- * filling the form in, so a long group (270 webhook events) shows its first few and puts the rest
- * behind More fields, as the module switches do (A47-002).
- */
-function visibleOptions(fields: readonly SurfaceField[]): ReadonlyMap<string, number> {
-  let left = VISIBLE_FIELDS - fields.filter((f) => f.kind !== "checkboxes").length;
-  const out = new Map<string, number>();
-  for (const f of fields) {
-    if (f.kind !== "checkboxes") continue;
-    const shown = Math.max(0, Math.min(left, f.options.length));
-    out.set(f.name, shown);
-    left -= shown;
-  }
-  return out;
-}
-
 function Hidden({ values }: { values: Readonly<Record<string, string>> }) {
   return (
     <>
@@ -138,13 +108,10 @@ function Field({
   field,
   formId,
   error,
-  visible = Infinity,
 }: {
   field: SurfaceField;
   formId: string;
   error: string | undefined;
-  /** For a checkbox group, the options shown before More fields; all of them by default. */
-  visible?: number | undefined;
 }) {
   const id = `${formId}-${field.name}`;
   const help = field.help ? { help: field.help } : {};
@@ -190,32 +157,25 @@ function Field({
           {field.help ? <p className="m-0 text-text-12 text-text-secondary">{field.help}</p> : null}
         </div>
       );
-    case "checkboxes": {
-      const option = (o: Option) => (
-        <Checkbox
-          key={o.value}
-          id={`${id}-${o.value}`}
-          name={field.name}
-          value={o.value}
-          label={o.label}
-          defaultChecked={field.defaultValues?.includes(o.value)}
-        />
-      );
-      const grid = "grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-x-16 gap-y-8";
+    case "checkboxes":
       return (
         <fieldset className="m-0 flex min-w-0 flex-col gap-8 border-0 p-0">
           <legend className="mb-4 p-0 text-text-13 font-medium text-text-primary">
             {field.label}
           </legend>
           {field.help ? <p className="m-0 text-text-12 text-text-secondary">{field.help}</p> : null}
-          {visible > 0 ? (
-            <div className={grid}>{field.options.slice(0, visible).map(option)}</div>
-          ) : null}
-          {field.options.length > visible ? (
-            <MoreFields>
-              <div className={grid}>{field.options.slice(visible).map(option)}</div>
-            </MoreFields>
-          ) : null}
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-x-16 gap-y-8">
+            {field.options.map((o) => (
+              <Checkbox
+                key={o.value}
+                id={`${id}-${o.value}`}
+                name={field.name}
+                value={o.value}
+                label={o.label}
+                defaultChecked={field.defaultValues?.includes(o.value)}
+              />
+            ))}
+          </div>
           {error ? (
             <p role="alert" className="m-0 text-text-12 text-danger-text">
               {error}
@@ -223,7 +183,6 @@ function Field({
           ) : null}
         </fieldset>
       );
-    }
     default:
       return (
         <Input
@@ -309,7 +268,6 @@ export function SurfaceForm({
 }) {
   const [state, dispatch, pending] = useActionState(action, INITIAL);
   const keep = useKeepInput(state, dispatch, (s) => s.ok === true);
-  const visible = visibleOptions(fields);
   const stepUpDialog = useStepUpForm(state, needsStepUp, keep.ref);
   return (
     <div className="flex flex-col gap-12">
@@ -325,13 +283,7 @@ export function SurfaceForm({
         {children}
         {state.message ? <InlineAlert tone="danger">{state.message}</InlineAlert> : null}
         {fields.map((f) => (
-          <Field
-            key={f.name}
-            field={f}
-            formId={id}
-            error={state.fieldErrors?.[f.name]}
-            visible={visible.get(f.name)}
-          />
+          <Field key={f.name} field={f} formId={id} error={state.fieldErrors?.[f.name]} />
         ))}
         <div className="flex flex-wrap items-center gap-12">
           <Button type="submit" variant="primary" loading={pending}>
@@ -551,27 +503,14 @@ export function SaveBarForm({
 export function SaveBarFields({
   formId,
   fields,
-  disclosed = false,
 }: {
   formId: string;
   fields: readonly SurfaceField[];
-  /**
-   * The fields already sit behind a disclosure the person opened (a department's disciplines in a
-   * closed details), so they show in full rather than behind a second More fields.
-   */
-  disclosed?: boolean;
 }) {
-  const visible = disclosed ? new Map<string, number>() : visibleOptions(fields);
   return (
     <>
       {fields.map((f) => (
-        <Field
-          key={f.name}
-          field={f}
-          formId={formId}
-          error={undefined}
-          visible={visible.get(f.name)}
-        />
+        <Field key={f.name} field={f} formId={formId} error={undefined} />
       ))}
     </>
   );

@@ -1159,7 +1159,8 @@
       "term": {
         "label": "Billing term",
         "monthly": "Monthly",
-        "annual": "Yearly, two months free"
+        "annual": "Yearly, two months free",
+        "selected": "(selected)"
       },
       "checkoutDone": "Payment received. {org} is on the {plan} plan.",
       "checkoutPending": "Payment received. Stripe is confirming it, and the plan shown here updates in a moment.",

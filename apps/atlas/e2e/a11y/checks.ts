@@ -127,8 +127,7 @@ export async function iconControlProblems(page: Page): Promise<string[]> {
 /**
  * Gate 27 (cognitive load): no screen has more than one primary action, more than 5 visible toolbar
  * actions, or more than 7 visible form fields before "More fields" (collapsed fields are not
- * visible, and neither is what a closed <details> holds outside its summary). An open dialog is its
- * own screen; the page behind it is not counted.
+ * visible). An open dialog is its own screen; the page behind it is not counted.
  */
 export async function cognitiveLoadProblems(page: Page): Promise<string[]> {
   return page.evaluate(() => {
@@ -136,11 +135,6 @@ export async function cognitiveLoadProblems(page: Page): Promise<string[]> {
     const visible = (el: Element) => {
       // An inert subtree (a brand color preview) shows controls nobody can use.
       if (el.closest("[inert]")) return false;
-      // Chromium hides a closed <details> with content-visibility, which still reports a size.
-      const summary = el.closest("summary");
-      for (let d = el.closest("details"); d; d = d.parentElement?.closest("details") ?? null) {
-        if (!d.open && summary?.parentElement !== d) return false;
-      }
       const r = el.getBoundingClientRect();
       const s = getComputedStyle(el);
       return r.width > 0 && r.height > 0 && s.visibility !== "hidden";
