@@ -801,7 +801,15 @@ export async function listVendorBankAccounts(
   );
 }
 
-/** Adds a bank account; the database logs the editor for sod_vendor_payment. */
+/** Letters and digits of a bank number, upper-cased, as the database keeps them. */
+function bankDigits(value: string | null): string {
+  return (value ?? "").toUpperCase().replace(/[^0-9A-Z]/g, "");
+}
+
+/**
+ * Adds a bank account through app.set_vendor_bank_account (migration 1660), which encrypts the
+ * numbers and derives the last four; the database logs the editor for sod_vendor_payment.
+ */
 export async function addVendorBankAccount(
   db: XosClient,
   input: {
@@ -812,19 +820,24 @@ export async function addVendorBankAccount(
     readonly routingNumber: string | null;
   },
 ): Promise<Result<{ id: string }>> {
-  const compact = input.accountNumber.toUpperCase().replace(/[^0-9A-Z]/g, "");
-  if (compact.length < 4) {
+  const number = bankDigits(input.accountNumber);
+  if (number.length < 4 || number.length > 34) {
     return fail({ kind: "invalid", message: "account_number" });
   }
-  const row = {
-    vendor_id: input.vendorId,
-    bank_name: input.bankName.trim(),
-    account_holder: input.accountHolder.trim(),
-    account_number: input.accountNumber.trim(),
-    account_last4: compact.slice(-4),
-    routing_number: blankToNull(input.routingNumber),
-  } as Tables["vendor_bank_accounts"]["Insert"];
-  return insertedId(db.from("vendor_bank_accounts").insert(row).select("id").single());
+  if (bankDigits(input.routingNumber).length > 34) {
+    return fail({ kind: "invalid", message: "routing_number" });
+  }
+  const routing = blankToNull(input.routingNumber);
+  const result = await rpcValue(
+    db.rpc("set_vendor_bank_account", {
+      p_vendor_id: input.vendorId,
+      p_bank_name: input.bankName.trim(),
+      p_account_holder: input.accountHolder.trim(),
+      p_account_number: input.accountNumber.trim(),
+      ...(routing ? { p_routing_number: routing } : {}),
+    }),
+  );
+  return result.ok ? ok({ id: result.data }) : result;
 }
 
 // Sponsor assets, deliveries and proof of performance (migration 0492) ------------------------------------------

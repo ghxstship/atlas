@@ -7,13 +7,15 @@ import { ErrorPanel } from "@/components/collection-kit/kit";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import type { OrgContext } from "@/lib/shell/context";
 import { supplierDiversityProgramOn } from "@/lib/shell/org-settings";
+import { SupplierDiversityReveal } from "./supplier-diversity-reveal";
 
 /**
  * Supplier diversity certifications vendors and freelancers shared with the org (Section 4.4.1, migration
  * 1464), under Vendors, Directory. Only while the org runs a program (gateway.supplier_diversity_program),
  * only for members holding vendors.vendor.read, and every read is logged in each owner's access log and the
- * org's audit ledger. The certificate number is Restricted: shown masked without
- * data.restricted.read.government_id (Section 8.3).
+ * org's audit ledger. The certificate number is a Restricted government identifier (Section 8.3), encrypted at
+ * rest (1661): every reader sees its last four characters, and a member holding
+ * data.restricted.read.government_id reveals the whole number with a reason and step-up (decision 38).
  */
 export async function SharedSupplierDiversity({ ctx }: { ctx: OrgContext }) {
   if (!ctx.capabilities.has("vendors.vendor.read")) return null;
@@ -77,6 +79,22 @@ async function SharedList({
   if (shared.data.length === 0) {
     return <p className="m-0 text-text-13 text-text-secondary">{t("diversity.empty")}</p>;
   }
+  const revealable = ctx.capabilities.has("data.restricted.read.government_id")
+    ? shared.data.flatMap((s) =>
+        s.numberLast4
+          ? [
+              {
+                value: s.shareId,
+                label: t("diversity.revealOption", {
+                  owner: s.ownerName,
+                  kind: t(`diversity.kinds.${kindKey(s.kind)}`),
+                  last4: s.numberLast4,
+                }),
+              },
+            ]
+          : [],
+      )
+    : [];
   return (
     <>
       <p className="m-0 text-text-13 text-text-secondary">{t("diversity.lead")}</p>
@@ -107,15 +125,18 @@ async function SharedList({
               <td className="py-6">{t(`diversity.kinds.${kindKey(s.kind)}`)}</td>
               <td className="py-6">{s.certifyingBody}</td>
               <td className="py-6 tabular-nums">
-                {s.numberMasked
-                  ? t("diversity.masked")
-                  : (s.certificateNumber ?? t("diversity.none"))}
+                {s.numberLast4
+                  ? t("diversity.masked", { last4: s.numberLast4 })
+                  : t("diversity.none")}
               </td>
               <td className="py-6">{s.expiresOn ? date(s.expiresOn) : t("diversity.none")}</td>
             </tr>
           ))}
         </tbody>
       </table>
+      {revealable.length > 0 ? (
+        <SupplierDiversityReveal org={ctx.org.slug} options={revealable} />
+      ) : null}
     </>
   );
 }

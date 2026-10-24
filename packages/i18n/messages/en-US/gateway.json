@@ -1805,13 +1805,13 @@
     "certifyingBody": "Certified by",
     "certifyingBodyHelp": "For example a state DBE program or the SBA. Write Self-declared when nobody certified it.",
     "number": "Certificate number",
-    "numberHelp": "Optional. Stored as restricted data: only its last four characters show here.",
+    "numberHelp": "Optional. Encrypted and stored as restricted data: only its last four characters show here, and an organization you share it with sees the whole number only after giving a reason.",
     "issuedOn": "Issued",
     "expiresOn": "Expires",
     "errors": {
       "kind": "Choose the kind of certification.",
       "certifyingBody": "Enter who certified it, or Self-declared.",
-      "certificateNumber": "Keep the certificate number under 100 characters.",
+      "certificateNumber": "Enter the certificate number in 100 characters or fewer, with at least one letter or digit.",
       "issuedOn": "Enter the issue date as a date.",
       "expiresOn": "Choose an expiry date on or after the issue date.",
       "orgId": "Choose the organization to share with."
