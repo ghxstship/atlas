@@ -260,7 +260,7 @@ describe("uploaded PDF watermark", () => {
       await stampPdfWatermark(original, "x", { ...PDF_WATERMARK_LIMITS, pages: 2 }),
     ).toMatchObject({ ok: false, reason: "too-large" });
 
-    // An object stream that inflates to 2 MiB, against a 1 MiB budget: refused before pdf-lib reads it.
+    // An object stream that inflates to 2 MiB, against a 1 MiB allowance: refused before pdf-lib reads it.
     const bomb = deflateSync(Buffer.alloc(2 * 1024 * 1024));
     const file = Buffer.concat([
       Buffer.from(
@@ -270,9 +270,14 @@ describe("uploaded PDF watermark", () => {
       bomb,
       Buffer.from("\nendstream\nendobj\n%%EOF\n", "latin1"),
     ]);
-    const budget = { ...PDF_WATERMARK_LIMITS, decodedBytes: 1024 * 1024 };
-    expect(await stampPdfWatermark(new Uint8Array(file), "x", budget)).toMatchObject({
+    const objects = { ...PDF_WATERMARK_LIMITS, objectBytes: 1024 * 1024 };
+    expect(await stampPdfWatermark(new Uint8Array(file), "x", objects)).toEqual({
       ok: false,
+      reason: "too-large",
+      detail: "object streams over the limit",
+    });
+    const oneStream = { ...PDF_WATERMARK_LIMITS, streamBytes: 1024 * 1024 };
+    expect(await stampPdfWatermark(new Uint8Array(file), "x", oneStream)).toMatchObject({
       reason: "too-large",
     });
 
@@ -283,9 +288,11 @@ describe("uploaded PDF watermark", () => {
       PDFName.of("Contents"),
       doc.context.register(doc.context.flateStream("q Q ".repeat(300_000))),
     );
-    expect(await stampPdfWatermark(await doc.save(), "x", budget)).toMatchObject({
+    const content = { ...PDF_WATERMARK_LIMITS, contentBytes: 1024 * 1024 };
+    expect(await stampPdfWatermark(await doc.save(), "x", content)).toEqual({
       ok: false,
       reason: "too-large",
+      detail: "page content over the limit",
     });
     const hexDoc = await PDFDocument.create();
     hexDoc

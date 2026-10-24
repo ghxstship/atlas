@@ -18,8 +18,8 @@ type PdfLib = typeof PdfLibModule;
  * or malformed page cannot leave a transform, a clip or hidden optional content over the line, and a
  * page that ends inside a string or an inline image is refused. Reversed or oversized boxes are
  * normalized, and an XFA form, which a viewer would show instead of the pages, is dropped. Reading is
- * bounded too (see {@link PDF_WATERMARK_LIMITS}): everything inflated while reading the file counts
- * against one budget, checked before pdf-lib inflates object streams, so a deflate bomb is refused
+ * bounded too (see {@link PDF_WATERMARK_LIMITS}): what is inflated while reading the file counts
+ * against a budget, checked before pdf-lib inflates object streams, so a deflate bomb is refused
  * instead of filling the server's memory. Server only: pdf-lib and node:zlib load on first use.
  */
 
@@ -34,8 +34,12 @@ export interface PdfWatermarkLimits {
   /** The file itself; the attachments bucket takes up to 50 MiB. */
   readonly bytes: number;
   readonly pages: number;
-  /** Everything inflated while reading: object and cross-reference streams, and page content. */
-  readonly decodedBytes: number;
+  /** Object and cross-reference streams, which pdf-lib inflates on load and keeps, in all. */
+  readonly objectBytes: number;
+  /** Page content, inflated one page at a time to balance it, in all. */
+  readonly contentBytes: number;
+  /** Any one inflated stream. */
+  readonly streamBytes: number;
   /** A stream under a filter other than Flate alone (LZW, run length) is decoded only when this small. */
   readonly otherFilterBytes: number;
 }
@@ -43,7 +47,9 @@ export interface PdfWatermarkLimits {
 export const PDF_WATERMARK_LIMITS: PdfWatermarkLimits = {
   bytes: 50 * 1024 * 1024,
   pages: 5000,
-  decodedBytes: 256 * 1024 * 1024,
+  objectBytes: 256 * 1024 * 1024,
+  contentBytes: 1024 * 1024 * 1024,
+  streamBytes: 64 * 1024 * 1024,
   otherFilterBytes: 64 * 1024,
 };
 
@@ -246,27 +252,34 @@ class Unreadable extends Error {}
 
 type Inflate = (input: Uint8Array, maxOutputLength: number) => Uint8Array;
 
-/** A running allowance for inflated bytes, shared by everything read from one file. */
+/** A running allowance for inflated bytes of one kind, read from one file. */
 class Budget {
   constructor(
+    private readonly label: string,
     private left: number,
+    private readonly limits: PdfWatermarkLimits,
     private readonly inflate: Inflate,
-    readonly otherFilterBytes: number,
   ) {}
 
+  get otherFilterBytes(): number {
+    return this.limits.otherFilterBytes;
+  }
+
   take(size: number): void {
-    if (size > this.left) throw new TooLarge("inflated content over the limit");
+    if (size > this.left || size > this.limits.streamBytes) {
+      throw new TooLarge(`${this.label} over the limit`);
+    }
     this.left -= size;
   }
 
-  /** Inflates a Flate stream (trailing bytes ignored) within what is left of the allowance. */
+  /** Inflates a Flate stream (trailing bytes ignored) within the allowance and the stream limit. */
   inflated(input: Uint8Array): Uint8Array {
     let out: Uint8Array;
     try {
-      out = this.inflate(input, this.left + 1);
+      out = this.inflate(input, Math.min(this.left, this.limits.streamBytes) + 1);
     } catch (error) {
       if ((error as { code?: string }).code === "ERR_BUFFER_TOO_LARGE") {
-        throw new TooLarge("inflated content over the limit");
+        throw new TooLarge(`${this.label} over the limit`);
       }
       throw new Unreadable(`flate: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -286,7 +299,9 @@ const isFlate = (filters: readonly string[]) =>
 
 /**
  * Object and cross-reference streams are the ones pdf-lib inflates while loading, with no limit, so
- * each is inflated here first against the budget. A stream under another filter must be small.
+ * each is inflated here first against the budget. A stream under another filter must be small. A
+ * stream that does not inflate (encrypted, or damaged) is left to pdf-lib, which refuses it or reads
+ * no more of it than zlib could.
  */
 function checkLoadStreams(bytes: Uint8Array, budget: Budget): void {
   const text = new TextDecoder("latin1").decode(bytes);
@@ -303,7 +318,11 @@ function checkLoadStreams(bytes: Uint8Array, budget: Budget): void {
     const filters = filtersIn(text.slice(Math.max(opened, match.index - 4096), keyword));
     if (filters.length === 0) continue;
     if (isFlate(filters)) {
-      budget.inflated(bytes.subarray(start));
+      try {
+        budget.inflated(bytes.subarray(start));
+      } catch (error) {
+        if (!(error instanceof Unreadable)) throw error;
+      }
       continue;
     }
     const end = text.indexOf("endstream", start);
@@ -371,14 +390,12 @@ export async function stampPdfWatermark(
   if (bytes.length > limits.bytes) return { ok: false, reason: "too-large", detail: "file size" };
   const lib = await import("pdf-lib");
   const zlib = await import("node:zlib");
-  const budget = new Budget(
-    limits.decodedBytes,
-    (input, maxOutputLength) =>
-      zlib.inflateSync(input, { maxOutputLength, finishFlush: zlib.constants.Z_SYNC_FLUSH }),
-    limits.otherFilterBytes,
-  );
+  const inflate: Inflate = (input, maxOutputLength) =>
+    zlib.inflateSync(input, { maxOutputLength, finishFlush: zlib.constants.Z_SYNC_FLUSH });
+  const objects = new Budget("object streams", limits.objectBytes, limits, inflate);
+  const content = new Budget("page content", limits.contentBytes, limits, inflate);
   try {
-    checkLoadStreams(bytes, budget);
+    checkLoadStreams(bytes, objects);
     // Loaded with ignoreEncryption only to ask: pdf-lib cannot write an encrypted file back.
     const doc = await lib.PDFDocument.load(bytes, {
       updateMetadata: false,
@@ -400,8 +417,8 @@ export async function stampPdfWatermark(
     const color = lib.grayscale(GRAY);
 
     for (const [index, page] of pages.entries()) {
-      const content = pageContent(page, lib, budget);
-      const balance = content === null ? null : contentBalance(content);
+      const own = pageContent(page, lib, content);
+      const balance = own === null ? null : contentBalance(own);
       if (balance === null) {
         return { ok: false, reason: "unreadable", detail: `page ${index + 1} content` };
       }
