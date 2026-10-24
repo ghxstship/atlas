@@ -11,6 +11,7 @@
   "lockValue": "Bloquear valor",
   "discard": "Descartar",
   "unsaved": "{count, plural, one {# cambio sin guardar} other {# cambios sin guardar}}",
+  "chosen": "{count, number} de {total, number} elegidos",
   "loadFailed": "No se pudieron cargar estos ajustes. Recarga la página para intentarlo de nuevo.",
   "registryHeading": "Ajustes de esta página",
   "personalSections": "Secciones de ajustes personales",
@@ -716,7 +717,6 @@
     "failed": "No se guardó la barra lateral. Inténtalo de nuevo."
   },
   "notifications": {
-    "category": "Categoría",
     "channels": {
       "inApp": "En la app",
       "email": "Correo electrónico",
@@ -724,6 +724,7 @@
       "push": "Push"
     },
     "cellLabel": "{category} por {channel}",
+    "noChannels": "Ningún canal",
     "urgent": "Urgente: nunca espera al resumen por correo electrónico.",
     "save": "Guardar configuración de notificaciones",
     "saved": "Configuración de notificaciones guardada.",
