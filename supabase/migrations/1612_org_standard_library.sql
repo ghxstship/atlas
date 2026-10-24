@@ -25,6 +25,9 @@
 --     (decision D15), so an org holds a copy of a canon code and never invents one. API v1's emergencyCodes keeps
 --     serving the global codes unchanged.
 --   * SOPs arrive as drafts, so the org reviews each before publishing asks its people to acknowledge it.
+--   * Standard SOPs and documents that describe the real CSMIA26 activation stay in canon but are never copied into an
+--     org and are left out of the status counts, until the owner decides Linear RRR-67 (Sections 2.1 and 3.14):
+--     private.standard_library_withheld lists them by record id.
 -- Recreated from their latest definitions with one added call: app.create_organization and
 -- app.subscribe_external_account (1350) and app.create_client_organization (0206).
 
@@ -200,6 +203,58 @@ call private.describe('app.role_library', 'The org''s job descriptions per canon
 ]);
 call private.install_default_retention('app.role_library');
 
+-- Withheld until the owner decides Linear RRR-67 ------------------------------------------------------------------------
+-- Sections 2.1 and 3.14: no tenant receives a real client's data. These Standard Library rows describe the real CSMIA26
+-- activation by naming its client (Spotify, Casa Spotify Wynwood), its site (Wynwood, the Biscayne boundary, 76th St),
+-- the City of Miami or Miami-Dade bodies that permitted it, or its permit numbers. Canon keeps them; adoption copies
+-- none of them and the status leaves them out of its counts until the owner decides whether they stay private to
+-- GHXSTSHIP, are anonymized or are excluded. The rule is applied once here, by record id, so a reviewer reads exactly
+-- what is held back; pgTAP 1612 fails when a canon SOP or document names the activation and is not listed.
+
+create or replace function private.standard_library_withheld(p_library text)
+returns text[]
+language sql
+immutable
+parallel safe
+set search_path = ''
+as $$
+  select case p_library
+    when 'sops' then array[
+      'SOP-002',  -- Temporary Event Power Distribution: its electrical permit number, EL-2026-04421
+      'SOP-003',  -- Concert Line Array Tuning: rear rejection toward the Biscayne property boundary
+      'SOP-005',  -- Assembly Occupancy Ingress & Egress: its assembly permit number, BD-2026-08914, and 76th St
+      'SOP-007',  -- Real-Time Media Ingest: the Casa Spotify Wynwood brand toolkit, LUT and Spotify logo bugs
+      'SOP-010',  -- Stage Pyrotechnics: the City of Miami Fire-Rescue permit and Miami fire watch
+      'SOP-012',  -- Environmental Noise Monitoring: the Wynwood and Biscayne perimeter, Miami's noise ordinance
+      'SOP-015',  -- Mass-Gathering Emergency Medical: the Miami-Dade Fire Rescue medical plan and ALS unit
+      'SOP-016',  -- Physical Security Perimeter: the City of Miami security overlay
+      'SOP-017',  -- Public Right-of-Way Traffic Control: the City of Miami / FDOT permit and 76th St
+      'SOP-020',  -- RF Spectrum Coordination: Miami broadcast exclusions and the Wynwood venue airspace
+      'SOP-021',  -- Generator Diesel Fueling: the Miami-Dade DERM fuel transfer protocol
+      'SOP-022',  -- Commercial Insurance Endorsement: Spotify as additional insured
+      'SOP-027',  -- Temporary Potable Water: the Miami-Dade WASD distribution protocol
+      'SOP-032'   -- Incident Command CAD Logging: the direct link to the Miami 911 PSAP
+    ]
+    when 'document_library' then array[
+      'DOC-002',  -- City of Miami Special Assembly Occupancy Permit (BD-2026-08914)
+      'DOC-003',  -- Temporary Power & Generator Tie-In Permit: its permit number, EL-2026-04421
+      'DOC-005',  -- Acoustic Sound Modeling: the Wynwood / Biscayne perimeter curfew
+      'DOC-006',  -- Casa Spotify Wynwood Brand Toolkit & Style Guide
+      'DOC-010',  -- Miami Fire-Rescue Special Effects & Flame Effects Permit
+      'DOC-012',  -- City of Miami Code Compliance Noise Variance
+      'DOC-015',  -- Medical Action Plan & Miami-Dade EMS Detail
+      'DOC-017',  -- Right-of-Way Closure: the City of Miami Public Works / FDOT permit on 76th St
+      'DOC-021',  -- Hazardous Materials Plan: the Miami-Dade DERM containment plan
+      'DOC-022',  -- Insurance Binder naming the City of Miami and Spotify as additional insureds
+      'DOC-027'   -- Potable Water Certification: the Miami-Dade WASD inspection
+    ]
+    else '{}'::text[]
+  end;
+$$;
+
+comment on function private.standard_library_withheld(text) is 'Record ids of the Standard Library rows of a library (sops, document_library) that describe the real CSMIA26 activation. Canon keeps them; private.adopt_standard_library never copies them and app.standard_library_status does not count them, until the owner decides Linear RRR-67. Empty for every other library.';
+revoke all on function private.standard_library_withheld(text) from public, anon, authenticated;
+
 -- Adoption ------------------------------------------------------------------------------------------------------------
 
 create or replace function private.adopt_standard_library(p_org_id uuid)
@@ -217,6 +272,7 @@ declare
   v_code text;
   v_currency text;
   v_rows integer;
+  v_today date;
 begin
   -- One adoption at a time per org, so two concurrent runs never copy a row twice.
   perform 1 from app.organizations o where o.id = p_org_id for update;
@@ -227,6 +283,7 @@ begin
   insert into app.documents (org_id, title, std_document_id)
   select p_org_id, s.document_name, s.record_id from xpms.std_document_library s
   where s.document_name is not null
+    and s.record_id <> all (private.standard_library_withheld('document_library'))
     and not exists (select 1 from app.documents d where d.org_id = p_org_id and d.std_document_id = s.record_id)
   order by s.source_row;
   get diagnostics v_n = row_count;
@@ -249,8 +306,10 @@ begin
   get diagnostics v_n = row_count;
   v_counts := v_counts || jsonb_build_object('enumerations', v_n);
 
-  -- Labor rate cards: the standard lines go on one org rate card in their currency, the one already holding standard
-  -- lines in that currency if any, so a standard rate never lands on a card priced in another currency.
+  -- Labor rate cards: the standard lines go on one org rate card in their currency, the oldest current one (no end
+  -- date, or one not yet passed) already holding standard lines in that currency, else a new XOS Standard Labor Rates
+  -- card, so a standard rate never lands on a card priced in another currency or one that has ended.
+  v_today := private.org_today(p_org_id);
   v_n := 0;
   for v_currency in
     select distinct s.currency_code from xpms.rate_card s
@@ -260,11 +319,12 @@ begin
     v_card := null;
     select l.rate_card_id into v_card from app.rate_card_lines l
     join app.rate_cards c on c.id = l.rate_card_id and c.deleted_at is null and c.currency_code = v_currency
+      and (c.effective_to is null or c.effective_to >= v_today)
     where l.org_id = p_org_id and l.canon_rate_card_id is not null
     order by c.created_at limit 1;
     if v_card is null then
       insert into app.rate_cards (org_id, name, currency_code, effective_from)
-      values (p_org_id, 'XOS Standard Labor Rates', v_currency, private.org_today(p_org_id))
+      values (p_org_id, 'XOS Standard Labor Rates', v_currency, v_today)
       returning id into v_card;
     end if;
     insert into app.rate_card_lines (org_id, rate_card_id, role_code, worker_classification, pay_basis, arrangement,
@@ -305,6 +365,7 @@ begin
   for v_sop in
     select s.* from xpms.std_sop s
     where s.title is not null
+      and s.sop_id <> all (private.standard_library_withheld('sops'))
       and not exists (select 1 from app.sops o where o.org_id = p_org_id and o.std_sop_id = s.sop_id)
     order by s.sop_id
   loop
@@ -366,7 +427,7 @@ begin
 end;
 $$;
 
-comment on function private.adopt_standard_library(uuid) is 'Copies into the org every XOS Standard Library row it has never held a copy of, each as org data naming its standard source (Section 7.2, finding A65-027). Never changes or restores an existing copy, so a second run copies nothing. SOPs arrive as drafts; an SOP code the org already uses takes the next free code, and a vendor class or verbiage term the org already has keeps the org''s own. Returns the rows copied per library.';
+comment on function private.adopt_standard_library(uuid) is 'Copies into the org every XOS Standard Library row it has never held a copy of, each as org data naming its standard source (Section 7.2, finding A65-027), except the rows private.standard_library_withheld holds back until the owner decides RRR-67. Never changes or restores an existing copy, so a second run copies nothing. SOPs arrive as drafts; an SOP code the org already uses takes the next free code, and a vendor class or verbiage term the org already has keeps the org''s own. Standard labor rates go on the org''s oldest current card in their currency that holds standard rates, else on a new XOS Standard Labor Rates card. Returns the rows copied per library.';
 revoke all on function private.adopt_standard_library(uuid) from public, anon, authenticated;
 
 create or replace function app.adopt_standard_library(p_org_id uuid)
@@ -402,8 +463,11 @@ begin
   end if;
   return query
   select l.library, l.standard_count::integer, l.adopted_count::integer from (values
-    (1, 'document_library', (select count(*) from xpms.std_document_library),
-      (select count(*) from app.documents d where d.org_id = p_org_id and d.std_document_id is not null)),
+    (1, 'document_library',
+      (select count(*) from xpms.std_document_library s
+        where s.record_id <> all (private.standard_library_withheld('document_library'))),
+      (select count(*) from app.documents d where d.org_id = p_org_id and d.std_document_id is not null
+        and d.std_document_id <> all (private.standard_library_withheld('document_library')))),
     (2, 'emergency_codes', (select count(*) from xpms.emergency_code),
       (select count(*) from app.emergency_codes c where c.org_id = p_org_id)),
     (3, 'enumerations', (select count(*) from xpms.std_enumeration),
@@ -414,8 +478,9 @@ begin
       (select count(*) from app.radio_channel_plan r where r.org_id = p_org_id and r.std_radio_channel_id is not null)),
     (6, 'roles', (select count(*) from xpms.role),
       (select count(*) from app.role_library r where r.org_id = p_org_id)),
-    (7, 'sops', (select count(*) from xpms.std_sop),
-      (select count(*) from app.sops s where s.org_id = p_org_id and s.std_sop_id is not null)),
+    (7, 'sops', (select count(*) from xpms.std_sop s where s.sop_id <> all (private.standard_library_withheld('sops'))),
+      (select count(*) from app.sops s where s.org_id = p_org_id and s.std_sop_id is not null
+        and s.std_sop_id <> all (private.standard_library_withheld('sops')))),
     (8, 'vendor_classes', (select count(*) from xpms.std_vendor_class),
       (select count(distinct c.std_vendor_class_id) from app.vendor_classes c where c.org_id = p_org_id)),
     (9, 'vendor_entitlements', (select count(*) from xpms.std_vendor_entitlement),
@@ -427,7 +492,7 @@ begin
 end;
 $$;
 
-comment on function app.standard_library_status(uuid) is 'Per Standard Library, how many standard rows exist and how many the org holds or held a copy of, in the order of Section 7.2. Needs org.settings.read.';
+comment on function app.standard_library_status(uuid) is 'Per Standard Library, how many standard rows an org can adopt and how many of them the org holds or held a copy of, in the order of Section 7.2. Rows withheld until the owner decides RRR-67 (private.standard_library_withheld) are in neither count. Needs org.settings.read.';
 revoke all on function app.standard_library_status(uuid) from public, anon;
 grant execute on function app.standard_library_status(uuid) to authenticated, service_role;
 
