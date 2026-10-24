@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(30);
+select plan(31);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
@@ -94,6 +94,14 @@ select ok((select count(*) > 0 and count(*) filter (where d.message_status <> 'S
            from app.notification_deliveries d join app.notifications n on n.id = d.notification_id
            where n.recipient_person_id = pg_temp.id('dave') and n.subject_id = (select id from k where key = 'dm2')),
   'the email and push of Frank''s message to Dave are Suppressed');
+update app.notification_deliveries d set message_status = 'Digest'
+from app.notifications n
+where n.id = d.notification_id and n.created_at = d.notification_created_at
+  and n.recipient_person_id = pg_temp.id('dave') and n.subject_id = (select id from k where key = 'dm2');
+select ok((select bool_and(d.message_status = 'Suppressed')
+           from app.notification_deliveries d join app.notifications n on n.id = d.notification_id
+           where n.recipient_person_id = pg_temp.id('dave') and n.subject_id = (select id from k where key = 'dm2')),
+  'and stay Suppressed when a text is held for the summary');
 select ok((select count(*) > 0 and count(*) filter (where d.message_status = 'Suppressed') = 0
            from app.notification_deliveries d join app.notifications n on n.id = d.notification_id
            where n.recipient_person_id = pg_temp.id('erin') and n.subject_id = (select id from k where key = 'group1')),

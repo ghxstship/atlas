@@ -175,6 +175,15 @@ as $$
 declare
   v_notification record;
 begin
+  -- A text private.notify holds for the summary goes from Queued to Digest: one suppressed here stays suppressed.
+  if tg_op = 'UPDATE' then
+    if old.message_status = 'Suppressed' and old.last_error = 'The recipient blocked the author.'
+       and new.message_status in ('Queued', 'Deferred', 'Digest') then
+      new.message_status := 'Suppressed';
+      new.last_error := old.last_error;
+    end if;
+    return new;
+  end if;
   if new.message_status not in ('Queued', 'Deferred', 'Digest') then
     return new;
   end if;
@@ -191,7 +200,7 @@ begin
 end;
 $$;
 
-comment on function private.blocked_author_sends_nothing() is 'Trigger: records an email, text or push delivery about content by someone the recipient blocked Suppressed, whether private.notify queues, defers or holds it, and when a held or deferred one is released after the block (1631).';
+comment on function private.blocked_author_sends_nothing() is 'Trigger: records an email, text or push delivery about content by someone the recipient blocked Suppressed when private.notify creates it, whether it is queued, deferred or held for a digest, and keeps it Suppressed when a text is then held for the summary. A delivery queued before the block goes as queued (1631).';
 revoke all on function private.blocked_author_sends_nothing() from public, anon, authenticated;
 
 create trigger t52_blocked_author_sends_nothing before insert or update of message_status on app.notification_deliveries
