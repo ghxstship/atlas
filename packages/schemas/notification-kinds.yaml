@@ -220,9 +220,17 @@ kinds:
   # Account (0520, 0560, 1203, 1560, 1561)
   - kind: account.security_changed
     category: account
-    deferred:
-      reason: "Security changes (password, email, phone, second factors, passkeys) happen in Supabase Auth and in the sign-in and step-up work, and none of those paths calls private.notify yet. A99's recovery codes and sessions send their own kinds."
-      decision: "A follow-up to A77 and A99 (RRR-122, RRR-144) emits it from the password, email, phone and factor change paths; no owner decision pending"
+    emitted_by:
+      # 1700 (A104): Supabase Auth's password, email and phone changes, second factors verified or removed, passkeys
+      # added or removed, and each new set of recovery codes; the change argument names which.
+      - emitter: supabase/migrations/1700_account_security_notices.sql#private.after_auth_user_security_change
+        test: supabase/tests/1700_account_security_notices.test.sql
+      - emitter: supabase/migrations/1700_account_security_notices.sql#private.after_mfa_factor_change
+        test: supabase/tests/1700_account_security_notices.test.sql
+      - emitter: supabase/migrations/1700_account_security_notices.sql#private.after_passkey_change
+        test: supabase/tests/1700_account_security_notices.test.sql
+      - emitter: supabase/migrations/1700_account_security_notices.sql#app.generate_recovery_codes
+        test: supabase/tests/1700_account_security_notices.test.sql
   - kind: account.recovery_code_used
     category: account
     emitted_by:
@@ -333,9 +341,11 @@ kinds:
   - kind: import.finished
     category: imports
     email_template: import_finished
-    deferred:
-      reason: "The import_finished template needs the import's counts and an absolute review link (packages/platform dispatch.ts) that only the app's import worker (packages/data import-worker.ts) can build; the import pipeline (1061) notifies nobody yet."
-      decision: "The import worker emits it with the link (A83 import wizard, RRR-128); no owner decision pending"
+    emitted_by:
+      # A104: the import worker (packages/data import-worker.ts) calls 1701 with the absolute review link when it finishes
+      # validating or committing; 1701 counts the rows and notifies the person who started or committed the import.
+      - emitter: supabase/migrations/1701_import_finished_notice.sql#app.notify_import_finished
+        test: supabase/tests/1701_import_finished_notice.test.sql
   - kind: export.ready
     category: imports
     email_template: export_ready

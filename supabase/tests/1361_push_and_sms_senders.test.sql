@@ -34,6 +34,10 @@ $$;
 
 select pg_temp.as_platform();
 update auth.users set phone = '15555550100', phone_confirmed_at = now() where id = pg_temp.id('dave_user');
+-- The phone is this suite's starting point; since 1700 (A104) it also tells Dave his phone changed. The claims below
+-- count only the notifications this suite sends, so that notice's deliveries go.
+delete from app.notification_deliveries d using app.notifications n
+where n.id = d.notification_id and n.kind = 'account.security_changed' and n.recipient_person_id = pg_temp.id('dave');
 insert into app.sms_consent_events (org_id, person_id, phone_e164, action, source)
 values (pg_temp.id('org_a'), pg_temp.id('dave'), '+15555550100', 'Opt In', 'Web');
 

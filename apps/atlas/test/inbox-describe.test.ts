@@ -82,7 +82,14 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "event.invited": { title: "Show Day Safety Briefing", startsAt: "2026-10-21T09:00:00+00:00" },
   "export.ready": { title: "Records export" },
   "help_request.assigned": { title: "Dock tablet will not sign in", team: "Site IT Desk" },
-  "import.finished": { title: "Crew import" },
+  // 1701: a committed import's rows, as private.notify stores the numbers (the Inbox reads them as text).
+  "import.finished": {
+    title: "Crew import",
+    stage: "committed",
+    written: "12",
+    refused: "1",
+    skipped: "0",
+  },
   "incident.reported": { title: "NWS-32 Slip at dock" },
   "invoice.approved": { title: "INV-0042" },
   "invoice.submitted": { title: "INV-0042" },
@@ -232,6 +239,82 @@ describe("Inbox item copy", () => {
       },
     );
     expect(out).toMatchObject({ summary: "Shift assigned", detail: "Stagehand" });
+  });
+
+  it("says which sign-in setting changed, in every locale (1700)", () => {
+    const changes = [
+      "password",
+      "password_set",
+      "email",
+      "phone",
+      "factor_added",
+      "factor_removed",
+      "passkey_added",
+      "passkey_removed",
+      "recovery_codes",
+    ];
+    for (const locale of locales) {
+      const copy = copyFor(locale);
+      // The sentence of a change the copy does not know.
+      const generic = copy.email("kinds.account.security_changed.body", { change: "unknown" });
+      const details = changes.map(
+        (change) =>
+          describeInboxItem(
+            item("account.security_changed", { change, factorType: "totp" }),
+            copy,
+            { org: "demo", orgName: "Demo Productions", actorName: null },
+          ).detail,
+      );
+      for (const detail of details) expect(detail, locale).not.toBe(generic);
+      expect(new Set(details).size, locale).toBe(changes.length);
+    }
+    const out = describeInboxItem(
+      item("account.security_changed", { change: "factor_added", factorType: "webauthn" }),
+      copyFor("en-US"),
+      { org: "demo", orgName: "Demo Productions", actorName: null },
+    );
+    expect(out).toEqual({
+      summary: "Your account security changed",
+      detail:
+        "A security key or passkey was added to your two-step verification. If this was not you, reset your password now.",
+      href: "/demo/me/security",
+    });
+  });
+
+  it("tells a validated import from a committed one, and opens it in the wizard (1701)", () => {
+    const validated = describeInboxItem(
+      {
+        ...item("import.finished", {
+          title: "Crew import",
+          stage: "validated",
+          written: "12",
+          refused: "1",
+          skipped: "2",
+        }),
+        subjectTable: "app.import_jobs",
+        subjectId: "0192b0c4-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+      },
+      copyFor("en-US"),
+      { org: "demo", orgName: "Demo Productions", actorName: null },
+    );
+    expect(validated).toEqual({
+      summary: "Import ready to review: Crew import",
+      detail:
+        "Crew import is checked: 12 rows are ready to write and 1 needs fixing. Review it, then commit the import.",
+      href: "/demo/import?import=0192b0c4-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+    });
+    const committed = describeInboxItem(
+      item("import.finished", ARGS["import.finished"] ?? {}),
+      copyFor("es-US"),
+      { org: "demo", orgName: "Demo Productions", actorName: null },
+    );
+    expect(committed.summary).toBe("Importación terminada: Crew import");
+    expect(committed.detail).toBe(
+      "Crew import terminó: 12 filas escritas, 1 rechazada y 0 omitidas.",
+    );
+    expect(inboxTarget("demo", { subjectTable: "app.import_jobs", kind: "import.finished" })).toBe(
+      "/demo/import",
+    );
   });
 
   it("links each item to where it opens", () => {

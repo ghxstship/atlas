@@ -361,12 +361,7 @@ describe("every notification kind is sent or says why not", () => {
       .map(([kind]) => kind)
       .sort();
     // Deferring a kind is a decision: name it here with its reason in notification-kinds.yaml.
-    expect(deferred).toEqual([
-      "account.security_changed",
-      "export.ready",
-      "import.finished",
-      "report.delivered",
-    ]);
+    expect(deferred).toEqual(["export.ready", "report.delivered"]);
   });
 
   it("sends every kind that bypasses quiet hours (ADR 0033 decision 35)", () => {

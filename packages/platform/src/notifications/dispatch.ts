@@ -55,6 +55,8 @@ export interface NotificationStore {
 const exportReady = z.object({ exportName: z.string(), expiresAt: z.coerce.date(), url: z.url() });
 const importFinished = z.object({
   importName: z.string(),
+  // 1701 (A104) says whether the import was validated or committed; a notice without it reads as committed.
+  stage: z.enum(["validated", "committed"]).default("committed"),
   written: z.number().int().nonnegative(),
   refused: z.number().int().nonnegative(),
   skipped: z.number().int().nonnegative(),
