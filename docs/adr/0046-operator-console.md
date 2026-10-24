@@ -1,0 +1,55 @@
+# ADR 0046: The Operator Console
+
+- Status: Proposed
+- Date: 2026-10-21
+- Decider: A90 (RRR-135) built it from finding A65-009 and Sections 4.1, 4.10, 6, 8 and 14.9; the owner decides the hosting steps at the end
+
+## Context
+
+Section 6 lists `apps/console`, "Platform operator console (internal, SSO-gated)". Section 4.10 gives it tenant search, plan overrides and feature flags, support sessions under the Section 8 consent rules, the marketplace moderation queue and abuse reports, system banners and platform metrics. Section 8 says the console opens a tenant only through a support session the tenant Owner grants, for at most 24 hours, with every action logged to the tenant's audit ledger.
+
+The A65 trace found none of it (finding A65-009). The database had `private.is_platform_operator` (0643), which is true for the service role or a session with no signed-in person, so nothing could say which member of the platform team did what. `app.moderation_actions` (0720) could be written only by the platform and nothing wrote it, so a reported listing could never be removed (Section 14.9, EU Digital Services Act). Support sessions (1060) admitted only a client org's partner. Atlas showed the cancellation and View as banners and nothing for maintenance or incidents.
+
+## Decision
+
+### 1. A separate app
+
+The console is its own Next.js app, `apps/console`, on the same stack and design system as Atlas and Gateway (`@xos/ui`, `@xos/i18n`, `@xos/ia`, `@xos/data`), rather than a section of Atlas:
+
+- **Audience.** Atlas is organized around one org: every route starts with `/{org}` and every permission is an org capability. Operators belong to no org and act across all of them. Folding them into Atlas would add a second permission model to every Atlas guard.
+- **Blast radius.** A console route that leaked would expose every tenant. A separate deployment has its own host, its own session cookie (`__Host-xos-console-auth`, so an Atlas session never opens the console and a sibling subdomain can plant none), its own Content Security Policy and `noindex`, and none of Atlas's public surfaces (API, tokens, calendar feeds).
+- **Change control.** The console can ship, roll back or be taken down without touching Atlas, and its route JavaScript stays out of Atlas's budgets. It joins the route JavaScript budget check on its own (`packages/testing`, `CONSOLE_KEY_PAGES`).
+- **Cost.** One more Vercel project and one more subdomain; Turborepo builds it like the other apps (`apps/console/turbo.json` lists its environment variables).
+
+### 2. The access model
+
+- **Operators are people.** `app.platform_operators` (1470) holds one live grant per person, with a role: Support (tenants, flags, banners, support sessions), Trust and Safety (tenants, moderation) or Administrator (everything, including plan overrides, the kill switch and the roster). `private.platform_operator_permissions` maps roles to eight console permissions. A grant names who gave it and why; it is revoked once and never edited. The platform names the first Administrator with `private.grant_platform_operator` (service role or the SQL editor only); Administrators then manage the roster in the console, never for themselves, and the last Administrator cannot be revoked. `private.is_platform_operator` (0643) keeps its meaning for the service role and jobs.
+- **Every action is checked in the database.** The console uses only the anon key and the operator's own session; the service role never appears in it. Every console RPC starts with `private.require_platform_operator(permission)`, which refuses anyone who is not a live operator holding the permission (42501), an API key session, and a session that has not passed a second factor (A77's `private.require_second_factor`, `step_up_required`). The console's own checks (`lib/operator.ts`: signed in, operator, second factor through A77's `requireSecondFactor`) only decide what to render; a role's hidden pages answer 404.
+- **Sign-in.** Operators use their own XOS account. The sign-in page offers Google (ADR 0036), the platform team's identity provider, and a password form that production turns off with `CONSOLE_PASSWORD_SIGN_IN=false`. An account off the platform team is signed out at once and told so, at sign-in, at the OAuth callback and on any later request (a revoked role). Every operator then passes a second factor before any page: an authenticator app code, set up in the console when the account has none. A Google sign-in can still create an XOS account for a stranger, as in Atlas and Gateway; that account opens nothing in the console.
+- **Every action is audited with the operator's identity.** `app.platform_operator_actions` is an append-only ledger of console actions (searches, views, overrides, decisions, banners, roster changes) with the operator, the tenant touched, the row and the reason. A change to a tenant row is written by the operator's session, so the row's audit trail lands in the tenant's own audit ledger with the operator as the actor.
+- **Tenant data needs the Owner's consent.** Tenant search and the org page show billing and identity facts only: plan, subscription, status, usage, limits, features, flags, Owners and support sessions. Records open only through a platform support session (1472): the Owner grants it in Atlas (Settings, Security) for 1 to 24 hours with a reason; it issues no record grants, so no Atlas policy opens to operators; while it lasts a Support operator reads the overview, members, projects and org settings through `app.console_support_view`, read-only; each read lands in `app.support_session_accesses`, the tenant's audit ledger and the console ledger; and the Owner and audit readers see who opened what, when.
+- **Plan overrides and flags.** `app.plan_overrides` (1471) holds an org to a plan, turns one plan feature on or off, or sets one limit, always with a reason and an expiry within a year, ended early at most once. `private.org_plan_limits` and `private.org_has_feature` apply live overrides, so every limit and feature check follows them; billing, Stripe and the support channel keep the subscription's plan. Flag overrides (0540) now carry an expiry from the console; the kill switch is an Administrator's.
+- **Moderation.** The queue lists listings with open reports or appeals (1473). A decision is a statement of reasons in parts (Digital Services Act article 17): the action, the ground, the law or rule relied on, the facts, whether automated means were used (never, from the console) and the statement the affected party receives. The affected party (the org's marketplace managers and the listing's author) and each reporter the notification queue reaches are notified (`listing.moderated`, `listing_report.decided`). Within six months the affected party appeals a removal or restriction in Atlas (Settings, Gateway and Marketplace), and a reporter may appeal no action (article 20, the Acceptable Use Policy). Another operator, never the one who decided, upholds or reverses the appeal, and the appellant is told (`moderation_appeal.decided`).
+- **System banners.** `app.system_banners` (1474) holds platform-wide notices with a kind, a severity, an audience (every shell or one), a schedule in instants and whether a person may dismiss one (never a Critical one; an incident must link to the status page). The shells read `api_public.active_system_banners`, callable before sign-in. Rendering stays cheap: Atlas and Gateway answer from their own `/api/system-banners` route, with at most one database read per server instance a minute and a shared-cache header, and render the banners after the page is idle, so a banner never blocks or slows a page; Compass reads on start and on return to the foreground, at most once a minute, and keeps the last answer offline. A dismissal stays on the device.
+- **Times.** The console shows instants in UTC, named as UTC, for a team across time zones; it never shows a tenant's business dates. Override expiries are chosen as a number of days from now; banner windows are entered in the operator's local time and sent with the browser's offset, so the database stores instants.
+
+### 3. Hosting
+
+The console deploys as its own Vercel project, `console`, from `apps/console`, on `console.ghxstship.tech` (one subdomain per app, owner decision 5, `infra/runbooks/production.md`). These are owner steps; the build is ready for them:
+
+1. Create the Vercel project `console` with root directory `apps/console` and the monorepo's install and build commands (as `gateway`).
+2. Set `SUPABASE_URL`, `SUPABASE_ANON_KEY` (the publishable key), `CONSOLE_SITE_URL=https://console.ghxstship.tech` and `CONSOLE_PASSWORD_SIGN_IN=false` on Production. Never the service role key.
+3. Add `console.ghxstship.tech` to the project and its DNS record (a CNAME to Vercel) at the DNS host.
+4. In Supabase Auth, add `https://console.ghxstship.tech/auth/callback**` to the redirect allow-list (ADR 0036).
+5. Optionally restrict the deployment further with Vercel's deployment protection or a trusted-IP rule; the database checks stand without it.
+6. Name the first Administrator once, in the Supabase SQL editor: `select private.grant_platform_operator('<platform email>', 'Administrator', '<reason>');`. The person signs up for an XOS account first.
+
+## Consequences
+
+- The platform team can act on reports, help tenants with consent, adjust plans and flags and announce maintenance, and every act is attributable to a person.
+- Operators reach tenant records only through the console's four read areas while an Owner's session lasts. Deeper read access through Atlas itself (opening a tenant's projects as they look in Atlas) is not built; it would need the Atlas guards to admit a non-member, and stays out until a support need shows it.
+- Security keys enrolled in Atlas as second factors do not open the console yet; an operator with only security keys sets up an authenticator app. Passkey and security-key challenges in the console are a follow-up.
+- A reporter who is neither a member of the listing's org nor a party it works with is not reachable by the notification queue (invariant 3), so they read the outcome only where they can read the decision. Platform-level notifications to people outside an org are a follow-up, as are reporter appeals from Gateway.
+- Banners target shells, not plans or orgs; plan-targeted notices are a follow-up.
+- Org lifecycle actions (trial extension, deletion, ownership transfer) belong to A79's work and are not duplicated here; they join the org page as follow-ups.
+- Platform metrics (Section 4.10) beyond each org's usage are not built: they need a metrics source the platform has not chosen.

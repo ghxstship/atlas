@@ -1,0 +1,93 @@
+appId: pro.ghxstship.compass
+# A92 (A65-011 part 2, Section 4.5.7): an external crew member's timesheets, per diem, travel and onboarding
+# are Compass screens that read offline, with dates on the project's calendar. Demo Road Crew (seed 1490) is
+# engaged on the demo project (America/New_York): a June 4 to 6 timesheet, USD 60 per diem a day, a flight out
+# of LAX at 9:00 AM Pacific and in to MIA at 8:05 PM Eastern.
+# Named after its file: config.yaml orders flows by name.
+name: crew-external-work
+# Goes offline: airplane mode on Android, the network helper on iOS (apps/compass/scripts/maestro-network.ts).
+tags:
+  - airplane-mode
+# Back online however the flow ends, so a failure part way through never leaves the gateway down for the next flow.
+onFlowComplete:
+  - runFlow:
+      when:
+        platform: Android
+      commands:
+        - setAirplaneMode: disabled
+  - runFlow:
+      when:
+        platform: iOS
+      commands:
+        - runScript:
+            file: ../scripts/network.js
+            env:
+              STEP: online
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: road.crew@example.com
+- assertVisible:
+    id: "today"
+- tapOn:
+    id: "tab-more"
+# Every entry is a Compass screen now: no row sends the crew member to Gateway.
+- assertNotVisible:
+    id: "more-open-gateway"
+- tapOn:
+    id: "more-timesheets"
+- extendedWaitUntil:
+    visible:
+      id: "external-section-timesheets"
+    timeout: 60000
+# Calendar dates as written: June 4 to 6, whatever the phone's zone.
+- assertVisible: ".*Jun 4 to .*Jun 6.*"
+- assertVisible:
+    id: "external-open-gateway"
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: per-diem
+- extendedWaitUntil:
+    visible:
+      id: "external-section-per-diem"
+    timeout: 30000
+- assertVisible: ".*3 days.*180\\.00.*"
+# The rest reads with no server: the network helper stops the stack's API gateway.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: enabled
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: offline
+      - assertTrue: ${output.network.ok}
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: travel-and-lodging
+- extendedWaitUntil:
+    visible:
+      id: "external-section-travel"
+    timeout: 30000
+# Each end of a flight in its own zone: out of LAX at 9:00 AM, in to MIA at 8:05 PM. Hermes writes a narrow
+# no-break space before AM and PM, so the pattern takes any character there.
+- assertVisible: ".*LAX → MIA.*"
+- assertVisible: ".*Departs .*Jun 3.*9:00.AM.*Arrives .*Jun 3.*8:05.PM.*"
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: onboarding
+- extendedWaitUntil:
+    visible:
+      id: "external-section-onboarding"
+    timeout: 30000
+- assertVisible: ".*Certificate of Insurance.*"
+- assertVisible: "Done"

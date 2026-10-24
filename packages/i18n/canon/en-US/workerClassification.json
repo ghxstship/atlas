@@ -1,0 +1,7 @@
+{
+  "EMPLOYEE": "Employee",
+  "INDEPENDENT_CONTRACTOR": "Independent Contractor",
+  "UNPAID_INTERN": "Unpaid Intern",
+  "VENDOR_SUPPLIED": "Vendor-Supplied",
+  "VOLUNTEER": "Volunteer"
+}

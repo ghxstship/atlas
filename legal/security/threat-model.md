@@ -48,11 +48,14 @@ than the database allows.
 | A69-004 | Medium   | Service role and Edge Functions | Fixed        |
 | A69-005 | Medium   | Exports and logs                | Fixed        |
 | A69-006 | Medium   | Integrations (sync runs)        | Fixed        |
-| A69-007 | High     | Tenant member to app            | Mitigated    |
+| A69-007 | High     | Tenant member to app            | Fixed        |
 | A69-008 | Medium   | Exports and logs                | Fixed        |
 | A69-009 | Medium   | Tenant member to app            | Fixed        |
 | A69-010 | Low      | Tenant member to app            | Partly fixed |
 | A69-011 | Low      | Tenant member to app            | Fixed        |
+| A69-012 | Medium   | Exports and logs                | Partly fixed |
+| A69-013 | Low      | Anonymous visitor to api_public | Fixed        |
+| A69-014 | Low      | Exports and logs                | Fixed        |
 
 ## Trust boundaries
 
@@ -62,33 +65,44 @@ than the database allows.
 4. API key to the api-token JWT
 5. Service role and Edge Functions
 6. Webhooks: Stripe, inbound email and kiosk punch
-7. Compass offline sync: `apply_sync_mutation` and PowerSync
+7. Compass offline sync: `apply_sync_mutation` and the REST downloader
 8. Integrations: Vault credentials, SCIM, SSO just-in-time joins and OAuth grants
 9. Aurora AI: prompt injection, tool scopes and data exfiltration
 10. Storage buckets
 11. Exports and logs
+12. Platform operator to the operator console
 
 ## 1. Anonymous visitor to api_public
 
 Anon has USAGE only on `api_public`, `public`, `extensions` and `storage`. It reaches 21 reviewed
 SECURITY DEFINER RPCs: token documents and agreements, advance packets, public profiles, brand
-lookup, cookie consent, calendar feeds and certification verification.
+lookup, cookie consent, calendar feeds, certification verification and the live system banners (A90).
 
-| STRIDE | Threat                                                   | Control                                                                                                 | Evidence                                              |
-| ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| S      | Guessing a document, advance or agreement token          | Random tokens stored only as hashes; a separate access code; lockout after 5 failed codes               | 0769, 0430 and 0361 suites; `private.resolve_*_token` |
-| T      | Writing tenant rows without a sign-in                    | No anon policies anywhere; anon has no USAGE on `app`; every anon RPC is SECURITY DEFINER with checks   | `9900_security_catalog.test.sql`                      |
-| R      | Denying a signature                                      | Signer name, signed body SHA-256 and time are stored; no IP or user agent is captured (residual risk)   | 0361 and 0769 suites                                  |
-| I      | Enumerating people or certifications                     | Profiles honor Public, Network and Private visibility; verification needs the holder's consent and code | 0860, 0352 and 0510 suites                            |
-| D      | Flooding consent or verification RPCs                    | Per-IP failure limits on verification and kiosk PINs; platform rate limits at the edge                  | `private.rate_limit_exceeded`                         |
-| S      | Skipping the failed-code count with a GET call (A69-001) | Every lockout and per-address helper refuses a read-only transaction first; resolvers lock the row      | 1295 suite (catalog of every volatile api_public RPC) |
-| S      | Spoofing the address a per-IP limit counts (A69-002)     | `private.request_ip` reads the gateway's appended entry past `xos.trusted_proxy_hops`, never the first  | 1296 suite                                            |
-| E      | Reaching a privileged function through a new anon grant  | The catalog test fixes the exact set of anon-callable functions                                         | `9900_security_catalog.test.sql`                      |
+| STRIDE | Threat                                                   | Control                                                                                                  | Evidence                                              |
+| ------ | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| S      | Guessing a document, advance or agreement token          | Random tokens stored only as hashes; a separate access code; lockout after 5 failed codes                | 0769, 0430 and 0361 suites; `private.resolve_*_token` |
+| T      | Writing tenant rows without a sign-in                    | No anon policies anywhere; anon has no USAGE on `app`; every anon RPC is SECURITY DEFINER with checks    | `9900_security_catalog.test.sql`                      |
+| R      | Denying a signature                                      | Signer name, signed body SHA-256 and time are stored; no IP or user agent is captured (residual risk)    | 0361 and 0769 suites                                  |
+| I      | Enumerating people or certifications                     | Profiles honor Public, Network and Private visibility; verification needs the holder's consent and code  | 0860, 0352 and 0510 suites                            |
+| D      | Flooding consent or verification RPCs                    | Per-IP failure limits on verification and kiosk PINs; platform rate limits at the edge                   | `private.rate_limit_exceeded`                         |
+| I      | Reading platform state through system banners (A90)      | `active_system_banners` returns only live banner text, kind, severity and link, which every visitor sees | 1474 suite                                            |
+| D      | Hammering a leaked calendar feed link (ADR 0040)         | 120 fetches an hour per token; revoke or rotate ends the link; retired links answer 404                  | 1410 suite                                            |
+| S      | Locking calendar servers out with dead feed links        | Rotated and revoked token hashes are kept a year and never count as failed guesses                       | 1410 suite                                            |
+| S      | Skipping the failed-code count with a GET call (A69-001) | Every lockout and per-address helper refuses a read-only transaction first; resolvers lock the row       | 1295 suite (catalog of every volatile api_public RPC) |
+| S      | Spoofing the address a per-IP limit counts (A69-002)     | `private.request_ip` reads the gateway's appended entry past `xos.trusted_proxy_hops`, never the first   | 1296 suite                                            |
+| E      | Reaching a privileged function through a new anon grant  | The catalog test fixes the exact set of anon-callable functions                                          | `9900_security_catalog.test.sql`                      |
 
 A GET through PostgREST runs the RPC in a read-only transaction. Before A69-001 that skipped every
 failed-attempt count while a right code still returned its rows, so a link's 6-digit access code
 could be guessed without limit. Every volatile api_public RPC now refuses a read-only call with one
 fixed error before it looks anything up.
+
+The calendar feed (`api_public.calendar_feed`, replacing `calendar_feed_events`, ADR 0040) is answered by
+the Atlas and Gateway routes, which relay the client address from `clientAddress()`. Its failure limit
+counts that relayed address scoped under the address that reached PostgREST, with a ceiling of 2000 failures
+per reaching address, so callers behind the platform's servers never share one budget. Residual risk: the
+relayed address is not signed, so a direct caller can split its own budget up to that ceiling; with 256-bit
+tokens this buys no useful guessing.
 
 Residual risk: the hosted Supabase edge may add a trusted hop to `X-Forwarded-For`. Until the hop
 count is checked on staging (`infra/runbooks/hosted-security-settings.md`), a per-IP limit there may
@@ -115,25 +129,28 @@ Signed-in members reach `app` under RLS: 481 tables, all with RLS on, and 1,135 
 `private.has_capability`, `private.project_ids_with`, `private.orgs_with_capability` and the scope
 helpers (ADR 0008, ADR 0016).
 
-| STRIDE | Threat                                                                         | Control                                                                                                                                                  | Evidence                                                                                     |
-| ------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| S      | Using another member's session                                                 | Supabase Auth JWTs; same-origin check on cookie writes; step-up (aal2) for Restricted exports, SCIM tokens and break-glass                               | `packages/api/test/security/auth-attacks.test.ts`; A02 and A30 suites                        |
-| S      | Signing in with a stolen password where the org chose to require MFA (A69-007) | Not enforced: no screen enrolls or verifies a second factor. The MFA policy, session length and idle timeout keep their defaults and refuse other values | 1299 suite; owner decision in A69-007                                                        |
-| S      | Claiming an allowed address past the IP allow-list (A69-003)                   | Atlas and the API read the entry the trusted proxy appended past `XOS_TRUSTED_PROXY_HOPS`                                                                | `client-address.test.ts`; API and Atlas auth suites; Semgrep `xos-forwarded-for-first-entry` |
-| E      | Break-glass reach outside the session that passed the second factor (A69-009)  | The emergency branch applies only to the holder's own aal2 session, never through a delegation; expiry is audited                                        | 1298 suite                                                                                   |
-| T      | Writing into another tenant                                                    | RLS on every table; `org_id` derived by trigger; cross-org references refused                                                                            | `9902` and `9903` security suites; `9909` for the resources added since A22 (A69-011)        |
-| T      | A lower band writing (Viewer, Collaborator, Field)                             | Capability reach (own, assigned, organization) checked in every write policy and RPC                                                                     | `9904_security_viewer_band`; `9907` (A22-003); 0205 and 0400 suites                          |
-| R      | Denying an action                                                              | Append-only audit ledger with 7-year retention; domain events written only by triggers                                                                   | 0501 suite                                                                                   |
-| I      | Reading another tenant's rows                                                  | RLS read policies; owner-rights views limited to reference, masking and self-filtering views                                                             | `9901` security suite; `9900` view allowlist                                                 |
-| I      | Reading Restricted columns (pay, bank, tax, medical)                           | Column SELECT revoked; reads through `*_masked` views that check the restricted-read capability                                                          | `9900` masking assertion; 0363 suite                                                         |
-| D      | Expensive list queries starving the database                                   | Indexed policy columns; gate 17 benchmark under 50 ms at p95 on 1,000,000 rows                                                                           | `0399_rls_benchmark.psql`; 0943 suite                                                        |
-| E      | Granting oneself a role or capability                                          | Granting limits (own band and below, capabilities held); separation of duties; at least one Owner kept                                                   | 0206 suite                                                                                   |
-| E      | A SECURITY DEFINER function without its own check                              | Empty search path on every function; reviewed list of anon RPCs; static triage of every org-scoped RPC                                                   | `9900`; review notes below                                                                   |
+| STRIDE | Threat                                                                         | Control                                                                                                                                                                                                             | Evidence                                                                                            |
+| ------ | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| S      | Using another member's session                                                 | Supabase Auth JWTs; same-origin check on cookie writes; step-up (aal2) for Restricted exports, SCIM tokens and break-glass                                                                                          | `packages/api/test/security/auth-attacks.test.ts`; A02 and A30 suites                               |
+| S      | Signing in with a stolen password where the org chose to require MFA (A69-007) | Atlas and Gateway ask a person who holds a second factor for it after the first. The org MFA policy and session length are enforced where Atlas, the API and Compass check a session, and the idle timeout in Atlas | 1299 and 1330 suites; `apps/atlas/e2e/a77-auth.spec.ts`; the Atlas, API and Compass assurance tests |
+| S      | Claiming an allowed address past the IP allow-list (A69-003)                   | Atlas and the API read the entry the trusted proxy appended past `XOS_TRUSTED_PROXY_HOPS`                                                                                                                           | `client-address.test.ts`; API and Atlas auth suites; Semgrep `xos-forwarded-for-first-entry`        |
+| E      | Break-glass reach outside the session that passed the second factor (A69-009)  | The emergency branch applies only to the holder's own aal2 session, never through a delegation; expiry is audited                                                                                                   | 1298 suite                                                                                          |
+| T      | Writing into another tenant                                                    | RLS on every table; `org_id` derived by trigger; cross-org references refused                                                                                                                                       | `9902` and `9903` security suites; `9909` for the resources added since A22 (A69-011)               |
+| T      | A lower band writing (Viewer, Collaborator, Field)                             | Capability reach (own, assigned, organization) checked in every write policy and RPC                                                                                                                                | `9904_security_viewer_band`; `9907` (A22-003); 0205 and 0400 suites                                 |
+| R      | Denying an action                                                              | Append-only audit ledger with 7-year retention; domain events written only by triggers                                                                                                                              | 0501 suite                                                                                          |
+| I      | Reading another tenant's rows                                                  | RLS read policies; owner-rights views limited to reference, masking and self-filtering views                                                                                                                        | `9901` security suite; `9900` view allowlist                                                        |
+| I      | Reading Restricted columns (pay, bank, tax, medical)                           | Column SELECT revoked; reads through `*_masked` views that check the restricted-read capability                                                                                                                     | `9900` masking assertion; 0363 suite                                                                |
+| D      | Expensive list queries starving the database                                   | Indexed policy columns; gate 17 benchmark under 50 ms at p95 on 1,000,000 rows                                                                                                                                      | `0399_rls_benchmark.psql`; 0943 suite                                                               |
+| E      | Granting oneself a role or capability                                          | Granting limits (own band and below, capabilities held); separation of duties; at least one Owner kept                                                                                                              | 0206 suite                                                                                          |
+| E      | A SECURITY DEFINER function without its own check                              | Empty search path on every function; reviewed list of anon RPCs; static triage of every org-scoped RPC                                                                                                              | `9900`; review notes below                                                                          |
 
 The IP allow-list (1201) is applied where Atlas and the API check credentials, not by RLS, which
 cannot see the caller's address. Residual risk (A69-010, ADR 0034 decision 5): a direct call to the
 Supabase endpoint, or an API request bound to one org, still reads another member org's rows from
 outside that org's networks. The API now checks every member org when a request is bound to none.
+The org MFA policy and session length (1330) share the gap: a direct call to the Supabase endpoint
+with a session token is not checked against them. The owner accepted both for launch (ADR 0033
+decision 55); the plan is to route all data access through the API.
 
 Review notes: every one of the 268 SECURITY DEFINER functions in `app` that authenticated may
 execute was triaged for an explicit person, membership or capability check. Six had no such check in
@@ -183,13 +200,13 @@ can still reach an internal address; the Edge runtime's `fetch` cannot connect t
 
 These Edge Functions run with `verify_jwt = false` and authenticate another way.
 
-| Function            | Authentication                                                                                   | Replay and abuse control                                                                 |
-| ------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| `stripe-webhook`    | Stripe signature over the raw body with `STRIPE_WEBHOOK_SECRET`; invalid signatures answer 400   | Each event id is stored once in `app.stripe_events`; livemode is checked against the key |
-| `inbound-email`     | Bearer `XOS_INBOUND_SECRET`, constant-time compare; replies only from signed addresses with DKIM | Message id deduplication; quoted text stripped                                           |
-| `email-unsubscribe` | HMAC signature per org, person and category, checked in `app.unsubscribe_by_token`               | Idempotent suppression insert                                                            |
-| `kiosk-punch`       | Device key (hashed) plus member PIN, checked in `app.kiosk_punch`                                | 20 PIN failures per device key per 15 minutes; punch id idempotency                      |
-| `api-token`         | The API key itself                                                                               | See boundary 4                                                                           |
+| Function            | Authentication                                                                                                                                                                                                                                                           | Replay and abuse control                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `stripe-webhook`    | Stripe signature over the raw body with `STRIPE_WEBHOOK_SECRET`; invalid signatures answer 400                                                                                                                                                                           | Each event id is stored once in `app.stripe_events`; livemode is checked against the key                      |
+| `inbound-email`     | Resend's Svix signature over the raw body with `RESEND_INBOUND_WEBHOOK_SECRET`, refused more than five minutes off; for another provider, bearer `XOS_INBOUND_SECRET`, constant-time compare. DKIM from Resend's own check; replies only from signed addresses with DKIM | Message id deduplication; quoted text stripped; mail for no inbound address ignored before any call to Resend |
+| `email-unsubscribe` | HMAC signature per org, person and category, checked in `app.unsubscribe_by_token`                                                                                                                                                                                       | Idempotent suppression insert                                                                                 |
+| `kiosk-punch`       | Device key (hashed) plus member PIN, checked in `app.kiosk_punch`                                                                                                                                                                                                        | 20 PIN failures per device key per 15 minutes; punch id idempotency                                           |
+| `api-token`         | The API key itself                                                                                                                                                                                                                                                       | See boundary 4                                                                                                |
 
 STRIDE notes: spoofing is answered by the signatures and secrets above. Tampering and replay are
 answered by event and punch id deduplication. Repudiation is answered by stored Stripe events and
@@ -200,16 +217,20 @@ Unsubscribe by GET is honored for one-click links; mail scanners that prefetch l
 ## 7. Compass offline sync
 
 Devices queue mutations offline and replay them through `app.apply_sync_mutation`, which calls only
-RPCs listed in `private.sync_rpcs`. PowerSync streams rows filtered by `private.sync_scope_grants`.
+RPCs listed in `private.sync_rpcs`. Devices download their copy over REST
+(`apps/compass/src/data/downloader.ts`): the app tables under row-level security, external parties only
+through the `api_external` views, and every row passes the device-side scope check before it is stored.
+PowerSync, which would stream rows filtered by `private.sync_scope_grants`, is deferred (ADR 0033,
+decision 51).
 
-| STRIDE | Threat                                         | Control                                                                                                  | Evidence                                      |
-| ------ | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| S      | Replaying another person's mutation id         | A stored mutation id is bound to its person and RPC; a mismatch is refused                               | 0364 suite                                    |
-| T      | Replay running with the owner's rights         | Every replayable RPC is SECURITY DEFINER with its own checks; `sync_call` refuses invoker RPCs (A22-002) | `9906` (A22-002); 0935 suite                  |
-| R      | Losing the record of what a device did         | `app.sync_mutations` keeps each result with device id and person                                         | 0364 suite                                    |
-| I      | A device storing another party's rows          | Sync scope grants mirror the RLS helpers, refreshed by triggers and nightly                              | 0942 and 0944 suites; `infra/powersync` tests |
-| D      | A device flooding replays                      | Advisory lock per mutation id; idempotent results                                                        | 0364 suite                                    |
-| E      | Replaying an RPC that is not meant for devices | Allowlist in `private.sync_rpcs`; unknown arguments refused                                              | 0364 and 0935 suites                          |
+| STRIDE | Threat                                         | Control                                                                                                                                     | Evidence                                        |
+| ------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| S      | Replaying another person's mutation id         | A stored mutation id is bound to its person and RPC; a mismatch is refused                                                                  | 0364 suite                                      |
+| T      | Replay running with the owner's rights         | Every replayable RPC is SECURITY DEFINER with its own checks; `sync_call` refuses invoker RPCs (A22-002)                                    | `9906` (A22-002); 0935 suite                    |
+| R      | Losing the record of what a device did         | `app.sync_mutations` keeps each result with device id and person                                                                            | 0364 suite                                      |
+| I      | A device storing another party's rows          | Downloads read through row-level security and the `api_external` views; the device-side scope check refuses rows outside the person's scope | 1022 suite; `download.test.ts`, `scope.test.ts` |
+| D      | A device flooding replays                      | Advisory lock per mutation id; idempotent results                                                                                           | 0364 suite                                      |
+| E      | Replaying an RPC that is not meant for devices | Allowlist in `private.sync_rpcs`; unknown arguments refused                                                                                 | 0364 and 0935 suites                            |
 
 ## 8. Integrations: Vault, SCIM, SSO and OAuth
 
@@ -276,13 +297,30 @@ public (ADR 0034 amendment, `1265_public_upload_staging` suite).
 
 ## 11. Exports and logs
 
-| STRIDE | Threat                                                  | Control                                                                                                   | Evidence                                                   |
-| ------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| T      | A cell in a CSV export running as a formula (A69-005)   | `csvField()` neutralizes a leading `=`, `+`, `-`, `@`, tab or carriage return; plain numbers stay numbers | `csv.test.ts`; Semgrep `xos-csv-quoting-outside-csv-field` |
-| I      | Link tokens in request logs and error reports (A69-008) | The redactor replaces `xadv_`, `xagr_`, `xcal_`, `xdoc_`, `xinv_`, `xlnk_` and `xos_scim_` tokens         | `redact.test.ts`                                           |
-| I      | Personal data in error reports                          | One redactor for logs, traces and Sentry; `sendDefaultPii` off; `beforeSend` scrubs                       | `infra/observability` suites                               |
+| STRIDE | Threat                                                    | Control                                                                                                                                                                                                                                                                                          | Evidence                                                   |
+| ------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| T      | A cell in a CSV export running as a formula (A69-005)     | `csvField()` neutralizes a leading `=`, `+`, `-`, `@`, tab or carriage return; plain numbers stay numbers                                                                                                                                                                                        | `csv.test.ts`; Semgrep `xos-csv-quoting-outside-csv-field` |
+| I      | Link tokens in request logs and error reports (A69-008)   | The redactor replaces `xadv_`, `xagr_`, `xcal_`, `xdoc_`, `xinv_`, `xlnk_` and `xos_scim_` tokens                                                                                                                                                                                                | `redact.test.ts`                                           |
+| I      | Share link tokens and download tickets in logs (A69-012)  | The redactor also replaces `xshr_`, `xdlt_`, `xkio_`, `xspn_`, `xspu_` and `xos_pat_` tokens, whatever follows a leading `/share/`, tokens after a percent escape, and `ticket` and `access_code` keys; span header attributes are dropped. Residual: the platform request log keeps token paths | `redact.test.ts`                                           |
+| I      | Personal data in error reports                            | One redactor for logs, traces and Sentry; Sentry `dataCollection` off except kept headers; `beforeSend` scrubs                                                                                                                                                                                   | `infra/observability` suites                               |
+| I      | A share link printed on a watermarked copy (A69-013)      | The copy links to /files/{version}, which opens only for a member who may see the file                                                                                                                                                                                                           | `2000_share_link_record_url`, `share-link-file.test.ts`    |
+| I      | Raw errors logged to the console by server code (A69-014) | Server code logs through the redacting logger; lint rule `xos/no-server-console`                                                                                                                                                                                                                 | `no-server-console.test.ts`; app lint                      |
 
 XLSX files write strings as strings (exceljs) and PDFs draw text (pdfkit), so neither runs content.
+
+## 12. Platform operator to the operator console
+
+The operator console (`apps/console`, ADR 0046, migrations 1470 to 1474) is the platform team's only tool. It holds
+the anon key and the operator's own session; every console RPC starts with `private.require_platform_operator`.
+
+| STRIDE | Threat                                                          | Control                                                                                                                            | Evidence             |
+| ------ | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| S      | A tenant member or a stolen password opening the console        | A live grant in `app.platform_operators` and a second-factor (aal2) session, checked in every RPC; an API key is never an operator | 1470 suite           |
+| E      | Support doing what only an Administrator may                    | Role permissions in `private.platform_operator_permissions`, checked per RPC; no operator grants themselves a role                 | 1470 and 1471 suites |
+| I      | Reading a tenant's records without consent                      | Records open only in an Owner-granted platform support session of at most 24 hours, read-only, four areas, no record grants        | 1472 suite           |
+| R      | Denying a console action                                        | Append-only `app.platform_operator_actions` with the operator; tenant changes and support reads land in the tenant's audit ledger  | 1470 to 1474 suites  |
+| T      | One operator deciding a moderation appeal of their own decision | The appeal RPC refuses the operator who made the decision                                                                          | 1473 suite           |
+| S      | A sibling subdomain planting or reading a console session       | `__Host-` session cookie on the console's own host; CSRF Origin check; strict CSP with nonces; `noindex`                           | `apps/console/test`  |
 
 ## Review method
 

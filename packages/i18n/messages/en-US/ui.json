@@ -183,6 +183,7 @@
     "stages": "Engagement stages"
   },
   "feedback": {
+    "failed": "Your feedback did not send. Try again.",
     "hint": "Describe what you expected and what you saw.",
     "privacy": "Only what you choose here is sent. Nothing else is captured.",
     "question": "What happened?",
@@ -441,7 +442,8 @@
     "change": "Change",
     "edit": "Edit",
     "press": "Press Keys",
-    "shortcut": "Shortcut"
+    "shortcut": "Shortcut",
+    "none": "Not set"
   },
   "shortcuts": {
     "title": "Keyboard Shortcuts"
@@ -476,7 +478,10 @@
   },
   "table": {
     "resizeColumn": "Resize column {column}",
-    "total": "Total"
+    "row": "Row {n}",
+    "total": "Total",
+    "selectAll": "Select all rows",
+    "selectRow": "Select {row}"
   },
   "timeline": {
     "critical": "critical path",

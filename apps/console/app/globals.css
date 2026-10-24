@@ -1,0 +1,42 @@
+/* Console styles, as Gateway's: the @xos/ui entry (Tailwind 4 with the token preset, the token variables for
+   every theme and the component styles), then the app's base rules. The console defaults to the System
+   theme (Section 11.6): data-theme on <html> carries the resolved theme. 14 px base text. */
+@import "@xos/ui/styles.css";
+@source "../";
+
+@layer base {
+  html {
+    background-color: var(--color-bg-canvas);
+    color: var(--color-text-primary);
+    font: var(--typography-text-14);
+    color-scheme: light dark;
+  }
+
+  html[data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  html[data-theme="light"] {
+    color-scheme: light;
+  }
+
+  body {
+    min-block-size: 100dvh;
+    background-color: var(--color-bg-canvas);
+  }
+
+  :focus-visible {
+    outline: var(--stroke-width-focus) solid var(--color-focus-ring);
+    outline-offset: var(--stroke-width-focus);
+  }
+
+  /* me.reduced_motion full keeps motion even when the device asks to reduce it. */
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion="full"]) *,
+    :root:not([data-motion="full"]) *::before,
+    :root:not([data-motion="full"]) *::after {
+      transition-duration: var(--motion-duration-reduced) !important;
+      animation-duration: var(--motion-duration-reduced) !important;
+    }
+  }
+}

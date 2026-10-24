@@ -26,10 +26,15 @@ function first(value: string | string[] | undefined): string | undefined {
 /** Row ids are UUIDs, or canon codes such as 1000.01 or G1.BUDGET_ENVELOPE on the canon browser. */
 const ROW_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,79}$/;
 
+/**
+ * The collection's view, peek and month from the URL. `today` is today on the org's calendar
+ * (`orgToday`, A71): the calendar view opens on its month, never on the UTC month, which is a day
+ * ahead every evening in the Americas and a month ahead on the last evening of one.
+ */
 export function collectionState(
   params: SearchParams,
   views: readonly ViewKind[],
-  now: Date = new Date(),
+  today: string,
 ): CollectionState {
   const requested = first(params["view"]) as ViewKind | undefined;
   const view = requested && views.includes(requested) ? requested : (views[0] ?? "table");
@@ -38,7 +43,7 @@ export function collectionState(
   const month =
     monthParam && /^[0-9]{4}-[0-9]{2}$/.test(monthParam)
       ? `${monthParam}-01`
-      : `${now.toISOString().slice(0, 7)}-01`;
+      : `${today.slice(0, 7)}-01`;
   const base = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     const value = first(v);
@@ -70,11 +75,6 @@ export function withQuery(
 /** Minor units as major units for display components that format currency; null stays null. */
 export function toMajor(minor: number | null, exponent = 2): number | null {
   return minor === null ? null : minor / 10 ** exponent;
-}
-
-/** Today as YYYY-MM-DD in UTC. */
-export function today(now: Date = new Date()): string {
-  return now.toISOString().slice(0, 10);
 }
 
 /** The number formatter part of next-intl's formatter that money cells need. */

@@ -1,3 +1,4 @@
+import { todayIn } from "@xos/data/calendar";
 import {
   fromDisplayKey,
   getEngagement,
@@ -14,7 +15,9 @@ import {
 } from "@xos/ia";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import type { ScheduleView } from "./format";
 import type { GatewayContext } from "./shell/context";
+import { getScheduleView } from "./time-zone";
 import { requireNode, sitemap } from "./shell/sitemap";
 
 /**
@@ -37,6 +40,10 @@ export interface EngagementView {
   /** Representation scopes as sitemap keys (offers, advance, settlement, documents). */
   readonly scopes: readonly string[];
   readonly tabs: readonly string[];
+  /** Today on the engagement's project calendar (its time zone, 1390), as `YYYY-MM-DD`; never UTC's date. */
+  readonly today: string;
+  /** How the viewer reads schedule times (me.time_zone_display): the project's zone or their own. */
+  readonly scheduleView: ScheduleView;
 }
 
 /** How the viewer relates to an artist engagement they do not hold: through a live representation. */
@@ -65,16 +72,17 @@ export const loadEngagementView = cache(async (engagementKey: string): Promise<E
   const ctx = await requireNode("engagement", { engagementKey });
   const id = fromDisplayKey("engagement", engagementKey);
   if (!id) notFound();
-  const [engagement, representations] = await Promise.all([
+  const [engagement, representations, scheduleView] = await Promise.all([
     getEngagement(ctx.db, id),
     listRepresentations(ctx.db),
+    getScheduleView(ctx),
   ]);
   if (!engagement.ok) {
     if (engagement.error.kind === "not-found") notFound();
     throw new Error(`Engagement ${engagementKey} did not load: ${engagement.error.kind}`);
   }
   if (ctx.brand.kind === "org" && ctx.brand.org.orgId !== engagement.data.orgId) notFound();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIn(engagement.data.projectTimeZone);
   const representation = representationFor(
     engagement.data,
     ctx.personId,
@@ -92,6 +100,8 @@ export const loadEngagementView = cache(async (engagementKey: string): Promise<E
     representation,
     scopes,
     tabs: engagementTabIds(sitemap, roleType, scopes),
+    today,
+    scheduleView,
   };
 });
 

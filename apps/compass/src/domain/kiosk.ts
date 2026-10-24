@@ -5,6 +5,11 @@
  * PINs are verified only by the server (private.verify_kiosk_pin through the kiosk-punch Edge Function);
  * the device never holds PIN hashes. When the kiosk is offline the punch is queued with the PIN and
  * verified on upload, and the screen says so instead of claiming success.
+ *
+ * Re-keying (A85): when the server answers that the device key names no live kiosk (retired, revoked or
+ * unknown, migration 1420), the kiosk stops taking PINs and says the device is no longer registered. A
+ * supervisor whose session the auth server still accepts can forget the stored key, which returns the
+ * device to kiosk setup for a new key from Atlas.
  */
 import { uuidv7, type MutationInput } from "@xos/sync";
 import type { PunchKind } from "./clock";
@@ -31,9 +36,27 @@ export type KioskStep =
       readonly punch: PunchKind;
       readonly verified: boolean;
     }
-  | { readonly kind: "refused"; readonly worker: RosterEntry; readonly reason: KioskRefusal };
+  | {
+      readonly kind: "refused";
+      readonly worker: RosterEntry;
+      readonly reason: Exclude<KioskRefusal, "device-unregistered">;
+    }
+  /** The device key names no live kiosk: the kiosk takes no PINs until a supervisor forgets it. */
+  | { readonly kind: "unregistered" };
 
-export type KioskRefusal = "pin-invalid" | "pin-locked" | "device-revoked" | "request-invalid";
+export type KioskRefusal =
+  | "pin-invalid"
+  | "pin-locked"
+  /** The device key names no live kiosk (migration 1420): the device needs a new key. */
+  | "device-unregistered"
+  | "request-invalid"
+  /** The org has not turned kiosks on (time.kiosk_enabled). */
+  | "kiosk-disabled"
+  /** The project asks for a photo on every kiosk punch (time.photo_on_punch) and none came. */
+  | "photo-required";
+
+/** The kiosk-punch refusal for a device key that names no live kiosk (migration 1420). */
+export const DEVICE_UNREGISTERED = "kiosk_device_unregistered";
 
 export const PIN_MIN = 4;
 export const PIN_MAX = 8;
@@ -85,9 +108,10 @@ export function kioskPunchKind(worker: RosterEntry): PunchKind {
 /** Maps the Edge Function's refusal reason to the kiosk's refusal. */
 export function refusalFromServer(reason: string): KioskRefusal {
   if (reason === "kiosk_pin_locked") return "pin-locked";
-  if (reason === "kiosk_device_revoked" || reason === "kiosk_device_unknown")
-    return "device-revoked";
+  if (reason === DEVICE_UNREGISTERED) return "device-unregistered";
   if (reason === "kiosk_request_invalid") return "request-invalid";
+  if (reason === "kiosk_disabled") return "kiosk-disabled";
+  if (reason === "punch_photo_required" || reason === "kiosk_photo_uri") return "photo-required";
   return "pin-invalid";
 }
 
@@ -103,6 +127,7 @@ export function afterServer(
   if (outcome.ok === true) return { kind: "done", worker: step.worker, punch, verified: true };
   if (outcome.ok === "queued") return { kind: "done", worker: step.worker, punch, verified: false };
   const reason = refusalFromServer(outcome.reason);
+  if (reason === "device-unregistered") return { kind: "unregistered" };
   if (reason === "pin-invalid" && step.kind === "pin" && step.attemptsLeft > 1) {
     return { ...step, digits: "", attemptsLeft: step.attemptsLeft - 1 };
   }
@@ -123,6 +148,21 @@ export interface KioskPunchInput {
   readonly monotonicAt: number;
   readonly bootId: string;
   readonly photoUri: string | null;
+  /** The photo taken on this device, uploaded to field-media before the punch is sent. */
+  readonly photo?: { readonly path: string; readonly localUri: string } | null;
+}
+
+/**
+ * Where a kiosk punch photo is stored in the field-media bucket (migration 1328):
+ * <org_id>/kiosk-punches/<project_id>/<punch id>.jpg.
+ */
+export function kioskPhotoPath(orgId: string, projectId: string, punchId: string): string {
+  return `${orgId}/kiosk-punches/${projectId}/${punchId}.jpg`;
+}
+
+/** The URI a punch carries for a stored field-media photo. */
+export function storedPhotoUri(path: string): string {
+  return `storage://field-media/${path}`;
 }
 
 /**
@@ -152,8 +192,68 @@ export function buildKioskPunch(
       monotonic_at: input.monotonicAt,
       boot_id: input.bootId,
       ...(input.projectId ? { projectId: input.projectId } : {}),
-      ...(input.photoUri ? { photoUri: input.photoUri } : {}),
+      ...(input.photo
+        ? {
+            photoUri: storedPhotoUri(input.photo.path),
+            storage_path: input.photo.path,
+            local_uri: input.photo.localUri,
+          }
+        : input.photoUri
+          ? { photoUri: input.photoUri }
+          : {}),
     },
     policy: "append",
   };
+}
+
+export type ForgetKioskOutcome = "forgotten" | "supervisor-required";
+
+export interface ForgetKioskDeps {
+  /** True when the signed-in person may run kiosks on this project (kiosk.operate): a supervisor. */
+  readonly supervisor: boolean;
+  /** The signed-in user's id as the auth server confirms it now (never a cached session), or null. */
+  readonly verifiedUserId: () => Promise<string | null>;
+  /** Removes the device key from secure storage, which returns the device to kiosk setup. */
+  readonly clearKey: () => void | Promise<void>;
+}
+
+/**
+ * "Forget this kiosk" on an unregistered kiosk. Only a supervisor who is still signed in may clear the
+ * key: the session is checked with the auth server, so an expired or revoked session, or a device that
+ * is offline, is refused and the key stays.
+ */
+export async function forgetKiosk(deps: ForgetKioskDeps): Promise<ForgetKioskOutcome> {
+  if (!deps.supervisor) return "supervisor-required";
+  let userId: string | null;
+  try {
+    userId = await deps.verifiedUserId();
+  } catch {
+    userId = null;
+  }
+  if (userId === null) return "supervisor-required";
+  await deps.clearKey();
+  return "forgotten";
+}
+
+/** How many times the kiosk sends a punch before it keeps it in the queue instead. */
+export const KIOSK_SEND_ATTEMPTS = 3;
+
+/**
+ * Sends a kiosk punch, sending it again when the server could not answer (a 5xx: an Edge Function worker
+ * that hit its CPU limit while starting answers 546, a cold one 503 or 504). The punch id makes a repeat a
+ * duplicate, never a second punch, so the PIN verdict comes back while the worker still stands at the
+ * kiosk instead of a "saved, checked later" that was never about being offline (A66). A network error and
+ * any other status are returned at once: the caller queues on the first and shows the second.
+ */
+export async function sendKioskPunch<R extends { readonly status: number }>(
+  send: () => Promise<R>,
+  attempts: number = KIOSK_SEND_ATTEMPTS,
+  pause: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+): Promise<R> {
+  let response = await send();
+  for (let attempt = 1; attempt < attempts && response.status >= 500; attempt += 1) {
+    await pause(500 * attempt);
+    response = await send();
+  }
+  return response;
 }

@@ -160,6 +160,19 @@
   transform: translateY(calc(var(--stroke-width-hairline) * -1)) rotate(-45deg);
 }
 
+/* A select-all box over a partial selection shows a dash (DataTable selection). */
+.xos-check-input:indeterminate {
+  background: var(--color-accent-default);
+  border-color: var(--color-accent-default);
+}
+
+.xos-check-input:indeterminate::after {
+  content: "";
+  inline-size: var(--space-8);
+  block-size: var(--ui-hairline-half);
+  background: var(--color-accent-text-on);
+}
+
 .xos-check-input[type="radio"] {
   border-radius: var(--radius-pill);
 }
@@ -245,7 +258,7 @@
   display: grid;
   grid-template-columns:
     var(--space-20) calc(var(--space-64) + var(--space-8)) minmax(0, 1fr) auto
-    calc(var(--space-48) * 2) var(--density-control-md) calc(var(--space-40) * 3);
+    calc(var(--space-40) * 4 + var(--space-16)) var(--density-control-md) calc(var(--space-40) * 3);
   align-items: center;
   gap: var(--space-8);
   min-block-size: var(--density-row-default);

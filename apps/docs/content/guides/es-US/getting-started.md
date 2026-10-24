@@ -5,7 +5,7 @@ section: start
 order: 1
 ---
 
-La API pública de XOS es una sola API REST versionada en `/api/v1` de tu instalación de Atlas. La usan Atlas, Gateway y Compass, y también tus integraciones. Esta guía te lleva de no tener clave a tu primera lista de proyectos.
+La API pública de XOS es una sola API REST versionada. En el servicio alojado su URL base es `https://api.ghxstship.tech/v1`; una instalación propia la sirve en `/api/v1` del origen de su Atlas. La usan Atlas, Gateway y Compass, y también tus integraciones. Esta guía te lleva de no tener clave a tu primera lista de proyectos.
 
 ## Crea una clave de API
 
@@ -20,7 +20,7 @@ Una clave de API pertenece a una organización y actúa como su propia cuenta de
 Define dos variables y luego lista los proyectos que la clave puede ver:
 
 ```bash
-export XOS_BASE_URL="https://atlas.example.com/api/v1"
+export XOS_BASE_URL="https://api.ghxstship.tech/v1"
 export XOS_API_KEY="xos_live_..."
 
 curl "$XOS_BASE_URL/projects?limit=5" \

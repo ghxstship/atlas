@@ -1,4 +1,6 @@
--- Proposal 3 of 3 (A26 Reliability, for the orchestrator to place in A03's late slots, after proposal 1).
+-- Proposal 3 of 3 (A26 Reliability). Proposals 1 and 2 are migrations 1510 and 1511 (A94). Not placed yet: the shared
+-- trigger functions must first resolve a partition to its parent, because audit_row_change and guard_engaged_worker
+-- name the table through TG_TABLE_NAME and TG_RELID (infra/db/README.md, "time_entries: the precondition").
 -- Partitions app.time_entries by month on created_at (Section 5.1).
 --
 -- Why created_at, not clock_in: clock_in changes through approved corrections (0340), and a partition key

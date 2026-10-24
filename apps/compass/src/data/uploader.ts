@@ -70,7 +70,10 @@ export interface UploaderOptions {
   readonly accessToken: () => Promise<string | null>;
   readonly routes?: Readonly<Record<string, Route>>;
   readonly fetchImpl?: typeof fetch;
-  /** The member org the device acts in, for app.apply_sync_mutation; null for external users. */
+  /**
+   * The member org the device acts in, for app.apply_sync_mutation; null for external users. Used only for
+   * a write queued before writes carried their own org (`device_org_id`, see replayOrg).
+   */
   readonly orgId: () => string | null;
   /** A stable id for this install, recorded with each replayed mutation. */
   readonly deviceId: string;
@@ -110,7 +113,21 @@ const DEVICE_ONLY = new Set([
   "storage_path",
   "device_media",
   "boot_id",
+  "device_org_id",
 ]);
+
+/**
+ * The org a queued write replays in. CompassProvider stamps `device_org_id` when the write is queued: the
+ * member org that was active then, or null for an external context. A person in several orgs can switch
+ * before the queue drains, so the org active at upload time is never used for a stamped write; that
+ * would run org A's write in org B's replay ledger (Section 4.5.7 org switching).
+ */
+export function replayOrg(mutation: Mutation, fallback: () => string | null): string | null {
+  const stamped = mutation.payload["device_org_id"];
+  if (stamped === null) return null;
+  if (typeof stamped === "string") return stamped;
+  return fallback();
+}
 
 function serverPayload(payload: Readonly<Record<string, unknown>>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(payload).filter(([k]) => !DEVICE_ONLY.has(k)));
@@ -256,7 +273,7 @@ export class SupabaseUploader implements Uploader {
 
   async #call(mutation: Mutation): Promise<UploadOutcome> {
     const synced = mutation.target.startsWith(SYNC_PREFIX);
-    const orgId = this.#options.orgId();
+    const orgId = replayOrg(mutation, this.#options.orgId);
     if (synced && orgId !== null) return this.#replay(mutation, orgId);
     // External users hold no membership, so the replay ledger (which acts in a member org) is not open to
     // them; their RPCs are idempotent on the client id (record_punch on p_punch_id) and are called directly.
@@ -327,6 +344,9 @@ export class SupabaseUploader implements Uploader {
   }
 
   async #edgeFunction(name: string, mutation: Mutation): Promise<UploadOutcome> {
+    // A kiosk punch photo (time.photo_on_punch) is stored before the punch that names it.
+    const media = await this.#uploadMedia(mutation);
+    if (media) return media;
     const fetchImpl = this.#options.fetchImpl ?? fetch;
     const token = await this.#options.accessToken();
     let response: Response;

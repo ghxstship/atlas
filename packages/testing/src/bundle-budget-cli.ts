@@ -4,7 +4,7 @@ import { checkRouteBudgets, kb } from "./bundle-budget.ts";
 import { findForbiddenClientCode } from "./client-chunk-audit.ts";
 
 /**
- * Route JavaScript budget check for CI: run after `next build` of Atlas, Gateway and docs.
+ * Route JavaScript budget check for CI: run after `next build` of Atlas, Gateway, docs and the console.
  * Prints each key page's gzip total and exits 1 when one exceeds its budget. With --chunks, also
  * lists each page's chunks by size, for finding what to split.
  */

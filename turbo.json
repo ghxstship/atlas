@@ -18,6 +18,15 @@
     },
     "test": {
       "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/supabase/**",
+        "$TURBO_ROOT$/legal/**",
+        "$TURBO_ROOT$/infra/**",
+        "$TURBO_ROOT$/packages/i18n/messages/**",
+        "$TURBO_ROOT$/packages/schemas/*.yaml",
+        "$TURBO_ROOT$/apps/compass/ia/**"
+      ],
       "outputs": []
     },
     "storybook:build": {

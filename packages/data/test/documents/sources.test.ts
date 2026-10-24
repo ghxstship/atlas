@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { generateDocument } from "../../src/documents/generate.ts";
+import { generateDocument, loadDocumentBrand } from "../../src/documents/generate.ts";
 import { documentProject, loadDocumentData } from "../../src/documents/sources.ts";
 import { errorResponse, fakeClient, okResponse } from "../fake-client.ts";
 
@@ -419,8 +419,11 @@ describe("generateDocument", () => {
     "from:po_lines": [poLines],
     "from:purchase_order_totals": [poTotals],
     "from:org_brands": [okResponse(null)],
+    "from:setting_values": [okResponse(null)],
   });
 
+  // The file's only render loads pdfkit and fontkit first: a quarter of a second on a laptop, but
+  // seconds on a CI runner busy with every package's tests, hence the longer timeout.
   it("renders the record as a named PDF with the template version", async () => {
     const { db } = fakeClient(queues());
     let linked: string | null = null;
@@ -461,5 +464,41 @@ describe("generateDocument", () => {
       recordUrl: () => "u",
     });
     expect(r).toEqual({ ok: false, error: { kind: "not-found" } });
+  });
+});
+
+describe("loadDocumentBrand", () => {
+  const alt = (name: string) => `${name} logo`;
+
+  it("names the org's registered legal name (org.legal_name) on documents", async () => {
+    const { db } = fakeClient({
+      "from:org_brands": [okResponse(null)],
+      "from:setting_values": [okResponse({ value_text: " Northwind Live LLC " })],
+    });
+    const brand = await loadDocumentBrand(db, ORG, "Northwind Live", alt);
+    expect(brand.name).toBe("Northwind Live");
+    expect(brand.legalEntity).toBe("Northwind Live LLC");
+  });
+
+  it("prefers the white-label legal entity, and falls back to none", async () => {
+    const branded = fakeClient({
+      "from:org_brands": [
+        okResponse({
+          id: "b1",
+          display_name: "Northwind",
+          legal_entity_name: "Northwind Brands Inc",
+          radius_scale: "Default",
+        }),
+      ],
+      "from:setting_values": [okResponse({ value_text: "Northwind Live LLC" })],
+    });
+    expect((await loadDocumentBrand(branded.db, ORG, "Northwind Live", alt)).legalEntity).toBe(
+      "Northwind Brands Inc",
+    );
+    const bare = fakeClient({
+      "from:org_brands": [okResponse(null)],
+      "from:setting_values": [okResponse(null)],
+    });
+    expect((await loadDocumentBrand(bare.db, ORG, "Northwind Live", alt)).legalEntity).toBeNull();
   });
 });

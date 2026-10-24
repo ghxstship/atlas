@@ -21,6 +21,7 @@ import {
   ContinuousScan,
   custodyBlocked,
   decideGate,
+  gateScanTitle,
   resolveAsset,
   type AccessGridRow,
   type AssetIdentifierRow,
@@ -30,9 +31,14 @@ import {
   type Symbology,
 } from "../../src/domain/scan";
 import { scanAnnouncement } from "../../src/domain/announce";
+import { hapticsOn } from "../../src/domain/settings";
+import { codeFromTag, encodeTextMessage } from "../../src/domain/nfc";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
+import { nfc } from "../../src/runtime/nfc";
 import { DenialNotice, formatDay, ProjectPicker, SyncBanner } from "../../src/screens/common";
+import { FakeNfcSheet, useNfcAvailability } from "../../src/screens/NfcControls";
 import { Scanner } from "../../src/screens/Scanner";
+import { WalletButton } from "../../src/screens/WalletButton";
 import {
   announce,
   Button,
@@ -128,6 +134,7 @@ function ManualEntry({
 
 function BadgeView({ grant }: { readonly grant: ScanModeGrant }): ReactElement {
   const { t } = useTranslation();
+  const theme = useTheme();
   const { resolved, projectId } = useCompass();
   const personId = resolved?.identity.personId;
   const { rows } = useRows<
@@ -190,7 +197,13 @@ function BadgeView({ grant }: { readonly grant: ScanModeGrant }): ReactElement {
       <Text variant="text13" tone="tertiary">
         {t("compass.scan.brightness")}
       </Text>
-      {own.map(badge)}
+      {own.map((c) => (
+        <View key={c.id} style={{ gap: theme.space["8"] }}>
+          {badge(c)}
+          {/* The badge in Wallet, offline and one tap from the lock screen (A65-011 part 4). */}
+          <WalletButton kind="credential" id={c.id} testID={`wallet-${c.credential_number}`} />
+        </View>
+      ))}
       {party.length > 0 ? (
         <>
           <Text variant="heading20" heading>
@@ -215,7 +228,7 @@ function LiveScan({
   const { t } = useTranslation();
   const theme = useTheme();
   const router = useRouter();
-  const { resolved, projectId, enqueue, settings } = useCompass();
+  const { resolved, projectId, enqueue, settings, orgSettings } = useCompass();
   const identity = resolved?.identity;
   const [last, setLastState] = useState<Last | undefined>(undefined);
   // Each result is announced as well as shown: iOS has no live regions (A23-004).
@@ -226,6 +239,10 @@ function LiveScan({
   const [zoneId, setZoneId] = useState<string | null>(null);
   const batch = useRef(new ContinuousScan());
   const [count, setCount] = useState(0);
+  // NFC beside the camera (A92): a tag held to the phone is one more code. Lookup can also write a found
+  // unit's asset tag to a blank sticker, so the sticker scans as that unit from then on.
+  const nfcState = useNfcAvailability();
+  const [foundTag, setFoundTag] = useState<string | null>(null);
   const { rows: credentials } = useRows<CredentialRow & Row & { project_id?: string }>(
     "credentials",
     (c) => c.project_id === projectId,
@@ -240,7 +257,7 @@ function LiveScan({
   const { rows: custody } = useRows<CustodyRow & Row>("asset_custody");
   const zonesInGrid = zones.filter((z) => grid.some((g) => g.zone_id === z.id));
   const haptic = (ok: boolean) => {
-    if (settings.haptics)
+    if (hapticsOn(settings.haptics, orgSettings))
       void Haptics.notificationAsync(
         ok ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Error,
       );
@@ -295,8 +312,8 @@ function LiveScan({
         ok: decision.result === "Granted",
         title:
           decision.result === "Granted"
-            ? `${t("compass.scan.granted")} · ${decision.credential.holder_name ?? ""}`
-            : `${t("compass.scan.denied")} · ${t(DENY_KEY[decision.reason])}`,
+            ? gateScanTitle(t("compass.scan.granted"), decision.credential.holder_name)
+            : gateScanTitle(t("compass.scan.denied"), t(DENY_KEY[decision.reason])),
         code: code.credentialNumber,
       });
       if (decision.credential)
@@ -314,11 +331,13 @@ function LiveScan({
     const found = resolveAsset(code, units, identifiers, custody);
     if (found.kind !== "unit") {
       haptic(false);
+      setFoundTag(null);
       intake(raw, sym);
       return;
     }
     if (grant.mode === "lookup") {
       haptic(true);
+      setFoundTag(found.unit.asset_tag);
       setLast({
         ok: true,
         title: t("compass.scan.assetFound", { tag: found.unit.asset_tag }),
@@ -367,6 +386,50 @@ function LiveScan({
       code: raw,
     });
   };
+  const readTag = async () => {
+    if (nfcState === "off") {
+      haptic(false);
+      setLast({ ok: false, title: t("compassNfc.off"), code: "" });
+      return;
+    }
+    try {
+      const tag = await nfc.read(t(`compassNfc.alert.${grant.mode}`));
+      if (!tag) return;
+      const found = codeFromTag(tag);
+      if (!found) {
+        haptic(false);
+        setLast({ ok: false, title: t("compassNfc.unreadable"), code: "" });
+        return;
+      }
+      onCode(found.code, "nfc");
+    } catch (error) {
+      haptic(false);
+      setLast({
+        ok: false,
+        title: t("compassNfc.failed"),
+        code: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+  const writeTag = async (tag: string) => {
+    try {
+      const written = await nfc.write(encodeTextMessage(tag), t("compassNfc.alert.write", { tag }));
+      if (!written) return;
+      haptic(true);
+      setLast({ ok: true, title: t("compassNfc.written", { tag }), code: tag });
+    } catch (error) {
+      haptic(false);
+      setLast({
+        ok: false,
+        title: t("compassNfc.writeFailed"),
+        code: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+  const nfcButton =
+    nfcState === "ready" || nfcState === "off"
+      ? { label: t("compassNfc.read"), onPress: () => void readTag() }
+      : undefined;
   // Journey 53: a receiving batch is reviewed before it saves; each line can lose a miscounted unit.
   const [reviewing, setReviewing] = useState(false);
   const done = () => {
@@ -386,6 +449,22 @@ function LiveScan({
   };
   return (
     <View style={{ flex: 1 }}>
+      {/* First under the mode chips, above the access points and the camera, so the keyboard never
+          covers what is typed: it hid the field below the sheet, and then (A66) below the access points
+          once a project's grid named five of them. */}
+      <ManualEntry onCode={onCode} theme={theme} />
+      {grant.mode === "lookup" && foundTag && nfcState === "ready" ? (
+        <View style={{ paddingHorizontal: theme.space["16"] }}>
+          <Button
+            testID="scan-nfc-write"
+            variant="secondary"
+            icon="nfc"
+            block
+            label={t("compassNfc.write", { tag: foundTag })}
+            onPress={() => void writeTag(foundTag)}
+          />
+        </View>
+      ) : null}
       {grant.mode === "credential" ? (
         <View style={{ padding: theme.space["16"], gap: theme.space["8"] }}>
           <Text variant="label13" tone="secondary">
@@ -400,8 +479,6 @@ function LiveScan({
           />
         </View>
       ) : null}
-      {/* Above the camera, so the keyboard never covers what is typed (it hid the field below the sheet). */}
-      <ManualEntry onCode={onCode} theme={theme} />
       <View style={{ flex: 1 }}>
         <ScanSheet
           testID="scan-sheet"
@@ -413,9 +490,11 @@ function LiveScan({
           onDone={done}
           {...(last ? { last } : {})}
           camera={<Scanner onCode={onCode} />}
+          {...(nfcButton ? { nfc: nfcButton } : {})}
           {...(modes && onModeChange ? { modes, onModeChange } : {})}
         />
       </View>
+      <FakeNfcSheet />
       <Sheet
         open={reviewing}
         title={t("compass.scan.review.title", { count })}

@@ -235,6 +235,8 @@ describe("Gateway documents read the api_external views", () => {
     expect((await loadExternalDocumentData(badge.db, "credential-badge", "c1")).ok).toBe(false);
   });
 
+  // The file's only render loads pdfkit and fontkit first: a quarter of a second on a laptop, but
+  // seconds on a CI runner busy with every package's tests, hence the longer timeout.
   it("renders a Gateway document under the record's org", async () => {
     const { db } = fakeClient({
       [v("credentials")]: [
@@ -257,6 +259,7 @@ describe("Gateway documents read the api_external views", () => {
       [v("projects")]: [project],
       [v("engagements")]: [engagement],
       "from:org_brands": [okResponse(null)],
+      "from:setting_values": [okResponse(null)],
     });
     const r = await generateExternalDocument({
       db,

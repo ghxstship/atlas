@@ -1,6 +1,6 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState as useStateHook } from "react";
+import { Suspense, useState as useStateHook } from "react";
 import { describe, expect, it, vi } from "vitest";
 import {
   Accordion,
@@ -26,6 +26,7 @@ import {
   TopNav,
   XOSProvider,
   monogram,
+  rememberOverlayOpener,
   useHotkey,
 } from "../src/index.ts";
 import type { CommandMenuProps } from "../src/index.ts";
@@ -151,6 +152,172 @@ describe("focus return", () => {
     await userEvent.keyboard("{Escape}");
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(document.activeElement).toBe(row);
+  });
+
+  it("hands focus back to the control that asked for a peek after a loading state took its focus", async () => {
+    // A collection row asks for `?peek`; the route's loading state hides the row (focus drops to the
+    // body) before the page renders the peek, which then mounts with nothing focused.
+    function App() {
+      const [open, setOpen] = useStateHook(false);
+      return (
+        <div>
+          <button
+            type="button"
+            onClick={(e) => {
+              rememberOverlayOpener();
+              e.currentTarget.blur();
+              setOpen(true);
+            }}
+          >
+            Open NWS-2
+          </button>
+          {open ? (
+            <SidePeek
+              open
+              onOpenChange={setOpen}
+              recordKey="NWS-2"
+              kind="Build"
+              title="Install the stage deck"
+              state="scheduled"
+              stateLabel="Scheduled"
+            >
+              Activity
+            </SidePeek>
+          ) : null}
+        </div>
+      );
+    }
+    render(<App />);
+    const row = screen.getByRole("button", { name: "Open NWS-2" });
+    row.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(screen.getByRole("dialog", { name: "Install the stage deck" })).toBeTruthy();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(document.activeElement).toBe(row));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("hands focus back after a loading state hid the open peek and its row", async () => {
+    // The page re-suspends while the peek is open: React hides the row and the peek, Radix reports a
+    // close, and both effects run again when the content shows.
+    let release: () => void = () => undefined;
+    let pending: Promise<void> | null = null;
+    function Gate() {
+      if (pending) throw pending;
+      return null;
+    }
+    function App() {
+      const [open, setOpen] = useStateHook(false);
+      const [, setTick] = useStateHook(0);
+      return (
+        <Suspense fallback={<p>Loading</p>}>
+          <button type="button" onClick={() => setOpen(true)}>
+            Open NWS-3
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              pending = new Promise<void>((resolve) => {
+                release = () => {
+                  pending = null;
+                  resolve();
+                };
+              });
+              setTick((n) => n + 1);
+            }}
+          >
+            Load
+          </button>
+          <Gate />
+          {open ? (
+            <SidePeek
+              open
+              onOpenChange={setOpen}
+              recordKey="NWS-3"
+              kind="Task"
+              title="Hang the main truss"
+              state="scheduled"
+              stateLabel="Scheduled"
+            >
+              Activity
+            </SidePeek>
+          ) : null}
+        </Suspense>
+      );
+    }
+    render(<App />);
+    const row = screen.getByRole("button", { name: "Open NWS-3" });
+    row.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(screen.getByRole("dialog", { name: "Hang the main truss" })).toBeTruthy();
+    // Radix moves focus on close in a timeout; run it while the loading state hides both.
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      act(() => screen.getByRole("button", { name: "Load" }).click());
+      expect(screen.getByText("Loading")).toBeTruthy();
+      act(() => vi.runOnlyPendingTimers());
+    } finally {
+      vi.useRealTimers();
+    }
+    act(() => release());
+    await waitFor(() => expect(screen.queryByText("Loading")).toBeNull());
+    expect(screen.getByRole("dialog", { name: "Hang the main truss" })).toBeTruthy();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(document.activeElement).toBe(row));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("hands focus to the row that opened the peek, not to an earlier row hidden at its close", async () => {
+    // Row A's section hides while its peek is open and the peek closes; the next peek opens from
+    // Row B and has to hand focus back to Row B.
+    function App() {
+      const [open, setOpen] = useStateHook(false);
+      const [hidden, setHidden] = useStateHook(false);
+      return (
+        <div>
+          <div style={{ display: hidden ? "none" : "block" }}>
+            <button type="button" onClick={() => setOpen(true)}>
+              Row A
+            </button>
+          </div>
+          <button type="button" onClick={() => setOpen(true)}>
+            Row B
+          </button>
+          <button type="button" onClick={() => setHidden(false)}>
+            Show Row A
+          </button>
+          <SidePeek
+            open={open}
+            onOpenChange={setOpen}
+            recordKey="NWS-4"
+            kind="Task"
+            title="Focus the follow spots"
+            state="scheduled"
+            stateLabel="Scheduled"
+          >
+            <button type="button" onClick={() => setHidden(true)}>
+              Hide Row A
+            </button>
+          </SidePeek>
+        </div>
+      );
+    }
+    render(<App />);
+    const a = screen.getByRole("button", { name: "Row A" });
+    const b = screen.getByRole("button", { name: "Row B" });
+    a.focus();
+    await userEvent.keyboard("{Enter}");
+    const peek = screen.getByRole("dialog", { name: "Focus the follow spots" });
+    await userEvent.click(within(peek).getByRole("button", { name: "Hide Row A" }));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await userEvent.click(screen.getByRole("button", { name: "Show Row A" }));
+    b.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(screen.getByRole("dialog", { name: "Focus the follow spots" })).toBeTruthy();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(document.activeElement).toBe(b));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("hands focus back after the command menu closes from its hotkey (A23-003)", async () => {
@@ -452,6 +619,63 @@ describe("CommandMenu", () => {
     await userEvent.click(within(dialog).getByText("Create Record"));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
+
+  it("controls the search text, shows a header and keeps open for an item that edits the search", async () => {
+    function App() {
+      const [open, setOpen] = useStateHook(true);
+      const [query, setQuery] = useStateHook("");
+      return (
+        <CommandMenu
+          open={open}
+          onOpenChange={setOpen}
+          filter={false}
+          query={query}
+          onQueryChange={setQuery}
+          header={<p>Filters: {query || "none"}</p>}
+          groups={[
+            {
+              label: "Search operators",
+              items: [{ label: "type:", keepOpen: true, onSelect: () => setQuery("type:") }],
+            },
+          ]}
+        />
+      );
+    }
+    render(<App />);
+    const dialog = await screen.findByRole("dialog", { name: "Command menu" });
+    expect(within(dialog).getByText("Filters: none")).toBeTruthy();
+    await userEvent.click(within(dialog).getByText("type:"));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect((screen.getByRole("combobox") as HTMLInputElement).value).toBe("type:");
+    expect(within(dialog).getByText("Filters: type:")).toBeTruthy();
+    await expectAccessible(document.body);
+  });
+
+  it("moves the highlight to the first of new server results, so Enter runs it", async () => {
+    const openRecent = vi.fn();
+    const openPermit = vi.fn();
+    function App() {
+      const [query, setQuery] = useStateHook("");
+      const groups: CommandMenuProps["groups"] =
+        query === ""
+          ? [{ label: "Recent", items: [{ label: "Production Meeting", onSelect: openRecent }] }]
+          : [
+              {
+                label: "Records",
+                items: [{ label: "Special Event Permit", onSelect: openPermit }],
+              },
+            ];
+      return <CommandMenu filter={false} query={query} onQueryChange={setQuery} groups={groups} />;
+    }
+    render(<App />);
+    await userEvent.type(screen.getByRole("combobox"), "permit");
+    expect(
+      screen.getByRole("option", { name: "Special Event Permit" }).getAttribute("aria-selected"),
+    ).toBe("true");
+    await userEvent.keyboard("{Enter}");
+    expect(openPermit).toHaveBeenCalled();
+    expect(openRecent).not.toHaveBeenCalled();
+  });
 });
 
 describe("Tabs, SegmentedControl and Accordion", () => {
@@ -520,6 +744,57 @@ describe("Tabs, SegmentedControl and Accordion", () => {
     await expectAccessible(container);
   });
 
+  it("moves focus between segments with arrows, Home and End, and turns one on with Enter", async () => {
+    const onChange = vi.fn();
+    render(
+      <SegmentedControl
+        label="View"
+        value="board"
+        onChange={onChange}
+        options={[
+          { value: "list", label: "List" },
+          { value: "board", label: "Board" },
+          { value: "table", label: "Table" },
+        ]}
+      />,
+    );
+    const radios = screen.getAllByRole("radio");
+    // One tab stop: the segment that is on.
+    expect(radios.map((r) => r.tabIndex)).toEqual([-1, 0, -1]);
+    expect(radios[1]?.getAttribute("data-state")).toBe("on");
+    radios[1]?.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(document.activeElement).toBe(radios[2]);
+    expect(onChange).not.toHaveBeenCalled();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(document.activeElement).toBe(radios[0]);
+    await userEvent.keyboard("{End}");
+    expect(document.activeElement).toBe(radios[2]);
+    await userEvent.keyboard("{Enter}");
+    expect(onChange).toHaveBeenLastCalledWith("table");
+    expect(radios[2]?.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("mirrors segment arrows in right-to-left", async () => {
+    render(
+      <XOSProvider locale="ar-XB">
+        <SegmentedControl
+          label="View"
+          options={[
+            { value: "a", label: "A" },
+            { value: "b", label: "B" },
+            { value: "c", label: "C" },
+          ]}
+        />
+      </XOSProvider>,
+    );
+    const radios = screen.getAllByRole("radio");
+    expect(screen.getByRole("radiogroup").getAttribute("dir")).toBe("rtl");
+    radios[0]?.focus();
+    await userEvent.keyboard("{ArrowLeft}");
+    expect(document.activeElement).toBe(radios[1]);
+  });
+
   it("toggles accordion sections with Enter", async () => {
     const { container } = render(
       <Accordion
@@ -536,6 +811,17 @@ describe("Tabs, SegmentedControl and Accordion", () => {
     expect(advanced.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByText("Advanced body")).toBeTruthy();
     await expectAccessible(container);
+  });
+
+  it("renders section headers at the heading level the page needs", () => {
+    render(
+      <>
+        <Accordion items={[{ title: "Details", content: "Body" }]} />
+        <Accordion headingLevel={2} items={[{ title: "Filters", content: "Chips" }]} />
+      </>,
+    );
+    expect(screen.getByRole("heading", { level: 3, name: "Details" })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "Filters" })).toBeTruthy();
   });
 
   it("keeps collapsed More fields mounted and hidden so they submit with the form", async () => {

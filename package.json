@@ -13,8 +13,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "prettier --write . '!.claude/**'",
+    "format:check": "prettier --check . '!.claude/**'",
     "guard:finish": "node --experimental-strip-types --no-warnings packages/config/src/finish-guard-cli.ts",
     "verify": "pnpm format:check && pnpm guard:finish && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
@@ -24,17 +24,7 @@
     "turbo": "2.11.7",
     "typescript": "6.0.3"
   },
-  "pnpm": {
-    "overrides": {
-      "@xmldom/xmldom@<0.8.15": "0.8.15",
-      "uuid@<11.1.1": "11.1.1"
-    },
-    "auditConfig": {
-      "ignoreGhsas": [
-        "GHSA-86w9-cpqp-85rv",
-        "GHSA-vfj7-8cjw-p6xm",
-        "GHSA-vcc3-ghjq-m6fr"
-      ]
-    }
+  "op-sqlite": {
+    "sqlcipher": true
   }
 }

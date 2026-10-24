@@ -7,11 +7,39 @@ import { Checkbox, Textarea } from "../Forms/Forms.tsx";
 import { type FeedbackWidgetProps } from "./Help.types.ts";
 
 /** Feedback with a privacy note; only what the person chooses is sent. */
-export function FeedbackWidget({ onSend, onCancel }: FeedbackWidgetProps): ReactElement {
+export function FeedbackWidget({
+  onSend,
+  onCancel,
+  screenshotField,
+  context,
+  thanks,
+}: FeedbackWidgetProps): ReactElement {
   const t = useT();
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [text, setText] = useState("");
   const [screenshot, setScreenshot] = useState(false);
+  const send = () => {
+    const result = onSend?.({ text, screenshot });
+    if (!(result instanceof Promise)) {
+      setSent(true);
+      return;
+    }
+    setSending(true);
+    setFailed(false);
+    void result.then(
+      (ok) => {
+        setSending(false);
+        setSent(ok);
+        setFailed(!ok);
+      },
+      () => {
+        setSending(false);
+        setFailed(true);
+      },
+    );
+  };
   return (
     <Card
       title={t("feedback.title")}
@@ -21,21 +49,14 @@ export function FeedbackWidget({ onSend, onCancel }: FeedbackWidgetProps): React
             <span className="text-success">
               <Icon name="CircleCheck" />
             </span>
-            {t("feedback.thanks")}
+            {thanks ?? t("feedback.thanks")}
           </span>
         ) : (
           <>
             <Button variant="ghost" onClick={onCancel}>
               {t("action.cancel")}
             </Button>
-            <Button
-              variant="primary"
-              disabled={!text.trim()}
-              onClick={() => {
-                setSent(true);
-                onSend?.({ text, screenshot });
-              }}
-            >
+            <Button variant="primary" disabled={!text.trim() || sending} onClick={send}>
               {t("action.send")}
             </Button>
           </>
@@ -49,12 +70,20 @@ export function FeedbackWidget({ onSend, onCancel }: FeedbackWidgetProps): React
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
-      <Checkbox
-        label={t("feedback.screenshot")}
-        checked={screenshot}
-        onChange={(e) => setScreenshot(e.target.checked)}
-      />
+      {screenshotField ?? (
+        <Checkbox
+          label={t("feedback.screenshot")}
+          checked={screenshot}
+          onChange={(e) => setScreenshot(e.target.checked)}
+        />
+      )}
       <span className="text-text-12 text-text-secondary">{t("feedback.privacy")}</span>
+      {context ? <div className="text-text-12 text-text-secondary">{context}</div> : null}
+      {failed ? (
+        <span role="alert" className="text-text-12 text-danger-text">
+          {t("feedback.failed")}
+        </span>
+      ) : null}
     </Card>
   );
 }

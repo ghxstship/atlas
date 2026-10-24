@@ -12,6 +12,7 @@ import {
   gatewayLink,
   notificationStore,
   receiveInbound,
+  restDb,
   signWebhook,
   stripQuotedText,
   supabaseDb,
@@ -322,13 +323,14 @@ describe("inbound mail", () => {
 });
 
 describe("stores", () => {
-  it("billing store calls the 0560 RPCs and reads processing state", async () => {
+  it("billing store calls the 0560, 1250 and 1640 RPCs and reads processing state", async () => {
     const { db, calls } = fakeDb(
       {
         record_stripe_event: () => [{ stripe_event_row_id: "row-1", is_new: true }],
         finish_stripe_event: () => null,
         sync_subscription_from_stripe: () => "active",
         record_addon_purchase_from_stripe: () => "purchase-1",
+        finish_billing_checkout_from_stripe: () => true,
       },
       { stripe_events: { processed_at: null }, stripe_subscription_links: { org_id: "org-7" } },
     );
@@ -370,12 +372,18 @@ describe("stores", () => {
         paidAt: new Date(0),
       }),
     ).resolves.toBe("purchase-1");
+    await expect(store.finishCheckout("cs_test_2", "Completed")).resolves.toBe(true);
     expect(calls.map((c) => c.fn)).toEqual([
       "record_stripe_event",
       "finish_stripe_event",
       "sync_subscription_from_stripe",
       "record_addon_purchase_from_stripe",
+      "finish_billing_checkout_from_stripe",
     ]);
+    expect(calls[4]?.args).toEqual({
+      p_stripe_checkout_session_id: "cs_test_2",
+      p_checkout_state: "Completed",
+    });
     expect(calls[2]?.args["p_current_period_end"]).toBeNull();
     expect(calls[2]?.args["p_extra_seats"]).toBe(3);
     expect(calls[3]?.args).toMatchObject({
@@ -401,6 +409,7 @@ describe("stores", () => {
             subject_id: "s1",
           },
         ],
+        recipient_setting: () => null,
         reply_address_local_part: () => "r-abc",
         record_notification_delivery: () => null,
       },
@@ -422,7 +431,7 @@ describe("stores", () => {
     expect(sender.from).toBe("Northwind Live <notifications@mail.xos.test>");
     expect(sender.preferencesUrl).toBe("https://atlas.xos.test/northwind-live/me/notifications");
     expect(sender.unsubscribeUrl).toBe("https://fn.xos.test/u?o=org-1&p=p1");
-    await expect(store.recipient("p1")).resolves.toEqual({
+    await expect(store.recipient("p1", "org-1")).resolves.toEqual({
       name: "Dave Lindqvist",
       locale: "en-US",
       timeZone: "UTC",
@@ -570,5 +579,124 @@ describe("stores", () => {
     await expect(db.selectOne("organizations", "id", { id: "x" })).resolves.toEqual({ id: "x" });
     await expect(db.selectOne("bad", "id", {})).rejects.toThrow(/denied/);
     expect(queries[0]).toBe("schema:app");
+  });
+
+  it("supabaseDb keeps the refusal code and hint on the error", async () => {
+    const client = {
+      schema: () => ({
+        rpc: async () => ({
+          data: null,
+          error: { message: "the key is revoked", code: "XR001", hint: "api_key_revoked" },
+        }),
+      }),
+    };
+    const failure = await supabaseDb(client as never)
+      .rpc("exchange_api_key", {})
+      .catch((error: unknown) => error);
+    expect(failure).toBeInstanceOf(PlatformDbError);
+    expect(failure).toMatchObject({
+      message: "exchange_api_key: the key is revoked",
+      databaseMessage: "the key is revoked",
+      code: "XR001",
+      hint: "api_key_revoked",
+    });
+  });
+
+  describe("restDb", () => {
+    const serviceKey = ["service", "role", "fake"].join("-");
+
+    function fakeRest(answer: (url: string, init: RequestInit) => Response) {
+      const calls: { url: string; init: RequestInit }[] = [];
+      const db = restDb({
+        url: "http://kong:8000/",
+        serviceKey,
+        fetch: async (url, init) => {
+          calls.push({ url, init });
+          return answer(url, init);
+        },
+      });
+      return { db, calls };
+    }
+
+    it("posts RPCs to the app schema with the service key, as supabase-js does", async () => {
+      const { db, calls } = fakeRest(() => Response.json([{ punch_id: "p1" }]));
+      await expect(db.rpc("kiosk_punch", { p_pin: "4821", p_photo_uri: null })).resolves.toEqual([
+        { punch_id: "p1" },
+      ]);
+      expect(calls[0]?.url).toBe("http://kong:8000/rest/v1/rpc/kiosk_punch");
+      expect(calls[0]?.init.method).toBe("POST");
+      expect(calls[0]?.init.headers).toEqual({
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": "application/json",
+        "Content-Profile": "app",
+      });
+      expect(JSON.parse(String(calls[0]?.init.body))).toEqual({ p_pin: "4821", p_photo_uri: null });
+    });
+
+    it("answers null for an empty body and a scalar for a scalar function", async () => {
+      const { db } = fakeRest((url) =>
+        url.endsWith("/finish") ? new Response(null, { status: 204 }) : Response.json("acme"),
+      );
+      await expect(db.rpc("finish", {})).resolves.toBeNull();
+      await expect(db.rpc("unsubscribe_by_token", { p_token: "t" })).resolves.toBe("acme");
+    });
+
+    it("reads one row with eq filters in the app schema", async () => {
+      const { db, calls } = fakeRest((url) =>
+        url.includes("people") ? Response.json([{ full_name: "Avery Cole" }]) : Response.json([]),
+      );
+      await expect(
+        db.selectOne("personal_setting_values", "value_text", {
+          person_id: "p1",
+          setting_key: "locale.language",
+        }),
+      ).resolves.toBeNull();
+      await expect(db.selectOne("people", "slug, full_name", { id: "p1" })).resolves.toEqual({
+        full_name: "Avery Cole",
+      });
+      const first = new URL(String(calls[0]?.url));
+      expect(first.pathname).toBe("/rest/v1/personal_setting_values");
+      expect(Object.fromEntries(first.searchParams)).toEqual({
+        select: "value_text",
+        person_id: "eq.p1",
+        setting_key: "eq.locale.language",
+        limit: "1",
+      });
+      expect(new URL(String(calls[1]?.url)).searchParams.get("select")).toBe("slug,full_name");
+      expect(calls[1]?.init).toEqual({
+        method: "GET",
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          "Accept-Profile": "app",
+        },
+      });
+    });
+
+    it("throws PostgREST errors with their code and hint, and gateway errors with their text", async () => {
+      const { db } = fakeRest((url) =>
+        url.includes("exchange")
+          ? Response.json(
+              { code: "XR001", message: "api_key_revoked: revoked", hint: "api_key_revoked" },
+              { status: 400 },
+            )
+          : new Response("upstream timed out", { status: 504, statusText: "Gateway Timeout" }),
+      );
+      const refused = await db.rpc("exchange_api_key", {}).catch((error: unknown) => error);
+      expect(refused).toMatchObject({
+        name: "PlatformDbError",
+        message: "exchange_api_key: api_key_revoked: revoked",
+        code: "XR001",
+        hint: "api_key_revoked",
+      });
+      await expect(db.selectOne("people", "id", {})).rejects.toThrow("people: upstream timed out");
+      const { db: silent } = fakeRest(() => new Response("", { status: 503, statusText: "Busy" }));
+      await expect(silent.rpc("claim", {})).rejects.toMatchObject({
+        message: "claim: Busy",
+        code: null,
+        hint: null,
+      });
+    });
   });
 });

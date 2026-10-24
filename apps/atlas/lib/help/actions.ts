@@ -14,7 +14,10 @@ import { myMembershipId } from "@xos/data/views";
 import { uploadSupportScreenshot } from "@xos/data/workflow";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { docsUrl } from "@/lib/docs-site";
+import { env } from "@/lib/env";
 import { getOrgContext } from "@/lib/shell/context";
+import { getShellSettings, type OrgSupport } from "@/lib/shell/org-settings";
 import { platformChannel } from "@/lib/support/terms";
 
 /**
@@ -58,6 +61,10 @@ export interface HelpPanelState {
   readonly canContactPlatform: boolean;
   /** The platform channel of the org's plan; null on the Access plan. */
   readonly platformChannel: SupportChannel | null;
+  /** The org's own support contacts (help.support_email, help.support_hours, help.custom_link). */
+  readonly orgSupport: OrgSupport | null;
+  /** The docs site origin (DOCS_SITE_URL), for help center links; null when unset. */
+  readonly docsUrl: string | null;
 }
 
 /** The person's tours, dismissed tips and support options in this org. */
@@ -65,9 +72,10 @@ export async function loadHelpStateAction(orgSlug: string): Promise<HelpResult<H
   const c = await context(orgSlug);
   if (!c) return { ok: false, error: "denied" };
   const canContactPlatform = c.ctx.capabilities.has("org.help.write");
-  const [state, subscription] = await Promise.all([
+  const [state, subscription, settings] = await Promise.all([
     getHelpState(c.db, c.membershipId),
     canContactPlatform ? getSubscription(c.db, c.orgId) : null,
+    getShellSettings(c.db, c.orgId, null),
   ]);
   if (!state.ok) return { ok: false, error: errorOf(state.error) };
   if (subscription && !subscription.ok && subscription.error.kind !== "not-found") {
@@ -80,6 +88,8 @@ export async function loadHelpStateAction(orgSlug: string): Promise<HelpResult<H
       dismissedTips: state.data.dismissedTips,
       canContactPlatform,
       platformChannel: platformChannel(subscription?.ok ? subscription.data.planCode : null),
+      orgSupport: settings.support,
+      docsUrl: docsUrl(env()),
     },
   };
 }

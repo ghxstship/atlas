@@ -62,9 +62,16 @@ export default defineConfig({
   outputDir: "node_modules/.cache/playwright",
   use: {
     baseURL,
+    // A browser that sends Global Privacy Control, which counts as refusing optional cookies, so the
+    // cookie banner (A82, Section 14.3) stays out of every screen; e2e/compliance.spec.ts opens its
+    // own contexts without the signal to test the banner.
+    extraHTTPHeaders: { "Sec-GPC": "1" },
     trace: "retain-on-failure",
     // A missing control fails the step in seconds instead of holding the whole test timeout.
     actionTimeout: 20_000,
+    // E2E_TIMEZONE runs the browsers in that zone, for example America/New_York with the test clock
+    // at 23:30 there (e2e/engine-test.ts, packages/testing/clock).
+    ...(process.env["E2E_TIMEZONE"] ? { timezoneId: process.env["E2E_TIMEZONE"] } : {}),
   },
   projects: [
     ...desktop

@@ -1,3 +1,4 @@
+import { todayIn } from "@xos/data/calendar";
 import {
   getTimesheet,
   listTimesheets,
@@ -22,6 +23,7 @@ import { InlineAlert } from "@/components/crew/ui";
 import { FilterSelect } from "@/components/crew/views-filter-select";
 import { PeekBoard } from "@/components/crew/views-peek-board";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   flatParams,
@@ -31,8 +33,10 @@ import {
   withParams,
 } from "@/lib/crew/context";
 import { stateIcon } from "@/lib/crew/states";
-import { addDays, hoursFromMinutes, mondayOf } from "@/lib/crew/time";
+import { addDays, hoursFromMinutes, weekStartOf } from "@/lib/crew/time";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { getOrgTimeZone, getOrgWeekStart } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -202,15 +206,23 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       );
       if (search["full"] === "1") return record;
       peek = record;
-    } else if (detail.error.kind !== "not-found") {
+    } else if (!peekRowMissing(detail.error)) {
       throw new Error(`Cannot read timesheet: ${detail.error.kind}`);
     }
   }
 
   const canCreate = crew.can("crew.timesheet.submit");
   const members = canSubmitOthers ? await getMembers(crew.ctx) : [];
-  const week = mondayOf(new Date().toISOString().slice(0, 10));
   const defaultProject = projectFilter ?? projects[0] ?? null;
+  // A new timesheet covers this week on the default project's calendar (A71): its days are what the
+  // timesheet bills, and in UTC Sunday evening in New York already opened next week's. The week is the
+  // org's payroll week (its own payroll.week_start), never the viewer's: pay periods start on it (1323)
+  // and a pay run pays only timesheets inside a period, so a week on a person's own start could straddle
+  // two periods and go unpaid, or overlap a colleague's timesheet for the same days.
+  const week = weekStartOf(
+    todayIn(defaultProject?.timeZone ?? (await getOrgTimeZone(crew.ctx))),
+    await getOrgWeekStart(crew.ctx),
+  );
   const drawer =
     search["create"] === "1" && canCreate && defaultProject ? (
       <DrawerForm
@@ -388,7 +400,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       }
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }

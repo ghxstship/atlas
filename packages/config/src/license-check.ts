@@ -95,6 +95,96 @@ export function isAllowed(
   return allowed.has(id);
 }
 
+/**
+ * A package whose license is outside the allowlist, recorded in `packages/config/license-exceptions.json`
+ * while counsel reviews it or after counsel approves it. It covers that package under that exact license
+ * only: the same package under another license, or another package under the same license, still fails.
+ */
+export interface LicenseException {
+  /** The package name; a trailing `*` matches platform builds such as `@img/sharp-libvips-*`. */
+  readonly package: string;
+  readonly license: string;
+  readonly status: "Pending counsel" | "Approved by counsel";
+  /** Why the package is used and why the license may be acceptable. */
+  readonly reason: string;
+  /** Where the decision is tracked (a gate-status row, an ADR, an owner decision). */
+  readonly decision: string;
+  readonly recorded: string;
+}
+
+export interface ExceptedLicense {
+  readonly license: string;
+  readonly packages: readonly string[];
+  readonly exception: LicenseException;
+}
+
+export interface LicenseReview {
+  /** Licenses that fail: outside the allowlist with no exception. */
+  readonly violations: readonly LicenseViolation[];
+  /** Licenses outside the allowlist that an exception covers. */
+  readonly excepted: readonly ExceptedLicense[];
+  /** Exceptions that matched nothing; remove them. */
+  readonly unused: readonly LicenseException[];
+  /** Exceptions that are malformed; each fails. */
+  readonly invalid: readonly string[];
+}
+
+function matches(pattern: string, name: string): boolean {
+  return pattern.endsWith("*") ? name.startsWith(pattern.slice(0, -1)) : name === pattern;
+}
+
+function invalidException(e: LicenseException): string | null {
+  if (!e.package || !e.license) return `${e.package || "?"}: names no package or license`;
+  if (e.status !== "Pending counsel" && e.status !== "Approved by counsel") {
+    return `${e.package}: status must be "Pending counsel" or "Approved by counsel"`;
+  }
+  if (!e.reason || e.reason.trim().length < 20) return `${e.package}: gives no reason`;
+  if (!e.decision) return `${e.package}: names no decision record`;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(e.recorded ?? "")) return `${e.package}: recorded is not a date`;
+  return null;
+}
+
+/**
+ * Like {@link checkLicenses}, but a package covered by an exception (same name pattern, same license) is
+ * reported as excepted instead of failing.
+ */
+export function reviewLicenses(
+  byLicense: Readonly<Record<string, readonly LicensedPackage[]>>,
+  exceptions: readonly LicenseException[],
+  allowed: ReadonlySet<string> = ALLOWED_LICENSES,
+): LicenseReview {
+  const invalid = exceptions.map(invalidException).filter((p): p is string => p !== null);
+  const valid = exceptions.filter((e) => invalidException(e) === null);
+  const used = new Set<LicenseException>();
+  const violations: LicenseViolation[] = [];
+  const excepted = new Map<LicenseException, { license: string; packages: string[] }>();
+  for (const [license, packages] of Object.entries(byLicense)) {
+    if (isAllowed(license, allowed)) continue;
+    const failing: string[] = [];
+    for (const p of packages) {
+      const label = `${p.name}@${p.versions.join(",")}`;
+      const exception = valid.find((e) => e.license === license && matches(e.package, p.name));
+      if (exception === undefined) {
+        failing.push(label);
+        continue;
+      }
+      used.add(exception);
+      const entry = excepted.get(exception) ?? { license, packages: [] };
+      entry.packages.push(label);
+      excepted.set(exception, entry);
+    }
+    if (failing.length > 0) violations.push({ license, packages: failing.sort() });
+  }
+  return {
+    violations: violations.sort((a, b) => a.license.localeCompare(b.license)),
+    excepted: [...excepted.entries()]
+      .map(([exception, e]) => ({ license: e.license, packages: e.packages.sort(), exception }))
+      .sort((a, b) => a.license.localeCompare(b.license)),
+    unused: valid.filter((e) => !used.has(e)),
+    invalid,
+  };
+}
+
 /** Groups the packages whose license fails the allowlist, by license, sorted. */
 export function checkLicenses(
   byLicense: Readonly<Record<string, readonly LicensedPackage[]>>,

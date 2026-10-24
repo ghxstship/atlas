@@ -42,6 +42,11 @@ export interface DownloadScope {
   readonly engagementIds: readonly string[];
   /** External: projects reached through those engagements. */
   readonly engagedProjectIds: readonly string[];
+  /**
+   * External: engagements whose onboarding area is open (Onboarding and Blocked as well as Active and Closing), for
+   * the onboarding checklist a person works through before operational access opens (A92). Absent holds none.
+   */
+  readonly onboardingEngagementIds?: readonly string[];
 }
 
 export type ScopeKey = Exclude<keyof DownloadScope, "audience">;
@@ -61,7 +66,7 @@ export interface ScopeAlternative {
 export interface TableRule {
   readonly table: string;
   readonly anyOf: readonly ScopeAlternative[];
-  /** Canon reference tables shared by every tenant, such as emergency codes. */
+  /** Canon reference tables shared by every tenant, such as the canon emergency codes. */
   readonly global?: boolean;
 }
 
@@ -84,6 +89,12 @@ const clientRunningOrder: ScopeAlternative = {
   key: "engagedProjectIds",
   audiences: ["client"],
 };
+const CREW_STAFF: readonly Audience[] = ["crew", "staff"];
+const VENDOR: readonly Audience[] = ["vendor"];
+const CONTRACTOR: readonly Audience[] = ["contractor"];
+const ARTIST_PARTY: readonly Audience[] = ["artist", "artist-representative"];
+const CLIENT: readonly Audience[] = ["client"];
+const SPONSOR: readonly Audience[] = ["sponsor"];
 const artistSetTimes: ScopeAlternative = {
   column: "project_id",
   key: "engagedProjectIds",
@@ -181,9 +192,52 @@ export const TABLE_RULES: readonly TableRule[] = [
   { table: "fulfillments", anyOf: [internalProject] },
   { table: "sops", anyOf: [internalOrg] },
   { table: "zones", anyOf: [internalOrg] },
+  // The org's own emergency codes (WP18, 1612): members read them; others fall back to the canon codes.
+  { table: "emergency_codes", anyOf: [internalOrg] },
   // Memberships joined to people's names: no single replicable table holds it.
   { table: "kiosk_roster", anyOf: [{ ...internalOrg, restOnly: true }] },
-  { table: "emergency_codes", anyOf: [], global: true },
+  // Expenses (Section 4.3 item 11, A92): the budget lines the person may post to with their budget's project and
+  // currency (app.expense_budget_lines, 1622), and the person's own expenses. Neither has a sync rule yet, so the
+  // REST downloader serves both.
+  { table: "budget_lines", anyOf: [{ ...internalProject, restOnly: true }] },
+  {
+    table: "expenses",
+    anyOf: [
+      { column: "submitter_person_id", key: "personIds", audiences: INTERNAL, restOnly: true },
+    ],
+  },
+  // The external More screens (Section 4.5.7 role table, A92) read api_external projections, which PowerSync does
+  // not replicate, so the REST downloader serves them. Each table admits only the role types whose menu lists it;
+  // lines without a project of their own take their parent's on download.
+  ...(
+    [
+      ["timesheets", "engagement_id", "engagementIds", CREW_STAFF],
+      ["per_diems", "engagement_id", "engagementIds", CREW_STAFF],
+      ["travel_segments", "engagement_id", "engagementIds", CREW_STAFF],
+      ["lodging", "person_id", "personIds", CREW_STAFF],
+      ["onboarding_items", "engagement_id", "onboardingEngagementIds", CREW_STAFF],
+      ["purchase_orders", "project_id", "engagedProjectIds", VENDOR],
+      ["po_lines", "project_id", "engagedProjectIds", VENDOR],
+      ["deliveries", "project_id", "engagedProjectIds", VENDOR],
+      ["shared_records", "project_id", "engagedProjectIds", VENDOR],
+      ["deliverables", "engagement_id", "engagementIds", CONTRACTOR],
+      ["advance_packets", "project_id", "engagedProjectIds", ARTIST_PARTY],
+      ["advance_sections", "project_id", "engagedProjectIds", ARTIST_PARTY],
+      ["advance_submissions", "project_id", "engagedProjectIds", ARTIST_PARTY],
+      ["riders", "project_id", "engagedProjectIds", ARTIST_PARTY],
+      ["rider_lines", "project_id", "engagedProjectIds", ARTIST_PARTY],
+      ["settlements", "engagement_id", "engagementIds", ARTIST_PARTY],
+      ["settlement_lines", "project_id", "engagedProjectIds", ARTIST_PARTY],
+      ["shared_reports", "engagement_id", "engagementIds", CLIENT],
+      ["sponsor_entitlements", "project_id", "engagedProjectIds", SPONSOR],
+      ["engagement_documents", "engagement_id", "engagementIds", SPONSOR],
+    ] as const
+  ).map(([table, column, key, audiences]): TableRule => ({
+    table,
+    anyOf: [{ column, key, audiences, restOnly: true }],
+  })),
+  // The canon codes: the swatch of every org's codes, and the list an org that holds no codes shows.
+  { table: "canon_emergency_codes", anyOf: [], global: true },
   { table: "incident_severities", anyOf: [], global: true },
   { table: "inspection_result_values", anyOf: [], global: true },
   // Canon job titles, so a shift reads "Head Arena / Festival Rigger" instead of its role code.
@@ -204,7 +258,7 @@ export function admits(table: string, row: Row, scope: DownloadScope): boolean {
   return rule.anyOf.some((alt) => {
     if (alt.audiences && !alt.audiences.includes(scope.audience)) return false;
     const value = row[alt.column];
-    return typeof value === "string" && scope[alt.key].includes(value);
+    return typeof value === "string" && (scope[alt.key] ?? []).includes(value);
   });
 }
 

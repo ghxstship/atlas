@@ -28,8 +28,8 @@ describe("translation check (offline)", () => {
     expect(setup.config.check.stale).toBe("warning");
   });
 
-  it("covers the catalogs, the help articles and the docs guides of every target", () => {
-    expect(setup.config.surfaces.map((s) => s.id)).toEqual(["catalogs", "help", "guides"]);
+  it("covers the catalogs, the help articles, the docs guides and the canon labels of every target", () => {
+    expect(setup.config.surfaces.map((s) => s.id)).toEqual(["catalogs", "help", "guides", "canon"]);
     for (const { locale } of setup.config.targets) {
       const total = Object.values(result.statuses[locale] ?? {}).reduce((a, b) => a + b, 0);
       expect(total).toBeGreaterThan(12000);
@@ -41,6 +41,8 @@ describe("masking every en-US string", () => {
   const protector = compileProtector(setup.terms.doNotTranslate);
   const units = setup.config.surfaces.flatMap((s) => readUnits(root, s, "en-US", "es-US"));
 
+  // About 17,800 strings, each planned and reassembled: a third of a second on a laptop, but
+  // seconds on a CI runner busy with every package's tests, hence the longer timeout.
   it("round-trips every message and article through a transport that returns its input", () => {
     const broken: string[] = [];
     for (const u of units) {
@@ -59,7 +61,7 @@ describe("masking every en-US string", () => {
     }
     expect(broken).toEqual([]);
     expect(units.length).toBeGreaterThan(12000);
-  });
+  }, 20_000);
 });
 
 describe("report helpers", () => {

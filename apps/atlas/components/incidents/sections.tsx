@@ -73,11 +73,14 @@ import {
   reportIncidentAction,
   transitionIncidentAction,
   updateChannelAction,
+  updateEmergencyCodeAction,
   updateIncidentAction,
   withdrawAction,
 } from "@/lib/incidents/actions";
 import { can, chooseView, type ModulePage } from "@/lib/operations/context";
+import { rememberView } from "@/lib/shell/recents";
 import { instantToLocal } from "@/lib/operations/time";
+import { IncidentOshaPanel } from "@/components/compliance/osha-panels";
 import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
@@ -289,7 +292,10 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
         page.project ? (
           <ReportForm page={page} project={page.project} severities={severities} />
         ) : (
-          chooseProjectNotice(page, section)
+          chooseProjectNotice(page, section, {
+            choose: t("incidents.chooseProject"),
+            none: t("incidents.noProjects"),
+          })
         )
       ) : null}
       {body}
@@ -453,6 +459,8 @@ async function IncidentRecord({
     listMedicalEncounters(db, incident.id),
     listMembers(db, page.ctx.org.id),
     listProjectZones(db, page.ctx.org.id, project?.venueId ?? null),
+    // The command menu's recent items (Section 11.7), last so no read above changes position.
+    rememberView(page.ctx, "incidents", incident.id),
   ]);
   const canWrite = can(page, "safety.incident.write") && incident.state !== "Closed";
   const canDispatch = can(page, "safety.incident.dispatch") && incident.state !== "Closed";
@@ -517,6 +525,7 @@ async function IncidentRecord({
       }
     >
       <DocumentActions org={page.ctx.org.slug} kind="incident-report" id={incident.id} />
+      <IncidentOshaPanel ctx={page.ctx} incidentId={incident.id} members={memberList} />
       {moves.length > 0 && (canDispatch || canWrite) ? (
         <RecordSection id="incident-move" title={t("incidents.moveHeading")}>
           {moves
@@ -982,7 +991,7 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
   const format = await getFormatter();
   const { views, view } = chooseView("safety.emergency-codes", param(page.search, "view"));
   const [codesResult, alertsResult] = await Promise.all([
-    listEmergencyCodes(page.ctx.viewer.db),
+    listEmergencyCodes(page.ctx.viewer.db, page.ctx.org.id),
     listCrisisAlerts(page.ctx.viewer.db, {
       orgId: page.ctx.org.id,
       ...(page.project ? { projectId: page.project.id } : {}),
@@ -1025,6 +1034,11 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
       />
       <ProjectFilter page={page} section={section} />
       <p className="m-0 text-text-13 text-text-secondary">{t("incidents.codes.explain")}</p>
+      {codes.length > 0 && codes.every((c) => c.id === undefined) ? (
+        <p className="m-0 text-text-12 text-text-secondary" data-testid="emergency-codes-canon">
+          {t("incidents.codes.notAdopted")}
+        </p>
+      ) : null}
       <AlertsPanel page={page} alerts={alerts} codes={codes} format={format} canAlert={canAlert} />
       {view === "list" ? (
         <OpsList
@@ -1203,6 +1217,48 @@ async function CodeRecord({ page, code }: { page: ModulePage; code: EmergencyCod
           {t("incidents.codes.genericAgencies")}
         </p>
       ) : null}
+      {/* The codes are org data, edited with the org-wide capability (migration 1612). */}
+      {code.id !== undefined && page.ctx.capabilities.has("safety.emergency_code.write") ? (
+        <RecordSection id="emergency-code-edit" title={t("incidents.codes.editHeading")}>
+          <ActionForm
+            action={updateEmergencyCodeAction}
+            hidden={{ org: page.ctx.org.slug, id: code.id }}
+            submitLabel={t("credentials.common.save")}
+            successKey="credentials.common.saved"
+            layout="inline"
+          >
+            <TextField
+              id="code-label"
+              name="label"
+              label={t("incidents.codes.labelField")}
+              defaultValue={code.label}
+              required
+              maxLength={100}
+            />
+            <TextField
+              id="code-emergency"
+              name="emergency"
+              label={t("incidents.codes.emergency")}
+              defaultValue={code.emergency}
+              required
+              maxLength={200}
+              wide
+            />
+            <TextField
+              id="code-order"
+              name="sortOrder"
+              type="number"
+              label={t("incidents.codes.order")}
+              defaultValue={code.sortOrder}
+              required
+              min={1}
+            />
+          </ActionForm>
+          <p className="m-0 text-text-12 text-text-secondary">
+            {t("incidents.codes.canonWord", { code: code.code })}
+          </p>
+        </RecordSection>
+      ) : null}
       {protocols.ok && protocols.data.length > 0 ? (
         <div className="flex flex-col gap-12">
           {protocols.data.map((p) => (
@@ -1339,7 +1395,10 @@ export async function RadioChannelsSection({ page }: { page: ModulePage }) {
             </ActionForm>
           </RecordSection>
         ) : (
-          chooseProjectNotice(page, section)
+          chooseProjectNotice(page, section, {
+            choose: t("incidents.radio.chooseProject"),
+            none: t("incidents.noProjects"),
+          })
         )
       ) : null}
       {channels.length === 0 ? (

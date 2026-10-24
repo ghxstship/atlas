@@ -15,7 +15,7 @@ Scan is the raised button in the middle of the tab bar. Choose a mode at the top
 - **Credential**: choose the access point, then scan a badge. Compass says Access granted or denied, with the reason.
 - **Lookup**: scan any code to find what it belongs to.
 
-A code Compass does not know goes to the desk to identify. You can also type a code or tap an NFC tag.
+A code Compass does not know goes to the desk to identify. You can also type a code, or tap **Read NFC tag** and hold a badge, wristband or tag to the top of your phone. In Lookup, **Write to an NFC tag** puts a found item's asset tag on a blank NFC sticker.
 
 ## Your badge
 

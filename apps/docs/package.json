@@ -12,6 +12,8 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
+    "dictionary:generate": "node --experimental-strip-types --no-warnings scripts/generate-data-dictionary.ts",
+    "dictionary:check": "node --experimental-strip-types --no-warnings scripts/generate-data-dictionary.ts --check",
     "e2e": "playwright test"
   },
   "dependencies": {

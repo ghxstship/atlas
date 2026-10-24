@@ -15,6 +15,10 @@ import {
   requestImportCommit,
   similarityPercent,
   undoImportBatch,
+  createSheetsImport,
+  googleSheetsLinkId,
+  importDetectedSheet,
+  importFlags,
 } from "../src/imports.ts";
 import {
   dataRows,
@@ -213,6 +217,7 @@ describe("import repository", () => {
           },
         ]),
       ],
+      "from:import_job_sheets": [ok([])],
       "from:import_row_results": [
         ok([
           {
@@ -351,5 +356,206 @@ describe("import repository", () => {
       mapping: [{ columnId: "c0", fieldName: "tax_id" }],
     });
     expect(result.ok === false && result.error.kind).toBe("refusal");
+  });
+});
+
+describe("sheets and Google Sheets links (A83)", () => {
+  it("reads every detected sheet with the import that reads it", async () => {
+    const { db } = moduleClient({
+      "from:import_jobs": [
+        ok([
+          {
+            id: "j2",
+            target_code: "asset_units",
+            original_filename: "Playbook.xlsx",
+            import_status: "Mapped",
+            created_at: "t",
+            source: "XLSX",
+            sheet_name: "Asset Inventory",
+            source_url: null,
+            failure_code: null,
+            import_job_sheet_id: "s2",
+          },
+        ]),
+        ok([
+          { id: "j3", import_job_sheet_id: "s1", import_status: "Mapped" },
+          { id: "j4", import_job_sheet_id: "s3", import_status: "Canceled" },
+        ]),
+      ],
+      "from:import_job_columns": [
+        ok([
+          {
+            id: "c0",
+            sheet_name: "Asset Inventory",
+            column_index: 0,
+            header: "RECORD ID",
+            field_name: null,
+            suggested_field_name: "asset_tag",
+            suggestion_source: "Playbook",
+          },
+        ]),
+      ],
+      "from:import_job_sheets": [
+        ok([{ import_job_id: "j1" }]),
+        ok([
+          {
+            id: "s1",
+            sheet_name: "Vendor Directory",
+            sheet_index: 0,
+            header_row: 1,
+            first_data_row: 2,
+            last_row: 9,
+            column_count: 3,
+            data_row_count: 8,
+            proposed_target_code: "counterparties",
+            proposed_from_playbook: true,
+          },
+          {
+            id: "s2",
+            sheet_name: "Asset Inventory",
+            sheet_index: 1,
+            header_row: 1,
+            first_data_row: 2,
+            last_row: 3,
+            column_count: 3,
+            data_row_count: 2,
+            proposed_target_code: "asset_units",
+            proposed_from_playbook: true,
+          },
+          {
+            id: "s3",
+            sheet_name: "Notes",
+            sheet_index: 2,
+            header_row: null,
+            first_data_row: null,
+            last_row: 0,
+            column_count: 0,
+            data_row_count: 0,
+            proposed_target_code: null,
+            proposed_from_playbook: false,
+          },
+        ]),
+      ],
+      "from:import_row_results": [ok([])],
+      "from:merge_reviews": [ok([])],
+      "rpc:import_dry_run": [ok([])],
+      "from:import_batches": [ok([])],
+    });
+    const detail = await getImport(db, "j2");
+    expect(detail.ok).toBe(true);
+    if (!detail.ok) return;
+    expect(detail.data).toMatchObject({
+      source: "XLSX",
+      sheetName: "Asset Inventory",
+      failureCode: null,
+    });
+    expect(detail.data.columns[0]?.suggestionSource).toBe("Playbook");
+    expect(detail.data.sheets.map((x) => [x.name, x.importId, x.proposedTargetCode])).toEqual([
+      ["Vendor Directory", "j3", "counterparties"],
+      ["Asset Inventory", "j2", "asset_units"],
+      ["Notes", null, null],
+    ]);
+  });
+
+  it("reads the wizard's feature flags", async () => {
+    const { db } = moduleClient({
+      "rpc:org_feature_flags": [
+        ok([
+          { flag_key: "imports.google_sheets", enabled: true },
+          { flag_key: "imports.ai_mapping", enabled: false },
+        ]),
+      ],
+    });
+    expect(await importFlags(db, "o")).toEqual({
+      ok: true,
+      data: { googleSheets: true, aiMapping: false },
+    });
+  });
+
+  it("offers Aurora's mapping step only while the org's own AI switch has mapping on", async () => {
+    // imports.ai_mapping is on by default (1402); the org's AI Features setting still decides.
+    const flagsOn = () =>
+      ok([
+        { flag_key: "imports.google_sheets", enabled: false },
+        { flag_key: "imports.ai_mapping", enabled: true },
+      ]);
+    const on = moduleClient({
+      "rpc:org_feature_flags": [flagsOn()],
+      "rpc:ai_enabled_features": [ok(["drafting", "mapping"])],
+    });
+    expect(await importFlags(on.db, "o")).toEqual({
+      ok: true,
+      data: { googleSheets: false, aiMapping: true },
+    });
+    // AI turned off (no features, or aurora_ai not in the plan): no step, so no column names leave.
+    const off = moduleClient({
+      "rpc:org_feature_flags": [flagsOn()],
+      "rpc:ai_enabled_features": [ok([])],
+    });
+    expect(await importFlags(off.db, "o")).toEqual({
+      ok: true,
+      data: { googleSheets: false, aiMapping: false },
+    });
+    const otherOnly = moduleClient({
+      "rpc:org_feature_flags": [flagsOn()],
+      "rpc:ai_enabled_features": [ok(["drafting"])],
+    });
+    expect(await importFlags(otherOnly.db, "o")).toEqual({
+      ok: true,
+      data: { googleSheets: false, aiMapping: false },
+    });
+    expect(otherOnly.calls.map((c) => c.target)).toEqual([
+      "rpc:org_feature_flags",
+      "rpc:ai_enabled_features",
+    ]);
+    expect(stepsOf(otherOnly.calls[1], "args")).toEqual([[{ p_org_id: "o" }]]);
+    const broken = moduleClient({
+      "rpc:org_feature_flags": [flagsOn()],
+      "rpc:ai_enabled_features": [refused("aurora_not_in_plan")],
+    });
+    expect((await importFlags(broken.db, "o")).ok).toBe(false);
+  });
+
+  it("creates a Google Sheets import and imports a detected sheet", async () => {
+    const link =
+      "https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/edit";
+    expect(googleSheetsLinkId(link)).toBe("1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789");
+    expect(
+      googleSheetsLinkId(
+        "https://example.test/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789",
+      ),
+    ).toBeNull();
+    expect(googleSheetsLinkId("nope")).toBeNull();
+    const { db, calls } = moduleClient({
+      "from:import_jobs": [ok([{ id: "j9" }])],
+      "rpc:import_detected_sheet": [ok("j10")],
+    });
+    expect(
+      await createSheetsImport(db, {
+        orgId: "o",
+        targetCode: "venues",
+        link: ` ${link} `,
+        objectPath: "p/u.xlsx",
+      }),
+    ).toEqual({
+      ok: true,
+      data: "j9",
+    });
+    expect(stepsOf(calls[0], "insert")).toEqual([
+      [
+        {
+          org_id: "o",
+          target_code: "venues",
+          source: "Google Sheets",
+          original_filename: "Google Sheets 1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789",
+          storage_object_path: "p/u.xlsx",
+          source_url: link,
+        },
+      ],
+    ]);
+    expect(await importDetectedSheet(db, { sheetId: "s1", targetCode: "counterparties" })).toEqual({
+      ok: true,
+      data: "j10",
+    });
   });
 });

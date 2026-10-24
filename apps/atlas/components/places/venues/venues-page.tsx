@@ -8,6 +8,7 @@ import {
 } from "@xos/data/places";
 import { listCapabilityStatements, type CapabilityStatement } from "@xos/data/reconciliation";
 import type { XosClient } from "@xos/data";
+import { getLocationDefaults, NO_LOCATION_DEFAULTS } from "@xos/data/org-setup";
 import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter } from "next-intl/server";
@@ -129,7 +130,13 @@ export async function VenuesPage({
   if (param(search, "create") === "1" && canWrite) {
     overlay = (
       <QueryDrawer title={t("places.venues.create")} closeKeys={["create"]}>
-        <VenueForm org={ctx.org.slug} jurisdictions={jurisdictions.data} />
+        <VenueForm
+          org={ctx.org.slug}
+          jurisdictions={jurisdictions.data}
+          defaults={await getLocationDefaults(db, ctx.org.id).then((d) =>
+            d.ok ? d.data : NO_LOCATION_DEFAULTS,
+          )}
+        />
       </QueryDrawer>
     );
   } else if (peekId) {

@@ -23,7 +23,7 @@ import {
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   attestEvidenceAction,
   passGateAction,
@@ -69,6 +69,7 @@ export function GatesView({
   canPass,
   views,
   view,
+  gatePanels,
 }: Hidden & {
   phases: readonly Phase[];
   criteria: readonly GateCriterion[];
@@ -80,6 +81,8 @@ export function GatesView({
   canPass: boolean;
   views: readonly GateView[];
   view: GateView;
+  /** Server-rendered panels shown under a gate's criteria, keyed by gate (A98: objectives at 1, measurement at 8). */
+  gatePanels?: Readonly<Partial<Record<number, ReactNode>>>;
 }) {
   const t = useTranslations("projects");
   const format = useFormatter();
@@ -215,6 +218,7 @@ export function GatesView({
                         <li key={c.id} className="flex flex-col gap-8 py-12">
                           <div className="flex flex-wrap items-start justify-between gap-8">
                             <div className="flex min-w-0 flex-col gap-4">
+                              <span className="text-text-14 text-text-primary">{c.statement}</span>
                               <span className="flex flex-wrap items-center gap-6">
                                 <span className="font-mono text-text-12 text-text-secondary">
                                   {c.id}
@@ -230,7 +234,6 @@ export function GatesView({
                                   {counted(c) ? t("gates.met") : t("gates.gap")}
                                 </Tag>
                               </span>
-                              <span className="text-text-14 text-text-primary">{c.statement}</span>
                             </div>
                             {canAttest && s !== "passed" ? (
                               <AttestDialog
@@ -261,6 +264,7 @@ export function GatesView({
                       );
                     })}
                   </ul>
+                  {gatePanels?.[ph.gate] ?? null}
                 </section>
               </li>
             );
@@ -387,6 +391,8 @@ function AttestDialog({
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useClosingAction(attestEvidenceAction, () => setOpen(false));
   const id = `attest-${criterion.id.replace(/\./g, "-")}`;
+  // The plain sentence names the criterion; the code follows it, never alone (A59-017).
+  const criterionName = criterion.statement.replace(/\.$/, "");
   return (
     <Dialog
       open={open}
@@ -395,13 +401,13 @@ function AttestDialog({
         <Button
           size="sm"
           variant="secondary"
-          aria-label={t("gates.attestFor", { criterion: criterion.id })}
+          aria-label={t("gates.attestFor", { criterion: criterionName })}
         >
           {t("gates.attest")}
         </Button>
       }
-      title={t("gates.attestFor", { criterion: criterion.id })}
-      description={criterion.statement}
+      title={t("gates.attestFor", { criterion: criterionName })}
+      description={t("gates.criterionCode", { code: criterion.id })}
       actions={
         <>
           <Button type="button" variant="ghost" onClick={() => setOpen(false)}>

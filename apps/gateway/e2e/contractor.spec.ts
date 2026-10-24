@@ -6,6 +6,7 @@ import {
   draftContractorOpportunity,
   invoiceByNumber,
   PEOPLE,
+  projectToday,
   ROLE_ACCOUNTS,
   ROLE_PEOPLE,
   roleEngagement,
@@ -131,10 +132,13 @@ test("journey 44: pay range required to publish, milestone delivered and invoice
   await asPerson(PEOPLE.producer, `select app.approve_invoice($1, 'Milestone accepted.')`, [
     submitted.id,
   ]);
+  // Paid today on the project's calendar (the org's year-end counts that date), not the database's
+  // UTC date, which is already tomorrow, or next year, on an evening in New York.
+  const today = await projectToday();
   const [payment] = await asPerson<{ id: string }>(
     PEOPLE.admin,
-    `select app.record_invoice_payment($1, current_date, null, $2) as id`,
-    [submitted.id, `ACH-${number}`],
+    `select app.record_invoice_payment($1, $2::date, null, $3) as id`,
+    [submitted.id, today, `ACH-${number}`],
   );
   await asPerson(PEOPLE.owner, `select app.approve_payment($1, 'Remittance confirmed.')`, [
     payment?.id,
@@ -154,11 +158,12 @@ test("journey 44: pay range required to publish, milestone delivered and invoice
   await w9.getByLabel("State").fill("FL");
   await w9.getByLabel("ZIP code").fill("33131");
   await w9.getByRole("button", { name: "Save address" }).click();
-  await expect(page.getByText("200 Biscayne Blvd, Miami, FL, 33131").first()).toBeVisible();
+  // The US postal format, street on one line and city, state and ZIP on the next (d4de1e9f).
+  await expect(page.getByText("200 Biscayne Blvd Miami, FL 33131").first()).toBeVisible();
   await expectAccessible(page);
 
   // Atlas, Finance, Year-end: the studio is a 1099-NEC payee; the file needs step-up.
-  const year = new Date().getUTCFullYear();
+  const year = Number(today.slice(0, 4));
   const owner = await atlasAs(browser, "owner@example.com");
   await owner.page.goto(`/${ORG}/finance/year-end?year=${year}`);
   const studio = owner.page.getByRole("row").filter({ hasText: tin.slice(-4) });

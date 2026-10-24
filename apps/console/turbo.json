@@ -1,0 +1,18 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "env": [
+        "SUPABASE_URL",
+        "SUPABASE_ANON_KEY",
+        "CONSOLE_SITE_URL",
+        "CONSOLE_PASSWORD_SIGN_IN",
+        "VERCEL_GIT_COMMIT_SHA"
+      ]
+    },
+    "test": {
+      "inputs": ["$TURBO_DEFAULT$", "!e2e/**", "!test-results/**"]
+    }
+  }
+}

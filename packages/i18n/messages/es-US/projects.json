@@ -3,7 +3,9 @@
     "tabs": "Pestañas del proyecto",
     "scope": "Alcance",
     "wholeProject": "Todo el proyecto",
-    "archived": "Archivado"
+    "archived": "Archivado",
+    "more": "Más",
+    "moreTabs": "Más pestañas"
   },
   "states": {
     "Proposed": "Propuesto",
@@ -106,8 +108,9 @@
     "loadErrorTitle": "Los proyectos no se cargaron",
     "retry": "Intentar de nuevo",
     "empty": "Aún no hay proyectos. Crea el primero con su clave, jurisdicción y fase.",
-    "emptyReadOnly": "Aún no se ha compartido ningún proyecto contigo. Pide a un productor que te agregue a un proyecto.",
-    "emptyReadOnlyAction": "Ver mi trabajo"
+    "emptyReadOnly": "Todavía no se ha compartido ningún proyecto contigo. El propietario o un productor puede agregarte a un proyecto y entonces aparecerá aquí.",
+    "emptyReadOnlyAction": "Ir a Inicio",
+    "emptyReadOnlyNamed": "Todavía no se ha compartido ningún proyecto contigo. {names} puede agregarte a un proyecto y entonces aparecerá aquí."
   },
   "peek": {
     "title": "{key} {name}",
@@ -295,7 +298,8 @@
     "noHistory": "Aún no se ha pasado ninguna compuerta. La compuerta 1 cierra Alcance.",
     "historyEntry": "Compuerta {gate}: {from} a {to}",
     "historyEntryLast": "Compuerta {gate}: {from} cerrada",
-    "readOnly": "Puedes leer las compuertas. Pide a un gerente del proyecto que certifique evidencia o pase una compuerta."
+    "readOnly": "Puedes leer las compuertas. Pide a un gerente del proyecto que certifique evidencia o pase una compuerta.",
+    "criterionCode": "Criterio {code}"
   },
   "settings": {
     "title": "Configuración del proyecto",

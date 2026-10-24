@@ -31,11 +31,12 @@
     "@xos/schemas": "workspace:*",
     "@xos/tokens": "workspace:*",
     "@xos/ui": "workspace:*",
+    "icu-minify": "4.14.9",
     "next": "16.4.2",
     "next-intl": "4.14.9",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

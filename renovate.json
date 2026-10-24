@@ -5,6 +5,11 @@
   "lockFileMaintenance": { "enabled": true, "schedule": ["before 6am on monday"] },
   "packageRules": [
     {
+      "description": "Pin GitHub Actions only to releases at least two weeks old (Section 9 supply chain, A94). CI checks each pinned SHA against its tag (infra/security/src/action-pins.ts).",
+      "matchManagers": ["github-actions"],
+      "minimumReleaseAge": "14 days"
+    },
+    {
       "description": "typescript-eslint caps TypeScript below 6.1 (ADR 0001). Hold TypeScript until it widens.",
       "matchPackageNames": ["typescript"],
       "allowedVersions": "<6.1.0"

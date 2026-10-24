@@ -1,4 +1,6 @@
 import { getSubscription, listRoles, listWorkspaces } from "@xos/data";
+import type { Route } from "next";
+import Link from "next/link";
 import {
   getOrgBrand,
   listBrandFonts,
@@ -27,7 +29,7 @@ import {
   ProfilePanel,
 } from "@/components/settings/profile-panels";
 import { referenceOptions } from "@/components/settings/registry-section";
-import { SettingField } from "@/components/settings/setting-field";
+import { SettingsForm } from "@/components/settings/setting-field";
 import { InlineAlert } from "@/components/ui";
 import { defaultAccent } from "@/lib/brand/contrast";
 import { LEGAL_DOCUMENTS } from "@/lib/legal.generated";
@@ -334,7 +336,11 @@ async function LegalPanel({ ctx }: SettingsPanelProps) {
   );
 }
 
-async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
+/**
+ * The workspace values of every workspace on Settings, Workspaces, each heading linking to that workspace's own
+ * settings page (A86, ADR 0006 amendment of 2026-10-21); on that page (`params.workspaceSlug`), the one workspace.
+ */
+export async function WorkspaceOverridesPanel({ ctx, params }: SettingsPanelProps) {
   const t = await getTranslate();
   const defs = workspaceSettings();
   const [workspaces, stored, refs] = await Promise.all([
@@ -346,9 +352,11 @@ async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
   if (workspaces.data.length === 0) {
     return <p className="m-0 text-text-13 text-text-secondary">{t("settings.workspaces.none")}</p>;
   }
+  const one = params["workspaceSlug"];
+  const shown = one === undefined ? workspaces.data : workspaces.data.filter((w) => w.slug === one);
   return (
     <>
-      {workspaces.data.map((w) => (
+      {shown.map((w) => (
         <section
           key={w.id}
           aria-labelledby={`ws-${w.id}`}
@@ -357,8 +365,21 @@ async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
           <Heading id={`ws-${w.id}`}>
             {t("settings.workspaces.overrides", { name: w.name })}
           </Heading>
-          <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
-            {defs.map((def) => {
+          {one === undefined ? (
+            <Link
+              href={`/${ctx.org.slug}/settings/workspaces/${w.slug}` as Route}
+              className="text-text-13 text-accent-text underline"
+            >
+              {t("settingsSurfaces.workspace.open", { name: w.name })}
+            </Link>
+          ) : null}
+          <SettingsForm
+            org={ctx.org.slug}
+            group="org"
+            label={t("settings.workspaces.overrides", { name: w.name })}
+            scopeKind="Workspace"
+            scopeId={w.id}
+            fields={defs.map((def) => {
               // The workspace value, else the org value, else the platform default (Section 4.5.6).
               const here = stored.data.find(
                 (v) => v.key === def.key && v.scopeKind === "Workspace" && v.scopeId === w.id,
@@ -375,40 +396,28 @@ async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
                     ? ""
                     : formText(def.default);
               const source = here ? "Workspace" : org ? "Organization" : "Default";
-              return (
-                <li key={def.key}>
-                  <SettingField
-                    key={`${initial}:${String(orgLocked)}`}
-                    org={ctx.org.slug}
-                    group="org"
-                    def={def}
-                    label={t(def.label)}
-                    help={def.help ? t(def.help) : null}
-                    options={
-                      def.type === "choice"
-                        ? def.choices.map((c) => ({
-                            value: c,
-                            label: t(choiceLabelKey(def.key, c)),
-                          }))
-                        : (refs.get(def.key) ?? [])
-                    }
-                    initial={initial}
-                    sourceText={
-                      orgLocked
-                        ? t("settings.source.organizationLocked")
-                        : t(`settings.source.workspace${source}`)
-                    }
-                    setHere={here !== undefined}
-                    locked={false}
-                    lockedByOrg={orgLocked}
-                    canEdit={ctx.capabilities.has(def.capability)}
-                    scopeKind="Workspace"
-                    scopeId={w.id}
-                  />
-                </li>
-              );
+              return {
+                def,
+                label: t(def.label),
+                help: def.help ? t(def.help) : null,
+                options:
+                  def.type === "choice"
+                    ? def.choices.map((c) => ({
+                        value: c,
+                        label: t(choiceLabelKey(def.key, c)),
+                      }))
+                    : (refs.get(def.key) ?? []),
+                initial,
+                sourceText: orgLocked
+                  ? t("settings.source.organizationLocked")
+                  : t(`settings.source.workspace${source}`),
+                setHere: here !== undefined,
+                locked: false,
+                lockedByOrg: orgLocked,
+                canEdit: ctx.capabilities.has(def.capability),
+              };
             })}
-          </ul>
+          />
         </section>
       ))}
     </>
@@ -431,7 +440,13 @@ async function TeamsPanel({ ctx }: SettingsPanelProps) {
     <ul className="m-0 flex max-w-layout-form list-none flex-col divide-y divide-border-subtle p-0">
       {data.map((team) => (
         <li key={team.id} className="flex flex-col gap-2 py-8">
-          <span className="text-label-13 font-medium">{team.name}</span>
+          {/* Each team has its own settings page (A86, ADR 0006 amendment of 2026-10-21). */}
+          <Link
+            href={`/${ctx.org.slug}/settings/teams/${team.id}` as Route}
+            className="text-label-13 font-medium text-accent-text underline"
+          >
+            {team.name}
+          </Link>
           <span className="text-text-12 text-text-secondary">
             {t("settings.teams.members", {
               count: team.team_members.filter((m) => m.deleted_at === null).length,

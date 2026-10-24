@@ -92,7 +92,8 @@
         "groups": "Grupos",
         "chat": "Chat",
         "recognition": "Reconocimientos",
-        "helpDesk": "Mesa de ayuda"
+        "helpDesk": "Mesa de ayuda",
+        "moderation": "Contenido denunciado"
       },
       "opportunities": {
         "requisitions": "Requisiciones",
@@ -160,6 +161,7 @@
         "purchaseOrderExposure": "Exposición de órdenes de compra",
         "incidents": "Incidentes",
         "finalCostReport": "Informe de costo final",
+        "measurement": "Objetivos y medición",
         "savedReports": "Informes guardados",
         "builder": "Generador de informes",
         "dashboards": "Tableros"
@@ -325,7 +327,9 @@
       "dataAndPrivacy": "Datos y privacidad",
       "auditLog": "Registro de auditoría",
       "legal": "Legal",
-      "dangerZone": "Zona de peligro"
+      "dangerZone": "Zona de peligro",
+      "workspace": "Espacio de trabajo",
+      "team": "Equipo"
     },
     "personal": {
       "profile": "Perfil",
@@ -504,9 +508,9 @@
     },
     "tabs": {
       "today": "Hoy",
-      "schedule": "Horario",
+      "schedule": "Agenda",
       "scan": "Escanear",
-      "inbox": "Bandeja de entrada",
+      "inbox": "Bandeja",
       "more": "Más",
       "crew": "Equipo técnico"
     },
@@ -525,5 +529,18 @@
     "routes": {
       "record": "Registro"
     }
+  },
+  "console": {
+    "group": "Consola de operaciones",
+    "tenants": "Organizaciones",
+    "tenant": "Organización",
+    "flags": "Indicadores de funciones",
+    "support": "Sesiones de soporte",
+    "supportSession": "Sesión de soporte",
+    "moderation": "Moderación",
+    "listing": "Anuncio denunciado",
+    "banners": "Avisos del sistema",
+    "team": "Equipo de la plataforma",
+    "activity": "Actividad"
   }
 }

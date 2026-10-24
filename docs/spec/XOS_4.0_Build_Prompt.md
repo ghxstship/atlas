@@ -1630,7 +1630,7 @@ Each invariant below is implemented in SQL and covered by a pgTAP test.
 
 **Tokens and secrets**
 
-8. Token RPCs require a token and an access code, expire, rate-limit failed attempts, and return only the fields the page renders. Access codes, second factors, recovery codes and kiosk PINs are stored hashed and shown once.
+8. Token RPCs require a token and an access code, expire, rate-limit failed attempts, and return only the fields the page renders. Access codes, recovery codes and kiosk PINs are stored hashed and shown once. Second-factor secrets are held encrypted by the auth service and are never selectable by tenants. (Reworded by ADR 0033 decision 56: a TOTP secret cannot be hashed, because the server computes codes from it.)
 
 **Lifecycle**
 

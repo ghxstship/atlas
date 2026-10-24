@@ -20,7 +20,9 @@ import type {
   RecordState,
 } from "../types/reference";
 import { cx } from "../lib/cx.ts";
-import { useT } from "../lib/context.tsx";
+import { useFormat, usePreferences, useT } from "../lib/context.tsx";
+import { useNarrow } from "../lib/hooks.ts";
+import { singleKeyShortcutsEnabled } from "../lib/preferences.ts";
 import { ScrollRegion } from "../Layout/Layout.tsx";
 import { Money } from "../Forms/Forms.tsx";
 import { StateIcon } from "../StateIcon/StateIcon.tsx";
@@ -31,8 +33,35 @@ export interface DataTableColumn extends ReferenceDataTableColumn {
   width?: number;
 }
 
+/**
+ * Row selection (Section 11.7): a checkbox column; click a box, Cmd or Ctrl+click a row, Shift+click
+ * for a range; X on the focused row and Shift+X for a range; Cmd or Ctrl+A selects every loaded row
+ * and Esc clears. The table only reports the selection; the page keeps it.
+ */
+export interface DataTableSelection {
+  /** Ids of the selected rows (`rowId`). */
+  selected: ReadonlySet<string>;
+  onChange: (next: ReadonlySet<string>) => void;
+  /** The accessible name of a row's checkbox; "Select {first text cell}" by default. */
+  rowLabel?: (row: Record<string, unknown>, index: number) => string;
+}
+
 export type DataTableProps = Omit<ReferenceDataTableProps, "columns"> & {
   columns: DataTableColumn[];
+  /** Rows can be selected; see DataTableSelection. */
+  selection?: DataTableSelection;
+  /** A row's stable id for selection; its `id` field, or its index, by default. */
+  rowId?: (row: Record<string, unknown>, index: number) => string;
+  /**
+   * Right-click, Shift+F10 or the Context Menu key on a row (Section 11.7). The point is the
+   * pointer's, or null from the keyboard, when the menu opens at the focused cell.
+   */
+  onRowContextMenu?: (
+    row: Record<string, unknown>,
+    index: number,
+    at: { x: number; y: number } | null,
+    cell: HTMLElement,
+  ) => void;
   /** Names the scroll region; the caption by default. */
   label?: string;
   /** Column keys pinned to the logical start or end; they stay visible while the grid scrolls. */
@@ -46,6 +75,13 @@ export type DataTableProps = Omit<ReferenceDataTableProps, "columns"> & {
   height?: string;
   /** Enter on a cell, or a double click, activates its row. */
   onRowActivate?: (row: Record<string, unknown>, index: number) => void;
+  /**
+   * Below md the table becomes stacked cards with the three most important fields (Section 11.6):
+   * these column keys, in order, the first as the card's title. By default the title is the first
+   * text column among the first four (a name rather than a code) and the other two of the first
+   * three follow. Pass false to keep the grid.
+   */
+  cardFields?: string[] | false;
 };
 
 /** A column as the grid lays it out: its id and label, current width and pinned position. */
@@ -62,6 +98,8 @@ const NONE: string[] = [];
 
 const MIN_WIDTH = 64;
 const MAX_WIDTH = 640;
+/** The selection checkbox column. */
+const CHECK_WIDTH = 40;
 
 const IDLE_RESIZE: columnResizingState = {
   startOffset: null,
@@ -144,14 +182,15 @@ function CellValue({
 
 /**
  * The full text of a cell that may be cut off with an ellipsis, as its title (Section 15: a longer
- * translation never hides text). Wrapping columns and numbers never clip.
+ * translation never hides text). Numbers never clip. A wrap column's cell carries the title too:
+ * cellClass still keeps it to one line, because cx only joins classes and its whitespace-nowrap
+ * wins over the column's whitespace-normal.
  */
 function cellTitle(
   column: ReferenceDataTableColumn | undefined,
   value: unknown,
 ): string | undefined {
-  if (!column || column.wrap || column.type === "money" || column.type === "number")
-    return undefined;
+  if (!column || column.type === "money" || column.type === "number") return undefined;
   if (column.type === "state") return isStateValue(value) ? value.label : undefined;
   return typeof value === "string" && value !== "" ? value : undefined;
 }
@@ -177,6 +216,7 @@ function layColumns(
   columns: DataTableColumn[],
   sizing: ColumnSizingState,
   pinning: { start: string[]; end: string[] },
+  startOffset = 0,
 ): LaidColumn[] {
   const laid = columns.map((c): LaidColumn => {
     const size = Object.hasOwn(sizing, c.key) ? sizing[c.key] : defaultWidth(c);
@@ -189,7 +229,7 @@ function layColumns(
     };
   });
   const byId = new Map(laid.map((c) => [c.id, c]));
-  let start = 0;
+  let start = startOffset;
   for (const id of pinning.start) {
     const c = byId.get(id);
     if (c) {
@@ -212,6 +252,142 @@ const cellClass = cx(
   "px-12 border-b border-border-subtle whitespace-nowrap overflow-hidden text-ellipsis box-border",
 );
 
+/** What the cards and the grid need to show and change the selection. */
+interface SelectApi {
+  checked: (index: number) => boolean;
+  /** Toggles a row, or with `range` selects every row from the last toggled one to it. */
+  toggle: (index: number, range: boolean) => void;
+  label: (row: Record<string, unknown>, index: number) => string;
+}
+
+/** The checkbox column stays at the logical start while the grid scrolls. */
+const CHECK_STYLE: CSSProperties = {
+  inlineSize: CHECK_WIDTH,
+  position: "sticky",
+  insetInlineStart: 0,
+};
+
+/** A cell's value as plain text, for a row's accessible name. */
+function plainText(value: unknown): string {
+  if (isStateValue(value)) return value.label;
+  return value === null || value === undefined ? "" : String(value);
+}
+
+/** A card's title (a plain-text column, so a name leads rather than a code) and two more fields. */
+function defaultCardFields(columns: DataTableColumn[]): DataTableColumn[] {
+  const title =
+    columns.slice(0, 4).find((c) => (c.type ?? "text") === "text") ?? columns[0] ?? null;
+  if (!title) return [];
+  return [title, ...columns.slice(0, 3).filter((c) => c !== title)].slice(0, 3);
+}
+
+/**
+ * The table as stacked cards below md (Section 11.6, A59-013): one card per row with its most
+ * important fields, the first as the card's title. A row that opens is a button, so a tap or Enter
+ * opens it as Enter on the grid does. Compact density (shell.density or the table's own) packs the cards
+ * closer, with less padding.
+ */
+function DataTableCards({
+  label,
+  caption,
+  fields,
+  rows,
+  totals,
+  totalsLabel,
+  onRowActivate,
+  compact,
+  select,
+}: {
+  label: string;
+  caption: string | undefined;
+  fields: DataTableColumn[];
+  rows: Record<string, unknown>[];
+  totals: Record<string, unknown> | undefined;
+  totalsLabel: string;
+  onRowActivate: ((row: Record<string, unknown>, index: number) => void) | undefined;
+  compact: boolean;
+  select: SelectApi | null;
+}): ReactElement {
+  const t = useT();
+  const [first, ...rest] = fields;
+  const empty = (value: unknown) =>
+    value === null ||
+    value === undefined ||
+    value === "" ||
+    (first?.type === "state" && !isStateValue(value));
+  const details = (values: Record<string, unknown>, columns: DataTableColumn[]) =>
+    columns.length > 0 ? (
+      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-12 gap-y-2 m-0 text-text-12">
+        {columns.map((c) => (
+          <div key={c.key} className="contents">
+            <dt className="text-text-secondary">{c.label}</dt>
+            <dd className="m-0 min-w-0 truncate" title={cellTitle(c, values[c.key])}>
+              <CellValue column={c} value={values[c.key]} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    ) : null;
+  return (
+    <section aria-label={label} className="flex flex-col gap-8 min-w-0">
+      {caption ? <p className="m-0 text-text-13 font-semibold">{caption}</p> : null}
+      <ul className={cx("flex flex-col m-0 p-0 list-none", compact ? "gap-4" : "gap-8")}>
+        {rows.map((row, index) => {
+          // A row whose title field is empty still gets a name, so its button is never unlabeled.
+          const title =
+            first && !empty(row[first.key]) ? (
+              <CellValue column={first} value={row[first.key]} />
+            ) : (
+              t("table.row", { n: index + 1 })
+            );
+          return (
+            <li
+              key={index}
+              className={cx(
+                "flex flex-col rounded-card border border-border-subtle bg-bg-surface",
+                compact ? "gap-4 p-8" : "gap-6 p-12",
+              )}
+            >
+              <span className="flex items-start gap-8">
+                {select ? (
+                  <input
+                    type="checkbox"
+                    className="xos-check-input mt-2"
+                    aria-label={select.label(row, index)}
+                    checked={select.checked(index)}
+                    onChange={() => select.toggle(index, false)}
+                  />
+                ) : null}
+                {onRowActivate ? (
+                  <button
+                    type="button"
+                    onClick={() => onRowActivate(row, index)}
+                    className="p-0 border-0 bg-transparent text-start text-text-14 font-medium text-text-primary cursor-pointer underline-offset-2 hover:underline pointer-coarse:min-h-target-coarse"
+                  >
+                    {title}
+                  </button>
+                ) : (
+                  <span className="text-text-14 font-medium text-text-primary">{title}</span>
+                )}
+              </span>
+              {details(row, rest)}
+            </li>
+          );
+        })}
+      </ul>
+      {totals ? (
+        <div className="flex flex-col gap-4 px-12">
+          <p className="m-0 text-text-13 font-semibold">{totalsLabel}</p>
+          {details(
+            totals,
+            fields.filter((c) => c.key in totals),
+          )}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 /**
  * The table inside a ScrollRegion, virtualized with TanStack Virtual: a keyboard grid (arrow keys,
  * Home and End, Ctrl+Home and Ctrl+End, Page Up and Page Down, Enter activates the row), with
@@ -225,7 +401,7 @@ export function DataTable({
   columns: givenColumns,
   rows,
   caption,
-  density = "default",
+  density: givenDensity,
   totals,
   totalsLabel,
   label,
@@ -235,8 +411,17 @@ export function DataTable({
   virtualizeAbove = 100,
   height = "60vh",
   onRowActivate,
+  cardFields,
+  selection,
+  rowId,
+  onRowContextMenu,
 }: DataTableProps): ReactElement {
   const t = useT();
+  const fmt = useFormat();
+  // shell.density: compact rows unless the table chooses its own density.
+  const preferred = usePreferences().density;
+  const density = givenDensity ?? (preferred === "compact" ? "compact" : "default");
+  const narrow = useNarrow();
   const dir = Direction.useDirection();
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const cellRefs = useRef(new Map<string, HTMLTableCellElement>());
@@ -269,9 +454,56 @@ export function DataTable({
     setSizingState(sizingRef.current);
   };
 
+  // Selection: a leading checkbox column, as column -1 of the keyboard grid.
+  const lead = selection ? 1 : 0;
+  const anchor = useRef<number | null>(null);
+  const idOf = (row: Record<string, unknown>, index: number) =>
+    rowId ? rowId(row, index) : String(row["id"] ?? index);
+  const isSelected = (index: number) => {
+    const row = rows[index];
+    return selection !== undefined && row !== undefined && selection.selected.has(idOf(row, index));
+  };
+  const selectedCount = selection ? rows.filter((_, i) => isSelected(i)).length : 0;
+  const allSelected = rows.length > 0 && selectedCount === rows.length;
+  const selectAll = (on: boolean) => {
+    if (!selection) return;
+    const next = new Set(selection.selected);
+    rows.forEach((row, i) => (on ? next.add(idOf(row, i)) : next.delete(idOf(row, i))));
+    selection.onChange(next);
+  };
+  const firstText = givenColumns.find((c) => (c.type ?? "text") === "text") ?? givenColumns[0];
+  const select: SelectApi | null = selection
+    ? {
+        checked: isSelected,
+        toggle: (index, range) => {
+          const row = rows[index];
+          if (!row) return;
+          const next = new Set(selection.selected);
+          const from = anchor.current;
+          if (range && from !== null && from !== index) {
+            for (let i = Math.min(from, index); i <= Math.max(from, index); i += 1) {
+              const r = rows[i];
+              if (r) next.add(idOf(r, i));
+            }
+          } else {
+            const id = idOf(row, index);
+            if (!next.delete(id)) next.add(id);
+            anchor.current = index;
+          }
+          selection.onChange(next);
+        },
+        label: (row, index) =>
+          selection.rowLabel?.(row, index) ??
+          t("table.selectRow", {
+            row:
+              (firstText ? plainText(row[firstText.key]) : "") || t("table.row", { n: index + 1 }),
+          }),
+      }
+    : null;
+
   const leafColumns = useMemo(
-    () => layColumns(columns, sizing, pinning),
-    [columns, sizing, pinning],
+    () => layColumns(columns, sizing, pinning, lead * CHECK_WIDTH),
+    [columns, sizing, pinning, lead],
   );
   // Header order: start-pinned in pinning order, then the rest, then end-pinned in pinning order.
   const headers = useMemo(() => {
@@ -284,7 +516,7 @@ export function DataTable({
       ...pick(pinning.end),
     ];
   }, [leafColumns, pinning]);
-  const totalSize = leafColumns.reduce((sum, c) => sum + c.size, 0);
+  const totalSize = leafColumns.reduce((sum, c) => sum + c.size, lead * CHECK_WIDTH);
   const resizerColumns = useMemo(
     () =>
       columns.map((c) => ({
@@ -363,7 +595,7 @@ export function DataTable({
 
   const moveTo = (r: number, c: number) => {
     const row = Math.max(0, Math.min(rows.length - 1, r));
-    const col = Math.max(0, Math.min(leafColumns.length - 1, c));
+    const col = Math.max(-lead, Math.min(leafColumns.length - 1, c));
     setActive([row, col]);
     if (virtual) virtualizer.scrollToIndex(row);
     setFocusPending(true);
@@ -377,12 +609,41 @@ export function DataTable({
     const forward = dir === "rtl" ? "ArrowLeft" : "ArrowRight";
     const back = dir === "rtl" ? "ArrowRight" : "ArrowLeft";
     const ctrl = e.ctrlKey || e.metaKey;
+    if (select) {
+      const key = e.key.toLowerCase();
+      if (ctrl && !e.altKey && !e.shiftKey && key === "a") {
+        e.preventDefault();
+        selectAll(true);
+        return;
+      }
+      if (
+        (!ctrl && !e.altKey && key === "x" && singleKeyShortcutsEnabled()) ||
+        (c === -1 && e.key === " " && !ctrl)
+      ) {
+        e.preventDefault();
+        select.toggle(r, e.shiftKey);
+        return;
+      }
+      if (e.key === "Escape" && selectedCount > 0) {
+        // Esc clears the selection first; a second Esc reaches the page (closing a peek).
+        e.preventDefault();
+        e.stopPropagation();
+        selection?.onChange(new Set());
+        return;
+      }
+    }
+    if (onRowContextMenu && ((e.key === "F10" && e.shiftKey) || e.key === "ContextMenu")) {
+      e.preventDefault();
+      const row = rows[r];
+      if (row) onRowContextMenu(row, r, null, e.currentTarget);
+      return;
+    }
     const moves: Record<string, [number, number] | undefined> = {
       ArrowDown: [r + 1, c],
       ArrowUp: [r - 1, c],
       [forward]: [r, c + 1],
       [back]: [r, c - 1],
-      Home: ctrl ? [0, 0] : [r, 0],
+      Home: ctrl ? [0, -lead] : [r, -lead],
       End: ctrl ? [rows.length - 1, leafColumns.length - 1] : [r, leafColumns.length - 1],
       PageDown: [r + page, c],
       PageUp: [r - page, c],
@@ -412,6 +673,27 @@ export function DataTable({
 
   const pinnedClass = (column: LaidColumn) => (column.pinned ? "z-sticky bg-bg-canvas" : undefined);
 
+  if (narrow && cardFields !== false) {
+    const fields = cardFields
+      ? cardFields
+          .map((key) => columns.find((c) => c.key === key))
+          .filter((c): c is DataTableColumn => c !== undefined)
+      : defaultCardFields(columns);
+    return (
+      <DataTableCards
+        label={label ?? caption ?? t("scroll.region")}
+        caption={caption}
+        fields={fields}
+        rows={rows}
+        totals={totals}
+        totalsLabel={totalsLabel ?? t("table.total")}
+        onRowActivate={onRowActivate}
+        compact={density === "compact"}
+        select={select}
+      />
+    );
+  }
+
   return (
     <ScrollRegion
       ref={scrollRef}
@@ -430,23 +712,50 @@ export function DataTable({
           onReady={onResizerReady}
         />
       ) : null}
+      {select ? (
+        <span role="status" className="sr-only">
+          {selectedCount > 0 ? t("bulk.selected", { n: fmt.number(selectedCount) }) : ""}
+        </span>
+      ) : null}
       <table
         role="grid"
+        aria-multiselectable={select ? true : undefined}
         aria-rowcount={rows.length + 1 + (totals ? 1 : 0)}
-        aria-colcount={leafColumns.length}
+        aria-colcount={leafColumns.length + lead}
         className="border-separate border-spacing-0 table-fixed text-text-13 print:text-paper-ink"
         style={{ inlineSize: totalSize }}
       >
         {caption ? <caption className="pb-8 text-start font-semibold">{caption}</caption> : null}
         <thead className="sticky top-0 z-sticky">
           <tr aria-rowindex={1}>
+            {select ? (
+              <th
+                scope="col"
+                aria-colindex={1}
+                className="h-control-lg bg-bg-surface border-b border-border-subtle box-border z-sticky"
+                style={CHECK_STYLE}
+              >
+                <span className="flex justify-center">
+                  <input
+                    type="checkbox"
+                    className="xos-check-input"
+                    aria-label={t("table.selectAll")}
+                    checked={allSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = selectedCount > 0 && !allSelected;
+                    }}
+                    onChange={() => selectAll(!allSelected)}
+                  />
+                </span>
+              </th>
+            ) : null}
             {headers.map((header, ci) => {
               const column = columns[ci];
               return (
                 <th
                   key={header.id}
                   scope="col"
-                  aria-colindex={ci + 1}
+                  aria-colindex={ci + 1 + lead}
                   className={cx(
                     "relative h-control-lg px-12 font-medium text-text-12 text-text-secondary bg-bg-surface",
                     "border-b border-border-subtle box-border",
@@ -486,19 +795,89 @@ export function DataTable({
         <tbody>
           {before > 0 ? (
             <tr aria-hidden="true">
-              <td colSpan={leafColumns.length} style={{ blockSize: before }} />
+              <td colSpan={leafColumns.length + lead} style={{ blockSize: before }} />
             </tr>
           ) : null}
           {items.map((item) => {
             const row = rows[item.index];
             if (!row) return null;
+            const selected = select?.checked(item.index) ?? false;
             return (
               <tr
                 key={item.index}
                 aria-rowindex={item.index + 2}
-                className={cx(ROW_CLASS[density], "hover:[&>td]:bg-bg-hover")}
+                aria-selected={select ? selected : undefined}
+                className={cx(
+                  ROW_CLASS[density],
+                  "hover:[&>td]:bg-bg-hover",
+                  selected && "[&>td]:bg-bg-hover",
+                  onRowActivate && "cursor-pointer",
+                )}
                 onDoubleClick={onRowActivate ? () => onRowActivate(row, item.index) : undefined}
+                onMouseDown={
+                  select
+                    ? (e) => {
+                        // Shift+click selects a range, not the text between.
+                        if (e.shiftKey) e.preventDefault();
+                      }
+                    : undefined
+                }
+                onClick={
+                  select
+                    ? (e) => {
+                        if (e.metaKey || e.ctrlKey) select.toggle(item.index, false);
+                        else if (e.shiftKey) select.toggle(item.index, true);
+                      }
+                    : undefined
+                }
+                onContextMenu={
+                  onRowContextMenu
+                    ? (e) => {
+                        e.preventDefault();
+                        onRowContextMenu(
+                          row,
+                          item.index,
+                          { x: e.clientX, y: e.clientY },
+                          e.target as HTMLElement,
+                        );
+                      }
+                    : undefined
+                }
               >
+                {select ? (
+                  <td
+                    ref={(el) => {
+                      const key = `${item.index}:-1`;
+                      if (el) cellRefs.current.set(key, el);
+                      else cellRefs.current.delete(key);
+                    }}
+                    role="gridcell"
+                    aria-colindex={1}
+                    tabIndex={active[0] === item.index && active[1] === -1 ? 0 : -1}
+                    onFocus={() => setActive([item.index, -1])}
+                    onKeyDown={(e) => onKeyDown(e, item.index, -1)}
+                    className={cx(
+                      "border-b border-border-subtle box-border z-sticky bg-bg-canvas",
+                      "focus-visible:outline-offset-[calc(var(--stroke-width-focus)*-1)]",
+                    )}
+                    style={CHECK_STYLE}
+                  >
+                    <span className="flex justify-center">
+                      <input
+                        type="checkbox"
+                        tabIndex={-1}
+                        className="xos-check-input"
+                        aria-label={select.label(row, item.index)}
+                        checked={selected}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          select.toggle(item.index, e.shiftKey);
+                        }}
+                        onChange={() => undefined}
+                      />
+                    </span>
+                  </td>
+                ) : null}
                 {leafColumns.map((cell, ci) => {
                   const column = columns[ci];
                   const isActive = active[0] === item.index && active[1] === ci;
@@ -511,7 +890,8 @@ export function DataTable({
                         else cellRefs.current.delete(key);
                       }}
                       role="gridcell"
-                      aria-colindex={ci + 1}
+                      aria-colindex={ci + 1 + lead}
+                      data-column={cell.id}
                       tabIndex={isActive ? 0 : -1}
                       onFocus={() => setActive([item.index, ci])}
                       onKeyDown={(e) => onKeyDown(e, item.index, ci)}
@@ -534,13 +914,16 @@ export function DataTable({
           })}
           {after > 0 ? (
             <tr aria-hidden="true">
-              <td colSpan={leafColumns.length} style={{ blockSize: after }} />
+              <td colSpan={leafColumns.length + lead} style={{ blockSize: after }} />
             </tr>
           ) : null}
         </tbody>
         {totals ? (
           <tfoot className="sticky bottom-0 z-sticky">
             <tr aria-rowindex={rows.length + 2} className={ROW_CLASS[density]}>
+              {select ? (
+                <td className={cx(cellClass, "bg-bg-surface")} style={CHECK_STYLE} />
+              ) : null}
               {columns.map((c, ci) => {
                 const column = leafColumns[ci];
                 return (

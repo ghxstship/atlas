@@ -123,6 +123,10 @@ export const additions = defineAdditions("Assets", {
 });
 ```
 
+An action answers with the resource's read shape and its `ETag` unless it names a `response`. When
+that response extends the read shape (the row plus a field or two), also set `etag: true` so the
+action keeps the `ETag`: dropping it from a documented response is not additive.
+
 `applyAdditions` refuses an addition that reuses an existing resource, path or operationId, or
 touches another module's resource. The contract tests confirm that every frozen operation and
 component is unchanged in the regenerated document (Section 18, gate 20). Capabilities must name

@@ -1,4 +1,4 @@
-import { expect, test } from "./engine-test";
+import { expect, settle, test } from "./engine-test";
 import { expectAccessibleInBothThemes, ORG, signIn } from "./a16-support";
 
 /**
@@ -86,5 +86,12 @@ for (const p of PAGES) {
       await expect(page.getByRole("heading", { level: 2, name: "Comments" })).toBeVisible();
     }
     await expectAccessibleInBothThemes(page);
+    // The full page (loaded fresh by the theme reload) is the collection's own rendering of the row,
+    // so the shell's global peek stays closed; leave it the time it would need to open, had it taken
+    // the key.
+    await settle(page);
+    await page.waitForTimeout(1_000);
+    await expect(page.getByTestId(/^shell-peek-/)).toHaveCount(0);
+    await expect(page.getByText("is not a record you can open here")).toHaveCount(0);
   });
 }

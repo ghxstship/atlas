@@ -472,7 +472,12 @@ function world() {
           recognition_count: null,
         },
       ],
-      create_feed_post: () => POST,
+      create_feed_post: (args) => {
+        // A Department audience (1365) passes its canon department code through.
+        if (args["p_audience_kind"] === "Department" && args["p_department_code"] !== "5000")
+          throw refusal("audience_target");
+        return POST;
+      },
       update_feed_post: () => POST,
       hide_feed_post: () => POST,
       acknowledge_feed_post: () => id(101),
@@ -672,6 +677,19 @@ describe("feed, polls, surveys and recognition", () => {
         body: "Load-in at 06:00.",
         audience_kind: "Organization",
         requires_acknowledgment: false,
+        reactions_enabled: true,
+        comments_enabled: true,
+        publish_at: T,
+      }),
+    );
+    await expectContract(r, "feedPosts.create");
+    r = await success(
+      http.post("/feed-posts", {
+        post_kind: "Announcement",
+        body: "Production meeting at 14:00.",
+        audience_kind: "Department",
+        department_code: "5000",
+        requires_acknowledgment: true,
         reactions_enabled: true,
         comments_enabled: true,
         publish_at: T,

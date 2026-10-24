@@ -1,88 +1,88 @@
-en,es-US,description
-gate,compuerta,A project gate between two phases (ADR 0033 decision 27). A physical door or gate is puerta.
-gates,compuertas,
-Gate,Compuerta,
-Gates,Compuertas,
-phase,fase,A stage in a project's life.
-phases,fases,
-Phase,Fase,
-Phases,Fases,
-baseline,línea base,A frozen copy of a schedule or budget.
-baselines,líneas base,
-Baseline,Línea base,
-record kind,tipo de registro,The type of a record.
-record kinds,tipos de registro,
-Record kind,Tipo de registro,
-Record kinds,Tipos de registro,
-engagement,contratación,The working relationship with an outside person or company.
-engagements,contrataciones,
-Engagement,Contratación,
-Engagements,Contrataciones,
-vendor,proveedor,
-vendors,proveedores,
-Vendor,Proveedor,
-Vendors,Proveedores,
-settlement,liquidación,
-settlements,liquidaciones,
-Settlement,Liquidación,
-Settlements,Liquidaciones,
-shift,turno,A scheduled block of work. Lowercase only: Shift is also a keyboard key.
-shifts,turnos,
-timesheet,hoja de horas,
-timesheets,hojas de horas,
-Timesheet,Hoja de horas,
-Timesheets,Hojas de horas,
-incident,incidente,
-incidents,incidentes,
-Incident,Incidente,
-Incidents,Incidentes,
-deliverable,entregable,
-deliverables,entregables,
-Deliverable,Entregable,
-Deliverables,Entregables,
-venue,recinto,
-venues,recintos,
-Venue,Recinto,
-Venues,Recintos,
-invoice,factura,
-invoices,facturas,
-Invoice,Factura,
-Invoices,Facturas,
-purchase order,orden de compra,
-purchase orders,órdenes de compra,
-Purchase order,Orden de compra,
-Purchase orders,Órdenes de compra,
-audit log,registro de auditoría,
-Audit log,Registro de auditoría,
-saved view,vista guardada,
-saved views,vistas guardadas,
-Saved view,Vista guardada,
-Saved views,Vistas guardadas,
-milestone,hito,
-milestones,hitos,
-Milestone,Hito,
-Milestones,Hitos,
-dashboard,tablero,
-dashboards,tableros,
-Dashboard,Tablero,
-Dashboards,Tableros,
-yard,patio,The vehicle yard in logistics.
-Yard,Patio,
-provenance,procedencia,Where a value came from and how far it can be trusted.
-Provenance,Procedencia,
-unpriced,sin precio,A cost with no price yet; never zero.
-Unpriced,Sin precio,
-assertion rank,calificación de aserción,
-Assertion rank,Calificación de aserción,
-workspace,espacio de trabajo,
-Workspace,Espacio de trabajo,
-Admin,Administrador,The Admin role.
-Admins,Administradores,
-canon,canon,"The shared XOS reference of phases, gates, record kinds and roles."
-Canon,Canon,
-XOS,XOS,Product name. Never translated.
-Atlas,Atlas,Product name. Never translated.
-Gateway,Gateway,Product name. Never translated.
-Compass,Compass,Product name. Never translated.
-Aurora,Aurora,Product name. Never translated.
-URID,URID,The unique reference of a canon element.
+en,es-US,fr,de,it,pt,ja,description
+gate,compuerta,,,,,,A project gate between two phases (ADR 0033 decision 27). A physical door or gate is puerta.
+gates,compuertas,,,,,,
+Gate,Compuerta,,,,,,
+Gates,Compuertas,,,,,,
+phase,fase,,,,,,A stage in a project's life.
+phases,fases,,,,,,
+Phase,Fase,,,,,,
+Phases,Fases,,,,,,
+baseline,línea base,,,,,,A frozen copy of a schedule or budget.
+baselines,líneas base,,,,,,
+Baseline,Línea base,,,,,,
+record kind,tipo de registro,,,,,,The type of a record.
+record kinds,tipos de registro,,,,,,
+Record kind,Tipo de registro,,,,,,
+Record kinds,Tipos de registro,,,,,,
+engagement,contratación,,,,,,The working relationship with an outside person or company.
+engagements,contrataciones,,,,,,
+Engagement,Contratación,,,,,,
+Engagements,Contrataciones,,,,,,
+vendor,proveedor,,,,,,
+vendors,proveedores,,,,,,
+Vendor,Proveedor,,,,,,
+Vendors,Proveedores,,,,,,
+settlement,liquidación,,,,,,
+settlements,liquidaciones,,,,,,
+Settlement,Liquidación,,,,,,
+Settlements,Liquidaciones,,,,,,
+shift,turno,,,,,,A scheduled block of work. Lowercase only: Shift is also a keyboard key.
+shifts,turnos,,,,,,
+timesheet,hoja de horas,,,,,,
+timesheets,hojas de horas,,,,,,
+Timesheet,Hoja de horas,,,,,,
+Timesheets,Hojas de horas,,,,,,
+incident,incidente,,,,,,
+incidents,incidentes,,,,,,
+Incident,Incidente,,,,,,
+Incidents,Incidentes,,,,,,
+deliverable,entregable,,,,,,
+deliverables,entregables,,,,,,
+Deliverable,Entregable,,,,,,
+Deliverables,Entregables,,,,,,
+venue,recinto,,,,,,
+venues,recintos,,,,,,
+Venue,Recinto,,,,,,
+Venues,Recintos,,,,,,
+invoice,factura,,,,,,
+invoices,facturas,,,,,,
+Invoice,Factura,,,,,,
+Invoices,Facturas,,,,,,
+purchase order,orden de compra,,,,,,
+purchase orders,órdenes de compra,,,,,,
+Purchase order,Orden de compra,,,,,,
+Purchase orders,Órdenes de compra,,,,,,
+audit log,registro de auditoría,,,,,,
+Audit log,Registro de auditoría,,,,,,
+saved view,vista guardada,,,,,,
+saved views,vistas guardadas,,,,,,
+Saved view,Vista guardada,,,,,,
+Saved views,Vistas guardadas,,,,,,
+milestone,hito,,,,,,
+milestones,hitos,,,,,,
+Milestone,Hito,,,,,,
+Milestones,Hitos,,,,,,
+dashboard,tablero,,,,,,
+dashboards,tableros,,,,,,
+Dashboard,Tablero,,,,,,
+Dashboards,Tableros,,,,,,
+yard,patio,,,,,,The vehicle yard in logistics.
+Yard,Patio,,,,,,
+provenance,procedencia,,,,,,Where a value came from and how far it can be trusted.
+Provenance,Procedencia,,,,,,
+unpriced,sin precio,,,,,,A cost with no price yet; never zero.
+Unpriced,Sin precio,,,,,,
+assertion rank,calificación de aserción,,,,,,
+Assertion rank,Calificación de aserción,,,,,,
+workspace,espacio de trabajo,,,,,,
+Workspace,Espacio de trabajo,,,,,,
+Admin,Administrador,,,,,,The Admin role.
+Admins,Administradores,,,,,,
+canon,canon,,,,,,"The shared XOS reference of phases, gates, record kinds and roles."
+Canon,Canon,,,,,,
+XOS,XOS,XOS,XOS,XOS,XOS,XOS,Product name. Never translated.
+Atlas,Atlas,Atlas,Atlas,Atlas,Atlas,Atlas,Product name. Never translated.
+Gateway,Gateway,Gateway,Gateway,Gateway,Gateway,Gateway,Product name. Never translated.
+Compass,Compass,Compass,Compass,Compass,Compass,Compass,Product name. Never translated.
+Aurora,Aurora,Aurora,Aurora,Aurora,Aurora,Aurora,Product name. Never translated.
+URID,URID,URID,URID,URID,URID,URID,The unique reference of a canon element.

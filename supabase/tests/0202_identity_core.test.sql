@@ -43,13 +43,37 @@ select is(
        'organizations', 'people',
        -- person-owned: one row per sign-in, keyed by user_id (ADR 0007 item 1, migration 0920)
        'active_org_selections',
+       -- person-owned keyboard shortcut bindings keyed by person_id, readable only by the person (A81, migration 1370)
+       'shortcut_bindings',
        -- person-owned profile rows keyed by person_id, read by others only through api_public (A30, migration 0860)
        'person_profiles', 'profile_section_visibility', 'person_skills', 'person_languages', 'person_links',
        'portfolio_items', 'person_references', 'person_certifications',
        -- person-owned notification choices of external parties, keyed by person_id (A44, migration 1131)
        'person_notification_preferences',
        -- person-owned blocks keyed by person_id, readable only by the blocker (A52, migration 1206)
-       'blocks')
+       'blocks',
+       -- person-owned Work Details keyed by person_id, readable only by the person (A78, migration 1340)
+       'person_work_details', 'person_emergency_contacts', 'person_loyalty_programs',
+       -- a person's own calendar feed across their engagements, keyed by person_id (A84, migration 1410)
+       'person_calendar_feeds',
+       -- the person's Work Details access log, written only by the database; org_id names an org's act (A78, 1340)
+       'work_detail_events',
+       -- the record of an org's deletion, kept after the org and its members are gone (A79, migration 1351)
+       'deletion_certificates',
+       -- a person's own quiet hours for orgs they are not a member of, keyed by person_id (A89, migration 1461)
+       'person_notification_settings',
+       -- supplier diversity certifications owned by a person or an external account and read only by the owner, and
+       -- their access log written only by the database; org_id there names an org's read (A89, migration 1464)
+       'supplier_diversity_certifications', 'supplier_diversity_events',
+       -- platform-level rows of the operator console, owned by no tenant: the platform team, its append-only action
+       -- ledger (target_org_id names the tenant an action touched) and platform-wide banners (A90, 1470 and 1474)
+       'platform_operators', 'platform_operator_actions', 'system_banners',
+       -- feedback a person sends the platform team, keyed by person_id, read by the sender and staff (A96, 1531)
+       'feedback_submissions',
+       -- consent-gated product analytics events, which by design name no person and no org (A96, 1532)
+       'product_events',
+       -- a person's own push devices, keyed by person_id, which carry an org's push only through the claim (A101, 1670)
+       'person_push_devices')
      and (select count(*) from information_schema.columns c
           where c.table_schema = 'app' and c.table_name = t.table_name
             and c.column_name in ('org_id', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at')) <> 6),
@@ -89,7 +113,7 @@ select results_eq(
     ('collaborator', 5::smallint), ('field', 6::smallint), ('viewer', 7::smallint)$$,
   'seven system roles in band order'
 );
-select is((select count(*)::integer from app.role_capabilities), 986, '986 system role grants (987 seeded by 0203, less the Field role''s incident dispatch removed in 1110)');
+select is((select count(*)::integer from app.role_capabilities), 987, '987 system role grants (987 seeded by 0203, less the Field role''s incident dispatch removed in 1110, plus its expense recording added in 1622)');
 select is(
   (select count(*)::integer from app.role_capabilities rc join app.roles r on r.id = rc.role_id where r.code = 'owner'),
   (select count(*)::integer from app.capabilities),

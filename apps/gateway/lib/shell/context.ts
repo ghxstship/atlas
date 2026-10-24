@@ -5,10 +5,14 @@ import {
   type ExternalAccount,
   type XosClient,
 } from "@xos/data/gateway";
+import { tokenAal } from "@xos/data/auth-assurance";
+import { listOrgsAllowingPersonalTokens } from "@xos/data/developer";
 import type { NavContext } from "@xos/ia";
+import type { Route } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
+import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { resolveBrand, type GatewayBrand } from "@/lib/brand/brand";
 import { env, platformHosts } from "@/lib/env";
 import { doesPaidWork } from "@/lib/engagement-state";
@@ -61,18 +65,37 @@ export const getRequestFacts = cache(async (): Promise<RequestFacts> => {
   };
 });
 
-/** The context of a signed-in person, or null when nobody is signed in. */
-export const getGatewayContext = cache(async (): Promise<GatewayContext | null> => {
+/**
+ * The request's Supabase client and signed-in user, read once per request, with no second-factor check: locale
+ * negotiation reads the person's language through it on every page, the second-factor page among them, where
+ * getGatewayContext's redirect would send the page to itself.
+ */
+export const getSignedInSession = cache(async () => {
   const db = await createServerSupabase();
   const { data } = await db.auth.getUser();
-  const user = data.user;
+  return { db, user: data.user };
+});
+
+/** The context of a signed-in person, or null when nobody is signed in. */
+export const getGatewayContext = cache(async (): Promise<GatewayContext | null> => {
+  const { db, user } = await getSignedInSession();
   if (!user) return null;
-  const [person, accounts, roleTypes, cookieStore, facts] = await Promise.all([
+  // A server action that signs in and redirects renders its target in the same request, past the proxy, so a
+  // second factor the person holds is asked for here too (A77).
+  if ((user.factors ?? []).some((f) => f.status === "verified")) {
+    const { data: current } = await db.auth.getSession();
+    if (tokenAal(current.session?.access_token) === "aal1") {
+      const here = (await headers()).get("x-gateway-path") ?? "/home";
+      redirect(secondFactorRedirect(here, "") as Route);
+    }
+  }
+  const [person, accounts, roleTypes, cookieStore, facts, tokenOrgs] = await Promise.all([
     getCurrentPerson(db, user.id),
     listMyAccounts(db),
     listMyEngagementRoleTypes(db),
     cookies(),
     getRequestFacts(),
+    listOrgsAllowingPersonalTokens(db),
   ]);
   if (!person.ok) {
     if (person.error.kind === "not-found") return null;
@@ -98,6 +121,8 @@ export const getGatewayContext = cache(async (): Promise<GatewayContext | null> 
       desktop: facts.desktop,
       // A failed read keeps the paid-work pages: hiding a person's payout settings by mistake is worse.
       paidWork: roleTypes.ok ? doesPaidWork(roleTypes.data) : true,
+      // Settings, Developer appears when an org the person belongs to allows personal tokens (A86).
+      personalTokens: tokenOrgs.ok && tokenOrgs.data.length > 0,
     }),
     platformDomain: facts.platformDomain,
     brand: facts.brand,

@@ -9,6 +9,7 @@ import {
   type HelpBodies,
 } from "@xos/help";
 import { findRoute } from "@xos/ia";
+import { displayKeys, platformOf, SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
 import { Button, Drawer, InlineAlert, Input, Keys, Skeleton } from "@xos/ui";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
@@ -16,6 +17,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { HELP_CONTENT } from "@/help/content.generated";
 import { sitemap } from "@/ia/sitemap.generated";
 import { ContactSupport } from "./contact-support";
+import { FeedbackForm } from "./feedback-form";
 import { HelpArticle } from "./help-article";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -23,14 +25,24 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
 type View =
   | { readonly kind: "home" }
   | { readonly kind: "article"; readonly slug: string }
-  | { readonly kind: "contact" };
+  | { readonly kind: "contact" }
+  | { readonly kind: "feedback" };
 
-/** Shortcuts Gateway answers everywhere: search, help and closing what is open. */
-const SHORTCUTS = [
-  { keys: "Mod+K", label: "gateway.shortcuts.search" },
-  { keys: "?", label: "shortcuts.help" },
-  { keys: "Esc", label: "shortcuts.close" },
-] as const;
+/**
+ * The shortcuts Gateway answers everywhere (search, help, closing what is open), from the shortcut
+ * registry (packages/schemas/shortcuts.yaml), written for the person's platform.
+ */
+function gatewayShortcuts(): {
+  readonly id: string;
+  readonly label: string;
+  readonly keys: string;
+}[] {
+  const platform = typeof navigator === "undefined" ? "other" : platformOf(navigator);
+  return SHORTCUT_REGISTRY.shells.gateway.shortcuts.flatMap((s) => {
+    const keys = platform === "mac" && s.mac !== null ? s.mac : s.keys;
+    return keys === null ? [] : [{ id: s.id, label: s.label, keys: displayKeys(keys, platform) }];
+  });
+}
 
 /**
  * The Gateway help panel (Section 11.16), loaded the first time Help opens: the articles for the
@@ -41,11 +53,15 @@ const SHORTCUTS = [
 export function HelpPanel({
   open,
   onOpenChange,
+  docsUrl,
 }: {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
+  /** The docs site origin (RRR-119); null hides the help center links. */
+  readonly docsUrl: string | null;
 }) {
   const t = useTranslations("help") as unknown as Translate;
+  const tRoot = useTranslations() as unknown as Translate;
   const lang = helpLocale(useLocale());
   const pathname = usePathname();
   const match = useMemo(() => findRoute(sitemap, pathname), [pathname]);
@@ -136,11 +152,23 @@ export function HelpPanel({
               ) : (
                 <Skeleton />
               )}
+              {docsUrl ? (
+                <a
+                  className="self-start text-text-12 font-medium text-accent-text underline"
+                  href={`${docsUrl}/${lang}/help/gateway/${article.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("docs.article")}
+                </a>
+              ) : null}
             </>
           ) : (
             <p className="m-0">{t("noArticles")}</p>
           )}
         </article>
+      ) : view.kind === "feedback" ? (
+        <FeedbackForm pathname={pathname} onBack={() => setView({ kind: "home" })} />
       ) : view.kind === "contact" ? (
         <ContactSupport
           engagementKey={engagementKey}
@@ -185,9 +213,9 @@ export function HelpPanel({
           {section(
             t("shortcuts.title"),
             <dl className="m-0 flex flex-col gap-4">
-              {SHORTCUTS.map((s) => (
-                <div key={s.label} className="flex items-center justify-between gap-8">
-                  <dt>{t(s.label)}</dt>
+              {gatewayShortcuts().map((s) => (
+                <div key={s.id} className="flex items-center justify-between gap-8">
+                  <dt>{tRoot(s.label)}</dt>
                   <dd className="m-0">
                     <Keys keys={s.keys} />
                   </dd>
@@ -217,9 +245,24 @@ export function HelpPanel({
               ))}
             </ul>,
           )}
-          <Button icon="LifeBuoy" onClick={() => setView({ kind: "contact" })}>
-            {t("contact.open")}
-          </Button>
+          {docsUrl ? (
+            <a
+              className="self-start text-accent-text underline"
+              href={`${docsUrl}/${lang}/help`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("docs.helpCenter")}
+            </a>
+          ) : null}
+          <div className="flex flex-wrap gap-8">
+            <Button icon="LifeBuoy" onClick={() => setView({ kind: "contact" })}>
+              {t("contact.open")}
+            </Button>
+            <Button icon="MessageSquare" onClick={() => setView({ kind: "feedback" })}>
+              {tRoot("firstRun.feedback.open")}
+            </Button>
+          </div>
         </div>
       )}
     </Drawer>

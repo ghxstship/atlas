@@ -22,6 +22,8 @@ export interface ScimStore {
   identity(providerId: string, externalId: string): Promise<ScimIdentity | null>;
   identityByEmail(providerId: string, email: string): Promise<ScimIdentity | null>;
   identitiesInGroup(providerId: string, group: string): Promise<readonly ScimIdentity[]>;
+  /** Every identity the provider provisioned, by userName. */
+  listIdentities(providerId: string): Promise<readonly ScimIdentity[]>;
   provision(
     providerId: string,
     externalId: string,
@@ -82,15 +84,170 @@ function userResource(identity: ScimIdentity): Record<string, unknown> {
   };
 }
 
+/*
+ * base64url without Node's Buffer, so the handler also runs in the Edge Function (Deno). Invalid input decodes to
+ * null rather than throwing.
+ */
+function toBase64Url(text: string): string {
+  let binary = "";
+  for (const byte of new TextEncoder().encode(text)) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function fromBase64Url(value: string): string | null {
+  if (!/^[A-Za-z0-9_-]*$/.test(value)) return null;
+  try {
+    const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+    const binary = atob(base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "="));
+    return new TextDecoder("utf-8", { fatal: true }).decode(
+      Uint8Array.from(binary, (c) => c.charCodeAt(0)),
+    );
+  } catch (error) {
+    if (
+      error instanceof TypeError ||
+      (error instanceof Error && error.name === "InvalidCharacterError")
+    ) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 /** Groups have no table of their own; a group's SCIM id is its display name, base64url encoded. */
 export function groupId(display: string): string {
-  return Buffer.from(display, "utf8").toString("base64url");
+  return toBase64Url(display);
 }
 
 export function groupDisplay(id: string): string | null {
-  const display = Buffer.from(id, "base64url").toString("utf8");
-  return display.length > 0 && groupId(display) === id ? display : null;
+  const display = fromBase64Url(id);
+  return display !== null && display.length > 0 && groupId(display) === id ? display : null;
 }
+
+function groupResource(display: string, members: readonly ScimIdentity[]): Record<string, unknown> {
+  return {
+    schemas: [GROUP_SCHEMA],
+    id: groupId(display),
+    displayName: display,
+    members: members.map((m) => ({ value: m.externalId, display: m.email })),
+    meta: { resourceType: "Group" },
+  };
+}
+
+function listResponse(
+  resources: readonly Record<string, unknown>[],
+  query: URLSearchParams,
+): ScimResponse {
+  // RFC 7644 3.4.2.4: 1-based startIndex, count capped by the service provider.
+  const startIndex = Math.max(1, Number.parseInt(query.get("startIndex") ?? "1", 10) || 1);
+  const requested = Number.parseInt(query.get("count") ?? String(MAX_RESULTS), 10);
+  const count = Math.min(
+    MAX_RESULTS,
+    Math.max(0, Number.isNaN(requested) ? MAX_RESULTS : requested),
+  );
+  const page = resources.slice(startIndex - 1, startIndex - 1 + count);
+  return {
+    status: 200,
+    body: {
+      schemas: [LIST_SCHEMA],
+      totalResults: resources.length,
+      startIndex,
+      itemsPerPage: page.length,
+      Resources: page,
+    },
+  };
+}
+
+/** `attribute eq "value"` filters, the form identity providers send (RFC 7644 3.4.2.2). */
+function equalityFilter(filter: string | null, attribute: string): string | null | undefined {
+  if (filter === null || filter.trim() === "") return undefined;
+  const match = new RegExp(`^${attribute} eq "((?:[^"\\\\]|\\\\.)*)"$`, "i").exec(filter.trim());
+  return match?.[1] === undefined ? null : match[1].replace(/\\(.)/g, "$1");
+}
+
+const MAX_RESULTS = 200;
+
+/** The discovery resources (RFC 7644 section 4): what this service provider supports. */
+const SERVICE_PROVIDER_CONFIG = {
+  schemas: ["urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"],
+  documentationUri: "https://docs.ghxstship.tech/guides/scim",
+  patch: { supported: true },
+  bulk: { supported: false, maxOperations: 0, maxPayloadSize: 0 },
+  filter: { supported: true, maxResults: MAX_RESULTS },
+  changePassword: { supported: false },
+  sort: { supported: false },
+  etag: { supported: false },
+  authenticationSchemes: [
+    {
+      type: "oauthbearertoken",
+      name: "Bearer token",
+      description:
+        "The SCIM token an Admin issues on Settings, Security, sent as Authorization: Bearer.",
+      primary: true,
+    },
+  ],
+  meta: { resourceType: "ServiceProviderConfig" },
+};
+
+const RESOURCE_TYPES = [
+  {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:ResourceType"],
+    id: "User",
+    name: "User",
+    endpoint: "/Users",
+    schema: USER_SCHEMA,
+    meta: { resourceType: "ResourceType" },
+  },
+  {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:ResourceType"],
+    id: "Group",
+    name: "Group",
+    endpoint: "/Groups",
+    schema: GROUP_SCHEMA,
+    meta: { resourceType: "ResourceType" },
+  },
+];
+
+const attribute = (name: string, type: string, extra: Record<string, unknown> = {}) => ({
+  name,
+  type,
+  multiValued: false,
+  required: false,
+  caseExact: false,
+  mutability: "readWrite",
+  returned: "default",
+  uniqueness: "none",
+  ...extra,
+});
+
+const SCHEMAS = [
+  {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:Schema"],
+    id: USER_SCHEMA,
+    name: "User",
+    attributes: [
+      attribute("userName", "string", {
+        required: true,
+        uniqueness: "server",
+        mutability: "immutable",
+      }),
+      attribute("displayName", "string"),
+      attribute("emails", "complex", { multiValued: true, mutability: "immutable" }),
+      attribute("active", "boolean"),
+      attribute("groups", "complex", { multiValued: true, mutability: "readOnly" }),
+    ],
+    meta: { resourceType: "Schema" },
+  },
+  {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:Schema"],
+    id: GROUP_SCHEMA,
+    name: "Group",
+    attributes: [
+      attribute("displayName", "string", { required: true, mutability: "immutable" }),
+      attribute("members", "complex", { multiValued: true }),
+    ],
+    meta: { resourceType: "Schema" },
+  },
+];
 
 interface UserBody {
   userName?: unknown;
@@ -217,25 +374,38 @@ export async function handleScimRequest(
     return scimError(401, "The bearer token is not valid for SCIM provisioning.");
   const [resource, id, extra] = request.path.replace(/^\/+|\/+$/g, "").split("/");
   if (extra !== undefined) return scimError(404, "No such SCIM resource.");
+  const method = request.method.toUpperCase();
+
+  // Discovery (RFC 7644 section 4): read-only, behind the same token.
+  if (
+    resource === "ServiceProviderConfig" ||
+    resource === "ResourceTypes" ||
+    resource === "Schemas"
+  ) {
+    if (method !== "GET") return scimError(405, "Discovery resources are read-only.");
+    if (resource === "ServiceProviderConfig") {
+      return id === undefined
+        ? { status: 200, body: SERVICE_PROVIDER_CONFIG }
+        : scimError(404, "No such SCIM resource.");
+    }
+    const all: readonly Record<string, unknown>[] =
+      resource === "ResourceTypes" ? RESOURCE_TYPES : SCHEMAS;
+    if (id === undefined) return listResponse(all, request.query);
+    const one = all.find((r) => r["id"] === id);
+    return one ? { status: 200, body: one } : scimError(404, "No such SCIM resource.");
+  }
 
   if (resource === "Users") {
-    const method = request.method.toUpperCase();
     if (id === undefined && method === "GET") {
-      const filter = /^userName eq "([^"]+)"$/.exec(request.query.get("filter") ?? "");
-      if (filter?.[1] === undefined)
+      const userName = equalityFilter(request.query.get("filter"), "userName");
+      if (userName === null)
         return scimError(400, 'Filter users by userName eq "address".', "invalidFilter");
-      const found = await store.identityByEmail(providerId, filter[1].toLowerCase());
-      const resources = found ? [userResource(found)] : [];
-      return {
-        status: 200,
-        body: {
-          schemas: [LIST_SCHEMA],
-          totalResults: resources.length,
-          startIndex: 1,
-          itemsPerPage: resources.length,
-          Resources: resources,
-        },
-      };
+      if (userName !== undefined) {
+        const found = await store.identityByEmail(providerId, userName.toLowerCase());
+        return listResponse(found ? [userResource(found)] : [], request.query);
+      }
+      const everyone = await store.listIdentities(providerId);
+      return listResponse(everyone.map(userResource), request.query);
     }
     if (id === undefined && method === "POST") {
       const parsed = readUser(request.body);
@@ -272,26 +442,29 @@ export async function handleScimRequest(
       if (ops === null) return scimError(400, "Send a PatchOp with Operations.", "invalidSyntax");
       let active = existing.active;
       for (const op of ops) {
-        const value = op.value as Record<string, unknown> | boolean | undefined;
-        if (
-          String(op.op).toLowerCase() === "replace" &&
-          op.path === "active" &&
-          typeof value === "boolean"
-        )
-          active = value;
-        else if (
-          String(op.op).toLowerCase() === "replace" &&
-          op.path === undefined &&
-          typeof value === "object" &&
-          value !== null &&
-          typeof value["active"] === "boolean"
-        )
-          active = value["active"];
-        else
-          return scimError(
-            501,
-            "Only replacing active is supported on users; manage groups through /Groups.",
-          );
+        const kind = String(op.op).toLowerCase();
+        const value = op.value as Record<string, unknown> | boolean | string | undefined;
+        const path = typeof op.path === "string" ? op.path : undefined;
+        if (kind !== "replace" && kind !== "add") {
+          return scimError(501, "Users take replace and add; manage groups through /Groups.");
+        }
+        // Identity providers send active as a boolean or the string "True"/"False" (Microsoft Entra).
+        const asBoolean = (v: unknown) =>
+          typeof v === "boolean" ? v : typeof v === "string" ? /^true$/i.test(v) : undefined;
+        if (path?.toLowerCase() === "active") {
+          const next = asBoolean(value);
+          if (next === undefined) return scimError(400, "active is true or false.", "invalidValue");
+          active = next;
+        } else if (path === undefined && typeof value === "object" && value !== null) {
+          if (Object.keys(value).some((k) => /^(userName|emails)/i.test(k))) {
+            return scimError(400, "A provisioned user keeps its email address.", "mutability");
+          }
+          const next = asBoolean(value["active"]);
+          if (next !== undefined) active = next;
+        } else if (path !== undefined && /^(userName|emails)/i.test(path)) {
+          return scimError(400, "A provisioned user keeps its email address.", "mutability");
+        }
+        // Names and other profile attributes belong to the person in XOS, not the directory: accepted, not stored.
       }
       try {
         await store.provision(
@@ -311,21 +484,29 @@ export async function handleScimRequest(
   }
 
   if (resource === "Groups") {
-    const method = request.method.toUpperCase();
+    if (id === undefined && method === "GET") {
+      // A group exists while a provisioned person is in it; creating one stores nothing until it has members.
+      const wanted = equalityFilter(request.query.get("filter"), "displayName");
+      if (wanted === null) {
+        return scimError(400, 'Filter groups by displayName eq "name".', "invalidFilter");
+      }
+      const everyone = await store.listIdentities(providerId);
+      const names = [...new Set(everyone.flatMap((i) => i.groups))]
+        .filter((g) => wanted === undefined || g === wanted)
+        .sort((a, b) => a.localeCompare(b));
+      const excludeMembers = request.query.get("excludedAttributes") === "members";
+      return listResponse(
+        names.map((g) =>
+          groupResource(g, excludeMembers ? [] : everyone.filter((i) => i.groups.includes(g))),
+        ),
+        request.query,
+      );
+    }
     if (id === undefined && method === "POST") {
       const display = (request.body as { displayName?: unknown } | null)?.displayName;
       if (typeof display !== "string" || display.trim().length === 0)
         return scimError(400, "A group needs a displayName.", "invalidValue");
-      return {
-        status: 201,
-        body: {
-          schemas: [GROUP_SCHEMA],
-          id: groupId(display.trim()),
-          displayName: display.trim(),
-          members: [],
-          meta: { resourceType: "Group" },
-        },
-      };
+      return { status: 201, body: groupResource(display.trim(), []) };
     }
     const display = id === undefined ? null : groupDisplay(id);
     if (display === null) return scimError(404, "No such group.");
@@ -472,6 +653,17 @@ export function supabaseScimStore(db: DbClient): ScimStore {
         .map(toIdentity)
         .filter((i): i is ScimIdentity => i !== null && i.groups.includes(group));
     },
+    async listIdentities(providerId) {
+      const rows = await unwrap<IdentityRow[]>(
+        db
+          .from("scim_identities")
+          .select(IDENTITY_COLUMNS)
+          .eq("identity_provider_id", providerId)
+          .is("deleted_at", null)
+          .order("user_name"),
+      );
+      return rows.map(toIdentity).filter((i): i is ScimIdentity => i !== null);
+    },
     async provision(providerId, externalId, userName, userId, active, groups) {
       return unwrap<string | null>(
         db.rpc("scim_provision", {
@@ -485,4 +677,88 @@ export function supabaseScimStore(db: DbClient): ScimStore {
       );
     },
   };
+}
+
+/** The slice of a service-role Supabase client the Auth admin port needs. */
+export interface AuthAdminClient {
+  rpc(fn: string, args?: Record<string, unknown>): PromiseLike<DbResponse>;
+  readonly auth: {
+    readonly admin: {
+      createUser(attributes: {
+        email: string;
+        email_confirm: boolean;
+        user_metadata?: Record<string, unknown>;
+      }): PromiseLike<{
+        data: { user: { id: string } | null };
+        error: { message: string } | null;
+      }>;
+    };
+  };
+}
+
+/**
+ * Finds the sign-in for an email (`app.scim_user_for_email`, migration 1332) or creates it confirmed, with no
+ * password: the person signs in through single sign-on, a magic link or a passkey. Never sends an invitation.
+ */
+export function supabaseAuthAdmin(client: AuthAdminClient): AuthAdmin {
+  const existing = async (email: string) =>
+    unwrap<string | null>(client.rpc("scim_user_for_email", { p_email: email }));
+  return {
+    async findOrCreateUser(email, fullName) {
+      const found = await existing(email);
+      if (found) return found;
+      const { data, error } = await client.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        ...(fullName ? { user_metadata: { full_name: fullName } } : {}),
+      });
+      if (data.user) return data.user.id;
+      // Another request created it a moment ago.
+      const raced = await existing(email);
+      if (raced) return raced;
+      throw new Error(`Cannot create the sign-in for SCIM: ${error?.message ?? "no user"}`);
+    },
+  };
+}
+
+/**
+ * SCIM over HTTP (RFC 7644): the Edge Function's request in, the SCIM response out as application/scim+json.
+ * `basePath` is what precedes the SCIM resource in the URL path, for example /functions/v1/scim/v2.
+ */
+export async function serveScim(
+  request: Request,
+  deps: { readonly store: ScimStore; readonly admin: AuthAdmin; readonly basePath: string },
+): Promise<Response> {
+  const url = new URL(request.url);
+  const path = url.pathname.startsWith(deps.basePath)
+    ? url.pathname.slice(deps.basePath.length)
+    : url.pathname.replace(/^.*?\/scim(\/v2)?(?=\/|$)/, "");
+  const method = request.method.toUpperCase();
+  let body: unknown = null;
+  if (method === "POST" || method === "PUT" || method === "PATCH") {
+    try {
+      body = await request.json();
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      const invalid = scimError(400, "The request body is not JSON.", "invalidSyntax");
+      return new Response(JSON.stringify(invalid.body), {
+        status: invalid.status,
+        headers: { "content-type": "application/scim+json" },
+      });
+    }
+  }
+  const result = await handleScimRequest(
+    {
+      method,
+      path,
+      query: url.searchParams,
+      authorization: request.headers.get("authorization"),
+      body,
+    },
+    deps,
+  );
+  return new Response(result.body === null ? null : JSON.stringify(result.body), {
+    status: result.status,
+    headers: result.body === null ? {} : { "content-type": "application/scim+json" },
+  });
 }

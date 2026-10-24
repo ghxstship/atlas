@@ -1,0 +1,18 @@
+# Settings registry: A89 (marketplace alerts, recommendations and Gateway gaps, RRR-134). Section 4.5.6.
+# Field reference: see a30.yaml.
+contributor: a89
+settings:
+  # Gateway and marketplace -----------------------------------------------------------------------------------------
+  - key: gateway.supplier_diversity_program
+    type: boolean
+    default: false
+    scopes: [organization]
+    capability: org.gateway.write
+    label: settings.fields.supplierDiversityProgram.label
+    help: settings.fields.supplierDiversityProgram.help
+    pages: { org: settings.gateway-and-marketplace }
+    # Section 4.4.1: supplier diversity certifications are "used only where an org runs a supplier diversity program".
+    # Off, nobody can share a certification with the org and the org reads none that were shared.
+    enforced_by:
+      - consumer: supabase/migrations/1464_supplier_diversity.sql#private.supplier_diversity_program_on
+        test: supabase/tests/1464_supplier_diversity.test.sql

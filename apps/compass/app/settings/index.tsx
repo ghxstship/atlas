@@ -3,6 +3,7 @@ import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import { useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
+import { hapticsOn } from "../../src/domain/settings";
 import { useCompass } from "../../src/runtime/CompassProvider";
 import { useAllowed } from "../../src/screens/common";
 import {
@@ -19,13 +20,13 @@ import {
 
 /**
  * Compass settings: theme with the Sunlight outdoor theme, haptics, battery saver and low-data mode, kiosk
- * mode, sign-out and account deletion. The theme also saves to the person's me.theme setting (A30) when it
- * is one the platform knows; Sunlight is a device preference only.
+ * mode, blocked people, sign-out and account deletion. The theme also saves to the person's me.theme setting
+ * (A30) when it is one the platform knows; Sunlight is a device preference only.
  */
 export default function SettingsScreen(): ReactElement {
   const { t } = useTranslation();
   const router = useRouter();
-  const { settings, updateSettings, status, signOut, enqueue, config } = useCompass();
+  const { settings, updateSettings, status, signOut, enqueue, config, orgSettings } = useCompass();
   const canKiosk = useAllowed("kiosk.operate");
   const [confirmSignOut, setConfirmSignOut] = useState(false);
   const setTheme = (theme: ThemePreference) => {
@@ -66,8 +67,18 @@ export default function SettingsScreen(): ReactElement {
           testID="settings-haptics"
           label={t("compass.settings.haptics")}
           help={t("compass.settings.hapticsHelp")}
-          value={settings.haptics}
-          onChange={(haptics) => updateSettings({ haptics })}
+          value={hapticsOn(settings.haptics, orgSettings)}
+          onChange={(haptics) => {
+            updateSettings({ haptics });
+            void enqueue({
+              op: "rpc",
+              target: "set_personal_setting",
+              table: "personal_settings",
+              rowId: "me.haptics",
+              payload: { p_setting_key: "me.haptics", p_value_boolean: haptics },
+              policy: "append",
+            });
+          }}
         />
         <Switch
           testID="settings-battery"
@@ -114,6 +125,13 @@ export default function SettingsScreen(): ReactElement {
           onPress={() => router.push("/help")}
         />
         <ListRow
+          testID="settings-blocked-people"
+          icon="user-minus"
+          title={t("compass.settings.blockedPeople")}
+          subtitle={t("compass.settings.blockedPeopleHelp")}
+          onPress={() => router.push("/settings/profile-privacy")}
+        />
+        <ListRow
           icon="ban"
           title={t("compass.settings.deleteAccount")}
           subtitle={t("compass.settings.deleteAccountHelp")}
@@ -123,6 +141,7 @@ export default function SettingsScreen(): ReactElement {
       </Card>
       {confirmSignOut && queued > 0 ? (
         <InlineAlert
+          testID="settings-sign-out-queued"
           tone="warning"
           message={t("compass.settings.signOutQueued", { count: queued })}
         />

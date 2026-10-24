@@ -1,3 +1,4 @@
+import { startOfDayIn, todayIn } from "@xos/data/calendar";
 import { getTimeEntry, listTimeEntries, workedMinutes, type TimeEntry } from "@xos/data/crew";
 import Link from "next/link";
 import type { Route } from "next";
@@ -16,6 +17,7 @@ import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { CrewRecord } from "@/components/crew/record";
 import { FilterSelect } from "@/components/crew/views-filter-select";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   flatParams,
@@ -25,8 +27,11 @@ import {
   withParams,
 } from "@/lib/crew/context";
 import { stateIcon } from "@/lib/crew/states";
-import { addDays, hoursFromMinutes, isIsoDate, isoToZoned, mondayOf } from "@/lib/crew/time";
+import { addDays, hoursFromMinutes, isIsoDate, isoToZoned, weekStartOf } from "@/lib/crew/time";
+import { getShellSettings } from "@/lib/shell/org-settings";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -47,15 +52,22 @@ export default async function Page({
   const db = crew.ctx.viewer.db;
   const view = resolveView(node, search["view"]);
   const base = nodeHref(node, routeParams) ?? "/";
-  const today = new Date().toISOString().slice(0, 10);
-  const week = mondayOf(isIsoDate(search["week"]) ? search["week"] : today);
+  const { preferences } = await getShellSettings(db, crew.orgId, null);
   const projects = await getProjects(crew.ctx);
   const projectFilter = projects.find((p) => p.key === search["project"]) ?? null;
   const zoneOf = (projectId: string) => projects.find((p) => p.id === projectId)?.timeZone ?? "UTC";
+  // This week on the project's calendar, or the org's across projects (A71), never UTC's. A list to read,
+  // so it starts on the viewer's first day (payroll.week_start as resolved for them: their own, else the
+  // org's); timesheets and the schedule's weekly hours use the org's payroll week (getOrgWeekStart).
+  const weekZone = projectFilter?.timeZone ?? (await getOrgTimeZone(crew.ctx));
+  const week = weekStartOf(
+    isIsoDate(search["week"]) ? search["week"] : todayIn(weekZone),
+    preferences.weekStart,
+  );
   const result = await listTimeEntries(db, {
     orgId: crew.orgId,
-    from: `${week}T00:00:00Z`,
-    to: `${addDays(week, 7)}T00:00:00Z`,
+    from: startOfDayIn(week, weekZone),
+    to: startOfDayIn(addDays(week, 7), weekZone),
     ...(projectFilter ? { projectId: projectFilter.id } : {}),
     ...(search["open"] === "1" ? { openOnly: true } : {}),
   });
@@ -240,7 +252,7 @@ export default async function Page({
         if (search["full"] === "1") return record;
         peek = record;
       }
-    } else if (detail.error.kind !== "not-found") {
+    } else if (!peekRowMissing(detail.error)) {
       throw new Error(`Cannot read time entry: ${detail.error.kind}`);
     }
   }
@@ -485,7 +497,7 @@ export default async function Page({
       }
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }

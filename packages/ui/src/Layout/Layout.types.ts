@@ -11,6 +11,12 @@ import type {
 export type AppShellProps = ReferenceAppShellProps & {
   /** The phone bottom bar (TabBar), shown below md. */
   mobileNav?: ReactNode;
+  /**
+   * Whether the navigation drawer is open below lg, for a shell that opens it from elsewhere too
+   * (the bottom bar's Menu tab). Uncontrolled when omitted.
+   */
+  menuOpen?: boolean;
+  onMenuOpenChange?: (open: boolean) => void;
 };
 
 export type PageHeaderProps = ReferencePageHeaderProps;
@@ -22,7 +28,10 @@ export type ResizablePanelProps = ReferenceResizablePanelProps & {
 };
 
 export type ScrollRegionProps = ReferenceScrollRegionProps & {
+  /** Classes for the scrolling element itself. */
   className?: string;
+  /** Classes for the frame around it that holds the edge fades (its place in a flex row, say). */
+  frameClassName?: string;
   style?: CSSProperties;
   ref?: Ref<HTMLDivElement>;
 };

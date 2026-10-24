@@ -19,6 +19,8 @@ params:
   document: { type: slug }
   token: { type: token }
   feedToken: { type: token }
+  workspaceSlug: { type: slug }
+  teamId: { type: uuid }
 globalQuery: { peek: recordKey }
 audience:
   dimension: platform-role
@@ -685,6 +687,21 @@ nodes:
             label: nav.atlas.pages.people.helpDesk
             route: "/{org}/people/help-desk"
             list: { views: [table, list, board], default: table }
+          # Reported posts, comments and messages (ADR 0033 decision 57): the org's moderators, who hold
+          # org.communication.write (Owners and Admins by default), decide each within 24 hours.
+          - id: people.moderation
+            kind: page
+            label: nav.atlas.pages.people.moderation
+            route: "/{org}/people/moderation"
+            list: { views: [table, list], default: table }
+            visibility:
+              owner: full
+              admin: full
+              manager: hidden
+              member: hidden
+              collaborator: hidden
+              field: hidden
+              viewer: hidden
       - id: opportunities
         kind: item
         label: nav.atlas.items.opportunities
@@ -1048,6 +1065,11 @@ nodes:
             label: nav.atlas.pages.reports.finalCostReport
             route: "/{org}/reports/final-cost-report"
             list: { views: [table, chart], default: table }
+          - id: reports.measurement
+            kind: page
+            label: nav.atlas.pages.reports.measurement
+            route: "/{org}/reports/measurement"
+            list: { views: [table, chart], default: table }
           - id: reports.saved-reports
             kind: page
             label: nav.atlas.pages.reports.savedReports
@@ -1203,10 +1225,22 @@ nodes:
             kind: section
             label: nav.settings.org.teams
             route: "/{org}/settings/teams"
+            # ADR 0006 amendment (2026-10-21): one team's settings page, holding only what a team overrides.
+            children:
+              - id: settings.teams.team
+                kind: record
+                label: nav.settings.org.team
+                route: "/{org}/settings/teams/{teamId}"
           - id: settings.workspaces
             kind: section
             label: nav.settings.org.workspaces
             route: "/{org}/settings/workspaces"
+            # ADR 0006 amendment (2026-10-21): one workspace's settings page.
+            children:
+              - id: settings.workspaces.workspace
+                kind: record
+                label: nav.settings.org.workspace
+                route: "/{org}/settings/workspaces/{workspaceSlug}"
           - id: settings.departments-and-disciplines
             kind: section
             label: nav.settings.org.departmentsAndDisciplines

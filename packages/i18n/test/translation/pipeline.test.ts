@@ -253,3 +253,90 @@ describe("review", () => {
     expect(repo.read("help/es-US/intro.md")).toContain("\nGuardar\n");
   });
 });
+
+describe("Beta targets (ADR 0053)", () => {
+  const betaConfig = {
+    targets: [
+      { locale: "es-US", google: "es-US" },
+      { locale: "fr-FR", google: "fr", partial: true, surfaces: ["catalogs"] },
+    ],
+  };
+  const glossary =
+    "en,es-US,fr,description\ngate,compuerta,,A project gate\nBaseline,Línea base,,\nAtlas,Atlas,Atlas,Product name\n";
+
+  function betaRepo(files: Record<string, string | object> = {}) {
+    const repo = makeRepo({
+      "msgs/es-US/app.json": ES_DONE,
+      "help/en-US/intro.md": "---\ntitle: Intro\nsummary: Start here.\n---\n\nOpen Atlas.\n",
+      "help/es-US/intro.md":
+        "---\ntitle: Introducción\nsummary: Empieza aquí.\n---\n\nAbre Atlas.\n",
+      "packages/i18n/translation/glossary.csv": glossary,
+      ...files,
+    });
+    const config = JSON.parse(repo.read("packages/i18n/translation/config.json")) as object;
+    repo.write("packages/i18n/translation/config.json", { ...config, ...betaConfig });
+    return repo;
+  }
+
+  it("counts a Beta locale's missing catalog instead of failing the check, while es-US stays strict", () => {
+    const repo = betaRepo();
+    const result = runCheck(repo.setup());
+    expect(result.errors).toEqual([]);
+    expect(result.statuses["fr-FR"]).toEqual({ missing: Object.keys(EN).length });
+    // The same gap in es-US is an error.
+    repo.write(
+      "msgs/es-US/app.json",
+      Object.fromEntries(Object.entries(ES_DONE).filter(([key]) => key !== "save")),
+    );
+    expect(runCheck(repo.setup()).errors).toContainEqual({
+      locale: "es-US",
+      id: "app.save",
+      message: "missing",
+    });
+  });
+
+  it("still checks what a Beta catalog holds: no extra keys, no empty strings, valid ICU", () => {
+    const repo = betaRepo({
+      "msgs/fr-FR/app.json": {
+        save: "Enregistrer",
+        cancel: "",
+        ghost: "Fantôme",
+        greeting: "{name",
+      },
+    });
+    const messages = runCheck(repo.setup())
+      .errors.filter((e) => e.locale === "fr-FR")
+      .map((e) => `${e.id}: ${e.message}`);
+    expect(messages).toContain("app.cancel: empty");
+    expect(messages).toContain("app.ghost: key is not in en-US");
+    expect(messages.some((m) => m.startsWith("app.greeting:"))).toBe(true);
+    expect(messages.some((m) => m.startsWith("app.save:"))).toBe(false);
+  });
+
+  it("translates a Beta locale on its own surfaces only and fills its catalog in source order", async () => {
+    const repo = betaRepo();
+    const transport = new FakeTransport((html, batch) =>
+      batch.target === "fr" ? html.replace(/Save/g, "Enregistrer") : fakeTranslate(html),
+    );
+    const results = await translate(repo.context(transport), ["fr-FR"]);
+    expect(results.map((r) => r.locale)).toEqual(["fr-FR"]);
+    expect(Object.keys(results[0]?.counts ?? {})).toEqual(["catalogs"]);
+    expect(transport.calls.every((c) => c.target === "fr")).toBe(true);
+    const fr = repo.json("msgs/fr-FR/app.json");
+    expect(Object.keys(fr)).toEqual(Object.keys(EN));
+    expect(fr["save"]).toBe("Enregistrer");
+    // The help articles are not a Beta surface: nothing is written there.
+    expect(existsSync(join(repo.root, "help/fr-FR"))).toBe(false);
+    expect(runCheck(repo.setup()).errors).toEqual([]);
+  });
+
+  it("refuses a target that names an unknown surface", () => {
+    const repo = betaRepo();
+    const config = JSON.parse(repo.read("packages/i18n/translation/config.json")) as object;
+    repo.write("packages/i18n/translation/config.json", {
+      ...config,
+      targets: [{ locale: "fr-FR", google: "fr", partial: true, surfaces: ["slides"] }],
+    });
+    expect(() => repo.setup()).toThrow(/fr-FR names the unknown surface slides/);
+  });
+});

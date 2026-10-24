@@ -5,13 +5,18 @@ import type { Route } from "next";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { sitemap } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { FinanceCollection } from "./collection";
 import { Form1099ExportForm } from "./forms-form1099-export-form";
 import type { Row } from "./kit.types";
 
-/** Tax years offered: the current year and the three before it; the default is last year. */
-export function taxYears(today: Date = new Date()): number[] {
-  const year = today.getUTCFullYear();
+/**
+ * Tax years offered: the current year and the three before it; the default is last year. `today` is
+ * the org's date (`orgToday`), the calendar the database dates the 1099-NEC year on (1306), so on
+ * New Year's Eve in the Americas the year does not turn early.
+ */
+export function taxYears(today: string): number[] {
+  const year = Number(today.slice(0, 4));
   return [year, year - 1, year - 2, year - 3];
 }
 
@@ -25,7 +30,7 @@ export async function YearEndView({ page }: { page: FinancePage }) {
   const c = await getFinanceCopy(ctx);
   const { t } = c;
   const title = t(getNode(sitemap, "finance.year-end").node.label);
-  const years = taxYears();
+  const years = taxYears(await orgToday(ctx));
   const asked = Number(query.extra["year"]);
   const year = years.includes(asked) ? asked : (years[1] as number);
   const threshold = c.money(FORM_1099_NEC_THRESHOLD_MINOR, "USD");
@@ -64,6 +69,8 @@ export async function YearEndView({ page }: { page: FinancePage }) {
     <FinanceCollection
       {...base}
       canCreate={false}
+      // A payee has no record panel here, and its id is no record key the shell's peek could open.
+      activatable={false}
       count={shown.length}
       above={
         <div className="flex flex-col gap-16">

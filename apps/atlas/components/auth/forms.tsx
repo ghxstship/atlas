@@ -2,13 +2,12 @@
 
 import { slugFromName } from "@xos/data/slug";
 import { useTranslations } from "next-intl";
-import { useActionState, useState, type ReactNode } from "react";
+import { useActionState, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   acceptInvitation,
   createOrganizationAction,
-  sendMagicLink,
-  signInWithPassword,
-  signUp,
+  signInWithEmail,
+  signUpWithEmail,
   type FormState,
 } from "@/app/auth/actions";
 import { Button, Checkbox, InlineAlert, Input } from "@xos/ui";
@@ -38,11 +37,51 @@ function fieldError(t: Translate, state: FormState, field: string): string {
 
 const INITIAL: FormState = {};
 
-function Submit({ pending, children }: { pending: boolean; children: ReactNode }) {
+/**
+ * "I am 16 or older" (Section 14.3, 14.9; Terms of Service 3.2). Every way of creating or first
+ * using an account asks it; the action records it (migration 1381).
+ */
+function AgeConfirmation({ id, state }: { id: string; state: FormState }) {
+  const t = useAuthCopy();
+  const error = state.fieldErrors?.["ageConfirmed"];
+  return (
+    <div className="flex flex-col gap-4">
+      <Checkbox
+        id={id}
+        name="ageConfirmed"
+        value="16"
+        required
+        defaultChecked={state.values?.["ageConfirmed"] === "16"}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        label={<span className="text-text-13">{t("fields.age")}</span>}
+      />
+      {error ? (
+        <p id={`${id}-error`} className="m-0 text-text-12 text-danger-text">
+          {t("errors.age")}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function Submit({
+  pending,
+  children,
+  method,
+  variant = "primary",
+}: {
+  pending: boolean;
+  children: ReactNode;
+  /** For a form with two submit buttons: which way this one submits (`method` in the form data). */
+  method?: string;
+  variant?: "primary" | "secondary";
+}) {
   return (
     <Button
       type="submit"
-      variant="primary"
+      variant={variant}
+      {...(method ? { name: "method", value: method } : {})}
       disabled={pending}
       aria-busy={pending}
       className="w-full"
@@ -52,9 +91,38 @@ function Submit({ pending, children }: { pending: boolean; children: ReactNode }
   );
 }
 
-export function PasswordSignInForm({ next }: { next: string }) {
+/** The "or" rule between the link action and the password, inside one form. */
+function OrRule() {
   const t = useAuthCopy();
-  const [state, action, pending] = useActionState(signInWithPassword, INITIAL);
+  return (
+    <div className="flex items-center gap-8 text-text-12 text-text-tertiary" role="separator">
+      <span className="h-px flex-1 bg-border-subtle" />
+      {t("or")}
+      <span className="h-px flex-1 bg-border-subtle" />
+    </div>
+  );
+}
+
+/**
+ * Enter in the password field submits with the password, not with the form's first button (the
+ * email link), so typing a password and pressing Enter signs in as expected.
+ */
+function submitWithPassword(event: KeyboardEvent<HTMLInputElement>) {
+  if (event.key !== "Enter") return;
+  const form = event.currentTarget.form;
+  const button = form?.querySelector<HTMLButtonElement>('button[name="method"][value="password"]');
+  if (!form || !button) return;
+  event.preventDefault();
+  form.requestSubmit(button);
+}
+
+/**
+ * Sign in (A59-025, Section 11.10 rules 6 and 12): one Email field with two actions. The email link
+ * is the one primary action; the password below it signs in with the secondary button.
+ */
+export function SignInForm({ next }: { next: string }) {
+  const t = useAuthCopy();
+  const [state, action, pending] = useActionState(signInWithEmail, INITIAL);
   return (
     <form
       action={action}
@@ -64,6 +132,7 @@ export function PasswordSignInForm({ next }: { next: string }) {
     >
       {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="next" value={next} />
+      <input type="hidden" name="intent" value="sign-in" />
       <Input
         width="100%"
         id="signin-email"
@@ -75,53 +144,34 @@ export function PasswordSignInForm({ next }: { next: string }) {
         defaultValue={state.values?.["email"] ?? ""}
         error={fieldError(t, state, "email")}
       />
+      <Submit pending={pending} method="link">
+        {t("signIn.magicLink")}
+      </Submit>
+      <OrRule />
       <Input
         width="100%"
         id="signin-password"
         name="password"
         type="password"
         autoComplete="current-password"
-        required
         label={t("fields.password")}
         error={fieldError(t, state, "password")}
+        onKeyDown={submitWithPassword}
       />
-      <Submit pending={pending}>{t("signIn.password")}</Submit>
+      <Submit pending={pending} method="password" variant="secondary">
+        {t("signIn.password")}
+      </Submit>
     </form>
   );
 }
 
-export function MagicLinkForm({ next, intent }: { next: string; intent: "sign-in" | "sign-up" }) {
-  const t = useAuthCopy();
-  const [state, action, pending] = useActionState(sendMagicLink, INITIAL);
-  return (
-    <form
-      action={action}
-      onSubmit={keepInputOnSubmit(action)}
-      className="flex flex-col gap-12"
-      noValidate
-    >
-      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
-      <input type="hidden" name="next" value={next} />
-      <input type="hidden" name="intent" value={intent} />
-      <Input
-        width="100%"
-        id="magic-email"
-        name="email"
-        type="email"
-        autoComplete="email"
-        required
-        label={t("fields.email")}
-        defaultValue={state.values?.["email"] ?? ""}
-        error={fieldError(t, state, "email")}
-      />
-      <Submit pending={pending}>{t("signIn.magicLink")}</Submit>
-    </form>
-  );
-}
-
+/**
+ * Create an account (A59-025): the full name and one Email field, then the email link as the one
+ * primary action, or a password with the secondary "Create account".
+ */
 export function SignUpForm({ next }: { next: string }) {
   const t = useAuthCopy();
-  const [state, action, pending] = useActionState(signUp, INITIAL);
+  const [state, action, pending] = useActionState(signUpWithEmail, INITIAL);
   return (
     <form
       action={action}
@@ -131,6 +181,7 @@ export function SignUpForm({ next }: { next: string }) {
     >
       {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="next" value={next} />
+      <input type="hidden" name="intent" value="sign-up" />
       <Input
         width="100%"
         id="signup-name"
@@ -152,6 +203,11 @@ export function SignUpForm({ next }: { next: string }) {
         defaultValue={state.values?.["email"] ?? ""}
         error={fieldError(t, state, "email")}
       />
+      <AgeConfirmation id="signup-age" state={state} />
+      <Submit pending={pending} method="link">
+        {t("signUp.magicLink")}
+      </Submit>
+      <OrRule />
       <Input
         width="100%"
         id="signup-password"
@@ -159,12 +215,14 @@ export function SignUpForm({ next }: { next: string }) {
         type="password"
         autoComplete="new-password"
         minLength={12}
-        required
         label={t("fields.password")}
         help={t("fields.passwordHelp")}
         error={fieldError(t, state, "password")}
+        onKeyDown={submitWithPassword}
       />
-      <Submit pending={pending}>{t("signUp.submit")}</Submit>
+      <Submit pending={pending} method="password" variant="secondary">
+        {t("signUp.submit")}
+      </Submit>
     </form>
   );
 }
@@ -172,9 +230,12 @@ export function SignUpForm({ next }: { next: string }) {
 export function OrganizationForm({
   terms,
   dpa,
+  askAge = false,
 }: {
   terms: { href: string; title: string };
   dpa: { href: string; title: string };
+  /** The person has not confirmed they are 16 or older yet (a first Google sign-in). */
+  askAge?: boolean;
 }) {
   const t = useAuthCopy();
   const tr = useTranslations("shell.auth.organization");
@@ -248,18 +309,20 @@ export function OrganizationForm({
           {t("errors.accept")}
         </p>
       ) : null}
+      {askAge ? <AgeConfirmation id="org-age" state={state} /> : null}
       <Submit pending={pending}>{t("organization.submit")}</Submit>
     </form>
   );
 }
 
-export function AcceptInviteForm({ token }: { token: string }) {
+export function AcceptInviteForm({ token, askAge = false }: { token: string; askAge?: boolean }) {
   const t = useAuthCopy();
   const [state, action, pending] = useActionState(acceptInvitation, INITIAL);
   return (
     <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-12">
       {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="token" value={token} />
+      {askAge ? <AgeConfirmation id="invite-age" state={state} /> : null}
       <Submit pending={pending}>{t("invite.accept")}</Submit>
     </form>
   );

@@ -159,9 +159,32 @@ describe("native declarations", () => {
       "group.pro.ghxstship.compass",
     ]);
     expect(app.expo.ios.infoPlist["NSSupportsLiveActivities"]).toBe(true);
-    expect(block("../targets/ClockActivity/_shared/ClockActivityAttributes.swift")).toContain(
-      'appGroup = "group.pro.ghxstship.compass"',
+    // The queue and the widgets derive the group from the running bundle ("group." and the app's bundle
+    // identifier, the extension's ".clock-activity" dropped), as app.config.ts appGroupFor names it, so a
+    // tenant's branded build uses its own (A93).
+    const shared = block("../targets/ClockActivity/_shared/ClockActivityAttributes.swift");
+    expect(shared).toContain('return "group." + (id.hasSuffix(suffix)');
+    expect(shared).toContain('let suffix = ".clock-activity"');
+    expect(shared).toContain('static let key = "compass.widget.today"');
+  });
+
+  it("keeps the next cue optional in the activity's state, so an activity from an earlier build decodes", () => {
+    const shared = block("../targets/ClockActivity/_shared/ClockActivityAttributes.swift");
+    expect(shared).toContain("var nextCueLabel: String?");
+    expect(shared).toContain("var nextCueAt: Date?");
+    expect(shared).toContain("var nextCueTitle: String?");
+    const widgets = readFileSync(
+      new URL("../targets/ClockActivity/CompassWidgets.swift", import.meta.url),
+      "utf8",
     );
+    // The widgets read the JSON keys src/domain/glance.ts writes.
+    for (const key of ["title", "empty", "nextCueTitle", "noCue", "link", "shifts", "cue"])
+      expect(widgets).toContain(`let ${key}:`);
+    const bundle = readFileSync(
+      new URL("../targets/ClockActivity/ClockLiveActivity.swift", import.meta.url),
+      "utf8",
+    );
+    expect(bundle).toMatch(/ClockLiveActivity\(\)\s+TodayWidget\(\)\s+NextCueWidget\(\)/);
   });
 });
 

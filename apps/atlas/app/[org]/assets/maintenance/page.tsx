@@ -12,10 +12,11 @@ import { AssetCollab } from "@/components/assets/collab";
 import { MaintenanceForm } from "@/components/assets/forms";
 import { Money, PropertyList } from "@/components/assets/ui";
 import { requireNode } from "@/lib/shell/require-node";
-import { assetCapabilities, must, todayIso } from "@/lib/assets/context";
+import { assetCapabilities, must } from "@/lib/assets/context";
 import { majorUnits } from "@/lib/assets/money";
 import { DEFAULT_CURRENCY, monthOf, pageViews } from "@/lib/assets/page";
 import { ASSET_STATE_TONE, matches, readQuery } from "@/lib/assets/views";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -33,7 +34,8 @@ export default async function MaintenancePage({
   const format = await getFormatter();
   const db = ctx.viewer.db;
   const can = assetCapabilities(ctx);
-  const today = todayIso();
+  // Assets are the org's: due dates and the calendar follow its calendar, not UTC's (A71).
+  const today = await orgToday(ctx);
   const [entriesResult, unitsResult] = await Promise.all([
     listAssetMaintenance(db, ctx.org.id),
     listAssetUnits(db, ctx.org.id),
@@ -55,7 +57,8 @@ export default async function MaintenancePage({
     return {
       key: m.id,
       peek: m.id,
-      title: `${m.assetTag} · ${m.description}`,
+      recordKey: m.assetTag,
+      title: m.description,
       meta: `${day(m.performedOn)} · ${cost(m.costMinor, m.currencyCode)}`,
       ...(state
         ? {

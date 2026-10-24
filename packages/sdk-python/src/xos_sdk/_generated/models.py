@@ -290,6 +290,7 @@ __all__ = [
     "ShiftCreate",
     "ShiftUpdate",
     "ShiftTransitionRequest",
+    "ShiftClaimResult",
     "ShiftSwapPage",
     "ShiftSwap",
     "ShiftSwapCreate",
@@ -865,6 +866,7 @@ __all__ = [
     "CreateOrganizationRequest",
     "CreateClientOrganizationResult",
     "CreateClientOrganizationRequest",
+    "LeavePartnerRequest",
     "MembershipPage",
     "Membership",
     "MembershipRolePage",
@@ -909,6 +911,7 @@ __all__ = [
     "AcceptInviteResult",
     "VerifiedDomainPage",
     "VerifiedDomain",
+    "DomainDnsRecord",
     "VerifiedDomainCreate",
     "VerifiedDomainUpdate",
     "OffboardingChecklistPage",
@@ -1163,6 +1166,7 @@ __all__ = [
     "Comment",
     "CommentCreate",
     "CommentUpdate",
+    "SubjectCommentRequest",
     "NotificationPage",
     "Notification",
     "NotificationUpdate",
@@ -1190,6 +1194,28 @@ __all__ = [
     "TemplateApplicationCreate",
     "ProjectAuthorityPage",
     "ProjectAuthority",
+    "MeasurementMetricPage",
+    "MeasurementMetric",
+    "MeasurementUnitPage",
+    "MeasurementUnit",
+    "MeasurementMetricTagPage",
+    "MeasurementMetricTag",
+    "ProjectObjectivePage",
+    "ProjectObjective",
+    "ProjectObjectiveCreate",
+    "ProjectObjectiveUpdate",
+    "ProjectMeasurementPage",
+    "ProjectMeasurement",
+    "ProjectMeasurementCreate",
+    "ProjectMeasurementUpdate",
+    "ProjectMeasurementCorrectionPage",
+    "ProjectMeasurementCorrection",
+    "EarnedMediaItemPage",
+    "EarnedMediaItem",
+    "EarnedMediaItemCreate",
+    "EarnedMediaItemUpdate",
+    "ProjectMeasurementSummaryPage",
+    "ProjectMeasurementSummary",
     "CueCallPage",
     "CueCall",
     "CueCallCreate",
@@ -1228,6 +1254,9 @@ __all__ = [
     "AuroraSummarizeRequest",
     "AuroraMapColumnsRequest",
     "AuroraBindCodeRequest",
+    "AuroraPreview",
+    "AuroraPreviewRecord",
+    "AuroraPreviewRequest",
     "AiSuggestionPage",
     "AiSuggestion",
     "AiSuggestionState",
@@ -1241,6 +1270,40 @@ __all__ = [
     "AiRequestOutcome",
     "AiUsagePage",
     "AiUsage",
+    "WorkDetailsPage",
+    "WorkDetails",
+    "GarmentLetterSize",
+    "DietaryNeed",
+    "AccessibilityNeed",
+    "SeatPreference",
+    "WorkDetailsCreate",
+    "WorkDetailsUpdate",
+    "PassportReveal",
+    "EmergencyContactPage",
+    "EmergencyContact",
+    "EmergencyContactCreate",
+    "EmergencyContactUpdate",
+    "LoyaltyProgramPage",
+    "LoyaltyProgram",
+    "LoyaltyProgramKind",
+    "LoyaltyProgramCreate",
+    "LoyaltyProgramUpdate",
+    "WorkDetailSharePage",
+    "WorkDetailShare",
+    "WorkDetailCategory",
+    "WorkDetailShareCreate",
+    "WorkDetailShareUpdate",
+    "SharedWorkDetails",
+    "SharedEmergencyContact",
+    "SharedUniformSizes",
+    "SharedDietaryNeeds",
+    "SharedAccessibilityNeeds",
+    "SharedTravelProfile",
+    "SharedLoyaltyProgram",
+    "SharedPassport",
+    "PassportRevealRequest",
+    "WorkDetailEventPage",
+    "WorkDetailEvent",
     "SavedViewSharePage",
     "SavedViewShare",
     "SavedViewShareCreate",
@@ -1281,6 +1344,49 @@ __all__ = [
     "WholesaleStatementPage",
     "WholesaleStatement",
     "WholesaleBillingRequest",
+    "OwnershipTransferPage",
+    "OwnershipTransfer",
+    "OwnershipTransferOfferRequest",
+    "OrgDeletionRequestPage",
+    "OrgDeletionRequest",
+    "OrgDeletionRequestCreate",
+    "DeletionCertificatePage",
+    "DeletionCertificate",
+    "PartnerStandingGrantPage",
+    "PartnerStandingGrant",
+    "PartnerStandingGrantRecordRequest",
+    "ShareLinkPage",
+    "ShareLink",
+    "ShareLinkToken",
+    "ShareLinkCreate",
+    "PersonCalendarFeedPage",
+    "PersonCalendarFeed",
+    "ProjectInboxPage",
+    "ProjectInbox",
+    "ProjectInboxCreate",
+    "InboundMessagePage",
+    "InboundMessage",
+    "InboundMessageFileRequest",
+    "InboundMessageDiscardRequest",
+    "AutomationPage",
+    "Automation",
+    "AutomationConditions",
+    "AutomationCondition",
+    "AutomationActions",
+    "AutomationAction",
+    "AutomationCreate",
+    "AutomationUpdate",
+    "AutomationTestResult",
+    "AutomationConditionResult",
+    "AutomationTestRequest",
+    "AutomationRunPage",
+    "AutomationRun",
+    "AutomationNoticeResult",
+    "AutomationNoticeRequest",
+    "AutomationWebhookResult",
+    "AutomationWebhookRequest",
+    "AutomationRunStepPage",
+    "AutomationRunStep",
     "WorkforceGroupPage",
     "WorkforceGroup",
     "WorkforceGroupCreate",
@@ -5964,6 +6070,46 @@ class ShiftTransitionRequest(_ShiftTransitionRequestRequired, total=False):
 
     #: Reason, required by some transitions.
     reason: str
+
+
+class ShiftClaimResult(TypedDict):
+    """The shift after a claim, with the caller's waiting claim when a supervisor decides it."""
+
+    #: Identifier of the shift.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the Shift record.
+    record_id: Optional[str]
+    role_code: Optional[RoleCode]
+    #: Identifier of the engagement.
+    engagement_id: Optional[str]
+    #: Call time.
+    starts_at: str
+    #: Wrap time.
+    ends_at: str
+    #: Shift state.
+    shift_state: Literal["Draft", "Published", "Accepted", "Canceled"]
+    #: Identifier of the membership of the person on the shift; null for external crew, who carry an engagement.
+    membership_id: Optional[str]
+    #: Identifier of the scope node of the same project, such as the show.
+    scope_node_id: Optional[str]
+    #: IANA time zone the call and wrap times are shown in.
+    time_zone: str
+    #: Meal break scheduled within the shift, in minutes.
+    scheduled_break_minutes: Optional[int]
+    #: The caller's waiting claim when the claiming rule is approval or seniority; null when the caller got the shift (first-come).
+    claim: Optional[Dict[str, Any]]
 
 
 class ShiftSwapPage(TypedDict):
@@ -11753,8 +11899,8 @@ class Engagement(TypedDict):
     completed_at: Optional[str]
     #: Identifier of the accepted application the engagement came from.
     application_id: Optional[str]
-    #: Worker classification, from xpms.worker_classification.
-    worker_classification: str
+    #: Worker classification, from xpms.worker_classification; null for Client and Sponsor engagements.
+    worker_classification: Optional[str]
     #: Pay basis; with the arrangement a permitted canon pair.
     pay_basis: Optional[str]
     #: Arrangement; with the pay basis a permitted canon pair.
@@ -14345,6 +14491,8 @@ class PhaseCoverage(TypedDict):
     phase_code: PhaseCode
     #: Active elements in the phase.
     active_element_count: int
+    #: Whether the phase carries a declared gap.
+    declared_gap: bool
     #: Gate ordinal.
     gate: Optional[int]
     #: Phase label.
@@ -14355,6 +14503,8 @@ class PhaseCoverage(TypedDict):
     category_count: Optional[int]
     #: True when at least one participating element is Active.
     has_active_element: Optional[bool]
+    #: Why the phase has no Active element, as its declared gap states it; null without one.
+    declared_gap_reason: Optional[str]
 
 
 class ElementEconomicsPage(TypedDict):
@@ -14501,6 +14651,10 @@ class Person(TypedDict):
     updated_at: str
     #: Legal or full name.
     full_name: Optional[str]
+    #: Optional given name, as the person writes it.
+    given_name: Optional[str]
+    #: Optional family name, as the person writes it.
+    family_name: Optional[str]
 
 
 class PersonUpdate(TypedDict, total=False):
@@ -14508,6 +14662,10 @@ class PersonUpdate(TypedDict, total=False):
 
     #: Legal or full name.
     full_name: Optional[str]
+    #: Optional given name, as the person writes it.
+    given_name: Optional[str]
+    #: Optional family name, as the person writes it.
+    family_name: Optional[str]
 
 
 class OrganizationPage(TypedDict):
@@ -14585,6 +14743,13 @@ class CreateClientOrganizationRequest(_CreateClientOrganizationRequestRequired, 
 
     #: Plan code from `plans.yaml`; defaults to access.
     plan_code: str
+
+
+class LeavePartnerRequest(TypedDict):
+    """Confirmation of leaving the partner."""
+
+    #: The org's name, typed exactly.
+    confirm_name: str
 
 
 class MembershipPage(TypedDict):
@@ -15143,6 +15308,27 @@ class VerifiedDomain(TypedDict):
     last_checked_at: Optional[str]
     #: Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.
     auto_join_role_id: Optional[str]
+    #: Where the domain stands at its provider.
+    provisioning_status: Literal["Not Started", "Requested", "Pending DNS", "Active", "Failed", "Released"]
+    #: DNS records to publish for the provider.
+    dns_records: List[DomainDnsRecord]
+    #: True once the provider issued the TLS certificate.
+    tls_ready: bool
+    #: Why the latest provisioning step failed.
+    provisioning_error: Optional[str]
+
+
+class DomainDnsRecord(TypedDict):
+    """A DNS record the org publishes for a custom domain's provider."""
+
+    #: DNS record type.
+    type: str
+    #: Host the record is published at.
+    name: str
+    #: Record value.
+    value: str
+    #: What the record is for: routing, verification, spf, dkim, dmarc or receiving.
+    purpose: str
 
 
 class _VerifiedDomainCreateRequired(TypedDict):
@@ -15492,6 +15678,8 @@ class Subscription(TypedDict):
     plan_code: str
     #: Subscription status as Stripe reports it; read_only after the grace period.
     subscription_state: Literal["trialing", "active", "past_due", "read_only", "canceled"]
+    #: When the subscription's trial ends; null when it never had one.
+    trial_ends_at: Optional[str]
     #: Seats bought above the plan's seat allowance.
     extra_seats: int
     #: True when the subscription keeps unlimited seats from before plans had seat limits, until its plan changes.
@@ -19129,6 +19317,22 @@ class CommentUpdate(TypedDict, total=False):
     source: Literal["App", "Email", "API"]
 
 
+class _SubjectCommentRequestRequired(TypedDict):
+    #: Table of the subject, one of app.comment_subjects without its schema.
+    subject_table: str
+    #: Identifier of the row commented on.
+    subject_id: str
+    #: Comment text.
+    body: str
+
+
+class SubjectCommentRequest(_SubjectCommentRequestRequired, total=False):
+    """A comment on a subject row, posted in its main thread or the thread of an anchor."""
+
+    #: Part of the subject the thread is anchored to; absent for the main thread.
+    anchor: str
+
+
 class NotificationPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -19498,6 +19702,447 @@ class ProjectAuthority(TypedDict):
     agency: str
     #: How to reach the agency.
     contact: Optional[str]
+
+
+class MeasurementMetricPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[MeasurementMetric]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class MeasurementMetric(TypedDict):
+    """A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one."""
+
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Family of the figure.
+    family: Literal["Sustainability", "Audience", "Earned Media", "Sentiment"]
+    #: Dimension of the figure.
+    dimension: Literal["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"]
+    #: Unit totals and comparisons are computed in.
+    base_unit_code: str
+    #: How a project's figures combine: each adds to the total (Sum) or the latest measured one stands (Latest).
+    aggregation: Literal["Sum", "Latest"]
+    #: True when the figure is computed from the coverage records rather than entered.
+    is_derived: bool
+    #: Lowest figure accepted, in the base unit.
+    lower_bound: Optional[float]
+    #: Highest figure accepted, in the base unit.
+    upper_bound: Optional[float]
+    #: Domain of the benchmarking canon metric.
+    canon_domain: Optional[str]
+    #: Item of the benchmarking canon metric.
+    canon_item: Optional[str]
+    #: The canon benchmark as a number.
+    canon_value_numeric: Optional[float]
+    #: The canon benchmark in words.
+    canon_value_text: Optional[str]
+    #: Qualifier of the canon benchmark.
+    canon_qualifier: Optional[str]
+    #: Display order.
+    ordinal: int
+
+
+class MeasurementUnitPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[MeasurementUnit]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class MeasurementUnit(TypedDict):
+    """A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers."""
+
+    #: Unit code.
+    unit_code: str
+    #: Dimension of the unit.
+    dimension: Literal["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"]
+    #: Base units in one of this unit.
+    factor_to_base: float
+    #: Measurement system of the unit.
+    unit_system: Literal["Metric", "Imperial", "Either"]
+    #: True for the unit reports show the dimension in for readers of its system.
+    is_display: bool
+    #: Display order.
+    ordinal: int
+
+
+class MeasurementMetricTagPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[MeasurementMetricTag]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class MeasurementMetricTag(TypedDict):
+    """A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10)."""
+
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Canon tag code.
+    tag_id: str
+    #: Tag value as written in canon.
+    tag: str
+
+
+class ProjectObjectivePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectObjective]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectObjective(TypedDict):
+    """A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger."""
+
+    #: Identifier of the project objective.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Met by reaching the target (At Least) or by staying within it (At Most).
+    direction: Literal["At Least", "At Most"]
+    #: Target figure, in unit_code.
+    target_value: float
+    #: Unit of the target, of the metric's dimension.
+    unit_code: str
+    #: Note.
+    note: Optional[str]
+
+
+class _ProjectObjectiveCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Met by reaching the target (At Least) or by staying within it (At Most).
+    direction: Literal["At Least", "At Most"]
+    #: Target figure, in unit_code.
+    target_value: float
+    #: Unit of the target, of the metric's dimension.
+    unit_code: str
+
+
+class ProjectObjectiveCreate(_ProjectObjectiveCreateRequired, total=False):
+    """Fields accepted when creating a ProjectObjective."""
+
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectObjectiveUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ProjectObjective. Omitted fields are unchanged."""
+
+    #: Met by reaching the target (At Least) or by staying within it (At Most).
+    direction: Literal["At Least", "At Most"]
+    #: Target figure, in unit_code.
+    target_value: float
+    #: Unit of the target, of the metric's dimension.
+    unit_code: str
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectMeasurementPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectMeasurement]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectMeasurement(TypedDict):
+    """A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at."""
+
+    #: Identifier of the project measurement.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Day the figure covers, on the project's calendar; today there when omitted, never later.
+    measured_on: str
+    #: The figure in unit_code; null when not measured.
+    value: Optional[float]
+    #: Unit of the figure, of the metric's dimension.
+    unit_code: Optional[str]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Link to the source: an http(s) URL or a URN.
+    source_uri: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class _ProjectMeasurementCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+
+
+class ProjectMeasurementCreate(_ProjectMeasurementCreateRequired, total=False):
+    """Fields accepted when creating a ProjectMeasurement."""
+
+    #: Day the figure covers, on the project's calendar; today there when omitted, never later.
+    measured_on: str
+    #: The figure in unit_code; null when not measured.
+    value: Optional[float]
+    #: Unit of the figure, of the metric's dimension.
+    unit_code: Optional[str]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Link to the source: an http(s) URL or a URN.
+    source_uri: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectMeasurementUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ProjectMeasurement. Omitted fields are unchanged."""
+
+    #: Day the figure covers, on the project's calendar; today there when omitted, never later.
+    measured_on: str
+    #: The figure in unit_code; null when not measured.
+    value: Optional[float]
+    #: Unit of the figure, of the metric's dimension.
+    unit_code: Optional[str]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Link to the source: an http(s) URL or a URN.
+    source_uri: Optional[str]
+    #: Note.
+    note: Optional[str]
+    #: Why the figure is corrected: required when the value, unit or day changes, kept in the correction ledger and never returned.
+    correction_reason: str
+
+
+class ProjectMeasurementCorrectionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectMeasurementCorrection]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectMeasurementCorrection(TypedDict):
+    """An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at."""
+
+    #: Identifier of the project measurement correction.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the figure that changed.
+    project_measurement_id: str
+    #: What changed the figure.
+    correction_kind: Literal["Corrected", "Withdrawn", "Restored"]
+    #: Value before the change; null when Unmeasured.
+    previous_value: Optional[float]
+    #: Unit before the change.
+    previous_unit_code: Optional[str]
+    #: Day before the change.
+    previous_measured_on: str
+    #: Value after the change; null when Unmeasured.
+    value: Optional[float]
+    #: Unit after the change.
+    unit_code: Optional[str]
+    #: Day after the change.
+    measured_on: str
+    #: Why the figure changed.
+    reason: Optional[str]
+
+
+class EarnedMediaItemPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[EarnedMediaItem]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class EarnedMediaItem(TypedDict):
+    """A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated."""
+
+    #: Identifier of the earned media item.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Headline or title of the coverage.
+    title: str
+    #: Publication, station, channel or account that ran it.
+    outlet: str
+    #: Where the coverage ran.
+    medium: Literal["Online", "Print", "Broadcast", "Podcast", "Social"]
+    #: Day it ran, on the project's calendar; never after today there.
+    published_on: str
+    #: Link to the coverage; one live row per link in a project.
+    url: Optional[str]
+    #: Audience the outlet reports for the piece; null when unreported.
+    reach: Optional[int]
+    #: Sentiment of the coverage; null until rated.
+    tone: Optional[Literal["Positive", "Neutral", "Negative"]]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class _EarnedMediaItemCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Headline or title of the coverage.
+    title: str
+    #: Publication, station, channel or account that ran it.
+    outlet: str
+    #: Where the coverage ran.
+    medium: Literal["Online", "Print", "Broadcast", "Podcast", "Social"]
+    #: Day it ran, on the project's calendar; never after today there.
+    published_on: str
+
+
+class EarnedMediaItemCreate(_EarnedMediaItemCreateRequired, total=False):
+    """Fields accepted when creating a EarnedMediaItem."""
+
+    #: Link to the coverage; one live row per link in a project.
+    url: Optional[str]
+    #: Audience the outlet reports for the piece; null when unreported.
+    reach: Optional[int]
+    #: Sentiment of the coverage; null until rated.
+    tone: Optional[Literal["Positive", "Neutral", "Negative"]]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class EarnedMediaItemUpdate(TypedDict, total=False):
+    """Fields accepted when updating a EarnedMediaItem. Omitted fields are unchanged."""
+
+    #: Headline or title of the coverage.
+    title: str
+    #: Publication, station, channel or account that ran it.
+    outlet: str
+    #: Where the coverage ran.
+    medium: Literal["Online", "Print", "Broadcast", "Podcast", "Social"]
+    #: Day it ran, on the project's calendar; never after today there.
+    published_on: str
+    #: Link to the coverage; one live row per link in a project.
+    url: Optional[str]
+    #: Audience the outlet reports for the piece; null when unreported.
+    reach: Optional[int]
+    #: Sentiment of the coverage; null until rated.
+    tone: Optional[Literal["Positive", "Neutral", "Negative"]]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectMeasurementSummaryPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectMeasurementSummary]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectMeasurementSummary(TypedDict):
+    """Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Family of the figure.
+    family: Literal["Sustainability", "Audience", "Earned Media", "Sentiment"]
+    #: Dimension of the figure.
+    dimension: Literal["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"]
+    #: Unit of target_base and measured_base.
+    base_unit_code: str
+    #: How figures combine.
+    aggregation: Literal["Sum", "Latest"]
+    #: Identifier of the live gate 1 objective for the metric.
+    objective_id: Optional[str]
+    #: Direction of the objective.
+    direction: Optional[Literal["At Least", "At Most"]]
+    #: Target as set, in target_unit_code.
+    target_value: Optional[float]
+    #: Unit the target was set in.
+    target_unit_code: Optional[str]
+    #: Target in the base unit.
+    target_base: Optional[float]
+    #: Figures with a value.
+    measured_count: int
+    #: Figures recorded as not measured; never counted as zero.
+    unmeasured_count: int
+    #: Total (Sum) or latest figure (Latest) in the base unit; null when nothing was measured.
+    measured_base: Optional[float]
+    #: Day of the most recent measured figure.
+    last_measured_on: Optional[str]
+    #: Met, Not Met, Incomplete (unmeasured figures leave the objective undecided) or Unmeasured; null without an objective.
+    outcome: Optional[Literal["Met", "Not Met", "Incomplete", "Unmeasured"]]
 
 
 class CueCallPage(TypedDict):
@@ -19957,15 +20602,20 @@ class AuroraAskRequest(_AuroraAskRequestRequired, total=False):
     history: List[Dict[str, Any]]
 
 
-class AuroraFilterRequest(TypedDict):
-    """A sentence to turn into a saved view."""
-
+class _AuroraFilterRequestRequired(TypedDict):
     #: The sentence to turn into a filter.
     sentence: str
     #: Collections the filter may target.
     collections: List[str]
-    #: IANA time zone the local time was entered in.
+    #: Time zone the caller works in. Relative dates such as this month or overdue resolve on the org's calendar (its locale.time_zone setting), never on UTC.
     time_zone: str
+
+
+class AuroraFilterRequest(_AuroraFilterRequestRequired, total=False):
+    """A sentence to turn into a saved view."""
+
+    #: A page's own filters, offered instead of the API fields of the first collection: names, types, values and operators only, never record data. Restricted columns are never offered.
+    fields: List[Dict[str, Any]]
 
 
 class _AuroraExtractRequestRequired(TypedDict):
@@ -20035,6 +20685,50 @@ class AuroraBindCodeRequest(TypedDict):
     description: Optional[str]
     #: Catalog elements found for the code.
     candidates: List[Dict[str, Any]]
+
+
+class AuroraPreview(TypedDict):
+    """What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered."""
+
+    #: Each record the request names, in order, with the gate readiness a gate summary adds.
+    records: List[AuroraPreviewRecord]
+    #: Verbiage library terms a draft follows.
+    vocabulary_terms: int
+
+
+class AuroraPreviewRecord(TypedDict):
+    """One record as a model would see it."""
+
+    #: Collection of the record.
+    collection: str
+    #: Identifier of the record.
+    id: str
+    #: False when the record cannot be read or its whole table is never sent to a model.
+    sent: bool
+    #: Fields that would be sent.
+    fields: List[str]
+    #: Fields left out: Restricted columns and masked values.
+    withheld: List[str]
+    #: The values that would be sent; null when nothing of the record is sent.
+    data: Optional[Dict[str, Any]]
+
+
+class _AuroraPreviewRequestRequired(TypedDict):
+    #: The feature whose request is previewed.
+    feature: Literal["drafting", "summaries"]
+    #: The records the request names: a draft's context or a summary's items, read with the caller's permissions.
+    items: List[Dict[str, Any]]
+
+
+class AuroraPreviewRequest(_AuroraPreviewRequestRequired, total=False):
+    """A drafting or summary request to preview before it is sent."""
+
+    #: For summaries, what is summarized.
+    kind: Literal["record_activity", "project_week", "gate_readiness"]
+    #: For summaries, the collection summarized.
+    subject_collection: str
+    #: Identifier of the record or project summarized.
+    subject_id: str
 
 
 class AiSuggestionPage(TypedDict):
@@ -20211,6 +20905,486 @@ class AiUsage(TypedDict):
     input_tokens: Optional[int]
     #: Output tokens the model reported.
     output_tokens: Optional[int]
+
+
+class WorkDetailsPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WorkDetails]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WorkDetails(TypedDict):
+    """The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second)."""
+
+    #: Identifier of the work details.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person the work details belong to; always the caller.
+    person_id: str
+    shirt_size: Optional[GarmentLetterSize]
+    jacket_size: Optional[GarmentLetterSize]
+    #: Pants size as the person writes it.
+    pants_size: Optional[str]
+    #: Shoe size with its system.
+    shoe_size: Optional[str]
+    glove_size: Optional[GarmentLetterSize]
+    #: Hat size as the person writes it.
+    hat_size: Optional[str]
+    #: Anything else about fit.
+    uniform_notes: Optional[str]
+    #: Dietary needs, each once, in enum order.
+    dietary_needs: List[DietaryNeed]
+    #: Allergies in the person's words, with how severe.
+    allergies: Optional[str]
+    #: Other dietary notes.
+    dietary_notes: Optional[str]
+    #: Accessibility needs, each once, in enum order.
+    accessibility_needs: List[AccessibilityNeed]
+    #: Accessibility needs in the person's words.
+    accessibility_notes: Optional[str]
+    seat_preference: Optional[SeatPreference]
+    #: Preferred in-flight meal.
+    meal_preference: Optional[str]
+    #: IATA airport code.
+    home_airport: Optional[str]
+    passport_number: Optional[Union[str, Masked]]
+    #: Last four characters of the passport number.
+    passport_number_last4: Optional[str]
+    #: Country that issued the passport.
+    passport_issuing_country: Optional[str]
+    #: Day the passport expires.
+    passport_expires_on: Optional[str]
+    #: Name exactly as printed in the passport.
+    passport_name: Optional[str]
+
+
+class WorkDetailsCreate(TypedDict, total=False):
+    """Fields accepted when creating a WorkDetails."""
+
+    shirt_size: Optional[GarmentLetterSize]
+    jacket_size: Optional[GarmentLetterSize]
+    #: Pants size as the person writes it.
+    pants_size: Optional[str]
+    #: Shoe size with its system.
+    shoe_size: Optional[str]
+    glove_size: Optional[GarmentLetterSize]
+    #: Hat size as the person writes it.
+    hat_size: Optional[str]
+    #: Anything else about fit.
+    uniform_notes: Optional[str]
+    #: Dietary needs, each once, in enum order.
+    dietary_needs: List[DietaryNeed]
+    #: Allergies in the person's words, with how severe.
+    allergies: Optional[str]
+    #: Other dietary notes.
+    dietary_notes: Optional[str]
+    #: Accessibility needs, each once, in enum order.
+    accessibility_needs: List[AccessibilityNeed]
+    #: Accessibility needs in the person's words.
+    accessibility_notes: Optional[str]
+    seat_preference: Optional[SeatPreference]
+    #: Preferred in-flight meal.
+    meal_preference: Optional[str]
+    #: IATA airport code.
+    home_airport: Optional[str]
+    #: Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.
+    passport_number: Optional[str]
+    #: Country that issued the passport.
+    passport_issuing_country: Optional[str]
+    #: Day the passport expires.
+    passport_expires_on: Optional[str]
+    #: Name exactly as printed in the passport.
+    passport_name: Optional[str]
+
+
+class WorkDetailsUpdate(TypedDict, total=False):
+    """Fields accepted when updating a WorkDetails. Omitted fields are unchanged."""
+
+    shirt_size: Optional[GarmentLetterSize]
+    jacket_size: Optional[GarmentLetterSize]
+    #: Pants size as the person writes it.
+    pants_size: Optional[str]
+    #: Shoe size with its system.
+    shoe_size: Optional[str]
+    glove_size: Optional[GarmentLetterSize]
+    #: Hat size as the person writes it.
+    hat_size: Optional[str]
+    #: Anything else about fit.
+    uniform_notes: Optional[str]
+    #: Dietary needs, each once, in enum order.
+    dietary_needs: List[DietaryNeed]
+    #: Allergies in the person's words, with how severe.
+    allergies: Optional[str]
+    #: Other dietary notes.
+    dietary_notes: Optional[str]
+    #: Accessibility needs, each once, in enum order.
+    accessibility_needs: List[AccessibilityNeed]
+    #: Accessibility needs in the person's words.
+    accessibility_notes: Optional[str]
+    seat_preference: Optional[SeatPreference]
+    #: Preferred in-flight meal.
+    meal_preference: Optional[str]
+    #: IATA airport code.
+    home_airport: Optional[str]
+    #: Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.
+    passport_number: Optional[str]
+    #: Country that issued the passport.
+    passport_issuing_country: Optional[str]
+    #: Day the passport expires.
+    passport_expires_on: Optional[str]
+    #: Name exactly as printed in the passport.
+    passport_name: Optional[str]
+
+
+class PassportReveal(TypedDict):
+    """A revealed passport number. Each reveal is written to the person's access log."""
+
+    #: The passport number in plain text.
+    passport_number: str
+
+
+class EmergencyContactPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[EmergencyContact]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class EmergencyContact(TypedDict):
+    """One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category."""
+
+    #: Identifier of the emergency contact.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person the contact belongs to; always the caller.
+    person_id: str
+    #: Contact's name.
+    full_name: str
+    #: How the contact relates to the person.
+    relationship: Optional[str]
+    #: Contact's phone. E.164 format.
+    phone_e164: str
+    #: A second phone. E.164 format.
+    alternate_phone_e164: Optional[str]
+    #: Contact's email address.
+    email: Optional[str]
+    #: Order to call in, lowest first.
+    sort_order: int
+
+
+class _EmergencyContactCreateRequired(TypedDict):
+    #: Contact's name.
+    full_name: str
+    #: Contact's phone. E.164 format.
+    phone_e164: str
+
+
+class EmergencyContactCreate(_EmergencyContactCreateRequired, total=False):
+    """Fields accepted when creating a EmergencyContact."""
+
+    #: How the contact relates to the person.
+    relationship: Optional[str]
+    #: A second phone. E.164 format.
+    alternate_phone_e164: Optional[str]
+    #: Contact's email address.
+    email: Optional[str]
+    #: Order to call in, lowest first.
+    sort_order: int
+
+
+class EmergencyContactUpdate(TypedDict, total=False):
+    """Fields accepted when updating a EmergencyContact. Omitted fields are unchanged."""
+
+    #: Contact's name.
+    full_name: str
+    #: How the contact relates to the person.
+    relationship: Optional[str]
+    #: Contact's phone. E.164 format.
+    phone_e164: str
+    #: A second phone. E.164 format.
+    alternate_phone_e164: Optional[str]
+    #: Contact's email address.
+    email: Optional[str]
+    #: Order to call in, lowest first.
+    sort_order: int
+
+
+class LoyaltyProgramPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[LoyaltyProgram]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class LoyaltyProgram(TypedDict):
+    """A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category."""
+
+    #: Identifier of the loyalty program.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person the program belongs to; always the caller.
+    person_id: str
+    program_kind: LoyaltyProgramKind
+    #: Program.
+    program_name: str
+    #: Membership number.
+    member_number: str
+    #: Display order.
+    sort_order: int
+
+
+class _LoyaltyProgramCreateRequired(TypedDict):
+    program_kind: LoyaltyProgramKind
+    #: Program.
+    program_name: str
+    #: Membership number.
+    member_number: str
+
+
+class LoyaltyProgramCreate(_LoyaltyProgramCreateRequired, total=False):
+    """Fields accepted when creating a LoyaltyProgram."""
+
+    #: Display order.
+    sort_order: int
+
+
+class LoyaltyProgramUpdate(TypedDict, total=False):
+    """Fields accepted when updating a LoyaltyProgram. Omitted fields are unchanged."""
+
+    program_kind: LoyaltyProgramKind
+    #: Program.
+    program_name: str
+    #: Membership number.
+    member_number: str
+    #: Display order.
+    sort_order: int
+
+
+class WorkDetailSharePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WorkDetailShare]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WorkDetailShare(TypedDict):
+    """The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them."""
+
+    #: Identifier of the work detail share.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the engagement the share serves; the caller must be its person.
+    engagement_id: str
+    #: Identifier of the person sharing.
+    person_id: str
+    #: Identifier of the work_details_sharing consent record for the org.
+    consent_record_id: str
+    #: Categories shared.
+    categories: List[WorkDetailCategory]
+    #: When the share was given.
+    shared_at: str
+    #: When the person revoked it; null while it stands.
+    revoked_at: Optional[str]
+
+
+class WorkDetailShareCreate(TypedDict):
+    """Fields accepted when creating a WorkDetailShare."""
+
+    #: Identifier of the engagement the share serves; the caller must be its person.
+    engagement_id: str
+    #: Categories shared.
+    categories: List[WorkDetailCategory]
+
+
+class WorkDetailShareUpdate(TypedDict, total=False):
+    """Fields accepted when updating a WorkDetailShare. Omitted fields are unchanged."""
+
+    #: Categories shared.
+    categories: List[WorkDetailCategory]
+
+
+class SharedWorkDetails(TypedDict):
+    """What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked."""
+
+    #: Engagement.
+    engagement_id: str
+    #: Person the engagement names.
+    person_id: Optional[str]
+    #: Engaging org.
+    org_id: str
+    #: Live share; null when none stands.
+    work_detail_share_id: Optional[str]
+    #: When the share was given.
+    shared_at: Optional[str]
+    #: The engagement is Onboarding to Closing; a closed engagement reads nothing.
+    sharing_open: bool
+    #: Categories the person shared.
+    categories: List[WorkDetailCategory]
+    #: Shared categories the caller's project capabilities cover; the others come back null.
+    readable: List[WorkDetailCategory]
+    emergency_contacts: Optional[List[SharedEmergencyContact]]
+    uniform: Optional[SharedUniformSizes]
+    dietary: Optional[SharedDietaryNeeds]
+    accessibility: Optional[SharedAccessibilityNeeds]
+    travel: Optional[SharedTravelProfile]
+    passport: Optional[SharedPassport]
+
+
+class SharedEmergencyContact(TypedDict):
+    """An emergency contact as an engaging org reads it."""
+
+    #: Contact's name.
+    full_name: str
+    #: Relationship.
+    relationship: Optional[str]
+    #: Contact's phone. E.164 format.
+    phone_e164: str
+    #: A second phone. E.164 format.
+    alternate_phone_e164: Optional[str]
+    #: Email address.
+    email: Optional[str]
+    #: Calling order.
+    sort_order: int
+
+
+class SharedUniformSizes(TypedDict):
+    """Uniform sizes as an engaging org reads them."""
+
+    shirt_size: Optional[GarmentLetterSize]
+    jacket_size: Optional[GarmentLetterSize]
+    #: Pants size.
+    pants_size: Optional[str]
+    #: Shoe size.
+    shoe_size: Optional[str]
+    glove_size: Optional[GarmentLetterSize]
+    #: Hat size.
+    hat_size: Optional[str]
+    #: Fit notes.
+    uniform_notes: Optional[str]
+
+
+class SharedDietaryNeeds(TypedDict):
+    """Dietary needs as an engaging org reads them."""
+
+    dietary_needs: List[DietaryNeed]
+    #: Allergies.
+    allergies: Optional[str]
+    #: Other dietary notes.
+    dietary_notes: Optional[str]
+
+
+class SharedAccessibilityNeeds(TypedDict):
+    """Accessibility needs as an engaging org reads them."""
+
+    accessibility_needs: List[AccessibilityNeed]
+    #: Accessibility notes.
+    accessibility_notes: Optional[str]
+
+
+class SharedTravelProfile(TypedDict):
+    """The travel profile as an engaging org reads it."""
+
+    seat_preference: Optional[SeatPreference]
+    #: Preferred in-flight meal.
+    meal_preference: Optional[str]
+    #: IATA airport code.
+    home_airport: Optional[str]
+    loyalty_programs: List[SharedLoyaltyProgram]
+
+
+class SharedLoyaltyProgram(TypedDict):
+    """A loyalty program as an engaging org reads it."""
+
+    program_kind: LoyaltyProgramKind
+    #: Program.
+    program_name: str
+    #: Membership number.
+    member_number: str
+
+
+class SharedPassport(TypedDict):
+    """Passport details as an engaging org reads them, the number masked."""
+
+    #: Always null: the number is masked; reveal it through revealPassport.
+    passport_number: None
+    #: Last four characters of the number.
+    passport_number_last4: Optional[str]
+    #: A number is recorded and withheld.
+    passport_number_masked: bool
+    #: Country that issued the passport.
+    passport_issuing_country: Optional[str]
+    #: Day the passport expires.
+    passport_expires_on: Optional[str]
+    #: Name as printed in the passport.
+    passport_name: Optional[str]
+
+
+class PassportRevealRequest(TypedDict):
+    """Request to reveal a shared passport number."""
+
+    #: Why the number is needed, 10 to 500 characters. Logged with the reveal.
+    reason: str
+
+
+class WorkDetailEventPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WorkDetailEvent]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WorkDetailEvent(TypedDict):
+    """One entry of a person's work details access log (Section 8.4): a change they made, a share or revocation, or a read or reveal by an engaging org, with the categories and changed column names but never a value. The person reads all of theirs; an org's audit readers read the entries naming their org."""
+
+    #: Identifier of the entry.
+    id: str
+    #: Identifier of the person whose work details were touched.
+    person_id: str
+    #: Identifier of the person who acted; null for the database or a service.
+    actor_person_id: Optional[str]
+    #: Identifier of the org whose member acted or whose share changed.
+    org_id: Optional[str]
+    #: Identifier of the engagement of a share, read or reveal.
+    engagement_id: Optional[str]
+    #: What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.
+    action: str
+    #: Categories the act covered.
+    categories: List[WorkDetailCategory]
+    #: Columns an owner change touched, never their values.
+    changed_columns: List[str]
+    #: Reason an org member gave for revealing the passport number.
+    reason: Optional[str]
+    #: When it happened.
+    created_at: str
 
 
 class SavedViewSharePage(TypedDict):
@@ -20888,6 +22062,681 @@ class WholesaleBillingRequest(TypedDict):
     period_start: str
 
 
+class OwnershipTransferPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[OwnershipTransfer]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class OwnershipTransfer(TypedDict):
+    """An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited."""
+
+    #: Identifier of the ownership transfer.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the Owner who offered the org.
+    from_person_id: str
+    #: Identifier of the member the org is offered to.
+    to_person_id: str
+    #: What happens to the Owner who offered on acceptance.
+    previous_owner_outcome: Literal["admin", "leave"]
+    #: When the offer was made.
+    offered_at: str
+    #: When an unanswered offer lapses, 7 days after it was made.
+    expires_at: str
+    #: When the member accepted and became an Owner.
+    accepted_at: Optional[str]
+    #: When the member declined.
+    declined_at: Optional[str]
+    #: When an Owner withdrew the offer.
+    canceled_at: Optional[str]
+    #: Identifier of the Owner who withdrew it.
+    canceled_by: Optional[str]
+    #: When the lifecycle job lapsed the unanswered offer.
+    expired_at: Optional[str]
+
+
+class OwnershipTransferOfferRequest(TypedDict):
+    """An ownership offer."""
+
+    #: Identifier of the member to offer the org to.
+    to_person_id: str
+    #: What happens to the offering Owner on acceptance.
+    previous_owner_outcome: Literal["admin", "leave"]
+
+
+class OrgDeletionRequestPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[OrgDeletionRequest]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class OrgDeletionRequest(TypedDict):
+    """An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate."""
+
+    #: Identifier of the org deletion request.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Why the org is deleted, in the Owner's words.
+    reason: str
+    #: When the Owner asked for deletion.
+    requested_at: str
+    #: End of the 7-day recovery window.
+    recover_until: str
+    #: Identifier of the Owner who asked for deletion.
+    requested_by: str
+    #: When an Owner recovered the org.
+    recovered_at: Optional[str]
+    #: Identifier of the Owner who recovered it.
+    recovered_by: Optional[str]
+
+
+class OrgDeletionRequestCreate(TypedDict):
+    """A deletion request."""
+
+    #: The org's name, typed exactly.
+    confirm_name: str
+    #: Why the org is deleted.
+    reason: str
+
+
+class DeletionCertificatePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[DeletionCertificate]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class DeletionCertificate(TypedDict):
+    """The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas."""
+
+    #: Identifier of the deletion certificate.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Id the deleted org had.
+    deleted_org_id: str
+    #: Name of the org when it was deleted.
+    org_name: str
+    #: Web address of the org when it was deleted.
+    org_slug: str
+    #: Day 90 of a cancellation, or the end of a deletion request's recovery window.
+    basis: Literal["cancellation", "deletion_request"]
+    #: When the Owner canceled or asked for deletion.
+    requested_at: str
+    #: When the data became due for deletion.
+    due_at: str
+    #: When every row of the org was deleted.
+    purged_at: Optional[str]
+    #: Tables rows were deleted from.
+    tables_purged: Optional[int]
+    #: Rows deleted.
+    rows_purged: Optional[int]
+    #: Stored files deleted.
+    storage_objects_deleted: int
+    #: SHA-256 of the certificate PDF.
+    document_sha256: Optional[str]
+    #: When the certificate PDF was stored.
+    issued_at: Optional[str]
+    #: When the certificate was emailed to the former Owner.
+    delivered_at: Optional[str]
+
+
+class PartnerStandingGrantPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[PartnerStandingGrant]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class PartnerStandingGrant(TypedDict):
+    """A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one."""
+
+    #: Identifier of the partner standing grant.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the partner org whose staff may read.
+    partner_org_id: str
+    #: The scope: one read capability a support session may grant.
+    capability_code: str
+    #: The clause of the agreement that provides the grant.
+    agreement_reference: str
+    #: When access began.
+    valid_from: str
+    #: When access ends on its own.
+    valid_to: str
+    #: Identifier of the org-level record grant the standing grant issued.
+    record_grant_id: str
+    #: When someone ended the grant early.
+    ended_at: Optional[str]
+    #: Identifier of the person who ended it early.
+    ended_by: Optional[str]
+
+
+class PartnerStandingGrantRecordRequest(TypedDict):
+    """A standing grant to record."""
+
+    #: The read capability the grant covers.
+    capability_code: str
+    #: When the grant ends, within a year.
+    valid_to: str
+    #: The clause of the agreement.
+    agreement_reference: str
+
+
+class ShareLinkPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ShareLink]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ShareLink(TypedDict):
+    """A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links."""
+
+    #: Identifier of the share link.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the file the link shares.
+    attachment_id: str
+    #: Clean version the link opens, set from the file's current version.
+    attachment_version_id: Optional[str]
+    classification: Classification
+    #: True when the link asks for a 6-digit access code; always true for a Confidential file.
+    access_code_required: bool
+    #: Who the link is for, lowercased. Required for a Confidential file.
+    recipient_email: Optional[str]
+    #: What the link is for.
+    note: Optional[str]
+    #: When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+    expires_at: Optional[str]
+    #: Wrong access codes entered; the link locks at 5.
+    failed_attempts: int
+    #: Successful opens.
+    open_count: int
+    #: When the link was last opened.
+    last_opened_at: Optional[str]
+    #: When the link was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the link.
+    revoked_by: Optional[str]
+
+
+class ShareLinkToken(TypedDict):
+    """A new share link with its token and access code, shown once."""
+
+    #: The new link.
+    share_link_id: str
+    #: The link token. The link is `{Atlas origin}/share/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.
+    access_code: Optional[str]
+    classification: Classification
+    #: When the link stops opening.
+    expires_at: Optional[str]
+
+
+class _ShareLinkCreateRequired(TypedDict):
+    #: Identifier of the file the link shares.
+    attachment_id: str
+
+
+class ShareLinkCreate(_ShareLinkCreateRequired, total=False):
+    """Fields accepted when creating a ShareLink."""
+
+    #: True when the link asks for a 6-digit access code; always true for a Confidential file.
+    access_code_required: bool
+    #: Who the link is for, lowercased. Required for a Confidential file.
+    recipient_email: Optional[str]
+    #: What the link is for.
+    note: Optional[str]
+    #: When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+    expires_at: Optional[str]
+
+
+class PersonCalendarFeedPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[PersonCalendarFeed]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class PersonCalendarFeed(TypedDict):
+    """A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good."""
+
+    #: Identifier of the person calendar feed.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who owns the feed; always the caller.
+    person_id: str
+    #: Last four characters of the token.
+    token_hint: str
+    #: Last time a calendar fetched the feed.
+    last_accessed_at: Optional[str]
+    #: When the token was last replaced.
+    rotated_at: Optional[str]
+
+
+class ProjectInboxPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectInbox]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectInbox(TypedDict):
+    """A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled."""
+
+    #: Identifier of the project inbox.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project the inbox belongs to.
+    project_id: str
+    #: Part before the @ of the receiving domain: the project key and a random suffix.
+    local_part: str
+    #: When the address stopped accepting mail.
+    disabled_at: Optional[str]
+
+
+class ProjectInboxCreate(TypedDict):
+    """The project to give an inbox."""
+
+    #: Identifier of the project the inbox is for.
+    project_id: str
+
+
+class InboundMessagePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[InboundMessage]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class InboundMessage(TypedDict):
+    """Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason."""
+
+    #: Identifier of the inbound message.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: What the mail was sent to.
+    purpose: Literal["Project Inbox", "Reply"]
+    #: Identifier of the project inbox the mail was sent to.
+    inbound_address_id: Optional[str]
+    #: Sender address.
+    from_address: str
+    #: Subject.
+    subject_line: Optional[str]
+    #: Plain-text body with quoted text stripped.
+    body_text: Optional[str]
+    #: True when the sender's DKIM signature verified.
+    dkim_verified: bool
+    #: Processing status.
+    inbound_status: Literal["Received", "Verified", "Filed", "Rejected"]
+    #: Why the mail was rejected.
+    rejection_reason: Optional[str]
+    #: When the mail arrived.
+    received_at: str
+    #: Identifier of the document the mail was filed as.
+    filed_document_id: Optional[str]
+    #: Identifier of the record of the project the mail was filed to.
+    filed_record_id: Optional[str]
+    #: Identifier of the person who filed the mail.
+    filed_by: Optional[str]
+    #: When the mail was filed.
+    filed_at: Optional[str]
+    #: When the mail was discarded.
+    discarded_at: Optional[str]
+    #: Identifier of the person who discarded the mail.
+    discarded_by: Optional[str]
+    #: Why the mail was discarded.
+    discard_reason: Optional[str]
+
+
+class InboundMessageFileRequest(TypedDict, total=False):
+    """How to file the mail."""
+
+    #: Document title; the subject when omitted.
+    title: str
+    #: Identifier of the record of the project to file the mail to.
+    record_id: str
+
+
+class InboundMessageDiscardRequest(TypedDict, total=False):
+    """Why the mail is discarded."""
+
+    #: Why the mail is discarded.
+    reason: str
+
+
+class AutomationPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Automation]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Automation(TypedDict):
+    """An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422)."""
+
+    #: Identifier of the automation.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Name shown in Settings, Automations.
+    name: str
+    #: What the automation is for.
+    description: Optional[str]
+    #: Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+    trigger_event_type: str
+    #: How the top-level conditions combine; set from the conditions document.
+    condition_match: Literal["all", "any"]
+    #: Identifier of the person the actions run as.
+    owner_person_id: str
+    #: True while new events start runs.
+    enabled: bool
+    #: When the engine turned the automation off because a run could not act as the owner; null otherwise. Turning it on again clears it.
+    paused_at: Optional[str]
+    #: Why the engine paused it: owner_left_org, owner_lost_capability, owner_cannot_sign_in or owner_access_refused.
+    pause_reason: Optional[str]
+    conditions: AutomationConditions
+    actions: AutomationActions
+
+
+class _AutomationCreateRequired(TypedDict):
+    #: Name shown in Settings, Automations.
+    name: str
+    #: Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+    trigger_event_type: str
+    conditions: AutomationConditions
+    actions: AutomationActions
+
+
+class AutomationCreate(_AutomationCreateRequired, total=False):
+    """Fields accepted when creating a Automation."""
+
+    #: What the automation is for.
+    description: Optional[str]
+    #: True while new events start runs.
+    enabled: bool
+
+
+class AutomationUpdate(TypedDict, total=False):
+    """Fields accepted when updating a Automation. Omitted fields are unchanged."""
+
+    #: Name shown in Settings, Automations.
+    name: str
+    #: What the automation is for.
+    description: Optional[str]
+    #: Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+    trigger_event_type: str
+    #: True while new events start runs.
+    enabled: bool
+    conditions: AutomationConditions
+    actions: AutomationActions
+
+
+class AutomationTestResult(TypedDict):
+    """A dry run of an automation's conditions: nothing runs and nothing is written."""
+
+    #: Whether the conditions hold for the sample event.
+    matched: bool
+    #: Each condition in document order.
+    conditions: List[AutomationConditionResult]
+
+
+class _AutomationConditionResultRequired(TypedDict):
+    #: Path into the event.
+    field: str
+    #: Filter operator.
+    operator: Literal["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"]
+    #: Value compared.
+    value: Optional[str]
+    #: Whether the condition held.
+    matched: bool
+
+
+class AutomationConditionResult(_AutomationConditionResultRequired, total=False):
+    """One condition of a dry run."""
+
+    #: Value found in the event; null when missing.
+    actual: Any
+
+
+class AutomationTestRequest(TypedDict):
+    """A sample event to test an automation against."""
+
+    #: A sample event body, as a webhook receives it; app.sample_automation_event gives the org's latest of the trigger type.
+    event: Dict[str, Any]
+
+
+class AutomationRunPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AutomationRun]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AutomationRun(TypedDict):
+    """One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice."""
+
+    #: Identifier of the automation run.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the automation that ran.
+    automation_id: str
+    #: Identifier of the domain event that started the run.
+    domain_event_id: str
+    #: Identifier of the run whose action raised the event, when an automation caused it.
+    parent_run_id: Optional[str]
+    #: Automation runs that led to this one; 0 for an event a person raised.
+    depth: int
+    #: Queued, Running, Retrying after a failure the job queue retries with backoff, Succeeded, Failed, or Skipped (loop_depth, rate_limited, or the automation was off).
+    run_status: Literal["Queued", "Running", "Retrying", "Succeeded", "Failed", "Skipped"]
+    #: The event as webhooks send it: the run's input.
+    event_payload: Dict[str, Any]
+    #: Identifier of the person the run acted as.
+    owner_person_id: Optional[str]
+    #: Times the worker started the run.
+    attempts: int
+    #: Rule code of the failure or skip.
+    error_code: Optional[str]
+    #: Why the run failed or was skipped.
+    error_message: Optional[str]
+    #: When the worker first started the run.
+    started_at: Optional[str]
+    #: When the run reached Succeeded, Failed or Skipped.
+    finished_at: Optional[str]
+    #: Milliseconds from the first start to the end.
+    duration_ms: Optional[int]
+
+
+class AutomationNoticeResult(TypedDict):
+    """The notification an automation sent."""
+
+    #: Identifier of the notification created.
+    notification_id: Optional[str]
+
+
+class _AutomationNoticeRequestRequired(TypedDict):
+    #: Identifier of the member who receives the notification.
+    recipient_person_id: str
+    #: Notification title.
+    title: str
+
+
+class AutomationNoticeRequest(_AutomationNoticeRequestRequired, total=False):
+    """A notification an automation sends during a run."""
+
+    #: Message; the title is repeated when absent.
+    body: str
+
+
+class AutomationWebhookResult(TypedDict):
+    """The delivery a run queued."""
+
+    #: Identifier of the webhook delivery queued.
+    webhook_delivery_id: str
+
+
+class AutomationWebhookRequest(TypedDict):
+    """The endpoint a run's event is delivered to."""
+
+    #: Identifier of the the org's webhook endpoint.
+    webhook_endpoint_id: str
+
+
+class AutomationRunStepPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AutomationRunStep]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AutomationRunStep(TypedDict):
+    """One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed."""
+
+    #: Identifier of the automation run step.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the run the step belongs to.
+    automation_run_id: str
+    #: Identifier of the action the step ran.
+    automation_action_id: Optional[str]
+    #: Position of the action, 1 first.
+    position: int
+    #: What the action does.
+    action_type: Literal["create_task", "update_status", "assign", "add_comment", "notify", "call_webhook"]
+    #: Public API operation called.
+    operation_id: Optional[str]
+    #: Outcome of the action.
+    step_status: Literal["Succeeded", "Failed", "Skipped"]
+    #: Body sent, with templates filled in from the event.
+    request_body: Optional[Dict[str, Any]]
+    #: Identifying fields of the answer, or the problem it reported.
+    response_body: Optional[Dict[str, Any]]
+    #: HTTP status the API answered.
+    http_status: Optional[int]
+    #: Rule code of the failure.
+    error_code: Optional[str]
+    #: Why the step failed.
+    error_message: Optional[str]
+    #: When the step started.
+    started_at: str
+    #: When the step ended.
+    finished_at: str
+    #: Milliseconds the step took.
+    duration_ms: int
+
+
 class WorkforceGroupPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -21189,8 +23038,8 @@ class FeedPost(TypedDict):
     title: Optional[str]
     #: Post text.
     body: str
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Identifier of the project audience, or the project the row belongs to.
     project_id: Optional[str]
     #: Identifier of the team audience.
@@ -21199,6 +23048,8 @@ class FeedPost(TypedDict):
     role_id: Optional[str]
     #: Identifier of the group audience, including department groups.
     group_id: Optional[str]
+    #: Canon department code of a Department audience (xpms.dim_department).
+    department_code: Optional[str]
     #: Identifier of the member who wrote the post.
     author_membership_id: Optional[str]
     #: When the post was pinned; null when not pinned.
@@ -21224,8 +23075,8 @@ class _FeedPostCreateRequired(TypedDict):
     post_kind: Literal["Announcement", "Update", "Poll", "Recognition"]
     #: Post text.
     body: str
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Whether every member of the audience must acknowledge it.
     requires_acknowledgment: bool
     #: Whether members can react.
@@ -21249,6 +23100,8 @@ class FeedPostCreate(_FeedPostCreateRequired, total=False):
     role_id: Optional[str]
     #: Identifier of the group audience, including department groups.
     group_id: Optional[str]
+    #: Canon department code of a Department audience (xpms.dim_department).
+    department_code: Optional[str]
 
 
 class FeedPostUpdate(TypedDict, total=False):
@@ -21276,8 +23129,8 @@ class PollPostRequest(_PollPostRequestRequired, total=False):
 
     #: Optional headline.
     title: str
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Project audience.
     project_id: str
     #: Team audience.
@@ -21286,6 +23139,8 @@ class PollPostRequest(_PollPostRequestRequired, total=False):
     role_id: str
     #: Group audience.
     group_id: str
+    #: Canon department code of a Department audience (xpms.dim_department).
+    department_code: str
     #: Whether members may pick several.
     allows_multiple: bool
     #: When voting closes.
@@ -21433,8 +23288,8 @@ class Survey(TypedDict):
     title: str
     #: What the survey asks about.
     description: Optional[str]
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Identifier of the project audience, or the project the row belongs to.
     project_id: Optional[str]
     #: Identifier of the team audience.
@@ -21467,8 +23322,8 @@ class SurveyDraftRequest(_SurveyDraftRequestRequired, total=False):
 
     #: What the survey asks about.
     description: str
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Project audience.
     project_id: str
     #: Team audience.
@@ -21664,8 +23519,8 @@ class WorkforceEvent(TypedDict):
     venue_id: Optional[str]
     #: Identifier of the space within the venue.
     space_id: Optional[str]
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Identifier of the project audience, or the project the row belongs to.
     project_id: Optional[str]
     #: Identifier of the team audience.
@@ -21693,8 +23548,8 @@ class _WorkforceEventCreateRequired(TypedDict):
     event_kind: Literal["Briefing", "Crew Call", "Meeting"]
     #: Event title.
     title: str
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Start.
     starts_at: str
     #: End, at most seven days after the start.
@@ -23484,3 +25339,33 @@ AiSuggestionState = Literal["Proposed", "Confirmed", "Applied", "Rejected", "Exp
 
 #: How a model call ended. No Answer is the silence rule (Section 3.7).
 AiRequestOutcome = Literal["Pending", "Answered", "No Answer", "Failed"]
+
+#: Letter size for a shirt, jacket or gloves.
+GarmentLetterSize = Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]
+
+#: A dietary need hospitality caters for.
+DietaryNeed = Literal["Vegetarian", "Vegan", "Pescatarian", "Halal", "Kosher", "Gluten Free", "Dairy Free", "Nut Free", "Shellfish Free"]
+
+#: An accessibility need the person asks an engaging org to plan for.
+AccessibilityNeed = Literal["Step-Free Access", "Accessible Parking", "Accessible Restroom", "Seating", "Sign Language Interpreter", "Captioning", "Large Print", "Service Animal", "Quiet Space", "Assistance on Arrival"]
+
+#: Preferred seat when an org books travel.
+SeatPreference = Literal["Window", "Aisle", "No Preference"]
+
+#: Kind of travel loyalty program.
+LoyaltyProgramKind = Literal["Airline", "Hotel", "Car Rental", "Rail"]
+
+#: A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.
+WorkDetailCategory = Literal["Emergency Contacts", "Uniform Sizes", "Dietary Needs", "Accessibility Needs", "Travel Profile", "Passport"]
+
+#: One condition: a path of the event, an API filter operator (ADR 0003) and a text value. Numbers compare numerically, strings by code point; contains folds ASCII case or finds an array element; every operator but is_null is false on a missing value.
+AutomationCondition = Dict[str, Any]
+
+#: An automation's conditions: {"all": [...]} or {"any": [...]} of conditions and one-level groups, at most 20 in all. An empty list always holds.
+AutomationConditions = Dict[str, Any]
+
+#: One action, run in order as the owner through a public API operation: create_task (records.create), update_status (records.transition), assign (records.update), add_comment (comments.postOnSubject), notify (automationRuns.notify) or call_webhook (automationRuns.deliverWebhook).
+AutomationAction = Dict[str, Any]
+
+#: An automation's 1 to 10 actions, in the order they run.
+AutomationActions = List[AutomationAction]

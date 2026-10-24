@@ -317,7 +317,9 @@ function actionRoute(spec: ResourceSpec, action: ActionSpec, params: SharedParam
         [String(status)]: {
           description: status === 202 ? "Accepted for processing." : "The result.",
           headers: successHeaders(
-            !action.paged && action.response === undefined && spec.def.key !== "",
+            !action.paged &&
+              (action.response === undefined || action.etag === true) &&
+              spec.def.key !== "",
           ),
           content: { [JSON_MEDIA_TYPE]: { schema, example } },
         },

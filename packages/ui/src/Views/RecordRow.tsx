@@ -1,5 +1,6 @@
 import { type ReactElement } from "react";
 import { cx } from "../lib/cx.ts";
+import { singleKeyShortcutsEnabled } from "../lib/preferences.ts";
 import { Icon } from "../Icon/Icon.tsx";
 import { Button } from "../Button/Button.tsx";
 import { Avatar } from "../Avatar/Avatar.tsx";
@@ -32,7 +33,7 @@ export function RecordRow({
       data-row
       onKeyDown={(e) => {
         if (e.target !== e.currentTarget) return;
-        if (e.key.toLowerCase() === "x" && onSelect) {
+        if (e.key.toLowerCase() === "x" && onSelect && singleKeyShortcutsEnabled()) {
           e.preventDefault();
           onSelect();
         } else if (e.key === "Enter" && onOpen) {
@@ -62,14 +63,18 @@ export function RecordRow({
       <span role="gridcell" className="flex gap-4">
         {chips}
       </span>
+      {/* The next date has a column wide enough for a date and time; a longer translation ellipsizes
+          with the full text as its title instead of running under the owner (A59-008). */}
       <span
         role="gridcell"
-        className="flex items-center gap-4 text-text-12 text-text-secondary tabular-nums whitespace-nowrap"
+        className="flex items-center gap-4 min-w-0 text-text-12 text-text-secondary tabular-nums whitespace-nowrap"
       >
         {next ? (
           <>
             <Icon name="Calendar" size={14} />
-            {next}
+            <span className="truncate" title={next}>
+              {next}
+            </span>
           </>
         ) : null}
       </span>

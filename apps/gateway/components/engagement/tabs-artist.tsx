@@ -7,9 +7,17 @@ import {
 import { RegionError, Section } from "@/components/page/page";
 import { Tag } from "@/components/ui";
 import { hasArea, tabHref } from "@/lib/engagement";
-import { formatDate, formatDateRange, formatDateTime, formatMoney, todayIso } from "@/lib/format";
+import {
+  formatDate,
+  formatDateRange,
+  formatDateTime,
+  formatMoney,
+  formatScheduleTime,
+} from "@/lib/format";
+import { personToday } from "@/lib/time-zone";
 import { listEngagedGuests, type GuestEntryState } from "@/lib/party";
 import { enumLabelKey } from "@/lib/shell/translate";
+import { engagementTitle } from "@/lib/engagement-state";
 import { toneFor, type Tone } from "@/lib/states";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import { GuestRequestForm, SettlementResponseForm } from "./party-forms";
@@ -94,7 +102,17 @@ export async function SetTimesTab({ view, t, locale, engagementKey }: TabProps) 
           items={cues.data.map((c) => ({
             id: c.id ?? "",
             title: c.label ?? "",
-            meta: [c.planned_at ? formatDateTime(locale, c.planned_at) : null, c.duration],
+            meta: [
+              c.planned_at
+                ? formatScheduleTime(
+                    locale,
+                    c.planned_at,
+                    view.engagement.projectTimeZone,
+                    view.scheduleView,
+                  )
+                : null,
+              c.duration,
+            ],
             ...(c.called_at
               ? {
                   tag: {
@@ -322,7 +340,8 @@ export async function RosterTab({ view, t, locale }: TabProps) {
     listMyEngagements(view.ctx.db),
   ]);
   if (!representations.ok || !engagements.ok) return <RegionError />;
-  const today = todayIso();
+  // The roster spans several artists and orgs, so it follows the representative's own calendar.
+  const today = await personToday(view.ctx);
   const active = representations.data.filter((r) => r.artistPersonId !== view.ctx.personId);
   if (active.length === 0) {
     return (
@@ -361,7 +380,7 @@ export async function RosterTab({ view, t, locale }: TabProps) {
                 label={r.artistName ?? ""}
                 items={theirs.map((e) => ({
                   id: e.id,
-                  title: e.jobTitle,
+                  title: engagementTitle(e, (r) => t(enumLabelKey("externalRoleType", r))),
                   meta: [e.orgName, formatDateRange(locale, e.startDate, e.endDate)],
                   tag: {
                     label: t(enumLabelKey("engagementState", e.state)),

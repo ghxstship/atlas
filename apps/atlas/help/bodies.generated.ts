@@ -138,6 +138,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "The Standard Library" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The XOS Standard Library holds the emergency codes, SOPs, verbiage, radio plan, vendor classes and their entitlements, enumerations, Roles Library, labor rates and document library that come with XOS. Each organization gets its own copy to edit: a new organization receives it when it is created, and an organization created earlier adopts it with ",
+          },
+          { t: "strong", v: "Adopt Standard Library" },
+          {
+            t: "text",
+            v: " in Settings, Canon Extensions. Adopting copies only what your organization does not hold yet, so nothing you edited or removed changes.",
+          },
+        ],
+      },
     ],
     "contact-support": [
       { t: "h2", v: "Ask your admins" },
@@ -184,7 +199,7 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Pro:" },
-            { t: "text", v: " email and in-app chat, within 1 business day." },
+            { t: "text", v: " email, within 1 business day." },
           ],
           [
             { t: "strong", v: "Team:" },
@@ -201,7 +216,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "The Access plan includes the help center and community forum. The platform team never sees your organization's data unless an owner grants a support session.",
+            v: "The Access plan includes the help center. The platform team never sees your organization's data unless an owner grants a support session.",
           },
         ],
       },
@@ -394,6 +409,34 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "If a blocking criterion is still open, Atlas refuses the gate and names the criterion. Attach the missing evidence or resolve the criterion, then try again. Every pass is logged with who passed it, when and why.",
+          },
+        ],
+      },
+      { t: "h2", v: "Objectives and measurement" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Gate 1 holds the project's " },
+          { t: "strong", v: "Objectives" },
+          {
+            t: "text",
+            v: ": one target per figure, such as at least 5,000 attendees or at most 2 t of waste. Set them while gate 1 is open, then record them as gate 1 evidence. Once gate 1 passes, only a gate approver can change them, and every change is logged.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Gate 8 holds the " },
+          { t: "strong", v: "Measurement" },
+          {
+            t: "text",
+            v: ": record waste, energy, water, transport, attendance, online audience and sentiment figures, and add each piece of earned media coverage with its link. Coverage counts and reach come from the coverage you add. A figure nobody measured shows as Unmeasured, never as zero. To change a figure, choose ",
+          },
+          { t: "strong", v: "Correct" },
+          {
+            t: "text",
+            v: " and give a reason; the correction log keeps the figure before and after.",
           },
         ],
       },
@@ -784,7 +827,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Emergency codes are the plain-language calls your organization uses in an emergency. Radio channels list who talks on which channel. Both are available offline in Compass.",
+            v: "Emergency codes are the plain-language calls your organization uses in an emergency. Your organization keeps its own copy of the Standard Library's codes: open a code to change its label, the emergency it announces or its place in the list. Radio channels list who talks on which channel. Compass keeps the radio channels and the Standard Library's codes offline; your organization's changes to a code show in Atlas.",
           },
         ],
       },
@@ -795,7 +838,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Atlas can be used end to end with the keyboard. Focus is always visible, and every icon button names its shortcut in its tooltip.",
+            v: "Atlas can be used end to end with the keyboard. Focus is always visible, and every icon button names its shortcut in its tooltip. Help lists every shortcut with the keys it has for you.",
           },
         ],
       },
@@ -807,11 +850,47 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Mod+K" },
             { t: "text", v: " or " },
             { t: "strong", v: "/" },
-            { t: "text", v: " opens the command menu." },
+            {
+              t: "text",
+              v: " opens the command menu. It shows the keys for each section next to its name.",
+            },
+          ],
+          [
+            { t: "strong", v: "C" },
+            {
+              t: "text",
+              v: " opens the Create menu. What you create on the page you are on comes first, so ",
+            },
+            { t: "strong", v: "C" },
+            { t: "text", v: " then " },
+            { t: "strong", v: "Enter" },
+            { t: "text", v: " starts it." },
+          ],
+          [
+            { t: "strong", v: "G" },
+            { t: "text", v: ", then a letter, goes to a section: " },
+            { t: "strong", v: "G H" },
+            { t: "text", v: " Home, " },
+            { t: "strong", v: "G I" },
+            { t: "text", v: " Inbox, " },
+            { t: "strong", v: "G M" },
+            { t: "text", v: " My Work, " },
+            { t: "strong", v: "G P" },
+            { t: "text", v: " Projects, " },
+            { t: "strong", v: "G F" },
+            { t: "text", v: " Finance and more. After " },
+            { t: "strong", v: "G" },
+            { t: "text", v: ", a hint lists the letters; " },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancels." },
           ],
           [
             { t: "strong", v: "?" },
             { t: "text", v: " opens help for the page you are on." },
+          ],
+          [
+            { t: "strong", v: "Mod+J" },
+            { t: "text", v: " asks Aurora, when your organization has turned it on." },
           ],
           [
             { t: "strong", v: "Mod+." },
@@ -821,6 +900,14 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Esc" },
             { t: "text", v: " closes the open menu, dialog or side peek." },
           ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Shortcuts never act while you type in a field, except the ones with " },
+          { t: "strong", v: "Mod" },
+          { t: "text", v: "." },
         ],
       },
       { t: "h2", v: "In lists and tables" },
@@ -865,12 +952,47 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " to put it back." },
         ],
       },
+      { t: "h2", v: "Make the keys your own" },
       {
         t: "p",
         c: [
-          { t: "text", v: "You can change shortcuts that are not reserved by the browser in " },
+          { t: "text", v: "In " },
           { t: "strong", v: "Me, Keyboard shortcuts" },
+          { t: "text", v: ", choose " },
+          { t: "strong", v: "Change" },
+          {
+            t: "text",
+            v: " next to a shortcut and press the new keys; for a sequence, press a letter and then a second key. Atlas refuses keys another shortcut already uses and keys that belong to your browser, your computer or a screen reader. ",
+          },
+          { t: "strong", v: "Reset" },
+          { t: "text", v: " brings back the default. Turn off " },
+          { t: "strong", v: "Keyboard shortcuts" },
+          { t: "text", v: " there to stop every shortcut without " },
+          { t: "strong", v: "Mod" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Ctrl" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Alt" },
           { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "In " },
+          { t: "strong", v: "Me, Preferences" },
+          { t: "text", v: ", the " },
+          { t: "strong", v: "Sidebar" },
+          {
+            t: "text",
+            v: " section hides the items you never use and puts the groups and items in your own order. Move one by dragging it, or focus its handle and press ",
+          },
+          { t: "strong", v: "Space" },
+          { t: "text", v: ", the arrow keys, then " },
+          { t: "strong", v: "Space" },
+          { t: "text", v: " again. " },
+          { t: "strong", v: "Reset to role default" },
+          { t: "text", v: " brings back the starting layout." },
         ],
       },
     ],
@@ -1006,6 +1128,17 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Both sides rate each other at close. Neither sees the other's rating until both have rated or 14 days pass.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Ratings are always on. " },
+          { t: "strong", v: "Prompt members to rate parties" },
+          {
+            t: "text",
+            v: " in Settings, Gateway and Marketplace only decides whether members see the engagements waiting for their rating. Turning it off never hides or removes a rating, and you can still rate from the engagement. Ratings are moderated only for abuse or personal data, never for their score.",
           },
         ],
       },
@@ -1355,6 +1488,17 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Objectives and measurement" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Objectives and Measurement" },
+          {
+            t: "text",
+            v: " compares each project's gate 1 objectives with what gate 8 measured, in your units. Without a project filter it shows how every project's objectives stand and each figure across the projects that measured it. An objective reads Met, Not Met, Incomplete (some figures are unmeasured and could still change it) or Unmeasured.",
+          },
+        ],
+      },
       { t: "h2", v: "Build a report" },
       {
         t: "ol",
@@ -1606,6 +1750,188 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    search: [
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Press " },
+          { t: "strong", v: "Mod+K" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "/" },
+          {
+            t: "text",
+            v: " anywhere in Atlas to open the command menu. Before you type, it lists what you opened last (up to 50 records, incidents, documents, SOPs and handbook articles), the common actions and the search operators. Everything works from the keyboard: the arrow keys move, ",
+          },
+          { t: "strong", v: "Enter" },
+          { t: "text", v: " opens, " },
+          { t: "strong", v: "Esc" },
+          { t: "text", v: " closes." },
+        ],
+      },
+      { t: "h2", v: "What search finds" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "Records and incidents, by title or by key (type " },
+            { t: "code", v: "NWS-12" },
+            { t: "text", v: ")." },
+          ],
+          [{ t: "text", v: "People in your organization, by name." }],
+          [{ t: "text", v: "Documents, SOPs and handbook articles, by title and text." }],
+          [
+            { t: "text", v: "Settings, by name or key: type " },
+            { t: "code", v: "time zone" },
+            { t: "text", v: " to reach the Localization page with the field ready to change." },
+          ],
+          [
+            { t: "text", v: "Pages, help articles and actions such as " },
+            { t: "strong", v: "New record" },
+            { t: "text", v: " or " },
+            { t: "strong", v: "Approve timesheets" },
+            { t: "text", v: "." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "You only ever see what you are allowed to open. Each word you type also matches the start of longer words, so ",
+          },
+          { t: "code", v: "instal" },
+          { t: "text", v: ' finds "Install the stage deck".' },
+        ],
+      },
+      { t: "h2", v: "Operators" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Add operators to narrow a search. They show as chips under the search field; one the menu does not understand is marked so you can fix it.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "code", v: "type:" },
+            { t: "text", v: " a record kind (" },
+            { t: "code", v: "type:task" },
+            { t: "text", v: "), or " },
+            { t: "code", v: "person" },
+            { t: "text", v: ", " },
+            { t: "code", v: "incident" },
+            { t: "text", v: ", " },
+            { t: "code", v: "document" },
+            { t: "text", v: ", " },
+            { t: "code", v: "sop" },
+            { t: "text", v: " or " },
+            { t: "code", v: "article" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "code", v: "project:" },
+            { t: "text", v: " a project key or the start of its name (" },
+            { t: "code", v: "project:NWS" },
+            { t: "text", v: ")." },
+          ],
+          [
+            { t: "code", v: "assignee:me" },
+            { t: "text", v: ", or part of someone's name (" },
+            { t: "code", v: "assignee:ana" },
+            { t: "text", v: ")." },
+          ],
+          [
+            { t: "code", v: "status:" },
+            { t: "text", v: " a state (" },
+            { t: "code", v: "status:blocked" },
+            { t: "text", v: "), or " },
+            { t: "code", v: "open" },
+            { t: "text", v: " or " },
+            { t: "code", v: "closed" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "code", v: "phase:" },
+            { t: "text", v: ", " },
+            { t: "code", v: "urid:" },
+            { t: "text", v: " and " },
+            { t: "code", v: "dept:" },
+            { t: "text", v: " narrow records by phase, URID or department." },
+          ],
+          [
+            { t: "code", v: "is:blocked" },
+            { t: "text", v: ", " },
+            { t: "code", v: "is:open" },
+            { t: "text", v: ", " },
+            { t: "code", v: "is:overdue" },
+            { t: "text", v: " and " },
+            { t: "code", v: "is:mine" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "code", v: "before:" },
+            { t: "text", v: " and " },
+            { t: "code", v: "after:" },
+            { t: "text", v: " the day something last changed: a date (" },
+            { t: "code", v: "2026-10-01" },
+            { t: "text", v: "), " },
+            { t: "code", v: "today" },
+            { t: "text", v: ", " },
+            { t: "code", v: "yesterday" },
+            { t: "text", v: " or a count of days (" },
+            { t: "code", v: "after:7d" },
+            { t: "text", v: " is the last week)." },
+          ],
+          [
+            { t: "code", v: "due:" },
+            { t: "text", v: " " },
+            { t: "code", v: "today" },
+            { t: "text", v: ", " },
+            { t: "code", v: "overdue" },
+            { t: "text", v: ", " },
+            { t: "code", v: "<7d" },
+            { t: "text", v: " (due within a week) or a date." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Put words in quotes to find them together (" },
+          { t: "code", v: '"load in"' },
+          {
+            t: "text",
+            v: "), and put a minus before a word, a phrase or an operator to leave it out (",
+          },
+          { t: "code", v: "-strike" },
+          { t: "text", v: ", " },
+          { t: "code", v: "-status:complete" },
+          { t: "text", v: "). Dates follow your organization's time zone." },
+        ],
+      },
+      { t: "h2", v: "Search by meaning" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "When an Admin turns on " },
+          { t: "strong", v: "Semantic search" },
+          {
+            t: "text",
+            v: " in Settings, AI features, search also finds documents, SOPs and handbook articles that mean what you typed even when they use other words. These results say ",
+          },
+          { t: "strong", v: "Related" },
+          {
+            t: "text",
+            v: ". The text is processed by an embedding model inside the platform; nothing is sent to another provider.",
+          },
+        ],
+      },
+    ],
     show: [
       { t: "h2", v: "Run of show" },
       {
@@ -1760,6 +2086,13 @@ export const HELP_BODIES: HelpBodies = {
             {
               t: "text",
               v: ": ask an internal team for help. Choose the team, a category and a severity; each team shows how quickly it answers. Admins set up the teams in Settings, Help and Support.",
+            },
+          ],
+          [
+            { t: "strong", v: "Reported Content" },
+            {
+              t: "text",
+              v: ": posts, comments and messages people reported, for the Owners, Admins and anyone else who manages communication. Decide each within 24 hours: remove it or take no action, name the rule, the facts and your statement of reasons. The people who reported it, and on removal its author, receive the statement; nobody is told who decided. Reports about your own posts, comments and messages never reach you: another moderator decides them.",
             },
           ],
         ],
@@ -1954,6 +2287,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "La Biblioteca Estándar" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La Biblioteca Estándar de XOS reúne los códigos de emergencia, los SOP, la terminología, el plan de radio, las clases de proveedor y sus derechos, las enumeraciones, la Biblioteca de Roles, las tarifas laborales y la biblioteca de documentos que vienen con XOS. Cada organización recibe su propia copia para editarla: una organización nueva la recibe al crearse, y una creada antes la adopta con ",
+          },
+          { t: "strong", v: "Adoptar la Biblioteca Estándar" },
+          {
+            t: "text",
+            v: " en Configuración, Extensiones del canon. Adoptarla copia solo lo que su organización aún no tiene, así que nada de lo que editó o quitó cambia.",
+          },
+        ],
+      },
     ],
     "contact-support": [
       { t: "h2", v: "Pregunte a sus administradores" },
@@ -2003,7 +2351,7 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Pro:" },
-            { t: "text", v: " correo y chat en la aplicación, en 1 día hábil." },
+            { t: "text", v: " correo, en 1 día hábil." },
           ],
           [
             { t: "strong", v: "Team:" },
@@ -2020,7 +2368,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "El plan Access incluye el centro de ayuda y el foro de la comunidad. El equipo de la plataforma nunca ve los datos de su organización salvo que un propietario conceda una sesión de soporte.",
+            v: "El plan Access incluye el centro de ayuda. El equipo de la plataforma nunca ve los datos de su organización salvo que un propietario conceda una sesión de soporte.",
           },
         ],
       },
@@ -2215,6 +2563,34 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Si un criterio bloqueante sigue abierto, Atlas rechaza la compuerta y nombra el criterio. Adjunte la evidencia que falta o resuelva el criterio e inténtelo de nuevo. Cada paso queda registrado con quién, cuándo y por qué.",
+          },
+        ],
+      },
+      { t: "h2", v: "Objetivos y medición" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "La compuerta 1 contiene los " },
+          { t: "strong", v: "Objetivos" },
+          {
+            t: "text",
+            v: " del proyecto: una meta por cifra, como al menos 5,000 asistentes o como máximo 2 t de residuos. Fíjelos mientras la compuerta 1 esté abierta y luego regístrelos como evidencia de la compuerta 1. Una vez pasada la compuerta 1, solo quien aprueba compuertas puede cambiarlos, y cada cambio queda registrado.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "La compuerta 8 contiene la " },
+          { t: "strong", v: "Medición" },
+          {
+            t: "text",
+            v: ": registre las cifras de residuos, energía, agua, transporte, asistencia, audiencia en línea y sentimiento, y agregue cada pieza de cobertura en medios ganados con su enlace. La cantidad de piezas y el alcance salen de la cobertura que agregue. Una cifra que nadie midió aparece como Sin medir, nunca como cero. Para cambiar una cifra, elija ",
+          },
+          { t: "strong", v: "Corregir" },
+          {
+            t: "text",
+            v: " e indique un motivo; el registro de correcciones guarda la cifra antes y después.",
           },
         ],
       },
@@ -2620,7 +2996,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Los códigos de emergencia son los avisos en lenguaje claro que usa su organización. Los canales de radio indican quién habla en cada canal. Ambos están disponibles sin conexión en Compass.",
+            v: "Los códigos de emergencia son los avisos en lenguaje claro que usa su organización. Su organización guarda su propia copia de los códigos de la Biblioteca Estándar: abra un código para cambiar su nombre, la emergencia que anuncia o su lugar en la lista. Los canales de radio indican quién habla en cada canal. Compass guarda sin conexión los canales de radio y los códigos de la Biblioteca Estándar; los cambios de su organización a un código se ven en Atlas.",
           },
         ],
       },
@@ -2631,7 +3007,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Atlas se puede usar de principio a fin con el teclado. El foco siempre es visible y cada botón de icono indica su atajo en su descripción emergente.",
+            v: "Atlas se puede usar de principio a fin con el teclado. El foco siempre es visible y cada botón de icono indica su atajo en su descripción emergente. La Ayuda muestra todos los atajos con las teclas que tienen para usted.",
           },
         ],
       },
@@ -2643,11 +3019,47 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Mod+K" },
             { t: "text", v: " o " },
             { t: "strong", v: "/" },
-            { t: "text", v: " abre el menú de comandos." },
+            {
+              t: "text",
+              v: " abre el menú de comandos. Junto al nombre de cada sección muestra sus teclas.",
+            },
+          ],
+          [
+            { t: "strong", v: "C" },
+            {
+              t: "text",
+              v: " abre el menú Crear. Lo que se crea en la página actual aparece primero, así que ",
+            },
+            { t: "strong", v: "C" },
+            { t: "text", v: " y luego " },
+            { t: "strong", v: "Enter" },
+            { t: "text", v: " lo inicia." },
+          ],
+          [
+            { t: "strong", v: "G" },
+            { t: "text", v: " y luego una letra lleva a una sección: " },
+            { t: "strong", v: "G H" },
+            { t: "text", v: " Inicio, " },
+            { t: "strong", v: "G I" },
+            { t: "text", v: " Bandeja de entrada, " },
+            { t: "strong", v: "G M" },
+            { t: "text", v: " Mi trabajo, " },
+            { t: "strong", v: "G P" },
+            { t: "text", v: " Proyectos, " },
+            { t: "strong", v: "G F" },
+            { t: "text", v: " Finanzas y más. Después de " },
+            { t: "strong", v: "G" },
+            { t: "text", v: ", una indicación muestra las letras; " },
+            { t: "strong", v: "Esc" },
+            { t: "text", v: " cancela." },
           ],
           [
             { t: "strong", v: "?" },
             { t: "text", v: " abre la ayuda de la página actual." },
+          ],
+          [
+            { t: "strong", v: "Mod+J" },
+            { t: "text", v: " pregunta a Aurora, si su organización la activó." },
           ],
           [
             { t: "strong", v: "Mod+." },
@@ -2657,6 +3069,17 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Esc" },
             { t: "text", v: " cierra el menú, el diálogo o el panel lateral abierto." },
           ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los atajos nunca actúan mientras escribe en un campo, salvo los que llevan ",
+          },
+          { t: "strong", v: "Mod" },
+          { t: "text", v: "." },
         ],
       },
       { t: "h2", v: "En listas y tablas" },
@@ -2701,12 +3124,47 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " para devolverla." },
         ],
       },
+      { t: "h2", v: "Adapte las teclas" },
       {
         t: "p",
         c: [
-          { t: "text", v: "Puede cambiar los atajos en " },
+          { t: "text", v: "En " },
           { t: "strong", v: "Yo, Atajos de teclado" },
+          { t: "text", v: ", elija " },
+          { t: "strong", v: "Cambiar" },
+          {
+            t: "text",
+            v: " junto a un atajo y pulse las teclas nuevas; para una secuencia, pulse una letra y luego otra tecla. Atlas rechaza las teclas que ya usa otro atajo y las que pertenecen al navegador, a la computadora o a un lector de pantalla. ",
+          },
+          { t: "strong", v: "Restablecer" },
+          { t: "text", v: " devuelve el valor predeterminado. Desactive allí " },
+          { t: "strong", v: "Atajos de teclado" },
+          { t: "text", v: " para detener todos los atajos sin " },
+          { t: "strong", v: "Mod" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Ctrl" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Alt" },
           { t: "text", v: "." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "En " },
+          { t: "strong", v: "Yo, Preferencias" },
+          { t: "text", v: ", la sección " },
+          { t: "strong", v: "Barra lateral" },
+          {
+            t: "text",
+            v: " oculta los elementos que nunca usa y ordena los grupos y elementos a su manera. Mueva uno arrastrándolo, o enfoque su control y pulse ",
+          },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: ", las flechas y otra vez " },
+          { t: "strong", v: "Espacio" },
+          { t: "text", v: ". " },
+          { t: "strong", v: "Restablecer el predeterminado del rol" },
+          { t: "text", v: " devuelve el diseño inicial." },
         ],
       },
     ],
@@ -2834,6 +3292,17 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Ambas partes se califican al cierre. Ninguna ve la calificación de la otra hasta que ambas califiquen o pasen 14 días.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Las calificaciones siempre están activas. " },
+          { t: "strong", v: "Pedir a los miembros que valoren a las partes" },
+          {
+            t: "text",
+            v: ", en Configuración, Gateway y mercado, solo decide si los miembros ven los compromisos pendientes de su valoración. Desactivarlo nunca oculta ni elimina una calificación, y aún puede calificar desde el compromiso. Las calificaciones solo se moderan por abuso o datos personales, nunca por su puntuación.",
           },
         ],
       },
@@ -3155,6 +3624,17 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Objetivos y medición" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Objetivos y medición" },
+          {
+            t: "text",
+            v: " compara los objetivos de la compuerta 1 de cada proyecto con lo que midió la compuerta 8, en sus unidades. Sin filtro de proyecto, muestra cómo están los objetivos de cada proyecto y cada cifra entre los proyectos que la midieron. Un objetivo aparece como Cumplido, No cumplido, Incompleto (hay cifras sin medir que aún podrían cambiarlo) o Sin medir.",
+          },
+        ],
+      },
       { t: "h2", v: "Cree un informe" },
       {
         t: "ol",
@@ -3391,6 +3871,191 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    search: [
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Pulse " },
+          { t: "strong", v: "Mod+K" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "/" },
+          {
+            t: "text",
+            v: " en cualquier lugar de Atlas para abrir el menú de comandos. Antes de escribir, muestra lo que abrió por última vez (hasta 50 registros, incidentes, documentos, SOP y artículos del manual), las acciones comunes y los operadores de búsqueda. Todo funciona con el teclado: las flechas se mueven, ",
+          },
+          { t: "strong", v: "Enter" },
+          { t: "text", v: " abre y " },
+          { t: "strong", v: "Esc" },
+          { t: "text", v: " cierra." },
+        ],
+      },
+      { t: "h2", v: "Qué encuentra la búsqueda" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "Registros e incidentes, por título o por clave (escriba " },
+            { t: "code", v: "NWS-12" },
+            { t: "text", v: ")." },
+          ],
+          [{ t: "text", v: "Personas de su organización, por nombre." }],
+          [{ t: "text", v: "Documentos, SOP y artículos del manual, por título y texto." }],
+          [
+            { t: "text", v: "Configuraciones, por nombre o clave: escriba " },
+            { t: "code", v: "zona horaria" },
+            {
+              t: "text",
+              v: " para llegar a la página de Localización con el campo listo para cambiar.",
+            },
+          ],
+          [
+            { t: "text", v: "Páginas, artículos de ayuda y acciones como " },
+            { t: "strong", v: "Nuevo registro" },
+            { t: "text", v: " o " },
+            { t: "strong", v: "Aprobar hojas de horas" },
+            { t: "text", v: "." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Solo verá lo que puede abrir. Cada palabra que escribe también coincide con el inicio de palabras más largas, así que ",
+          },
+          { t: "code", v: "instal" },
+          { t: "text", v: ' encuentra "Install the stage deck".' },
+        ],
+      },
+      { t: "h2", v: "Operadores" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Agregue operadores para acotar una búsqueda. Aparecen como etiquetas bajo el campo de búsqueda; el menú marca los que no entiende para que pueda corregirlos.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "code", v: "tipo:" },
+            { t: "text", v: " un tipo de registro (" },
+            { t: "code", v: "tipo:tarea" },
+            { t: "text", v: "), o " },
+            { t: "code", v: "persona" },
+            { t: "text", v: ", " },
+            { t: "code", v: "incidente" },
+            { t: "text", v: ", " },
+            { t: "code", v: "documento" },
+            { t: "text", v: ", " },
+            { t: "code", v: "sop" },
+            { t: "text", v: " o " },
+            { t: "code", v: "artículo" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "code", v: "proyecto:" },
+            { t: "text", v: " la clave de un proyecto o el inicio de su nombre (" },
+            { t: "code", v: "proyecto:NWS" },
+            { t: "text", v: ")." },
+          ],
+          [
+            { t: "code", v: "asignado:yo" },
+            { t: "text", v: ", o parte del nombre de alguien (" },
+            { t: "code", v: "asignado:ana" },
+            { t: "text", v: ")." },
+          ],
+          [
+            { t: "code", v: "estado:" },
+            { t: "text", v: " un estado (" },
+            { t: "code", v: "estado:bloqueado" },
+            { t: "text", v: "), o " },
+            { t: "code", v: "abierto" },
+            { t: "text", v: " o " },
+            { t: "code", v: "cerrado" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "code", v: "fase:" },
+            { t: "text", v: ", " },
+            { t: "code", v: "urid:" },
+            { t: "text", v: " y " },
+            { t: "code", v: "depto:" },
+            { t: "text", v: " acotan los registros por fase, URID o departamento." },
+          ],
+          [
+            { t: "code", v: "es:bloqueado" },
+            { t: "text", v: ", " },
+            { t: "code", v: "es:abierto" },
+            { t: "text", v: ", " },
+            { t: "code", v: "es:vencido" },
+            { t: "text", v: " y " },
+            { t: "code", v: "es:mío" },
+            { t: "text", v: "." },
+          ],
+          [
+            { t: "code", v: "antes:" },
+            { t: "text", v: " y " },
+            { t: "code", v: "después:" },
+            { t: "text", v: " el día en que algo cambió por última vez: una fecha (" },
+            { t: "code", v: "2026-10-01" },
+            { t: "text", v: "), " },
+            { t: "code", v: "hoy" },
+            { t: "text", v: ", " },
+            { t: "code", v: "ayer" },
+            { t: "text", v: " o un número de días (" },
+            { t: "code", v: "después:7d" },
+            { t: "text", v: " es la última semana)." },
+          ],
+          [
+            { t: "code", v: "vence:" },
+            { t: "text", v: " " },
+            { t: "code", v: "hoy" },
+            { t: "text", v: ", " },
+            { t: "code", v: "vencido" },
+            { t: "text", v: ", " },
+            { t: "code", v: "<7d" },
+            { t: "text", v: " (vence en una semana) o una fecha." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Escriba palabras entre comillas para encontrarlas juntas (" },
+          { t: "code", v: '"load in"' },
+          {
+            t: "text",
+            v: ") y ponga un signo menos antes de una palabra, una frase o un operador para excluirlo (",
+          },
+          { t: "code", v: "-strike" },
+          { t: "text", v: ", " },
+          { t: "code", v: "-estado:completo" },
+          { t: "text", v: "). Las fechas siguen la zona horaria de su organización." },
+        ],
+      },
+      { t: "h2", v: "Búsqueda por significado" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Cuando un administrador activa " },
+          { t: "strong", v: "Búsqueda semántica" },
+          {
+            t: "text",
+            v: " en Configuración, Funciones de IA, la búsqueda también encuentra documentos, SOP y artículos del manual que significan lo que escribió aunque usen otras palabras. Estos resultados dicen ",
+          },
+          { t: "strong", v: "Relacionado" },
+          {
+            t: "text",
+            v: ". El texto se procesa con un modelo de embeddings dentro de la plataforma; no se envía nada a otro proveedor.",
+          },
+        ],
+      },
+    ],
     show: [
       { t: "h2", v: "Guion del espectáculo" },
       {
@@ -3533,6 +4198,13 @@ export const HELP_BODIES: HelpBodies = {
             {
               t: "text",
               v: ": pida ayuda a un equipo interno. Elija el equipo, una categoría y una gravedad; cada equipo indica en cuánto tiempo responde. Los administradores configuran los equipos en Configuración, Ayuda y soporte.",
+            },
+          ],
+          [
+            { t: "strong", v: "Contenido denunciado" },
+            {
+              t: "text",
+              v: ": publicaciones, comentarios y mensajes que se denunciaron, para los propietarios, los administradores y cualquier otra persona que gestione la comunicación. Decida cada uno en 24 horas: elimínelo o no tome medidas, e indique la norma, los hechos y su declaración de motivos. Quienes lo denunciaron y, si lo elimina, quien lo escribió reciben la declaración; no se dice a nadie quién decidió. Las denuncias sobre sus propias publicaciones, comentarios y mensajes nunca le llegan: las decide otro moderador.",
             },
           ],
         ],

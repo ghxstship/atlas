@@ -2,12 +2,15 @@ import { describe, expect, it } from "vitest";
 import { getMessages } from "@xos/i18n";
 import {
   localeDirection,
+  lockedLocale,
   negotiateLocale,
   parseAcceptLanguage,
   selectableLocales,
   formattingLocale,
 } from "../i18n/negotiate";
 import { isPseudoLocale, pseudoCatalog, pseudoMessage, transformMessage } from "../i18n/pseudo";
+
+const BETA = ["fr-FR", "de-DE", "it-IT", "pt-BR", "ja-JP"];
 
 describe("locale negotiation", () => {
   it("orders Accept-Language by quality", () => {
@@ -22,16 +25,89 @@ describe("locale negotiation", () => {
     );
     expect(negotiateLocale({ acceptLanguage: "es-MX,en;q=0.5", production: true })).toBe("es-US");
     expect(negotiateLocale({ acceptLanguage: "es", production: true })).toBe("es-US");
-    expect(negotiateLocale({ cookie: "fr-FR", acceptLanguage: "ja", production: true })).toBe(
+    expect(negotiateLocale({ cookie: "en-GB", acceptLanguage: "ja", production: true })).toBe(
       "en-US",
+    );
+  });
+
+  it("applies locale.language as resolved in the org, and the org's lock first (A65-001)", () => {
+    const org = (value: string, locked = false) => ({ value, source: "Organization", locked });
+    // A locked org language wins over the device's choice and the browser.
+    expect(
+      negotiateLocale({
+        cookie: "en-US",
+        acceptLanguage: "en",
+        production: true,
+        setting: org("es-US", true),
+      }),
+    ).toBe("es-US");
+    expect(lockedLocale(org("es-US", true))).toBe("es-US");
+    expect(lockedLocale(org("es-US"))).toBeNull();
+    // An org may lock a Beta locale (ADR 0053), whose catalog loads on demand; never a language XOS does not ship.
+    expect(lockedLocale(org("fr-FR", true))).toBe("fr-FR");
+    expect(lockedLocale(org("nl-NL", true))).toBeNull();
+    // Unlocked, the device's choice still wins.
+    expect(
+      negotiateLocale({
+        cookie: "en-US",
+        acceptLanguage: "en",
+        production: true,
+        setting: org("es-US"),
+      }),
+    ).toBe("en-US");
+    // With no choice on this device, the org's value, or the person's own from another device, beats the browser.
+    expect(negotiateLocale({ acceptLanguage: "en", production: true, setting: org("es-US") })).toBe(
+      "es-US",
+    );
+    expect(
+      negotiateLocale({
+        acceptLanguage: "en",
+        production: true,
+        setting: { value: "es-US", source: "Personal", locked: false },
+      }),
+    ).toBe("es-US");
+    // The platform default is nobody's choice, so the browser decides; an unknown value is ignored.
+    expect(
+      negotiateLocale({
+        acceptLanguage: "es",
+        production: true,
+        setting: { value: "en-US", source: "Default", locked: false },
+      }),
+    ).toBe("es-US");
+    expect(negotiateLocale({ acceptLanguage: "es", production: true, setting: org("nl-NL") })).toBe(
+      "es-US",
+    );
+    // A Beta locale someone chose applies, though the browser alone never picks one.
+    expect(negotiateLocale({ acceptLanguage: "es", production: true, setting: org("fr-FR") })).toBe(
+      "fr-FR",
     );
   });
 
   it("accepts pseudo-locales in development only", () => {
     expect(negotiateLocale({ cookie: "en-XA", production: false })).toBe("en-XA");
     expect(negotiateLocale({ cookie: "en-XA", production: true })).toBe("en-US");
-    expect(selectableLocales(true)).toEqual(["en-US", "es-US"]);
-    expect(selectableLocales(false)).toEqual(["en-US", "es-US", "en-XA", "ar-XB"]);
+    expect(selectableLocales(true)).toEqual(["en-US", "es-US", ...BETA]);
+    expect(selectableLocales(false)).toEqual(["en-US", "es-US", ...BETA, "en-XA", "ar-XB"]);
+  });
+
+  it("offers the Beta locales when chosen, but never guesses one from the browser (ADR 0053)", () => {
+    expect(negotiateLocale({ cookie: "fr-FR", acceptLanguage: "ja", production: true })).toBe(
+      "fr-FR",
+    );
+    expect(negotiateLocale({ acceptLanguage: "ja-JP,de;q=0.8", production: true })).toBe("en-US");
+    expect(negotiateLocale({ acceptLanguage: "pt-BR,es;q=0.5", production: true })).toBe("es-US");
+    expect(formattingLocale("de-DE")).toBe("de-DE");
+    expect(localeDirection("ja-JP")).toBe("ltr");
+  });
+
+  it("labels every picker locale and marks the Beta ones in both catalogs", () => {
+    for (const locale of ["en-US", "es-US"] as const) {
+      const shell = getMessages(locale).shell.chrome;
+      for (const l of selectableLocales(true)) {
+        expect(shell.locales[l as keyof typeof shell.locales], `${locale} ${l}`).toBeTruthy();
+      }
+      expect(shell.betaLocale).toContain("{language}");
+    }
   });
 
   it("knows direction and formatting locale", () => {

@@ -21,10 +21,13 @@ import { CrewRecord } from "@/components/crew/record";
 import { InlineAlert } from "@/components/crew/ui";
 import { PeekCalendar } from "@/components/crew/views-peek-calendar";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, getMembers, withParams } from "@/lib/crew/context";
 import { peopleStateIcon } from "@/lib/people/states";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -45,7 +48,8 @@ export default async function Page({
   const db = crew.ctx.viewer.db;
   const view = resolveView(node, search["view"]);
   const base = nodeHref(node, routeParams) ?? "/";
-  const today = new Date().toISOString().slice(0, 10);
+  // Expiry follows the org's calendar, as the database's certification dates do (1306).
+  const today = await orgToday(crew.ctx);
   const [certsResult, holdersResult] = await Promise.all([
     listCertifications(db, crew.orgId),
     listCertificationHolders(db, { orgId: crew.orgId }),
@@ -117,7 +121,7 @@ export default async function Page({
       );
       if (search["full"] === "1") return record;
       peek = record;
-    } else if (detail.error.kind !== "not-found") {
+    } else if (!peekRowMissing(detail.error)) {
       throw new Error(`Cannot read certificate: ${detail.error.kind}`);
     }
   }
@@ -327,7 +331,7 @@ export default async function Page({
         : {})}
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }

@@ -1,9 +1,11 @@
 appId: pro.ghxstship.compass
-name: Journey 66, claim an open shift under the org's claiming rule
+# Journey 66, claim an open shift under the org's claiming rule.
+# Named after its file: config.yaml orders flows by name.
+name: field-claim-open-shift
 ---
-# Seed 0113 publishes an open rigging shift on March 14, 2027. The Demo Field Tech (seed 1090) holds no
-# shift that overlaps it, so claim_open_shift gives it to them; it moves to My Shifts at once and stays
-# there once the claim uploads.
+# Seed 0113 publishes an open rigging shift on March 14, 2027. The demo org keeps the default claiming rule,
+# approval (scheduling.open_shift_claiming, migration 1322): the Demo Field Tech's claim uploads as a waiting
+# claim for a supervisor to decide, and the shift stays open on the device until then.
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
@@ -17,15 +19,11 @@ name: Journey 66, claim an open shift under the org's claiming rule
 - tapOn: "Claim"
 - assertVisible:
     id: "schedule-notice"
-- assertVisible: "Shift claimed.*"
+- assertVisible: "Claim sent.*"
 - extendedWaitUntil:
     notVisible:
       id: "sync-queued"
     timeout: 30000
-# Nothing was refused: no change waits for a decision, and the claimed shift reads Accepted.
+# Nothing was refused: the claim uploaded and waits for a supervisor, so no change waits for the person.
 - assertNotVisible:
     id: "sync-conflicts"
-- scrollUntilVisible:
-    element: "Sun, Mar 14"
-    direction: UP
-- assertVisible: "No open shifts right now."

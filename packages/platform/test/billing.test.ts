@@ -1,16 +1,23 @@
+import { randomBytes } from "node:crypto";
 import Stripe from "stripe";
 import { describe, expect, it } from "vitest";
 import { loadPlanRegistry } from "@xos/schemas/plans";
 import {
   BillingNotConfiguredError,
   NotSelfServeError,
+  PORTAL_CONFIGURATION_KEY,
   PriceNotFoundError,
   StripeSignatureError,
   addonForLookupKey,
+  billingConfigured,
+  billingLivemode,
   createAddonCheckoutSession,
   createCheckoutSession,
+  stripeTrialEnd,
   createPortalSession,
   createStripeClient,
+  findPortalConfiguration,
+  stripeHost,
   extraSeatForLookupKey,
   extraSeatLookupKeyFor,
   handleStripeWebhook,
@@ -42,7 +49,11 @@ function fakeStripe(prices: Record<string, string>) {
       sessions: {
         create: async (params: unknown) => {
           calls.push({ method: "checkout.sessions.create", params });
-          return { id: "cs_test_1", url: "https://checkout.stripe.test/cs_test_1" };
+          return {
+            id: "cs_test_1",
+            url: "https://checkout.stripe.test/cs_test_1",
+            expires_at: 1_790_086_400,
+          };
         },
       },
     },
@@ -51,6 +62,17 @@ function fakeStripe(prices: Record<string, string>) {
         create: async (params: unknown) => {
           calls.push({ method: "billingPortal.sessions.create", params });
           return { url: "https://billing.stripe.test/p/1" };
+        },
+      },
+      configurations: {
+        list: async (params: unknown) => {
+          calls.push({ method: "billingPortal.configurations.list", params });
+          return {
+            data: [
+              { id: "bpc_default", metadata: {} },
+              { id: "bpc_xos", metadata: { xos_portal: PORTAL_CONFIGURATION_KEY } },
+            ],
+          };
         },
       },
     },
@@ -72,14 +94,26 @@ function fakeStripe(prices: Record<string, string>) {
 let subscriptionItems: { id: string; quantity: number; price: { lookup_key: string | null } }[] =
   [];
 
-function memoryStore(options: { orgForCustomer?: string | null; failSync?: boolean } = {}) {
+function memoryStore(
+  options: {
+    orgForCustomer?: string | null;
+    failSync?: boolean;
+    /** Checkout sessions Atlas opened, which finishCheckout knows. */
+    opened?: string[];
+  } = {},
+) {
   const events = new Map<
     string,
     { rowId: string; processed: boolean; error: string | null; orgId: string | null }
   >();
   const syncs: Parameters<BillingStore["syncSubscription"]>[0][] = [];
   const purchases: Parameters<BillingStore["recordAddonPurchase"]>[0][] = [];
+  const finished: { sessionId: string; state: string }[] = [];
   const store: BillingStore = {
+    async finishCheckout(sessionId, state) {
+      finished.push({ sessionId, state });
+      return (options.opened ?? []).includes(sessionId);
+    },
     async recordAddonPurchase(input) {
       purchases.push(input);
       return `purchase-${purchases.length}`;
@@ -117,7 +151,7 @@ function memoryStore(options: { orgForCustomer?: string | null; failSync?: boole
       return input.status === "past_due" ? "past_due" : "active";
     },
   };
-  return { store, events, syncs, purchases };
+  return { store, events, syncs, purchases, finished };
 }
 
 function subscriptionEvent(
@@ -180,11 +214,43 @@ function signed(event: unknown): { rawBody: string; signature: string } {
 }
 
 describe("environment", () => {
-  it("runs without a Stripe key and refuses Stripe calls clearly", () => {
+  it("runs without a Stripe key and refuses Stripe calls clearly", async () => {
     const env = readBillingEnv({});
     expect(env.STRIPE_SECRET_KEY).toBeUndefined();
     expect(env.XOS_APP_URL).toBe("http://127.0.0.1:3000");
-    expect(() => createStripeClient(env)).toThrow(BillingNotConfiguredError);
+    expect(billingConfigured(env)).toBe(false);
+    expect(billingLivemode(env)).toBe(false);
+    await expect(createStripeClient(env)).rejects.toBeInstanceOf(BillingNotConfiguredError);
+  });
+
+  it("knows the mode of the key", () => {
+    expect(billingLivemode(readBillingEnv({ STRIPE_SECRET_KEY: "sk_test_abcdefghij" }))).toBe(
+      false,
+    );
+    expect(billingConfigured(readBillingEnv({ STRIPE_SECRET_KEY: "sk_test_abcdefghij" }))).toBe(
+      true,
+    );
+  });
+
+  it("points the SDK at a local fake only on a loopback origin with a test mode key", async () => {
+    const env = readBillingEnv({
+      STRIPE_SECRET_KEY: "sk_test_abcdefghij",
+      STRIPE_API_URL: "http://127.0.0.1:12111",
+    });
+    expect(stripeHost(env)).toEqual({ host: "127.0.0.1", port: "12111", protocol: "http" });
+    expect(stripeHost(readBillingEnv({}))).toEqual({});
+    expect(() =>
+      readBillingEnv({
+        STRIPE_SECRET_KEY: "sk_test_abcdefghij",
+        STRIPE_API_URL: "https://api.example.test",
+      }),
+    ).toThrow(/STRIPE_API_URL/);
+    expect(() => readBillingEnv({ STRIPE_API_URL: "http://127.0.0.1:12111" })).toThrow(
+      /test mode STRIPE_SECRET_KEY/,
+    );
+    // The real SDK, aimed at the fake: it is built without reaching the network.
+    const client = await createStripeClient(env);
+    expect(client.checkout.sessions.create).toBeTypeOf("function");
   });
 
   it("validates key shapes and names the bad variable", () => {
@@ -196,10 +262,10 @@ describe("environment", () => {
     expect(isTestKey("rk_live_abcdefgh")).toBe(false);
   });
 
-  it("builds the client from the key through the injected factory", () => {
+  it("builds the client from the key through the injected factory", async () => {
     const env = readBillingEnv({ STRIPE_SECRET_KEY: "sk_test_abcdefghij" });
     let used = "";
-    const client = createStripeClient(env, (key) => {
+    const client = await createStripeClient(env, (key) => {
       used = key;
       return fakeStripe({}).client;
     });
@@ -245,6 +311,7 @@ describe("checkout", () => {
     expect(session).toEqual({
       sessionId: "cs_test_1",
       url: "https://checkout.stripe.test/cs_test_1",
+      expiresAt: new Date(1_790_086_400 * 1000),
     });
     expect(calls[0]).toEqual({
       method: "prices.list",
@@ -260,6 +327,30 @@ describe("checkout", () => {
     });
   });
 
+  it("carries the rest of an XOS trial, so the card added at checkout is charged only when the trial ends", async () => {
+    const key = lookupKeyFor(registry, "pro", "Monthly");
+    const { client, calls } = fakeStripe({ [key]: "price_pro" });
+    const now = new Date("2026-10-20T12:00:00Z");
+    await createCheckoutSession(client, registry, {
+      orgId: "org-1",
+      planCode: "pro",
+      interval: "Monthly",
+      successUrl: "https://a.test/ok",
+      cancelUrl: "https://a.test/no",
+      trialEnd: "2026-10-30T12:00:00Z",
+      now,
+    });
+    expect(calls[1]?.params).toMatchObject({
+      subscription_data: {
+        metadata: { org_id: "org-1" },
+        trial_end: Date.parse("2026-10-30T12:00:00Z") / 1000,
+      },
+    });
+    expect(stripeTrialEnd("2026-10-21T12:00:00Z", now)).toBeUndefined();
+    expect(stripeTrialEnd("not a date", now)).toBeUndefined();
+    expect(stripeTrialEnd(undefined, now)).toBeUndefined();
+  });
+
   it("uses an existing customer and opens the portal", async () => {
     const key = lookupKeyFor(registry, "core", "Monthly");
     const { client, calls } = fakeStripe({ [key]: "price_core" });
@@ -271,10 +362,31 @@ describe("checkout", () => {
       successUrl: "https://a.test/ok",
       cancelUrl: "https://a.test/no",
     });
-    expect(calls[1]?.params).toMatchObject({ customer: "cus_1" });
+    // Stripe Tax and tax id collection need the customer's address and name, which Checkout may update.
+    expect(calls[1]?.params).toMatchObject({
+      customer: "cus_1",
+      customer_update: { address: "auto", name: "auto" },
+    });
+    expect(calls[1]?.params).not.toHaveProperty("customer_email");
     await expect(createPortalSession(client, "cus_1", "https://a.test/billing")).resolves.toBe(
       "https://billing.stripe.test/p/1",
     );
+    expect(calls.at(-1)?.params).toEqual({
+      customer: "cus_1",
+      return_url: "https://a.test/billing",
+    });
+  });
+
+  it("finds the portal configuration stripe:setup created and opens the portal with it", async () => {
+    const { client, calls } = fakeStripe({});
+    const configuration = await findPortalConfiguration(client);
+    expect(configuration).toBe("bpc_xos");
+    await createPortalSession(client, "cus_1", "https://a.test/billing", configuration);
+    expect(calls.at(-1)?.params).toEqual({
+      customer: "cus_1",
+      return_url: "https://a.test/billing",
+      configuration: "bpc_xos",
+    });
   });
 
   it("never creates a missing price; it refuses", async () => {
@@ -660,7 +772,11 @@ describe("seats and add-ons (ADR 0035)", () => {
     const cases = [
       { event: paymentEvent({ id: "evt_unpaid", paymentStatus: "unpaid" }), reason: /not paid/ },
       {
-        event: paymentEvent({ id: "evt_sub", mode: "subscription" }),
+        event: paymentEvent({
+          id: "evt_sub",
+          type: "checkout.session.async_payment_succeeded",
+          mode: "subscription",
+        }),
         reason: /subscription events/,
       },
       {
@@ -705,5 +821,193 @@ describe("seats and add-ons (ADR 0035)", () => {
       store,
     });
     expect(purchases[0]?.quantity).toBe(1);
+  });
+});
+
+/** A webhook signing secret made up for this run, as Stripe formats them; never a real one. */
+function generatedSecret(): string {
+  return `whsec_${randomBytes(24).toString("hex")}`;
+}
+
+describe("webhook signatures with generated secrets", () => {
+  const event = subscriptionEvent({ id: "evt_sig" });
+  const rawBody = JSON.stringify(event);
+  const now = Math.floor(Date.now() / 1000);
+
+  /** receivedAt in epoch seconds, like Stripe's timestamps. */
+  async function verify(signature: string, webhookSecret: string, receivedAt?: number) {
+    const { store, syncs } = memoryStore();
+    const outcome = await handleStripeWebhook({
+      rawBody,
+      signature,
+      webhookSecret,
+      livemode: false,
+      registry,
+      store,
+      ...(receivedAt === undefined ? {} : { receivedAt: receivedAt * 1000 }),
+    });
+    return { outcome, syncs };
+  }
+
+  it("accepts a body signed with the endpoint's secret", async () => {
+    const endpoint = generatedSecret();
+    const signature = Stripe.webhooks.generateTestHeaderString({
+      payload: rawBody,
+      secret: endpoint,
+      timestamp: now,
+    });
+    const { outcome, syncs } = await verify(signature, endpoint, now);
+    expect(outcome).toMatchObject({ outcome: "applied", eventId: "evt_sig" });
+    expect(syncs).toHaveLength(1);
+  });
+
+  it("refuses a body signed with another secret", async () => {
+    const signature = Stripe.webhooks.generateTestHeaderString({
+      payload: rawBody,
+      secret: generatedSecret(),
+      timestamp: now,
+    });
+    await expect(verify(signature, generatedSecret(), now)).rejects.toBeInstanceOf(
+      StripeSignatureError,
+    );
+  });
+
+  it("refuses a body changed after signing", async () => {
+    const endpoint = generatedSecret();
+    const signature = Stripe.webhooks.generateTestHeaderString({
+      payload: rawBody,
+      secret: endpoint,
+      timestamp: now,
+    });
+    const { store } = memoryStore();
+    await expect(
+      handleStripeWebhook({
+        rawBody: rawBody.replace("xos_plan_pro_monthly_v4", "xos_plan_team_monthly_v4"),
+        signature,
+        webhookSecret: endpoint,
+        livemode: false,
+        registry,
+        store,
+        receivedAt: now * 1000,
+      }),
+    ).rejects.toBeInstanceOf(StripeSignatureError);
+  });
+
+  it("refuses a replay older than Stripe's five-minute tolerance", async () => {
+    const endpoint = generatedSecret();
+    const signature = Stripe.webhooks.generateTestHeaderString({
+      payload: rawBody,
+      secret: endpoint,
+      timestamp: now - 600,
+    });
+    await expect(verify(signature, endpoint, now)).rejects.toThrow(/tolerance/i);
+  });
+
+  it("accepts a header carrying the signatures of a rolled secret and the current one", async () => {
+    const endpoint = generatedSecret();
+    const old = Stripe.webhooks.generateTestHeaderString({
+      payload: rawBody,
+      secret: generatedSecret(),
+      timestamp: now,
+    });
+    const current = Stripe.webhooks.generateTestHeaderString({
+      payload: rawBody,
+      secret: endpoint,
+      timestamp: now,
+    });
+    const v1 = (header: string) => header.split(",").find((part) => part.startsWith("v1=")) ?? "";
+    const { outcome } = await verify(`t=${String(now)},${v1(old)},${v1(current)}`, endpoint, now);
+    expect(outcome.outcome).toBe("applied");
+  });
+});
+
+describe("plan checkouts in the webhook (ADR 0033 decision 59)", () => {
+  function checkoutEvent(type: string, overrides: { mode?: string; id?: string } = {}) {
+    return {
+      id: overrides.id ?? `evt_${type.replace(/\W/g, "_")}`,
+      object: "event",
+      type,
+      livemode: false,
+      created: 1_790_000_000,
+      api_version: "2026-09-30",
+      data: {
+        object: {
+          id: "cs_test_plan1",
+          object: "checkout.session",
+          customer: "cus_test_1",
+          mode: overrides.mode ?? "subscription",
+          payment_status: "paid",
+          status: type === "checkout.session.expired" ? "expired" : "complete",
+          metadata: { org_id: "org-1" },
+        },
+      },
+    };
+  }
+
+  it("records a completed plan checkout Atlas opened; the plan follows the subscription event", async () => {
+    const { store, finished, syncs } = memoryStore({ opened: ["cs_test_plan1"] });
+    const outcome = await handleStripeWebhook({
+      ...signed(checkoutEvent("checkout.session.completed")),
+      webhookSecret: secret,
+      livemode: false,
+      registry,
+      store,
+    });
+    expect(outcome).toEqual({
+      outcome: "applied",
+      eventId: "evt_checkout_session_completed",
+      state: "checkout_completed",
+    });
+    expect(finished).toEqual([{ sessionId: "cs_test_plan1", state: "Completed" }]);
+    expect(syncs).toHaveLength(0);
+  });
+
+  it("records an expired checkout, of a plan or an add-on", async () => {
+    const plan = memoryStore({ opened: ["cs_test_plan1"] });
+    await expect(
+      handleStripeWebhook({
+        ...signed(checkoutEvent("checkout.session.expired")),
+        webhookSecret: secret,
+        livemode: false,
+        registry,
+        store: plan.store,
+      }),
+    ).resolves.toMatchObject({ outcome: "applied", state: "checkout_expired" });
+    expect(plan.finished).toEqual([{ sessionId: "cs_test_plan1", state: "Expired" }]);
+    const addon = memoryStore();
+    await expect(
+      handleStripeWebhook({
+        ...signed(checkoutEvent("checkout.session.expired", { mode: "payment", id: "evt_x2" })),
+        webhookSecret: secret,
+        livemode: false,
+        registry,
+        store: addon.store,
+      }),
+    ).resolves.toEqual({
+      outcome: "ignored",
+      eventId: "evt_x2",
+      reason: "Atlas did not open this checkout",
+    });
+  });
+
+  it("keeps a checkout whose record failed for the redelivery", async () => {
+    const { store, events } = memoryStore({ opened: ["cs_test_plan1"] });
+    const failing: BillingStore = {
+      ...store,
+      finishCheckout: async () => {
+        throw new Error(
+          "checkout_state_invalid: A Checkout session finishes Completed or Expired.",
+        );
+      },
+    };
+    const outcome = await handleStripeWebhook({
+      ...signed(checkoutEvent("checkout.session.completed")),
+      webhookSecret: secret,
+      livemode: false,
+      registry,
+      store: failing,
+    });
+    expect(outcome.outcome).toBe("failed");
+    expect([...events.values()][0]).toMatchObject({ processed: false });
   });
 });

@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "lib": ["deno.window", "dom"]
+  },
+  "imports": {
+    "zod": "npm:zod@4.6.6"
+  }
+}

@@ -15,7 +15,7 @@ Escanear es el botón elevado del centro de la barra de pestañas. Elige un modo
 - **Acreditación**: elige el punto de acceso y escanea una credencial. Compass indica si se concede o se niega el acceso, con el motivo.
 - **Consulta**: escanea cualquier código para saber a qué pertenece.
 
-Un código que Compass no conoce pasa al mostrador para identificarlo. También puedes escribir un código o tocar una etiqueta NFC.
+Un código que Compass no conoce pasa al mostrador para identificarlo. También puedes escribir un código, o tocar **Leer etiqueta NFC** y acercar una credencial, pulsera o etiqueta a la parte superior del teléfono. En Consulta, **Grabar en una etiqueta NFC** pone la etiqueta del equipo encontrado en un adhesivo NFC en blanco.
 
 ## Tu credencial
 

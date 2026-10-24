@@ -14,6 +14,7 @@ import { RecordPeek } from "@/components/finance/kit-record-peek";
 import { ViewSwitcher } from "@/components/finance/kit-view-switcher";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/finance/panels";
 import { PageHeader, TemplateCollection } from "@/components/finance/ui";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { RevokeShareButton, RunReportForm, ShareReportForm } from "./client";
 import { ReportDeliveryPanel } from "./delivery-panel";
 
@@ -79,6 +80,7 @@ export async function SavedReportsView({ page }: { page: FinancePage }) {
     "reports.purchase-order-exposure",
     "reports.incidents",
     "reports.final-cost-report",
+    "reports.measurement",
   ];
   const runStatus = (s: string) => t(`reports.saved.status.${s}`);
   const finished = runs.data.filter((r) => r.status === "Succeeded");
@@ -102,7 +104,8 @@ export async function SavedReportsView({ page }: { page: FinancePage }) {
           }
         />
       }
-      peek={
+      peek={collectionPeek(
+        query.peek,
         peek ? (
           <RecordPeek
             kindLabel={t("reports.saved.kind")}
@@ -147,8 +150,8 @@ export async function SavedReportsView({ page }: { page: FinancePage }) {
                 ])}
             />
           </RecordPeek>
-        ) : null
-      }
+        ) : null,
+      )}
     >
       <div className="flex flex-col gap-24">
         {page.inProject ? (

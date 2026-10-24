@@ -6,9 +6,10 @@ import {
   listOnboardingItems,
   listRepresentations,
   listSharedRecords,
-  searchOpportunities,
+  searchMarketplace,
   type Engagement,
 } from "@xos/data/gateway";
+import { startOfDayIn } from "@xos/data/calendar";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -20,11 +21,20 @@ import { ButtonLink, Card, EmptyStateLink, Icon, PropertyList } from "@/componen
 import { UpNextActions } from "@/components/page/up-next-actions";
 import { Updates } from "@/components/page/updates";
 import { acceptRepresentationAction, signDocumentAction } from "@/lib/actions/engagement";
-import { formatCountdown, formatDate, formatDateRange, formatDateTime } from "@/lib/format";
+import {
+  formatCountdown,
+  formatDate,
+  formatDateRange,
+  formatDateTime,
+  formatScheduleTime,
+  type ScheduleView,
+} from "@/lib/format";
+import { getScheduleView } from "@/lib/time-zone";
 import { needsYou, pickUpNext, UP_NEXT_KINDS, type FeedItem } from "@/lib/home";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getNode } from "@xos/ia";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
+import { engagementTitle } from "@/lib/engagement-state";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslate();
@@ -45,7 +55,11 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
   const query = await searchParams;
   const views = getNode(sitemap, "home").node.list?.views ?? ["feed"];
   const view = pickView(query["view"], views, "feed");
-  const [t, locale] = await Promise.all([getTranslate(), getLocale()]);
+  const [t, locale, schedule] = await Promise.all([
+    getTranslate(),
+    getLocale(),
+    getScheduleView(ctx),
+  ]);
   const now = new Date();
   const engagementsResult = await listMyEngagements(ctx.db);
   if (!engagementsResult.ok) {
@@ -68,7 +82,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       listOnboardingItems(ctx.db),
       listMyApplications(ctx.db),
       listRepresentations(ctx.db),
-      searchOpportunities(ctx.db, {
+      searchMarketplace(ctx.db, {
         limit: 6,
         ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
       }),
@@ -115,7 +129,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
       {view === "feed" ? (
         <Section title={t("gateway.home.upNext.title")}>
           {upNext ? (
-            <UpNextCardView upNext={upNext} locale={locale} t={t} now={now} />
+            <UpNextCardView upNext={upNext} locale={locale} t={t} now={now} schedule={schedule} />
           ) : (
             <EmptyStateLink
               icon="CalendarClock"
@@ -204,20 +218,23 @@ function UpNextCardView({
   locale,
   t,
   now,
+  schedule,
 }: {
   upNext: ReturnType<typeof pickUpNext> & object;
   locale: string;
   t: Translate;
   now: Date;
+  /** How the person reads schedule times (me.time_zone_display). */
+  schedule: ScheduleView;
 }) {
   if (upNext.kind === "engagement") {
     const e = upNext.engagement;
     return (
       <Card
-        title={e.jobTitle}
+        title={engagementTitle(e, (r) => t(enumLabelKey("externalRoleType", r)))}
         meta={
           <span className="font-semibold text-accent-text">
-            {formatCountdown(locale, `${e.startDate}T00:00:00Z`, now)}
+            {formatCountdown(locale, startOfDayIn(e.startDate, e.projectTimeZone), now)}
           </span>
         }
         footer={
@@ -276,7 +293,12 @@ function UpNextCardView({
             ? [
                 {
                   label: t("gateway.home.upNext.when"),
-                  value: formatDateTime(locale, start, r.timeZone),
+                  value: formatScheduleTime(
+                    locale,
+                    start,
+                    r.timeZone ?? upNext.engagement?.projectTimeZone,
+                    schedule,
+                  ),
                 },
               ]
             : []),
@@ -335,7 +357,7 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
         t("gateway.home.needsYou.onboarding", { n: item.open, org: item.engagement.orgName }),
         item.blocking > 0
           ? t("gateway.home.needsYou.onboardingBlocking", { n: item.blocking })
-          : item.engagement.jobTitle,
+          : engagementTitle(item.engagement, (r) => t(enumLabelKey("externalRoleType", r))),
         <ButtonLink
           href={engagementHref(item.engagement, "onboarding")}
           variant="secondary"
@@ -368,7 +390,7 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
       return row(
         "Star",
         t("gateway.home.needsYou.rate", { org: item.engagement.orgName }),
-        `${item.engagement.jobTitle} · ${formatDate(locale, item.engagement.endDate ?? item.engagement.startDate)}`,
+        `${engagementTitle(item.engagement, (r) => t(enumLabelKey("externalRoleType", r)))} · ${formatDate(locale, item.engagement.endDate ?? item.engagement.startDate)}`,
         <ButtonLink href={engagementHref(item.engagement)} size="sm">
           {t("gateway.home.needsYou.rateAction")}
         </ButtonLink>,

@@ -85,6 +85,27 @@ export async function listCategories(db: XosClient): Promise<Result<Category[]>>
   );
 }
 
+/** The categories of one discipline, for a discovery filter that narrows from discipline to category. */
+export async function listCategoriesInDiscipline(
+  db: XosClient,
+  disciplineCode: string,
+): Promise<Result<Category[]>> {
+  return readRows(
+    canon(db)
+      .from("dim_category")
+      .select("cat_urid, disc_code, category, xyz, is_extension")
+      .eq("disc_code", disciplineCode)
+      .order("cat_urid"),
+    (row) => ({
+      urid: row.cat_urid,
+      disciplineCode: row.disc_code,
+      name: row.category,
+      xyz: row.xyz,
+      isExtension: row.is_extension,
+    }),
+  );
+}
+
 export interface Element {
   readonly id: string;
   readonly urid: string;

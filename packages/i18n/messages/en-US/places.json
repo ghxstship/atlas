@@ -196,7 +196,8 @@
       "codeHelp": "Unique within the venue, for example FOH or DOCK-1.",
       "space": "Within space",
       "spaceHelp": "Optional. The space this zone sits in.",
-      "noSpace": "Not within a space"
+      "noSpace": "Not within a space",
+      "areaMetric": "Floor area (m²)"
     }
   },
   "documents": {

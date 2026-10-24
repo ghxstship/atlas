@@ -3,9 +3,10 @@
  * shared `help` namespace for article kinds and What's New. Guide and article bodies are
  * per-locale Markdown files.
  */
-import { getMessages, locales } from "@xos/i18n";
+import { getMessages, launchLocales } from "@xos/i18n";
 
-export const LOCALES = locales;
+/** The docs site and help center publish the launch locales; Beta locales (ADR 0053) cover app copy only. */
+export const LOCALES = launchLocales;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en-US";
 

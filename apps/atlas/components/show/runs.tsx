@@ -24,7 +24,8 @@ import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
-import { formatDay, formatWhen, fromLocalInput, withQuery } from "@/components/work/format";
+import { formatDay, formatScheduleTime, fromLocalInput, withQuery } from "@/components/work/format";
+import { useScheduleView } from "@/components/work/use-schedule-view";
 import {
   addCueAction,
   callCueAction,
@@ -35,14 +36,16 @@ import {
   updateRunAction,
 } from "./actions";
 import { CollectionViews } from "@/components/views/collection-views";
+import { useLiveRefresh } from "@/components/live/live-refresh";
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
  * The peek holds the cue list editor and live mode, where the stage manager calls cues one by one
- * (journey 15) and everyone following sees progression refresh every two seconds.
+ * (journey 15) and everyone following sees each call live, through Realtime (ADR 0044).
  */
 export function RunCollection({
   org,
+  today,
   title,
   runs,
   total,
@@ -54,6 +57,8 @@ export function RunCollection({
   peek,
 }: {
   org: string;
+  /** Today on the org's calendar (A71); an empty timeline starts here. */
+  today: string;
   title: string;
   runs: readonly RunOfShow[];
   total: number;
@@ -165,7 +170,7 @@ export function RunCollection({
     );
   } else if (view === "timeline") {
     const days = [...new Set(runs.map((r) => r.showDate))].sort();
-    const first = days[0] ?? new Date().toISOString().slice(0, 10);
+    const first = days[0] ?? today;
     const last = days.at(-1) ?? first;
     const span = Math.min(
       Math.round(
@@ -353,11 +358,18 @@ export function CreateRunDialog({
   );
 }
 
-/** Refreshes the page every two seconds while mounted, so live cue calls from others appear. */
-function LivePolling() {
+/** Show mode follows cue calls within half a second (Section 11.11): small batches, short gaps. */
+const SHOW_PACING = { batchMs: 30, minIntervalMs: 200, maxIntervalMs: 1_000 } as const;
+
+/**
+ * Follows cue calls live while mounted (ADR 0044): a called cue refreshes the page as soon as
+ * Realtime reports it. A 15-second pull covers a dropped channel; it replaced a 2-second poll.
+ */
+function LiveCues({ runId }: { runId: string }) {
   const router = useRouter();
+  useLiveRefresh([{ table: "cues", filter: `run_of_show_id=eq.${runId}` }], SHOW_PACING);
   useEffect(() => {
-    const timer = setInterval(() => router.refresh(), 2000);
+    const timer = setInterval(() => router.refresh(), 15_000);
     return () => clearInterval(timer);
   }, [router]);
   return null;
@@ -407,14 +419,16 @@ export function RunBody({
   const [planned, setPlanned] = useState("");
   const [duration, setDuration] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const time = (at: string | null) => formatWhen(at, locale, tz, { timeStyle: "short" });
+  // Cue times follow me.time_zone_display and carry their zone abbreviation (Section 15).
+  const view = useScheduleView();
+  const time = (at: string | null) => formatScheduleTime(at, locale, tz, view, "time");
   const next = progress.next >= 0 ? cues[progress.next] : undefined;
   const current = progress.current >= 0 ? cues[progress.current] : undefined;
 
   if (live) {
     return (
       <div className="flex flex-col gap-16">
-        <LivePolling />
+        <LiveCues runId={runOfShow.id} />
         <p className="m-0 text-text-12 text-text-secondary">{t("live.syncing")}</p>
         <ActionErrorAlert error={calls.error} />
         <p role="status" className="m-0 text-heading-16 font-semibold">
@@ -697,6 +711,7 @@ export function RunBody({
 
 function CueList({ cues, tz, highlight }: { cues: readonly Cue[]; tz: string; highlight: number }) {
   const locale = useLocale();
+  const view = useScheduleView();
   return (
     <ol className="m-0 flex list-none flex-col p-0">
       {cues.map((c, i) => (
@@ -707,7 +722,7 @@ function CueList({ cues, tz, highlight }: { cues: readonly Cue[]; tz: string; hi
         >
           <span className="font-mono text-text-12">{c.position}</span>
           <span className="text-text-secondary">
-            {formatWhen(c.plannedAt, locale, tz, { timeStyle: "short" }) ?? ""}
+            {formatScheduleTime(c.plannedAt, locale, tz, view, "time") ?? ""}
           </span>
           <span>{c.label}</span>
         </li>

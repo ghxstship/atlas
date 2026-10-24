@@ -24,10 +24,8 @@ select pg_temp.as_user('cleo');
 insert into world values ('acct_c', app.create_external_account('Coral Group', 'coral-group'));
 select pg_temp.as_user('alice');
 insert into world values ('cp_c_a', app.create_counterparty(pg_temp.id('org_a'), null, null, pg_temp.id('acct_c')));
-with e as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification, pay_basis,
-    arrangement, start_date)
-  values (pg_temp.id('prj_a'), pg_temp.id('cleo'), pg_temp.id('cp_c_a'), 'Client', '5000.51.02', 'INDEPENDENT_CONTRACTOR',
-    'Day Rate', 'Per Engagement', '2027-06-01') returning id) insert into world select 'eng_client_a', id from e;
+with e as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, start_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('cleo'), pg_temp.id('cp_c_a'), 'Client', '2027-06-01') returning id) insert into world select 'eng_client_a', id from e;
 select pg_temp.as_platform();
 
 -- Party submission ------------------------------------------------------------------------------------------------------------------------
@@ -78,8 +76,10 @@ select hasnt_column('api_external', 'invoice_lines', 'budget_line_id', 'budget l
 
 -- Receivables: visible once issued, with status dates ---------------------------------------------------------------------------------------
 select pg_temp.as_platform();
+-- The period of this month on the project's calendar, where issuing dates the invoice (1305; A71, RRR-116).
 insert into app.accounting_periods (org_id, starts_on, ends_on)
-  values ((select org_id from app.projects where id = pg_temp.id('prj_a')), date_trunc('month', current_date)::date, (date_trunc('month', current_date) + interval '1 month - 1 day')::date);
+  values ((select org_id from app.projects where id = pg_temp.id('prj_a')), date_trunc('month', private.project_today(pg_temp.id('prj_a')))::date,
+    (date_trunc('month', private.project_today(pg_temp.id('prj_a'))) + interval '1 month - 1 day')::date);
 select pg_temp.as_user('alice');
 with i as (insert into app.invoices (project_id, direction, counterparty_id, invoice_number, currency_code, due_on)
   values (pg_temp.id('prj_a'), 'Receivable', pg_temp.id('cp_c_a'), 'NWL-0001', 'USD', '2027-08-01') returning id)

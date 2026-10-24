@@ -91,6 +91,22 @@ describe("Aurora API client", () => {
     });
   });
 
+  it("asks for import column suggestions", async () => {
+    const { fn, seen } = recordingFetch([json({ outcome: "answer", answer: [] })]);
+    const client = createAuroraClient({ baseUrl: "/api/v1", fetch: fn, idempotencyKey: () => "k" });
+    const body = {
+      collection: "venues",
+      columns: [{ header: "Venue", samples: [] }],
+      fields: [{ name: "name", description: "Name" }],
+    };
+    expect(await client.mapColumns(body)).toEqual({
+      ok: true,
+      data: { outcome: "answer", answer: [] },
+    });
+    expect(seen[0]?.url).toBe("/api/v1/aurora/map-columns");
+    expect(JSON.parse(String(seen[0]?.init.body))).toEqual(body);
+  });
+
   it("sends draft, summarize and confirm bodies", async () => {
     const { fn, seen } = recordingFetch([json({}), json({}), json({})]);
     const client = createAuroraClient({ baseUrl: "", fetch: fn, idempotencyKey: () => "k" });
@@ -137,6 +153,9 @@ function scriptedClient(overrides: Partial<AuroraClient>): AuroraClient {
     extract: unused,
     draft: unused,
     summarize: unused,
+    mapColumns: unused,
+    bindCode: unused,
+    preview: unused,
     suggestion: unused,
     confirm: unused,
     reject: unused,

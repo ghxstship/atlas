@@ -1,7 +1,22 @@
+import { touchMySession } from "@xos/data/account-security";
+import {
+  CONSENT_COOKIE,
+  consentCookieOptions,
+  newVisitorId,
+  parseConsent,
+  recordCookieConsent,
+  sendsGpc,
+  serializeConsent,
+} from "@xos/data/consent";
+import { tokenAal } from "@xos/data/auth-assurance";
+import { listOrgsAllowingPersonalTokens } from "@xos/data/developer";
+import { requestDevice } from "@xos/data/session-device";
 import { listMyAccounts, listMyEngagementRoleTypes } from "@xos/data/gateway";
 import { findRoute, getNode, isNodeVisible } from "@xos/ia";
-import { NextResponse, type NextRequest } from "next/server";
+import { OFFLINE_KEY_HEADER, offlineKey } from "@xos/ui/pwa/offline-key";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
+import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { env, platformHosts } from "@/lib/env";
 import {
   buildCsp,
@@ -19,6 +34,7 @@ import {
 } from "@/lib/shell/standing";
 import { doesPaidWork } from "@/lib/engagement-state";
 import { createProxySupabase } from "@/lib/supabase/proxy";
+import { observability } from "@/lib/observability";
 
 /**
  * Gateway proxy, run before every page and server action:
@@ -26,14 +42,37 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
  *   2. issues a per-request nonce and the strict Content Security Policy and security headers;
  *   3. refreshes the Supabase session so tokens renew silently (Section 11.7);
  *   4. guards routes from the sitemap: public and token routes are open, signed-out visitors go
- *      to sign in, and a route the person's standing may not see renders 404, never 403.
+ *      to sign in, and a route the person's standing may not see renders 404, never 403;
+ *   5. records a Global Privacy Control signal once per browser (Section 14.3, A65-014): it refuses
+ *      every non-essential cookie, is logged server-side and stands in for the banner's choice.
  * Engagement tabs depend on the engagement's role type, which only the page can read, so the
  * proxy checks the engagement node and the page checks the tab. Pages repeat every check.
+ *   5. records the device behind the session at most once a minute, for Settings, Security (A99, migration 1561):
+ *      the client address as clientAddress() reads it, the place the host derived from it, and the user agent.
  */
+
+/** When this device last recorded its session's device (A99): an httpOnly epoch-milliseconds cookie. */
+const DEVICE_SEEN_COOKIE = "xos-device-seen";
+const DEVICE_SEEN_STEP_MS = 60_000;
 
 const NOT_FOUND_PATH = "/auth/not-found";
 
-export async function proxy(request: NextRequest): Promise<NextResponse> {
+/** A top-level page load, not a server action, an RSC fetch or a prefetch. */
+function isDocumentRequest(request: NextRequest): boolean {
+  if (
+    request.method !== "GET" ||
+    request.headers.has("rsc") ||
+    request.headers.has("next-action")
+  ) {
+    return false;
+  }
+  const dest = request.headers.get("sec-fetch-dest");
+  return dest === null
+    ? (request.headers.get("accept") ?? "").includes("text/html")
+    : dest === "document";
+}
+
+export async function proxy(request: NextRequest, event?: NextFetchEvent): Promise<NextResponse> {
   const config = env();
   const development = config.NODE_ENV === "development";
   const secureSite = config.GATEWAY_SITE_URL.startsWith("https:");
@@ -63,7 +102,25 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     headers.set("content-security-policy", csp);
     return headers;
   };
+  // Global Privacy Control (Section 14.3): a browser that sends it and has no recorded GPC choice yet.
+  const consent = parseConsent(request.cookies.get(CONSENT_COOKIE)?.value);
+  const gpcConsent =
+    sendsGpc(request.headers) && consent?.gpc !== true && isDocumentRequest(request)
+      ? {
+          visitorId: consent?.visitorId ?? newVisitorId(),
+          preferences: false,
+          performance: false,
+          gpc: true,
+        }
+      : null;
   const secure = <T extends NextResponse>(response: T): T => {
+    if (gpcConsent) {
+      response.cookies.set(
+        CONSENT_COOKIE,
+        serializeConsent(gpcConsent),
+        consentCookieOptions(secureSite),
+      );
+    }
     response.headers.set("Content-Security-Policy", csp);
     // Ask Chromium browsers for the color scheme so the System theme renders without a flash.
     response.headers.set("Accept-CH", "Sec-CH-Prefers-Color-Scheme");
@@ -83,6 +140,13 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   );
   const { data } = await db.auth.getUser();
   const user = data.user;
+  if (gpcConsent) {
+    const recorded = await recordCookieConsent(db, gpcConsent);
+    if (!recorded.ok)
+      observability.logger.error("Global Privacy Control was not recorded", {
+        error: recorded.error,
+      });
+  }
   const path = request.nextUrl.pathname;
   const match = findRoute(sitemap, path);
 
@@ -95,6 +159,14 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         const to = new URL(`/auth/sign-in?next=${encodeURIComponent(next)}`, request.url);
         return secure(carryCookies(NextResponse.redirect(to), response()));
       }
+      // A person who holds a verified second factor verifies it before any page (A77, Section 9).
+      if ((user.factors ?? []).some((f) => f.status === "verified")) {
+        const { data: current } = await db.auth.getSession();
+        if (tokenAal(current.session?.access_token) === "aal1") {
+          const to = new URL(secondFactorRedirect(path, request.nextUrl.search), request.url);
+          return secure(carryCookies(NextResponse.redirect(to), response()));
+        }
+      }
       const accounts = await listMyAccounts(db);
       if (!accounts.ok)
         throw new Error(`Gateway proxy could not read accounts: ${accounts.error.kind}`);
@@ -105,12 +177,17 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       const roleTypes = routeNeeds(sitemap, guarded, "paid-work")
         ? await listMyEngagementRoleTypes(db)
         : null;
+      // Only Developer depends on an org allowing personal tokens (A86); read it just for that route.
+      const tokenOrgs = routeNeeds(sitemap, guarded, "org-allows-personal-tokens")
+        ? await listOrgsAllowingPersonalTokens(db)
+        : null;
       const ctx = navContext({
         standing: acting.standing,
         companyAccount: acting.account !== null,
         platformDomain: isPlatformHost(host, platformHosts(config)),
         desktop: isDesktopAgent(request.headers.get("user-agent")),
         paidWork: roleTypes?.ok ? doesPaidWork(roleTypes.data) : true,
+        personalTokens: tokenOrgs?.ok === true && tokenOrgs.data.length > 0,
       });
       if (!isNodeVisible(sitemap, guarded, ctx)) {
         const rewrite = NextResponse.rewrite(new URL(NOT_FOUND_PATH, request.url), {
@@ -120,13 +197,39 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       }
     }
   }
-  return secure(response());
+  const result = secure(response());
+  const seen = Number(request.cookies.get(DEVICE_SEEN_COOKIE)?.value ?? "0");
+  const now = Date.now();
+  if (user && (!Number.isFinite(seen) || now - seen >= DEVICE_SEEN_STEP_MS || now < seen)) {
+    const touched = touchMySession(db, {
+      surface: "Gateway",
+      ...requestDevice(request.headers, {
+        VERCEL: process.env["VERCEL"],
+        XOS_TRUSTED_PROXY_HOPS: process.env["XOS_TRUSTED_PROXY_HOPS"],
+      }),
+    }).then((outcome) => {
+      if (!outcome.ok)
+        observability.logger.error("session device not recorded", { error: outcome.error });
+    });
+    if (event) event.waitUntil(touched);
+    else await touched;
+    // Appended raw, as Atlas does with its last-seen cookie, so server actions see no changed cookie.
+    result.headers.append(
+      "set-cookie",
+      `${DEVICE_SEEN_COOKIE}=${now}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax${secureSite ? "; Secure" : ""}`,
+    );
+  }
+  // The service worker keeps a page for offline reading only under the person it was served to (A96).
+  if (user) result.headers.set(OFFLINE_KEY_HEADER, await offlineKey(user.id));
+  return result;
 }
 
 export const config = {
   matcher: [
     {
-      source: "/((?!api/|_next/static|_next/image|favicon.ico|\\.well-known/).*)",
+      // Calendar feeds (/ical/{token}.ics, ADR 0040) answer without a session: no cookie is read,
+      // refreshed or set for them, and calendar apps get no page headers.
+      source: "/((?!api/|ical/|_next/static|_next/image|favicon.ico|\\.well-known/).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

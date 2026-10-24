@@ -13,7 +13,9 @@ import Link from "next/link";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 import { getFormatter } from "next-intl/server";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { EmptyStateLink } from "@/components/ui";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getTranslate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
@@ -32,6 +34,7 @@ import {
   SendPacketButton,
 } from "./forms";
 import {
+  isRowId,
   PACKET_RECORD_STATE,
   partyLabel,
   pickView,
@@ -97,7 +100,12 @@ export async function PacketsCollection({
     });
   const fixedProject = actx.project !== null && search["project"] === undefined;
 
-  const peek = peekId ? await PacketPeek({ actx, packetId: peekId }) : null;
+  // A key that is no packet id (a record key from elsewhere) goes to the shell's peek; an id
+  // with no packet here answers 404 (loadPacket).
+  const peek = collectionPeek(
+    peekId,
+    peekId && isRowId(peekId) ? await PacketPeek({ actx, packetId: peekId }) : null,
+  );
 
   return (
     <div className="flex flex-col gap-12 min-w-0">
@@ -248,7 +256,7 @@ export async function PacketsCollection({
 async function loadPacket(actx: AdvancingContext, packetId: string): Promise<PacketDetail> {
   const result = await getPacket(actx.ctx.viewer.db, packetId);
   if (!result.ok) {
-    if (result.error.kind === "not-found") notFound();
+    if (peekRowMissing(result.error)) notFound();
     throw new Error(`Cannot read packet: ${JSON.stringify(result.error)}`);
   }
   if (actx.project && result.data.projectId !== actx.project.id) notFound();
@@ -443,6 +451,18 @@ async function PacketPage({
           sections={packet.sections}
           canEdit={can.write}
           sent={sent}
+          draftContext={[
+            { collection: "advance-packets", id: packet.id, label: packet.title },
+            ...(project
+              ? [
+                  {
+                    collection: "projects",
+                    id: project.id,
+                    label: `${project.key} · ${project.name}`,
+                  },
+                ]
+              : []),
+          ]}
         />
       </Panel>
       <Panel id="packet-recipients" title={t("advancing.recipients.title")}>

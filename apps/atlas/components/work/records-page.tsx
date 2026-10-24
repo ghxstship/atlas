@@ -1,10 +1,15 @@
 import { buildTimeline, latestBaselinePlan, listDependencies } from "@xos/data/schedule";
 import { listRecords, sortRecords, type ProjectRef, type RecordSort } from "@xos/data/work";
+import { todayIn } from "@xos/data/calendar";
 import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
 import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
+import type { BulkConfig } from "@/components/bulk/types";
+import { LiveRefresh } from "@/components/live/live-refresh";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { CreateRecordDialog } from "./create-record";
 import {
   capabilitySet,
@@ -66,7 +71,8 @@ export async function RecordsPage({
   const sortParam = param(search, "sort") as RecordSort | undefined;
   const sort =
     sortParam && SORTS.includes(sortParam) ? sortParam : view === "timeline" ? "next" : "key";
-  const today = new Date().toISOString().slice(0, 10);
+  // On a project tab the project's calendar, else the org's (A71); never the UTC date.
+  const today = todayIn(project ? project.timeZone : await getOrgTimeZone(ctx));
   const monthParam = param(search, "month");
   const month =
     monthParam && /^\d{4}-\d{2}-01$/.test(monthParam) ? monthParam : `${today.slice(0, 7)}-01`;
@@ -129,51 +135,97 @@ export async function RecordsPage({
   }
 
   const canCreate = caps.has("work.record.write");
+  // Bulk edit (Section 11.7): state, owner and phase across a selection. Blocked and Deferred need
+  // a blocker or a reason per record, so they stay single edits.
+  const bulk: BulkConfig | null = canCreate
+    ? {
+        org: ctx.org.slug,
+        resource: "records",
+        fields: [
+          {
+            key: "record_state",
+            label: t("work.columns.state"),
+            reason: true,
+            options: meta.states
+              .filter((s) => s.state !== "Blocked" && s.state !== "Deferred")
+              .map((s) => ({ value: s.state, label: t(`work.states.${s.state}`) })),
+          },
+          {
+            key: "owner_party_id",
+            label: t("work.columns.owner"),
+            options: [
+              { value: null, label: t("work.values.unassigned") },
+              ...meta.people.map((p) => ({ value: p.personId, label: p.name ?? p.personId })),
+            ],
+          },
+          {
+            key: "phase_code",
+            label: t("work.fields.phase"),
+            options: [
+              { value: null, label: t("work.values.notSet") },
+              ...meta.phases.map((p) => ({ value: p.value, label: p.label })),
+            ],
+          },
+        ],
+      }
+    : null;
   const label = title ?? t(getNode(sitemap, node).node.label);
   const visibleKinds = fixedKinds ?? meta.kinds.map((k) => k.kind);
 
+  // Records update live (Section 11.7, ADR 0044): the project's when on a project tab, else the org's.
+  const live = [
+    {
+      table: "records",
+      filter: projectId ? `project_id=eq.${projectId}` : `org_id=eq.${ctx.org.id}`,
+    },
+  ];
+
   return (
-    <RecordCollection
-      org={ctx.org.slug}
-      title={label}
-      label={t("work.collection.label", { title: label })}
-      emptyKey={emptyKey}
-      records={records}
-      total={total}
-      views={views}
-      view={view}
-      filters={{
-        q,
-        kinds: fixedKinds ? [] : kinds,
-        states,
-        project: project ? "" : projectFilter,
-        sort,
-      }}
-      kinds={visibleKinds}
-      states={meta.states}
-      projects={project ? [] : meta.projects}
-      boardBy={boardBy ?? "state"}
-      month={month}
-      today={today}
-      timeZone={timeZone}
-      timeline={timeline}
-      canCreate={canCreate}
-      hideKindFilter={fixedKinds !== undefined && fixedKinds.length <= 1}
-      create={
-        <CreateRecordDialog
-          org={ctx.org.slug}
-          kinds={fixedKinds ? meta.kinds.filter((k) => fixedKinds.includes(k.kind)) : meta.kinds}
-          projects={meta.projects}
-          people={meta.people}
-          phases={meta.phases}
-          xyzTags={meta.xyzTags}
-          open={param(search, "create") === "1"}
-          {...(fixedKinds?.length === 1 && fixedKinds[0] ? { fixedKind: fixedKinds[0] } : {})}
-          {...(project ? { fixedProjectId: project.id } : {})}
-          {...(createLabel ? { label: createLabel } : {})}
-        />
-      }
-      peek={peek}
-    />
+    <>
+      <LiveRefresh topics={live} />
+      <RecordCollection
+        org={ctx.org.slug}
+        title={label}
+        label={t("work.collection.label", { title: label })}
+        emptyKey={emptyKey}
+        records={records}
+        total={total}
+        views={views}
+        view={view}
+        filters={{
+          q,
+          kinds: fixedKinds ? [] : kinds,
+          states,
+          project: project ? "" : projectFilter,
+          sort,
+        }}
+        kinds={visibleKinds}
+        states={meta.states}
+        projects={project ? [] : meta.projects}
+        boardBy={boardBy ?? "state"}
+        month={month}
+        today={today}
+        timeZone={timeZone}
+        timeline={timeline}
+        canCreate={canCreate}
+        bulk={bulk}
+        hideKindFilter={fixedKinds !== undefined && fixedKinds.length <= 1}
+        create={
+          <CreateRecordDialog
+            org={ctx.org.slug}
+            kinds={fixedKinds ? meta.kinds.filter((k) => fixedKinds.includes(k.kind)) : meta.kinds}
+            projects={meta.projects}
+            people={meta.people}
+            phases={meta.phases}
+            xyzTags={meta.xyzTags}
+            open={param(search, "create") === "1"}
+            {...(fixedKinds?.length === 1 && fixedKinds[0] ? { fixedKind: fixedKinds[0] } : {})}
+            {...(project ? { fixedProjectId: project.id } : {})}
+            {...(createLabel ? { label: createLabel } : {})}
+          />
+        }
+        peek={collectionPeek(peekKey, peek)}
+      />
+    </>
   );
 }

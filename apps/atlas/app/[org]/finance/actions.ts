@@ -7,8 +7,10 @@ import * as settlements from "@xos/data/settlements";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
 import { exponentOf, getExponents } from "@/lib/finance/money";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * Finance mutations (A15). Every action resolves the viewer's org context again (404 when it is
@@ -45,7 +47,7 @@ export interface ActionState {
 function toActionError(error: DataError): ActionError {
   if (error.kind === "refusal") return error;
   if (error.kind === "unexpected") {
-    console.error("finance action failed", error);
+    observability.logger.error("finance action failed", { error: error });
     return { kind: "unexpected" };
   }
   return { kind: error.kind };
@@ -170,7 +172,7 @@ export async function addBudgetLinesAction(_: ActionState, form: FormData): Prom
   try {
     raw = JSON.parse(String(form.get("lines") ?? "[]"));
   } catch (error) {
-    console.error("budget lines payload is not JSON", error);
+    observability.logger.error("budget lines payload is not JSON", { error: error });
     return inputError("lines");
   }
   const lines = z.array(LineSchema).min(1).max(1000).safeParse(raw);
@@ -189,7 +191,7 @@ export async function updateBudgetLineAction(_: ActionState, form: FormData): Pr
   try {
     raw = JSON.parse(String(form.get("line") ?? "{}"));
   } catch (error) {
-    console.error("budget line payload is not JSON", error);
+    observability.logger.error("budget line payload is not JSON", { error: error });
     return inputError("line");
   }
   const line = LineSchema.safeParse(raw);
@@ -273,6 +275,15 @@ export async function saveExpenseAction(_: ActionState, form: FormData): Promise
     ...common,
     budgetLineId: line.data,
   });
+  // A form Aurora filled from a receipt closes its suggestions with the expense written (A95).
+  if (result.ok) {
+    await applySuggestions(
+      ctx.viewer.db,
+      suggestionIds(form),
+      result.data.id,
+      "Saved from the expense form after review.",
+    );
+  }
   return finish(ctx, result, result.ok ? { id: result.data.id } : {});
 }
 
@@ -396,6 +407,15 @@ export async function saveInvoiceAction(_: ActionState, form: FormData): Promise
     direction: direction.data,
     currency: code.data,
   });
+  // A form Aurora filled from a document closes its suggestions with the invoice written (A95).
+  if (result.ok) {
+    await applySuggestions(
+      ctx.viewer.db,
+      suggestionIds(form),
+      result.data.id,
+      "Saved from the invoice form after review.",
+    );
+  }
   return finish(ctx, result, result.ok ? { id: result.data.id } : {});
 }
 
@@ -554,7 +574,7 @@ export async function createJournalEntryAction(
   try {
     raw = JSON.parse(f["lines"] ?? "[]");
   } catch (error) {
-    console.error("journal lines payload is not JSON", error);
+    observability.logger.error("journal lines payload is not JSON", { error: error });
     return inputError("lines");
   }
   const parsed = z.array(JournalLineSchema).min(2).max(200).safeParse(raw);

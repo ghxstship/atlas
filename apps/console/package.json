@@ -1,0 +1,53 @@
+{
+  "name": "@xos/console",
+  "version": "0.0.0",
+  "private": true,
+  "description": "XOS Console: the platform operator console for the XOS platform team (tenants, plans, flags, support sessions, moderation, banners).",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3390",
+    "build": "next build",
+    "start": "next start --port 3390",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "generate:sitemap": "XOS_WRITE_GENERATED=1 vitest run test/routes.test.ts",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.117.3",
+    "@xos/data": "workspace:*",
+    "@xos/i18n": "workspace:*",
+    "@xos/ia": "workspace:*",
+    "@xos/icons": "workspace:*",
+    "@xos/tokens": "workspace:*",
+    "@xos/ui": "workspace:*",
+    "icu-minify": "4.14.9",
+    "next": "16.4.2",
+    "next-intl": "4.14.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.64.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@xos/config": "workspace:*",
+    "eslint": "10.12.0",
+    "eslint-config-next": "16.4.2",
+    "pg": "8.23.1",
+    "prettier": "3.9.9",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3",
+    "yaml": "2.9.1"
+  }
+}

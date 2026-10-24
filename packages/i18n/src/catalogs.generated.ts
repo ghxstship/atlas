@@ -6,14 +6,22 @@ import enUS_advancing from "../messages/en-US/advancing.json" with { type: "json
 import enUS_assets from "../messages/en-US/assets.json" with { type: "json" };
 import enUS_aurora from "../messages/en-US/aurora.json" with { type: "json" };
 import enUS_auroraCertificates from "../messages/en-US/auroraCertificates.json" with { type: "json" };
+import enUS_authSecurity from "../messages/en-US/authSecurity.json" with { type: "json" };
 import enUS_canonBrowser from "../messages/en-US/canonBrowser.json" with { type: "json" };
+import enUS_collab from "../messages/en-US/collab.json" with { type: "json" };
 import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
+import enUS_compassExpenses from "../messages/en-US/compassExpenses.json" with { type: "json" };
+import enUS_compassExternal from "../messages/en-US/compassExternal.json" with { type: "json" };
+import enUS_compassNfc from "../messages/en-US/compassNfc.json" with { type: "json" };
+import enUS_compliance from "../messages/en-US/compliance.json" with { type: "json" };
+import enUS_console from "../messages/en-US/console.json" with { type: "json" };
 import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
 import enUS_docs from "../messages/en-US/docs.json" with { type: "json" };
 import enUS_documents from "../messages/en-US/documents.json" with { type: "json" };
 import enUS_email from "../messages/en-US/email.json" with { type: "json" };
 import enUS_finance from "../messages/en-US/finance.json" with { type: "json" };
+import enUS_firstRun from "../messages/en-US/firstRun.json" with { type: "json" };
 import enUS_gateway from "../messages/en-US/gateway.json" with { type: "json" };
 import enUS_gatewayOnboarding from "../messages/en-US/gatewayOnboarding.json" with { type: "json" };
 import enUS_handoff from "../messages/en-US/handoff.json" with { type: "json" };
@@ -24,9 +32,11 @@ import enUS_incidents from "../messages/en-US/incidents.json" with { type: "json
 import enUS_integrations from "../messages/en-US/integrations.json" with { type: "json" };
 import enUS_knowledge from "../messages/en-US/knowledge.json" with { type: "json" };
 import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json" };
+import enUS_measurement from "../messages/en-US/measurement.json" with { type: "json" };
 import enUS_myWork from "../messages/en-US/myWork.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
+import enUS_orgLifecycle from "../messages/en-US/orgLifecycle.json" with { type: "json" };
 import enUS_payouts from "../messages/en-US/payouts.json" with { type: "json" };
 import enUS_peek from "../messages/en-US/peek.json" with { type: "json" };
 import enUS_people from "../messages/en-US/people.json" with { type: "json" };
@@ -41,6 +51,7 @@ import enUS_reports from "../messages/en-US/reports.json" with { type: "json" };
 import enUS_savedViews from "../messages/en-US/savedViews.json" with { type: "json" };
 import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
 import enUS_settings from "../messages/en-US/settings.json" with { type: "json" };
+import enUS_settingsSurfaces from "../messages/en-US/settingsSurfaces.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
 import enUS_shipmentTracking from "../messages/en-US/shipmentTracking.json" with { type: "json" };
 import enUS_show from "../messages/en-US/show.json" with { type: "json" };
@@ -51,6 +62,7 @@ import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
 import enUS_vendors from "../messages/en-US/vendors.json" with { type: "json" };
 import enUS_views from "../messages/en-US/views.json" with { type: "json" };
 import enUS_work from "../messages/en-US/work.json" with { type: "json" };
+import enUS_workDetails from "../messages/en-US/workDetails.json" with { type: "json" };
 import enUS_workflow from "../messages/en-US/workflow.json" with { type: "json" };
 import enUS_workforce from "../messages/en-US/workforce.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
@@ -58,14 +70,22 @@ import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json
 import esUS_assets from "../messages/es-US/assets.json" with { type: "json" };
 import esUS_aurora from "../messages/es-US/aurora.json" with { type: "json" };
 import esUS_auroraCertificates from "../messages/es-US/auroraCertificates.json" with { type: "json" };
+import esUS_authSecurity from "../messages/es-US/authSecurity.json" with { type: "json" };
 import esUS_canonBrowser from "../messages/es-US/canonBrowser.json" with { type: "json" };
+import esUS_collab from "../messages/es-US/collab.json" with { type: "json" };
 import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
+import esUS_compassExpenses from "../messages/es-US/compassExpenses.json" with { type: "json" };
+import esUS_compassExternal from "../messages/es-US/compassExternal.json" with { type: "json" };
+import esUS_compassNfc from "../messages/es-US/compassNfc.json" with { type: "json" };
+import esUS_compliance from "../messages/es-US/compliance.json" with { type: "json" };
+import esUS_console from "../messages/es-US/console.json" with { type: "json" };
 import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
 import esUS_docs from "../messages/es-US/docs.json" with { type: "json" };
 import esUS_documents from "../messages/es-US/documents.json" with { type: "json" };
 import esUS_email from "../messages/es-US/email.json" with { type: "json" };
 import esUS_finance from "../messages/es-US/finance.json" with { type: "json" };
+import esUS_firstRun from "../messages/es-US/firstRun.json" with { type: "json" };
 import esUS_gateway from "../messages/es-US/gateway.json" with { type: "json" };
 import esUS_gatewayOnboarding from "../messages/es-US/gatewayOnboarding.json" with { type: "json" };
 import esUS_handoff from "../messages/es-US/handoff.json" with { type: "json" };
@@ -76,9 +96,11 @@ import esUS_incidents from "../messages/es-US/incidents.json" with { type: "json
 import esUS_integrations from "../messages/es-US/integrations.json" with { type: "json" };
 import esUS_knowledge from "../messages/es-US/knowledge.json" with { type: "json" };
 import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json" };
+import esUS_measurement from "../messages/es-US/measurement.json" with { type: "json" };
 import esUS_myWork from "../messages/es-US/myWork.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
+import esUS_orgLifecycle from "../messages/es-US/orgLifecycle.json" with { type: "json" };
 import esUS_payouts from "../messages/es-US/payouts.json" with { type: "json" };
 import esUS_peek from "../messages/es-US/peek.json" with { type: "json" };
 import esUS_people from "../messages/es-US/people.json" with { type: "json" };
@@ -93,6 +115,7 @@ import esUS_reports from "../messages/es-US/reports.json" with { type: "json" };
 import esUS_savedViews from "../messages/es-US/savedViews.json" with { type: "json" };
 import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
 import esUS_settings from "../messages/es-US/settings.json" with { type: "json" };
+import esUS_settingsSurfaces from "../messages/es-US/settingsSurfaces.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
 import esUS_shipmentTracking from "../messages/es-US/shipmentTracking.json" with { type: "json" };
 import esUS_show from "../messages/es-US/show.json" with { type: "json" };
@@ -103,6 +126,7 @@ import esUS_ui from "../messages/es-US/ui.json" with { type: "json" };
 import esUS_vendors from "../messages/es-US/vendors.json" with { type: "json" };
 import esUS_views from "../messages/es-US/views.json" with { type: "json" };
 import esUS_work from "../messages/es-US/work.json" with { type: "json" };
+import esUS_workDetails from "../messages/es-US/workDetails.json" with { type: "json" };
 import esUS_workflow from "../messages/es-US/workflow.json" with { type: "json" };
 import esUS_workforce from "../messages/es-US/workforce.json" with { type: "json" };
 
@@ -112,14 +136,22 @@ export const enUS = {
   assets: enUS_assets,
   aurora: enUS_aurora,
   auroraCertificates: enUS_auroraCertificates,
+  authSecurity: enUS_authSecurity,
   canonBrowser: enUS_canonBrowser,
+  collab: enUS_collab,
   compass: enUS_compass,
+  compassExpenses: enUS_compassExpenses,
+  compassExternal: enUS_compassExternal,
+  compassNfc: enUS_compassNfc,
+  compliance: enUS_compliance,
+  console: enUS_console,
   credentials: enUS_credentials,
   crew: enUS_crew,
   docs: enUS_docs,
   documents: enUS_documents,
   email: enUS_email,
   finance: enUS_finance,
+  firstRun: enUS_firstRun,
   gateway: enUS_gateway,
   gatewayOnboarding: enUS_gatewayOnboarding,
   handoff: enUS_handoff,
@@ -130,9 +162,11 @@ export const enUS = {
   integrations: enUS_integrations,
   knowledge: enUS_knowledge,
   logistics: enUS_logistics,
+  measurement: enUS_measurement,
   myWork: enUS_myWork,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
+  orgLifecycle: enUS_orgLifecycle,
   payouts: enUS_payouts,
   peek: enUS_peek,
   people: enUS_people,
@@ -147,6 +181,7 @@ export const enUS = {
   savedViews: enUS_savedViews,
   schedule: enUS_schedule,
   settings: enUS_settings,
+  settingsSurfaces: enUS_settingsSurfaces,
   shell: enUS_shell,
   shipmentTracking: enUS_shipmentTracking,
   show: enUS_show,
@@ -157,6 +192,7 @@ export const enUS = {
   vendors: enUS_vendors,
   views: enUS_views,
   work: enUS_work,
+  workDetails: enUS_workDetails,
   workflow: enUS_workflow,
   workforce: enUS_workforce,
 };
@@ -167,14 +203,22 @@ export const esUS = {
   assets: esUS_assets,
   aurora: esUS_aurora,
   auroraCertificates: esUS_auroraCertificates,
+  authSecurity: esUS_authSecurity,
   canonBrowser: esUS_canonBrowser,
+  collab: esUS_collab,
   compass: esUS_compass,
+  compassExpenses: esUS_compassExpenses,
+  compassExternal: esUS_compassExternal,
+  compassNfc: esUS_compassNfc,
+  compliance: esUS_compliance,
+  console: esUS_console,
   credentials: esUS_credentials,
   crew: esUS_crew,
   docs: esUS_docs,
   documents: esUS_documents,
   email: esUS_email,
   finance: esUS_finance,
+  firstRun: esUS_firstRun,
   gateway: esUS_gateway,
   gatewayOnboarding: esUS_gatewayOnboarding,
   handoff: esUS_handoff,
@@ -185,9 +229,11 @@ export const esUS = {
   integrations: esUS_integrations,
   knowledge: esUS_knowledge,
   logistics: esUS_logistics,
+  measurement: esUS_measurement,
   myWork: esUS_myWork,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
+  orgLifecycle: esUS_orgLifecycle,
   payouts: esUS_payouts,
   peek: esUS_peek,
   people: esUS_people,
@@ -202,6 +248,7 @@ export const esUS = {
   savedViews: esUS_savedViews,
   schedule: esUS_schedule,
   settings: esUS_settings,
+  settingsSurfaces: esUS_settingsSurfaces,
   shell: esUS_shell,
   shipmentTracking: esUS_shipmentTracking,
   show: esUS_show,
@@ -212,6 +259,7 @@ export const esUS = {
   vendors: esUS_vendors,
   views: esUS_views,
   work: esUS_work,
+  workDetails: esUS_workDetails,
   workflow: esUS_workflow,
   workforce: esUS_workforce,
 };

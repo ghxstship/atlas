@@ -27,7 +27,8 @@
     },
     "loadErrorTitle": "Activity did not load",
     "loadError": "The activity feed could not be loaded. Check your connection and try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "times": "{count, plural, one {once} other {# times}}"
   },
   "audit": {
     "title": "Audit log",
@@ -45,7 +46,15 @@
     "systemActor": "System",
     "older": "Show older entries",
     "newest": "Back to newest",
-    "changedFields": "{count, plural, one {# field} other {# fields}}"
+    "changedFields": "{count, plural, one {# field} other {# fields}}",
+    "ops": {
+      "insert": "Created",
+      "update": "Updated",
+      "delete": "Deleted",
+      "other": "Changed"
+    },
+    "actionText": "{op} {subject}",
+    "code": "Code"
   },
   "verbs": {
     "accepted": "accepted",
@@ -189,6 +198,33 @@
     "vendor": "a vendor",
     "work_order": "a work order",
     "work_order_bid": "a work order bid",
-    "fallback": "a record"
+    "fallback": "a record",
+    "budget_line": "a budget line",
+    "budget": "a budget",
+    "membership": "a membership",
+    "membership_role": "a member's role",
+    "account_membership": "an account membership",
+    "account_membership_role": "an account role",
+    "spend_authority": "a spend authority",
+    "accounting_period": "an accounting period",
+    "radio_channel": "a radio channel",
+    "sop": "a standard operating procedure",
+    "setting_value": "a setting",
+    "journal_entry": "a journal entry",
+    "journal_line": "a journal line",
+    "credential_category": "a credential category",
+    "subscription": "a subscription",
+    "purchase_order": "a purchase order",
+    "po_line": "a purchase order line",
+    "goods_receipt": "a goods receipt",
+    "invoice_line": "an invoice line",
+    "certification": "a certification",
+    "document": "a document",
+    "org_domain": "a domain",
+    "submittal": "a submittal",
+    "sponsor_asset": "a sponsor asset",
+    "cost_center": "a cost center",
+    "time_off_request": "a time off request",
+    "access_grid": "an access grid entry"
   }
 }

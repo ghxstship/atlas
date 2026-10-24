@@ -14,6 +14,14 @@ import {
   viewsHelpSupportResources,
 } from "./parts/views-help-support.ts";
 import { a36Actions, a36Capabilities, a36Corrections, a36Resources } from "./parts/a36.ts";
+import { a79Capabilities, a79Resources } from "./parts/a79.ts";
+import { shareLinkCapabilities, shareLinkResources } from "./parts/share-links.ts";
+import { a84Actions, a84Capabilities, a84Resources, CalendarFeedToken } from "./parts/a84.ts";
+import {
+  automationActions,
+  automationCapabilities,
+  automationResources,
+} from "./parts/automations.ts";
 import {
   workflowActions,
   workflowCapabilities,
@@ -31,20 +39,6 @@ const tableName = (description: string) =>
     .string()
     .regex(/^[a-z][a-z0-9_]*$/)
     .meta({ description, example: "records" });
-
-const CalendarFeedToken = z
-  .object({
-    calendar_feed_id: fields.ref("calendar feed"),
-    feed_token: z.string().min(1).meta({
-      description:
-        "The token of the feed's subscription URL. Shown once; only its hash is stored, and revoking the feed ends it.",
-      example: "cal_9fQ2mX4vT7kL1pR8",
-    }),
-  })
-  .meta({
-    id: "CalendarFeedToken",
-    description: "A newly created calendar feed and its subscription token, shown once.",
-  });
 
 /** The create verb as a collection action at the same path, answering `response` with 201. */
 const createAnswering =
@@ -66,9 +60,25 @@ const createAnswering =
   };
 
 export const additions = defineAdditions("Platform", {
-  resources: [...viewsHelpSupportResources, ...workflowResources, ...a36Resources],
-  actions: { ...workflowActions, ...a36Actions },
-  capabilities: { ...viewsHelpSupportCapabilities, ...workflowCapabilities, ...a36Capabilities },
+  resources: [
+    ...viewsHelpSupportResources,
+    ...workflowResources,
+    ...a36Resources,
+    ...a79Resources,
+    ...shareLinkResources,
+    ...a84Resources,
+    ...automationResources,
+  ],
+  actions: { ...workflowActions, ...a36Actions, ...a84Actions, ...automationActions },
+  capabilities: {
+    ...viewsHelpSupportCapabilities,
+    ...workflowCapabilities,
+    ...a36Capabilities,
+    ...a79Capabilities,
+    ...shareLinkCapabilities,
+    ...a84Capabilities,
+    ...automationCapabilities,
+  },
   corrections: [
     ...workflowCorrections,
     ...a36Corrections,

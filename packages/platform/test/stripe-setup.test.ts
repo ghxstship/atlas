@@ -21,6 +21,7 @@ function mockStripe() {
   const prices: Row[] = [];
   const coupons = new Map<string, Row>();
   const promotionCodes: Row[] = [];
+  const portals: Row[] = [];
   const writes: string[] = [];
   const missing = () => Object.assign(new Error("No such object"), { statusCode: 404 });
   const client = {
@@ -82,6 +83,23 @@ function mockStripe() {
         return params;
       },
     },
+    billingPortal: {
+      configurations: {
+        list: async () => ({ data: portals.filter((p) => p["active"] !== false) }),
+        create: async (params: Row) => {
+          writes.push("billingPortal.configurations.create");
+          const row = { ...params, id: `bpc_${String(portals.length + 1)}`, active: true };
+          portals.push(row);
+          return row;
+        },
+        update: async (id: string, params: Row) => {
+          writes.push(`billingPortal.configurations.update ${id}`);
+          const index = portals.findIndex((p) => p["id"] === id);
+          portals[index] = { ...portals[index], ...params };
+          return portals[index];
+        },
+      },
+    },
   };
   return {
     client: client as unknown as StripeCatalogClient,
@@ -89,6 +107,7 @@ function mockStripe() {
     prices,
     coupons,
     promotionCodes,
+    portals,
     writes,
   };
 }
@@ -206,6 +225,52 @@ describe("Stripe catalogue setup against a mocked Stripe client", () => {
       max_redemptions: 50,
       restrictions: { first_time_transaction: true },
     });
+  });
+
+  it("configures the customer portal to switch between the plan prices it created", async () => {
+    const stripe = mockStripe();
+    const report = await syncStripeCatalog(stripe.client, registry);
+    expect(report.items.at(-1)).toEqual({
+      kind: "portal_configuration",
+      key: "xos_billing_portal_v1",
+      action: "created",
+    });
+    expect(stripe.portals).toHaveLength(1);
+    const idOf = (key: string) => stripe.prices.find((p) => p["lookup_key"] === key)?.["id"];
+    expect(stripe.portals[0]).toMatchObject({
+      name: "XOS plans",
+      metadata: { xos_portal: "xos_billing_portal_v1" },
+      features: {
+        payment_method_update: { enabled: true },
+        invoice_history: { enabled: true },
+        subscription_cancel: { enabled: true, mode: "at_period_end" },
+        subscription_update: {
+          enabled: true,
+          default_allowed_updates: ["price", "promotion_code"],
+          proration_behavior: "create_prorations",
+          trial_update_behavior: "continue_trial",
+          products: ["core", "pro", "team"].map((code) => ({
+            product: `xos_plan_${code}_v4`,
+            prices: [idOf(`xos_plan_${code}_monthly_v4`), idOf(`xos_plan_${code}_annual_v4`)],
+          })),
+        },
+      },
+    });
+  });
+
+  it("brings a changed portal configuration back in place", async () => {
+    const stripe = mockStripe();
+    await syncStripeCatalog(stripe.client, registry);
+    for (const code of stripe.promotionCodes)
+      code["promotion"] = { coupon: "xos_founding_customer_v4" };
+    const portal = stripe.portals[0] as { features: { subscription_update: { enabled: boolean } } };
+    portal.features.subscription_update.enabled = false;
+    const dry = await syncStripeCatalog(stripe.client, registry, { dryRun: true });
+    expect(dry.items.at(-1)?.action).toBe("would update");
+    const report = await syncStripeCatalog(stripe.client, registry);
+    expect(report.items.at(-1)?.action).toBe("updated");
+    expect(stripe.writes.at(-1)).toBe("billingPortal.configurations.update bpc_1");
+    expect(stripe.portals).toHaveLength(1);
   });
 
   it("is idempotent: a second run writes nothing", async () => {

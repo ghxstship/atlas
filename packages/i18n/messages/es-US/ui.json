@@ -183,6 +183,7 @@
     "stages": "Etapas de la contratación"
   },
   "feedback": {
+    "failed": "Sus comentarios no se enviaron. Inténtelo de nuevo.",
     "hint": "Describa lo que esperaba y lo que vio.",
     "privacy": "Solo se envía lo que elija aquí. No se captura nada más.",
     "question": "¿Qué pasó?",
@@ -441,7 +442,8 @@
     "change": "Cambiar",
     "edit": "Editar",
     "press": "Presione las teclas",
-    "shortcut": "Atajo"
+    "shortcut": "Atajo",
+    "none": "Sin asignar"
   },
   "shortcuts": {
     "title": "Atajos de teclado"
@@ -476,7 +478,10 @@
   },
   "table": {
     "resizeColumn": "Cambiar el ancho de la columna {column}",
-    "total": "Total"
+    "row": "Fila {n}",
+    "total": "Total",
+    "selectAll": "Seleccionar todas las filas",
+    "selectRow": "Seleccionar {row}"
   },
   "timeline": {
     "critical": "ruta crítica",

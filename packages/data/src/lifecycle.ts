@@ -79,8 +79,18 @@ export interface ExportTable {
   readonly columns: readonly string[];
 }
 
-export function listExportTables(db: XosClient, orgId: string): Promise<Result<ExportTable[]>> {
-  return rpc(db, "org_export_tables", { p_org_id: orgId }, (data) =>
+/** As GET, which a read replica serves: org_export_tables is stable (migration 1063). */
+export async function listExportTables(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<ExportTable[]>> {
+  const { data, error } = await untyped(db).rpc(
+    "org_export_tables",
+    { p_org_id: orgId },
+    { get: true },
+  );
+  if (error) return fail(toDataError(error));
+  return ok(
     ((data as Raw[] | null) ?? []).map((r) => ({
       table: str(r["table_name"]),
       columns: Array.isArray(r["columns"]) ? (r["columns"] as unknown[]).map(str) : [],
@@ -196,6 +206,8 @@ export async function buildOrgExport(
   db: XosClient,
   org: { id: string; slug: string },
   now: Date = new Date(),
+  /** Downloads the stored files; the primary when `db` is a read replica, which serves no Storage. */
+  storageClient: XosClient = db,
 ): Promise<Result<OrgExport>> {
   const tables = await listExportTables(db, org.id);
   if (!tables.ok) return tables;
@@ -238,7 +250,9 @@ export async function buildOrgExport(
       omitted += 1;
       continue;
     }
-    const { data, error } = await db.storage.from("attachments").download(str(v["object_name"]));
+    const { data, error } = await storageClient.storage
+      .from("attachments")
+      .download(str(v["object_name"]));
     if (error || !data) {
       omitted += 1;
       continue;

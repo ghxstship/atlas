@@ -3,6 +3,7 @@ import { fail, ok, type Result } from "../result.ts";
 import { getOrgBrand } from "../settings.ts";
 import { documentTranslator, formatter } from "./format.ts";
 import type { DocumentKind, DocumentLogo, DocumentModel, Paper } from "./model.ts";
+import type { Orientation } from "./render.ts";
 import { isEmbeddableImage, renderDocumentPdf } from "./render.ts";
 import { loadDocumentData } from "./sources.ts";
 import { loadExternalDocumentData, type ExternalDocumentKind } from "./sources-external.ts";
@@ -31,6 +32,25 @@ export interface BuildOptions {
   readonly now?: Date;
   /** Defaults to the shipped templates; tests pass their own versions. */
   readonly registry?: TemplateRegistry;
+  /** The Section 8.6 watermark text for a Confidential or Restricted copy (see watermarkText). */
+  readonly watermark?: string;
+}
+
+/**
+ * The Section 8.6 watermark line: who received the copy and when, in the reader's language and the
+ * given time zone (UTC when the viewer's zone is unknown), for example
+ * "Downloaded by ana@example.com on Oct 20, 2026, 2:05 PM UTC".
+ */
+export function watermarkText(
+  messages: unknown,
+  locale: string,
+  email: string,
+  at: Date,
+  timeZone = "UTC",
+): string {
+  const t = documentTranslator(messages);
+  const f = formatter(locale, timeZone, t);
+  return t("facts.watermark", { email, time: f.dateTime(at.toISOString()) });
 }
 
 /** The model of one document from loaded record data. Pure, so tests and the veraPDF check use it. */
@@ -66,17 +86,103 @@ export function buildDocumentModel<K extends DocumentKind>(
       },
     },
     blocks: out.blocks,
+    ...(options.watermark ? { watermark: { text: options.watermark } } : {}),
   };
 }
 
-/** The org's brand for documents: display name, legal entity, accent and a PNG or JPEG logo. */
+export interface SharedImageInput {
+  readonly bytes: Uint8Array;
+  readonly filename: string;
+  readonly orgName: string;
+  readonly locale: string;
+  /** The `documents` namespace of the caller's catalog. */
+  readonly messages: unknown;
+  /** The page the copy was opened from; the QR code opens it again. */
+  readonly sourceUrl: string;
+  readonly watermark: string;
+  readonly paper?: Paper;
+  readonly now?: Date;
+}
+
+/** A download file name: the original name without its extension, letters, digits, dots and dashes. */
+export function watermarkedFileName(filename: string): string {
+  const base = filename.replace(/[.][A-Za-z0-9]+$/, "").replace(/[^A-Za-z0-9.-]+/g, "-");
+  return `${base.replace(/^-+|-+$/g, "") || "shared-image"}-watermarked.pdf`;
+}
+
+/**
+ * A Confidential or Restricted image delivered with the Section 8.6 watermark: the image in a tagged
+ * PDF/UA-1 page (ADR 0031) that carries the viewer email and time, so the unmarked file never leaves.
+ */
+export function sharedImageModel(input: SharedImageInput): DocumentModel {
+  const t = documentTranslator(input.messages);
+  const now = input.now ?? new Date();
+  const f = formatter(input.locale, "UTC", t);
+  return {
+    kind: "shared-image",
+    lang: input.locale,
+    title: t("sharedImage.title", { name: input.filename }),
+    brand: { name: input.orgName, legalEntity: null, accentHex: null, logo: null },
+    facts: {
+      recordKey: input.filename,
+      templateVersion: 1,
+      generatedAt: f.dateTime(now.toISOString()),
+      generatedAtIso: now.toISOString(),
+      recordUrl: input.sourceUrl,
+      labels: {
+        recordKey: t("sharedImage.file"),
+        version: t("facts.version"),
+        generatedAt: t("facts.generatedAt"),
+        qrAlt: t("sharedImage.qrAlt"),
+        page: (page, total) => t("facts.page", { page, total }),
+      },
+    },
+    blocks: [
+      {
+        kind: "image",
+        bytes: input.bytes,
+        alt: t("sharedImage.alt", { name: input.filename, org: input.orgName }),
+      },
+    ],
+    watermark: { text: input.watermark },
+  };
+}
+
+export async function renderSharedImagePdf(input: SharedImageInput): Promise<GeneratedDocument> {
+  const bytes = await renderDocumentPdf(sharedImageModel(input), {
+    paper: input.paper ?? "letter",
+  });
+  return { bytes, fileName: watermarkedFileName(input.filename), templateVersion: 1 };
+}
+
+/**
+ * The org's registered legal name (setting org.legal_name, Section 4.5.6 General), or null when unset or
+ * not readable by the caller (people outside the org fall back to the brand).
+ */
+export async function orgLegalName(db: XosClient, orgId: string): Promise<string | null> {
+  const { data, error } = await db
+    .from("setting_values")
+    .select("value_text")
+    .eq("org_id", orgId)
+    .eq("setting_key", "org.legal_name")
+    .eq("scope_kind", "Organization")
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data.value_text?.trim() || null;
+}
+
+/**
+ * The org's brand for documents: display name, legal entity, accent and a PNG or JPEG logo. The legal
+ * entity is the white-label legal entity name when set, else the org's registered legal name.
+ */
 export async function loadDocumentBrand(
   db: XosClient,
   orgId: string,
   fallbackName: string,
   logoAlt: (name: string) => string,
 ): Promise<DocumentBrand> {
-  const brand = await getOrgBrand(db, orgId);
+  const [brand, legalName] = await Promise.all([getOrgBrand(db, orgId), orgLegalName(db, orgId)]);
   const saved = brand.ok ? brand.data : null;
   const name = saved?.displayName?.trim() || fallbackName;
   let logo: DocumentLogo | null = null;
@@ -89,7 +195,7 @@ export async function loadDocumentBrand(
   }
   return {
     name,
-    legalEntity: saved?.legalEntityName?.trim() || null,
+    legalEntity: saved?.legalEntityName?.trim() || legalName,
     accentHex: saved?.accentHex ?? null,
     logo,
   };
@@ -110,6 +216,9 @@ export interface GenerateInput {
     readonly projectKey: string | null;
   }) => string;
   readonly now?: Date;
+  /** The Section 8.6 watermark text, set for Confidential and Restricted documents. */
+  readonly watermark?: string;
+  readonly orientation?: Orientation;
 }
 
 export interface GeneratedDocument {
@@ -163,9 +272,13 @@ async function renderLoaded<K extends DocumentKind>(
     brand,
     recordUrl: input.recordUrl({ recordKey, projectKey: project?.key || null }),
     now,
+    ...(input.watermark ? { watermark: input.watermark } : {}),
   });
   try {
-    const bytes = await renderDocumentPdf(model, { paper: input.paper });
+    const bytes = await renderDocumentPdf(model, {
+      paper: input.paper,
+      ...(input.orientation ? { orientation: input.orientation } : {}),
+    });
     return ok({
       bytes,
       fileName: documentFileName(kind, model.facts.recordKey, input.paper),

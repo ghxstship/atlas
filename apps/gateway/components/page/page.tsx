@@ -31,7 +31,8 @@ export function PageTitle({
           <p className="m-0 max-w-layout-reading text-text-14 text-text-secondary">{lead}</p>
         ) : null}
       </div>
-      {action ? <div className="flex flex-none items-center gap-8">{action}</div> : null}
+      {/* Actions wrap on a phone: Work's view switcher, feed link and calendar file overflow 375 px. */}
+      {action ? <div className="flex max-w-full flex-wrap items-center gap-8">{action}</div> : null}
     </header>
   );
 }

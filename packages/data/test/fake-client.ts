@@ -49,6 +49,12 @@ export function fakeClient(queues: Record<string, Response[]>) {
           calls.push(call);
           return builder(`from:${name}.${table}`, call.steps);
         },
+        /** Canon functions (`schema("xpms").rpc(f)`) queue under `rpc:xpms.<function>`. */
+        rpc(fn: string, args: unknown) {
+          const call: Call = { target: `rpc:${name}.${fn}`, steps: [["args", [args]]] };
+          calls.push(call);
+          return builder(`rpc:${name}.${fn}`, call.steps);
+        },
       };
     },
     from(table: string) {

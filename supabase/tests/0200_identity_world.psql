@@ -43,6 +43,23 @@ begin
   perform set_config('role', 'authenticated', true);
 end $$;
 
+-- A99 (S9-08, migration 1562): a user whose session passed a second factor a minute ago, for the acts that ask for
+-- step-up (assigning or removing someone else's role, creating an API key, changing billing).
+create function pg_temp.as_user_stepped_up(p_key text) returns void
+language plpgsql as $$
+declare
+  v_user uuid;
+begin
+  perform set_config('role', 'postgres', true);
+  select w.id into v_user from world w where w.key = p_key || '_user';
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', v_user, 'role', 'authenticated', 'aal', 'aal2',
+      'amr', json_build_array(
+        json_build_object('method', 'totp', 'timestamp', extract(epoch from now() - interval '1 minute')::bigint),
+        json_build_object('method', 'password', 'timestamp', extract(epoch from now() - interval '1 hour')::bigint)))::text, true);
+  perform set_config('role', 'authenticated', true);
+end $$;
+
 -- Claims of a user while keeping the postgres role, for calling private helpers directly.
 create function pg_temp.claims(p_key text) returns void
 language plpgsql as $$
@@ -128,9 +145,13 @@ begin
   perform pg_temp.as_user('paul');
   insert into world values ('org_p', app.create_organization('Bluewater Partners', 'bluewater-partners'));
 
-  -- Northwind Live runs on the Team plan; billing services change plans with the service role.
+  -- New orgs start a 14-day Pro trial (1350). Billing settles each fixture org with the service role: Northwind
+  -- Live and Bluewater Partners added a card on the Team plan, and Harbor Lights' trial ended on the Access plan.
   perform pg_temp.as_platform();
   update app.subscriptions set plan_code = 'team' where org_id in (pg_temp.id('org_a'), pg_temp.id('org_p'));
+  update app.subscriptions set plan_code = 'access' where org_id = pg_temp.id('org_b');
+  perform private.transition_subscription(s.id, 'trialing', 'active', 'Fixture: the trial ended.')
+  from app.subscriptions s where s.org_id in (pg_temp.id('org_a'), pg_temp.id('org_p'), pg_temp.id('org_b'));
   insert into world select 'alice@org_a', m.id from app.memberships m where m.person_id = pg_temp.id('alice');
   insert into world select 'xavier@org_b', m.id from app.memberships m where m.person_id = pg_temp.id('xavier');
   insert into world select 'paul@org_p', m.id from app.memberships m where m.person_id = pg_temp.id('paul');

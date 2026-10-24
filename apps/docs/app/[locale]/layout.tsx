@@ -38,6 +38,7 @@ function navigation(locale: Locale): NavGroup[] {
       items: [
         { label: t("nav.home"), href: `/${locale}` },
         { label: t("nav.reference"), href: `/${locale}/reference` },
+        { label: t("nav.dictionary"), href: `/${locale}/data-dictionary` },
         { label: t("nav.help"), href: `/${locale}/help` },
       ],
     },

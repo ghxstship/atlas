@@ -92,6 +92,17 @@ export interface Components {
     offline_result?: "Granted" | "Denied" | null;
   };
   AccessScanPage: { data: Array<Components["AccessScan"]>; next_cursor: string | null };
+  AccessibilityNeed:
+    | "Step-Free Access"
+    | "Accessible Parking"
+    | "Accessible Restroom"
+    | "Seating"
+    | "Sign Language Interpreter"
+    | "Captioning"
+    | "Large Print"
+    | "Service Animal"
+    | "Quiet Space"
+    | "Assistance on Arrival";
   AccountMembership: {
     id: string;
     created_at: string;
@@ -870,11 +881,38 @@ export interface Components {
     content_base64: string;
     file_name: string;
   };
-  AuroraFilterRequest: { sentence: string; collections: Array<string>; time_zone: string };
+  AuroraFilterRequest: {
+    sentence: string;
+    collections: Array<string>;
+    time_zone: string;
+    fields?: Array<{
+      name: string;
+      type: "string" | "number" | "date" | "boolean" | "enum";
+      values?: Array<string>;
+      description?: string;
+      ops?: Array<"eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains">;
+    }>;
+  };
   AuroraMapColumnsRequest: {
     collection: string;
     columns: Array<{ header: string; samples: Array<string> }>;
     fields: Array<{ name: string; description: string }>;
+  };
+  AuroraPreview: { records: Array<Components["AuroraPreviewRecord"]>; vocabulary_terms: number };
+  AuroraPreviewRecord: {
+    collection: string;
+    id: string;
+    sent: boolean;
+    fields: Array<string>;
+    withheld: Array<string>;
+    data: Record<string, unknown> | null;
+  };
+  AuroraPreviewRequest: {
+    feature: "drafting" | "summaries";
+    kind?: "record_activity" | "project_week" | "gate_readiness";
+    subject_collection?: string;
+    subject_id?: string;
+    items: Array<{ collection: string; id: string }>;
   };
   AuroraProposal: { suggestion_id: string; operation_id: string; summary: string };
   AuroraResult: {
@@ -899,6 +937,162 @@ export interface Components {
     subject_id: string;
     items: Array<{ collection: string; id: string }>;
   };
+  Automation: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    name: string;
+    description: string | null;
+    trigger_event_type: string;
+    condition_match: "all" | "any";
+    owner_person_id: string;
+    enabled: boolean;
+    paused_at: string | null;
+    pause_reason: string | null;
+    conditions: Components["AutomationConditions"];
+    actions: Components["AutomationActions"];
+  };
+  AutomationAction:
+    | {
+        type: "create_task";
+        title: string;
+        project_id?: string | null;
+        phase_code: string;
+        xyz: "X" | "Y" | "Z";
+        due_in_days?: number | null;
+      }
+    | {
+        type: "update_status";
+        to_state:
+          "Proposed" | "Ready" | "Scheduled" | "Active" | "In Review" | "Complete" | "Canceled";
+        note?: string | null;
+      }
+    | { type: "update_status"; to_state: "Blocked" | "Deferred"; note: string }
+    | { type: "assign"; assignee_person_id: string }
+    | { type: "add_comment"; body: string }
+    | { type: "notify"; recipient_person_id: string; title: string; body?: string | null }
+    | { type: "call_webhook"; webhook_endpoint_id: string };
+  AutomationActions: Array<Components["AutomationAction"]>;
+  AutomationCondition:
+    | {
+        field: string;
+        operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+        value: string;
+      }
+    | { field: string; operator: "in"; value: string }
+    | { field: string; operator: "is_null"; value?: "true" | "false" | null };
+  AutomationConditionResult: {
+    field: string;
+    operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains";
+    value: string | null;
+    actual?: unknown;
+    matched: boolean;
+  };
+  AutomationConditions:
+    | {
+        all: Array<
+          | {
+              field: string;
+              operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+              value: string;
+            }
+          | { field: string; operator: "in"; value: string }
+          | { field: string; operator: "is_null"; value?: "true" | "false" | null }
+          | { all: Array<Components["AutomationCondition"]> }
+          | { any: Array<Components["AutomationCondition"]> }
+        >;
+      }
+    | {
+        any: Array<
+          | {
+              field: string;
+              operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+              value: string;
+            }
+          | { field: string; operator: "in"; value: string }
+          | { field: string; operator: "is_null"; value?: "true" | "false" | null }
+          | { all: Array<Components["AutomationCondition"]> }
+          | { any: Array<Components["AutomationCondition"]> }
+        >;
+      };
+  AutomationCreate: {
+    name: string;
+    description?: string | null;
+    trigger_event_type: string;
+    enabled?: boolean;
+    conditions: Components["AutomationConditions"];
+    actions: Components["AutomationActions"];
+  };
+  AutomationNoticeRequest: { recipient_person_id: string; title: string; body?: string };
+  AutomationNoticeResult: { notification_id: string | null };
+  AutomationPage: { data: Array<Components["Automation"]>; next_cursor: string | null };
+  AutomationRun: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    automation_id: string;
+    domain_event_id: string;
+    parent_run_id: string | null;
+    depth: number;
+    run_status: "Queued" | "Running" | "Retrying" | "Succeeded" | "Failed" | "Skipped";
+    event_payload: Record<string, unknown>;
+    owner_person_id: string | null;
+    attempts: number;
+    error_code: string | null;
+    error_message: string | null;
+    started_at: string | null;
+    finished_at: string | null;
+    duration_ms: number | null;
+  };
+  AutomationRunPage: { data: Array<Components["AutomationRun"]>; next_cursor: string | null };
+  AutomationRunStep: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    automation_run_id: string;
+    automation_action_id: string | null;
+    position: number;
+    action_type:
+      "create_task" | "update_status" | "assign" | "add_comment" | "notify" | "call_webhook";
+    operation_id: string | null;
+    step_status: "Succeeded" | "Failed" | "Skipped";
+    request_body: Record<string, unknown> | null;
+    response_body: Record<string, unknown> | null;
+    http_status: number | null;
+    error_code: string | null;
+    error_message: string | null;
+    started_at: string;
+    finished_at: string;
+    duration_ms: number;
+  };
+  AutomationRunStepPage: {
+    data: Array<Components["AutomationRunStep"]>;
+    next_cursor: string | null;
+  };
+  AutomationTestRequest: { event: Record<string, unknown> };
+  AutomationTestResult: {
+    matched: boolean;
+    conditions: Array<Components["AutomationConditionResult"]>;
+  };
+  AutomationUpdate: {
+    name?: string;
+    description?: string | null;
+    trigger_event_type?: string;
+    enabled?: boolean;
+    conditions?: Components["AutomationConditions"];
+    actions?: Components["AutomationActions"];
+  };
+  AutomationWebhookRequest: { webhook_endpoint_id: string };
+  AutomationWebhookResult: { webhook_delivery_id: string };
   AvailabilityBlock: {
     id: string;
     created_at: string;
@@ -2384,7 +2578,39 @@ export interface Components {
     capability_code?: string | null;
     reason?: string;
   };
+  DeletionCertificate: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    deleted_org_id: string;
+    org_name: string;
+    org_slug: string;
+    basis: "cancellation" | "deletion_request";
+    requested_at: string;
+    due_at: string;
+    purged_at: string | null;
+    tables_purged: number | null;
+    rows_purged: number | null;
+    storage_objects_deleted: number;
+    document_sha256: string | null;
+    issued_at: string | null;
+    delivered_at: string | null;
+  };
+  DeletionCertificatePage: {
+    data: Array<Components["DeletionCertificate"]>;
+    next_cursor: string | null;
+  };
   DeptCode: string;
+  DietaryNeed:
+    | "Vegetarian"
+    | "Vegan"
+    | "Pescatarian"
+    | "Halal"
+    | "Kosher"
+    | "Gluten Free"
+    | "Dairy Free"
+    | "Nut Free"
+    | "Shellfish Free";
   DirectConversationRequest: { other_membership_id: string };
   DirectoryEntry: {
     membership_id: string;
@@ -2481,6 +2707,7 @@ export interface Components {
   };
   DocumentVersionCreate: { document_id: string; storage_uri: string; checksum_sha256: string };
   DocumentVersionPage: { data: Array<Components["DocumentVersion"]>; next_cursor: string | null };
+  DomainDnsRecord: { type: string; name: string; value: string; purpose: string };
   DoorGuest: {
     guest_list_entry_id: string;
     guest_name: string;
@@ -2527,6 +2754,51 @@ export interface Components {
     details?: string | null;
   };
   DsarRequestPage: { data: Array<Components["DsarRequest"]>; next_cursor: string | null };
+  EarnedMediaItem: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    title: string;
+    outlet: string;
+    medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+    published_on: string;
+    url: string | null;
+    reach: number | null;
+    tone: "Positive" | "Neutral" | "Negative" | null;
+    source: "Manual" | "Import" | "Integration";
+    source_reference: string | null;
+    note: string | null;
+  };
+  EarnedMediaItemCreate: {
+    project_id: string;
+    title: string;
+    outlet: string;
+    medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+    published_on: string;
+    url?: string | null;
+    reach?: number | null;
+    tone?: "Positive" | "Neutral" | "Negative" | null;
+    source?: "Manual" | "Import" | "Integration";
+    source_reference?: string | null;
+    note?: string | null;
+  };
+  EarnedMediaItemPage: { data: Array<Components["EarnedMediaItem"]>; next_cursor: string | null };
+  EarnedMediaItemUpdate: {
+    title?: string;
+    outlet?: string;
+    medium?: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+    published_on?: string;
+    url?: string | null;
+    reach?: number | null;
+    tone?: "Positive" | "Neutral" | "Negative" | null;
+    source?: "Manual" | "Import" | "Integration";
+    source_reference?: string | null;
+    note?: string | null;
+  };
   EarningCode: {
     id: string;
     org_id: string;
@@ -2570,6 +2842,35 @@ export interface Components {
     sort_order: number;
   };
   EmergencyCodePage: { data: Array<Components["EmergencyCode"]>; next_cursor: string | null };
+  EmergencyContact: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    person_id: string;
+    full_name: string;
+    relationship: string | null;
+    phone_e164: string;
+    alternate_phone_e164: string | null;
+    email: string | null;
+    sort_order: number;
+  };
+  EmergencyContactCreate: {
+    full_name: string;
+    relationship?: string | null;
+    phone_e164: string;
+    alternate_phone_e164?: string | null;
+    email?: string | null;
+    sort_order?: number;
+  };
+  EmergencyContactPage: { data: Array<Components["EmergencyContact"]>; next_cursor: string | null };
+  EmergencyContactUpdate: {
+    full_name?: string;
+    relationship?: string | null;
+    phone_e164?: string;
+    alternate_phone_e164?: string | null;
+    email?: string | null;
+    sort_order?: number;
+  };
   Engagement: {
     id: string;
     org_id: string;
@@ -2586,7 +2887,7 @@ export interface Components {
     activated_at: string | null;
     completed_at: string | null;
     application_id: string | null;
-    worker_classification: string;
+    worker_classification: string | null;
     pay_basis: string | null;
     arrangement: string | null;
     start_date: string;
@@ -2801,11 +3102,12 @@ export interface Components {
     post_kind: "Announcement" | "Update" | "Poll" | "Recognition";
     title: string | null;
     body: string;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id: string | null;
     team_id: string | null;
     role_id: string | null;
     group_id: string | null;
+    department_code: string | null;
     author_membership_id: string | null;
     pinned_at: string | null;
     requires_acknowledgment: boolean;
@@ -2820,11 +3122,12 @@ export interface Components {
     post_kind: "Announcement" | "Update" | "Poll" | "Recognition";
     title?: string | null;
     body: string;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string | null;
     team_id?: string | null;
     role_id?: string | null;
     group_id?: string | null;
+    department_code?: string | null;
     requires_acknowledgment: boolean;
     reactions_enabled: boolean;
     comments_enabled: boolean;
@@ -3024,6 +3327,7 @@ export interface Components {
     source: string;
   };
   FxRatePage: { data: Array<Components["FxRate"]>; next_cursor: string | null };
+  GarmentLetterSize: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL";
   GateEvidence: {
     id: string;
     org_id: string;
@@ -3402,6 +3706,33 @@ export interface Components {
   };
   ImportRowResultPage: { data: Array<Components["ImportRowResult"]>; next_cursor: string | null };
   ImportRowState: "Valid" | "Invalid" | "Written" | "Refused" | "Skipped";
+  InboundMessage: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    purpose: "Project Inbox" | "Reply";
+    inbound_address_id: string | null;
+    from_address: string;
+    subject_line: string | null;
+    body_text: string | null;
+    dkim_verified: boolean;
+    inbound_status: "Received" | "Verified" | "Filed" | "Rejected";
+    rejection_reason: string | null;
+    received_at: string;
+    filed_document_id: string | null;
+    filed_record_id: string | null;
+    filed_by: string | null;
+    filed_at: string | null;
+    discarded_at: string | null;
+    discarded_by: string | null;
+    discard_reason: string | null;
+  };
+  InboundMessageDiscardRequest: { reason?: string };
+  InboundMessageFileRequest: { title?: string; record_id?: string };
+  InboundMessagePage: { data: Array<Components["InboundMessage"]>; next_cursor: string | null };
   Incident: {
     id: string;
     org_id: string;
@@ -3976,6 +4307,7 @@ export interface Components {
     rank: number;
   };
   KnowledgeSourcePage: { data: Array<Components["KnowledgeSource"]>; next_cursor: string | null };
+  LeavePartnerRequest: { confirm_name: string };
   Limit: number;
   LineType: string;
   ListingReport: {
@@ -4063,6 +4395,30 @@ export interface Components {
     claimant_contact: string;
     proof_description: string;
   };
+  LoyaltyProgram: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    person_id: string;
+    program_kind: Components["LoyaltyProgramKind"];
+    program_name: string;
+    member_number: string;
+    sort_order: number;
+  };
+  LoyaltyProgramCreate: {
+    program_kind: Components["LoyaltyProgramKind"];
+    program_name: string;
+    member_number: string;
+    sort_order?: number;
+  };
+  LoyaltyProgramKind: "Airline" | "Hotel" | "Car Rental" | "Rail";
+  LoyaltyProgramPage: { data: Array<Components["LoyaltyProgram"]>; next_cursor: string | null };
+  LoyaltyProgramUpdate: {
+    program_kind?: Components["LoyaltyProgramKind"];
+    program_name?: string;
+    member_number?: string;
+    sort_order?: number;
+  };
   MarkAllReadResult: { updated_count: number };
   MarkConversationReadRequest: { muted?: boolean };
   MarketplaceListing: {
@@ -4129,6 +4485,40 @@ export interface Components {
     membership_count: number;
     engagement_count: number;
   };
+  MeasurementMetric: {
+    metric_code: string;
+    family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
+    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+    base_unit_code: string;
+    aggregation: "Sum" | "Latest";
+    is_derived: boolean;
+    lower_bound: number | null;
+    upper_bound: number | null;
+    canon_domain: string | null;
+    canon_item: string | null;
+    canon_value_numeric: number | null;
+    canon_value_text: string | null;
+    canon_qualifier: string | null;
+    ordinal: number;
+  };
+  MeasurementMetricPage: {
+    data: Array<Components["MeasurementMetric"]>;
+    next_cursor: string | null;
+  };
+  MeasurementMetricTag: { metric_code: string; tag_id: string; tag: string };
+  MeasurementMetricTagPage: {
+    data: Array<Components["MeasurementMetricTag"]>;
+    next_cursor: string | null;
+  };
+  MeasurementUnit: {
+    unit_code: string;
+    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+    factor_to_base: number;
+    unit_system: "Metric" | "Imperial" | "Either";
+    is_display: boolean;
+    ordinal: number;
+  };
+  MeasurementUnitPage: { data: Array<Components["MeasurementUnit"]>; next_cursor: string | null };
   MedicalEncounter: {
     id: string;
     org_id: string;
@@ -4702,6 +5092,25 @@ export interface Components {
     legal_entity_name?: string | null;
     suppress_powered_by?: boolean;
   };
+  OrgDeletionRequest: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    reason: string;
+    requested_at: string;
+    recover_until: string;
+    requested_by: string;
+    recovered_at: string | null;
+    recovered_by: string | null;
+  };
+  OrgDeletionRequestCreate: { confirm_name: string; reason: string };
+  OrgDeletionRequestPage: {
+    data: Array<Components["OrgDeletionRequest"]>;
+    next_cursor: string | null;
+  };
   OrgExport: {
     id: string;
     org_id: string;
@@ -4861,6 +5270,59 @@ export interface Components {
     min_dt_multiplier: number | null;
   };
   OvertimeRulePage: { data: Array<Components["OvertimeRule"]>; next_cursor: string | null };
+  OwnershipTransfer: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    from_person_id: string;
+    to_person_id: string;
+    previous_owner_outcome: "admin" | "leave";
+    offered_at: string;
+    expires_at: string;
+    accepted_at: string | null;
+    declined_at: string | null;
+    canceled_at: string | null;
+    canceled_by: string | null;
+    expired_at: string | null;
+  };
+  OwnershipTransferOfferRequest: {
+    to_person_id: string;
+    previous_owner_outcome: "admin" | "leave";
+  };
+  OwnershipTransferPage: {
+    data: Array<Components["OwnershipTransfer"]>;
+    next_cursor: string | null;
+  };
+  PartnerStandingGrant: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    partner_org_id: string;
+    capability_code: string;
+    agreement_reference: string;
+    valid_from: string;
+    valid_to: string;
+    record_grant_id: string;
+    ended_at: string | null;
+    ended_by: string | null;
+  };
+  PartnerStandingGrantPage: {
+    data: Array<Components["PartnerStandingGrant"]>;
+    next_cursor: string | null;
+  };
+  PartnerStandingGrantRecordRequest: {
+    capability_code: string;
+    valid_to: string;
+    agreement_reference: string;
+  };
+  PassportReveal: { passport_number: string };
+  PassportRevealRequest: { reason: string };
   PayPeriod: {
     id: string;
     org_id: string;
@@ -5041,7 +5503,27 @@ export interface Components {
   };
   PermitTrackRequest: { title?: string };
   PermitTransitionRequest: { expected_state: string; to_state: string; reason?: string };
-  Person: { id: string; created_at: string; updated_at: string; full_name: string | null };
+  Person: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    full_name: string | null;
+    given_name: string | null;
+    family_name: string | null;
+  };
+  PersonCalendarFeed: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    person_id: string;
+    token_hint: string;
+    last_accessed_at: string | null;
+    rotated_at: string | null;
+  };
+  PersonCalendarFeedPage: {
+    data: Array<Components["PersonCalendarFeed"]>;
+    next_cursor: string | null;
+  };
   PersonPage: { data: Array<Components["Person"]>; next_cursor: string | null };
   PersonProfile: {
     id: string;
@@ -5081,16 +5563,22 @@ export interface Components {
     handle?: string;
     preferred_name?: string | null;
   };
-  PersonUpdate: { full_name?: string | null };
+  PersonUpdate: {
+    full_name?: string | null;
+    given_name?: string | null;
+    family_name?: string | null;
+  };
   PhaseCode: string;
   PhaseCoverage: {
     phase_code: Components["PhaseCode"];
     active_element_count: number;
+    declared_gap: boolean;
     gate: number | null;
     phase: string | null;
     element_count: number | null;
     category_count: number | null;
     has_active_element: boolean | null;
+    declared_gap_reason: string | null;
   };
   PhaseCoveragePage: { data: Array<Components["PhaseCoverage"]>; next_cursor: string | null };
   PinFeedPostRequest: { pinned: boolean };
@@ -5169,11 +5657,12 @@ export interface Components {
   PollPostRequest: {
     body: string;
     title?: string;
-    audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string;
     team_id?: string;
     role_id?: string;
     group_id?: string;
+    department_code?: string;
     question: string;
     options: Array<string>;
     allows_multiple?: boolean;
@@ -5440,6 +5929,132 @@ export interface Components {
     project_key: string;
     time_zone: string;
     venue_id?: string | null;
+  };
+  ProjectInbox: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    local_part: string;
+    disabled_at: string | null;
+  };
+  ProjectInboxCreate: { project_id: string };
+  ProjectInboxPage: { data: Array<Components["ProjectInbox"]>; next_cursor: string | null };
+  ProjectMeasurement: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    metric_code: string;
+    measured_on: string;
+    value: number | null;
+    unit_code: string | null;
+    source: "Manual" | "Import" | "Integration";
+    source_reference: string | null;
+    source_uri: string | null;
+    note: string | null;
+  };
+  ProjectMeasurementCorrection: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_measurement_id: string;
+    correction_kind: "Corrected" | "Withdrawn" | "Restored";
+    previous_value: number | null;
+    previous_unit_code: string | null;
+    previous_measured_on: string;
+    value: number | null;
+    unit_code: string | null;
+    measured_on: string;
+    reason: string | null;
+  };
+  ProjectMeasurementCorrectionPage: {
+    data: Array<Components["ProjectMeasurementCorrection"]>;
+    next_cursor: string | null;
+  };
+  ProjectMeasurementCreate: {
+    project_id: string;
+    metric_code: string;
+    measured_on?: string;
+    value?: number | null;
+    unit_code?: string | null;
+    source?: "Manual" | "Import" | "Integration";
+    source_reference?: string | null;
+    source_uri?: string | null;
+    note?: string | null;
+  };
+  ProjectMeasurementPage: {
+    data: Array<Components["ProjectMeasurement"]>;
+    next_cursor: string | null;
+  };
+  ProjectMeasurementSummary: {
+    project_id: string;
+    metric_code: string;
+    family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
+    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+    base_unit_code: string;
+    aggregation: "Sum" | "Latest";
+    objective_id: string | null;
+    direction: "At Least" | "At Most" | null;
+    target_value: number | null;
+    target_unit_code: string | null;
+    target_base: number | null;
+    measured_count: number;
+    unmeasured_count: number;
+    measured_base: number | null;
+    last_measured_on: string | null;
+    outcome: "Met" | "Not Met" | "Incomplete" | "Unmeasured" | null;
+  };
+  ProjectMeasurementSummaryPage: {
+    data: Array<Components["ProjectMeasurementSummary"]>;
+    next_cursor: string | null;
+  };
+  ProjectMeasurementUpdate: {
+    measured_on?: string;
+    value?: number | null;
+    unit_code?: string | null;
+    source_reference?: string | null;
+    source_uri?: string | null;
+    note?: string | null;
+    correction_reason?: string;
+  };
+  ProjectObjective: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    metric_code: string;
+    direction: "At Least" | "At Most";
+    target_value: number;
+    unit_code: string;
+    note: string | null;
+  };
+  ProjectObjectiveCreate: {
+    project_id: string;
+    metric_code: string;
+    direction: "At Least" | "At Most";
+    target_value: number;
+    unit_code: string;
+    note?: string | null;
+  };
+  ProjectObjectivePage: { data: Array<Components["ProjectObjective"]>; next_cursor: string | null };
+  ProjectObjectiveUpdate: {
+    direction?: "At Least" | "At Most";
+    target_value?: number;
+    unit_code?: string;
+    note?: string | null;
   };
   ProjectPage: { data: Array<Components["Project"]>; next_cursor: string | null };
   ProjectPhaseTransition: {
@@ -6717,6 +7332,7 @@ export interface Components {
   };
   ScopeNodePage: { data: Array<Components["ScopeNode"]>; next_cursor: string | null };
   ScopeNodeUpdate: { scope_code?: string; name?: string; node_kind?: string };
+  SeatPreference: "Window" | "Aisle" | "No Preference";
   SeparationOfDutiesRule: { code: string; enforced_on: string; description: string };
   SeparationOfDutiesRulePage: {
     data: Array<Components["SeparationOfDutiesRule"]>;
@@ -6783,7 +7399,103 @@ export interface Components {
   SettingValuePage: { data: Array<Components["SettingValue"]>; next_cursor: string | null };
   SettingValueUpdate: { value?: string | number | boolean };
   SettleClaimRequest: { returned: boolean; note?: string };
+  ShareLink: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    attachment_id: string;
+    attachment_version_id: string | null;
+    classification: Components["Classification"];
+    access_code_required: boolean;
+    recipient_email: string | null;
+    note: string | null;
+    expires_at: string | null;
+    failed_attempts: number;
+    open_count: number;
+    last_opened_at: string | null;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  ShareLinkCreate: {
+    attachment_id: string;
+    access_code_required?: boolean;
+    recipient_email?: string | null;
+    note?: string | null;
+    expires_at?: string | null;
+  };
+  ShareLinkPage: { data: Array<Components["ShareLink"]>; next_cursor: string | null };
+  ShareLinkToken: {
+    share_link_id: string;
+    token: string;
+    access_code: string | null;
+    classification: Components["Classification"];
+    expires_at: string | null;
+  };
+  SharedAccessibilityNeeds: {
+    accessibility_needs: Array<Components["AccessibilityNeed"]>;
+    accessibility_notes: string | null;
+  };
+  SharedDietaryNeeds: {
+    dietary_needs: Array<Components["DietaryNeed"]>;
+    allergies: string | null;
+    dietary_notes: string | null;
+  };
+  SharedEmergencyContact: {
+    full_name: string;
+    relationship: string | null;
+    phone_e164: string;
+    alternate_phone_e164: string | null;
+    email: string | null;
+    sort_order: number;
+  };
+  SharedLoyaltyProgram: {
+    program_kind: Components["LoyaltyProgramKind"];
+    program_name: string;
+    member_number: string;
+  };
+  SharedPassport: {
+    passport_number: null;
+    passport_number_last4: string | null;
+    passport_number_masked: boolean;
+    passport_issuing_country: string | null;
+    passport_expires_on: string | null;
+    passport_name: string | null;
+  };
   SharedState: string;
+  SharedTravelProfile: {
+    seat_preference: Components["SeatPreference"] | null;
+    meal_preference: string | null;
+    home_airport: string | null;
+    loyalty_programs: Array<Components["SharedLoyaltyProgram"]>;
+  };
+  SharedUniformSizes: {
+    shirt_size: Components["GarmentLetterSize"] | null;
+    jacket_size: Components["GarmentLetterSize"] | null;
+    pants_size: string | null;
+    shoe_size: string | null;
+    glove_size: Components["GarmentLetterSize"] | null;
+    hat_size: string | null;
+    uniform_notes: string | null;
+  };
+  SharedWorkDetails: {
+    engagement_id: string;
+    person_id: string | null;
+    org_id: string;
+    work_detail_share_id: string | null;
+    shared_at: string | null;
+    sharing_open: boolean;
+    categories: Array<Components["WorkDetailCategory"]>;
+    readable: Array<Components["WorkDetailCategory"]>;
+    emergency_contacts: Array<Components["SharedEmergencyContact"]> | null;
+    uniform: Components["SharedUniformSizes"] | null;
+    dietary: Components["SharedDietaryNeeds"] | null;
+    accessibility: Components["SharedAccessibilityNeeds"] | null;
+    travel: Components["SharedTravelProfile"] | null;
+    passport: Components["SharedPassport"] | null;
+  };
   Shift: {
     id: string;
     org_id: string;
@@ -6802,6 +7514,26 @@ export interface Components {
     scope_node_id: string | null;
     time_zone: string;
     scheduled_break_minutes: number | null;
+  };
+  ShiftClaimResult: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    record_id: string | null;
+    role_code: Components["RoleCode"] | null;
+    engagement_id: string | null;
+    starts_at: string;
+    ends_at: string;
+    shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
+    membership_id: string | null;
+    scope_node_id: string | null;
+    time_zone: string;
+    scheduled_break_minutes: number | null;
+    claim: { id: string; claim_state: "Requested" } | null;
   };
   ShiftCreate: {
     project_id: string;
@@ -7313,6 +8045,12 @@ export interface Components {
     notes: string | null;
   };
   StdVerbiagePage: { data: Array<Components["StdVerbiage"]>; next_cursor: string | null };
+  SubjectCommentRequest: {
+    subject_table: string;
+    subject_id: string;
+    body: string;
+    anchor?: string;
+  };
   Subscription: {
     id: string;
     org_id: string;
@@ -7322,6 +8060,7 @@ export interface Components {
     updated_by: string | null;
     plan_code: string;
     subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
+    trial_ends_at: string | null;
     extra_seats: number;
     seats_grandfathered: boolean;
   };
@@ -7425,7 +8164,7 @@ export interface Components {
     updated_by: string | null;
     title: string;
     description: string | null;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id: string | null;
     team_id: string | null;
     role_id: string | null;
@@ -7439,7 +8178,7 @@ export interface Components {
   SurveyDraftRequest: {
     title: string;
     description?: string;
-    audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string;
     team_id?: string;
     role_id?: string;
@@ -8358,6 +9097,11 @@ export interface Components {
     verification_token: string;
     last_checked_at: string | null;
     auto_join_role_id: string | null;
+    provisioning_status:
+      "Not Started" | "Requested" | "Pending DNS" | "Active" | "Failed" | "Released";
+    dns_records: Array<Components["DomainDnsRecord"]>;
+    tls_ready: boolean;
+    provisioning_error: string | null;
   };
   VerifiedDomainCreate: {
     hostname: string;
@@ -8543,6 +9287,115 @@ export interface Components {
     data: Array<Components["WholesaleStatement"]>;
     next_cursor: string | null;
   };
+  WorkDetailCategory:
+    | "Emergency Contacts"
+    | "Uniform Sizes"
+    | "Dietary Needs"
+    | "Accessibility Needs"
+    | "Travel Profile"
+    | "Passport";
+  WorkDetailEvent: {
+    id: string;
+    person_id: string;
+    actor_person_id: string | null;
+    org_id: string | null;
+    engagement_id: string | null;
+    action: string;
+    categories: Array<Components["WorkDetailCategory"]>;
+    changed_columns: Array<string>;
+    reason: string | null;
+    created_at: string;
+  };
+  WorkDetailEventPage: { data: Array<Components["WorkDetailEvent"]>; next_cursor: string | null };
+  WorkDetailShare: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    engagement_id: string;
+    person_id: string;
+    consent_record_id: string;
+    categories: Array<Components["WorkDetailCategory"]>;
+    shared_at: string;
+    revoked_at: string | null;
+  };
+  WorkDetailShareCreate: {
+    engagement_id: string;
+    categories: Array<Components["WorkDetailCategory"]>;
+  };
+  WorkDetailSharePage: { data: Array<Components["WorkDetailShare"]>; next_cursor: string | null };
+  WorkDetailShareUpdate: { categories?: Array<Components["WorkDetailCategory"]> };
+  WorkDetails: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    person_id: string;
+    shirt_size: Components["GarmentLetterSize"] | null;
+    jacket_size: Components["GarmentLetterSize"] | null;
+    pants_size: string | null;
+    shoe_size: string | null;
+    glove_size: Components["GarmentLetterSize"] | null;
+    hat_size: string | null;
+    uniform_notes: string | null;
+    dietary_needs: Array<Components["DietaryNeed"]>;
+    allergies: string | null;
+    dietary_notes: string | null;
+    accessibility_needs: Array<Components["AccessibilityNeed"]>;
+    accessibility_notes: string | null;
+    seat_preference: Components["SeatPreference"] | null;
+    meal_preference: string | null;
+    home_airport: string | null;
+    passport_number: string | Components["Masked"] | null;
+    passport_number_last4: string | null;
+    passport_issuing_country: string | null;
+    passport_expires_on: string | null;
+    passport_name: string | null;
+  };
+  WorkDetailsCreate: {
+    shirt_size?: Components["GarmentLetterSize"] | null;
+    jacket_size?: Components["GarmentLetterSize"] | null;
+    pants_size?: string | null;
+    shoe_size?: string | null;
+    glove_size?: Components["GarmentLetterSize"] | null;
+    hat_size?: string | null;
+    uniform_notes?: string | null;
+    dietary_needs?: Array<Components["DietaryNeed"]>;
+    allergies?: string | null;
+    dietary_notes?: string | null;
+    accessibility_needs?: Array<Components["AccessibilityNeed"]>;
+    accessibility_notes?: string | null;
+    seat_preference?: Components["SeatPreference"] | null;
+    meal_preference?: string | null;
+    home_airport?: string | null;
+    passport_number?: string | null;
+    passport_issuing_country?: string | null;
+    passport_expires_on?: string | null;
+    passport_name?: string | null;
+  };
+  WorkDetailsPage: { data: Array<Components["WorkDetails"]>; next_cursor: string | null };
+  WorkDetailsUpdate: {
+    shirt_size?: Components["GarmentLetterSize"] | null;
+    jacket_size?: Components["GarmentLetterSize"] | null;
+    pants_size?: string | null;
+    shoe_size?: string | null;
+    glove_size?: Components["GarmentLetterSize"] | null;
+    hat_size?: string | null;
+    uniform_notes?: string | null;
+    dietary_needs?: Array<Components["DietaryNeed"]>;
+    allergies?: string | null;
+    dietary_notes?: string | null;
+    accessibility_needs?: Array<Components["AccessibilityNeed"]>;
+    accessibility_notes?: string | null;
+    seat_preference?: Components["SeatPreference"] | null;
+    meal_preference?: string | null;
+    home_airport?: string | null;
+    passport_number?: string | null;
+    passport_issuing_country?: string | null;
+    passport_expires_on?: string | null;
+    passport_name?: string | null;
+  };
   WorkOrder: {
     id: string;
     org_id: string;
@@ -8623,7 +9476,7 @@ export interface Components {
     location: string | null;
     venue_id: string | null;
     space_id: string | null;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id: string | null;
     team_id: string | null;
     role_id: string | null;
@@ -8642,7 +9495,7 @@ export interface Components {
     location?: string | null;
     venue_id?: string | null;
     space_id?: string | null;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string | null;
     team_id?: string | null;
     role_id?: string | null;
@@ -11932,7 +12785,7 @@ export interface Operations {
     params: { id: string };
     query: Record<string, never>;
     body: undefined;
-    responses: { 200: Components["Shift"] };
+    responses: { 200: Components["ShiftClaimResult"] };
   };
   "shiftSwaps.list": {
     module: "Crew";
@@ -18471,6 +19324,15 @@ export interface Operations {
     body: Components["CreateClientOrganizationRequest"];
     responses: { 201: Components["CreateClientOrganizationResult"] };
   };
+  "organizations.leavePartner": {
+    module: "Identity";
+    method: "post";
+    path: "/organizations/leave-partner";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["LeavePartnerRequest"];
+    responses: { 200: Components["Organization"] };
+  };
   "memberships.list": {
     module: "Identity";
     method: "get";
@@ -19046,6 +19908,15 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "verifiedDomains.check": {
+    module: "Identity";
+    method: "post";
+    path: "/verified-domains/{id}/check";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["VerifiedDomain"] };
   };
   "offboardingChecklists.list": {
     module: "Identity";
@@ -22035,6 +22906,15 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "comments.postOnSubject": {
+    module: "Platform";
+    method: "post";
+    path: "/comments/on-subject";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SubjectCommentRequest"];
+    responses: { 201: Components["Comment"] };
+  };
   "notifications.list": {
     module: "Platform";
     method: "get";
@@ -22170,6 +23050,15 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "calendarFeeds.rotate": {
+    module: "Platform";
+    method: "post";
+    path: "/calendar-feeds/{id}/rotate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["CalendarFeedToken"] };
+  };
   "trashItems.list": {
     module: "Platform";
     method: "get";
@@ -22301,6 +23190,243 @@ export interface Operations {
     };
     body: undefined;
     responses: { 200: Components["ProjectAuthorityPage"] };
+  };
+  "measurementMetrics.list": {
+    module: "Projects";
+    method: "get";
+    path: "/measurement-metrics";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["MeasurementMetricPage"] };
+  };
+  "measurementUnits.list": {
+    module: "Projects";
+    method: "get";
+    path: "/measurement-units";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["MeasurementUnitPage"] };
+  };
+  "measurementMetricTags.list": {
+    module: "Projects";
+    method: "get";
+    path: "/measurement-metric-tags";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["MeasurementMetricTagPage"] };
+  };
+  "projectObjectives.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-objectives";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectObjectivePage"] };
+  };
+  "projectObjectives.create": {
+    module: "Projects";
+    method: "post";
+    path: "/project-objectives";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectObjectiveCreate"];
+    responses: { 201: Components["ProjectObjective"] };
+  };
+  "projectObjectives.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-objectives/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectObjective"] };
+  };
+  "projectObjectives.update": {
+    module: "Projects";
+    method: "patch";
+    path: "/project-objectives/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ProjectObjectiveUpdate"];
+    responses: { 200: Components["ProjectObjective"] };
+  };
+  "projectObjectives.delete": {
+    module: "Projects";
+    method: "delete";
+    path: "/project-objectives/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "projectMeasurements.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurements";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementPage"] };
+  };
+  "projectMeasurements.create": {
+    module: "Projects";
+    method: "post";
+    path: "/project-measurements";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectMeasurementCreate"];
+    responses: { 201: Components["ProjectMeasurement"] };
+  };
+  "projectMeasurements.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurements/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurement"] };
+  };
+  "projectMeasurements.update": {
+    module: "Projects";
+    method: "patch";
+    path: "/project-measurements/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ProjectMeasurementUpdate"];
+    responses: { 200: Components["ProjectMeasurement"] };
+  };
+  "projectMeasurements.delete": {
+    module: "Projects";
+    method: "delete";
+    path: "/project-measurements/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "projectMeasurementCorrections.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurement-corrections";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementCorrectionPage"] };
+  };
+  "projectMeasurementCorrections.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurement-corrections/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementCorrection"] };
+  };
+  "earnedMediaItems.list": {
+    module: "Projects";
+    method: "get";
+    path: "/earned-media-items";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["EarnedMediaItemPage"] };
+  };
+  "earnedMediaItems.create": {
+    module: "Projects";
+    method: "post";
+    path: "/earned-media-items";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["EarnedMediaItemCreate"];
+    responses: { 201: Components["EarnedMediaItem"] };
+  };
+  "earnedMediaItems.get": {
+    module: "Projects";
+    method: "get";
+    path: "/earned-media-items/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["EarnedMediaItem"] };
+  };
+  "earnedMediaItems.update": {
+    module: "Projects";
+    method: "patch";
+    path: "/earned-media-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["EarnedMediaItemUpdate"];
+    responses: { 200: Components["EarnedMediaItem"] };
+  };
+  "earnedMediaItems.delete": {
+    module: "Projects";
+    method: "delete";
+    path: "/earned-media-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "projectMeasurementSummary.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurement-summary";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementSummaryPage"] };
   };
   "cueCalls.list": {
     module: "Show";
@@ -22695,6 +23821,15 @@ export interface Operations {
     body: Components["AuroraBindCodeRequest"];
     responses: { 200: Components["AuroraResult"] };
   };
+  "aurora.preview": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/preview";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraPreviewRequest"];
+    responses: { 200: Components["AuroraPreview"] };
+  };
   "aiSuggestions.list": {
     module: "Settings";
     method: "get";
@@ -22793,6 +23928,252 @@ export interface Operations {
     };
     body: undefined;
     responses: { 200: Components["AiUsagePage"] };
+  };
+  "workDetails.list": {
+    module: "Identity";
+    method: "get";
+    path: "/work-details";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WorkDetailsPage"] };
+  };
+  "workDetails.create": {
+    module: "Identity";
+    method: "post";
+    path: "/work-details";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WorkDetailsCreate"];
+    responses: { 201: Components["WorkDetails"] };
+  };
+  "workDetails.get": {
+    module: "Identity";
+    method: "get";
+    path: "/work-details/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WorkDetails"] };
+  };
+  "workDetails.update": {
+    module: "Identity";
+    method: "patch";
+    path: "/work-details/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["WorkDetailsUpdate"];
+    responses: { 200: Components["WorkDetails"] };
+  };
+  "workDetails.delete": {
+    module: "Identity";
+    method: "delete";
+    path: "/work-details/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "workDetails.revealPassport": {
+    module: "Identity";
+    method: "post";
+    path: "/work-details/{id}/reveal-passport";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["PassportReveal"] };
+  };
+  "emergencyContacts.list": {
+    module: "Identity";
+    method: "get";
+    path: "/emergency-contacts";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["EmergencyContactPage"] };
+  };
+  "emergencyContacts.create": {
+    module: "Identity";
+    method: "post";
+    path: "/emergency-contacts";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["EmergencyContactCreate"];
+    responses: { 201: Components["EmergencyContact"] };
+  };
+  "emergencyContacts.get": {
+    module: "Identity";
+    method: "get";
+    path: "/emergency-contacts/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["EmergencyContact"] };
+  };
+  "emergencyContacts.update": {
+    module: "Identity";
+    method: "patch";
+    path: "/emergency-contacts/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["EmergencyContactUpdate"];
+    responses: { 200: Components["EmergencyContact"] };
+  };
+  "emergencyContacts.delete": {
+    module: "Identity";
+    method: "delete";
+    path: "/emergency-contacts/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "loyaltyPrograms.list": {
+    module: "Identity";
+    method: "get";
+    path: "/loyalty-programs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["LoyaltyProgramPage"] };
+  };
+  "loyaltyPrograms.create": {
+    module: "Identity";
+    method: "post";
+    path: "/loyalty-programs";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["LoyaltyProgramCreate"];
+    responses: { 201: Components["LoyaltyProgram"] };
+  };
+  "loyaltyPrograms.get": {
+    module: "Identity";
+    method: "get";
+    path: "/loyalty-programs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["LoyaltyProgram"] };
+  };
+  "loyaltyPrograms.update": {
+    module: "Identity";
+    method: "patch";
+    path: "/loyalty-programs/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["LoyaltyProgramUpdate"];
+    responses: { 200: Components["LoyaltyProgram"] };
+  };
+  "loyaltyPrograms.delete": {
+    module: "Identity";
+    method: "delete";
+    path: "/loyalty-programs/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "workDetailShares.list": {
+    module: "Identity";
+    method: "get";
+    path: "/work-detail-shares";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WorkDetailSharePage"] };
+  };
+  "workDetailShares.create": {
+    module: "Identity";
+    method: "post";
+    path: "/work-detail-shares";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WorkDetailShareCreate"];
+    responses: { 201: Components["WorkDetailShare"] };
+  };
+  "workDetailShares.get": {
+    module: "Identity";
+    method: "get";
+    path: "/work-detail-shares/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WorkDetailShare"] };
+  };
+  "workDetailShares.update": {
+    module: "Identity";
+    method: "patch";
+    path: "/work-detail-shares/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["WorkDetailShareUpdate"];
+    responses: { 200: Components["WorkDetailShare"] };
+  };
+  "workDetailShares.revoke": {
+    module: "Identity";
+    method: "post";
+    path: "/work-detail-shares/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["WorkDetailShare"] };
+  };
+  "workDetailShares.details": {
+    module: "Identity";
+    method: "get";
+    path: "/work-detail-shares/{id}/details";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["SharedWorkDetails"] };
+  };
+  "workDetailShares.revealPassport": {
+    module: "Identity";
+    method: "post";
+    path: "/work-detail-shares/{id}/reveal-passport";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PassportRevealRequest"];
+    responses: { 200: Components["PassportReveal"] };
+  };
+  "workDetailEvents.list": {
+    module: "Identity";
+    method: "get";
+    path: "/work-detail-events";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WorkDetailEventPage"] };
   };
   "savedViewShares.list": {
     module: "Platform";
@@ -23297,6 +24678,495 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["WholesaleBillingRequest"];
     responses: { 201: Components["WholesaleStatement"] };
+  };
+  "ownershipTransfers.list": {
+    module: "Platform";
+    method: "get";
+    path: "/ownership-transfers";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["OwnershipTransferPage"] };
+  };
+  "ownershipTransfers.get": {
+    module: "Platform";
+    method: "get";
+    path: "/ownership-transfers/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.offer": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/offer";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["OwnershipTransferOfferRequest"];
+    responses: { 201: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.accept": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/{id}/accept";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.decline": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/{id}/decline";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.cancel": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/{id}/cancel";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "orgDeletionRequests.list": {
+    module: "Platform";
+    method: "get";
+    path: "/org-deletion-requests";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["OrgDeletionRequestPage"] };
+  };
+  "orgDeletionRequests.get": {
+    module: "Platform";
+    method: "get";
+    path: "/org-deletion-requests/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["OrgDeletionRequest"] };
+  };
+  "orgDeletionRequests.request": {
+    module: "Platform";
+    method: "post";
+    path: "/org-deletion-requests/request";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["OrgDeletionRequestCreate"];
+    responses: { 201: Components["OrgDeletionRequest"] };
+  };
+  "orgDeletionRequests.recover": {
+    module: "Platform";
+    method: "post";
+    path: "/org-deletion-requests/{id}/recover";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OrgDeletionRequest"] };
+  };
+  "deletionCertificates.list": {
+    module: "Platform";
+    method: "get";
+    path: "/deletion-certificates";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["DeletionCertificatePage"] };
+  };
+  "deletionCertificates.get": {
+    module: "Platform";
+    method: "get";
+    path: "/deletion-certificates/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["DeletionCertificate"] };
+  };
+  "partnerStandingGrants.list": {
+    module: "Platform";
+    method: "get";
+    path: "/partner-standing-grants";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["PartnerStandingGrantPage"] };
+  };
+  "partnerStandingGrants.get": {
+    module: "Platform";
+    method: "get";
+    path: "/partner-standing-grants/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["PartnerStandingGrant"] };
+  };
+  "partnerStandingGrants.record": {
+    module: "Platform";
+    method: "post";
+    path: "/partner-standing-grants/record";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["PartnerStandingGrantRecordRequest"];
+    responses: { 201: Components["PartnerStandingGrant"] };
+  };
+  "partnerStandingGrants.end": {
+    module: "Platform";
+    method: "post";
+    path: "/partner-standing-grants/{id}/end";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["PartnerStandingGrant"] };
+  };
+  "shareLinks.list": {
+    module: "Platform";
+    method: "get";
+    path: "/share-links";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ShareLinkPage"] };
+  };
+  "shareLinks.create": {
+    module: "Platform";
+    method: "post";
+    path: "/share-links";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShareLinkCreate"];
+    responses: { 201: Components["ShareLinkToken"] };
+  };
+  "shareLinks.get": {
+    module: "Platform";
+    method: "get";
+    path: "/share-links/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ShareLink"] };
+  };
+  "shareLinks.revoke": {
+    module: "Platform";
+    method: "post";
+    path: "/share-links/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ShareLink"] };
+  };
+  "personCalendarFeeds.list": {
+    module: "Platform";
+    method: "get";
+    path: "/person-calendar-feeds";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["PersonCalendarFeedPage"] };
+  };
+  "personCalendarFeeds.create": {
+    module: "Platform";
+    method: "post";
+    path: "/person-calendar-feeds";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 201: Components["CalendarFeedToken"] };
+  };
+  "personCalendarFeeds.get": {
+    module: "Platform";
+    method: "get";
+    path: "/person-calendar-feeds/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["PersonCalendarFeed"] };
+  };
+  "personCalendarFeeds.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/person-calendar-feeds/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "personCalendarFeeds.rotate": {
+    module: "Platform";
+    method: "post";
+    path: "/person-calendar-feeds/{id}/rotate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["CalendarFeedToken"] };
+  };
+  "projectInboxes.list": {
+    module: "Platform";
+    method: "get";
+    path: "/project-inboxes";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectInboxPage"] };
+  };
+  "projectInboxes.create": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectInboxCreate"];
+    responses: { 201: Components["ProjectInbox"] };
+  };
+  "projectInboxes.get": {
+    module: "Platform";
+    method: "get";
+    path: "/project-inboxes/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "projectInboxes.replace": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes/{id}/replace";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "projectInboxes.disable": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes/{id}/disable";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "inboundMessages.list": {
+    module: "Platform";
+    method: "get";
+    path: "/inbound-messages";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["InboundMessagePage"] };
+  };
+  "inboundMessages.get": {
+    module: "Platform";
+    method: "get";
+    path: "/inbound-messages/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["InboundMessage"] };
+  };
+  "inboundMessages.file": {
+    module: "Platform";
+    method: "post";
+    path: "/inbound-messages/{id}/file";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InboundMessageFileRequest"];
+    responses: { 200: Components["InboundMessage"] };
+  };
+  "inboundMessages.discard": {
+    module: "Platform";
+    method: "post";
+    path: "/inbound-messages/{id}/discard";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InboundMessageDiscardRequest"];
+    responses: { 200: Components["InboundMessage"] };
+  };
+  "automations.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automations";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationPage"] };
+  };
+  "automations.create": {
+    module: "Platform";
+    method: "post";
+    path: "/automations";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AutomationCreate"];
+    responses: { 201: Components["Automation"] };
+  };
+  "automations.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["Automation"] };
+  };
+  "automations.update": {
+    module: "Platform";
+    method: "patch";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationUpdate"];
+    responses: { 200: Components["Automation"] };
+  };
+  "automations.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "automations.test": {
+    module: "Platform";
+    method: "post";
+    path: "/automations/{id}/test";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationTestRequest"];
+    responses: { 200: Components["AutomationTestResult"] };
+  };
+  "automationRuns.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-runs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationRunPage"] };
+  };
+  "automationRuns.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-runs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AutomationRun"] };
+  };
+  "automationRuns.notify": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/notices";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationNoticeRequest"];
+    responses: { 201: Components["AutomationNoticeResult"] };
+  };
+  "automationRuns.deliverWebhook": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/webhook-deliveries";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationWebhookRequest"];
+    responses: { 201: Components["AutomationWebhookResult"] };
+  };
+  "automationRuns.retry": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/retry";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["AutomationRun"] };
+  };
+  "automationRunSteps.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-run-steps";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationRunStepPage"] };
+  };
+  "automationRunSteps.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-run-steps/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AutomationRunStep"] };
   };
   "workforceGroups.list": {
     module: "Workforce";
@@ -24890,7 +26760,28 @@ export interface ModuleOperations {
     | "gateEvidence.create"
     | "gateEvidence.get"
     | "gateEvidence.delete"
-    | "projectAuthorities.list";
+    | "projectAuthorities.list"
+    | "measurementMetrics.list"
+    | "measurementUnits.list"
+    | "measurementMetricTags.list"
+    | "projectObjectives.list"
+    | "projectObjectives.create"
+    | "projectObjectives.get"
+    | "projectObjectives.update"
+    | "projectObjectives.delete"
+    | "projectMeasurements.list"
+    | "projectMeasurements.create"
+    | "projectMeasurements.get"
+    | "projectMeasurements.update"
+    | "projectMeasurements.delete"
+    | "projectMeasurementCorrections.list"
+    | "projectMeasurementCorrections.get"
+    | "earnedMediaItems.list"
+    | "earnedMediaItems.create"
+    | "earnedMediaItems.get"
+    | "earnedMediaItems.update"
+    | "earnedMediaItems.delete"
+    | "projectMeasurementSummary.list";
   Activity: "activityEvents.list" | "activityEvents.get";
   Schedule:
     | "scheduleBaselines.list"
@@ -25978,6 +27869,7 @@ export interface ModuleOperations {
     | "aurora.summarize"
     | "aurora.mapColumns"
     | "aurora.bindCode"
+    | "aurora.preview"
     | "aiSuggestions.list"
     | "aiSuggestions.get"
     | "aiSuggestions.confirm"
@@ -26042,6 +27934,7 @@ export interface ModuleOperations {
     | "organizations.get"
     | "organizations.update"
     | "organizations.createClient"
+    | "organizations.leavePartner"
     | "memberships.list"
     | "memberships.get"
     | "memberships.leave"
@@ -26098,6 +27991,7 @@ export interface ModuleOperations {
     | "verifiedDomains.get"
     | "verifiedDomains.update"
     | "verifiedDomains.delete"
+    | "verifiedDomains.check"
     | "offboardingChecklists.list"
     | "offboardingChecklists.get"
     | "offboardingChecklists.update"
@@ -26119,7 +28013,31 @@ export interface ModuleOperations {
     | "blocks.list"
     | "blocks.create"
     | "blocks.get"
-    | "blocks.delete";
+    | "blocks.delete"
+    | "workDetails.list"
+    | "workDetails.create"
+    | "workDetails.get"
+    | "workDetails.update"
+    | "workDetails.delete"
+    | "workDetails.revealPassport"
+    | "emergencyContacts.list"
+    | "emergencyContacts.create"
+    | "emergencyContacts.get"
+    | "emergencyContacts.update"
+    | "emergencyContacts.delete"
+    | "loyaltyPrograms.list"
+    | "loyaltyPrograms.create"
+    | "loyaltyPrograms.get"
+    | "loyaltyPrograms.update"
+    | "loyaltyPrograms.delete"
+    | "workDetailShares.list"
+    | "workDetailShares.create"
+    | "workDetailShares.get"
+    | "workDetailShares.update"
+    | "workDetailShares.revoke"
+    | "workDetailShares.details"
+    | "workDetailShares.revealPassport"
+    | "workDetailEvents.list";
   Platform:
     | "customObjectTypes.list"
     | "customObjectTypes.create"
@@ -26203,6 +28121,7 @@ export interface ModuleOperations {
     | "comments.get"
     | "comments.update"
     | "comments.delete"
+    | "comments.postOnSubject"
     | "notifications.list"
     | "notifications.get"
     | "notifications.update"
@@ -26216,6 +28135,7 @@ export interface ModuleOperations {
     | "calendarFeeds.create"
     | "calendarFeeds.get"
     | "calendarFeeds.delete"
+    | "calendarFeeds.rotate"
     | "trashItems.list"
     | "trashItems.restore"
     | "templates.list"
@@ -26274,7 +28194,54 @@ export interface ModuleOperations {
     | "supportSessions.end"
     | "wholesaleStatements.list"
     | "wholesaleStatements.get"
-    | "wholesaleStatements.run";
+    | "wholesaleStatements.run"
+    | "ownershipTransfers.list"
+    | "ownershipTransfers.get"
+    | "ownershipTransfers.offer"
+    | "ownershipTransfers.accept"
+    | "ownershipTransfers.decline"
+    | "ownershipTransfers.cancel"
+    | "orgDeletionRequests.list"
+    | "orgDeletionRequests.get"
+    | "orgDeletionRequests.request"
+    | "orgDeletionRequests.recover"
+    | "deletionCertificates.list"
+    | "deletionCertificates.get"
+    | "partnerStandingGrants.list"
+    | "partnerStandingGrants.get"
+    | "partnerStandingGrants.record"
+    | "partnerStandingGrants.end"
+    | "shareLinks.list"
+    | "shareLinks.create"
+    | "shareLinks.get"
+    | "shareLinks.revoke"
+    | "personCalendarFeeds.list"
+    | "personCalendarFeeds.create"
+    | "personCalendarFeeds.get"
+    | "personCalendarFeeds.delete"
+    | "personCalendarFeeds.rotate"
+    | "projectInboxes.list"
+    | "projectInboxes.create"
+    | "projectInboxes.get"
+    | "projectInboxes.replace"
+    | "projectInboxes.disable"
+    | "inboundMessages.list"
+    | "inboundMessages.get"
+    | "inboundMessages.file"
+    | "inboundMessages.discard"
+    | "automations.list"
+    | "automations.create"
+    | "automations.get"
+    | "automations.update"
+    | "automations.delete"
+    | "automations.test"
+    | "automationRuns.list"
+    | "automationRuns.get"
+    | "automationRuns.notify"
+    | "automationRuns.deliverWebhook"
+    | "automationRuns.retry"
+    | "automationRunSteps.list"
+    | "automationRunSteps.get";
   Workforce:
     | "workforceGroups.list"
     | "workforceGroups.create"

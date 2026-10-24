@@ -73,14 +73,20 @@ function Defaults({
   );
 }
 
+/**
+ * Create template is the page's primary action until a template is open; then applying it is, and
+ * this form steps back to secondary, so the page keeps one primary action (A59-029).
+ */
 export function CreateTemplateForm({
   org,
   zones,
   currencies,
+  primary = true,
 }: {
   org: string;
   zones: readonly string[];
   currencies: readonly string[];
+  primary?: boolean;
 }) {
   const t = useWorkflowT();
   return (
@@ -89,6 +95,7 @@ export function CreateTemplateForm({
       hidden={{ org }}
       label={t("templates.create.label")}
       submitLabel={t("templates.create.submit")}
+      submitVariant={primary ? "primary" : "secondary"}
       success={t("templates.create.done")}
     >
       <Input name="name" label={t("templates.fields.name")} maxLength={200} required width="100%" />
@@ -370,7 +377,16 @@ export function RemoveItemButton({ org, id, name }: { org: string; id: string; n
   );
 }
 
-export function PublishButton({ org, versionId }: { org: string; versionId: string }) {
+/** Publishing is primary for a template with no published version, secondary beside Apply. */
+export function PublishButton({
+  org,
+  versionId,
+  primary = true,
+}: {
+  org: string;
+  versionId: string;
+  primary?: boolean;
+}) {
   const t = useWorkflowT();
   return (
     <ActionForm
@@ -378,6 +394,7 @@ export function PublishButton({ org, versionId }: { org: string; versionId: stri
       hidden={{ org, versionId }}
       label={t("templates.draft.publishLabel")}
       submitLabel={t("templates.draft.publish")}
+      submitVariant={primary ? "primary" : "secondary"}
       success={t("templates.draft.published")}
       inline
     />

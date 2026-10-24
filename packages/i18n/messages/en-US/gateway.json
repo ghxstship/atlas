@@ -26,7 +26,17 @@
       "account_role_band": "Only an Account Owner can grant or remove Account Owner.",
       "slug_taken": "That web address is already in use. Choose another.",
       "slug_reserved": "That web address is reserved. Choose another.",
-      "cross_org_reference": "That document belongs to another organization. Upload it again for this one."
+      "cross_org_reference": "That document belongs to another organization. Upload it again for this one.",
+      "personal_tokens_off": "That organization does not allow personal API tokens anymore.",
+      "personal_token_scope_not_held": "A token can only use areas you hold a capability in. Clear the others.",
+      "personal_token_limit": "You already have 10 active tokens there. Revoke one first.",
+      "personal_token_expiry": "Choose an expiry within one year.",
+      "personal_token_revoked": "This token is already revoked.",
+      "step_up_required": "Confirm it is you with your second factor, then try again.",
+      "sole_account_owner": "A company account keeps at least one Account Owner. Make someone else an Account Owner first.",
+      "notification_channel_outside": "A company sets Email and Push only.",
+      "supplier_diversity_no_program": "That organization does not run a supplier diversity program, so it takes no diversity certifications.",
+      "time_zone_unknown": "That time zone is not recognized. Choose one from the list, for example America/New_York."
     }
   },
   "common": {
@@ -37,6 +47,7 @@
     },
     "rateOnRequest": "Rate on Request",
     "unpriced": "Unpriced",
+    "unpaid": "Unpaid",
     "noDate": "Dates to be confirmed",
     "open": "Open",
     "view": "View",
@@ -102,11 +113,6 @@
       "rate": "Your rate",
       "rateHidden": "Shown while money is open on this engagement",
       "payBasis": "Pay basis",
-      "engagement": "Engagement",
-      "package": "Package",
-      "contractValue": "Contract value",
-      "billingBasis": "Billing basis",
-      "sponsorshipFee": "Sponsorship fee",
       "approvalsWaiting": "Approvals waiting",
       "approvalsCount": "{n, plural, =0 {None} other {#}}",
       "entitlements": "Entitlements",
@@ -768,11 +774,22 @@
       "approved": "Approved",
       "returned": "Returned",
       "canceled": "Canceled"
+    },
+    "supplierDiversityKind": {
+      "minorityOwned": "Minority-owned business",
+      "womenOwned": "Women-owned business",
+      "veteranOwned": "Veteran-owned business",
+      "serviceDisabledVeteranOwned": "Service-disabled veteran-owned business",
+      "disabilityOwned": "Disability-owned business",
+      "lgbtqOwned": "LGBTQ+-owned business",
+      "smallDisadvantagedBusiness": "Small disadvantaged business",
+      "hubzone": "HUBZone business",
+      "other": "Other certification"
     }
   },
   "explore": {
     "title": "Explore",
-    "lead": "Opportunities open to you, soonest deadline first. Pay is always shown before you apply.",
+    "lead": "Opportunities open to you, best match first. Pay is always shown before you apply.",
     "searchLabel": "Search opportunities",
     "searchHint": "Search roles, skills or organizations",
     "search": "Search",
@@ -814,7 +831,7 @@
     },
     "alerts": {
       "title": "Alerts",
-      "lead": "Saved searches. Each sends an email and a push notification when a new opportunity matches.",
+      "lead": "New opportunities your saved searches matched, then the searches themselves. Each match sends an email and a push notification, as you set in Settings, Notifications.",
       "empty": "No saved searches yet. Search in Explore, then save the search to get alerts.",
       "emptyAction": "Search opportunities",
       "on": "Alerts on",
@@ -823,7 +840,12 @@
       "turnOn": "Turn on",
       "remove": "Remove",
       "run": "Run search",
-      "any": "Any role type"
+      "any": "Any role type",
+      "matches": "Recent matches",
+      "noMatches": "No matches yet. When an organization publishes an opportunity that matches a saved search, it appears here.",
+      "matchedBy": "Matched {name} on {date}",
+      "searches": "Saved searches",
+      "within": "Within {km} km of {place}"
     },
     "detail": {
       "pay": "Pay",
@@ -924,12 +946,37 @@
     },
     "ranking": {
       "title": "How ranking works",
-      "lead": "Explore orders opportunities by two public factors only. No organization can pay for placement.",
+      "lead": "Explore lists only opportunities organizations made visible to you, in one of two orders you choose. No organization can pay for placement.",
       "factor1": "The application deadline: the soonest deadline comes first, so you never miss one.",
       "factor2": "The start date: among equal deadlines, the work that starts first comes first.",
       "visibility": "You see an opportunity only when the organization made it visible to you: by invitation, through its talent or vendor pools, to people who completed work with it, or to the whole marketplace.",
       "filters": "Your filters narrow the list; they never reorder it.",
-      "back": "Back to Explore"
+      "back": "Back to Explore",
+      "recommendedTitle": "Best match",
+      "recommendedLead": "Each opportunity gets a score out of 100 from your own profile. Nothing an organization pays for counts.",
+      "factors": {
+        "skills": {
+          "title": "Skills, up to {points} points.",
+          "body": "Full points when the opportunity's category is one of your profile skills, 25 when it is in the same discipline, and 10 when it is in the same department."
+        },
+        "certifications": {
+          "title": "Certifications, up to {points} points.",
+          "body": "The share of required certifications you hold, on a current organization record or listed on your profile with the same name. An opportunity that requires none has nothing missing. The organization still checks certifications during onboarding."
+        },
+        "location": {
+          "title": "Location, up to {points} points.",
+          "body": "When you search near a place: full points within 50 km and 10 within 150 km. Otherwise: full points when the venue is in your profile's city, 5 when it is in your country."
+        },
+        "availability": {
+          "title": "Availability, up to {points} points.",
+          "body": "Full points when none of your unavailable days fall on the work dates, half when the opportunity has no dates yet."
+        }
+      },
+      "ties": "Equal scores keep the soonest deadline first, then the earliest start.",
+      "soonestTitle": "Soonest deadline",
+      "neverTitle": "What never counts",
+      "never": "Payment, plan, ads or anything else an organization pays for. Your protected characteristics. Who passed on or saved an opportunity.",
+      "passed": "Opportunities you pass on leave your results until you undo the pass. Organizations never see who passed."
     },
     "organizations": {
       "tab": "Organizations",
@@ -940,6 +987,45 @@
       "emptyAction": "Back to opportunities",
       "listLabel": "Organizations",
       "open": "{n, plural, =0 {No open opportunities} one {# open opportunity} other {# open opportunities}}"
+    },
+    "sortLabel": "Order",
+    "sort": {
+      "recommended": "Best match",
+      "soonest": "Soonest deadline"
+    },
+    "discipline": "Discipline",
+    "disciplineAny": "Any discipline",
+    "category": "Category",
+    "categoryAny": "Any category in the discipline",
+    "certification": "Required certification",
+    "certificationHelp": "Shows opportunities that require it, for example ETCP Rigger.",
+    "near": "Near",
+    "nearAny": "Anywhere",
+    "nearHelp": "Places with opportunities open to you. Venues without a location are left out.",
+    "radius": "Within",
+    "radiusOption": "{km} km",
+    "showPassed": "Show opportunities you passed on",
+    "distance": "{km} km away",
+    "why": {
+      "label": "Why it matches",
+      "skills": "Matches your skills",
+      "discipline": "Close to your skills",
+      "certifications": "You meet the certifications",
+      "near": "Near you",
+      "available": "Fits your availability"
+    },
+    "swipe": {
+      "actions": "Actions for {title}",
+      "save": "Save",
+      "saved": "Saved. Find it under Saved.",
+      "unsave": "Unsave",
+      "unsaved": "Removed from Saved.",
+      "pass": "Pass",
+      "passed": "You passed on {title}.",
+      "restored": "Back in your results.",
+      "removed": "Removed {title}.",
+      "undo": "Undo",
+      "failed": "That did not go through. Reload the page and try again."
     }
   },
   "home": {
@@ -987,7 +1073,11 @@
         "invoiceSubmitted": "{orgName} received invoice {title}",
         "invoiceApproved": "{orgName} approved invoice {title}",
         "invoiceScheduled": "{orgName} scheduled a payment for invoice {title}",
-        "invoicePaid": "{orgName} paid invoice {title}"
+        "invoicePaid": "{orgName} paid invoice {title}",
+        "opportunityMatched": "New match for {searchName}: {title}",
+        "onboardingExpiring": "{title} for {orgName} expires on {expiresOn}",
+        "certificationExpiring": "Your {title} certification expires on {expiresOn}",
+        "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}"
       }
     }
   },
@@ -1092,6 +1182,18 @@
         "bio": "Next: write a short bio",
         "languages": "Next: add the languages you speak",
         "links": "Next: add a link to your work"
+      },
+      "missingTitle": "{n, plural, one {One thing missing} other {# things missing}}",
+      "missing": {
+        "headline": "Add a headline",
+        "skills": "Add your skills",
+        "city": "Add your city",
+        "certifications": "Add a certification",
+        "rate": "Set your rate",
+        "availability": "Mark your availability",
+        "bio": "Write a short bio",
+        "languages": "Add the languages you speak",
+        "links": "Add a link to your work"
       }
     },
     "certifications": {
@@ -1251,7 +1353,7 @@
       "accessibility": "Motion, contrast and reading preferences.",
       "notifications": "How organizations reach you.",
       "outOfOffice": "When you are away and what organizations see then.",
-      "workDetails": "Facts about how you work.",
+      "workDetails": "Emergency contacts, sizes, needs and travel details, and which engagements see them.",
       "payoutAndTax": "Where organizations pay you and the tax forms you gave them.",
       "calendarFeeds": "Your work in your own calendar.",
       "connectedApps": "Apps connected to your account.",
@@ -1362,10 +1464,6 @@
       "proposeNote": "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway."
     },
     "notes": {
-      "workDetails": "Your work details come from your profile: skills, certifications, rates and availability.",
-      "toProfile": "Edit profile",
-      "calendarFeeds": "Add every shift, set time and deadline to your calendar from Upcoming.",
-      "toUpcoming": "Open Upcoming",
       "connectedApps": "No apps are connected to your account. Organizations connect their own tools in Atlas.",
       "toOrganizations": "See your accounts",
       "notifications": "Organizations reach you by email and push for offers, documents to sign, payments and messages. Quiet hours and language follow your preferences.",
@@ -1389,6 +1487,14 @@
         "finance": {
           "label": "Invoices and payments",
           "help": "Each step of your invoices: received, approved, payment scheduled and paid. Updates always show on Home."
+        },
+        "opportunities": {
+          "label": "Opportunities",
+          "help": "New opportunities that match your saved searches, as Explore Alerts lists them."
+        },
+        "expiry_reminders": {
+          "label": "Expiry reminders",
+          "help": "Certifications, documents, your passport and onboarding items that expire in 30, 7 and 1 days."
         }
       },
       "errors": {
@@ -1400,6 +1506,62 @@
       "confirmTitle": "Delete your account now?",
       "confirmBody": "This cannot be undone. Your sign-in, name and profile are erased at once, and every organization you work with is told.",
       "cancel": "Keep my account"
+    },
+    "calendarFeeds": {
+      "title": "Calendar feeds",
+      "description": "Subscribe from Google Calendar, Apple Calendar or Outlook to see your published shifts and the meetings, milestones and deadlines shared with you, across every organization you work with. Calendars refresh it about once an hour.",
+      "secret": "Anyone with a feed's link can read it, so keep the link private. If it gets out, get a new link or revoke the feed.",
+      "none": "You have no calendar feeds yet.",
+      "listLabel": "Your calendar feeds",
+      "feedName": "My work",
+      "hint": "Link ending in {hint}",
+      "created": "Added {date}",
+      "lastFetched": "Last fetched {date}",
+      "neverFetched": "No calendar has fetched it yet",
+      "rotated": "New link issued {date}",
+      "add": "Add a feed",
+      "rotate": "Get a new link",
+      "rotateLabel": "Get a new link for the feed ending in {hint}",
+      "rotateConfirm": "The current link stops working at once. Calendars subscribed to it stop updating until you subscribe again with the new link.",
+      "revoke": "Revoke",
+      "revokeLabel": "Revoke the feed ending in {hint}",
+      "revokeConfirm": "The link stops working at once and cannot be turned back on.",
+      "linkTitle": "Your feed link",
+      "linkHelp": "Copy the link now. It is shown only once; after you leave this page you can only get a new one.",
+      "linkLabel": "Subscription link",
+      "copy": "Copy link",
+      "copied": "Link copied.",
+      "openInCalendar": "Open in my calendar app",
+      "subscribe": "Subscribe in a calendar app",
+      "errors": {
+        "calendar_feed_limit": "You have 20 feeds. Revoke one before you add another.",
+        "denied": "That feed is not available to you.",
+        "unexpected": "Something went wrong. Try again."
+      }
+    },
+    "surfaces": {
+      "errors": {
+        "jurisdiction": "Choose a jurisdiction from the list.",
+        "category": "Choose a category from the list.",
+        "member": "Choose a team member."
+      }
+    },
+    "quietHours": {
+      "title": "Quiet hours",
+      "help": "Push notifications from organizations you are not a member of wait until your quiet hours end. Safety alerts, changes to your sign-in security, a recovery code used on your account and a new or changed shift starting within 12 hours still reach you. Email is never held.",
+      "start": "Start",
+      "end": "End",
+      "zone": "Time zone",
+      "save": "Save quiet hours",
+      "saved": "Saved. Pushes wait out these hours.",
+      "errors": {
+        "zone": "Choose your time zone, for example America/New_York.",
+        "pair": "Set both a start and an end, or leave both blank to turn quiet hours off.",
+        "time": "Enter the start and end as times, for example 22:00.",
+        "same": "Choose an end time different from the start.",
+        "denied": "Quiet hours could not be saved for your account. Sign in again and retry.",
+        "unexpected": "Something went wrong saving your quiet hours. Try again in a moment."
+      }
     }
   },
   "shell": {
@@ -1424,9 +1586,15 @@
     "locales": {
       "en-US": "English (US)",
       "es-US": "Español (EE. UU.)",
+      "fr-FR": "Français",
+      "de-DE": "Deutsch",
+      "it-IT": "Italiano",
+      "pt-BR": "Português (Brasil)",
+      "ja-JP": "日本語",
       "en-XA": "Pseudo-locale (accented)",
       "ar-XB": "Pseudo-locale (right to left)"
     },
+    "betaLocale": "{language} (Beta)",
     "switchOrg": {
       "title": "Switch org",
       "body": "Pick the organization to focus on. Every organization you work with stays in Work and Messages.",
@@ -1463,7 +1631,8 @@
       "fullName": "Full name",
       "email": "Email",
       "password": "Password",
-      "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names."
+      "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
+      "age": "I am 16 or older."
     },
     "or": "or",
     "usePassword": "Use a password",
@@ -1534,7 +1703,8 @@
       "email": "Enter an email address like name@company.com.",
       "password": "Enter a password of at least 12 characters with letters and numbers.",
       "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway.",
-      "terms": "Accept the Worker Terms to create your account: tick the box above the button."
+      "terms": "Accept the Worker Terms to create your account: tick the box above the button.",
+      "age": "Confirm that you are 16 or older. XOS accounts are for people 16 and over."
     }
   },
   "work": {
@@ -1608,5 +1778,39 @@
   "legal": {
     "inReview": "Version {version} is in review and not yet in effect. The published text appears here when it takes effect.",
     "back": "Go to Gateway"
+  },
+  "diversity": {
+    "title": "Supplier diversity",
+    "lead": "Optional and self-declared. Each certification is shared only with an organization you choose that runs a supplier diversity program, by separate consent you can revoke here at any time.",
+    "empty": "No supplier diversity certifications yet.",
+    "noPrograms": "None of the organizations you work with or applied to runs a supplier diversity program yet.",
+    "numberLast4": "Number ending {last4}",
+    "remove": "Remove",
+    "sharedWith": "Shared with",
+    "sharedOn": "Shared on {date}",
+    "notShared": "Not shared with any organization.",
+    "revoke": "Revoke",
+    "shareLabel": "Share this certification",
+    "shareWith": "Share with",
+    "share": "Share",
+    "shared": "Shared.",
+    "consent": "You consent to this organization reading this certification for its supplier diversity program. Revoke at any time.",
+    "add": "Add certification",
+    "added": "Added.",
+    "kind": "Certification",
+    "certifyingBody": "Certified by",
+    "certifyingBodyHelp": "For example a state DBE program or the SBA. Write Self-declared when nobody certified it.",
+    "number": "Certificate number",
+    "numberHelp": "Optional. Stored as restricted data: only its last four characters show here.",
+    "issuedOn": "Issued",
+    "expiresOn": "Expires",
+    "errors": {
+      "kind": "Choose the kind of certification.",
+      "certifyingBody": "Enter who certified it, or Self-declared.",
+      "certificateNumber": "Keep the certificate number under 100 characters.",
+      "issuedOn": "Enter the issue date as a date.",
+      "expiresOn": "Choose an expiry date on or after the issue date.",
+      "orgId": "Choose the organization to share with."
+    }
   }
 }

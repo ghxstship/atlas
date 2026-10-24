@@ -1,10 +1,17 @@
 {
   "choose": "Choose an option",
-  "lock": "Lock this value so workspaces, projects and people cannot change it",
+  "lock": "Workspaces, projects and people cannot change a locked value.",
   "save": "Save",
   "saved": "Saved.",
   "inherit": "Use the inherited value",
   "reset": "Reset to the platform default",
+  "undoReset": "Keep this value",
+  "resetPending": "Resets to the platform default when you save.",
+  "inheritPending": "Uses the inherited value when you save.",
+  "lockValue": "Lock value",
+  "discard": "Discard",
+  "unsaved": "{count, plural, one {# unsaved change} other {# unsaved changes}}",
+  "chosen": "{count, number} of {total, number} chosen",
   "loadFailed": "These settings could not be loaded. Reload the page to try again.",
   "registryHeading": "Settings on this page",
   "personalSections": "Personal settings sections",
@@ -65,7 +72,7 @@
     "ip_allowlist_self_lockout": "Your current address is outside every listed network. Add it first, or you would lose access.",
     "ip_allowlist_empty": "Add at least one network before turning the allow-list on.",
     "plan_feature_ip_allowlist": "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
-    "setting_not_enforced": "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone."
+    "setting_fixed": "This setting is fixed and cannot be changed."
   },
   "fields": {
     "legalName": {
@@ -74,7 +81,7 @@
     },
     "defaultWorkspace": {
       "label": "Default workspace",
-      "help": "New members start in this workspace."
+      "help": "New members join this workspace."
     },
     "startPage": {
       "label": "Start page",
@@ -90,19 +97,19 @@
     },
     "invoicePrefix": {
       "label": "Invoice number prefix",
-      "help": "Up to 12 characters placed before each invoice number, for example INV-."
+      "help": "Up to 12 characters placed before each new invoice number, for example INV-."
     },
     "mfaPolicy": {
       "label": "Multi-factor authentication",
-      "help": "Who must use a second factor to sign in. Not available yet: XOS does not enforce it, so it stays Optional."
+      "help": "Who must use a second factor. Anyone it applies to sets one up, or verifies the one they have, before opening the organization."
     },
     "sessionHours": {
       "label": "Session length in hours",
-      "help": "How long a sign-in lasts before the person signs in again. Not available yet: XOS does not enforce it, so it stays at 336 hours."
+      "help": "How long a sign-in lasts before the person signs in again, from 1 to 720 hours."
     },
     "idleTimeout": {
       "label": "Idle timeout in minutes",
-      "help": "Sign out after this many minutes without activity. Not available yet: XOS does not enforce it, so it stays at 60 minutes."
+      "help": "Sign out after this many minutes without activity, from 5 to 1,440."
     },
     "ipAllowlist": {
       "label": "Enforce the IP allow-list",
@@ -126,11 +133,11 @@
     },
     "recordKeyFormat": {
       "label": "Record key format",
-      "help": "Use {PROJECT} and {SEQ}, for example {PROJECT}-{SEQ}."
+      "help": "Use '{PROJECT}' and '{SEQ}', for example '{PROJECT}'-'{SEQ}'."
     },
     "numberPadding": {
       "label": "Number padding",
-      "help": "Digits in each document number, from 1 to 10. Four gives 0042."
+      "help": "Digits in each document number, from 1 to 10. Four gives 0042. The invoice prefix and this padding are the numbers you can customize; record keys like NWS-42 are fixed."
     },
     "rounding": {
       "label": "Punch rounding",
@@ -138,11 +145,11 @@
     },
     "photoOnPunch": {
       "label": "Photo on punch",
-      "help": "Ask for a photo at every clock-in and clock-out."
+      "help": "Ask kiosks for a photo at every clock-in and clock-out."
     },
     "geofenceRequired": {
       "label": "Require the geofence",
-      "help": "Refuse clock-ins outside the project's geofence."
+      "help": "Refuse phone and web clock-ins outside the project's geofence. Kiosks are exempt."
     },
     "kioskEnabled": {
       "label": "Kiosk clock-in",
@@ -150,7 +157,7 @@
     },
     "openShiftClaiming": {
       "label": "Open shift claiming",
-      "help": "How crew claim open shifts."
+      "help": "How crew claim open shifts: the first to claim gets it, a supervisor approves, or the most senior claimant gets it."
     },
     "allowSwaps": {
       "label": "Allow shift swaps",
@@ -158,27 +165,27 @@
     },
     "swapApproval": {
       "label": "Swaps need approval",
-      "help": "A supervisor approves each swap before it takes effect."
+      "help": "A supervisor approves each swap before it takes effect. When off, the person offered the shift accepts it."
     },
     "payPeriod": {
       "label": "Pay period",
-      "help": "How often payroll runs."
+      "help": "How often payroll runs. New pay periods follow it."
     },
     "weekStart": {
       "label": "Week starts on",
-      "help": "The first day of the week on calendars and timesheets."
+      "help": "The first day of the week on calendars. The org's choice also starts its pay periods, timesheets and overtime weeks."
     },
     "marketplaceVisibility": {
       "label": "Marketplace visibility",
-      "help": "Who can find the organization in the Gateway marketplace."
+      "help": "Who can find your opportunities in the Gateway marketplace: everyone, people who worked with you, or only pools and invitees."
     },
     "ratingsEnabled": {
-      "label": "Ratings",
-      "help": "Ask both sides to rate each other when an engagement completes."
+      "label": "Prompt members to rate parties",
+      "help": "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and marketplace viewers see the same ratings either way. Moderation follows policy only (abuse, personal data), whatever the score."
     },
     "messageRetention": {
       "label": "Message retention in days",
-      "help": "Keep messages this many days, from 30 to 3,650."
+      "help": "Delete messages older than this many days, from 30 to 3,650. A legal hold keeps them."
     },
     "autoTranslate": {
       "label": "Translate messages",
@@ -186,23 +193,27 @@
     },
     "supportEmail": {
       "label": "Internal support email",
-      "help": "Where members send questions about how your organization works."
+      "help": "Where members send questions about how your organization works. Shown in the help panel."
     },
     "supportHours": {
       "label": "Support hours",
-      "help": "For example Monday to Friday, 9 AM to 6 PM Eastern."
+      "help": "Shown in the help panel, for example Monday to Friday, 9 AM to 6 PM Eastern."
     },
     "helpLink": {
       "label": "Custom help link",
-      "help": "A page with your own guides, shown in the help menu."
+      "help": "A page with your own guides, shown in the help panel."
     },
     "language": {
       "label": "Language",
-      "help": "The language of menus, emails and documents."
+      "help": "The language of menus, emails and documents. Beta languages are machine translated; anything not translated yet shows in English."
     },
     "timeZone": {
       "label": "Time zone",
       "help": "Times are shown and entered in this zone."
+    },
+    "timeZoneDisplay": {
+      "label": "Show schedule times in",
+      "help": "Schedule times show in the event's time zone, labeled with its abbreviation. Choose your own time zone, set above, to see them as your clock reads them."
     },
     "dateFormat": {
       "label": "Date format",
@@ -210,7 +221,7 @@
     },
     "units": {
       "label": "Units",
-      "help": "Units for distances, weights and areas."
+      "help": "Units for lengths, distances, weights, temperatures and areas. By default they follow the project's jurisdiction: imperial in the United States, metric elsewhere."
     },
     "theme": {
       "label": "Theme"
@@ -258,6 +269,22 @@
     "shortcutsEnabled": {
       "label": "Keyboard shortcuts",
       "help": "Single-key shortcuts such as J, K and ? on desktop."
+    },
+    "messageTranslation": {
+      "label": "Translate chat messages",
+      "help": "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default."
+    },
+    "semanticSearch": {
+      "label": "Semantic search",
+      "help": "Search also finds documents, SOPs and handbook articles by meaning, not only by their words. Their text and the words people search with are processed by Supabase's built-in embedding model, inside the platform; nothing goes to another provider. Off by default."
+    },
+    "personalTokens": {
+      "label": "Allow personal API tokens",
+      "help": "Members can create their own API tokens in Personal settings, Developer. A token acts as its member, limited to the areas they choose, and expires within a year. Turning this off stops every token at once."
+    },
+    "supplierDiversityProgram": {
+      "label": "Supplier diversity program",
+      "help": "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden."
     }
   },
   "choices": {
@@ -304,15 +331,25 @@
     },
     "locale_language": {
       "en-US": "English (United States)",
-      "es-US": "Spanish (United States)"
+      "es-US": "Spanish (United States)",
+      "fr-FR": "French (France), Beta",
+      "de-DE": "German (Germany), Beta",
+      "it-IT": "Italian (Italy), Beta",
+      "pt-BR": "Portuguese (Brazil), Beta",
+      "ja-JP": "Japanese (Japan), Beta"
     },
     "locale_date_format": {
       "locale": "Follow the language",
       "iso": "Year-month-day"
     },
     "locale_units": {
+      "jurisdiction": "Follow the project's jurisdiction",
       "imperial": "Imperial",
       "metric": "Metric"
+    },
+    "me_time_zone_display": {
+      "event": "The event's time zone",
+      "viewer": "My time zone"
     },
     "me_theme": {
       "system": "Match the device",
@@ -440,7 +477,25 @@
   "descriptions": {
     "teams": "Teams group members who share work. Each team lists its members.",
     "workspaces": "Workspaces divide the org by office or venue group. Override settings for each one here.",
-    "accessReviews": "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled."
+    "accessReviews": "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled.",
+    "calendarFeeds": "Subscribe to your schedule, or to a project you work on, from any calendar app.",
+    "apiKeysAndServiceAccounts": "Let your servers call the XOS API through service accounts and their keys, and decide whether members may create personal tokens.",
+    "webhooks": "Send signed events to your other systems as they happen, and send a delivery again when one fails.",
+    "spendAuthority": "Set how much each role or person may approve, per document type and currency.",
+    "separationOfDuties": "The rules that keep one person from doing both halves of a sensitive act.",
+    "customFields": "Add the fields your records need to projects, venues, vendors and more.",
+    "canonExtensions": "Disciplines and categories your organization adds to the canon.",
+    "dataAndPrivacy": "Answer data requests, place legal holds, and see exports, classification and retention.",
+    "auditLog": "The latest audited changes to access and settings, and the way to the full log.",
+    "automations": "Scheduled reports, recurring work, approval policies and webhooks: what runs without anyone pressing a button.",
+    "connectedApps": "Apps you allowed to act for you, and a way to disconnect them.",
+    "developer": "Personal API tokens for your own scripts in this organization.",
+    "payoutAndTax": "Where organizations pay you and the tax forms you signed.",
+    "workspace": "What this workspace sets differently from the organization, and who works in it.",
+    "team": "Who is on this team. Teams use their workspace's and the organization's settings.",
+    "partner": "Your partner agency's client orgs, wholesale terms and the way into the Partner console.",
+    "usage": "What the organization uses against its plan: seats, field members, projects and engagements.",
+    "templates": "Templates the organization reuses for projects, documents and packets."
   },
   "accessControls": {
     "saved": "Saved.",
@@ -619,6 +674,386 @@
     "sharedWithUs": {
       "title": "Shared with your organization",
       "entry": "Shared by {owner} · Your members act as {role}"
+    }
+  },
+  "shortcuts": {
+    "title": "Change shortcuts",
+    "description": "Choose Change, then press the new keys. A sequence is a letter, then a second key, such as G then H. Esc cancels.",
+    "table": "Shortcuts you can change",
+    "recording": "Press the new keys for {action}, or Esc to cancel.",
+    "saved": "{action} now uses {keys}.",
+    "resetOne": "{action} uses its default keys again.",
+    "resetAll": "Reset all shortcuts",
+    "resetAllDone": "Every shortcut uses its default keys again.",
+    "singleKeysOff": "Single-key shortcuts are off, so shortcuts without Ctrl, Cmd or Alt do nothing. Turn on Keyboard shortcuts above to use them.",
+    "fixed": "Esc, Enter and the list keys J, K and X belong to every list and dialog, so they stay as they are. Help lists every shortcut.",
+    "problems": {
+      "conflict": "{keys} already does {action}. Change that shortcut first, or choose other keys.",
+      "browser": "{keys} belongs to your browser or computer. Choose other keys.",
+      "screen-reader": "{keys} belongs to screen readers. Choose other keys.",
+      "navigation": "{keys} moves around the page. Choose other keys.",
+      "typing": "This shortcut also works while you type, so it needs Ctrl, Cmd or Alt.",
+      "invalid": "Those keys cannot be a shortcut. Use a letter, digit or symbol, with Ctrl, Cmd, Alt or Shift if you like.",
+      "fixed": "This shortcut cannot be changed.",
+      "unknown": "This shortcut no longer exists. Reload the page.",
+      "failed": "The shortcut was not saved. Try again."
+    }
+  },
+  "sidebar": {
+    "title": "Sidebar",
+    "description": "Hide the items you never use and put the groups and items in your own order. Hidden items stay in search and the command menu.",
+    "group": "{group} group",
+    "show": "Show {item} in the sidebar",
+    "move": "Move {item}",
+    "moveHelp": "Drag, or press Space to pick up, the arrow keys to move, Space to drop and Esc to cancel.",
+    "picked": "{item} picked up, position {position} of {count}. Use the arrow keys to move it, Space to drop it.",
+    "moved": "{item} moved to position {position} of {count}.",
+    "dropped": "{item} dropped at position {position} of {count}.",
+    "returned": "{item} put back at position {position} of {count}.",
+    "save": "Save sidebar",
+    "saved": "Your sidebar is saved.",
+    "reset": "Reset to role default",
+    "resetDone": "Your sidebar is back to the default for your role.",
+    "failed": "The sidebar was not saved. Try again."
+  },
+  "notifications": {
+    "channels": {
+      "inApp": "In app",
+      "email": "Email",
+      "sms": "Text (SMS)",
+      "push": "Push"
+    },
+    "cellLabel": "{category} by {channel}",
+    "noChannels": "No channels",
+    "urgent": "Urgent: never waits for the email digest.",
+    "save": "Save notification settings",
+    "saved": "Notification settings saved.",
+    "loadFailed": "Notification settings could not be loaded. Reload the page to try again.",
+    "digest": {
+      "Off": "Off",
+      "Daily": "Daily",
+      "Weekly": "Weekly (Mondays)"
+    },
+    "errors": {
+      "notification_category_mandatory": "Your organization made this category mandatory on that channel, so it stays on.",
+      "time_zone_unknown": "Choose a time zone from the list.",
+      "denied": "You cannot change these settings.",
+      "invalid": "Check the highlighted fields.",
+      "unexpected": "The settings were not saved. Try again.",
+      "sms_phone_unverified": "Verify a phone number on your account before turning on texts."
+    },
+    "fieldErrors": {
+      "invalid": "Enter a valid value.",
+      "quietPair": "Set both the start and the end of quiet hours, or neither.",
+      "quietSame": "Quiet hours end at a different time than they start."
+    },
+    "mine": {
+      "formLabel": "Your notification settings",
+      "matrixTitle": "What reaches you",
+      "matrixDescription": "Choose how each kind of notification reaches you. Until you choose, your organization's defaults apply.",
+      "locked": "Required by your organization",
+      "smsNote": "Texts go only to a verified phone number you agreed to receive texts on. Reply STOP to any text to stop them.",
+      "quietTitle": "Quiet hours and digest",
+      "quietDescription": "During quiet hours, push notifications wait until the end and texts arrive together as one message. Texts also wait between 21:00 and 08:00 in your time zone unless you set your own quiet hours. Safety alerts, changes to your sign-in security, a recovery code used on your account, emergency access taken in your organization and a new or changed shift starting within 12 hours always arrive at once.",
+      "quietStart": "Quiet hours start",
+      "quietEnd": "Quiet hours end",
+      "timeZone": "Time zone",
+      "digest": "Email digest",
+      "digestHelp": "Gathers email that is not urgent into one message.",
+      "digestHour": "Digest time",
+      "smsNoPhone": "Add and verify a phone number on your account to receive texts.",
+      "smsConsent": "Text me notifications from this organization at {phone}. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help."
+    },
+    "org": {
+      "formLabel": "Organization notification defaults",
+      "matrixTitle": "Defaults for members",
+      "matrixDescription": "What members receive until they choose for themselves. Mark a category mandatory to keep its checked channels on for everyone.",
+      "mandatory": "Mandatory",
+      "mandatoryLabel": "{category} is mandatory",
+      "mandatoryHelp": "Mandatory categories stay on for every channel checked here. Texts still need each member's consent, and STOP still stops them.",
+      "readOnly": "You can see the defaults. Changing them needs the notification settings permission."
+    },
+    "categories": {
+      "mentions": {
+        "label": "Mentions",
+        "help": "Someone mentions you in a comment or message."
+      },
+      "assignments": {
+        "label": "Assignments",
+        "help": "Work, training or a help request is assigned to you."
+      },
+      "approvals": {
+        "label": "Approvals",
+        "help": "Requests waiting for your decision, and decisions on your requests."
+      },
+      "comments": {
+        "label": "Comments",
+        "help": "New comments on records you follow."
+      },
+      "schedule": {
+        "label": "Schedule",
+        "help": "Shifts assigned or changed, and event invitations."
+      },
+      "finance": {
+        "label": "Invoices and payments",
+        "help": "Invoices approved, received, scheduled and paid."
+      },
+      "safety": {
+        "label": "Safety",
+        "help": "Incidents, occupancy thresholds and weather alerts."
+      },
+      "account": {
+        "label": "Account and billing",
+        "help": "Security changes, break-glass access and payment problems."
+      },
+      "reports": {
+        "label": "Reports",
+        "help": "Scheduled reports ready to read."
+      },
+      "imports": {
+        "label": "Imports and exports",
+        "help": "Imports that finished and exports ready to download."
+      },
+      "automations": {
+        "label": "Automations",
+        "help": "Messages from automations, failed runs and paused automations."
+      },
+      "messages": {
+        "label": "Messages",
+        "help": "New chat messages to you or your groups."
+      },
+      "feed": {
+        "label": "Feed",
+        "help": "Announcements, surveys and recognition."
+      },
+      "opportunities": {
+        "label": "Opportunities",
+        "help": "New opportunities that match your saved searches."
+      },
+      "expiry_reminders": {
+        "label": "Expiry reminders",
+        "help": "Certifications, documents and onboarding items that expire in 30, 7 and 1 days."
+      }
+    }
+  },
+  "notInEffect": "Saved, but not in effect yet.",
+  "automations": {
+    "intro": "When an event happens in your organization and the conditions hold, the actions run as the automation's owner, with that person's access.",
+    "notInPlan": "Automations need the Pro plan or above. Your automations stay here: you can turn them off or delete them.",
+    "upgrade": "Billing and Plan",
+    "readOnly": "You can see automations. Changing them needs the automations permission.",
+    "loadFailed": "Automations could not be loaded. Reload the page.",
+    "new": "New automation",
+    "empty": "No automations yet. Automate a step that repeats.",
+    "list": {
+      "caption": "Automations",
+      "name": "Automation",
+      "trigger": "When",
+      "status": "On",
+      "lastRun": "Last run",
+      "owner": "Runs as",
+      "actions": "Actions"
+    },
+    "toggle": "Run {name}",
+    "paused": "Paused: {reason, select, owner_left_org {{owner} left the organization} owner_lost_capability {{owner} can no longer manage automations} owner_cannot_sign_in {{owner} has no sign-in} owner_access_refused {the API refused to act as {owner}} other {it could not run}}. Turn it on to run it as you.",
+    "never": "Never ran",
+    "edit": "Edit {name}",
+    "history": "Runs of {name}",
+    "delete": "Delete {name}",
+    "deleteConfirm": "Delete {name}? Its run history stays.",
+    "deleted": "Automation deleted.",
+    "runs": {
+      "title": "Recent runs",
+      "caption": "Recent automation runs",
+      "empty": "No runs yet. Runs appear here when a matching event happens.",
+      "automation": "Automation",
+      "event": "Event",
+      "status": "Status",
+      "when": "When",
+      "duration": "Took",
+      "details": "Details",
+      "older": "Older runs"
+    },
+    "runStatus": {
+      "Queued": "Queued",
+      "Running": "Running",
+      "Retrying": "Retrying",
+      "Succeeded": "Succeeded",
+      "Failed": "Failed",
+      "Skipped": "Skipped"
+    },
+    "run": {
+      "title": "Run of {name}",
+      "event": "Event",
+      "caused": "Started by another automation, {depth, plural, one {# level} other {# levels}} deep.",
+      "attempts": "{count, plural, one {# attempt} other {# attempts}}",
+      "error": "Why",
+      "steps": "Steps",
+      "noSteps": "No steps ran.",
+      "retry": "Retry",
+      "retried": "The run is queued again.",
+      "sent": "Sent",
+      "answered": "Answered",
+      "ms": "{ms} ms",
+      "http": "HTTP {status}",
+      "close": "Close",
+      "loadFailed": "This run could not be loaded."
+    },
+    "stepStatus": {
+      "Succeeded": "Succeeded",
+      "Failed": "Failed",
+      "Skipped": "Skipped"
+    },
+    "editor": {
+      "titleNew": "New automation",
+      "titleEdit": "Edit automation",
+      "loading": "Loading the automation.",
+      "loadFailed": "The automation could not be loaded.",
+      "name": "Name",
+      "description": "Description",
+      "trigger": "When this happens",
+      "triggerHelp": "The event that starts a run: the same list webhooks use.",
+      "conditions": "Conditions",
+      "matchLabel": "Run when",
+      "match": {
+        "all": "All of these hold",
+        "any": "Any of these holds"
+      },
+      "groupMatch": {
+        "all": "All of",
+        "any": "Any of"
+      },
+      "noConditions": "No conditions: every event of this type runs the automation.",
+      "field": "Field",
+      "fieldHelp": "A path in the event, such as data.record_kind.",
+      "operator": "Test",
+      "value": "Value",
+      "valueHelpIn": "Separate values with commas.",
+      "addCondition": "Add condition",
+      "addGroup": "Add group",
+      "group": "Group {number}",
+      "removeCondition": "Remove condition",
+      "removeGroup": "Remove group",
+      "actions": "Then do this",
+      "addAction": "Add action",
+      "action": "Action {number}",
+      "actionType": "Action",
+      "removeAction": "Remove action",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "enabled": "On",
+      "enabledHelp": "Turning it on makes you the person it runs as.",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saved": "Automation saved.",
+      "templateHelp": "Insert values from the event with double braces, such as {example}.",
+      "operators": {
+        "eq": "is",
+        "ne": "is not",
+        "lt": "is less than",
+        "lte": "is at most",
+        "gt": "is more than",
+        "gte": "is at least",
+        "in": "is one of",
+        "is_null": "is empty",
+        "contains": "contains"
+      },
+      "isNull": {
+        "true": "Empty",
+        "false": "Not empty"
+      },
+      "actionTypes": {
+        "create_task": "Create a task",
+        "update_status": "Change the record's status",
+        "assign": "Assign the record",
+        "add_comment": "Comment on the subject",
+        "notify": "Notify a member",
+        "call_webhook": "Send the event to a webhook"
+      },
+      "fields": {
+        "title": "Title",
+        "taskTitleHelp": "Start with a verb, such as Review {example}.",
+        "project": "Project",
+        "eventProject": "The event's project",
+        "phase": "Phase",
+        "xyz": "XYZ tag",
+        "xyzOptions": {
+          "X": "X, Resource",
+          "Y": "Y, Process",
+          "Z": "Z, Timeline"
+        },
+        "dueInDays": "Due in days",
+        "dueHelp": "Due at 17:00 on your organization's calendar. Leave empty for no due date.",
+        "toState": "New status",
+        "note": "Blocker or replan reason",
+        "noteHelp": "Needed for Blocked and Deferred.",
+        "assignee": "Assign to",
+        "recipient": "Notify",
+        "message": "Message",
+        "comment": "Comment",
+        "endpoint": "Webhook endpoint",
+        "noEndpoints": "No webhook endpoints yet. Add one in Settings, Webhooks.",
+        "choose": "Choose"
+      },
+      "test": {
+        "title": "Test with a sample event",
+        "help": "Nothing runs and nothing is saved.",
+        "event": "Sample event (JSON)",
+        "loadLatest": "Use the latest event",
+        "run": "Test",
+        "matched": "The conditions hold for this event.",
+        "notMatched": "The conditions do not hold for this event.",
+        "invalidJson": "The sample event is not valid JSON.",
+        "found": "Found: {value}",
+        "missing": "Missing",
+        "held": "Holds",
+        "failed": "Does not hold",
+        "preview": "What the actions would send"
+      }
+    },
+    "errors": {
+      "invalid": "Check the automation: {detail}",
+      "automation_conditions_invalid": "A condition is not complete: {detail}",
+      "automation_actions_invalid": "An action is not complete: {detail}",
+      "automation_action_needs_record": "Changing a status or an owner needs a trigger whose subject is a record, such as record.created.",
+      "automation_action_needs_commentable_subject": "This trigger's subject does not take comments.",
+      "automation_person_not_member": "Choose a member of this organization.",
+      "automation_webhook_unknown": "Choose one of this organization's webhook endpoints.",
+      "automation_project_unknown": "Choose a project of this organization.",
+      "automation_trigger_unknown": "Choose a trigger from the list.",
+      "automation_name_length": "A name is 1 to 120 characters.",
+      "automation_changed": "Someone changed this automation since you opened it. Reload the page and try again.",
+      "plan_feature_required": "Automations need the Pro plan or above.",
+      "automation_off": "Turn the automation on before retrying its runs.",
+      "automation_run_not_failed": "Only a failed run can be retried.",
+      "denied": "You cannot change automations.",
+      "unexpected": "Something went wrong. Try again."
+    }
+  },
+  "standardLibrary": {
+    "title": "XOS Standard Library",
+    "description": "Emergency codes, SOPs, verbiage, the radio plan, vendor classes and their entitlements, enumerations, the Roles Library, labor rates and the document library, copied into your organization so you can edit them. An organization receives its copy when it is created.",
+    "adopt": "Adopt Standard Library",
+    "adoptHelp": "Copies every Standard Library row your organization does not hold yet. Nothing you edited or removed changes, so running it again is safe.",
+    "complete": "Your organization holds a copy of the whole Standard Library.",
+    "copied": "{count, plural, =0 {Nothing left to copy: your organization already holds every Standard Library row it can.} one {Copied # row.} other {Copied # rows.}}",
+    "held": "{adopted} of {standard}",
+    "heldLabel": "Rows your organization holds",
+    "libraryLabel": "Library",
+    "loadError": "The Standard Library status could not be loaded. Reload the page to try again.",
+    "manageOnly": "Only people who manage canon extensions can adopt the Standard Library.",
+    "skipped": "A row your organization already has under the same name keeps your version, so a library can show fewer rows than the Standard Library holds.",
+    "libraries": {
+      "document_library": "Document & Asset Library",
+      "emergency_codes": "Emergency Codes",
+      "enumerations": "Enumerations",
+      "labor_rate_cards": "Labor Rate Cards",
+      "radio_channels": "Radio Channels",
+      "roles": "Roles Library",
+      "sops": "SOP Library",
+      "vendor_classes": "Vendor Classes",
+      "vendor_entitlements": "Vendor Entitlements",
+      "verbiage": "Verbiage Library"
     }
   }
 }

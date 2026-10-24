@@ -1,6 +1,8 @@
 import {
   convertMinor,
   findFxRate,
+  fxRateAgeDays,
+  isFxRateStale,
   getBudget,
   listBudgets,
   listCostCenters,
@@ -16,10 +18,12 @@ import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter, getLocale } from "next-intl/server";
 import { PageHeader, TemplateCollection, TemplateGridEditor } from "./ui";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { exponentOf, getExponents, moneyFormatter } from "@/lib/finance/money";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import { orgToday } from "@/lib/shell/time-zone";
 import { deleteBudgetAction } from "@/app/[org]/finance/actions";
 import { Figures, Section, SimpleTable } from "./figures";
 import { CreateButton } from "./kit-create-button";
@@ -228,7 +232,7 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
       const b = detail.data.budget;
       const target =
         query.extra["in"] && query.extra["in"] !== b.currency ? query.extra["in"] : null;
-      const today = new Date().toISOString().slice(0, 10);
+      const today = await orgToday(ctx);
       const fx = target ? findFxRate(rates.data, b.currency, target, today) : null;
       const switcher = (
         <nav
@@ -275,14 +279,21 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
             />
             {fx && target ? (
               <p className="m-0 text-text-12 text-text-secondary">
-                {t("finance.budgets.converted", {
+                {/* Every converted figure shows its rate date (Section 15), and a cross rate says so. */}
+                {t(fx.via ? "finance.budgets.convertedVia" : "finance.budgets.converted", {
                   rate: format.number(fx.rate, { maximumFractionDigits: 6 }),
                   from: b.currency,
                   to: target,
+                  via: fx.via ?? "",
                   date: format.dateTime(new Date(`${fx.effectiveOn}T00:00:00`), {
                     dateStyle: "medium",
                   }),
                 })}
+              </p>
+            ) : null}
+            {fx && target && isFxRateStale(fx.effectiveOn, today) ? (
+              <p role="status" className="m-0 text-text-12 text-warning-text">
+                {t("finance.budgets.staleRate", { days: fxRateAgeDays(fx.effectiveOn, today) })}
               </p>
             ) : null}
           </>
@@ -396,7 +407,10 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
     <TemplateCollection
       header={header}
       filters={filters}
-      peek={
+      // The full page (`&full=1`) shows the `?peek` budget's grid; a key with no budget goes to the
+      // shell's peek.
+      peek={collectionPeek(
+        query.full ? null : query.peek,
         peek && !query.full ? (
           <RecordPeek
             kindLabel={t("finance.budgets.kind")}
@@ -449,8 +463,8 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
             </div>
             <RecordCollab ctx={ctx} table="app.budgets" id={peek.id} canUpload={canWrite} />
           </RecordPeek>
-        ) : null
-      }
+        ) : null,
+      )}
     >
       {body}
       {query.create && canWrite ? (

@@ -24,6 +24,25 @@ const rules = compileRules(setup.terms);
 const words = (text: string, key = "any.key") =>
   protector.ranges(text, key).map((r) => text.slice(r.start, r.end));
 
+describe("language names in the pickers (ADR 0053)", () => {
+  it("keeps every picker label in its own language in every target, and only in the pickers", () => {
+    const labels: Record<string, string> = {
+      "en-US": "English (US)",
+      "es-US": "Español (EE. UU.)",
+      "fr-FR": "Français",
+      "de-DE": "Deutsch",
+      "it-IT": "Italiano",
+      "pt-BR": "Português (Brasil)",
+      "ja-JP": "日本語",
+    };
+    for (const [locale, label] of Object.entries(labels)) {
+      expect(words(label, `shell.chrome.locales.${locale}`)).toEqual([label]);
+      expect(words(label, `gateway.shell.locales.${locale}`)).toEqual([label]);
+      expect(words(`Show it in ${label}`, "settings.fields.language.help")).toEqual([]);
+    }
+  });
+});
+
 describe("do-not-translate list (translation/terms.json)", () => {
   it("protects product names, canon codes, identifiers, URLs and paths", () => {
     expect(words("Open Atlas, Gateway and Compass with Aurora on XOS")).toEqual([
@@ -133,7 +152,19 @@ describe("glossary.csv", () => {
       expect(rows).toContainEqual(expect.objectContaining({ en: name, "es-US": name }));
     }
     const widths = new Set(parseCsv(setup.glossary.csv).map((r) => r.length));
-    expect([...widths]).toEqual([3]);
+    expect([...widths]).toEqual([setup.glossary.languages.length + 1]);
+  });
+
+  it("has a column for every target language; the Beta columns hold only names never translated (ADR 0053)", () => {
+    for (const t of setup.config.targets) expect(setup.glossary.languages).toContain(t.google);
+    const beta = setup.config.targets.filter((t) => t.partial).map((t) => t.google);
+    expect(beta).toEqual(["fr", "de", "it", "pt", "ja"]);
+    for (const row of setup.glossary.rows) {
+      for (const language of beta) {
+        // Nobody hand-writes a Beta translation: a cell is empty, or the English term itself.
+        expect([row["en"], ""], `${row["en"]} ${language}`).toContain(row[language]);
+      }
+    }
   });
 
   it("names the Google glossary and the cache generation after its content", () => {

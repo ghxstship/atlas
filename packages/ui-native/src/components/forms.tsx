@@ -20,6 +20,7 @@ import { Icon, IconInk, Ink, Text } from "./foundations.tsx";
 const KEYBOARD = {
   default: "default",
   numeric: "numeric",
+  decimal: "decimal-pad",
   email: "email-address",
   phone: "phone-pad",
   url: "url",

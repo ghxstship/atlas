@@ -9,6 +9,7 @@ import {
   type Aggregate,
   type ReportDefinition,
 } from "./report-builder.ts";
+import { preferReplica } from "./read-replica.ts";
 import { renderReportPdf, renderReportXlsx, type ReportFileInput } from "./report-files.ts";
 
 /**
@@ -207,9 +208,23 @@ function text(row: Record<string, unknown>, key: string): string {
   return value;
 }
 
+export interface ReportRunStoreOptions {
+  /**
+   * A service-role client on the read replica (`read-replica.ts`, Section 5.1). The definition and row
+   * reads prefer it and fall back to `client` when it errors or lags; claims and writes stay on `client`.
+   */
+  readonly replica?: SupabaseClient | null;
+  /** Called when the primary answers a read the replica could not. */
+  readonly onReplicaFallback?: (label: string, reason: unknown) => void;
+}
+
 /** ReportRunStore over the service-role client: the 0510 queue RPCs and the 1050 run RPCs. */
-export function supabaseReportRunStore(client: SupabaseClient): ReportRunStore {
+export function supabaseReportRunStore(
+  client: SupabaseClient,
+  options: ReportRunStoreOptions = {},
+): ReportRunStore {
   const app = client.schema("app");
+  const fallback = options.onReplicaFallback;
   const call = async (fn: string, args: Record<string, unknown>): Promise<unknown> => {
     const { data, error } = await app.rpc(fn, args);
     if (error) throw new Error(`${fn}: ${error.message}`);
@@ -243,7 +258,13 @@ export function supabaseReportRunStore(client: SupabaseClient): ReportRunStore {
       };
     },
     async definition(id, membershipId) {
-      const result = await getReportDefinition(app as unknown as XosClient, { id, membershipId });
+      // A definition the replica has not received yet answers not-found there; the primary decides.
+      const result = await preferReplica(
+        client,
+        options.replica,
+        (c) => getReportDefinition(c.schema("app") as unknown as XosClient, { id, membershipId }),
+        { label: "report definition", usable: (r) => r.ok, onFallback: fallback },
+      );
       if (result.ok) return result.data;
       if (result.error.kind === "not-found") return null;
       throw new Error(`report definition: ${JSON.stringify(result.error)}`);
@@ -252,11 +273,22 @@ export function supabaseReportRunStore(client: SupabaseClient): ReportRunStore {
       await call("start_report_run", { p_run_id: runId });
     },
     async rows(runId, columns, limit) {
-      const rows = (await call("report_run_rows", {
-        p_run_id: runId,
-        p_columns: columns,
-        p_limit: limit,
-      })) as Record<string, unknown>[] | null;
+      const args = { p_run_id: runId, p_columns: columns, p_limit: limit };
+      // On the replica the read goes as GET, which a read-only standby serves (report_run_rows is
+      // stable, migration 1512). A run the replica does not yet see as Running is refused there
+      // (report_run_not_running), and the primary answers instead.
+      const rows = await preferReplica(
+        client,
+        options.replica,
+        async (c, onReplica) => {
+          if (!onReplica)
+            return (await call("report_run_rows", args)) as Record<string, unknown>[] | null;
+          const { data, error } = await c.schema("app").rpc("report_run_rows", args, { get: true });
+          if (error) throw new Error(`report_run_rows on the replica: ${error.message}`);
+          return data as Record<string, unknown>[] | null;
+        },
+        { label: "report rows", onFallback: fallback },
+      );
       return rows ?? [];
     },
     async finish(runId, outcome) {

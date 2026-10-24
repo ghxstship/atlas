@@ -4,7 +4,14 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { isAppPath, resolveHref } from "../lib/links.ts";
-import { guides, helpArticles, helpPath, searchPages, whatsNew } from "../lib/content.ts";
+import {
+  guides,
+  HELP_SHELLS,
+  helpArticles,
+  helpPath,
+  searchPages,
+  whatsNew,
+} from "../lib/content.ts";
 import { LOCALES, negotiate, translator } from "../lib/i18n.ts";
 import {
   linksIn,
@@ -226,6 +233,29 @@ describe("help center", () => {
       }
       for (const kind of ["guide", "page", "workflow", "glossary"])
         expect(th(`kinds.${kind}`)).not.toBe("");
+    }
+  });
+
+  it("ships its articles with the request-time index page on a host such as Vercel", async () => {
+    // The index reads its search query, so it renders on request, from files the tracer cannot
+    // find alone; next.config.ts lists them (RRR-119).
+    const { default: config } = await import("../next.config.ts");
+    const includes = config.outputFileTracingIncludes ?? {};
+    expect(Object.keys(includes)).toEqual(["/\\[locale\\]/help"]);
+    expect(existsSync(join(APP, "app", "[locale]", "help", "page.tsx"))).toBe(true);
+    const patterns = includes["/\\[locale\\]/help"] ?? [];
+    expect(patterns).toContain("../atlas/help/whats-new.yaml");
+    expect(existsSync(join(APP, "../atlas/help/whats-new.yaml"))).toBe(true);
+    for (const shell of HELP_SHELLS) {
+      expect(patterns, shell).toContain(`../${shell}/help/articles/**/*.md`);
+      for (const locale of LOCALES) {
+        const articles = helpArticles(locale, shell);
+        expect(articles.length, `${shell} ${locale}`).toBeGreaterThan(0);
+        for (const article of articles) {
+          const file = join(APP, `../${shell}/help/articles`, locale, `${article.slug}.md`);
+          expect(existsSync(file), file).toBe(true);
+        }
+      }
     }
   });
 });

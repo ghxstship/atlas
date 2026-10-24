@@ -1875,7 +1875,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Push notifications reach you in Compass on your phone. Email goes to the address you sign in with.",
+            v: "Push notifications reach this browser once you turn on Browser Notifications in ",
+          },
+          { t: "link", v: "Settings, Notifications", href: "help:settings-notifications" },
+          {
+            t: "text",
+            v: ", and Compass on your phone. A push opens the listing, or Alerts when several match. Email goes to the address you sign in with.",
           },
         ],
       },
@@ -3071,7 +3076,10 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Week starts on" },
-            { t: "text", v: " Sunday or Monday, on calendars and timesheets." },
+            {
+              t: "text",
+              v: " Sunday or Monday, on your calendars. Timesheets and pay periods follow the org's week.",
+            },
           ],
           [
             { t: "strong", v: "Translate messages" },
@@ -5384,7 +5392,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Las notificaciones push te llegan en Compass, en tu teléfono. El correo va a la dirección con la que inicias sesión.",
+            v: "Las notificaciones push te llegan en este navegador cuando activas Notificaciones del Navegador en ",
+          },
+          { t: "link", v: "Configuración, Notificaciones", href: "help:settings-notifications" },
+          {
+            t: "text",
+            v: ", y en Compass, en tu teléfono. Una notificación push abre la oferta, o Alertas cuando coinciden varias. El correo va a la dirección con la que inicias sesión.",
           },
         ],
       },
@@ -6621,7 +6634,10 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "La semana empieza" },
-            { t: "text", v: " el domingo o el lunes, en calendarios y hojas de horas." },
+            {
+              t: "text",
+              v: " el domingo o el lunes, en tus calendarios. Las hojas de horas y los periodos de pago siguen la semana de la organización.",
+            },
           ],
           [
             { t: "strong", v: "Traducir mensajes" },

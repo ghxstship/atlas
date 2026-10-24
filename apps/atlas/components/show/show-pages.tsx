@@ -12,6 +12,7 @@ import {
 import { listScopeNodeRefs, type ProjectRef, type ScopeNodeRef } from "@xos/data/work";
 import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollabPanels } from "@/components/work/collab";
 import {
   capabilitySet,
@@ -24,6 +25,7 @@ import {
 } from "@/components/work/load";
 import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import { CreateRunDialog, RunBody, RunCollection, RunPeek } from "./runs";
 import { CallSheetPeek, DaySheetPeek, SheetCollection } from "./sheets";
@@ -59,8 +61,9 @@ function viewFor(node: string, search: SearchParams) {
   return { views, view: requested && views.includes(requested) ? requested : defaultView };
 }
 
-function monthFor(search: SearchParams) {
-  const today = new Date().toISOString().slice(0, 10);
+/** The month a calendar shows: `month=YYYY-MM-01`, else the month of today on the org's calendar (A71). */
+async function monthFor(ctx: OrgContext, search: SearchParams) {
+  const today = await orgToday(ctx);
   const m = param(search, "month");
   return { today, month: m && /^\d{4}-\d{2}-01$/.test(m) ? m : `${today.slice(0, 7)}-01` };
 }
@@ -131,6 +134,7 @@ export async function RunsPage({
   return (
     <RunCollection
       org={ctx.org.slug}
+      today={await orgToday(ctx)}
       title={t(getNode(sitemap, node).node.label)}
       runs={must(filtered, "running orders")}
       total={must(all, "running orders").length}
@@ -147,7 +151,7 @@ export async function RunsPage({
           open={param(search, "create") === "1"}
         />
       }
-      peek={peek}
+      peek={collectionPeek(peekId, peek)}
     />
   );
 }
@@ -164,7 +168,7 @@ export async function DaySheetsPage({
 }) {
   const t = await getTranslate();
   const { views, view } = viewFor(node, search);
-  const { today, month } = monthFor(search);
+  const { today, month } = await monthFor(ctx, search);
   const [meta, caps, sheets] = await Promise.all([
     loadRecordMeta(ctx),
     capabilitySet(ctx),
@@ -186,7 +190,8 @@ export async function DaySheetsPage({
       projects={meta.projects}
       canWrite={caps.has("show.day_sheet.write")}
       open={param(search, "create") === "1"}
-      peek={
+      peek={collectionPeek(
+        peekId,
         open ? (
           <DaySheetPeek
             org={ctx.org.slug}
@@ -197,8 +202,8 @@ export async function DaySheetsPage({
             <DocumentActions org={ctx.org.slug} kind="day-sheet" id={open.id} />
             {await collab(ctx, meta, { table: "app.day_sheets", id: open.id })}
           </DaySheetPeek>
-        ) : null
-      }
+        ) : null,
+      )}
     />
   );
 }
@@ -215,7 +220,7 @@ export async function CallSheetsPage({
 }) {
   const t = await getTranslate();
   const { views, view } = viewFor(node, search);
-  const { today, month } = monthFor(search);
+  const { today, month } = await monthFor(ctx, search);
   const [meta, caps, sheets] = await Promise.all([
     loadRecordMeta(ctx),
     capabilitySet(ctx),
@@ -257,7 +262,7 @@ export async function CallSheetsPage({
       projects={meta.projects}
       canWrite={caps.has("show.call_sheet.publish")}
       open={param(search, "create") === "1"}
-      peek={peek}
+      peek={collectionPeek(peekId, peek)}
     />
   );
 }

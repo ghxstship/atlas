@@ -29,6 +29,7 @@ import { RateGrid } from "@/components/crew/rate-grid";
 import { CrewRecord } from "@/components/crew/record";
 import { InlineAlert, StateChip } from "@/components/crew/ui";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   flatParams,
@@ -41,6 +42,7 @@ import { money } from "@/lib/crew/format";
 import { fromMinor } from "@/lib/crew/money";
 import { rateCardPhase, stateIcon } from "@/lib/crew/states";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -59,7 +61,8 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const db = crew.ctx.viewer.db;
   const view = resolveView(node, search["view"]);
   const base = nodeHref(node, routeParams) ?? "/";
-  const today = new Date().toISOString().slice(0, 10);
+  // Effective dates are the org's (A71): today on its calendar, never UTC's.
+  const today = await orgToday(crew.ctx);
   const [cardsResult, roles, canonResult] = await Promise.all([
     listRateCards(db, crew.orgId),
     getRoleTitles(crew.ctx),
@@ -526,7 +529,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         : {})}
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }

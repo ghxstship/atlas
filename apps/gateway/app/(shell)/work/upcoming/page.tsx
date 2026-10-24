@@ -13,8 +13,9 @@ import { PageTitle, pickView, RegionError, ViewSwitcher } from "@/components/pag
 import { CalendarDownload } from "@/components/page/up-next-actions";
 import { DestinationTabs } from "@/components/page/work-tabs";
 import { Calendar, EmptyStateLink, Icon } from "@/components/ui";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { formatDate, formatScheduleTime } from "@/lib/format";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
+import { getScheduleView, personToday } from "@/lib/time-zone";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 import { byDay, mergeUpcoming, type UpcomingItem } from "@/lib/upcoming";
 
@@ -40,7 +41,8 @@ function detailLabel(detail: string | null, t: Translate): string | null {
 
 /**
  * Work, Upcoming (Section 4.5.8): a list or calendar of every dated thing across orgs, with a
- * calendar file for any calendar app. Each row opens its engagement in one tap.
+ * calendar file for any calendar app and a link to subscribe to the person's calendar feed
+ * (Settings, Calendar Feeds). Each row opens its engagement in one tap.
  */
 export default async function UpcomingPage({ searchParams }: PageProps<"/work/upcoming">) {
   const ctx = await requireNode("work.upcoming");
@@ -72,6 +74,8 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
   ]);
   const failed = !shifts.ok || !records.ok || !docks.ok || !lodging.ok || !applications.ok;
   const now = new Date();
+  // Upcoming spans engagements across orgs, so its calendar opens on the person's own today.
+  const [today, schedule] = await Promise.all([personToday(ctx), getScheduleView(ctx)]);
   const items = mergeUpcoming({
     now,
     engagements: current,
@@ -93,7 +97,7 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
   const month =
     typeof query["month"] === "string" && /^\d{4}-\d{2}-01$/.test(query["month"])
       ? query["month"]
-      : `${now.toISOString().slice(0, 7)}-01`;
+      : `${today.slice(0, 7)}-01`;
   const shiftMonth = (delta: number) => {
     const d = new Date(`${month}T00:00:00Z`);
     d.setUTCMonth(d.getUTCMonth() + delta);
@@ -107,6 +111,12 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
         action={
           <>
             <ViewSwitcher views={views} current={view} path="/work/upcoming" query={query} />
+            <Link
+              href={"/settings/calendar-feeds" as Route}
+              className="text-text-13 text-accent-text underline"
+            >
+              {t("gateway.settings.calendarFeeds.subscribe")}
+            </Link>
             <CalendarDownload
               label={t("gateway.work.upcoming.download")}
               fileName="gateway-upcoming.ics"
@@ -148,7 +158,7 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
           </div>
           <Calendar
             month={month}
-            today={now.toISOString().slice(0, 10)}
+            today={today}
             events={items.map((i) => ({
               date: i.at.slice(0, 10),
               label: i.title,
@@ -178,7 +188,7 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
                         <span className="text-text-13 text-text-secondary">
                           {[
                             item.at.length > 10
-                              ? formatDateTime(locale, item.at, item.timeZone)
+                              ? formatScheduleTime(locale, item.at, item.timeZone, schedule)
                               : t(`gateway.work.upcoming.kinds.${item.kind}`),
                             item.orgName,
                             item.projectName,

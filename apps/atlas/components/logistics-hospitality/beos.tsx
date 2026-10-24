@@ -434,7 +434,7 @@ export async function BeosSection({
       />
     );
   } else if (view === "calendar") {
-    const cal = calendarMonth(search);
+    const cal = calendarMonth(search, scope.today);
     body = (
       <OperationsCalendar
         month={cal.month}

@@ -8,15 +8,27 @@ import { defineConfig, devices } from "@playwright/test";
  *
  * The baselines in __screenshots__ are Linux Chromium renders from mcr.microsoft.com/playwright at
  * the pinned version (linux/amd64, HOME=/root), the image the Storybook baselines and CI use, so the
- * fonts and anti-aliasing match. Run it in that image with packages/testing/ci/visual-in-container.sh
- * against a running Atlas on `next dev` (ar-XB exists only in development builds) and a local stack
- * with the demo seed:
+ * fonts and anti-aliasing match. Every screen is taken at the visual clock (stable.ts): put a local
+ * stack with the demo seed on it, start Atlas on `next dev` (ar-XB exists only in development
+ * builds) on the same clock, and run this config in that image with
+ * packages/testing/ci/visual-in-container.sh:
  *
+ *   export $(packages/testing/ci/visual-clock.sh)
+ *   NODE_OPTIONS="--require $PWD/packages/testing/clock/node-clock.cjs" pnpm --filter @xos/atlas exec next dev --port 3006
  *   E2E_BASE_URL=http://127.0.0.1:3006 packages/testing/ci/visual-in-container.sh atlas
  *
  * VISUAL_UPDATE_SNAPSHOTS=missing writes baselines that do not exist yet; =changed or =all rewrites
- * them after an intended change. Without E2E_BASE_URL, `next dev` starts on E2E_PORT.
+ * them after an intended change. Without E2E_BASE_URL, `next dev` starts on E2E_PORT, on the clock.
  */
+// Without the visual clock every screen would show the date of the run and fail for that alone.
+const clockOffset = Number(process.env["E2E_CLOCK_OFFSET_MS"] ?? 0);
+if (!clockOffset) {
+  throw new Error(
+    "E2E_CLOCK_OFFSET_MS is not set: put the stack on the visual clock with packages/testing/ci/visual-clock.sh first (playwright.visual.config.ts).",
+  );
+}
+const nodeClock = new URL("../../../../packages/testing/clock/node-clock.cjs", import.meta.url)
+  .pathname;
 const port = Number(process.env["E2E_PORT"] ?? 3006);
 const baseURL = process.env["E2E_BASE_URL"] ?? `http://127.0.0.1:${port}`;
 const executablePath = process.env["PLAYWRIGHT_CHROMIUM_EXECUTABLE"];
@@ -26,6 +38,10 @@ const updateSnapshots =
 
 const shared = {
   baseURL,
+  // A browser that sends Global Privacy Control, which counts as refusing optional cookies, so the
+  // cookie banner (A82, Section 14.3) stays out of every screen; the compliance journey opens its
+  // own contexts without the signal to test the banner.
+  extraHTTPHeaders: { "Sec-GPC": "1" },
   reducedMotion: "reduce" as const,
   locale: "en-US",
   // Dates the browser formats follow the demo tenant's zone wherever the run happens.
@@ -77,10 +93,13 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `pnpm exec next dev --port ${port}`,
+    // Next's own entry point through node, not `pnpm exec`: the pinned image has Node and no pnpm,
+    // and this command runs there when visual-in-container.sh finds no app at E2E_BASE_URL.
+    command: `node node_modules/next/dist/bin/next dev --port ${port}`,
     url: `${baseURL}/auth/sign-in`,
     reuseExistingServer: true,
     timeout: 180_000,
     cwd: "../..",
+    env: { NODE_OPTIONS: `--require ${nodeClock}`, E2E_CLOCK_OFFSET_MS: String(clockOffset) },
   },
 });

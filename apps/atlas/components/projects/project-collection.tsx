@@ -9,7 +9,6 @@ import {
   Input,
   PageHeader,
   PhaseChip,
-  PropertyList,
   StateChip,
   TemplateCollection,
 } from "@xos/ui";
@@ -21,6 +20,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { phaseCode, PROJECT_STATE_ORDER, stateIcon } from "@/lib/projects/format";
 import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
 // Views other than the default table, and the peek, load when shown (A24-009).
 import {
@@ -28,6 +28,7 @@ import {
   Calendar,
   Drawer,
   Gallery,
+  PropertyList,
   RecordList,
   RecordRow,
   Timeline,
@@ -61,6 +62,7 @@ export function ProjectCollection({
   month,
   today,
   create,
+  sharers = [],
 }: {
   org: string;
   title: string;
@@ -73,6 +75,11 @@ export function ProjectCollection({
   month: string;
   today: string;
   create: { readonly options: ProjectFormOptions; readonly open: boolean } | null;
+  /**
+   * Who can share a project with a reader who cannot create one (the org's Owners, Admins and
+   * Producers), named in the empty state so it never sends them in a loop (A59-014).
+   */
+  sharers?: readonly string[];
 }) {
   const t = useTranslations("projects");
   const format = useFormatter();
@@ -178,9 +185,13 @@ export function ProjectCollection({
     ) : (
       <EmptyState
         icon="Folder"
-        sentence={t("list.emptyReadOnly")}
+        sentence={
+          sharers.length > 0
+            ? t("list.emptyReadOnlyNamed", { names: sharers.join(", ") })
+            : t("list.emptyReadOnly")
+        }
         actionLabel={t("list.emptyReadOnlyAction")}
-        onAction={() => router.push(`/${org}/my-work` as Route)}
+        onAction={() => router.push(`/${org}/home` as Route)}
       />
     );
   } else if (shown.length === 0) {
@@ -348,7 +359,8 @@ export function ProjectCollection({
     <TemplateCollection
       header={header}
       filters={filters}
-      peek={
+      peek={collectionPeek(
+        peekKey,
         peek ? (
           <Drawer
             open
@@ -388,8 +400,8 @@ export function ProjectCollection({
               ]}
             />
           </Drawer>
-        ) : undefined
-      }
+        ) : undefined,
+      )}
     >
       {body}
       {(view === "timeline" || view === "calendar") && undated > 0 ? (

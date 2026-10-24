@@ -27,6 +27,61 @@ describe("environment", () => {
     expect(message).toContain("ATLAS_SITE_URL");
     expect(message).toContain(".env.example");
   });
+
+  it("takes a Stripe key, and a local fake of Stripe only with a test mode key", () => {
+    expect(parseEnv({ ...valid, STRIPE_SECRET_KEY: "sk_test_abcdefghij" }).STRIPE_SECRET_KEY).toBe(
+      "sk_test_abcdefghij",
+    );
+    expect(() => parseEnv({ ...valid, STRIPE_SECRET_KEY: "pk_test_abcdefghij" })).toThrow(
+      /STRIPE_SECRET_KEY/,
+    );
+    const fake = { ...valid, STRIPE_API_URL: "http://127.0.0.1:12111" };
+    expect(parseEnv({ ...fake, STRIPE_SECRET_KEY: "sk_test_abcdefghij" }).STRIPE_API_URL).toBe(
+      "http://127.0.0.1:12111",
+    );
+    expect(() => parseEnv(fake)).toThrow(/STRIPE_API_URL: needs a test mode STRIPE_SECRET_KEY/);
+    expect(() =>
+      parseEnv({
+        ...valid,
+        STRIPE_SECRET_KEY: "sk_test_abcdefghij",
+        STRIPE_API_URL: "https://api.stripe.example.test",
+      }),
+    ).toThrow(/STRIPE_API_URL/);
+  });
+
+  it("reads the API host as a bare host name and the docs site as a URL", () => {
+    const config = parseEnv({
+      ...valid,
+      XOS_API_HOST: " API.Example.test ",
+      DOCS_SITE_URL: "https://docs.example.test",
+    });
+    expect(config.XOS_API_HOST).toBe("api.example.test");
+    expect(config.DOCS_SITE_URL).toBe("https://docs.example.test");
+    for (const bad of ["https://api.example.test", "api.example.test:443", "localhost", ""]) {
+      expect(() => parseEnv({ ...valid, XOS_API_HOST: bad }), bad).toThrow(/XOS_API_HOST/);
+    }
+  });
+
+  it("refuses an API host equal to the Atlas host, which would hide every page", () => {
+    expect(() =>
+      parseEnv({
+        ...valid,
+        ATLAS_SITE_URL: "https://atlas.example.test",
+        XOS_API_HOST: "atlas.example.test",
+      }),
+    ).toThrow(/must differ from the host of ATLAS_SITE_URL/);
+  });
+
+  it("takes an optional read replica as an http(s) URL (Section 5.1)", () => {
+    const replica = "https://abc-rr-us-east-1-x.supabase.co";
+    expect(parseEnv({ ...valid, XOS_READ_REPLICA_URL: replica }).XOS_READ_REPLICA_URL).toBe(
+      replica,
+    );
+    expect(parseEnv(valid).XOS_READ_REPLICA_URL).toBeUndefined();
+    expect(() =>
+      parseEnv({ ...valid, XOS_READ_REPLICA_URL: "postgres://replica:5432/postgres" }),
+    ).toThrow(/XOS_READ_REPLICA_URL/);
+  });
 });
 
 describe("auth cookies", () => {

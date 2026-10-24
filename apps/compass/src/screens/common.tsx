@@ -10,6 +10,7 @@ import { access, type Denial, type Feature } from "../domain/access";
 import { queueAnnouncement } from "../domain/announce";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { countKey } from "../runtime/i18n";
+import { OrgSwitcher } from "./OrgSwitcher";
 import {
   announce,
   Banner,
@@ -77,7 +78,16 @@ export function ProjectPicker(): ReactElement | null {
   if (!resolved) return null;
   const current = resolved.projects.find((p) => p.id === projectId);
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: theme.space["8"] }}>
+    <View
+      style={{
+        flexDirection: "row",
+        flexWrap: "wrap",
+        alignItems: "center",
+        gap: theme.space["8"],
+      }}
+    >
+      {/* The active org in its brand, and the switch for a person in several orgs (Section 4.5.7). */}
+      <OrgSwitcher />
       <Button
         testID="project-picker"
         variant="secondary"
@@ -105,6 +115,26 @@ export function ProjectPicker(): ReactElement | null {
         ))}
       </Sheet>
     </View>
+  );
+}
+
+/**
+ * Said once, after the offline storage could not be read and was replaced (src/data/localDatabase.ts):
+ * changes made offline that had not uploaded are gone. Stays until dismissed, across launches.
+ */
+export function StorageResetNotice(): ReactElement | null {
+  const { t } = useTranslation();
+  const { storageNotice, dismissStorageNotice } = useCompass();
+  if (!storageNotice) return null;
+  return (
+    <Banner
+      testID="storage-reset-notice"
+      tone="warning"
+      icon="triangle-alert"
+      message={t("compass.startup.storageReset")}
+      onDismiss={dismissStorageNotice}
+      dismissLabel={t("ui.action.dismiss")}
+    />
   );
 }
 
@@ -208,22 +238,7 @@ export function LoadError({
   );
 }
 
-export function formatTime(iso: string, timeZone?: string | null): string {
-  return new Intl.DateTimeFormat(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-    ...(timeZone ? { timeZone } : {}),
-  }).format(new Date(iso));
-}
-
-export function formatDay(iso: string, timeZone?: string | null): string {
-  return new Intl.DateTimeFormat(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    ...(timeZone ? { timeZone } : {}),
-  }).format(new Date(iso));
-}
+export { formatDay, formatTime } from "../domain/schedule-time";
 
 /**
  * The canon job title for a shift (xpms.role, cached as the roles canon table), so a shift reads

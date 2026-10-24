@@ -24,9 +24,11 @@
       "Organization": "Organización",
       "Project": "Proyecto",
       "Team": "Equipo",
+      "Department": "Departamento",
       "Role": "Rol",
       "Group": "Grupo"
-    }
+    },
+    "departmentOption": "Departamento: {name} · {code}"
   },
   "site": {
     "project": "Proyecto",
@@ -111,7 +113,7 @@
     "hideReason": "¿Por qué ocultas esta publicación?",
     "hiddenTitle": "Esta publicación está oculta",
     "reactions": "Reacciones",
-    "reaction": "{name} {count}",
+    "reaction": "{name}, {count}",
     "reactionNames": {
       "thumbs_up": "Me gusta",
       "heart": "Corazón",
@@ -127,7 +129,9 @@
     "pickOne": "Elige una",
     "pollResults": "Resultados de la encuesta",
     "pollLine": "{label}: {votes, plural, one {# voto} other {# votos}} ({percent} %)",
-    "yourVote": "(tu voto)"
+    "yourVote": "(tu voto)",
+    "more": "Más",
+    "moreFor": "Más acciones para {title}"
   },
   "surveys": {
     "title": "Encuestas",
@@ -300,7 +304,7 @@
     "gps": "Ubicación GPS",
     "gpsTake": "Usar mi ubicación",
     "gpsAgain": "Actualizar ubicación",
-    "gpsTaken": "Ubicado en {latitude}, {longitude} con {accuracy} m de precisión.",
+    "gpsTaken": "Ubicado en {latitude}, {longitude} con una precisión de {accuracy}.",
     "gpsDenied": "La ubicación está bloqueada. Permite la ubicación para este sitio en tu navegador e intenta de nuevo.",
     "gpsNeeded": "Este formulario necesita tu ubicación.",
     "signature": "Firma",
@@ -416,7 +420,7 @@
     "agenda": "Agenda",
     "organizer": "Organizador",
     "rsvps": "Respuestas",
-    "rsvpCounts": "{Going} van, {Maybe} quizás, {Declined} no van",
+    "rsvpCounts": "{going} van, {maybe} quizás, {declined} no van",
     "rsvp": {
       "Going": "Voy",
       "Maybe": "Quizás",
@@ -480,7 +484,7 @@
     "title": "Chat",
     "what": "tus conversaciones",
     "conversations": "Conversaciones",
-    "empty": "Todavía no hay conversaciones. Busca a alguien en el directorio para escribirle.",
+    "empty": "Aún no hay conversaciones. Escribe a un compañero para empezar una.",
     "untitled": "Conversación",
     "unread": "{count} nuevos",
     "noMessages": "Todavía no hay mensajes",
@@ -511,7 +515,8 @@
       "Photo": "Foto",
       "File": "Archivo",
       "Voice": "Nota de voz"
-    }
+    },
+    "emptyAction": "Escribir a un compañero"
   },
   "recognition": {
     "title": "Reconocimientos",
@@ -653,13 +658,8 @@
       "Heat": "Índice de calor"
     },
     "hazardUnit": "{hazard} ({unit})",
-    "units": {
-      "mph": "mph",
-      "mi": "millas",
-      "F": "°F"
-    },
     "value": "Lectura",
-    "valueHelp": "En la unidad del riesgo.",
+    "valueHelp": "En la unidad que aparece junto al riesgo.",
     "thresholds": "Umbrales",
     "noThresholds": "Todavía no hay umbrales. Configúralos según tu plan de emergencia.",
     "noThresholdsRead": "Este proyecto todavía no tiene umbrales.",
@@ -670,14 +670,14 @@
       "Evacuate": "Evacuar"
     },
     "trigger": "Se activa con",
-    "atOrAbove": "{value} {unit} o más",
-    "atOrBelow": "{value} {unit} o menos",
+    "atOrAbove": "{measure} o más",
+    "atOrBelow": "{measure} o menos",
     "source": "Fuente",
     "sourceHelp": "De dónde sale el valor, por ejemplo la sección del plan de emergencia.",
     "canonNote": "La Biblia todavía no tiene métricas de acción climática, así que cada proyecto toma sus umbrales de su plan de emergencia.",
     "setThreshold": "Guardar umbral",
     "thresholdValue": "Valor",
-    "thresholdHelp": "Mph para el viento, millas para la distancia de rayos, °F para el índice de calor.",
+    "thresholdHelp": "En {wind} para el viento, {distance} para la distancia de rayos y {heat} para el índice de calor.",
     "roles": "A quién se alerta",
     "noRoles": "Todavía no hay roles. Siempre se alerta a los despachadores del proyecto.",
     "roleLine": "{level}: {role}",
@@ -716,7 +716,8 @@
     "credentialHelp": "Escanea o escribe el número del gafete si el invitado tiene uno.",
     "admittedLine": "Admitido con {plusOnes, plural, =0 {ningún acompañante} one {# acompañante} other {# acompañantes}} en {door}.",
     "checkedInCount": "Registrados de {expected}",
-    "peopleIn": "Personas adentro"
+    "peopleIn": "Personas adentro",
+    "emptyAction": "Abrir la lista de invitados"
   },
   "lostFound": {
     "title": "Objetos perdidos",
@@ -832,7 +833,13 @@
     "guest_credential_holder": "Esa credencial es de otra persona.",
     "lost_item_not_held": "Solo un objeto guardado puede recibir un reclamo.",
     "lost_item_claim_settled": "Este reclamo ya se resolvió.",
-    "lost_item_rejection_note": "Indica por qué se rechaza el reclamo."
+    "lost_item_rejection_note": "Indica por qué se rechaza el reclamo.",
+    "content_report_own": "No puedes denunciar tu propia publicación, comentario o mensaje.",
+    "content_report_removed": "Esto ya se eliminó.",
+    "block_self": "No puedes bloquearte a ti mismo.",
+    "content_moderation_own": "Otro moderador decide las denuncias sobre tu propia publicación, comentario o mensaje.",
+    "content_moderation_nothing_open": "Ya se decidieron todas las denuncias sobre esto.",
+    "content_moderation_authority": "Revisar contenido denunciado requiere permiso para gestionar la comunicación."
   },
   "settingsPanels": {
     "groupsTitle": "Espacios de grupo",
@@ -996,7 +1003,7 @@
       },
       "when": "{start} a {end}",
       "whenAt": "{start} a {end} · {location}",
-      "counts": "{Going} asistirán, {Maybe} tal vez, {Declined} no asistirán"
+      "counts": "{going} asistirán, {maybe} tal vez, {declined} no asistirán"
     },
     "forms": {
       "submit": "Enviar formulario",
@@ -1172,5 +1179,69 @@
       "itemTitle": "{category}: {description}",
       "meta": "{number} · {place} · {count} reclamos en espera"
     }
+  },
+  "moderation": {
+    "title": "Contenido denunciado",
+    "intro": "Publicaciones, comentarios y mensajes que se denunciaron ante los moderadores de tu organización. Decide cada uno en 24 horas. Quienes lo denunciaron y, si lo eliminas, quien lo escribió reciben tu declaración de motivos; no se dice a nadie quién decidió ni quién denunció.",
+    "sections": "Mostrar",
+    "open": "Abiertas",
+    "decided": "Decididas",
+    "what": "el contenido denunciado",
+    "empty": "No hay nada pendiente. Aquí aparecen las denuncias que se hacen desde una publicación, un comentario o un mensaje.",
+    "emptyDecided": "Todavía no se ha decidido ninguna denuncia.",
+    "kinds": {
+      "feedPost": "Publicación",
+      "comment": "Comentario",
+      "chatMessage": "Mensaje"
+    },
+    "reasons": {
+      "harassment": "Acoso o intimidación",
+      "hate": "Discurso o símbolos de odio",
+      "sexualContent": "Contenido sexual",
+      "violence": "Violencia o amenazas",
+      "spam": "Spam o estafa",
+      "other": "Otro motivo"
+    },
+    "states": {
+      "overdue": "Vencida",
+      "open": "Abierta",
+      "removed": "Eliminado",
+      "noAction": "Sin medidas"
+    },
+    "content": "Contenido",
+    "kind": "Tipo",
+    "author": "Autor",
+    "reports": "Denuncias",
+    "reasonsLabel": "Motivos",
+    "due": "Vence",
+    "line": "{kind} de {author}: {reasons}",
+    "reportsCount": "{open} abiertas de {total}",
+    "where": "Dónde",
+    "firstReported": "Primera denuncia",
+    "removedNote": "Esto se eliminó. Lo que sigue es lo que se denunció.",
+    "current": "Como se lee ahora",
+    "snapshot": "Como se denunció",
+    "reportLine": "{reason}, denunciado por {name} el {date}",
+    "noDetails": "Sin detalles.",
+    "decisions": "Decisiones",
+    "decisionLine": "{action} el {date} por {name}",
+    "actions": {
+      "removed": "Eliminado",
+      "noAction": "Sin medidas"
+    },
+    "decide": "Decidir",
+    "decision": "Decisión",
+    "choices": {
+      "removeTerms": "Eliminarlo: incumple los términos o las normas de tu organización",
+      "removeIllegal": "Eliminarlo: es ilegal",
+      "noAction": "No tomar medidas: no incumple ninguna norma"
+    },
+    "ruleReference": "Norma aplicada",
+    "ruleReferenceHelp": "Por ejemplo, Política de uso aceptable 1, o una sección del código de conducta de tu organización.",
+    "facts": "Hechos",
+    "factsHelp": "Lo que el contenido dice o hace y en lo que se basa la decisión.",
+    "statement": "Declaración de motivos",
+    "statementHelp": "Se envía a quienes lo denunciaron y, si lo eliminas, a quien lo escribió.",
+    "submit": "Registrar decisión"
   }
 }

@@ -14,6 +14,7 @@ import { viewsMigration } from "./playbook/views.ts";
 import { readLedger, ruledChecksum } from "./ledger.ts";
 import type { Ledger } from "./ledger.ts";
 import type { WorkbookData } from "./workbook.ts";
+import { labelFiles } from "./labels.ts";
 import { quoteText } from "./sql.ts";
 import type { ColumnMap } from "./playbook/column-map.ts";
 import { applyPlaybook } from "./playbook/model.ts";
@@ -28,6 +29,7 @@ import {
   staleEntries,
   templateLabelProblems,
 } from "./decision25.ts";
+import { rulingEntries, staleRulings } from "./decision39.ts";
 import type { TableSpec } from "./schema/types.ts";
 import { insertStatements, tableDdl } from "./sql.ts";
 import type { SqlRow } from "./sql.ts";
@@ -167,8 +169,13 @@ export function generateCanon(inputs: LoadedInputs, options: GenerateOptions): G
 
   const d25 = inputs.rulings.decision_25;
   const unresolved = playbook.diff.filter((d) => d.resolution === undefined);
+  const d39 = inputs.rulings.decision_39;
+  const otherSections = [...new Set(rulingEntries(d39).map((e) => e.section))].filter(
+    (section) => section !== "role_codes",
+  );
   const decisionProblems = [
     ...staleEntries(d25, playbook.used),
+    ...staleRulings(d39, playbook.used.rulings, otherSections),
     ...mappingProblems(tables.get("label_mapping") ?? [], canonVocabulary(tables)),
     ...templateLabelProblems(d25, options.map, tables),
   ];
@@ -212,9 +219,14 @@ export function generateCanon(inputs: LoadedInputs, options: GenerateOptions): G
       content: roundTripTest(inputs.playbook, options.ledger),
       committed: true,
     },
+    // Canon label sources for the translation pipeline (Section 15, ADR 0053).
+    ...labelFiles(tables),
     {
       path: "canon/reports/doctrine-findings.md",
-      content: doctrineReport(findings.items, d25.accepted_findings),
+      content: doctrineReport(findings.items, {
+        ...d25.accepted_findings,
+        ...d39.accepted_findings,
+      }),
       committed: false,
     },
     {

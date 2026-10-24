@@ -184,6 +184,7 @@
       "stages": "[Éñgàgéméñt stàgés ······]"
     },
     "feedback": {
+      "failed": "[Ýöûr féédbàçk dîd ñöt séñd. Trý àgàîñ. ···············]",
       "hint": "[Désçrîbé whàt ýöû éxpéçtéd àñd whàt ýöû sàw. ·················]",
       "privacy": "[Öñlý whàt ýöû çhöösé héré îs séñt. Ñöthîñg élsé îs çàptûréd. ·······················]",
       "question": "[Whàt hàppéñéd? ·····]",
@@ -442,7 +443,8 @@
       "change": "[Çhàñgé ··]",
       "edit": "[Édît ·]",
       "press": "[Préss Kéýs ···]",
-      "shortcut": "[Shörtçût ···]"
+      "shortcut": "[Shörtçût ···]",
+      "none": "[Ñöt sét ··]"
     },
     "shortcuts": {
       "title": "[Kéýböàrd Shörtçûts ·······]"
@@ -477,7 +479,10 @@
     },
     "table": {
       "resizeColumn": "[Résîzé çölûmñ {column} ········]",
-      "total": "[Tötàl ·]"
+      "row": "[Ŕöŵ {n} ··]",
+      "total": "[Tötàl ·]",
+      "selectAll": "[Šéļéçţ àļļ ŕöŵš ······]",
+      "selectRow": "[Šéļéçţ {row} ···]"
     },
     "timeline": {
       "critical": "[çrîtîçàl pàth ·····]",

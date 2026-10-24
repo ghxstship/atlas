@@ -62,15 +62,15 @@ describe("sources", () => {
     expect(external.map((s) => s.table)).toContain("dock_slots");
     expect(sourcesFor("field").every((s) => s.schema !== "api_external")).toBe(true);
     expect(sourcesFor("field").map((s) => s.table)).toEqual(
-      expect.arrayContaining(["incident_severities", "emergency_codes"]),
+      expect.arrayContaining(["incident_severities", "emergency_codes", "canon_emergency_codes"]),
     );
   });
 
   it("selects the column each table's device scope rule checks, for every audience", () => {
     // A row the scope check cannot place is refused, so a source that leaves out the scope column
     // downloads nothing (geofence shapes once lacked org_id and Today said the site had no geofence).
-    // Columns the downloader adds after the pull are listed here.
-    const enriched: Readonly<Record<string, readonly string[]>> = { cues: ["project_id"] };
+    // Columns the downloader adds after the pull are listed here; a source with a parent takes its project.
+    const enriched: Readonly<Record<string, readonly string[]>> = {};
     const audiences: readonly Audience[] = [...INTERNAL_AUDIENCES, ...EXTERNAL_AUDIENCES];
     const gaps: string[] = [];
     for (const audience of audiences) {
@@ -82,11 +82,15 @@ describe("sources", () => {
         }
         if (rule.global) continue;
         const selected = Object.fromEntries(
-          source.select.split(",").map((c) => [c.split(":")[0]?.trim() ?? c, "x"]),
+          source.select
+            .split(",")
+            .map((c) => c.split(":")[0]?.trim() ?? c)
+            .map((c) => [c, c === "deleted_at" ? null : "x"]),
         );
         const columns = new Set([
           ...Object.keys(source.map ? source.map(selected) : selected),
           ...(enriched[source.table] ?? []),
+          ...(source.parent ? ["project_id"] : []),
         ]);
         const served = rule.anyOf.filter(
           (a) => a.audiences === undefined || a.audiences.includes(audience),
@@ -168,7 +172,15 @@ describe("REST download", () => {
           enum_domain: "Inspection Result",
         },
       ],
-      "xpms.emergency_code": [{ code: "CODE_RED", name: "Code Red" }],
+      "xpms.emergency_code": [
+        {
+          code: "CODE_RED",
+          label: "Code Red",
+          emergency: "Fire",
+          swatch: "ecode-red",
+          sort_order: "1",
+        },
+      ],
     });
     const report = await downloadAll({ client: api, session, projectId: null });
     expect(report.failed).toEqual([
@@ -189,7 +201,13 @@ describe("REST download", () => {
         colorCode: "#D93025",
       },
     ]);
-    expect(await store.get("emergency_codes", "CODE_RED")).toMatchObject({ name: "Code Red" });
+    // Canon codes reach every device, an engaged crew member's too; the org's own codes need a membership.
+    expect(await store.get("canon_emergency_codes", "CODE_RED")).toMatchObject({
+      label: "Code Red",
+      swatch: "ecode-red",
+      sort_order: 1,
+    });
+    expect(await store.list("emergency_codes")).toEqual([]);
     expect(filters).toContain("xpms.std_enumeration enum_domain=Incident Severity");
   });
 

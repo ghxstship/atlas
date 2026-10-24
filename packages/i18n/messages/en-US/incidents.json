@@ -18,19 +18,23 @@
   "anySeverity": "Any severity",
   "anyState": "Any state",
   "arrivedAt": "Arrived {time}",
-  "boardEmpty": "None",
+  "boardEmpty": "No incidents in this state.",
   "close": "Close with sign-off",
   "closeHeading": "Close",
   "closeHelp": "Closing records you as the person signing off. The reporter of a critical incident cannot sign off its closure.",
   "closed": "Incident closed with sign-off.",
   "codes": {
     "activeAlerts": "Active alerts",
+    "canonWord": "The code word {code} and its color stay as the Standard Library has them, so crisis alerts and protocols still find it.",
     "code": "Code",
+    "editHeading": "Edit this code",
     "emergency": "Emergency",
-    "explain": "Emergency codes are the same for every organization and project. Open a code to read its protocol for each operational domain; agencies come from the project's jurisdiction.",
+    "explain": "Your organization's emergency codes, in the order your people learn them. Each is your copy of a Standard Library code, so you can relabel, redescribe or reorder it. Open a code to read its protocol for each operational domain; agencies come from the project's jurisdiction.",
     "genericAgencies": "Choose a project to name the responding agencies of its jurisdiction; without one, each step names the generic service.",
     "kind": "Emergency code",
+    "labelField": "Label",
     "noProtocols": "This code has no protocol in the Standard Library yet.",
+    "notAdopted": "These are the Standard Library's codes. Adopt the Standard Library in Settings, Canon Extensions to get your own copy you can edit.",
     "order": "Order"
   },
   "dispatch": "Dispatch responder",
@@ -100,7 +104,8 @@
     "libraryOperations": "Department channels",
     "libraryShared": "Shared and guest channels",
     "name": "Name",
-    "new": "New channel"
+    "new": "New channel",
+    "chooseProject": "Choose the project whose radio channels you want to set up."
   },
   "reason": "Reason",
   "remove": "Remove",
@@ -126,5 +131,7 @@
   "unknownPerson": "Unknown person",
   "viewAll": "View all incidents",
   "withdraw": "Withdraw",
-  "zone": "Zone"
+  "zone": "Zone",
+  "chooseProject": "Choose the project where the incident happened, then report it.",
+  "noProjects": "There are no projects you can open yet. Create a project, then come back to report incidents."
 }

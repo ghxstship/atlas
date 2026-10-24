@@ -433,6 +433,8 @@ export async function listSupportSessions(
       .from("support_sessions")
       .select("id, org_id, grantee_org_id, reason, starts_at, ends_at, ended_at")
       .eq("org_id", orgId)
+      // Partner sessions only; platform sessions (A90, 1472) are listed by @xos/data/platform-support.
+      .eq("grantee", "Partner")
       .is("deleted_at", null)
       .order("starts_at", { ascending: false })
       .limit(20),

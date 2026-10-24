@@ -1,30 +1,28 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { isLocale } from "@xos/i18n/locales";
 import { z } from "zod";
 import { LOCALE_COOKIE, selectableLocales } from "@/i18n/negotiate";
-import { env } from "@/lib/env";
+import { preferenceOptions } from "@/lib/privacy/consent";
 import { THEME_COOKIE, THEMES } from "@/lib/theme";
 import { setPersonalSetting } from "@xos/data/settings";
 import { getMyOrganizations, getViewer } from "./context";
 import { WORKSPACE_COOKIE } from "./workspace";
+import { devicePreference } from "./org-settings";
 
 /**
  * Device preferences set from the shell: language, theme and the workspace filter, kept in httpOnly
- * SameSite=Lax cookies for this device. Language and theme are also saved as the person's own
+ * SameSite=Lax cookies for this device (for the visit only unless Preferences cookies are allowed). Language and theme are also saved as the person's own
  * settings (Section 4.5.6), so the other shells follow them. Other tabs pick them up through
  * BroadcastChannel. The context switcher action binds the session to the chosen org.
  */
-const YEAR = 60 * 60 * 24 * 365;
-
+/**
+ * A Preferences cookie (legal/cookie-policy.md, A65-014): it lasts 12 months only when the visitor
+ * allowed Preferences in the cookie banner, and ends with the visit otherwise.
+ */
 async function setPreference(name: string, value: string): Promise<void> {
-  (await cookies()).set(name, value, {
-    path: "/",
-    sameSite: "lax",
-    httpOnly: true,
-    secure: env().ATLAS_SITE_URL.startsWith("https:"),
-    maxAge: YEAR,
-  });
+  (await cookies()).set(name, value, await preferenceOptions());
 }
 
 /** Keeps a device preference as the person's own setting too, so Gateway and Compass follow it. */
@@ -39,13 +37,25 @@ export async function setLocale(locale: string): Promise<void> {
   const allowed = selectableLocales(process.env.NODE_ENV === "production") as string[];
   const chosen = z.enum(allowed as [string, ...string[]]).parse(locale);
   await setPreference(LOCALE_COOKIE, chosen);
-  if (chosen === "en-US" || chosen === "es-US") await rememberPersonally("locale.language", chosen);
+  // Launch and Beta locales (ADR 0053) are saved for the other shells; a pseudo-locale stays on this device.
+  if (isLocale(chosen)) await rememberPersonally("locale.language", chosen);
 }
 
 export async function setTheme(theme: string): Promise<void> {
   const chosen = z.enum(THEMES).parse(theme);
   await setPreference(THEME_COOKIE, chosen);
   await rememberPersonally("me.theme", chosen);
+}
+
+/**
+ * A theme or language saved on a settings page (me.theme, locale.language) applies on this device at once,
+ * as the shell's own pickers do. A theme of System keeps the device's current one.
+ */
+export async function applyDevicePreference(key: string, value: string): Promise<void> {
+  const locales = selectableLocales(process.env.NODE_ENV === "production") as string[];
+  const device = devicePreference(key, value, THEMES, locales);
+  if (device)
+    await setPreference(device.cookie === "theme" ? THEME_COOKIE : LOCALE_COOKIE, device.value);
 }
 
 /**

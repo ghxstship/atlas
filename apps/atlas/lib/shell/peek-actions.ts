@@ -1,8 +1,10 @@
 "use server";
 
-import { getRecordByKey } from "@xos/data/work";
+import { getRecordByKey, listStateHistory } from "@xos/data/work";
 import { z } from "zod";
 import { getOrgContext } from "./context";
+import { rememberView } from "./recents";
+import { observability } from "@/lib/observability";
 
 /** What the shell's global peek shows for a record key (Section 4.5.3). */
 export interface ShellPeekRecord {
@@ -13,8 +15,21 @@ export interface ShellPeekRecord {
   readonly projectKey: string;
   readonly projectName: string;
   readonly ownerName: string | null;
+  readonly phaseCode: string | null;
+  readonly startsAt: string | null;
+  readonly endsAt: string | null;
   readonly dueAt: string | null;
   readonly timeZone: string | null;
+  readonly blockerText: string | null;
+  /** The latest state changes, newest first (A59-016: the peek shows recent activity). */
+  readonly history: readonly {
+    readonly id: string;
+    readonly from: string | null;
+    readonly to: string;
+    readonly reason: string;
+    readonly at: string;
+    readonly byName: string | null;
+  }[];
 }
 
 export type ShellPeekResult =
@@ -38,10 +53,15 @@ export async function loadShellPeekAction(
   const found = await getRecordByKey(ctx.viewer.db, ctx.org.id, key.data);
   if (!found.ok) {
     if (found.error.kind === "not-found") return { ok: false, reason: "notFound" };
-    console.error("Shell peek failed", found.error);
+    observability.logger.error("Shell peek failed", { error: found.error });
     return { ok: false, reason: "unexpected" };
   }
   const r = found.data;
+  const [history] = await Promise.all([
+    listStateHistory(ctx.viewer.db, r.id),
+    // The command menu's recent items (Section 11.7).
+    rememberView(ctx, "records", r.id),
+  ]);
   return {
     ok: true,
     record: {
@@ -52,8 +72,13 @@ export async function loadShellPeekAction(
       projectKey: r.projectKey,
       projectName: r.projectName,
       ownerName: r.ownerName,
+      phaseCode: r.phaseCode,
+      startsAt: r.startsAt,
+      endsAt: r.endsAt,
       dueAt: r.dueAt,
       timeZone: r.timeZone ?? r.projectTimeZone,
+      blockerText: r.blockerText,
+      history: history.ok ? [...history.data].reverse().slice(0, 5) : [],
     },
   };
 }

@@ -39,6 +39,9 @@
     "googleCancelled": "You left the Google sign-in before it finished. Try again, or use an email link.",
     "googleUnavailable": "Google sign-in needs Google Play services on this device. Update them, or use an email link.",
     "googleFailed": "Google could not sign you in. Try again in a moment, or use an email link.",
+    "appleCancelled": "You left the Apple sign-in before it finished. Try again, or use an email link.",
+    "appleFailed": "Apple could not sign you in. Try again in a moment, or use an email link.",
+    "appleUnavailable": "Sign in with Apple is not available on this device. Use an email link.",
     "emailNotVerified": "The email address on that Google account is not verified yet. Open the confirmation link we sent to it, then try again.",
     "ssoRequired": "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
     "submit": "Sign In",
@@ -47,7 +50,36 @@
     "emailInvalid": "Enter an email address such as name@example.com.",
     "network": "Compass cannot reach the server. Connect to a network, then sign in.",
     "identityTitle": "Your access did not load",
-    "identity": "Compass could not read your {step}. Try again, or ask your organization to check your invitation."
+    "identity": "Compass could not read your {step}. Try again, or ask your organization to check your invitation.",
+    "identitySteps": {
+      "person": "profile",
+      "memberships": "memberships",
+      "roles": "roles",
+      "capabilities": "permissions",
+      "projects": "projects",
+      "engagements": "engagements",
+      "access": "access"
+    }
+  },
+  "startup": {
+    "title": "Compass could not start",
+    "sentence": "The offline storage on this device did not open. Try again. If it keeps happening, restart the phone.",
+    "storageReset": "Compass had to reset its offline storage on this device. Changes made offline that had not uploaded could not be recovered. Everything else downloads again."
+  },
+  "secondFactor": {
+    "title": "Verify It's You",
+    "sentence": "Enter the 6-digit code from your authenticator app.",
+    "code": "Code",
+    "verify": "Verify",
+    "invalid": "That code didn't match. Enter the code your app shows now.",
+    "requiredTitle": "Set Up a Second Factor",
+    "required": "Your organization requires a second factor for your role. Set up an authenticator app in Atlas or Gateway under Settings, Security, then try again.",
+    "useRecovery": "Use a Recovery Code Instead",
+    "useApp": "Use Your Authenticator App Instead",
+    "recoverySentence": "Enter one of the recovery codes you saved in Atlas or Gateway. Each code works once.",
+    "recoveryCode": "Recovery code",
+    "recoveryInvalid": "That recovery code didn't match, or it was already used.",
+    "recoveryLocked": "Too many wrong codes. Wait 15 minutes, then try again."
   },
   "denial": {
     "roleTitle": "Not part of your role",
@@ -75,6 +107,7 @@
       "asset_custody": "gear hand-overs",
       "asset_identifiers": "gear codes",
       "asset_units": "gear",
+      "canon_emergency_codes": "standard emergency codes",
       "clock_punches": "clock punches",
       "credentials": "credentials",
       "cues": "cues",
@@ -100,7 +133,29 @@
       "time_entries": "time entries",
       "zones": "zones",
       "other": "other data",
-      "roles": "job titles"
+      "roles": "job titles",
+      "budget_lines": "budget lines",
+      "expenses": "expenses",
+      "timesheets": "timesheets",
+      "per_diems": "per diem",
+      "travel_segments": "travel",
+      "lodging": "lodging",
+      "onboarding_items": "onboarding items",
+      "purchase_orders": "purchase orders",
+      "po_lines": "purchase order lines",
+      "deliveries": "deliveries",
+      "shared_records": "records shared for review",
+      "deliverables": "deliverables",
+      "advance_packets": "advance packets",
+      "advance_sections": "advance sections",
+      "advance_submissions": "advance answers",
+      "riders": "riders",
+      "rider_lines": "rider asks",
+      "settlements": "settlements",
+      "settlement_lines": "settlement lines",
+      "shared_reports": "shared reports",
+      "sponsor_entitlements": "sponsor entitlements",
+      "engagement_documents": "engagement documents"
     }
   },
   "queue": {
@@ -155,7 +210,8 @@
       "dock_slots": "Dock check-in",
       "gate_queue": "Gate arrival",
       "marshalling_log": "Marshalling entry",
-      "fulfillments": "Fulfillment"
+      "fulfillments": "Fulfillment",
+      "expenses": "Expense"
     },
     "punchActions": {
       "in": "Clock in",
@@ -198,7 +254,8 @@
       "serverShift": "Shift on {day} at {start}, now {state}",
       "serverState": "{title}, now {state}",
       "serverCue": "{label}, called at {time}",
-      "serverGeneric": "The server holds a different version of this {kind}."
+      "serverGeneric": "The server holds a different version of this {kind}.",
+      "expenseReceipt": "Expense: {description}, {day}"
     },
     "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
     "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."
@@ -217,6 +274,45 @@
     "orgChip": "{org}",
     "nextCueAt": "Planned for {day} at {time}"
   },
+  "orgs": {
+    "title": "Organizations",
+    "chip": "Organization: {org}",
+    "switch": "Organization: {org}. Change organization",
+    "switchHint": "Lists the organizations you work for.",
+    "change": "Change",
+    "member": "Member",
+    "engaged": "Engaged",
+    "combinedTitle": "Today in all your organizations",
+    "nothingToday": "Nothing today."
+  },
+  "glance": {
+    "today": "Today",
+    "noCue": "No cue today.",
+    "cueLine": "Next cue: {cue} at {time}",
+    "onShiftTitle": "On shift at {project}",
+    "onBreakTitle": "On break at {project}",
+    "since": "Since {time}",
+    "cueTitle": "Next cue: {cue}",
+    "cueBody": "{project} at {time}",
+    "channel": "Shift and next cue"
+  },
+  "wallet": {
+    "holder": "Name",
+    "credential": "Credential",
+    "role": "Role",
+    "project": "Project",
+    "starts": "Starts",
+    "ends": "Ends",
+    "validUntil": "Valid until",
+    "organization": "Organization",
+    "addApple": "Add to Apple Wallet",
+    "addGoogle": "Add to Google Wallet",
+    "adding": "Getting your pass",
+    "notConfigured": "Wallet passes are not set up for your organization yet. Show the badge here instead.",
+    "notFound": "This pass is not yours to add.",
+    "offline": "Connect to the internet to add the pass. Once added, it works offline.",
+    "failed": "The pass could not be added. Try again."
+  },
   "clock": {
     "in": "Clock In",
     "onShift": "On Shift",
@@ -226,7 +322,7 @@
     "endBreak": "End Break",
     "blocked": "Clock In",
     "inside": "You're at {name}",
-    "outside": "You're {distance} m from {name}",
+    "outside": "You're {distance} from {name}",
     "outsideFar": "You're away from the venue",
     "locating": "Finding your location",
     "locationCoarse": "Your location is not precise enough yet. Step outside or wait a moment.",
@@ -278,7 +374,8 @@
     "timeRange": "{start} to {end}",
     "noPlace": "Venue to be confirmed",
     "claimOverlap": "You already hold a shift that overlaps this one ({time}). Swap or drop that shift first.",
-    "claimQueued": "Shift claimed. It is yours once it uploads; the org's claiming rule decides if someone got there first."
+    "claimQueued": "Shift claimed. It is yours once it uploads; the org's claiming rule decides if someone got there first.",
+    "claimSent": "Claim sent. A supervisor decides who gets the shift under this project's claiming rule."
   },
   "scan": {
     "title": "Scan",
@@ -335,7 +432,7 @@
     "step": "Step {step} of 3",
     "severity": "How serious is it?",
     "location": "Location",
-    "locationAuto": "Near {latitude}, {longitude} (within {accuracy} m)",
+    "locationAuto": "Near {latitude}, {longitude} (within {accuracy})",
     "locationUnknown": "Location not found. Describe where in the title.",
     "change": "Change",
     "titleLabel": "What happened",
@@ -375,7 +472,8 @@
       "permissionDenied": "Compass cannot use the microphone. Allow it in Settings, then hold to record again.",
       "failed": "The voice note did not record: {reason}. Hold to try again.",
       "tooShort": "That was too short to keep. Hold a little longer to record a voice note.",
-      "micDidNotStart": "The microphone did not start, so nothing was recorded. Close any app using it, then hold to try again."
+      "micDidNotStart": "The microphone did not start, so nothing was recorded. Close any app using it, then hold to try again.",
+      "didNotSave": "The recording did not finish saving. Try again."
     }
   },
   "inspections": {
@@ -445,20 +543,36 @@
     "doneQueued": "{name}: saved. Your PIN is checked when the kiosk is back online.",
     "refused": {
       "pinLocked": "This PIN is locked after too many tries. Ask your supervisor to reset it.",
-      "deviceRevoked": "This kiosk was turned off in Atlas. Ask your supervisor to register it again.",
-      "requestInvalid": "That punch could not be read. Start again."
+      "requestInvalid": "That punch could not be read. Start again.",
+      "kioskDisabled": "Kiosks are off for this organization. Ask an admin to turn them on in Atlas.",
+      "photoRequired": "This project asks for a photo at every kiosk punch. Start again and take the photo."
+    },
+    "unregistered": {
+      "title": "This device is no longer registered as a kiosk",
+      "sentence": "Workers cannot clock in here. A supervisor registers the kiosk again in Atlas, forgets this kiosk, then enters the new device key.",
+      "forget": "Forget this kiosk",
+      "confirmTitle": "Forget this kiosk?",
+      "confirmSentence": "This removes the device key from this device and returns it to kiosk setup.",
+      "confirm": "Forget Kiosk",
+      "supervisorRequired": "A supervisor must be signed in to forget this kiosk."
     },
     "exit": "Exit Kiosk",
     "digit": "Digit {digit}",
     "backspace": "Delete digit",
     "pinProgressOne": "{count} digit entered",
-    "pinProgressOther": "{count} digits entered"
+    "pinProgressOther": "{count} digits entered",
+    "off": "Kiosks are off for this organization. An admin turns them on in Atlas, Settings, Time and Attendance.",
+    "photoFor": "Photo for {name}",
+    "photoHelp": "This project asks for a photo at every kiosk clock-in and clock-out. Look at the camera and take the photo."
   },
   "inbox": {
     "title": "Inbox",
     "needsYou": "Needs You",
     "fyi": "For Your Information",
-    "empty": "You're all caught up. Approvals and messages appear here."
+    "empty": "You're all caught up. Approvals and messages appear here.",
+    "update": "Update",
+    "updateFrom": "Update from {org}",
+    "new": "New"
   },
   "more": {
     "title": "More",
@@ -473,6 +587,7 @@
   "reference": {
     "title": "Reference",
     "emergencyEmpty": "No emergency codes are cached yet. Connect once to download them.",
+    "emergencyStandard": "These are the standard emergency codes. Your organization may use its own names, meanings and order for them; ask your supervisor which to use on site.",
     "radioEmpty": "No radio plan for this project yet.",
     "channel": "Channel {number}",
     "mapsEmpty": "No venue maps for this project yet.",
@@ -515,10 +630,62 @@
     "signOutConfirm": "Sign Out Anyway",
     "deleteAccount": "Delete Account",
     "deleteAccountHelp": "Deletes your account and the data you own, after you confirm.",
+    "blockedPeople": "Blocked People",
+    "blockedPeopleHelp": "People whose posts and messages you no longer see",
     "version": "Version {version}",
     "personal": "Personal settings",
     "biometric": "Biometric Unlock",
     "biometricHelp": "Ask for Face ID, Touch ID or your passcode when Compass opens."
+  },
+  "safety": {
+    "title": "Report or Block",
+    "someone": "someone",
+    "actionsPost": "Report or block: post by {name}",
+    "actionsMessage": "Report or block: message from {name}",
+    "actionsShoutOut": "Report or block: shout-out from {name}",
+    "intro": "Your organization's moderators review every report within {hours} hours. Nobody is told who reported.",
+    "reportPost": "Report This Post",
+    "reportMessage": "Report This Message",
+    "reportShoutOut": "Report This Shout-Out",
+    "block": "Block {name}",
+    "reasonTitle": "Why are you reporting it?",
+    "reasons": {
+      "harassment": "Harassment or bullying",
+      "hate": "Hate speech or symbols",
+      "sexualContent": "Sexual content",
+      "violence": "Violence or threats",
+      "spam": "Spam or a scam",
+      "other": "Something else"
+    },
+    "details": "Anything moderators should know (optional)",
+    "submit": "Send Report",
+    "reportedTitle": "Report Sent",
+    "reported": "Thank you. Your organization's moderators will review it within {hours} hours and tell you what they decide.",
+    "blockToo": "Block {name} Too",
+    "confirmTitle": "Block {name}?",
+    "confirm": "You will no longer see their posts, comments, shout-outs or messages, in any conversation. They are not told. Unblock them any time in Settings, Blocked People.",
+    "blockConfirm": "Block",
+    "cancel": "Cancel",
+    "blockedTitle": "Blocked",
+    "blocked": "You blocked {name}. Their posts and messages are hidden for you.",
+    "done": "Done",
+    "close": "Close",
+    "failed": "That did not go through",
+    "offline": "Reporting and blocking need a connection. Try again when you are back online."
+  },
+  "blocked": {
+    "title": "Blocked People",
+    "intro": "You do not see the posts, comments, shout-outs or messages of the people you block. They are not told.",
+    "empty": "You have not blocked anyone. Block someone from the three dots on their post or message.",
+    "back": "Back to Settings",
+    "unblock": "Unblock {name}",
+    "unblocked": "You unblocked {name}. Their posts and messages show again.",
+    "failed": "{name} could not be unblocked. Try again.",
+    "organization": "Organization",
+    "offline": "Blocked People needs a connection.",
+    "loadFailed": "Blocked people did not load",
+    "loadFailedSentence": "Compass could not read who you blocked. Try again in a moment.",
+    "retry": "Try Again"
   },
   "photo": {
     "take": "Take Photo",
@@ -668,6 +835,8 @@
     "deleteHoldHint": "Hold for 2 seconds to delete your account",
     "stepUpPrompt": "Confirm it is you to delete your account",
     "stepUpFailed": "That did not confirm it is you, so nothing was deleted. Try again.",
+    "appleCancelled": "Confirm with Apple so Compass stops using your Apple Account, then delete again. Nothing was deleted.",
+    "appleNotRevoked": "Compass could not stop using your Apple Account. To finish, remove Compass from Sign in with Apple in your Apple Account settings.",
     "refusedTitle": "Your account was not deleted",
     "failed": "Your account was not deleted: {reason}. Try again.",
     "doneTitle": "Your account is deleted",
@@ -700,6 +869,7 @@
     "forScreen": "For the screen you were on",
     "general": "Everywhere in Compass",
     "all": "All help for your role",
+    "helpCenter": "Help center on the web",
     "offline": "Help is saved on this phone, so it works offline.",
     "missing": "This article is not available. Go back to Help for the others.",
     "back": "Back to Help",
@@ -735,5 +905,9 @@
         "unexpected": "The request could not be sent. Try again in a moment."
       }
     }
+  },
+  "systemBanner": {
+    "details": "Details",
+    "dismiss": "Dismiss"
   }
 }

@@ -6,6 +6,7 @@ import {
   codeAndApproveInvoice,
   payInvoice,
   PEOPLE,
+  projectToday,
   suffix,
   transition,
   vendorEngagement,
@@ -58,7 +59,9 @@ test("journey 56: the vendor is notified at each invoice step, honoring their ch
   // The vendor keeps Email and Push on for invoices and payments, saved in Gateway settings.
   await signIn(page, "vendor@example.com", "/settings/notifications");
   const prefs = page.getByRole("form", { name: "Notification preferences" });
-  await prefs.getByLabel("Email").uncheck();
+  // Opportunities and expiry reminders have their own rows of channels (1461, 1463).
+  const finance = prefs.getByRole("group", { name: "Invoices and payments" });
+  await finance.getByLabel("Email").uncheck();
   await prefs.getByRole("button", { name: "Save preferences" }).click();
   await expect(prefs.getByText("Saved. New notifications follow these choices.")).toBeVisible();
   const choice = async () =>
@@ -70,8 +73,8 @@ test("journey 56: the vendor is notified at each invoice step, honoring their ch
       )
     )[0]?.enabled;
   await expect.poll(choice).toBe(false);
-  await prefs.getByLabel("Email").check();
-  await prefs.getByLabel("Push to Compass").check();
+  await finance.getByLabel("Email").check();
+  await finance.getByLabel("Push to Compass").check();
   await prefs.getByRole("button", { name: "Save preferences" }).click();
   await expect.poll(choice).toBe(true);
   await expectAccessible(page);
@@ -80,11 +83,14 @@ test("journey 56: the vendor is notified at each invoice step, honoring their ch
   const engagement = await vendorEngagement();
   await transition("engagement", engagement.id, "Onboarding", "Active", "Vendor onboarded.");
   const number = `DSS-N-${suffix()}`;
+  // Issued today on the project's calendar, so the approval posts in the open period even on the last
+  // evening of a month, when the database's UTC date is already in the next one.
+  const today = await projectToday();
   const [submitted] = await asPerson<{ id: string }>(
     PEOPLE.vendorContact,
-    `select app.submit_engagement_invoice($1, $2, current_date, current_date + 30, 'USD',
+    `select app.submit_engagement_invoice($1, $2, $3::date, $3::date + 30, 'USD',
        '[{"description": "Delay towers, one show day", "quantity": 1, "unit_price_minor": 380000}]'::jsonb) as id`,
-    [engagement.id, number],
+    [engagement.id, number, today],
   );
   const invoiceId = submitted?.id as string;
   await codeAndApproveInvoice(invoiceId);

@@ -1,11 +1,13 @@
 import { generateExternalDocument } from "@xos/data/documents/generate";
 import { isPaper } from "@xos/data/documents/model";
 import { isExternalDocumentKind } from "@xos/data/documents/sources-external";
-import { getMessages, isLocale } from "@xos/i18n";
+import { isLocale } from "@xos/i18n";
+import { loadMessages } from "@xos/i18n/load";
 import { getLocale } from "next-intl/server";
 import { gatewayRecordPath } from "@/lib/documents/links";
 import { env } from "@/lib/env";
 import { getGatewayContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * A generated document for an external party as tagged PDF/UA-1 (Section 11.9, ADR 0031). The record
@@ -31,14 +33,14 @@ export async function GET(
     kind,
     id,
     locale,
-    messages: getMessages(locale).documents,
+    messages: (await loadMessages(locale)).documents,
     paper,
     recordUrl: () =>
       new URL(gatewayRecordPath(kind, engagementKey), env().GATEWAY_SITE_URL).toString(),
   });
   if (!result.ok) {
     if (result.error.kind === "not-found") return new Response(null, { status: 404 });
-    console.error("document generation failed", kind, result.error);
+    observability.logger.error("document generation failed", { kind, error: result.error });
     return new Response(null, { status: 500 });
   }
   return new Response(result.data.bytes as unknown as BodyInit, {

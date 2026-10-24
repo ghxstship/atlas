@@ -1,15 +1,17 @@
--- pgTAP: the public brand lookups return the org id (0931).
+-- pgTAP: the public brand lookups return the org id (0931). Builds its own org (0200 identity world), so it
+-- passes on a database without the demo seed (A71, RRR-116).
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
+\ir 0200_identity_world.psql
 
 select plan(3);
 
-set local role anon;
+select pg_temp.as_anon();
 select is(
-  (select org_id from api_public.org_brand_for_slug('demo-productions')),
-  '01920000-0000-7000-8000-000000000001'::uuid,
-  'the slug lookup returns the demo org id to anon'
+  (select org_id from api_public.org_brand_for_slug('northwind-live')),
+  pg_temp.id('org_a'),
+  'the slug lookup returns the org id to anon'
 );
 select is(
   (select count(*)::integer from api_public.org_brand_for_slug('no-such-org')),

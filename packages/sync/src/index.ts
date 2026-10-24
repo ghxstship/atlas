@@ -67,5 +67,5 @@ export {
   type ScopeKey,
   type TableRule,
 } from "./scope";
-export { SyncSession, type IngestReport } from "./session";
+export { admitsAny, isDeviceTable, SyncSession, type IngestReport } from "./session";
 export { PersistentStore, SCHEMA_SQL, type SqlExecutor } from "./persistent";

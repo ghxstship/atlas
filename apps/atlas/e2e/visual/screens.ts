@@ -25,8 +25,9 @@ export const SCREENS: readonly Screen[] = [
   { name: "project-overview", path: `/${DEMO_ORG}/p/NWS/overview`, person: "producer" },
   { name: "inbox", path: `/${DEMO_ORG}/inbox`, person: "producer" },
   { name: "my-work", path: `/${DEMO_ORG}/my-work`, person: "producer" },
-  // The table view: the default resource schedule shows the current week, whose columns move with
-  // the calendar while the seeded shifts do not.
+  // This week in the table view, as the producer opens it. At the visual clock (stable.ts) the week is
+  // always the one the seed's shifts dated from the reset fall in (0217, 1090, 1500); on the real
+  // clock those shifts fell in or out of it by weekday and the shot drifted every day.
   { name: "crew-shifts", path: `/${DEMO_ORG}/crew/shifts?view=table`, person: "producer" },
   { name: "finance-budgets", path: `/${DEMO_ORG}/finance/budgets`, person: "producer" },
   { name: "record", path: `/${DEMO_ORG}/r/NWS-12`, person: "producer" },

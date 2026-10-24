@@ -4,9 +4,17 @@ import {
   type AccountDeletionPreview,
   type AccountDeletionResult,
 } from "@xos/data/account-deletion";
+import type { XosClient } from "@xos/data/client";
 import * as LocalAuthentication from "expo-local-authentication";
 import { useCallback, useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
+import { revokeAppleBeforeDeletion } from "../domain/appleSignIn";
+import {
+  accountSignsInWithApple,
+  appleAvailable,
+  appleRevoker,
+  loadAppleNative,
+} from "../runtime/apple";
 import { useCompass } from "../runtime/CompassProvider";
 import {
   Button,
@@ -31,15 +39,19 @@ type Load =
  * check (Face ID, Touch ID or passcode, when the device has one), then calls app.delete_my_account and shows
  * the confirmation. Online only: deletion never queues. Settings, Account shows it, and so does the screen a
  * sign-in with no membership or engagement lands on, so every account Compass can open can be deleted.
+ * An account that signs in with Apple first confirms with Apple's sheet, so Compass's Apple tokens are revoked
+ * (ADR 0033 decision 58); when Compass cannot revoke them, the confirmation says how to remove Compass from the
+ * Apple Account.
  */
 export function DeleteAccount(): ReactElement {
   const { t } = useTranslation();
-  const { client, network, store } = useCompass();
+  const { client, config, network, store } = useCompass();
   const [load, setLoad] = useState<Load>({ kind: "loading" });
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<{ title?: string; message: string } | null>(null);
   const [done, setDone] = useState<AccountDeletionResult | null>(null);
+  const [appleLeft, setAppleLeft] = useState(false);
 
   const check = useCallback(async () => {
     setLoad({ kind: "loading" });
@@ -78,8 +90,20 @@ export function DeleteAccount(): ReactElement {
         setProblem({ message: t("compass.account.stepUpFailed") });
         return;
       }
+      const xos = client as unknown as XosClient;
+      const apple = await revokeAppleBeforeDeletion({
+        signedInWithApple: await accountSignsInWithApple(xos),
+        appleOnDevice: await appleAvailable(),
+        native: loadAppleNative,
+        revoke: appleRevoker(xos, config.supabaseUrl),
+      });
+      if (apple.kind === "cancelled") {
+        setProblem({ message: t("compass.account.appleCancelled") });
+        return;
+      }
       const result = await deleteMyAccount(client, email);
       if (result.ok) {
+        setAppleLeft(apple.kind === "not-revoked");
         setDone(result.data);
         return;
       }
@@ -120,6 +144,13 @@ export function DeleteAccount(): ReactElement {
           <Text>{t("compass.account.doneSentence", { count: done.orgsNotified })}</Text>
         </Card>
         <KeptList categories={done.kept.map((k) => k.category)} />
+        {appleLeft ? (
+          <InlineAlert
+            testID="account-apple-not-revoked"
+            tone="info"
+            message={t("compass.account.appleNotRevoked")}
+          />
+        ) : null}
         {problem ? <InlineAlert tone="danger" message={problem.message} /> : null}
         <Button
           testID="account-deleted-done"
@@ -131,8 +162,10 @@ export function DeleteAccount(): ReactElement {
     );
   }
 
+  // The hold on Delete Account comes straight after typing the email. Without "handled" the first touch
+  // only closed the keyboard, and the hold never reached the button (A68, journey 38).
   return (
-    <Screen testID="account" title={t("compass.account.title")}>
+    <Screen testID="account" title={t("compass.account.title")} keyboardShouldPersistTaps="handled">
       <Text tone="secondary">{t("compass.account.intro")}</Text>
       {!network.isConnected ? (
         <InlineAlert

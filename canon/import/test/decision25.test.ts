@@ -74,10 +74,15 @@ describe("decision 25 rules", () => {
       basis: "closest-value",
       canon: "lump sum",
     });
-    expect(libraryLabel(d25, "Unit of Measure", "Hour", "ENM-071", units)).toMatchObject({
+    const held: Decision25 = {
+      ...d25,
+      deferred: [{ sheet: "Enumerations", key: "ENM-071", question: "RRR-66", note: "Held." }],
+    };
+    expect(libraryLabel(held, "Unit of Measure", "Hour", "ENM-071", units)).toMatchObject({
       outcome: "deferred",
       canon: null,
     });
+    expect(libraryLabel(d25, "Unit of Measure", "Hour", "ENM-071", units)).toBeUndefined();
     expect(libraryLabel(d25, "Unit of Measure", "Fortnight", "ENM-999", units)).toBeUndefined();
     expect(playbookOnlyRow(d25, "Counterparty Types", "Tenant")).toBeUndefined();
   });
@@ -158,11 +163,12 @@ describe("decision 25 applied to canon", () => {
       const k = d.resolution?.outcome ?? "unexplained";
       outcomes[k] = (outcomes[k] ?? 0) + 1;
     }
+    // Decision 39 settled the five differences decision 25 deferred and rules on the 100 default phases.
     expect(outcomes).toEqual({
       "bible-kept": 237,
       "playbook-imported": 2575,
-      "mapped-to-existing": 31,
-      deferred: 5,
+      "mapped-to-existing": 33,
+      ruled: 103,
     });
   });
 
@@ -202,9 +208,14 @@ describe("decision 25 applied to canon", () => {
       30 + 5 - 3 + d25.playbook_only_rows.length + d25.template_labels.length,
     );
     expect(mappingProblems(rows, canonVocabulary(result.tables))).toEqual([]);
-    expect(rows.filter((r) => r["basis"] === "deferred").map((r) => r["playbook_label"])).toEqual([
-      "Hour",
-      "Week",
+    expect(rows.filter((r) => r["basis"] === "deferred")).toEqual([]);
+    expect(
+      rows
+        .filter((r) => r["playbook_label"] === "Hour" || r["playbook_label"] === "Week")
+        .map((r) => [r["playbook_label"], r["canon_value"], r["basis"]]),
+    ).toEqual([
+      ["Hour", "hour", "casing-or-punctuation"],
+      ["Week", "week", "casing-or-punctuation"],
     ]);
   });
 

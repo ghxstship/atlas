@@ -5,22 +5,19 @@
  */
 import { open } from "@op-engineering/op-sqlite";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import {
-  PersistentStore,
-  uuidv7,
-  type DeviceClock,
-  type NetworkState,
-  type SqlExecutor,
-} from "@xos/sync";
+import { uuidv7, type DeviceClock, type NetworkState } from "@xos/sync";
 import * as Crypto from "expo-crypto";
 import * as Network from "expo-network";
 import * as SecureStore from "expo-secure-store";
+import { openLocalStore, STORAGE_NOTICE, type OpenedStore } from "../data/localDatabase";
 
 export interface CompassConfig {
   readonly supabaseUrl: string;
   readonly supabaseAnonKey: string;
   readonly gatewayUrl: string;
   readonly atlasUrl: string;
+  /** The docs site origin, for the help center link; null hides the link. */
+  readonly docsUrl: string | null;
 }
 
 /** Public build-time configuration (Expo inlines EXPO_PUBLIC_*); the anon key is public by design. */
@@ -30,6 +27,7 @@ export function readConfig(): CompassConfig {
     supabaseAnonKey: process.env["EXPO_PUBLIC_SUPABASE_ANON_KEY"] ?? "",
     gatewayUrl: process.env["EXPO_PUBLIC_GATEWAY_URL"] ?? "http://localhost:3001",
     atlasUrl: process.env["EXPO_PUBLIC_ATLAS_URL"] ?? "http://localhost:3000",
+    docsUrl: process.env["EXPO_PUBLIC_DOCS_URL"] || null,
   };
 }
 
@@ -57,16 +55,15 @@ export function createSupabase(config: CompassConfig): SupabaseClient {
   return client as unknown as SupabaseClient;
 }
 
-const DB_KEY = "xos.compass.db-key";
 const DEVICE_ID = "xos.compass.device-id";
+
+const keychain = { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY };
 
 async function secret(name: string, make: () => string): Promise<string> {
   const existing = await SecureStore.getItemAsync(name);
   if (existing) return existing;
   const value = make();
-  await SecureStore.setItemAsync(name, value, {
-    keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY,
-  });
+  await SecureStore.setItemAsync(name, value, keychain);
   return value;
 }
 
@@ -75,38 +72,35 @@ export function deviceId(): Promise<string> {
   return secret(DEVICE_ID, () => uuidv7());
 }
 
-let opening: Promise<PersistentStore> | null = null;
+let opening: Promise<OpenedStore> | null = null;
 
 /**
- * Opens the SQLCipher database with a random key held in the secure enclave store. One connection per
- * launch: a second one (an effect rerun, or React's development double invoke) would contend for the
- * write lock and fail with "database is locked".
+ * Opens the SQLCipher database with a random key held in the secure enclave store, recovering from a file
+ * it cannot read (src/data/localDatabase.ts). One connection per launch: a second one (an effect rerun, or
+ * React's development double invoke) would contend for the write lock and fail with "database is locked".
  */
-export function openStore(): Promise<PersistentStore> {
-  opening ??= openStoreOnce().catch((error: unknown) => {
+export function openStore(): Promise<OpenedStore> {
+  opening ??= openLocalStore({
+    open: (name, key) => open({ name, ...(key ? { encryptionKey: key } : {}) }),
+    getItem: (name) => SecureStore.getItemAsync(name),
+    setItem: (name, value) => SecureStore.setItemAsync(name, value, keychain),
+    newKey: () =>
+      Array.from(Crypto.getRandomBytes(32), (b) => b.toString(16).padStart(2, "0")).join(""),
+    now: () => Date.now(),
+  }).catch((error: unknown) => {
     opening = null;
     throw error;
   });
   return opening;
 }
 
-async function openStoreOnce(): Promise<PersistentStore> {
-  const key = await secret(DB_KEY, () =>
-    Array.from(Crypto.getRandomBytes(32), (b) => b.toString(16).padStart(2, "0")).join(""),
-  );
-  const db = open({ name: "compass.sqlite", encryptionKey: key });
-  // Writers wait briefly for the lock instead of failing; WAL lets the sync reads run beside a write.
-  await db.execute("PRAGMA busy_timeout = 5000");
-  await db.execute("PRAGMA journal_mode = WAL");
-  const executor: SqlExecutor = {
-    transaction: (statements) =>
-      db.transaction(async (tx) => {
-        for (const s of statements) await tx.execute(s.sql, s.params as (string | number | null)[]);
-      }),
-    all: async (sql, params = []) =>
-      (await db.execute(sql, params as (string | number | null)[])).rows,
-  };
-  return PersistentStore.open(executor);
+/** Whether the person still has to be told that unsent offline work could not be recovered. */
+export async function storageNoticePending(): Promise<boolean> {
+  return (await SecureStore.getItemAsync(STORAGE_NOTICE)) === "1";
+}
+
+export async function dismissStorageNotice(): Promise<void> {
+  await SecureStore.deleteItemAsync(STORAGE_NOTICE);
 }
 
 const BOOT = uuidv7();

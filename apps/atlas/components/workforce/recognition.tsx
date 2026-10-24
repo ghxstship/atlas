@@ -21,6 +21,7 @@ import { EmptyStateLink } from "@/components/ui";
 import { recognitionConsentAction, recognizeAction } from "@/lib/workforce/actions";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 import { QuerySwitch } from "./client";
 import { REFUSALS, memberOptions, orgPickers, workforceCopy } from "./shared";
 
@@ -41,7 +42,7 @@ export async function RecognitionSection({
   search: SearchParams;
 }) {
   const feedView = search["view"] === undefined || search["view"] === "feed";
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const person = ctx.viewer.person?.id ?? "";
   const [t, format, list, pickers, consent, count] = await Promise.all([
     workforceCopy(),

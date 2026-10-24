@@ -48,14 +48,14 @@ These Worker Terms apply when an organization that uses XOS 4.0 (the "Organizati
 
 ## 6. Background Checks
 
-Where an Organization's onboarding requires a background check, it runs through Checkr, a consumer reporting agency. Checkr gives you the required disclosure and asks for your authorization, and handles pre-adverse and adverse action notices, under the Fair Credit Reporting Act and applicable state and local fair-chance laws. XOS stores only the result and a reference, never the report. Questions about a report go to Checkr. Questions about a decision go to the Organization.
+Where an Organization requires a background check, it runs the check through a consumer reporting agency of its choice, outside XOS. The agency gives you the required disclosure, asks for your authorization and handles pre-adverse and adverse action notices, under the Fair Credit Reporting Act and applicable state and local fair-chance laws. If the Organization records the outcome in XOS, XOS stores only the result and a reference, never the report. Questions about a report go to the agency that prepared it. Questions about a decision go to the Organization.
 
 ## 7. Pay and Taxes
 
 - The Organization pays you through its own payroll or accounts payable, or, if it enables it, through Stripe Connect payouts. GHXSTSHIP never holds your money.
 - Where the Organization enables self-billing and you agree, invoices can be generated from your approved timesheets.
 - You may be asked for a W-9, W-8BEN or W-8BEN-E. The Organization uses them to meet its own tax reporting, including 1099-NEC where it applies.
-- Employment eligibility checks, such as Form I-9 or right-to-work checks, stay with the Organization or its payroll provider. XOS records only that they are complete.
+- Employment eligibility checks, such as Form I-9 or right-to-work checks, stay with the Organization or its payroll provider. XOS does not run these checks.
 
 ## 8. Ratings and Reviews
 

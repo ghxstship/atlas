@@ -92,12 +92,17 @@ Atlas and Gateway validate their environment when they start and name every miss
 | `ATLAS_SITE_URL`              | Required |          | The public origin of Atlas, used for sign-in links and the CSRF origin check             |
 | `GATEWAY_SITE_URL`            | Optional | Required | The public origin of Gateway; Atlas uses it for advance and signing links                |
 | `GATEWAY_PLATFORM_HOSTS`      |          | Optional | Hosts that serve the platform Gateway; any other host is an organization's custom domain |
+| `XOS_API_HOST`                | Optional |          | A host name, such as `api.example.com`, on which Atlas serves only the API, at `/v1`     |
+| `DOCS_SITE_URL`               | Optional | Optional | The public origin of this docs site, for help center links                               |
 | `NEXT_PUBLIC_SENTRY_DSN`      | Optional | Optional | Error reporting; without a DSN nothing is sent to Sentry                                 |
 | `XOS_TRACES_SAMPLE_RATE`      | Optional | Optional | Trace sample rate, `0.05` by default                                                     |
 | `XOS_LOG_LEVEL`               | Optional | Optional | `info` in production                                                                     |
 | `COMPASS_APPLE_TEAM_IDS`      | Optional | Optional | Apple team ids, so Compass opens Atlas and Gateway links as universal links              |
 | `COMPASS_ANDROID_CERT_SHA256` | Optional | Optional | Compass signing certificate fingerprints, for Android App Links                          |
-| `XOS_TRUSTED_PROXY_HOPS`      | Optional |          | Trusted proxies in front of the one that appends the client address; `0` by default      |
+| `XOS_TRUSTED_PROXY_HOPS`      | Optional | Optional | Trusted proxies in front of the one that appends the client address; `0` by default      |
+| `XOS_INBOUND_DOMAIN`          | Optional |          | The domain project inbox mail is received on, so Project Settings shows full addresses   |
+| `XOS_READ_REPLICA_URL`        | Optional |          | A read replica's Data API origin; the full org export reads there, then the primary      |
+| `STRIPE_SECRET_KEY`           | Optional |          | Your Stripe secret key, for Checkout and the customer portal; unset, billing is closed   |
 
 Neither app ever receives the service role key. Every Supabase call runs on the server with the signed-in person's session.
 
@@ -110,23 +115,25 @@ supabase functions deploy
 supabase secrets set --env-file ./functions.env
 ```
 
-For a self-hosted stack, mount `supabase/functions` into the Compose stack's functions service instead. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch` and `api-token` authenticate their callers themselves and are deployed without JWT verification, as `supabase/config.toml` declares.
+For a self-hosted stack, mount `supabase/functions` into the Compose stack's functions service instead. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token`, `integration-inbound` and `file-download` authenticate their callers themselves and are deployed without JWT verification, as `supabase/config.toml` declares.
 
-| Secret                                                    | Used by                                                                                          |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `XOS_API_JWT_SIGNING_KEY`                                 | `api-token`, which exchanges API keys for short-lived tokens; set it to the project's JWT secret |
-| `SUPABASE_SERVICE_ROLE_KEY`                               | The worker functions (provided automatically on hosted Supabase)                                 |
-| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | Links and the postal address in email                                                            |
-| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | Outgoing email through Resend (`XOS_EMAIL_TRANSPORT=resend`); unset, email is recorded, not sent |
-| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | Who may receive email; set `XOS_EMAIL_DELIVER_TO_ANY=true` only in production                    |
-| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | `inbound-email`, for replies by email                                                            |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | `stripe-webhook`, only if you bill through Stripe                                                |
-| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | `upload-scan`, the ClamAV daemon; the port defaults to 3310 (see Upload scanning below)          |
-| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | Optional error reporting and log level                                                           |
+| Secret                                                      | Used by                                                                                                                             |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `XOS_API_JWT_SIGNING_KEY`                                   | `api-token`, `integration-worker` and `automation-run`, which sign short-lived tokens; set it to the project's JWT secret           |
+| `SUPABASE_SERVICE_ROLE_KEY`                                 | The worker functions (provided automatically on hosted Supabase)                                                                    |
+| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`      | Links and the postal address in email                                                                                               |
+| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`   | Outgoing email through Resend (`XOS_EMAIL_TRANSPORT=resend`); unset, email is recorded, not sent                                    |
+| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`           | Who may receive email; set `XOS_EMAIL_DELIVER_TO_ANY=true` only in production                                                       |
+| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                  | `inbound-email`, for replies by email and project inboxes                                                                           |
+| `RESEND_INBOUND_WEBHOOK_SECRET`, `RESEND_RECEIVING_API_KEY` | `inbound-email`, when Resend receives the mail: the webhook's signing secret and a full-access key, instead of `XOS_INBOUND_SECRET` |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`                | `stripe-webhook`, only if you bill through Stripe                                                                                   |
+| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                        | `upload-scan`, the ClamAV daemon; the port defaults to 3310 (see Upload scanning below)                                             |
+| `XOS_READ_REPLICA_URL`                                      | `report-run`, which reads report definitions and rows from a read replica, then the primary                                         |
+| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`            | Optional error reporting and log level                                                                                              |
 
 ### Schedule the workers
 
-`webhook-dispatch`, `notification-dispatch`, `upload-scan` and `report-run` do their work when called with the service role key. Call each one every minute. On hosted Supabase, pg_cron and pg_net can do it from the database, reading the key from Vault:
+`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices` and `automation-run` do their work when called with the service role key. Call each one every minute. On hosted Supabase, pg_cron and pg_net can do it from the database, reading the key from Vault:
 
 ```sql
 select vault.create_secret('<service role key>', 'xos_worker_key');
@@ -141,7 +148,7 @@ select cron.schedule('xos_worker_webhook_dispatch', '* * * * *', $$
 $$);
 ```
 
-Repeat for the other three functions, or call them from any scheduler you already run. Until `upload-scan` runs, attachments cannot be downloaded and field and onboarding uploads reach only the person who uploaded them.
+Repeat for the other seven functions, or call them from any scheduler you already run. Until `upload-scan` runs, attachments cannot be downloaded and field and onboarding uploads reach only the person who uploaded them. Until `import-run` runs, imports are not read, until `integration-worker` runs, integrations do not sync and warehouse deliveries wait, and until `automation-run` runs, automations queue their runs and take no action. Provider apps and their webhook secrets are in `infra/runbooks/integrations.md`.
 
 ### Upload scanning
 
@@ -172,6 +179,8 @@ Create one Vercel project per app with these settings, then add the variables ab
 
 Add each custom Gateway domain to the Gateway project; organizations verify their domain in Atlas settings.
 
+To serve the API on its own host, add that host to the Atlas project too and set `XOS_API_HOST` to it. Atlas then answers `https://<that host>/v1/...` as the API at `/api/v1/...`, with the same credentials and limits, and serves no page or cookie there.
+
 ### On your own Node host
 
 ```bash
@@ -188,15 +197,16 @@ The proxy must append the client address to `X-Forwarded-For` (in nginx, `proxy_
 
 Compass reads its configuration at build time:
 
-| Variable                           | Value                                                                     |
-| ---------------------------------- | ------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`         | The Supabase API URL                                                      |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The anon key                                                              |
-| `EXPO_PUBLIC_ATLAS_URL`            | The Atlas origin                                                          |
-| `EXPO_PUBLIC_GATEWAY_URL`          | The Gateway origin                                                        |
-| `XOS_UNIVERSAL_LINK_HOSTS`         | Optional: `atlas:<host>,gateway:<host>`, so handoff links open in Compass |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Optional: your Google Web client ID, for Continue with Google             |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Optional: your Google iOS client ID, for Continue with Google on iOS      |
+| Variable                           | Value                                                                                                                                                      |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`         | The Supabase API URL                                                                                                                                       |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The anon key                                                                                                                                               |
+| `EXPO_PUBLIC_ATLAS_URL`            | The Atlas origin                                                                                                                                           |
+| `EXPO_PUBLIC_GATEWAY_URL`          | The Gateway origin                                                                                                                                         |
+| `EXPO_PUBLIC_DOCS_URL`             | Optional: the docs site origin, for the help center row in Settings                                                                                        |
+| `XOS_UNIVERSAL_LINK_HOSTS`         | `atlas:<host>,gateway:<host>`, so handoff links open in Compass. Unset, a build claims the GHXSTSHIP hosts; set your own hosts, or an empty value for none |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Optional: your Google Web client ID, for Continue with Google                                                                                              |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Optional: your Google iOS client ID, for Continue with Google on iOS                                                                                       |
 
 Change the bundle identifier and Android package in `apps/compass/app.json` to your own, then build with EAS Build (add an `eas.json` with a `production` profile and run `eas build --platform all --profile production`) or locally with `expo prebuild` followed by an Xcode archive and a Gradle release build. Distribute through TestFlight and Google Play internal testing first.
 

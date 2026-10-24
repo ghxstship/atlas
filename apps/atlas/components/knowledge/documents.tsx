@@ -7,6 +7,7 @@ import {
   deleteDocumentAction,
   renameDocumentAction,
 } from "@/app/[org]/knowledge/actions";
+import { CoEditLauncher } from "@/components/coedit/coedit-launcher";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
@@ -26,6 +27,9 @@ import { DataTable } from "@/components/platform/client/data-table";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { rememberView } from "@/lib/shell/recents";
+import { orgToday } from "@/lib/shell/time-zone";
+import { getTranslate } from "@/lib/shell/translate";
 
 const VIEWS: readonly ViewKind[] = ["list", "table", "gallery"];
 const REFUSALS = "knowledge.refusals";
@@ -49,7 +53,7 @@ export async function DocumentsSection({
   /** On a project tab: whether the viewer writes documents on this project (assigned reach counts). */
   canWriteProject?: boolean;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
   const [t, format, all, projects] = await Promise.all([
     getCopy("knowledge"),
@@ -71,6 +75,8 @@ export async function DocumentsSection({
   const when = (d: string) =>
     format.dateTime(new Date(d), { dateStyle: "medium", timeStyle: "short" });
   const selected = state.peek ? docs.find((d) => d.id === state.peek) : undefined;
+  // The command menu's recent items (Section 11.7).
+  if (selected) await rememberView(ctx, "documents", selected.id);
   const scopeOf = (d: KnowledgeDocument) => d.projectKey ?? t("documents.orgWide");
   const properties = (d: KnowledgeDocument) => [
     { label: t("documents.scope"), value: scopeOf(d) },
@@ -148,6 +154,8 @@ export async function DocumentsSection({
   );
 
   if (selected && state.full) {
+    const tRoot = await getTranslate();
+    const person = ctx.viewer.person;
     return (
       <RecordPage
         backHref={withQuery(path, state)}
@@ -178,6 +186,24 @@ export async function DocumentsSection({
           </KitSection>
         ) : null}
         {versions(selected, t)}
+        {person ? (
+          // Live co-edited notes (Section 5): kept in the document's snapshots, edited on demand.
+          <KitSection id={`notes-${selected.id}`} title={tRoot("collab.coedit.notes")}>
+            <CoEditLauncher
+              org={ctx.org.slug}
+              subject="document"
+              id={selected.id}
+              label={tRoot("collab.coedit.notes")}
+              me={{ key: person.id, name: person.fullName ?? tRoot("collab.history.someone") }}
+              openLabel={tRoot("collab.coedit.openNotes")}
+              loadingLabel={tRoot("collab.coedit.loading")}
+            >
+              <p className="m-0 text-text-13 text-text-secondary">
+                {tRoot("collab.coedit.notesHelp")}
+              </p>
+            </CoEditLauncher>
+          </KitSection>
+        ) : null}
         <CollabPanels ctx={ctx} table="app.documents" id={selected.id} />
       </RecordPage>
     );

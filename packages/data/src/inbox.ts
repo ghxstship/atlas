@@ -28,6 +28,7 @@ export interface InboxItem {
   readonly kind: string;
   readonly section: InboxSection;
   readonly read: boolean;
+  readonly actorPersonId: string | null;
   readonly subjectTable: string | null;
   readonly subjectId: string | null;
   readonly projectId: string | null;
@@ -52,10 +53,13 @@ export async function listInbox(db: XosClient, orgId: string): Promise<Result<In
     untyped(db)
       .from("inbox_items")
       .select(
-        "id, created_at, kind, section, read_at, subject_table, subject_id, project_id, message_args, document_type, subject_reference, amount_minor, currency_code, approval_state, current_step",
+        "id, created_at, kind, section, read_at, actor_person_id, subject_table, subject_id, project_id, message_args, document_type, subject_reference, amount_minor, currency_code, approval_state, current_step",
       )
       .eq("org_id", orgId)
       .order("created_at", { ascending: false })
+      // Notifications written in one transaction share created_at; the id (UUIDv7, in insert order)
+      // settles their order, which was otherwise whatever the scan returned (A71).
+      .order("id", { ascending: false })
       .limit(200),
   );
   if (!result.ok) return result;
@@ -65,6 +69,7 @@ export async function listInbox(db: XosClient, orgId: string): Promise<Result<In
     kind: str(r["kind"]),
     section: str(r["section"]) as InboxSection,
     read: r["read_at"] !== null && r["read_at"] !== undefined,
+    actorPersonId: strOrNull(r["actor_person_id"]),
     subjectTable: strOrNull(r["subject_table"]),
     subjectId: strOrNull(r["subject_id"]),
     projectId: strOrNull(r["project_id"]),
@@ -88,7 +93,7 @@ export async function listInbox(db: XosClient, orgId: string): Promise<Result<In
 export function sortInbox(items: readonly InboxItem[]): InboxItem[] {
   return [...items].sort((a, b) => {
     if (a.section !== b.section) return a.section === "Needs You" ? -1 : 1;
-    return b.createdAt.localeCompare(a.createdAt);
+    return b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id);
   });
 }
 

@@ -137,6 +137,10 @@ function world(context = {}) {
         verification_state: "Pending",
         verification_token: "xos-verify-7d1c",
         last_checked_at: null,
+        provisioning_status: "Not Started",
+        dns_records: [],
+        tls_ready: false,
+        provisioning_error: null,
       },
       organization_verifications: {
         verified_at: "2026-10-02T09:00:00.000Z",

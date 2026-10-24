@@ -15,8 +15,10 @@ import {
   StateChip,
   TemplateCollection,
   TreeView,
+  rememberOverlayOpener,
   type TreeNode,
   type RecordState,
+  type LiveTopic,
 } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -24,12 +26,18 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useCopy } from "./use-copy";
 import type { KitBoardColumn, KitChart, KitColumn, KitRow, KitTreeNode, ViewKind } from "./types";
 import { CollectionViews } from "@/components/views/collection-views";
+import { useLiveRefresh } from "@/components/live/live-refresh";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
+import { collectionPeek } from "@/components/shell/collection-peek";
 
 /**
  * The Collection template (Section 11.6) for every A16 list: page header with the view switcher
  * and primary action, a search filter that survives view switches (Section 11.15), and the table,
  * list, board, gallery, calendar or chart body. Opening a row sets `?peek=<id>`; the page renders
- * the side peek or, with `&full=1`, the full record page.
+ * the side peek or, with `&full=1`, the full record page, and a key it has no row for is handed to
+ * the shell's peek.
  */
 export function CollectionView({
   title,
@@ -45,6 +53,8 @@ export function CollectionView({
   empty,
   actions,
   filters,
+  live,
+  bulk,
   children,
 }: {
   title: string;
@@ -63,6 +73,13 @@ export function CollectionView({
   empty: ReactNode;
   actions?: ReactNode;
   filters?: ReactNode;
+  /**
+   * Tables the rows come from, narrowed to the org (`org_id=eq.<id>`): the page rereads when one
+   * changes, so the list updates live (Section 11.7, ADR 0044).
+   */
+  live?: readonly LiveTopic[];
+  /** Bulk edit of the table view's selection (Section 11.7), for resources with a bulk RPC. */
+  bulk?: BulkConfig | null;
   /** The peek or create drawer, rendered after the body. */
   children?: ReactNode;
 }) {
@@ -71,6 +88,11 @@ export function CollectionView({
   const pathname = usePathname();
   const params = useSearchParams();
   const [query, setQuery] = useState(params.get("q") ?? "");
+  useLiveRefresh(live ?? null);
+  const bulkRows = useMemo(() => rows.map((r) => ({ id: r.id, label: r.key })), [rows]);
+  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const { selection, bar } = bulkKit;
+  const rowMenu = useRowMenu();
 
   const href = (changes: Record<string, string | null>): Route => {
     const next = new URLSearchParams(params.toString());
@@ -81,7 +103,15 @@ export function CollectionView({
     const qs = next.toString();
     return (qs ? `${pathname}?${qs}` : pathname) as Route;
   };
-  const open = (id: string) => router.push(href({ peek: id, full: null, create: null }));
+  // The page renders the peek after the section's loading state, which can take focus from the row;
+  // the peek hands it back to the control remembered here.
+  const open = (id: string) => {
+    rememberOverlayOpener();
+    router.push(href({ peek: id, full: null, create: null }));
+  };
+  // The page renders the peek for `?peek` as children. With none (a stale link, a key from elsewhere)
+  // the key goes to the shell's peek, which opens the record it names or says it cannot.
+  const peek = collectionPeek(params.get("peek"), children);
 
   const needle = query.trim().toLowerCase();
   const visible = useMemo(
@@ -254,6 +284,21 @@ export function CollectionView({
         columns={columns.map((c) => ({ ...c }))}
         rows={tableRows}
         onRowActivate={(row) => open(String(row["id"]))}
+        onRowContextMenu={(row, _index, at, cell) => {
+          const id = String(row["id"]);
+          rowMenu.open(
+            {
+              id,
+              label: rows.find((r) => r.id === id)?.key ?? id,
+              open: () => open(id),
+              href: href({ peek: id, full: "1", create: null }),
+              bulk: bulkKit,
+            },
+            at,
+            cell,
+          );
+        }}
+        {...(selection ? { selection } : {})}
       />
     );
   }
@@ -274,9 +319,11 @@ export function CollectionView({
           </>
         ) : undefined
       }
-      peek={children}
+      peek={peek}
     >
       {body}
+      {bar}
+      {rowMenu.menu}
     </TemplateCollection>
   );
 }

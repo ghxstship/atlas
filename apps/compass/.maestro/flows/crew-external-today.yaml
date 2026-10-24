@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: External crew sees their own role's Compass and the engagement gate
+# External crew sees their own role's Compass and the engagement gate.
+# Named after its file: config.yaml orders flows by name.
+name: crew-external-today
 ---
 # The demo crew person's engagement is in Onboarding (seed 0228), so clock-in and scanning stay closed
 # with the refusal that names the next step (Section 8.7: operational access opens at Active).
@@ -15,16 +17,28 @@ name: External crew sees their own role's Compass and the engagement gate
     id: "tab-crew"
 - tapOn:
     id: "tab-more"
-# Timesheets, per diem, travel and onboarding live on the engagement in Gateway: More names them on one
-# row that opens Gateway, with no "this is in Gateway" page per entry (finding A59-026).
+# Timesheets, per diem, travel and onboarding are Compass screens (A92); nothing is gathered behind a
+# Gateway row any more, and no internal entry shows.
 - assertVisible:
-    id: "more-open-gateway"
-- assertVisible: ".*Timesheets.*Onboarding Items.*"
-- assertNotVisible:
     id: "more-timesheets"
+- assertVisible:
+    id: "more-onboarding"
+- assertNotVisible:
+    id: "more-open-gateway"
 - assertNotVisible:
     id: "more-incidents"
 - tapOn:
     id: "tab-scan"
 - assertVisible:
     id: "scan-mode"
+# The onboarding checklist opens before operational access does (A92): the Certificate of Insurance the
+# Crew requirement asks for (seed 0228) is listed while the engagement is still in Onboarding.
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: onboarding
+- extendedWaitUntil:
+    visible:
+      id: "external-section-onboarding"
+    timeout: 30000
+- assertVisible: ".*Certificate of Insurance.*"

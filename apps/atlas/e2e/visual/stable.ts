@@ -1,14 +1,33 @@
 import type { BrowserContext, Locator, Page } from "@playwright/test";
 
 /**
- * Making a page screenshot repeatable (Section 18, gate 9). The four modes each core screen is
- * rendered in, the wait for a page to finish drawing, and the volatile regions that are masked:
- * dates, times, relative times and generated ids, which change between runs on the same seed.
- * apps/gateway/e2e/visual/stable.ts keeps the same code for Gateway.
+ * Making a page screenshot repeatable (Section 18, gate 9). The visual clock every run shares, the
+ * four modes each core screen is rendered in, the wait for a page to finish drawing, and the
+ * volatile regions that are masked: dates, times, relative times and generated ids. With the clock
+ * fixed, a date is the same on every run; the masks still hide the seconds a seeded row was written
+ * at and the ids a reset generates. apps/gateway/e2e/visual/stable.ts keeps the same code for Gateway.
  */
 
 export const MODES = ["dark", "light", "rtl", "sunlight"] as const;
 export type Mode = (typeof MODES)[number];
+
+/**
+ * The shift from the real clock to the visual clock, which packages/testing/ci/visual-clock.sh
+ * prints. A core screen is a picture of the demo tenant at one instant: the database is migrated and
+ * seeded with its clock there, so the seed's dates relative to the reset (today's shifts, the Field
+ * Tech's last two days) and its fixed March 2027 dates keep the same distance from "now"; the Next
+ * server runs on the same shifted clock (packages/testing/clock/node-clock.cjs). Before, the shot
+ * followed the date of the run: this week, today and overdue covered different rows by weekday.
+ */
+export const CLOCK_OFFSET_MS = Number(process.env["E2E_CLOCK_OFFSET_MS"] ?? 0);
+
+/**
+ * Moves a context's clock to the visual clock before its first page loads, so what the page formats
+ * itself (a relative time, a calendar's today) agrees with the server. Time keeps flowing.
+ */
+export async function followVisualClock(context: BrowserContext): Promise<void> {
+  await context.clock.setSystemTime(performance.timeOrigin + performance.now() + CLOCK_OFFSET_MS);
+}
 
 /** The stylesheet applied while each screenshot is taken (dev indicator, carets, help cards). */
 export const SCREENSHOT_CSS = new URL("./screenshot.css", import.meta.url).pathname;
@@ -103,6 +122,15 @@ export async function volatileRegions(page: Page): Promise<Locator> {
           ["date", "datetime-local", "time", "month", "week"].includes(el.type));
       if (timeLike || volatile.some((re) => re.test(text))) {
         el.setAttribute("data-visual-mask", "");
+        // The mask covers the element's box, and a date's width changes with the date ("Nov 3"
+        // against "Oct 26"), so a masked cell still moved the shot every day, most visibly in right
+        // to left where the box grows from the start edge (A71). One fixed text gives every volatile
+        // element the same footprint on every run.
+        for (const node of el.childNodes) {
+          if (node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim() !== "") {
+            node.textContent = "0000-00-00 00:00";
+          }
+        }
       }
     }
   });

@@ -24,9 +24,11 @@
       "Organization": "Organization",
       "Project": "Project",
       "Team": "Team",
+      "Department": "Department",
       "Role": "Role",
       "Group": "Group"
-    }
+    },
+    "departmentOption": "Department: {name} · {code}"
   },
   "site": {
     "project": "Project",
@@ -111,7 +113,7 @@
     "hideReason": "Why are you hiding this post?",
     "hiddenTitle": "This post is hidden",
     "reactions": "Reactions",
-    "reaction": "{name} {count}",
+    "reaction": "{name}, {count}",
     "reactionNames": {
       "thumbs_up": "Thumbs up",
       "heart": "Heart",
@@ -127,7 +129,9 @@
     "pickOne": "Choose one",
     "pollResults": "Poll results",
     "pollLine": "{label}: {votes, plural, one {# vote} other {# votes}} ({percent}%)",
-    "yourVote": "(your vote)"
+    "yourVote": "(your vote)",
+    "more": "More",
+    "moreFor": "More actions for {title}"
   },
   "surveys": {
     "title": "Surveys",
@@ -300,7 +304,7 @@
     "gps": "GPS stamp",
     "gpsTake": "Use my location",
     "gpsAgain": "Update location",
-    "gpsTaken": "Located at {latitude}, {longitude} within {accuracy} m.",
+    "gpsTaken": "Located at {latitude}, {longitude} within {accuracy}.",
     "gpsDenied": "Location is blocked. Allow location for this site in your browser, then try again.",
     "gpsNeeded": "This form needs your location.",
     "signature": "Signature",
@@ -416,7 +420,7 @@
     "agenda": "Agenda",
     "organizer": "Organizer",
     "rsvps": "RSVPs",
-    "rsvpCounts": "{Going} going, {Maybe} maybe, {Declined} declined",
+    "rsvpCounts": "{going} going, {maybe} maybe, {declined} declined",
     "rsvp": {
       "Going": "Going",
       "Maybe": "Maybe",
@@ -480,7 +484,7 @@
     "title": "Chat",
     "what": "your conversations",
     "conversations": "Conversations",
-    "empty": "No conversations yet. Find someone in the directory to message.",
+    "empty": "No conversations yet. Message a teammate to start one.",
     "untitled": "Conversation",
     "unread": "{count} new",
     "noMessages": "No messages yet",
@@ -511,7 +515,8 @@
       "Photo": "Photo",
       "File": "File",
       "Voice": "Voice note"
-    }
+    },
+    "emptyAction": "Message a teammate"
   },
   "recognition": {
     "title": "Recognition",
@@ -653,13 +658,8 @@
       "Heat": "Heat index"
     },
     "hazardUnit": "{hazard} ({unit})",
-    "units": {
-      "mph": "mph",
-      "mi": "miles",
-      "F": "°F"
-    },
     "value": "Reading",
-    "valueHelp": "In the hazard's unit.",
+    "valueHelp": "In the unit shown beside the hazard.",
     "thresholds": "Thresholds",
     "noThresholds": "No thresholds yet. Set them from your emergency plan.",
     "noThresholdsRead": "No thresholds set for this project yet.",
@@ -670,14 +670,14 @@
       "Evacuate": "Evacuate"
     },
     "trigger": "Triggers at",
-    "atOrAbove": "{value} {unit} or more",
-    "atOrBelow": "{value} {unit} or closer",
+    "atOrAbove": "{measure} or more",
+    "atOrBelow": "{measure} or closer",
     "source": "Source",
     "sourceHelp": "Where the value comes from, for example the emergency plan section.",
     "canonNote": "The Bible has no weather action metrics yet, so each project enters its thresholds from its emergency plan.",
     "setThreshold": "Set threshold",
     "thresholdValue": "Value",
-    "thresholdHelp": "Mph for wind, miles for lightning distance, °F for heat index.",
+    "thresholdHelp": "In {wind} for wind, {distance} for lightning distance and {heat} for heat index.",
     "roles": "Who is alerted",
     "noRoles": "No roles named yet. The project's dispatchers are always alerted.",
     "roleLine": "{level}: {role}",
@@ -716,7 +716,8 @@
     "credentialHelp": "Scan or type the badge number when the guest has one.",
     "admittedLine": "Admitted with {plusOnes, plural, =0 {no plus-ones} one {# plus-one} other {# plus-ones}} at {door}.",
     "checkedInCount": "Checked in of {expected}",
-    "peopleIn": "People in"
+    "peopleIn": "People in",
+    "emptyAction": "Open the guest list"
   },
   "lostFound": {
     "title": "Lost and Found",
@@ -832,7 +833,13 @@
     "guest_credential_holder": "That credential belongs to someone else.",
     "lost_item_not_held": "Only a held item takes a claim.",
     "lost_item_claim_settled": "This claim is already settled.",
-    "lost_item_rejection_note": "Say why the claim is rejected."
+    "lost_item_rejection_note": "Say why the claim is rejected.",
+    "content_report_own": "You cannot report your own post, comment or message.",
+    "content_report_removed": "This was already removed.",
+    "block_self": "You cannot block yourself.",
+    "content_moderation_own": "Another moderator decides reports about your own post, comment or message.",
+    "content_moderation_nothing_open": "Every report about this was already decided.",
+    "content_moderation_authority": "Reviewing reported content needs permission to manage communication."
   },
   "settingsPanels": {
     "groupsTitle": "Group spaces",
@@ -996,7 +1003,7 @@
       },
       "when": "{start} to {end}",
       "whenAt": "{start} to {end} · {location}",
-      "counts": "{Going} going, {Maybe} maybe, {Declined} not going"
+      "counts": "{going} going, {maybe} maybe, {declined} not going"
     },
     "forms": {
       "submit": "Submit Form",
@@ -1172,5 +1179,69 @@
       "itemTitle": "{category}: {description}",
       "meta": "{number} · {place} · {count} claims waiting"
     }
+  },
+  "moderation": {
+    "title": "Reported Content",
+    "intro": "Posts, comments and messages people reported to your organization's moderators. Decide each within 24 hours. The people who reported it, and on removal its author, receive your statement of reasons; nobody is told who decided or who reported.",
+    "sections": "Show",
+    "open": "Open",
+    "decided": "Decided",
+    "what": "the reported content",
+    "empty": "Nothing is waiting. Reports people file from a post, comment or message appear here.",
+    "emptyDecided": "No report has been decided yet.",
+    "kinds": {
+      "feedPost": "Post",
+      "comment": "Comment",
+      "chatMessage": "Message"
+    },
+    "reasons": {
+      "harassment": "Harassment or bullying",
+      "hate": "Hate speech or symbols",
+      "sexualContent": "Sexual content",
+      "violence": "Violence or threats",
+      "spam": "Spam or a scam",
+      "other": "Something else"
+    },
+    "states": {
+      "overdue": "Overdue",
+      "open": "Open",
+      "removed": "Removed",
+      "noAction": "No action"
+    },
+    "content": "Content",
+    "kind": "Kind",
+    "author": "Author",
+    "reports": "Reports",
+    "reasonsLabel": "Reasons",
+    "due": "Due",
+    "line": "{kind} by {author}: {reasons}",
+    "reportsCount": "{open} open of {total}",
+    "where": "Where",
+    "firstReported": "First reported",
+    "removedNote": "This was removed. What follows is what was reported.",
+    "current": "As it reads now",
+    "snapshot": "As reported",
+    "reportLine": "{reason}, reported by {name} on {date}",
+    "noDetails": "No details given.",
+    "decisions": "Decisions",
+    "decisionLine": "{action} on {date} by {name}",
+    "actions": {
+      "removed": "Removed",
+      "noAction": "No action"
+    },
+    "decide": "Decide",
+    "decision": "Decision",
+    "choices": {
+      "removeTerms": "Remove it: it breaks the terms or your organization's rules",
+      "removeIllegal": "Remove it: it is illegal",
+      "noAction": "Take no action: it breaks no rule"
+    },
+    "ruleReference": "Rule relied on",
+    "ruleReferenceHelp": "For example Acceptable Use Policy 1, or a section of your organization's code of conduct.",
+    "facts": "Facts",
+    "factsHelp": "What the content says or does that the decision rests on.",
+    "statement": "Statement of reasons",
+    "statementHelp": "Sent to the people who reported it and, when you remove it, to its author.",
+    "submit": "Record Decision"
   }
 }

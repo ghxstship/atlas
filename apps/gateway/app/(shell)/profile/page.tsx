@@ -21,10 +21,11 @@ import Link from "next/link";
 import { getLocale } from "next-intl/server";
 import { ActionButton } from "@/components/actions/action-button";
 import { ReplyForm } from "@/components/engagement/forms";
+import { SupplierDiversityPanel } from "@/components/profile/supplier-diversity";
 import { RowList } from "@/components/engagement/rows";
 import { SimpleForm } from "@/components/forms/simple-form";
 import { PageTitle, RegionError, Section } from "@/components/page/page";
-import { AvailabilityCalendar, ButtonLink, Card, ProgressBar, Tag } from "@/components/ui";
+import { AvailabilityCalendar, ButtonLink, Card, Icon, ProgressBar, Tag } from "@/components/ui";
 import {
   acceptRepresentationAction,
   revokeProfileShareAction,
@@ -35,8 +36,9 @@ import {
   carryCertificationAction,
   removeAvailabilityAction,
 } from "@/lib/actions/profile";
-import { formatDate, formatDateRange, todayIso } from "@/lib/format";
-import { profileStrength } from "@/lib/profile";
+import { formatDate, formatDateRange } from "@/lib/format";
+import { personToday } from "@/lib/time-zone";
+import { profileStrength, STRENGTH_LINKS } from "@/lib/profile";
 import { requireNode } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 
@@ -102,6 +104,8 @@ export default async function ProfilePage() {
             />
           )}
         </Section>
+        {/* The company's supplier diversity certifications (Section 4.4.1, A65-031). */}
+        <SupplierDiversityPanel db={ctx.db} t={t} locale={locale} accountId={ctx.acting.id} />
       </>
     );
   }
@@ -155,7 +159,8 @@ export default async function ProfilePage() {
     links: count(links),
     availability: blocks.length,
   });
-  const today = todayIso();
+  // The profile spans every org the person works with, so it follows their own calendar.
+  const today = await personToday(ctx);
   const asArtist = representations.ok
     ? representations.data.filter((r) => r.artistPersonId === ctx.personId)
     : [];
@@ -191,15 +196,32 @@ export default async function ProfilePage() {
           }
           value={strength.percent}
         />
-        {strength.next ? (
-          <Link
-            href={
-              (strength.next === "availability" ? "#availability" : "/settings/profile") as Route
-            }
-            className="text-text-13 text-accent-text underline"
-          >
-            {t("gateway.profile.strength.action")}
-          </Link>
+        {strength.missing.length > 0 ? (
+          <div className="flex flex-col gap-8">
+            <p
+              id="profile-strength-missing"
+              className="m-0 text-text-13 font-medium text-text-secondary"
+            >
+              {t("gateway.profile.strength.missingTitle", { n: strength.missing.length })}
+            </p>
+            <ul
+              aria-labelledby="profile-strength-missing"
+              className="m-0 flex list-none flex-col gap-4 p-0"
+            >
+              {strength.missing.map((step) => (
+                <li key={step} className="flex items-center gap-8 text-text-13">
+                  <Icon name="Circle" size={14} />
+                  {/* Stacked links four pixels apart, so each needs the minimum target itself (WCAG 2.5.8). */}
+                  <Link
+                    href={STRENGTH_LINKS[step] as Route}
+                    className="inline-flex min-h-target-fine items-center text-accent-text underline pointer-coarse:min-h-target-coarse"
+                  >
+                    {t(`gateway.profile.strength.missing.${step}`)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         ) : null}
       </Card>
 
@@ -252,6 +274,8 @@ export default async function ProfilePage() {
           />
         ) : null}
       </Section>
+
+      <SupplierDiversityPanel db={ctx.db} t={t} locale={locale} accountId={null} />
 
       <Section title={t("gateway.profile.availability.title")} id="availability">
         <AvailabilityCalendar

@@ -1,4 +1,5 @@
 import type { XosClient } from "@xos/data";
+import { observability } from "@/lib/observability";
 
 /**
  * Uploads a form photo or signature to the private field-media bucket under the submitter's own
@@ -40,7 +41,7 @@ export async function uploadFormMedia(
     .from("field-media")
     .upload(path, await file.arrayBuffer(), { contentType: file.type, upsert: false });
   if (error) {
-    console.error(`Form media upload failed: ${error.message}`);
+    observability.logger.error("Form media upload failed", { error });
     return { ok: false, error: "uploadFailed" };
   }
   return { ok: true, path };

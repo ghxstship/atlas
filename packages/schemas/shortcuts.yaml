@@ -1,0 +1,422 @@
+# Keyboard shortcut registry (Section 3.15, Section 11.2 principle 1, Section 11.7).
+#
+# The single source of every key binding in Atlas and Gateway. The shells' key handlers, the shortcut
+# sheet in Help, command menu hints, the rebinding editor in Personal settings and the docs read it.
+# Compass is native and has no web shortcuts.
+#
+# Keys. A binding is one chord, or a two-step sequence written with a space: `G H` is G, then H. A
+# chord is zero or more modifiers in the order Mod, Ctrl, Alt, Shift, then one key, joined with `+`.
+#   Mod    Command on macOS, Control elsewhere. Write Mod for the primary modifier.
+#   Ctrl   The Control key on macOS. Elsewhere Ctrl is the same key as Mod.
+#   Alt    Option on macOS.
+#   Shift  Only with letters and named keys; a symbol such as ? already carries it.
+# A key is a letter A to Z, a digit, a symbol other than + (write Plus), or a named key: Enter, Escape,
+# Tab, Space, Backspace, Delete, Insert, Home, End, PageUp, PageDown, ArrowUp, ArrowDown, ArrowLeft,
+# ArrowRight, CapsLock or F1 to F12. A sequence starts with one letter and no modifiers.
+#
+# Each shortcut has:
+#   id      Stable id. Personal bindings (app.shortcut_bindings) store it, so never rename one.
+#   scope   Where the keys work. `global` answers anywhere in the shell; any other scope answers only
+#           while focus is in that kind of region. Two shortcuts conflict when they share keys, or one
+#           is the first step of the other's sequence, and their scopes meet (the same scope, or either
+#           one global).
+#   group   The shortcut sheet section.
+#   keys    Default keys. Omit them for an action with no default that a person may bind.
+#   mac     Default keys on macOS, only when they differ from `keys`.
+#   label   i18n key of the action's name.
+#   fields  True when the shortcut also works while typing in a field. Modifier chords only.
+#   fixed   True when the keys cannot be rebound: a design system component or keyboard operation
+#           itself owns them.
+#   go      For a navigation shortcut, the sitemap node it opens.
+#
+# Reserved keys belong to the browser, the operating system, screen readers or keyboard operation. No
+# default and no personal binding may use them; fixed shortcuts may name the keys of keyboard operation
+# (Escape, Enter) that they document. `+*` stands for any key while holding at least those modifiers.
+#
+# Single-key shortcuts (no Mod, Ctrl or Alt) obey the personal setting me.shortcuts_enabled, and every
+# rebindable shortcut can take a modifier, which meets WCAG 2.1.4 Character Key Shortcuts.
+#
+# Run `pnpm --filter @xos/schemas generate:shortcuts` after editing. `check:shortcuts` and the package
+# tests fail while src/shortcuts/registry.generated.ts is out of date or two defaults conflict.
+
+version: 1
+
+reserved:
+  # Keyboard operation: moving focus, activating, closing, scrolling and the context menu (11.7).
+  - { keys: Tab, reason: navigation }
+  - { keys: Shift+Tab, reason: navigation }
+  - { keys: Enter, reason: navigation }
+  - { keys: Space, reason: navigation }
+  - { keys: Escape, reason: navigation }
+  - { keys: ArrowUp, reason: navigation }
+  - { keys: ArrowDown, reason: navigation }
+  - { keys: ArrowLeft, reason: navigation }
+  - { keys: ArrowRight, reason: navigation }
+  - { keys: Home, reason: navigation }
+  - { keys: End, reason: navigation }
+  - { keys: PageUp, reason: navigation }
+  - { keys: PageDown, reason: navigation }
+  - { keys: Shift+F10, reason: navigation }
+  # Screen readers: the NVDA, JAWS and Narrator keys, VoiceOver's Control and Option, VoiceOver on and
+  # off, and Control with Alt elsewhere (screen reader layers and AltGr, which types characters).
+  - { keys: Insert, reason: screen-reader }
+  - { keys: CapsLock, reason: screen-reader }
+  - { keys: Ctrl+Alt+*, reason: screen-reader, platform: mac }
+  - { keys: Mod+F5, reason: screen-reader, platform: mac }
+  - { keys: Mod+Alt+*, reason: screen-reader, platform: other }
+  # Browser and operating system: tabs, windows, the address bar, reload, find, print, zoom, history
+  # and developer tools.
+  - { keys: Mod+T, reason: browser }
+  - { keys: Mod+Shift+T, reason: browser }
+  - { keys: Mod+N, reason: browser }
+  - { keys: Mod+Shift+N, reason: browser }
+  - { keys: Mod+W, reason: browser }
+  - { keys: Mod+Shift+W, reason: browser }
+  - { keys: Mod+Q, reason: browser }
+  - { keys: Mod+H, reason: browser }
+  - { keys: Mod+M, reason: browser, platform: mac }
+  - { keys: Mod+L, reason: browser }
+  - { keys: Mod+R, reason: browser }
+  - { keys: Mod+Shift+R, reason: browser }
+  - { keys: Mod+F, reason: browser }
+  - { keys: Mod+G, reason: browser }
+  - { keys: Mod+Shift+G, reason: browser }
+  - { keys: Mod+P, reason: browser }
+  - { keys: Mod+D, reason: browser }
+  - { keys: Mod+Plus, reason: browser }
+  - { keys: Mod+-, reason: browser }
+  - { keys: Mod+=, reason: browser }
+  - { keys: Mod+0, reason: browser }
+  - { keys: Mod+1, reason: browser }
+  - { keys: Mod+2, reason: browser }
+  - { keys: Mod+3, reason: browser }
+  - { keys: Mod+4, reason: browser }
+  - { keys: Mod+5, reason: browser }
+  - { keys: Mod+6, reason: browser }
+  - { keys: Mod+7, reason: browser }
+  - { keys: Mod+8, reason: browser }
+  - { keys: Mod+9, reason: browser }
+  - { keys: "Mod+[", reason: browser }
+  - { keys: "Mod+]", reason: browser }
+  - { keys: "Mod+,", reason: browser, platform: mac }
+  - { keys: Mod+Space, reason: browser, platform: mac }
+  - { keys: Mod+Tab, reason: browser }
+  - { keys: Mod+Shift+Tab, reason: browser }
+  - { keys: Ctrl+Tab, reason: browser, platform: mac }
+  - { keys: Ctrl+Shift+Tab, reason: browser, platform: mac }
+  - { keys: Mod+Shift+Delete, reason: browser }
+  - { keys: Mod+Shift+I, reason: browser }
+  - { keys: Mod+Alt+I, reason: browser, platform: mac }
+  - { keys: Alt+ArrowLeft, reason: browser }
+  - { keys: Alt+ArrowRight, reason: browser }
+  - { keys: Alt+Home, reason: browser }
+  - { keys: Alt+F4, reason: browser }
+  - { keys: F1, reason: browser }
+  - { keys: F3, reason: browser }
+  - { keys: F5, reason: browser }
+  - { keys: F6, reason: browser }
+  - { keys: F7, reason: browser }
+  - { keys: F10, reason: browser }
+  - { keys: F11, reason: browser }
+  - { keys: F12, reason: browser }
+
+shells:
+  atlas:
+    scopes: [global, list, inbox]
+    groups:
+      - { id: general, label: help.shortcuts.groups.general }
+      - { id: go, label: help.shortcuts.groups.go }
+      - { id: lists, label: help.shortcuts.groups.lists }
+      - { id: inbox, label: help.shortcuts.groups.inbox }
+    shortcuts:
+      # General: the shell answers these on every page.
+      - id: command-menu
+        scope: global
+        group: general
+        keys: Mod+K
+        fields: true
+        label: help.shortcuts.command
+      - id: search
+        scope: global
+        group: general
+        keys: /
+        label: help.shortcuts.search
+      - id: create-menu
+        scope: global
+        group: general
+        keys: C
+        label: help.shortcuts.create
+      - id: help
+        scope: global
+        group: general
+        keys: "?"
+        label: help.shortcuts.help
+      - id: focus-mode
+        scope: global
+        group: general
+        keys: Mod+.
+        fields: true
+        label: help.shortcuts.focus
+      - id: aurora
+        scope: global
+        group: general
+        keys: Mod+J
+        fields: true
+        label: help.shortcuts.aurora
+      # Focuses a collection's "Filter in plain language" field while Ask in plain language is on (A95).
+      # No default keys: a person may bind it in Personal settings, Keyboard Shortcuts.
+      - id: ask-filter
+        scope: global
+        group: general
+        label: help.shortcuts.askFilter
+      - id: close
+        scope: global
+        group: general
+        keys: Escape
+        fixed: true
+        label: help.shortcuts.close
+      # Undo and redo over the session's last 50 actions (Section 11.7, ADR 0044). Inside a field the
+      # keys stay the field's own text undo.
+      - id: undo
+        scope: global
+        group: general
+        keys: Mod+Z
+        label: help.shortcuts.undo
+      - id: redo
+        scope: global
+        group: general
+        keys: Mod+Shift+Z
+        label: help.shortcuts.redo
+      # Go to: G, then a letter, opens a section of the sidebar (Section 11.2). Sections without
+      # default keys can be bound in Personal settings, Keyboard Shortcuts.
+      - id: go.home
+        scope: global
+        group: go
+        keys: G H
+        go: home
+        label: help.shortcuts.go.home
+      - id: go.inbox
+        scope: global
+        group: go
+        keys: G I
+        go: inbox
+        label: help.shortcuts.go.inbox
+      - id: go.my-work
+        scope: global
+        group: go
+        keys: G M
+        go: my-work
+        label: help.shortcuts.go.myWork
+      - id: go.projects
+        scope: global
+        group: go
+        keys: G P
+        go: projects
+        label: help.shortcuts.go.projects
+      - id: go.schedule
+        scope: global
+        group: go
+        keys: G S
+        go: schedule
+        label: help.shortcuts.go.schedule
+      - id: go.work
+        scope: global
+        group: go
+        keys: G W
+        go: work
+        label: help.shortcuts.go.work
+      - id: go.show
+        scope: global
+        group: go
+        keys: G O
+        go: show
+        label: help.shortcuts.go.show
+      - id: go.advancing
+        scope: global
+        group: go
+        keys: G A
+        go: advancing
+        label: help.shortcuts.go.advancing
+      - id: go.places
+        scope: global
+        group: go
+        go: places
+        label: help.shortcuts.go.places
+      - id: go.logistics
+        scope: global
+        group: go
+        keys: G L
+        go: logistics
+        label: help.shortcuts.go.logistics
+      - id: go.hospitality
+        scope: global
+        group: go
+        go: hospitality
+        label: help.shortcuts.go.hospitality
+      - id: go.assets
+        scope: global
+        group: go
+        go: assets
+        label: help.shortcuts.go.assets
+      - id: go.credentials
+        scope: global
+        group: go
+        go: credentials
+        label: help.shortcuts.go.credentials
+      - id: go.safety
+        scope: global
+        group: go
+        go: safety
+        label: help.shortcuts.go.safety
+      - id: go.people
+        scope: global
+        group: go
+        keys: G E
+        go: people
+        label: help.shortcuts.go.people
+      - id: go.opportunities
+        scope: global
+        group: go
+        go: opportunities
+        label: help.shortcuts.go.opportunities
+      - id: go.crew
+        scope: global
+        group: go
+        keys: G C
+        go: crew
+        label: help.shortcuts.go.crew
+      - id: go.finance
+        scope: global
+        group: go
+        keys: G F
+        go: finance
+        label: help.shortcuts.go.finance
+      - id: go.procurement
+        scope: global
+        group: go
+        keys: G B
+        go: procurement
+        label: help.shortcuts.go.procurement
+      - id: go.vendors
+        scope: global
+        group: go
+        keys: G V
+        go: vendors
+        label: help.shortcuts.go.vendors
+      - id: go.knowledge
+        scope: global
+        group: go
+        keys: G K
+        go: knowledge
+        label: help.shortcuts.go.knowledge
+      - id: go.reports
+        scope: global
+        group: go
+        keys: G R
+        go: reports
+        label: help.shortcuts.go.reports
+      - id: go.canon
+        scope: global
+        group: go
+        go: canon
+        label: help.shortcuts.go.canon
+      - id: go.activity
+        scope: global
+        group: go
+        keys: G Y
+        go: activity
+        label: help.shortcuts.go.activity
+      - id: go.settings
+        scope: global
+        group: go
+        keys: G T
+        go: settings
+        label: help.shortcuts.go.settings
+      # Lists: the design system's RecordList and RecordRow own these keys (packages/ui).
+      - id: list.next
+        scope: list
+        group: lists
+        keys: J
+        fixed: true
+        label: help.shortcuts.next
+      - id: list.previous
+        scope: list
+        group: lists
+        keys: K
+        fixed: true
+        label: help.shortcuts.previous
+      - id: list.open
+        scope: list
+        group: lists
+        keys: Enter
+        fixed: true
+        label: help.shortcuts.open
+      - id: list.select
+        scope: list
+        group: lists
+        keys: X
+        fixed: true
+        label: help.shortcuts.select
+      # Tables: DataTable owns these keys while focus is in a selectable table (Section 11.7).
+      - id: list.select-range
+        scope: list
+        group: lists
+        keys: Shift+X
+        fixed: true
+        label: help.shortcuts.selectRange
+      - id: list.select-all
+        scope: list
+        group: lists
+        keys: Mod+A
+        fixed: true
+        label: help.shortcuts.selectAll
+      - id: list.menu
+        scope: list
+        group: lists
+        keys: Shift+F10
+        fixed: true
+        label: help.shortcuts.menu
+      # Inbox: the focused item. J and K move as in every list.
+      - id: inbox.approve
+        scope: inbox
+        group: inbox
+        keys: A
+        label: help.shortcuts.inbox.approve
+      - id: inbox.reject
+        scope: inbox
+        group: inbox
+        keys: R
+        label: help.shortcuts.inbox.reject
+      - id: inbox.done
+        scope: inbox
+        group: inbox
+        keys: E
+        label: help.shortcuts.inbox.done
+      - id: inbox.snooze
+        scope: inbox
+        group: inbox
+        keys: H
+        label: help.shortcuts.inbox.snooze
+
+  gateway:
+    scopes: [global]
+    groups:
+      - { id: general, label: help.shortcuts.groups.general }
+    shortcuts:
+      - id: command-menu
+        scope: global
+        group: general
+        keys: Mod+K
+        fields: true
+        label: help.gateway.shortcuts.search
+      - id: help
+        scope: global
+        group: general
+        keys: "?"
+        label: help.shortcuts.help
+      - id: close
+        scope: global
+        group: general
+        keys: Escape
+        fixed: true
+        label: help.shortcuts.close

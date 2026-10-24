@@ -1,4 +1,5 @@
 import type { DataError, Result } from "@xos/data/gateway";
+import { observability } from "@/lib/observability";
 
 /**
  * What a Gateway server action returns to the page: success, or a catalog key under
@@ -31,6 +32,17 @@ export const KNOWN_REFUSALS = [
   "slug_taken",
   "slug_reserved",
   "cross_org_reference",
+  "supplier_diversity_no_program",
+  "time_zone_unknown",
+  // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
+  "personal_tokens_off",
+  "personal_token_scope_not_held",
+  "personal_token_limit",
+  "personal_token_expiry",
+  "personal_token_revoked",
+  "step_up_required",
+  "sole_account_owner",
+  "notification_channel_outside",
 ] as const;
 
 export function outcomeFor(error: DataError): string {
@@ -46,7 +58,7 @@ export function outcomeFor(error: DataError): string {
     case "invalid":
       return "invalid";
     case "unexpected":
-      console.error("Gateway action failed", error);
+      observability.logger.error("Gateway action failed", { error: error });
       return "unexpected";
   }
 }

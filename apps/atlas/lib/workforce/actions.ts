@@ -120,6 +120,8 @@ import {
 } from "@/lib/collection-kit/forms";
 import { parseFieldList, parseSurveyQuestions } from "./parse";
 import { uploadFormMedia } from "./media";
+import { storedHazardValue, UNIT_SYSTEMS } from "./units";
+import type { UnitSystem } from "@xos/ui/preferences";
 
 /**
  * Workforce suite actions (A29, Section 4.9). Row level security and the 0800 to 0808 RPCs decide
@@ -134,13 +136,28 @@ const reasonOf = (form: FormData) => requiredText(form, "reason", 500);
 function audienceOf(form: FormData) {
   const kind = text(form, "audienceKind") ?? "Organization";
   const target = uuid(form, "audienceTarget");
+  const department = text(form, "audienceTarget");
   return {
-    kind: kind as "Organization" | "Project" | "Team" | "Role" | "Group",
+    kind: kind as "Organization" | "Project" | "Team" | "Department" | "Role" | "Group",
     projectId: kind === "Project" ? target : null,
     teamId: kind === "Team" ? target : null,
     roleId: kind === "Role" ? target : null,
     groupId: kind === "Group" ? target : null,
+    // A canon department code (1365); only feed posts offer it.
+    departmentCode:
+      kind === "Department" && department !== null && /^[0-9]000$/.test(department)
+        ? department
+        : null,
   };
+}
+
+/** True when the audience names the target its kind needs. */
+function audienceComplete(audience: ReturnType<typeof audienceOf>): boolean {
+  if (audience.kind === "Organization") return true;
+  if (audience.kind === "Department") return audience.departmentCode !== null;
+  return [audience.projectId, audience.teamId, audience.roleId, audience.groupId].some(
+    (v) => v !== null,
+  );
 }
 
 // Groups and chat -------------------------------------------------------------------------------------
@@ -258,8 +275,7 @@ export async function createPostAction(_: ActionState, form: FormData): Promise<
   if (kind === "Poll" && (options.length < 2 || options.length > 10))
     errors.add("options", "lineFormat");
   const audience = audienceOf(form);
-  if (audience.kind !== "Organization" && uuid(form, "audienceTarget") === null)
-    errors.add("audienceTarget", "required");
+  if (!audienceComplete(audience)) errors.add("audienceTarget", "required");
   if (errors.any || !kind || !body) return errors.state;
   return finish(
     await createFeedPost(ctx.viewer.db, ctx.org.id, {
@@ -981,11 +997,13 @@ export async function setThresholdAction(_: ActionState, form: FormData): Promis
   const value = errors.need("value", decimal(form, "value"), "number");
   const source = errors.need("sourceNote", requiredText(form, "sourceNote", 300));
   if (errors.any || !project || !hazard || !level || value === null || !source) return errors.state;
+  // The value was typed in the units the form showed (locale.units); the threshold is stored in the hazard's unit.
+  const units = of<UnitSystem>(text(form, "units"), UNIT_SYSTEMS) ?? "imperial";
   return finish(
     await setWeatherThreshold(ctx.viewer.db, ctx.org.id, project, {
       hazard,
       level,
-      value,
+      value: storedHazardValue(hazard, value, units),
       sourceNote: source,
     }),
     ctx,
@@ -1021,7 +1039,17 @@ export async function recordReadingAction(_: ActionState, form: FormData): Promi
   const hazard = errors.need("hazard", of<WeatherHazard>(text(form, "hazard"), WEATHER_HAZARDS));
   const value = errors.need("value", decimal(form, "value"), "number");
   if (errors.any || !project || !hazard || value === null) return errors.state;
-  return finish(await recordWeatherReading(ctx.viewer.db, project, hazard, value), ctx, "site-ops");
+  const units = of<UnitSystem>(text(form, "units"), UNIT_SYSTEMS) ?? "imperial";
+  return finish(
+    await recordWeatherReading(
+      ctx.viewer.db,
+      project,
+      hazard,
+      storedHazardValue(hazard, value, units),
+    ),
+    ctx,
+    "site-ops",
+  );
 }
 
 export async function checkInGuestAction(_: ActionState, form: FormData): Promise<ActionState> {

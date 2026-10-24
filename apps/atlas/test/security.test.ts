@@ -26,6 +26,10 @@ describe("content security policy", () => {
     expect(production).toContain("upgrade-insecure-requests");
   });
 
+  it("connects only to itself and the Supabase Realtime socket", () => {
+    expect(production).toContain("connect-src 'self' wss://db.example.test;");
+  });
+
   it("adds only what the dev server needs in development", () => {
     const dev = buildCsp({
       nonce: "n",

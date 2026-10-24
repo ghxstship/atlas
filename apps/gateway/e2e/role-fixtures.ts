@@ -153,6 +153,17 @@ export async function demoVendorId(): Promise<string> {
   return row?.id as string;
 }
 
+/**
+ * Today on the demo project's calendar (its time zone), as an ISO date: the calendar billing counts days
+ * on and invoices and payments are dated on (migration 1305; A71, RRR-116). The database's current_date
+ * is UTC and runs a day ahead every evening in New York, which made journey 41 bill a day with nothing
+ * worked after 20:00 there.
+ */
+export async function projectToday(project: string = PROJECT): Promise<string> {
+  const [row] = await sql<{ d: string }>(`select private.project_today($1)::text as d`, [project]);
+  return row?.d as string;
+}
+
 /** A purchase order to the demo vendor with one priced line, approved and sent (journey 4). */
 export async function sentPurchaseOrder(): Promise<{ id: string; number: number }> {
   const vendor = await demoVendorId();
@@ -183,10 +194,20 @@ export async function sentPurchaseOrder(): Promise<{ id: string; number: number 
 /** A current certificate of insurance on file for the demo vendor; the policy number is unique. */
 export async function vendorCertificate(): Promise<{ id: string; policy: string }> {
   const policy = `GL-${suffix()}-2027`;
+  // Journey 43 has an earlier run's certificate name the org as additional insured; still current for a
+  // year, it satisfied the next run's requirement before the run checked it (A71). Each run starts from
+  // the vendor's seeded certificates (GL-2027-0042) and its own.
+  await sql(
+    `update app.insurance_certificates set deleted_at = now()
+      where vendor_id = $1 and policy_identifier like 'GL-%-2027' and deleted_at is null`,
+    [await demoVendorId()],
+  );
   const [row] = await sql<{ id: string }>(
     `insert into app.insurance_certificates (vendor_id, insurer, policy_identifier, coverage_type, coverage_limit_minor,
        currency_code, valid_from, valid_to)
-     values ($1, 'Atlantic Mutual', $2, 'General Liability', 200000000, 'USD', current_date - 30, current_date + 335)
+     select v.id, 'Atlantic Mutual', $2, 'General Liability', 200000000, 'USD', private.org_today(v.org_id) - 30,
+       private.org_today(v.org_id) + 335
+     from app.vendors v where v.id = $1
      returning id`,
     [await demoVendorId(), policy],
     PEOPLE.owner,
@@ -280,15 +301,23 @@ export async function codeAndApproveInvoice(invoiceId: string): Promise<void> {
  * step in Atlas; Payments records it from the bank file).
  */
 export async function payInvoice(invoiceId: string): Promise<void> {
-  const [inv] = await sql<{ counterparty_id: string; total: string; currency_code: string }>(
-    `select i.counterparty_id, (t.subtotal_minor + coalesce(t.tax_minor, 0))::text as total, i.currency_code
+  const [inv] = await sql<{
+    counterparty_id: string;
+    total: string;
+    currency_code: string;
+    today: string;
+  }>(
+    `select i.counterparty_id, (t.subtotal_minor + coalesce(t.tax_minor, 0))::text as total, i.currency_code,
+            private.project_today(i.project_id)::text as today
        from app.invoices i join app.invoice_totals t on t.invoice_id = i.id where i.id = $1`,
     [invoiceId],
   );
+  // Paid today on the invoice's project calendar, the day it was issued on, so the payment posts in the
+  // same open period even on the last evening of a month.
   const [payment] = await sql<{ id: string }>(
     `insert into app.payments (counterparty_id, direction, amount_minor, currency_code, paid_on, reference_identifier)
-     values ($1, 'Payable', $2, $3, current_date, $4) returning id`,
-    [inv?.counterparty_id, Number(inv?.total), inv?.currency_code, `ACH-${suffix()}`],
+     values ($1, 'Payable', $2, $3, $4::date, $5) returning id`,
+    [inv?.counterparty_id, Number(inv?.total), inv?.currency_code, inv?.today, `ACH-${suffix()}`],
     PEOPLE.owner,
   );
   const id = payment?.id as string;
@@ -322,7 +351,8 @@ export const ROLE_ACCOUNTS = {
 
 /**
  * An engagement on the demo project for one of seed 1080's external parties, in Onboarding, with
- * the party's account as counterparty when it has one.
+ * the party's account as counterparty when it has one. A Client or Sponsor engagement carries no
+ * role, classification or pay terms (migration 1624), so those stay NULL for them.
  */
 export async function roleEngagement(input: {
   person: string;
@@ -334,12 +364,14 @@ export async function roleEngagement(input: {
   rateMinor?: number | null;
   applicationId?: string | null;
 }): Promise<EngagementFixture> {
+  const worker = input.roleType !== "Client" && input.roleType !== "Sponsor";
+  const payBasis = worker ? (input.payBasis === undefined ? "Day Rate" : input.payBasis) : null;
   const [row] = await sql<{ id: string }>(
     `insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification,
        pay_basis, arrangement, agreed_rate_minor, currency_code, start_date, end_date, application_id)
      values ($1, $2,
        (select c.id from app.counterparties c where c.org_id = $3 and c.organization_id = $4 and c.deleted_at is null limit 1),
-       $5, $6, $7, $8, 'Per Engagement', $9, 'USD', '2027-06-04', '2027-06-06', $10)
+       $5, $6, $7, $8, $11, $9, $12, '2027-06-04', '2027-06-06', $10)
      returning id`,
     [
       PROJECT,
@@ -347,11 +379,15 @@ export async function roleEngagement(input: {
       DEMO.org,
       input.account ?? null,
       input.roleType,
-      input.roleCode ?? (input.roleType === "Artist" ? "2000.50.02" : "5000.51.02"),
-      input.workerClassification ?? "INDEPENDENT_CONTRACTOR",
-      input.payBasis === undefined ? "Day Rate" : input.payBasis,
-      input.rateMinor ?? null,
+      worker
+        ? (input.roleCode ?? (input.roleType === "Artist" ? "2000.50.02" : "5000.51.02"))
+        : null,
+      worker ? (input.workerClassification ?? "INDEPENDENT_CONTRACTOR") : null,
+      payBasis,
+      worker ? (input.rateMinor ?? null) : null,
       input.applicationId ?? null,
+      payBasis === null ? null : "Per Engagement",
+      worker ? "USD" : null,
     ],
     PEOPLE.owner,
   );
@@ -614,11 +650,12 @@ export async function workedShift(
   shiftId: string,
   person: string,
 ): Promise<{ timesheetId: string }> {
-  // app.record_punch is what Compass calls on a phone: In, then Out, as the person.
+  // app.record_punch is what Compass calls on a phone: In, then Out, as the person, standing inside the demo
+  // project's Pier Site geofence (seed 0109), since the project requires the geofence (time.geofence_required).
   for (const kind of ["In", "Out"] as const) {
     await asPerson(
       person,
-      `select app.record_punch(gen_random_uuid(), $1, $2::app.punch_kind, now(), 0, $3, null, null, null, null,
+      `select app.record_punch(gen_random_uuid(), $1, $2::app.punch_kind, now(), 0, $3, 25.7752, -80.1855, 10, null,
          'Mobile', null, null, null, $4)`,
       [PROJECT, kind, shiftId, engagementId],
     );
@@ -626,12 +663,11 @@ export async function workedShift(
   // The punches land today, so the timesheet covers today: its approved day is what pay bills.
   // "Today" is the project's local date, as billing counts days in the project time zone; the
   // database's current_date is UTC and runs a day ahead in the evening.
+  const today = await projectToday();
   const [ts] = await sql<{ id: string }>(
     `insert into app.timesheets (project_id, engagement_id, period_start, period_end)
-     select $1, $2, d, d
-       from (select (now() at time zone p.time_zone)::date as d from app.projects p where p.id = $1) local
-     returning id`,
-    [PROJECT, engagementId],
+     values ($1, $2, $3::date, $3::date) returning id`,
+    [PROJECT, engagementId, today],
     PEOPLE.owner,
   );
   return { timesheetId: ts?.id as string };

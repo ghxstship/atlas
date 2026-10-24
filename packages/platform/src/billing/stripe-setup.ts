@@ -1,17 +1,20 @@
 import type Stripe from "stripe";
 import type { PlanRegistry, PriceBookCurrency } from "@xos/schemas/plans";
 import { PRICE_BOOK_CURRENCIES } from "@xos/schemas/plans";
+import { PORTAL_CONFIGURATION_KEY } from "./checkout.ts";
 
 /**
  * Creates the Stripe catalogue of packages/schemas/plans.yaml (ADR 0035): one product per self-serve
  * plan, the extra-seat product and one product per add-on, their prices by lookup key with every
- * priced currency as a currency option, and each offer's coupon and promotion code.
+ * priced currency as a currency option, each offer's coupon and promotion code, and the customer
+ * portal configuration Atlas opens (ADR 0033 decision 59).
  *
  * Idempotent: products use their lookup key as their Stripe id, so a second run finds them; prices
- * are found by lookup key, coupons by id and promotion codes by code. Products are brought up to date
- * in place. Prices, coupons and promotion codes cannot change once created, so a difference between
- * Stripe and plans.yaml stops the run with a CatalogDriftError naming every difference; the fix is a
- * new versioned lookup key in plans.yaml, never an edit in Stripe.
+ * are found by lookup key, coupons by id, promotion codes by code and the portal configuration by its
+ * metadata. Products and the portal configuration are brought up to date in place. Prices, coupons
+ * and promotion codes cannot change once created, so a difference between Stripe and plans.yaml stops
+ * the run with a CatalogDriftError naming every difference; the fix is a new versioned lookup key in
+ * plans.yaml, never an edit in Stripe.
  */
 
 /** The Stripe operations the catalogue setup uses. Tests pass an in-memory client. */
@@ -20,6 +23,12 @@ export interface StripeCatalogClient {
   readonly prices: Pick<Stripe["prices"], "list" | "create">;
   readonly coupons: Pick<Stripe["coupons"], "retrieve" | "create">;
   readonly promotionCodes: Pick<Stripe["promotionCodes"], "list" | "create">;
+  readonly billingPortal: {
+    readonly configurations: Pick<
+      Stripe["billingPortal"]["configurations"],
+      "list" | "create" | "update"
+    >;
+  };
 }
 
 export interface ProductSpec {
@@ -60,11 +69,26 @@ export interface PromotionCodeSpec {
   readonly metadata: Readonly<Record<string, string>>;
 }
 
+/**
+ * The customer portal configuration: payment methods, invoices and billing details, cancellation at
+ * the end of the paid period, and switching between the self-serve plans and terms, prorated.
+ */
+export interface PortalSpec {
+  readonly name: string;
+  readonly metadata: Readonly<Record<string, string>>;
+  /** Each plan product the portal may switch to, with the lookup keys of its prices. */
+  readonly products: readonly {
+    readonly productId: string;
+    readonly priceLookupKeys: readonly string[];
+  }[];
+}
+
 export interface StripeCatalog {
   readonly products: readonly ProductSpec[];
   readonly prices: readonly PriceSpec[];
   readonly coupons: readonly CouponSpec[];
   readonly promotionCodes: readonly PromotionCodeSpec[];
+  readonly portal: PortalSpec;
 }
 
 /** Display names of plans and add-ons on Stripe invoices and Checkout (English, as Stripe shows them). */
@@ -199,7 +223,95 @@ export function stripeCatalog(registry: PlanRegistry): StripeCatalog {
       metadata: { xos_offer: offer.code },
     });
   }
-  return { products, prices, coupons, promotionCodes };
+  const portal: PortalSpec = {
+    name: "XOS plans",
+    metadata: { xos_portal: PORTAL_CONFIGURATION_KEY },
+    products: selfServe.flatMap((plan) =>
+      plan.stripe === null
+        ? []
+        : [
+            {
+              productId: plan.stripe.productLookupKey,
+              priceLookupKeys: [
+                plan.stripe.monthlyPriceLookupKey,
+                plan.stripe.annualPriceLookupKey,
+              ],
+            },
+          ],
+    ),
+  };
+  return { products, prices, coupons, promotionCodes, portal };
+}
+
+type PortalFeatures = Stripe.BillingPortal.ConfigurationCreateParams.Features;
+
+/** The portal's features, with the price ids Stripe gave the plan prices. */
+export function portalFeatures(
+  portal: PortalSpec,
+  priceIds: ReadonlyMap<string, string>,
+): PortalFeatures {
+  return {
+    customer_update: { enabled: true, allowed_updates: ["email", "address", "name", "tax_id"] },
+    invoice_history: { enabled: true },
+    payment_method_update: { enabled: true },
+    subscription_cancel: {
+      enabled: true,
+      mode: "at_period_end",
+      cancellation_reason: {
+        enabled: true,
+        options: ["too_expensive", "missing_features", "switched_service", "unused", "other"],
+      },
+    },
+    subscription_update: {
+      enabled: true,
+      default_allowed_updates: ["price", "promotion_code"],
+      proration_behavior: "create_prorations",
+      trial_update_behavior: "continue_trial",
+      products: portal.products.map((p) => ({
+        product: p.productId,
+        prices: p.priceLookupKeys.map((key) => priceIds.get(key) ?? key),
+      })),
+    },
+  };
+}
+
+/** The parts of a portal configuration the setup decides, in a stable order, to compare. */
+function portalShape(features: unknown): string {
+  const f = (features ?? {}) as {
+    customer_update?: { enabled?: boolean; allowed_updates?: string[] | null };
+    invoice_history?: { enabled?: boolean };
+    payment_method_update?: { enabled?: boolean };
+    subscription_cancel?: {
+      enabled?: boolean;
+      mode?: string;
+      cancellation_reason?: { enabled?: boolean; options?: string[] | null };
+    };
+    subscription_update?: {
+      enabled?: boolean;
+      default_allowed_updates?: string[] | null;
+      proration_behavior?: string;
+      trial_update_behavior?: string;
+      products?: { product: string; prices: string[] }[] | null;
+    };
+  };
+  const sorted = (list: readonly string[] | null | undefined) => [...(list ?? [])].sort();
+  return JSON.stringify([
+    f.customer_update?.enabled,
+    sorted(f.customer_update?.allowed_updates),
+    f.invoice_history?.enabled,
+    f.payment_method_update?.enabled,
+    f.subscription_cancel?.enabled,
+    f.subscription_cancel?.mode,
+    f.subscription_cancel?.cancellation_reason?.enabled,
+    sorted(f.subscription_cancel?.cancellation_reason?.options),
+    f.subscription_update?.enabled,
+    sorted(f.subscription_update?.default_allowed_updates),
+    f.subscription_update?.proration_behavior,
+    f.subscription_update?.trial_update_behavior,
+    (f.subscription_update?.products ?? [])
+      .map((p) => [p.product, sorted(p.prices)])
+      .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+  ]);
 }
 
 /** Stripe holds a price, coupon or promotion code that differs from plans.yaml. */
@@ -218,7 +330,7 @@ export type SetupAction = "created" | "updated" | "unchanged" | "would create" |
 
 export interface SetupReport {
   readonly items: readonly {
-    readonly kind: "product" | "price" | "coupon" | "promotion_code";
+    readonly kind: "product" | "price" | "coupon" | "promotion_code" | "portal_configuration";
     readonly key: string;
     readonly action: SetupAction;
   }[];
@@ -342,6 +454,11 @@ export async function syncStripeCatalog(
       }
     }
   }
+  const portals = await client.billingPortal.configurations.list({ active: true, limit: 100 });
+  const portal =
+    portals.data.find(
+      (c) => c.metadata?.["xos_portal"] === catalog.portal.metadata["xos_portal"],
+    ) ?? null;
   if (differences.length > 0) throw new CatalogDriftError(differences);
 
   for (const spec of catalog.products) {
@@ -379,13 +496,16 @@ export async function syncStripeCatalog(
     items.push({ kind: "product", key: spec.id, action: dryRun ? "would update" : "updated" });
   }
 
+  const priceIds = new Map<string, string>();
   for (const spec of catalog.prices) {
-    if (prices.get(spec.lookupKey) !== null) {
+    const existing = prices.get(spec.lookupKey) ?? null;
+    if (existing !== null) {
+      priceIds.set(spec.lookupKey, existing.id);
       items.push({ kind: "price", key: spec.lookupKey, action: "unchanged" });
       continue;
     }
     if (!dryRun) {
-      await client.prices.create({
+      const created = await client.prices.create({
         product: spec.productId,
         lookup_key: spec.lookupKey,
         nickname: spec.nickname,
@@ -401,6 +521,7 @@ export async function syncStripeCatalog(
         ...(spec.interval === null ? {} : { recurring: { interval: spec.interval } }),
         metadata: { ...spec.metadata },
       });
+      priceIds.set(spec.lookupKey, created.id);
     }
     items.push({ kind: "price", key: spec.lookupKey, action: dryRun ? "would create" : "created" });
   }
@@ -443,6 +564,41 @@ export async function syncStripeCatalog(
       kind: "promotion_code",
       key: spec.code,
       action: dryRun ? "would create" : "created",
+    });
+  }
+
+  // The customer portal switches between the plan prices, so it is set once they all exist.
+  const features = portalFeatures(catalog.portal, priceIds);
+  const portalKey = catalog.portal.metadata["xos_portal"] ?? "";
+  if (portal === null) {
+    if (!dryRun) {
+      await client.billingPortal.configurations.create({
+        name: catalog.portal.name,
+        features,
+        metadata: { ...catalog.portal.metadata },
+      });
+    }
+    items.push({
+      kind: "portal_configuration",
+      key: portalKey,
+      action: dryRun ? "would create" : "created",
+    });
+  } else if (
+    portal.name === catalog.portal.name &&
+    portalShape(portal.features) === portalShape(features)
+  ) {
+    items.push({ kind: "portal_configuration", key: portalKey, action: "unchanged" });
+  } else {
+    if (!dryRun) {
+      await client.billingPortal.configurations.update(portal.id, {
+        name: catalog.portal.name,
+        features,
+      });
+    }
+    items.push({
+      kind: "portal_configuration",
+      key: portalKey,
+      action: dryRun ? "would update" : "updated",
     });
   }
   return { items };

@@ -1,13 +1,21 @@
 import { cookies } from "next/headers";
+import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { LAST_ORG_COOKIE } from "@/lib/shell/last-org";
+import { getOrgWorkspaces } from "@/lib/shell/active-workspace";
 import { getMyOrganizations, getViewer } from "@/lib/shell/context";
+import { getShellSettings, startPath } from "@/lib/shell/org-settings";
+
+/** Pages the installed app's shortcuts open (`/?open=inbox`). */
+const APP_SHORTCUTS = ["inbox", "my-work", "projects"] as const;
 
 /**
- * Entry. A signed-in person goes to the Home of the org they used last (or their first org), a
- * person with no org creates one, and everyone else signs in. An email link or an OAuth sign-in
- * that fell back to the site root (Supabase Auth's Site URL) still completes through
- * /auth/callback, which also shows the error such a return can carry.
+ * Entry. A signed-in person goes to the start page (shell.start_page: Home, My Work, Inbox or
+ * Projects) of the org they used last (or their first org), as it applies in the workspace their filter
+ * chose (a workspace value beats the org's, Section 4.5.6), a person with no org creates one, and
+ * everyone else signs in. An email link or an OAuth sign-in that fell back to the site root
+ * (Supabase Auth's Site URL) still completes through /auth/callback, which also shows the error such
+ * a return can carry.
  */
 export default async function EntryPage({ searchParams }: PageProps<"/">) {
   const query = await searchParams;
@@ -25,5 +33,13 @@ export default async function EntryPage({ searchParams }: PageProps<"/">) {
   if (orgs.length === 0) redirect("/auth/organization");
   const last = (await cookies()).get(LAST_ORG_COOKIE)?.value;
   const org = orgs.find((o) => o.slug === last) ?? orgs[0];
-  redirect(`/${org?.slug ?? ""}/home`);
+  if (!org) redirect("/auth/organization");
+  // The installed app's shortcuts (app/manifest.ts, A96) open a page of the org used last.
+  const open = query["open"];
+  if (typeof open === "string" && (APP_SHORTCUTS as readonly string[]).includes(open)) {
+    redirect(`/${org.slug}/${open}` as Route);
+  }
+  const { active } = await getOrgWorkspaces(viewer.db, org.id);
+  const settings = await getShellSettings(viewer.db, org.id, active?.id ?? null);
+  redirect(startPath(org.slug, settings.startPage) as Route);
 }

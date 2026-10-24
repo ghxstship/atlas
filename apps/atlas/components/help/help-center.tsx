@@ -16,7 +16,8 @@ import { installErrorCapture, type CollectedDiagnostics } from "./diagnostics";
 export type HelpView =
   | { readonly kind: "home" }
   | { readonly kind: "article"; readonly slug: string }
-  | { readonly kind: "contact"; readonly diagnostics: CollectedDiagnostics };
+  | { readonly kind: "contact"; readonly diagnostics: CollectedDiagnostics }
+  | { readonly kind: "feedback" };
 
 const HELP_EVENT = "xos:help";
 
@@ -29,12 +30,13 @@ export function openHelpArticle(slug: string) {
 }
 
 /**
- * Help in the Atlas shell (Section 11.16). The Help button and the `?` key open the contextual help
- * panel (help-panel.tsx). This part stays with the page: it loads the person's tours and tips and
- * fetches the panel when Help opens, when the page has a tour or tip the person has not seen, or
- * when a replay link (`?tour=<key>`) asks for a tour.
+ * Help in the Atlas shell (Section 11.16). The Help button and its shortcut (`?` by default; the
+ * shell's key handler calls openHelpArticle) open the contextual help panel (help-panel.tsx). This
+ * part stays with the page: it loads the person's tours and tips and fetches the panel when Help
+ * opens, when the page has a tour or tip the person has not seen, or when a replay link
+ * (`?tour=<key>`) asks for a tour.
  */
-export function HelpCenter({ org }: { org: string }) {
+export function HelpCenter({ org, shortcut }: { org: string; shortcut?: string | undefined }) {
   const t = useTranslations("help");
   const pathname = usePathname();
   const search = useSearchParams();
@@ -74,22 +76,6 @@ export function HelpCenter({ org }: { org: string }) {
     };
   }, [org]);
 
-  // The `?` key opens help unless the person is typing.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      const el = event.target as HTMLElement | null;
-      const typing =
-        el?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el?.tagName ?? "");
-      if (event.key === "?" && !typing && !event.metaKey && !event.ctrlKey && !event.altKey) {
-        event.preventDefault();
-        setView({ kind: "home" });
-        setOpen((o) => !o);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
   // Whether this page has something for the panel to offer: an unseen tour, an undismissed tip, or a
   // requested replay. The panel decides which one shows.
   const offers = useMemo(() => {
@@ -105,14 +91,18 @@ export function HelpCenter({ org }: { org: string }) {
   }, [nodeId, search, state]);
 
   const loaded = useOnDemand(panel, open || offers);
-  const preload = () => void panel.load().catch(() => undefined);
+  const preload = () =>
+    void panel.load().then(
+      (m) => m.preloadDrawer(),
+      () => undefined,
+    );
 
   return (
     <>
       <IconButton
         icon="CircleHelp"
         label={t("button")}
-        shortcut="?"
+        {...(shortcut ? { shortcut } : {})}
         data-help-trigger=""
         onPointerEnter={preload}
         onFocus={preload}

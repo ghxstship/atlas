@@ -1,5 +1,12 @@
 import { expect, test, type Page } from "./engine-test";
-import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
+import {
+  createOrganization,
+  endTrial,
+  expectAccessible,
+  signUp,
+  testEmail,
+  uniqueId,
+} from "./support";
 
 /**
  * A07 journeys (Section 20.2): 1 (create a project with its jurisdiction, then generate its permit
@@ -40,8 +47,15 @@ async function createProject(page: Page, slug: string, key: string, name: string
 
 /** Attests rank 4 evidence for one criterion from the Gates tab. */
 async function attest(page: Page, criterion: string) {
-  await page.getByRole("button", { name: `Attest evidence for ${criterion}` }).click();
-  const dialog = page.getByRole("dialog", { name: `Attest evidence for ${criterion}` });
+  // The button and dialog name the criterion by its sentence; its row carries the code (A59-017).
+  await page
+    .locator("li")
+    .filter({ has: page.locator(".font-mono", { hasText: criterion }) })
+    .last()
+    .getByRole("button", { name: /^Attest evidence for / })
+    .click();
+  const dialog = page.getByRole("dialog", { name: /^Attest evidence for / });
+  await expect(dialog).toContainText(`Criterion ${criterion}`);
   await dialog
     .getByLabel("Document link or record key")
     .fill(`https://docs.example.com/${criterion.toLowerCase().replace(/[._]/g, "-")}.pdf`);
@@ -108,8 +122,10 @@ test("journey 1: create a project with jurisdiction US-FL-MIAMI-DADE", async ({ 
   await page.goto(`/${slug}/projects/portfolio-timeline`);
   await expect(page.getByRole("figure", { name: "Portfolio timeline" })).toBeVisible();
   await expectAccessible(page);
-  // A new org's plan includes one active project (ADR 0018): a second is refused with words that
-  // name the next step, and the typed input stays (the refusal state).
+  // The Access plan includes one active project (ADR 0018): once the new org's Pro trial ends (A79),
+  // a second is refused with words that name the next step, and the typed input stays (the refusal
+  // state).
+  await endTrial(slug);
   await page.goto(`/${slug}/projects/all?create=1`);
   const dialog = page.getByRole("dialog", { name: "New project" });
   await dialog.getByLabel("Project key").fill("NWM");

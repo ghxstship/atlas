@@ -3,6 +3,7 @@
 import ActivityKit
 import ExpoModulesCore
 import Foundation
+import WidgetKit
 
 struct ClockLabelsRecord: Record {
   @Field var projectName: String = ""
@@ -13,6 +14,7 @@ struct ClockLabelsRecord: Record {
   @Field var startBreak: String = ""
   @Field var endBreak: String = ""
   @Field var clockOut: String = ""
+  @Field var nextCue: String = ""
 }
 
 struct ClockContentRecord: Record {
@@ -21,6 +23,8 @@ struct ClockContentRecord: Record {
   @Field var segmentStart: Double = 0
   @Field var workedBaseSeconds: Double = 0
   @Field var breakSince: Double? = nil
+  @Field var nextCueLabel: String? = nil
+  @Field var nextCueAt: Double? = nil
 }
 
 private func date(_ ms: Double) -> Date { Date(timeIntervalSince1970: ms / 1000) }
@@ -32,7 +36,9 @@ private func contentState(_ r: ClockContentRecord) -> ClockActivityAttributes.Co
     onShiftSince: date(r.onShiftSince),
     segmentStart: date(r.segmentStart),
     workedBaseSeconds: r.workedBaseSeconds,
-    breakSince: r.breakSince.map(date))
+    breakSince: r.breakSince.map(date),
+    nextCueLabel: r.nextCueLabel,
+    nextCueAt: r.nextCueAt.map(date))
 }
 
 public class CompassLiveActivityModule: Module {
@@ -81,7 +87,8 @@ public class CompassLiveActivityModule: Module {
         workedLabel: labels.worked,
         startBreakLabel: labels.startBreak,
         endBreakLabel: labels.endBreak,
-        clockOutLabel: labels.clockOut)
+        clockOutLabel: labels.clockOut,
+        nextCueTitle: labels.nextCue.isEmpty ? nil : labels.nextCue)
       let activity = try Activity.request(
         attributes: attributes, content: ActivityContent(state: state, staleDate: nil), pushType: nil)
       return activity.id
@@ -120,6 +127,15 @@ public class CompassLiveActivityModule: Module {
 
     Function("ackQueue") { (ids: [String]) in
       ClockPunchQueue.ack(ids)
+    }
+
+    /// Writes what the home screen widgets show (JSON, CompassWidgets.swift reads it) into the App Group
+    /// and asks WidgetKit to redraw them. Empty clears it, at sign-out.
+    Function("setWidgetData") { (json: String) in
+      CompassWidgetStore.write(json)
+      if #available(iOS 14.0, *) {
+        WidgetCenter.shared.reloadAllTimelines()
+      }
     }
   }
 }

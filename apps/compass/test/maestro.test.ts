@@ -35,6 +35,11 @@ const DYNAMIC = [
   "shift-",
   "batch-",
   "incident-voice-",
+  "today-org-",
+  "schedule-shift-",
+  "expense-line-",
+  "expense-aurora-",
+  "external-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {
@@ -72,10 +77,19 @@ describe("Maestro flows", () => {
         (p) => id.startsWith(p) && (code.includes(p) || code.includes(`"${p.slice(0, -1)}"`)),
       );
       const suffixed =
-        /-(geofence|timer|count|done|last)$/.test(id) &&
+        /-(geofence|timer|count|done|last|nfc)$/.test(id) &&
         code.includes(`"${id.replace(/-[a-z]+$/, "")}"`);
       expect(literal || dynamic || suffixed, `${file}: ${id}`).toBe(true);
     }
+  });
+
+  // Maestro matches flowsOrder against each flow's name, not its file; a flow named otherwise drops the
+  // whole order and the suite runs in any order (A66), so state-changing flows collide.
+  it.each(readdirSync(flowDir))("%s is named after its file, so flowsOrder applies", (file) => {
+    const header = parseAllDocuments(readFileSync(join(flowDir, file), "utf8"))[0]?.toJS() as {
+      name?: string;
+    };
+    expect(header.name).toBe(file.replace(/\.yaml$/, ""));
   });
 
   it("orders every flow in config.yaml", () => {

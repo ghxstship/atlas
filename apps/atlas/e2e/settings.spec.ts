@@ -20,6 +20,7 @@ const ORG_PAGES = [
   "modules",
   "views-and-defaults",
   "numbering",
+  "automations",
   "time-and-attendance",
   "scheduling",
   "payroll-and-time-off",
@@ -59,12 +60,26 @@ test("settings pages render axe clean and the org lock holds", async ({ page }) 
   }
 
   // Journey 63: lock the time zone at org level.
+  // A59-018: the page has one form and no Save button until something changes; the save bar
+  // counts the changes, Discard puts them back, and Save sends them together.
   await page.goto(`/${slug}/settings/localization`);
-  const zone = page.locator("form").filter({ has: page.getByLabel("Time zone") });
+  const form = page.getByRole("form", { name: "Settings on this page" });
+  const zone = form.locator("li").filter({ has: page.getByLabel("Time zone") });
+  await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
+  await zone.getByLabel("Time zone").selectOption("Europe/London");
+  await expect(form.getByText("1 unsaved change")).toBeVisible();
+  await form.getByRole("button", { name: "Discard" }).click();
+  await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
   await zone.getByLabel("Time zone").selectOption("America/New_York");
-  await zone.getByLabel(/Lock this value/).check();
-  await zone.getByRole("button", { name: "Save" }).click();
+  await zone.getByRole("button", { name: "Lock value" }).click();
+  await expect(zone.getByRole("button", { name: "Lock value" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expectAccessible(page);
+  await form.getByRole("button", { name: "Save", exact: true }).click();
   await expect(zone.getByText(/Set and locked for the organization/)).toBeVisible();
+  await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
 
   // Personal preferences show the locked value as locked for the person.
   await page.goto(`/${slug}/me/preferences`);
@@ -96,4 +111,37 @@ test("settings pages render axe clean and the org lock holds", async ({ page }) 
   await expect(page.getByText("Saved.")).toBeVisible();
   await page.goto(`/${slug}/home`);
   await expect(page.locator(`a[href="/${slug}/site-ops"]`).first()).toBeAttached();
+});
+
+// ADR 0038: record keys are fixed and on no settings screen; gateway.ratings_enabled only prompts members to
+// rate, so turning it off removes the prompt and nothing else.
+test("record keys stay fixed and rating prompts never hide ratings", async ({ page }) => {
+  const id = uniqueId();
+  const slug = `ratings-${id}`;
+  await signUp(page, { name: "Riley Ratings", email: testEmail("ratings", id) });
+  await createOrganization(page, { name: `Ratings ${id}`, slug });
+
+  await page.goto(`/${slug}/settings/numbering`);
+  await expect(page.getByLabel("Number padding")).toBeVisible();
+  await expect(page.getByLabel("Record key format")).toHaveCount(0);
+  await expect(page.getByText(/record keys like NWS-42 are fixed/)).toBeVisible();
+
+  await page.goto(`/${slug}/opportunities/ratings`);
+  await expect(page.getByText("Waiting for your rating")).toBeVisible();
+
+  await page.goto(`/${slug}/settings/gateway-and-marketplace`);
+  const form = page.getByRole("form", { name: "Settings on this page" });
+  const prompts = form.getByLabel("Prompt members to rate parties");
+  await expect(prompts).toBeChecked();
+  await expect(form.getByText(/turning prompts off never hides or removes a rating/)).toBeVisible();
+  await prompts.uncheck();
+  await form.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
+  await expect(prompts).not.toBeChecked();
+  await expectAccessible(page);
+
+  // The prompt goes; the ratings page and every rating on it stay.
+  await page.goto(`/${slug}/opportunities/ratings`);
+  await expect(page.getByRole("heading", { level: 1, name: "Ratings" })).toBeVisible();
+  await expect(page.getByText("Waiting for your rating")).toHaveCount(0);
 });

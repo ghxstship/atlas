@@ -59,6 +59,13 @@ describe("audience", () => {
       readableProjectIds: [],
       engagementIds: ["e1"],
       engagedProjectIds: ["p1"],
+      // The onboarding checklist reads before operational access opens, never after Complete (A92).
+      onboardingEngagementIds: ["e1"],
+    });
+    const onboarding = { ...identity, engagements: [eng({ id: "e3", state: "Onboarding" })] };
+    expect(scopeFor(onboarding, [], [])).toMatchObject({
+      engagementIds: [],
+      onboardingEngagementIds: ["e3"],
     });
   });
 });
@@ -90,15 +97,15 @@ describe("resolveIdentity", () => {
       fake({
         "app.people": { data: { id: "person-1", full_name: "Demo Field Lead" }, error: null },
         "app.memberships": { data: [{ id: "m1", org_id: "o1" }], error: null },
-        "app.membership_roles": { data: [{ role_id: "r1" }], error: null },
+        "app.membership_roles": { data: [{ membership_id: "m1", role_id: "r1" }], error: null },
         "app.role_capabilities": {
           data: [
-            { capability_code: "safety.incident.dispatch" },
-            { capability_code: "crew.time_entry.write" },
+            { role_id: "r1", capability_code: "safety.incident.dispatch" },
+            { role_id: "r1", capability_code: "crew.time_entry.write" },
           ],
           error: null,
         },
-        "app.projects": { data: [{ id: "p1", name: "Fest" }], error: null },
+        "app.projects": { data: [{ id: "p1", name: "Fest", org_id: "o1" }], error: null },
       }),
       "user-1",
     );
@@ -119,15 +126,15 @@ describe("resolveIdentity", () => {
     const base = {
       "app.people": { data: { id: "person-2", full_name: "Demo Field Tech" }, error: null },
       "app.memberships": { data: [{ id: "m2", org_id: "o1" }], error: null },
-      "app.membership_roles": { data: [{ role_id: "field" }], error: null },
+      "app.membership_roles": { data: [{ membership_id: "m2", role_id: "field" }], error: null },
       "app.role_capabilities": {
         data: [
-          { capability_code: "crew.time_entry.write" },
-          { capability_code: "safety.incident.write" },
+          { role_id: "field", capability_code: "crew.time_entry.write" },
+          { role_id: "field", capability_code: "safety.incident.write" },
         ],
         error: null,
       },
-      "app.projects": { data: [{ id: "p1", name: "Fest" }], error: null },
+      "app.projects": { data: [{ id: "p1", name: "Fest", org_id: "o1" }], error: null },
     };
     const field = await resolveIdentity(fake(base), "user-2");
     expect(field.identity.audience).toBe("field");

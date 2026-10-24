@@ -17,7 +17,7 @@ Add the server to your MCP client's configuration:
     "xos": {
       "command": "xos-mcp",
       "env": {
-        "XOS_BASE_URL": "https://atlas.example.com/api/v1",
+        "XOS_BASE_URL": "https://api.ghxstship.tech/v1",
         "XOS_API_KEY": "xos_live_..."
       }
     }

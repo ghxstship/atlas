@@ -8,11 +8,13 @@ import {
   type Expense,
 } from "@xos/data/finance";
 import { getNode } from "@xos/ia";
+import { expenseAsk } from "@/lib/aurora/finance-ask";
 import type { FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { toInputValue, exponentOf } from "@/lib/finance/money";
 import { iconState } from "@/lib/finance/states";
 import { sitemap } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { ExpenseForm } from "./forms-expense-form";
 import { EditButton } from "./kit-edit-button";
@@ -163,7 +165,7 @@ export async function ExpensesView({ page }: { page: FinancePage }) {
     value: v.id,
     label: v.name ?? t("finance.common.unnamedCounterparty"),
   }));
-  const today = new Date().toISOString().slice(0, 10);
+  const today = await orgToday(ctx);
   const sheet =
     query.create && canWrite ? (
       <FormSheet title={t("finance.expenses.create")} flag="create">
@@ -231,6 +233,7 @@ export async function ExpensesView({ page }: { page: FinancePage }) {
       }))}
       detail={detail}
       sheet={sheet}
+      ask={expenseAsk(page, c)}
     />
   );
 }

@@ -39,6 +39,9 @@
     "googleCancelled": "Saliste del inicio de sesión con Google antes de terminar. Vuelve a intentarlo o usa un enlace por correo.",
     "googleUnavailable": "Para iniciar sesión con Google, este dispositivo necesita los servicios de Google Play. Actualízalos o usa un enlace por correo.",
     "googleFailed": "Google no pudo iniciar tu sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+    "appleCancelled": "Saliste del inicio de sesión con Apple antes de terminar. Vuelve a intentarlo o usa un enlace por correo.",
+    "appleFailed": "Apple no pudo iniciar tu sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+    "appleUnavailable": "Iniciar sesión con Apple no está disponible en este dispositivo. Usa un enlace por correo.",
     "emailNotVerified": "El correo de esa cuenta de Google aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
     "ssoRequired": "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
     "submit": "Iniciar sesión",
@@ -47,7 +50,36 @@
     "emailInvalid": "Escribe un correo como nombre@example.com.",
     "network": "Compass no llega al servidor. Conéctate a una red e inicia sesión.",
     "identityTitle": "Tu acceso no cargó",
-    "identity": "Compass no pudo leer tu {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación."
+    "identity": "Compass no pudo leer {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación.",
+    "identitySteps": {
+      "person": "tu perfil",
+      "memberships": "tus membresías",
+      "roles": "tus roles",
+      "capabilities": "tus permisos",
+      "projects": "tus proyectos",
+      "engagements": "tus contrataciones",
+      "access": "tu acceso"
+    }
+  },
+  "startup": {
+    "title": "Compass no pudo iniciar",
+    "sentence": "El almacenamiento sin conexión de este dispositivo no se abrió. Vuelve a intentarlo. Si sigue pasando, reinicia el teléfono.",
+    "storageReset": "Compass tuvo que restablecer su almacenamiento sin conexión en este dispositivo. No se pudieron recuperar los cambios hechos sin conexión que no se habían subido. Todo lo demás se descarga de nuevo."
+  },
+  "secondFactor": {
+    "title": "Confirma Que Eres Tú",
+    "sentence": "Escribe el código de 6 dígitos de tu app de autenticación.",
+    "code": "Código",
+    "verify": "Verificar",
+    "invalid": "Ese código no coincide. Escribe el código que muestra tu app ahora.",
+    "requiredTitle": "Configura un Segundo Factor",
+    "required": "Tu organización exige un segundo factor para tu rol. Configura una app de autenticación en Atlas o Gateway, en Configuración, Seguridad, y vuelve a intentarlo.",
+    "useRecovery": "Usar un código de recuperación",
+    "useApp": "Usar tu app de autenticación",
+    "recoverySentence": "Escribe uno de los códigos de recuperación que guardaste en Atlas o Gateway. Cada código funciona una sola vez.",
+    "recoveryCode": "Código de recuperación",
+    "recoveryInvalid": "Ese código de recuperación no coincide, o ya se usó.",
+    "recoveryLocked": "Demasiados códigos incorrectos. Espera 15 minutos y vuelve a intentarlo."
   },
   "denial": {
     "roleTitle": "No es parte de tu rol",
@@ -75,6 +107,7 @@
       "asset_custody": "entregas de equipo",
       "asset_identifiers": "códigos de equipo",
       "asset_units": "equipo",
+      "canon_emergency_codes": "códigos de emergencia estándar",
       "clock_punches": "registros de horario",
       "credentials": "credenciales",
       "cues": "pies",
@@ -100,7 +133,29 @@
       "time_entries": "horas trabajadas",
       "zones": "zonas",
       "other": "otros datos",
-      "roles": "puestos"
+      "roles": "puestos",
+      "budget_lines": "partidas del presupuesto",
+      "expenses": "gastos",
+      "timesheets": "hojas de horas",
+      "per_diems": "viáticos",
+      "travel_segments": "viajes",
+      "lodging": "alojamiento",
+      "onboarding_items": "requisitos de incorporación",
+      "purchase_orders": "órdenes de compra",
+      "po_lines": "líneas de órdenes de compra",
+      "deliveries": "entregas",
+      "shared_records": "registros compartidos para revisión",
+      "deliverables": "entregables",
+      "advance_packets": "paquetes de coordinación previa",
+      "advance_sections": "secciones de coordinación previa",
+      "advance_submissions": "respuestas de coordinación previa",
+      "riders": "riders",
+      "rider_lines": "solicitudes del rider",
+      "settlements": "liquidaciones",
+      "settlement_lines": "líneas de liquidación",
+      "shared_reports": "informes compartidos",
+      "sponsor_entitlements": "beneficios del patrocinador",
+      "engagement_documents": "documentos de la contratación"
     }
   },
   "queue": {
@@ -155,7 +210,8 @@
       "dock_slots": "Llegada al muelle",
       "gate_queue": "Llegada a la puerta",
       "marshalling_log": "Entrada de maniobras",
-      "fulfillments": "Entrega"
+      "fulfillments": "Entrega",
+      "expenses": "Gasto"
     },
     "punchActions": {
       "in": "Registrar entrada",
@@ -198,7 +254,8 @@
       "serverShift": "Turno del {day} a las {start}, ahora {state}",
       "serverState": "{title}, ahora {state}",
       "serverCue": "{label}, dado a las {time}",
-      "serverGeneric": "El servidor tiene otra versión de este registro: {kind}."
+      "serverGeneric": "El servidor tiene otra versión de este registro: {kind}.",
+      "expenseReceipt": "Gasto: {description}, {day}"
     },
     "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
     "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."
@@ -217,6 +274,45 @@
     "orgChip": "{org}",
     "nextCueAt": "Previsto para el {day} a las {time}"
   },
+  "orgs": {
+    "title": "Organizaciones",
+    "chip": "Organización: {org}",
+    "switch": "Organización: {org}. Cambiar de organización",
+    "switchHint": "Muestra las organizaciones para las que trabajas.",
+    "change": "Cambiar",
+    "member": "Miembro",
+    "engaged": "Contratado",
+    "combinedTitle": "Hoy en todas tus organizaciones",
+    "nothingToday": "Nada para hoy."
+  },
+  "glance": {
+    "today": "Hoy",
+    "noCue": "No hay cue hoy.",
+    "cueLine": "Siguiente cue: {cue} a las {time}",
+    "onShiftTitle": "En turno en {project}",
+    "onBreakTitle": "En descanso en {project}",
+    "since": "Desde las {time}",
+    "cueTitle": "Siguiente cue: {cue}",
+    "cueBody": "{project} a las {time}",
+    "channel": "Turno y siguiente cue"
+  },
+  "wallet": {
+    "holder": "Nombre",
+    "credential": "Credencial",
+    "role": "Puesto",
+    "project": "Proyecto",
+    "starts": "Empieza",
+    "ends": "Termina",
+    "validUntil": "Válida hasta",
+    "organization": "Organización",
+    "addApple": "Agregar a Apple Wallet",
+    "addGoogle": "Agregar a Google Wallet",
+    "adding": "Obteniendo tu pase",
+    "notConfigured": "Los pases de Wallet aún no están configurados para tu organización. Muestra aquí la credencial.",
+    "notFound": "Este pase no es tuyo.",
+    "offline": "Conéctate a internet para agregar el pase. Una vez agregado, funciona sin conexión.",
+    "failed": "No se pudo agregar el pase. Inténtalo de nuevo."
+  },
   "clock": {
     "in": "Marcar entrada",
     "onShift": "En turno",
@@ -226,7 +322,7 @@
     "endBreak": "Terminar descanso",
     "blocked": "Marcar entrada",
     "inside": "Estás en {name}",
-    "outside": "Estás a {distance} m de {name}",
+    "outside": "Estás a {distance} de {name}",
     "outsideFar": "Estás lejos del lugar",
     "locating": "Buscando tu ubicación",
     "locationCoarse": "Tu ubicación aún no es precisa. Sal al exterior o espera un momento.",
@@ -278,7 +374,8 @@
     "timeRange": "{start} a {end}",
     "noPlace": "Lugar por confirmar",
     "claimOverlap": "Ya tienes un turno que se superpone con este ({time}). Cambia o deja ese turno primero.",
-    "claimQueued": "Turno reclamado. Será tuyo cuando se suba; la regla de la organización decide si alguien llegó antes."
+    "claimQueued": "Turno reclamado. Será tuyo cuando se suba; la regla de la organización decide si alguien llegó antes.",
+    "claimSent": "Reclamo enviado. Un supervisor decide quién recibe el turno según la regla de reclamo del proyecto."
   },
   "scan": {
     "title": "Escanear",
@@ -335,7 +432,7 @@
     "step": "Paso {step} de 3",
     "severity": "¿Qué tan grave es?",
     "location": "Ubicación",
-    "locationAuto": "Cerca de {latitude}, {longitude} (a {accuracy} m)",
+    "locationAuto": "Cerca de {latitude}, {longitude} (a {accuracy})",
     "locationUnknown": "No se encontró la ubicación. Describe dónde en el título.",
     "change": "Cambiar",
     "titleLabel": "Qué pasó",
@@ -375,7 +472,8 @@
       "permissionDenied": "Compass no puede usar el micrófono. Permítelo en Ajustes y vuelve a mantener presionado para grabar.",
       "failed": "La nota de voz no se grabó: {reason}. Mantén presionado para intentarlo otra vez.",
       "tooShort": "Fue demasiado corta para guardarla. Mantén presionado un poco más para grabar una nota de voz.",
-      "micDidNotStart": "El micrófono no se inició, así que no se grabó nada. Cierra cualquier app que lo esté usando y vuelve a mantener presionado."
+      "micDidNotStart": "El micrófono no se inició, así que no se grabó nada. Cierra cualquier app que lo esté usando y vuelve a mantener presionado.",
+      "didNotSave": "La grabación no terminó de guardarse. Vuelve a intentarlo."
     }
   },
   "inspections": {
@@ -445,20 +543,36 @@
     "doneQueued": "{name}: guardado. Tu PIN se revisa cuando el quiosco vuelva a tener conexión.",
     "refused": {
       "pinLocked": "Este PIN se bloqueó por demasiados intentos. Pide a tu supervisor que lo restablezca.",
-      "deviceRevoked": "Este quiosco se desactivó en Atlas. Pide a tu supervisor que lo registre de nuevo.",
-      "requestInvalid": "No se pudo leer esa marcación. Empieza de nuevo."
+      "requestInvalid": "No se pudo leer esa marcación. Empieza de nuevo.",
+      "kioskDisabled": "Los quioscos están desactivados en esta organización. Pide a un administrador que los active en Atlas.",
+      "photoRequired": "Este proyecto pide una foto en cada fichaje en el quiosco. Empieza de nuevo y toma la foto."
+    },
+    "unregistered": {
+      "title": "Este dispositivo ya no está registrado como quiosco",
+      "sentence": "Nadie puede marcar entrada aquí. Un supervisor registra el quiosco de nuevo en Atlas, olvida este quiosco y luego escribe la nueva clave del dispositivo.",
+      "forget": "Olvidar este quiosco",
+      "confirmTitle": "¿Olvidar este quiosco?",
+      "confirmSentence": "Esto quita la clave del dispositivo y lo regresa a la configuración del quiosco.",
+      "confirm": "Olvidar quiosco",
+      "supervisorRequired": "Un supervisor debe iniciar sesión para olvidar este quiosco."
     },
     "exit": "Salir del quiosco",
     "digit": "Dígito {digit}",
     "backspace": "Borrar dígito",
     "pinProgressOne": "{count} dígito ingresado",
-    "pinProgressOther": "{count} dígitos ingresados"
+    "pinProgressOther": "{count} dígitos ingresados",
+    "off": "Los quioscos están desactivados en esta organización. Un administrador los activa en Atlas, Configuración, Horario y asistencia.",
+    "photoFor": "Foto de {name}",
+    "photoHelp": "Este proyecto pide una foto en cada entrada y salida en el quiosco. Mira la cámara y toma la foto."
   },
   "inbox": {
     "title": "Bandeja",
     "needsYou": "Te necesita",
     "fyi": "Para tu información",
-    "empty": "Estás al día. Las aprobaciones y mensajes aparecen aquí."
+    "empty": "Estás al día. Las aprobaciones y mensajes aparecen aquí.",
+    "update": "Novedad",
+    "updateFrom": "Novedad de {org}",
+    "new": "Nuevo"
   },
   "more": {
     "title": "Más",
@@ -473,6 +587,7 @@
   "reference": {
     "title": "Referencia",
     "emergencyEmpty": "Aún no hay códigos de emergencia guardados. Conéctate una vez para descargarlos.",
+    "emergencyStandard": "Estos son los códigos de emergencia estándar. Tu organización puede usar sus propios nombres, significados y orden; pregunta a tu supervisor cuáles usar en el sitio.",
     "radioEmpty": "Aún no hay plan de radio para este proyecto.",
     "channel": "Canal {number}",
     "mapsEmpty": "Aún no hay mapas del lugar para este proyecto.",
@@ -515,10 +630,62 @@
     "signOutConfirm": "Cerrar sesión de todos modos",
     "deleteAccount": "Eliminar cuenta",
     "deleteAccountHelp": "Elimina tu cuenta y los datos que te pertenecen, después de que confirmes.",
+    "blockedPeople": "Personas bloqueadas",
+    "blockedPeopleHelp": "Personas cuyas publicaciones y mensajes ya no ves",
     "version": "Versión {version}",
     "personal": "Ajustes personales",
     "biometric": "Desbloqueo biométrico",
     "biometricHelp": "Pide Face ID, Touch ID o tu código al abrir Compass."
+  },
+  "safety": {
+    "title": "Denunciar o bloquear",
+    "someone": "alguien",
+    "actionsPost": "Denunciar o bloquear: publicación de {name}",
+    "actionsMessage": "Denunciar o bloquear: mensaje de {name}",
+    "actionsShoutOut": "Denunciar o bloquear: reconocimiento de {name}",
+    "intro": "Los moderadores de tu organización revisan cada denuncia en {hours} horas. No se avisa a nadie de quién denunció.",
+    "reportPost": "Denunciar esta publicación",
+    "reportMessage": "Denunciar este mensaje",
+    "reportShoutOut": "Denunciar este reconocimiento",
+    "block": "Bloquear a {name}",
+    "reasonTitle": "¿Por qué lo denuncias?",
+    "reasons": {
+      "harassment": "Acoso o intimidación",
+      "hate": "Discurso o símbolos de odio",
+      "sexualContent": "Contenido sexual",
+      "violence": "Violencia o amenazas",
+      "spam": "Spam o estafa",
+      "other": "Otro motivo"
+    },
+    "details": "Algo que los moderadores deban saber (opcional)",
+    "submit": "Enviar denuncia",
+    "reportedTitle": "Denuncia enviada",
+    "reported": "Gracias. Los moderadores de tu organización la revisarán en {hours} horas y te dirán qué decidieron.",
+    "blockToo": "Bloquear también a {name}",
+    "confirmTitle": "¿Bloquear a {name}?",
+    "confirm": "Dejarás de ver sus publicaciones, comentarios, reconocimientos y mensajes, en todas las conversaciones. No se le avisa. Puedes desbloquearlo cuando quieras en Ajustes, Personas bloqueadas.",
+    "blockConfirm": "Bloquear",
+    "cancel": "Cancelar",
+    "blockedTitle": "Bloqueado",
+    "blocked": "Bloqueaste a {name}. Sus publicaciones y mensajes quedan ocultos para ti.",
+    "done": "Listo",
+    "close": "Cerrar",
+    "failed": "No se pudo completar",
+    "offline": "Denunciar y bloquear necesitan conexión. Vuelve a intentarlo cuando tengas conexión."
+  },
+  "blocked": {
+    "title": "Personas bloqueadas",
+    "intro": "No ves las publicaciones, comentarios, reconocimientos ni mensajes de las personas que bloqueas. No se les avisa.",
+    "empty": "No has bloqueado a nadie. Bloquea a alguien desde los tres puntos de su publicación o mensaje.",
+    "back": "Volver a Ajustes",
+    "unblock": "Desbloquear a {name}",
+    "unblocked": "Desbloqueaste a {name}. Sus publicaciones y mensajes vuelven a mostrarse.",
+    "failed": "No se pudo desbloquear a {name}. Vuelve a intentarlo.",
+    "organization": "Organización",
+    "offline": "Personas bloqueadas necesita conexión.",
+    "loadFailed": "Las personas bloqueadas no cargaron",
+    "loadFailedSentence": "Compass no pudo leer a quién bloqueaste. Vuelve a intentarlo en un momento.",
+    "retry": "Reintentar"
   },
   "photo": {
     "take": "Tomar foto",
@@ -668,6 +835,8 @@
     "deleteHoldHint": "Mantén presionado 2 segundos para eliminar tu cuenta",
     "stepUpPrompt": "Confirma que eres tú para eliminar tu cuenta",
     "stepUpFailed": "No se confirmó que eres tú, así que no se eliminó nada. Vuelve a intentarlo.",
+    "appleCancelled": "Confirma con Apple para que Compass deje de usar tu Cuenta de Apple y vuelve a eliminar. No se eliminó nada.",
+    "appleNotRevoked": "Compass no pudo dejar de usar tu Cuenta de Apple. Para terminar, quita Compass de Iniciar sesión con Apple en la configuración de tu Cuenta de Apple.",
     "refusedTitle": "Tu cuenta no se eliminó",
     "failed": "Tu cuenta no se eliminó: {reason}. Vuelve a intentarlo.",
     "doneTitle": "Tu cuenta está eliminada",
@@ -700,6 +869,7 @@
     "forScreen": "Para la pantalla donde estabas",
     "general": "En todo Compass",
     "all": "Toda la ayuda para tu rol",
+    "helpCenter": "Centro de ayuda en la web",
     "offline": "La ayuda se guarda en este teléfono, así que funciona sin conexión.",
     "missing": "Este artículo no está disponible. Vuelve a Ayuda para ver los demás.",
     "back": "Volver a Ayuda",
@@ -735,5 +905,9 @@
         "unexpected": "No se pudo enviar la solicitud. Inténtalo de nuevo en un momento."
       }
     }
+  },
+  "systemBanner": {
+    "details": "Detalles",
+    "dismiss": "Ocultar"
   }
 }

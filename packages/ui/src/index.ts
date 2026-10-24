@@ -15,12 +15,18 @@ export {
 } from "./lib/i18n.ts";
 export {
   XOSProvider,
+  PreferencesProvider,
   useLocale,
   useT,
   useFormat,
+  usePreferences,
+  useUnitSystem,
+  useViewerTimeZone,
+  useZonedTime,
   type XOSProviderProps,
   type Translate,
 } from "./lib/context.tsx";
+export * from "./lib/preferences.ts";
 export {
   applyTheme,
   resolveTheme,
@@ -31,6 +37,14 @@ export {
   type ThemePreference,
 } from "./lib/theme.ts";
 export * from "./lib/format.ts";
+export {
+  LiveProvider,
+  useLive,
+  type LiveChange,
+  type LivePacing,
+  type LiveSource,
+  type LiveTopic,
+} from "./lib/live.ts";
 
 export type {
   RecordState,
@@ -137,7 +151,13 @@ export {
 } from "./Feedback/Feedback.tsx";
 
 /* Overlays and navigation */
-export { useControllable, useHotkey, rovingIndex, type HotkeyOptions } from "./lib/hooks.ts";
+export {
+  useControllable,
+  useHotkey,
+  rovingIndex,
+  rememberOverlayOpener,
+  type HotkeyOptions,
+} from "./lib/hooks.ts";
 export { BrandMark, monogram, type BrandMarkProps } from "./BrandMark/BrandMark.tsx";
 export {
   Dialog,
@@ -162,6 +182,8 @@ export {
   ContextMenu,
   OrgSwitcher,
   orgSwitcherTriggerClass,
+  compactChevronClass,
+  compactLabelClass,
   type MenuItem,
   type DropdownMenuProps,
   type ContextMenuProps,
@@ -235,7 +257,12 @@ export {
 } from "./Templates/Templates.tsx";
 
 /* Data components */
-export { DataTable, type DataTableProps, type DataTableColumn } from "./DataTable/DataTable.tsx";
+export {
+  DataTable,
+  type DataTableProps,
+  type DataTableColumn,
+  type DataTableSelection,
+} from "./DataTable/DataTable.tsx";
 export {
   RecordRow,
   RecordList,

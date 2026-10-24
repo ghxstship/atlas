@@ -1,28 +1,36 @@
 import type { Row } from "@xos/sync";
+import { uuidv7 } from "@xos/sync";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
-import { useEffect, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import {
+  afterPin,
   afterServer,
   backspace,
   buildKioskPunch,
   canSubmitPin,
+  forgetKiosk,
   KIOSK_RESET_MS,
   KIOSK_START,
+  kioskPhotoPath,
   kioskPunchKind,
   pickWorker,
   pressDigit,
   searchRoster,
+  sendKioskPunch,
   type KioskStep,
   type RosterEntry,
 } from "../src/domain/kiosk";
+import { kioskRules, soundsOn } from "../src/domain/settings";
 import { useCompass, useRows } from "../src/runtime/CompassProvider";
+import { fieldMediaUploader, processPhoto } from "../src/runtime/media";
 import { countKey } from "../src/runtime/i18n";
 import { deviceClock } from "../src/runtime/platform";
 
-import { Gate } from "../src/screens/common";
+import { Gate, useAllowed } from "../src/screens/common";
 import { NativeHeaderContext } from "../src/ui/layout";
 import {
   Button,
@@ -40,9 +48,82 @@ import {
 const REFUSED_KEY = {
   "pin-locked": "compass.kiosk.refused.pinLocked",
   "pin-invalid": "compass.kiosk.refused.pinLocked",
-  "device-revoked": "compass.kiosk.refused.deviceRevoked",
   "request-invalid": "compass.kiosk.refused.requestInvalid",
+  "kiosk-disabled": "compass.kiosk.refused.kioskDisabled",
+  "photo-required": "compass.kiosk.refused.photoRequired",
 } as const;
+
+/**
+ * The device key names no live kiosk (retired or revoked in Atlas, migration 1420). The kiosk takes no
+ * PINs; a supervisor who is still signed in can forget the key, which returns to kiosk setup (A85).
+ */
+function Unregistered({
+  supervisor,
+  onForget,
+}: {
+  readonly supervisor: boolean;
+  readonly onForget: () => Promise<"forgotten" | "supervisor-required">;
+}): ReactElement {
+  const { t } = useTranslation();
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [refused, setRefused] = useState(!supervisor);
+  const forget = async () => {
+    setBusy(true);
+    const outcome = await onForget();
+    setBusy(false);
+    setConfirming(false);
+    setRefused(outcome === "supervisor-required");
+  };
+  return (
+    <Card testID="kiosk-unregistered" title={t("compass.kiosk.unregistered.title")}>
+      <Text tone="secondary">{t("compass.kiosk.unregistered.sentence")}</Text>
+      {refused ? (
+        <InlineAlert
+          testID="kiosk-forget-refused"
+          tone="warning"
+          message={t("compass.kiosk.unregistered.supervisorRequired")}
+        />
+      ) : null}
+      {supervisor && !confirming ? (
+        <Button
+          testID="kiosk-forget"
+          variant="secondary"
+          block
+          label={t("compass.kiosk.unregistered.forget")}
+          onPress={() => setConfirming(true)}
+        />
+      ) : null}
+      {supervisor && confirming ? (
+        <InlineAlert
+          tone="warning"
+          title={t("compass.kiosk.unregistered.confirmTitle")}
+          message={t("compass.kiosk.unregistered.confirmSentence")}
+        />
+      ) : null}
+      {supervisor && confirming ? (
+        <Button
+          testID="kiosk-forget-confirm"
+          variant="danger"
+          block
+          loading={busy}
+          disabled={busy}
+          label={t("compass.kiosk.unregistered.confirm")}
+          onPress={() => void forget()}
+        />
+      ) : null}
+      {supervisor && confirming ? (
+        <Button
+          testID="kiosk-forget-cancel"
+          variant="ghost"
+          block
+          label={t("compass.common.cancel")}
+          onPress={() => setConfirming(false)}
+        />
+      ) : null}
+    </Card>
+  );
+}
 
 function Setup({ onKey }: { readonly onKey: (key: string) => void }): ReactElement {
   const { t } = useTranslation();
@@ -151,7 +232,23 @@ function PinPad({
 function Kiosk(): ReactElement {
   const { t } = useTranslation();
   const router = useRouter();
-  const { settings, updateSettings, projectId, config, client, engine, status } = useCompass();
+  const {
+    settings,
+    updateSettings,
+    projectId,
+    config,
+    client,
+    engine,
+    status,
+    orgSettings,
+    resolved,
+  } = useCompass();
+  // time.kiosk_enabled and time.photo_on_punch for this project (migration 1321).
+  const rules = kioskRules(orgSettings);
+  const camera = useRef<CameraView>(null);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [capturing, setCapturing] = useState(false);
+  const theme = useTheme();
   const [step, setStep] = useState<KioskStep>(KIOSK_START);
   const [query, setQuery] = useState("");
   const { rows: roster } = useRows<Row & { display_name: string }>("kiosk_roster");
@@ -159,6 +256,7 @@ function Kiosk(): ReactElement {
     "time_entries",
     (e) => e.clock_out === null,
   );
+  const supervisor = useAllowed("kiosk.operate");
   useEffect(() => {
     if (step.kind !== "done" && step.kind !== "refused") return undefined;
     const timer = setTimeout(() => setStep(KIOSK_START), KIOSK_RESET_MS);
@@ -171,8 +269,9 @@ function Kiosk(): ReactElement {
     displayName: r.display_name,
     onShift: open.some((e) => e.membership_id === r.id),
   }));
-  const submit = async () => {
-    if (step.kind !== "pin" || !engine || !settings.kioskDeviceKey) return;
+  const submit = async (photo: { path: string; localUri: string } | null = null) => {
+    if ((step.kind !== "pin" && step.kind !== "photo") || !engine || !settings.kioskDeviceKey)
+      return;
     const input = buildKioskPunch(
       {
         deviceKey: settings.kioskDeviceKey,
@@ -183,6 +282,7 @@ function Kiosk(): ReactElement {
         monotonicAt: deviceClock.monotonicNow(),
         bootId: deviceClock.bootId(),
         photoUri: null,
+        photo,
       },
       Date.now(),
     );
@@ -192,15 +292,26 @@ function Kiosk(): ReactElement {
       return;
     }
     const token = (await client.auth.getSession()).data.session?.access_token;
+    if (photo) {
+      const stored = await fieldMediaUploader(client)(photo.path, photo.localUri);
+      if (stored.error && stored.error.statusCode !== "409") {
+        // The photo could not be stored yet: the punch queues with it and both upload together.
+        await engine.outbox.enqueue(input);
+        setStep(afterServer(step, { ok: "queued" }));
+        return;
+      }
+    }
     try {
-      const response = await fetch(`${config.supabaseUrl}/functions/v1/kiosk-punch`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          ...(token ? { authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ ...input.payload, monotonicOffsetMs: 0 }),
-      });
+      const response = await sendKioskPunch(() =>
+        fetch(`${config.supabaseUrl}/functions/v1/kiosk-punch`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            ...(token ? { authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ ...input.payload, monotonicOffsetMs: 0 }),
+        }),
+      );
       if (response.ok) {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setStep(afterServer(step, { ok: true }));
@@ -220,6 +331,19 @@ function Kiosk(): ReactElement {
       setStep(afterServer(step, { ok: "queued" }));
     }
   };
+  const forget = async () => {
+    const outcome = await forgetKiosk({
+      supervisor,
+      // The auth server confirms the session now; a cached or expired one does not count.
+      verifiedUserId: async () => {
+        const { data, error } = await client.auth.getUser();
+        return error ? null : (data.user?.id ?? null);
+      },
+      clearKey: () => updateSettings({ kioskDeviceKey: null }),
+    });
+    if (outcome === "forgotten") setStep(KIOSK_START);
+    return outcome;
+  };
   return (
     <Screen
       testID="kiosk"
@@ -233,6 +357,9 @@ function Kiosk(): ReactElement {
         />
       }
     >
+      {!rules.enabled ? (
+        <InlineAlert testID="kiosk-off" tone="warning" message={t("compass.kiosk.off")} />
+      ) : null}
       {step.kind === "pick" ? (
         <>
           <Text variant="heading24" heading>
@@ -274,7 +401,70 @@ function Kiosk(): ReactElement {
               ? t("compass.kiosk.attemptsLeft", { count: step.attemptsLeft })
               : t("compass.kiosk.pinHelp")}
           </Text>
-          <PinPad step={step} onStep={setStep} onSubmit={() => void submit()} />
+          <PinPad
+            step={step}
+            onStep={setStep}
+            onSubmit={() => {
+              // Photo on punch: the PIN leads to the camera first.
+              if (rules.photoOnPunch) setStep(afterPin(step, true));
+              else void submit();
+            }}
+          />
+          <Button
+            variant="ghost"
+            label={t("compass.common.back")}
+            onPress={() => setStep(KIOSK_START)}
+          />
+        </Card>
+      ) : null}
+      {step.kind === "photo" ? (
+        <Card title={t("compass.kiosk.photoFor", { name: step.worker.displayName })}>
+          <Text tone="secondary">{t("compass.kiosk.photoHelp")}</Text>
+          {permission?.granted ? (
+            <View
+              style={{
+                height: theme.space["64"] * 5,
+                borderRadius: theme.radius.card,
+                overflow: "hidden",
+              }}
+            >
+              <CameraView ref={camera} style={{ flex: 1 }} facing="front" />
+            </View>
+          ) : (
+            <Button
+              label={t("compass.scan.allowCamera")}
+              onPress={() => void requestPermission()}
+            />
+          )}
+          <Button
+            testID="kiosk-photo-take"
+            size="lg"
+            block
+            icon="camera"
+            loading={capturing}
+            disabled={!permission?.granted || !projectId || !resolved?.orgId}
+            label={t("compass.photo.take")}
+            onPress={() =>
+              void (async () => {
+                if (!camera.current || !projectId || !resolved?.orgId) return;
+                setCapturing(true);
+                try {
+                  const shot = await camera.current.takePictureAsync({
+                    exif: false,
+                    quality: 0.8,
+                    shutterSound: soundsOn(orgSettings),
+                  });
+                  const localUri = await processPhoto(shot.uri, shot.width, shot.height);
+                  await submit({
+                    path: kioskPhotoPath(resolved.orgId, projectId, uuidv7(Date.now())),
+                    localUri,
+                  });
+                } finally {
+                  setCapturing(false);
+                }
+              })()
+            }
+          />
           <Button
             variant="ghost"
             label={t("compass.common.back")}
@@ -294,6 +484,9 @@ function Kiosk(): ReactElement {
               : t("compass.kiosk.doneQueued", { name: step.worker.displayName })
           }
         />
+      ) : null}
+      {step.kind === "unregistered" ? (
+        <Unregistered supervisor={supervisor} onForget={forget} />
       ) : null}
       {step.kind === "refused" ? (
         <RefusalNotice

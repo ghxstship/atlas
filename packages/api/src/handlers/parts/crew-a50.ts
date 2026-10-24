@@ -163,11 +163,16 @@ export const crewA50Handlers: Readonly<Record<string, ErasedHandler>> = {
     unwrap(await acceptShift(context.db, id, "Accepted."));
     return ok(await shifts.read(context, id));
   },
+  // Under first-come the caller gets the shift; under approval or seniority (1322) the shift stays
+  // Published and the response carries the claim that waits for a supervisor.
   "shifts.claim": async (request, context) => {
     const id = String(request.params["id"]);
     await shifts.read(context, id, ["id"]);
-    unwrap(await claimOpenShift(context.db, id, "Claimed an open shift."));
-    return ok(await shifts.read(context, id));
+    const outcome = unwrap(await claimOpenShift(context.db, id, "Claimed an open shift."));
+    return ok({
+      ...(await shifts.read(context, id)),
+      claim: outcome.kind === "waiting" ? { id: outcome.claimId, claim_state: "Requested" } : null,
+    });
   },
 
   // Swaps: the person on the shift asks; the party and project come from the shift ------------------

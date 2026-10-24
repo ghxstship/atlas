@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Journey 17, walk the Stage Safety inspection, fail an item, see its punch record
+# Journey 17, walk the Stage Safety inspection, fail an item, see its punch record.
+# Named after its file: config.yaml orders flows by name.
+name: field-inspection-walk
 ---
 - runFlow:
     file: ../subflows/sign-in.yaml

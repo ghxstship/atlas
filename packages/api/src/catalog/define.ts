@@ -79,6 +79,7 @@ interface ActionInput {
   readonly body?: z.ZodType;
   readonly query?: z.ZodObject;
   readonly response?: z.ZodType;
+  readonly etag?: boolean;
   readonly status?: 200 | 201 | 202;
   readonly paged?: boolean;
   readonly segment?: string;

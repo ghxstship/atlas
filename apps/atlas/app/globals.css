@@ -26,10 +26,11 @@
     outline-offset: var(--stroke-width-focus);
   }
 
+  /* me.reduced_motion full keeps motion even when the device asks to reduce it. */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
+    :root:not([data-motion="full"]) *,
+    :root:not([data-motion="full"]) *::before,
+    :root:not([data-motion="full"]) *::after {
       transition-duration: var(--motion-duration-reduced) !important;
       animation-duration: var(--motion-duration-reduced) !important;
     }

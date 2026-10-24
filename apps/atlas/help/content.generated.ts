@@ -382,6 +382,15 @@ export const HELP_CONTENT: HelpIndex = {
         order: 13,
       },
       {
+        slug: "search",
+        title: "Search",
+        summary:
+          "Find any record, person, document, setting or page from the command menu, and narrow a search with operators.",
+        kind: "guide",
+        nodes: ["*"],
+        order: 6,
+      },
+      {
         slug: "show",
         title: "Run of show, day sheets and call sheets",
         summary:
@@ -422,7 +431,13 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Spaces for crews and departments, direct messages, shout-outs and internal help requests.",
         kind: "page",
-        nodes: ["people.groups", "people.chat", "people.recognition", "people.help-desk"],
+        nodes: [
+          "people.groups",
+          "people.chat",
+          "people.recognition",
+          "people.help-desk",
+          "people.moderation",
+        ],
         order: 36,
       },
       {
@@ -816,6 +831,15 @@ export const HELP_CONTENT: HelpIndex = {
         order: 13,
       },
       {
+        slug: "search",
+        title: "Búsqueda",
+        summary:
+          "Encuentre cualquier registro, persona, documento, configuración o página desde el menú de comandos, y acote una búsqueda con operadores.",
+        kind: "guide",
+        nodes: ["*"],
+        order: 6,
+      },
+      {
         slug: "show",
         title: "Guion del espectáculo, hojas del día y hojas de llamado",
         summary:
@@ -857,7 +881,13 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Espacios para equipos y departamentos, mensajes directos, reconocimientos y solicitudes de ayuda internas.",
         kind: "page",
-        nodes: ["people.groups", "people.chat", "people.recognition", "people.help-desk"],
+        nodes: [
+          "people.groups",
+          "people.chat",
+          "people.recognition",
+          "people.help-desk",
+          "people.moderation",
+        ],
         order: 36,
       },
       {

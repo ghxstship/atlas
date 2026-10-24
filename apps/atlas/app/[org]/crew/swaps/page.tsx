@@ -2,16 +2,19 @@ import { getSwap, listSwaps, SWAP_STATES, type ShiftSwap } from "@xos/data/crew"
 import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
-import { cancelSwapAction, decideSwapAction } from "@/app/[org]/crew/actions";
+import { acceptSwapAction, cancelSwapAction, decideSwapAction } from "@/app/[org]/crew/actions";
+import { resolveSettings } from "@xos/data/settings";
 import { ConfirmButton } from "@/components/crew/forms-confirm-button";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { CrewRecord } from "@/components/crew/record";
 import { FilterSelect } from "@/components/crew/views-filter-select";
 import { PeekBoard } from "@/components/crew/views-peek-board";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, getRoleTitles, withParams } from "@/lib/crew/context";
 import { stateIcon } from "@/lib/crew/states";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 
@@ -56,6 +59,10 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         s.requestedBy.membershipId === crew.membershipId ||
         s.proposed.membershipId === crew.membershipId;
       const hidden = { org: crew.slug, id: s.id };
+      // scheduling.swap_requires_approval (1322): off lets the person offered the shift accept it.
+      const scheduling = await resolveSettings(db, { orgId: crew.orgId, projectId: s.projectId });
+      const needsApproval =
+        !scheduling.ok || scheduling.data.get("scheduling.swap_requires_approval")?.value !== false;
       const record = (
         <CrewRecord
           crew={crew}
@@ -90,6 +97,16 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
                       hidden={{ ...hidden, decision: "Rejected" }}
                     />
                   </>
+                ) : null}
+                {!needsApproval && s.proposed.membershipId === crew.membershipId ? (
+                  <ConfirmButton
+                    label={t("crew.swapsPage.accept")}
+                    title={t("crew.swapsPage.acceptTitle")}
+                    defaultReason={t("crew.swapsPage.acceptReason")}
+                    action={acceptSwapAction}
+                    hidden={hidden}
+                    variant="primary"
+                  />
                 ) : null}
                 {s.requestedBy.membershipId === crew.membershipId ? (
                   <ConfirmButton
@@ -131,7 +148,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
       );
       if (search["full"] === "1") return record;
       peek = record;
-    } else if (detail.error.kind !== "not-found") {
+    } else if (!peekRowMissing(detail.error)) {
       throw new Error(`Cannot read swap: ${detail.error.kind}`);
     }
   }
@@ -236,7 +253,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
           ]}
         />
       }
-      peek={peek}
+      peek={collectionPeek(search["peek"], peek)}
     >
       {body}
     </CrewFrame>

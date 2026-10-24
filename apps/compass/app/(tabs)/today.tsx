@@ -11,17 +11,26 @@ import {
   primaryPunch,
   secondaryPunches,
   workedMs,
+  type ClockSnapshot,
   type PunchKind,
   type PunchRefusal,
 } from "../../src/domain/clock";
 import { formatCountdown, showState, showsCountdown, type Cue } from "../../src/domain/show";
+import { todayIn } from "@xos/data/calendar";
 import { punchAnnouncementKey } from "../../src/domain/announce";
+import { ongoingContent, type Translate } from "../../src/domain/glance";
+import { itemZone } from "../../src/domain/orgs";
+import { useHomeWidgets, useOngoingNotification } from "../../src/runtime/glance";
+import { CombinedToday } from "../../src/screens/CombinedToday";
+import { useTodayGlance, type TodayGlance } from "../../src/screens/useTodayGlance";
+import { formatDistance, hapticsOn, scheduleZone } from "../../src/domain/settings";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { useClockLiveActivity, useLockScreenPunchDrain } from "../../src/runtime/liveActivity";
 import {
   formatDay,
   formatTime,
   ProjectPicker,
+  StorageResetNotice,
   SyncBanner,
   useRoleTitle,
 } from "../../src/screens/common";
@@ -67,14 +76,20 @@ interface WorkingShift {
 function ClockCard({
   current,
   onState,
+  glance,
+  zone,
 }: {
   readonly current: WorkingShift | null;
   /** Tells Today the clock state, so the worked shift's card can read On Shift. */
   readonly onState: (state: "out" | "on" | "break") => void;
+  /** Today at a glance: the next cue for the Live Activity and the Android ongoing notification. */
+  readonly glance: TodayGlance;
+  /** The project's time zone, for the times the notification names. */
+  readonly zone: string;
 }): ReactElement {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
-  const { settings, status, resolved, projectId, enqueue, engine } = useCompass();
+  const { settings, status, resolved, projectId, enqueue, engine, orgSettings } = useCompass();
   const [punching, setPunching] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   // Today is the clock: while it is in front and the person is clocked out, sample precisely so Clock In
@@ -107,12 +122,28 @@ function ClockCard({
       startBreak: t("compass.clock.startBreak"),
       endBreak: t("compass.clock.endBreak"),
       clockOut: t("compass.clock.out"),
+      nextCue: t("compass.today.nextCue"),
     },
     // The Clock In App Shortcut's replies (Siri reads them aloud).
     {
       clockedIn: t("compass.clock.shortcut.clockedIn", { project: projectName }),
       alreadyIn: t("compass.clock.refusal.alreadyIn"),
     },
+    glance.cue,
+  );
+  // Android: the running shift and the next cue as an ongoing notification (A65-011 part 4).
+  useOngoingNotification(
+    ongoingContent(
+      clock.snapshot,
+      glance.cue,
+      projectName,
+      clock.now,
+      t as Translate,
+      formatTime,
+      zone,
+    ),
+    t("compass.glance.channel"),
+    glance.link,
   );
   const drainProblem = useLockScreenPunchDrain(engine ? enqueue : null);
   const lockScreenNotice = lockScreenFailure
@@ -130,7 +161,10 @@ function ClockCard({
     if (g.kind === "inside") return t("compass.clock.inside", { name: g.geofence.name });
     if (g.kind === "outside")
       return g.nearest && g.distanceM !== null && g.distanceM < 5000
-        ? t("compass.clock.outside", { distance: Math.round(g.distanceM), name: g.nearest.name })
+        ? t("compass.clock.outside", {
+            distance: formatDistance(i18n.language, g.distanceM, orgSettings),
+            name: g.nearest.name,
+          })
         : t("compass.clock.outsideFar");
     if (g.kind === "unknown")
       return t(g.reason === "coarse" ? "compass.clock.locationCoarse" : "compass.clock.locating");
@@ -199,7 +233,7 @@ function ClockCard({
         {...(refusal && clock.snapshot.state === "out" ? { detail: t(REFUSAL_KEY[refusal]) } : {})}
         geofence={geofenceText}
         geofenceOk={clock.geofence.kind === "inside" || clock.geofence.kind === "unfenced"}
-        haptics={settings.haptics}
+        haptics={hapticsOn(settings.haptics, orgSettings)}
         onPress={() => void run(primary)}
       />
       {secondaryPunches(clock.snapshot.state).map((kind) => (
@@ -260,11 +294,54 @@ function NextCue({ projectId }: { readonly projectId: string }): ReactElement | 
   );
 }
 
+const CLOCKED_OUT: ClockSnapshot = {
+  state: "out",
+  onSince: null,
+  breakSince: null,
+  breakMs: 0,
+  projectId: null,
+  shiftId: null,
+};
+
+/**
+ * For a person who does not clock in here (a Client following the show, say): the next cue alone, on the
+ * Lock Screen and in the Dynamic Island (iOS) or as an ongoing notification (Android), once it is close.
+ */
+function CueGlance({ glance }: { readonly glance: TodayGlance }): null {
+  const { t } = useTranslation();
+  const labels = {
+    projectName: glance.cue?.project ?? "",
+    onShift: t("compass.clock.onShift"),
+    onBreak: t("compass.clock.onBreak"),
+    since: t("compass.clock.live.since"),
+    worked: t("compass.clock.live.worked"),
+    startBreak: t("compass.clock.startBreak"),
+    endBreak: t("compass.clock.endBreak"),
+    clockOut: t("compass.clock.out"),
+    nextCue: t("compass.today.nextCue"),
+  };
+  useClockLiveActivity(CLOCKED_OUT, null, labels, { clockedIn: "", alreadyIn: "" }, glance.cue);
+  useOngoingNotification(
+    ongoingContent(
+      CLOCKED_OUT,
+      glance.cue,
+      "",
+      Date.now(),
+      t as Translate,
+      formatTime,
+      glance.cue?.zone ?? "UTC",
+    ),
+    t("compass.glance.channel"),
+    glance.link,
+  );
+  return null;
+}
+
 export default function TodayScreen(): ReactElement {
   const { t } = useTranslation();
   const roleTitle = useRoleTitle();
   const router = useRouter();
-  const { resolved, projectId, refresh } = useCompass();
+  const { resolved, projectId, refresh, personZone, orgSettings } = useCompass();
   const [refreshing, setRefreshing] = useState(false);
   const [clockState, setClockState] = useState<"out" | "on" | "break">("out");
   const identity = resolved?.identity;
@@ -273,6 +350,13 @@ export default function TodayScreen(): ReactElement {
     "day_sheets",
     (d) => d.project_id === projectId,
   );
+  const { rows: projectRows } = useRows<Row & { time_zone?: string | null }>(
+    "projects",
+    (p) => p.id === projectId,
+  );
+  // Today's shifts and next cue for the home screen widgets, the Live Activity and the ongoing notification.
+  const glance = useTodayGlance();
+  useHomeWidgets(glance.widget);
   if (!identity)
     return (
       <Screen title={t("compass.today.title")}>
@@ -280,7 +364,11 @@ export default function TodayScreen(): ReactElement {
       </Screen>
     );
   const canClock = access(identity, "clock", projectId).allowed;
-  const today = new Date().toISOString().slice(0, 10);
+  // Today on the project's calendar (A71), never the UTC date, which is tomorrow every evening in the Americas.
+  const zone = itemZone(null, projectRows[0]?.time_zone, personZone);
+  const today = todayIn(zone);
+  // A person in several orgs sees every org's day, grouped with brand chips (Section 4.5.7).
+  const combined = (resolved?.contexts.length ?? 0) > 1;
   const me = {
     membershipId: identity.membershipId,
     engagementIds: operationalEngagements(identity, null).map((e) => e.id),
@@ -295,8 +383,8 @@ export default function TodayScreen(): ReactElement {
     ? {
         title: roleTitle(working),
         time: t("compass.schedule.timeRange", {
-          start: formatTime(working.starts_at, working.time_zone),
-          end: formatTime(working.ends_at, working.time_zone),
+          start: formatTime(working.starts_at, scheduleZone(working.time_zone, orgSettings)),
+          end: formatTime(working.ends_at, scheduleZone(working.time_zone, orgSettings)),
         }),
         place: t("compass.schedule.noPlace"),
       }
@@ -314,9 +402,16 @@ export default function TodayScreen(): ReactElement {
       }}
     >
       <ProjectPicker />
+      <StorageResetNotice />
       <SyncBanner />
-      {canClock && projectId ? <ClockCard current={workingCard} onState={setClockState} /> : null}
-      {blocks.some((b) => ["shifts", "engaged-shifts-and-positions", "call-times"].includes(b)) ? (
+      {canClock && projectId ? (
+        <ClockCard current={workingCard} onState={setClockState} glance={glance} zone={zone} />
+      ) : (
+        <CueGlance glance={glance} />
+      )}
+      {combined ? <CombinedToday clockState={clockState} /> : null}
+      {!combined &&
+      blocks.some((b) => ["shifts", "engaged-shifts-and-positions", "call-times"].includes(b)) ? (
         upcoming.length > 0 ? (
           upcoming.slice(0, 3).map((s) => (
             <ShiftCard
@@ -337,10 +432,10 @@ export default function TodayScreen(): ReactElement {
                     : "compass.schedule.published",
               )}
               role={roleTitle(s)}
-              date={formatDay(s.starts_at, s.time_zone)}
+              date={formatDay(s.starts_at, scheduleZone(s.time_zone, orgSettings))}
               time={t("compass.schedule.timeRange", {
-                start: formatTime(s.starts_at, s.time_zone),
-                end: formatTime(s.ends_at, s.time_zone),
+                start: formatTime(s.starts_at, scheduleZone(s.time_zone, orgSettings)),
+                end: formatTime(s.ends_at, scheduleZone(s.time_zone, orgSettings)),
               })}
               place={t("compass.schedule.noPlace")}
               onPress={() => router.push("/schedule")}
@@ -356,14 +451,15 @@ export default function TodayScreen(): ReactElement {
           />
         )
       ) : null}
-      {blocks.includes("day-sheet") ? (
+      {!combined && blocks.includes("day-sheet") ? (
         <Card title={t("nav.compass.content.daySheet")}>
           <Text tone={sheet ? "primary" : "secondary"}>
             {sheet ? sheet.body : t("compass.today.noDaySheet")}
           </Text>
         </Card>
       ) : null}
-      {projectId &&
+      {!combined &&
+      projectId &&
       (blocks.includes("run-of-show") ||
         blocks.includes("set-time") ||
         blocks.includes("show-day-schedule")) ? (

@@ -1,10 +1,11 @@
-import { listActivity } from "@xos/data/activity";
+import { labelActivity, listActivity } from "@xos/data/activity";
 import { listProductionStateHistory, listProjectStateHistory } from "@xos/data/projects";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import type { Route } from "next";
 import { ActivityFeed } from "@/components/activity/activity-feed";
+import { SummaryEntry } from "@/components/aurora/entry/summary-entry";
 import { AttachmentsPanel, CommentsPanel } from "@/components/projects/collab-panels";
 import { ReadinessPanel } from "@/components/projects/readiness-panel";
 import { TransitionDialog } from "@/components/projects/transition-dialog";
@@ -50,7 +51,6 @@ export default async function OverviewPage({
   const canWrite = ctx.capabilities.has("projects.project.write");
   const gate = gates.currentGate;
   const phase = gates.phases.find((p) => p.code === project.phaseCode);
-  const next = gate !== null ? gates.phases.find((p) => p.gate === gate + 1) : undefined;
   const met = new Set(gates.statuses.filter((s) => s.evidenceCount > 0).map((s) => s.criterionId));
   const current = gate === null ? [] : gates.criteria.filter((c) => c.gate === gate);
   const gatesHref = nodeHref("project.gates", routeParams) ?? "";
@@ -66,7 +66,20 @@ export default async function OverviewPage({
 
   return (
     <>
-      <PageHeader title={t("overview.title")} />
+      <PageHeader
+        title={t("overview.title")}
+        actions={
+          <SummaryEntry
+            subject={{
+              collection: "projects",
+              id: project.id,
+              label: `${project.key} · ${project.name}`,
+            }}
+            kinds={["project_week", "gate_readiness"]}
+            project={{ org: ctx.org.org.slug, key: project.key }}
+          />
+        }
+      />
       <TemplateRecord
         propertiesLabel={t("overview.properties")}
         header={null}
@@ -170,11 +183,9 @@ export default async function OverviewPage({
             gate={gate}
             code={phaseCode(phase.code)}
             name={t(`phases.${phaseCode(phase.code)}`)}
-            nextLabel={
-              next
-                ? t("gates.passTitle", { gate, next: t(`phases.${phaseCode(next.code)}`) })
-                : t("gates.passTitleLast", { gate })
-            }
+            // Three words at most on a button (Section 11.10); the Gates tab's dialog names the
+            // phase it enters (A59-023).
+            nextLabel={t("gates.pass", { gate })}
             criteria={current.map((c) => ({
               code: c.id,
               label: c.statement,
@@ -216,7 +227,7 @@ export default async function OverviewPage({
             </h2>
             <ActivityFeed
               label={a("projectLabel", { key: project.key })}
-              entries={feed.entries}
+              entries={await labelActivity(db, feed.entries)}
               views={["feed"]}
               view="feed"
               next={null}

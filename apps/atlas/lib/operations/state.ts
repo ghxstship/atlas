@@ -22,6 +22,8 @@ export const KNOWN_RULES = [
   "credential_unknown",
   "credential_engagement_project",
   "scan_id_taken",
+  "scan_intake_resolved",
+  "scan_intake_dismiss_note",
   "scan_device_time_future",
   "scan_offline_needs_time",
   "project_copy_immutable",

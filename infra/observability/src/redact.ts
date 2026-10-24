@@ -36,6 +36,8 @@ const EXACT_KEYS = new Set([
   "iban",
   "cookie",
   "cookies",
+  "ticket",
+  "pticket",
   "session",
   "notes",
   "street",
@@ -75,6 +77,8 @@ const KEY_SUFFIXES = [
   "setcookie",
   "sessionid",
   "recoverycode",
+  "accesscode",
+  "downloadticket",
   "totp",
   "email",
   "emailaddress",
@@ -149,18 +153,37 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
   { pattern: /\bxos_(?:live|test)_[A-Za-z0-9_]+/g, replace: "[api-key]" },
   // A69-008: bearer links carry their token in the path (/advance/xadv_..., /sign/xdoc_...,
   // /auth/invite/xinv_...), and request logs keep the path. Calendar feeds, join links, agreements
-  // and SCIM tokens share the shape.
+  // and SCIM tokens share the shape. A69-012: so do share links (/share/xshr_...), their download
+  // tickets (xdlt_), kiosk device keys (xkio_), subprocessor notice links (xspn_, xspu_) and
+  // personal access tokens (xos_pat_).
+  // No leading word boundary: a token right after a percent escape (%22, %2F) is still a token,
+  // as in Next's encoded router state header and a sign-in redirect's next= parameter.
   {
-    pattern: /\b(?:xadv|xagr|xcal|xdoc|xinv|xlnk|xos_scim)_[0-9a-f]{16,}\b/gi,
+    pattern:
+      /(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlnk|xshr|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}\b/gi,
     replace: "[token]",
   },
+  // A84: whatever follows /ical/ is a feed token or a guess at one, whatever its shape (a mistyped,
+  // truncated or uppercased link), and signed reply addresses (r-<thread>-<person>-<signature>)
+  // are bearer secrets too, even outside a full email address.
+  { pattern: /(\/ical\/)[^/?#\s"'<>]+/gi, replace: (_m, prefix) => `${prefix}[token]` },
+  // A69-012: likewise whatever follows a leading /share/ (a mistyped or truncated share link), but
+  // not /usr/share/ or file:///usr/share/ in a stack trace. The lookahead first keeps the
+  // lookbehind to the places /share/ occurs, so a long string stays linear.
+  {
+    pattern: /(?=\/share\/)(?<=^|[\s"'(<=,]|(?<!\/)\/\/[^/?#\s"'<>]+)(\/share\/)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
+  { pattern: /\br-[0-9a-f]{32}-[0-9a-f]{32}-[0-9a-f]{32}\b/gi, replace: "[token]" },
   { pattern: /\b(?:sk|rk|pk|whsec)_(?:live|test)_[A-Za-z0-9]+/g, replace: "[api-key]" },
   {
     pattern:
-      /([?&;](?:token|access_token|refresh_token|id_token|code|key|apikey|api_key|signature|sig|password|email|phone|token_hash)=)[^&#\s"']+/gi,
+      /([?&;](?:token|access_token|refresh_token|id_token|code|key|apikey|api_key|signature|sig|password|email|phone|token_hash|ticket|access_code)=)[^&#\s"']+/gi,
     replace: (_m, prefix) => `${prefix}${REDACTED}`,
   },
-  { pattern: /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, replace: "[email]" },
+  // The local part is at most 64 characters (RFC 5321); the bound keeps a long run with no @
+  // from costing quadratic time.
+  { pattern: /[A-Z0-9._%+-]{1,64}@[A-Z0-9.-]+\.[A-Z]{2,}/gi, replace: "[email]" },
   { pattern: /\b\d{3}-\d{2}-\d{4}\b/g, replace: "[ssn]" },
   {
     pattern: /(?<![\w-])\d{4}(?:[ -]?\d{4}){2,3}(?:[ -]?\d{1,3})?(?![\w-])/g,

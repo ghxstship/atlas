@@ -184,6 +184,7 @@
       "stages": "‮Ǝuƃɐƃǝɯǝuʇ sʇɐƃǝs‬"
     },
     "feedback": {
+      "failed": "‮⅄onɹ ɟǝǝpqɐɔʞ pıp uoʇ sǝup. ꓕɹʎ ɐƃɐıu.‬",
       "hint": "‮ꓷǝsɔɹıqǝ ʍɥɐʇ ʎon ǝxdǝɔʇǝp ɐup ʍɥɐʇ ʎon sɐʍ.‬",
       "privacy": "‮Oulʎ ʍɥɐʇ ʎon ɔɥoosǝ ɥǝɹǝ ıs sǝuʇ. Noʇɥıuƃ ǝlsǝ ıs ɔɐdʇnɹǝp.‬",
       "question": "‮Mɥɐʇ ɥɐddǝuǝp?‬",
@@ -442,7 +443,8 @@
       "change": "‮Ɔɥɐuƃǝ‬",
       "edit": "‮Ǝpıʇ‬",
       "press": "‮Ԁɹǝss ꓘǝʎs‬",
-      "shortcut": "‮Sɥoɹʇɔnʇ‬"
+      "shortcut": "‮Sɥoɹʇɔnʇ‬",
+      "none": "‮Uoʇ sǝʇ‬"
     },
     "shortcuts": {
       "title": "‮ꓘǝʎqoɐɹp Sɥoɹʇɔnʇs‬"
@@ -477,7 +479,10 @@
     },
     "table": {
       "resizeColumn": "‮ꓤǝsızǝ ɔolnɯu {column}‬",
-      "total": "‮ꓕoʇɐl‬"
+      "row": "‮ꓤoʍ {n}‬",
+      "total": "‮ꓕoʇɐl‬",
+      "selectAll": "‮Šéļéçţ àļļ ŕöŵš‬",
+      "selectRow": "‮Šéļéçţ {row}‬"
     },
     "timeline": {
       "critical": "‮ɔɹıʇıɔɐl dɐʇɥ‬",

@@ -54,6 +54,12 @@ select is(
 --   app.scim_identities.groups: group display names as the identity provider sent them (provider payload, ADR 0024)
 --   app.survey_questions.choices, app.training_quiz_questions.options: the ordered answer texts of one question,
 --     reviewed in gate 29 (1042: the quiz key follows its option)
+--   app.person_work_details.dietary_needs, app.person_work_details.accessibility_needs: sets of fixed enum values a
+--     person picks (app.dietary_need, app.accessibility_need), never joined on; a free-text note carries the rest (1340)
+--   app.work_detail_shares.categories, app.work_detail_events.categories: the set of app.work_detail_category values a
+--     share grants or an access touched, read whole (1340)
+--   app.work_detail_events.changed_columns: column names an edit changed, in the person's append-only access log; a
+--     log payload, never a relationship (1340)
 select is(
   (select coalesce(string_agg(n.nspname || '.' || c.relname || '.' || a.attname, ', ' order by n.nspname, c.relname, a.attnum), '')
    from pg_attribute a
@@ -68,7 +74,12 @@ select is(
        'app.oauth_grants.scopes',
        'app.scim_identities.groups',
        'app.survey_questions.choices',
-       'app.training_quiz_questions.options')),
+       'app.training_quiz_questions.options',
+       'app.person_work_details.dietary_needs',
+       'app.person_work_details.accessibility_needs',
+       'app.work_detail_shares.categories',
+       'app.work_detail_events.categories',
+       'app.work_detail_events.changed_columns')),
   '', 'every array column in a table is a reviewed exception (Section 3.15 schema lint)');
 
 select * from finish();

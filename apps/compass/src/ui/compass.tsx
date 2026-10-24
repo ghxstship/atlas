@@ -13,8 +13,7 @@ import type {
   ShiftCardProps,
   SyncConflictSheetProps,
 } from "@xos/ui-native";
-import { useTheme } from "@xos/ui-native/theme";
-import * as Haptics from "expo-haptics";
+import { useHaptic, useTheme } from "@xos/ui-native/theme";
 import qrcode from "qrcode-generator";
 import { useMemo, type ReactElement } from "react";
 import { Pressable, Text as NativeText, View } from "react-native";
@@ -38,6 +37,8 @@ export function ClockButton({
   testID,
 }: ClockButtonProps): ReactElement {
   const theme = useTheme();
+  // ThemeProvider has a handler only while the person keeps haptics on (me.haptics); `haptics` can turn it off here.
+  const haptic = useHaptic();
   const blocked = state === "blocked";
   const bg = blocked
     ? theme.color.bgRaised
@@ -77,7 +78,7 @@ export function ClockButton({
         accessibilityState={{ disabled: blocked }}
         disabled={blocked}
         onPress={() => {
-          if (haptics) void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          if (haptics) haptic("success");
           onPress?.();
         }}
         style={({ pressed }) => ({
@@ -208,13 +209,21 @@ export function ScanSheet({
             </View>
           </View>
         ) : null}
+        {/* NFC sits on its own row, so the count beside Done never wraps a word per line (A92). */}
+        {nfc ? (
+          <Button
+            label={nfc.label}
+            variant="secondary"
+            icon="nfc"
+            block
+            onPress={nfc.onPress}
+            {...tid(testID, "nfc")}
+          />
+        ) : null}
         <View style={{ flexDirection: "row", alignItems: "center", gap: theme.space["12"] }}>
           <View style={{ flex: 1 }}>
             <Text variant="heading20" {...tid(testID, "count")}>{`${count} ${countLabel}`}</Text>
           </View>
-          {nfc ? (
-            <Button label={nfc.label} variant="secondary" icon="nfc" onPress={nfc.onPress} />
-          ) : null}
           <Button label={doneLabel} onPress={onDone} {...tid(testID, "done")} />
         </View>
       </View>

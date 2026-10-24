@@ -9106,6 +9106,106 @@ export interface ShiftTransitionRequest {
 }
 
 /**
+ * The shift after a claim, with the caller's waiting claim when a supervisor decides it.
+ */
+export interface ShiftClaimResult {
+  /**
+   * Identifier of the shift.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the Shift record.
+   * Format: `uuid`.
+   */
+  readonly record_id: string | null;
+  readonly role_code: RoleCode | null;
+  /**
+   * Identifier of the engagement.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * Call time.
+   * Format: `date-time`.
+   */
+  readonly starts_at: string;
+  /**
+   * Wrap time.
+   * Format: `date-time`.
+   */
+  readonly ends_at: string;
+  /**
+   * Shift state.
+   */
+  readonly shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
+  /**
+   * Identifier of the membership of the person on the shift; null for external crew, who carry an engagement.
+   * Format: `uuid`.
+   */
+  readonly membership_id: string | null;
+  /**
+   * Identifier of the scope node of the same project, such as the show.
+   * Format: `uuid`.
+   */
+  readonly scope_node_id: string | null;
+  /**
+   * IANA time zone the call and wrap times are shown in.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
+  /**
+   * Meal break scheduled within the shift, in minutes.
+   * Range: 0 to unbounded.
+   */
+  readonly scheduled_break_minutes: number | null;
+  /**
+   * The caller's waiting claim when the claiming rule is approval or seniority; null when the caller got the shift (first-come).
+   */
+  readonly claim: {
+    /**
+     * Identifier of the waiting claim.
+     * Format: `uuid`.
+     */
+    readonly id: string;
+    /**
+     * State of the claim: Requested until a supervisor approves or rejects it.
+     */
+    readonly claim_state: "Requested";
+  } | null;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface ShiftSwapPage {
@@ -20353,10 +20453,10 @@ export interface Engagement {
    */
   readonly application_id: string | null;
   /**
-   * Worker classification, from xpms.worker_classification.
+   * Worker classification, from xpms.worker_classification; null for Client and Sponsor engagements.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly worker_classification: string;
+  readonly worker_classification: string | null;
   /**
    * Pay basis; with the arrangement a permitted canon pair.
    * Length: 1 to 300.
@@ -25271,6 +25371,10 @@ export interface PhaseCoverage {
    */
   readonly active_element_count: number;
   /**
+   * Whether the phase carries a declared gap.
+   */
+  readonly declared_gap: boolean;
+  /**
    * Gate ordinal.
    * Range: 0 to unbounded.
    */
@@ -25294,6 +25398,11 @@ export interface PhaseCoverage {
    * True when at least one participating element is Active.
    */
   readonly has_active_element: boolean | null;
+  /**
+   * Why the phase has no Active element, as its declared gap states it; null without one.
+   * Length: 1 to 300.
+   */
+  readonly declared_gap_reason: string | null;
 }
 
 /**
@@ -25585,6 +25694,16 @@ export interface Person {
    * Length: 1 to 300.
    */
   readonly full_name: string | null;
+  /**
+   * Optional given name, as the person writes it.
+   * Length: 1 to 100.
+   */
+  readonly given_name: string | null;
+  /**
+   * Optional family name, as the person writes it.
+   * Length: 1 to 100.
+   */
+  readonly family_name: string | null;
 }
 
 /**
@@ -25596,6 +25715,16 @@ export interface PersonUpdate {
    * Length: 1 to 300.
    */
   readonly full_name?: string | null;
+  /**
+   * Optional given name, as the person writes it.
+   * Length: 1 to 100.
+   */
+  readonly given_name?: string | null;
+  /**
+   * Optional family name, as the person writes it.
+   * Length: 1 to 100.
+   */
+  readonly family_name?: string | null;
 }
 
 /**
@@ -25740,6 +25869,17 @@ export interface CreateClientOrganizationRequest {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly plan_code?: string;
+}
+
+/**
+ * Confirmation of leaving the partner.
+ */
+export interface LeavePartnerRequest {
+  /**
+   * The org's name, typed exactly.
+   * Length: 1 to 200.
+   */
+  readonly confirm_name: string;
 }
 
 /**
@@ -26808,6 +26948,50 @@ export interface VerifiedDomain {
    * Format: `uuid`.
    */
   readonly auto_join_role_id: string | null;
+  /**
+   * Where the domain stands at its provider.
+   */
+  readonly provisioning_status:
+    "Not Started" | "Requested" | "Pending DNS" | "Active" | "Failed" | "Released";
+  /**
+   * DNS records to publish for the provider.
+   */
+  readonly dns_records: ReadonlyArray<DomainDnsRecord>;
+  /**
+   * True once the provider issued the TLS certificate.
+   */
+  readonly tls_ready: boolean;
+  /**
+   * Why the latest provisioning step failed.
+   * Length: 1 to 2000.
+   */
+  readonly provisioning_error: string | null;
+}
+
+/**
+ * A DNS record the org publishes for a custom domain's provider.
+ */
+export interface DomainDnsRecord {
+  /**
+   * DNS record type.
+   * Length: 1 to 10.
+   */
+  readonly type: string;
+  /**
+   * Host the record is published at.
+   * Length: 1 to 253.
+   */
+  readonly name: string;
+  /**
+   * Record value.
+   * Length: 1 to 2000.
+   */
+  readonly value: string;
+  /**
+   * What the record is for: routing, verification, spf, dkim, dmarc or receiving.
+   * Length: 1 to 20.
+   */
+  readonly purpose: string;
 }
 
 /**
@@ -27498,6 +27682,11 @@ export interface Subscription {
    * Subscription status as Stripe reports it; read_only after the grace period.
    */
   readonly subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
+  /**
+   * When the subscription's trial ends; null when it never had one.
+   * Format: `date-time`.
+   */
+  readonly trial_ends_at: string | null;
   /**
    * Seats bought above the plan's seat allowance.
    * Range: 0 to unbounded.
@@ -34690,6 +34879,32 @@ export interface CommentUpdate {
 }
 
 /**
+ * A comment on a subject row, posted in its main thread or the thread of an anchor.
+ */
+export interface SubjectCommentRequest {
+  /**
+   * Table of the subject, one of app.comment_subjects without its schema.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly subject_table: string;
+  /**
+   * Identifier of the row commented on.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string;
+  /**
+   * Comment text.
+   * Length: 1 to 20000.
+   */
+  readonly body: string;
+  /**
+   * Part of the subject the thread is anchored to; absent for the main thread.
+   * Length: 1 to 300.
+   */
+  readonly anchor?: string;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface NotificationPage {
@@ -35377,6 +35592,885 @@ export interface ProjectAuthority {
    * Length: 1 to 300.
    */
   readonly contact: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface MeasurementMetricPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<MeasurementMetric>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one.
+ */
+export interface MeasurementMetric {
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Family of the figure.
+   */
+  readonly family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
+  /**
+   * Dimension of the figure.
+   */
+  readonly dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+  /**
+   * Unit totals and comparisons are computed in.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly base_unit_code: string;
+  /**
+   * How a project's figures combine: each adds to the total (Sum) or the latest measured one stands (Latest).
+   */
+  readonly aggregation: "Sum" | "Latest";
+  /**
+   * True when the figure is computed from the coverage records rather than entered.
+   */
+  readonly is_derived: boolean;
+  /**
+   * Lowest figure accepted, in the base unit.
+   */
+  readonly lower_bound: number | null;
+  /**
+   * Highest figure accepted, in the base unit.
+   */
+  readonly upper_bound: number | null;
+  /**
+   * Domain of the benchmarking canon metric.
+   * Length: 1 to 200.
+   */
+  readonly canon_domain: string | null;
+  /**
+   * Item of the benchmarking canon metric.
+   * Length: 1 to 300.
+   */
+  readonly canon_item: string | null;
+  /**
+   * The canon benchmark as a number.
+   */
+  readonly canon_value_numeric: number | null;
+  /**
+   * The canon benchmark in words.
+   * Length: 1 to 300.
+   */
+  readonly canon_value_text: string | null;
+  /**
+   * Qualifier of the canon benchmark.
+   * Length: 1 to 300.
+   */
+  readonly canon_qualifier: string | null;
+  /**
+   * Display order.
+   * Range: 1 to unbounded.
+   */
+  readonly ordinal: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface MeasurementUnitPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<MeasurementUnit>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers.
+ */
+export interface MeasurementUnit {
+  /**
+   * Unit code.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code: string;
+  /**
+   * Dimension of the unit.
+   */
+  readonly dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+  /**
+   * Base units in one of this unit.
+   */
+  readonly factor_to_base: number;
+  /**
+   * Measurement system of the unit.
+   */
+  readonly unit_system: "Metric" | "Imperial" | "Either";
+  /**
+   * True for the unit reports show the dimension in for readers of its system.
+   */
+  readonly is_display: boolean;
+  /**
+   * Display order.
+   * Range: 1 to unbounded.
+   */
+  readonly ordinal: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface MeasurementMetricTagPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<MeasurementMetricTag>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10).
+ */
+export interface MeasurementMetricTag {
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Canon tag code.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly tag_id: string;
+  /**
+   * Tag value as written in canon.
+   * Length: 1 to 200.
+   */
+  readonly tag: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectObjectivePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectObjective>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger.
+ */
+export interface ProjectObjective {
+  /**
+   * Identifier of the project objective.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Met by reaching the target (At Least) or by staying within it (At Most).
+   */
+  readonly direction: "At Least" | "At Most";
+  /**
+   * Target figure, in unit_code.
+   */
+  readonly target_value: number;
+  /**
+   * Unit of the target, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code: string;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * Fields accepted when creating a ProjectObjective.
+ */
+export interface ProjectObjectiveCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Met by reaching the target (At Least) or by staying within it (At Most).
+   */
+  readonly direction: "At Least" | "At Most";
+  /**
+   * Target figure, in unit_code.
+   */
+  readonly target_value: number;
+  /**
+   * Unit of the target, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code: string;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Fields accepted when updating a ProjectObjective. Omitted fields are unchanged.
+ */
+export interface ProjectObjectiveUpdate {
+  /**
+   * Met by reaching the target (At Least) or by staying within it (At Most).
+   */
+  readonly direction?: "At Least" | "At Most";
+  /**
+   * Target figure, in unit_code.
+   */
+  readonly target_value?: number;
+  /**
+   * Unit of the target, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code?: string;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectMeasurementPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectMeasurement>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at.
+ */
+export interface ProjectMeasurement {
+  /**
+   * Identifier of the project measurement.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Day the figure covers, on the project's calendar; today there when omitted, never later.
+   * Format: `date`.
+   */
+  readonly measured_on: string;
+  /**
+   * The figure in unit_code; null when not measured.
+   */
+  readonly value: number | null;
+  /**
+   * Unit of the figure, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code: string | null;
+  /**
+   * How the figure reached XOS.
+   */
+  readonly source: "Manual" | "Import" | "Integration";
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference: string | null;
+  /**
+   * Link to the source: an http(s) URL or a URN.
+   * Length: 1 to 2000.
+   */
+  readonly source_uri: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * Fields accepted when creating a ProjectMeasurement.
+ */
+export interface ProjectMeasurementCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Day the figure covers, on the project's calendar; today there when omitted, never later.
+   * Format: `date`.
+   */
+  readonly measured_on?: string;
+  /**
+   * The figure in unit_code; null when not measured.
+   */
+  readonly value?: number | null;
+  /**
+   * Unit of the figure, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code?: string | null;
+  /**
+   * How the figure reached XOS.
+   */
+  readonly source?: "Manual" | "Import" | "Integration";
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference?: string | null;
+  /**
+   * Link to the source: an http(s) URL or a URN.
+   * Length: 1 to 2000.
+   */
+  readonly source_uri?: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Fields accepted when updating a ProjectMeasurement. Omitted fields are unchanged.
+ */
+export interface ProjectMeasurementUpdate {
+  /**
+   * Day the figure covers, on the project's calendar; today there when omitted, never later.
+   * Format: `date`.
+   */
+  readonly measured_on?: string;
+  /**
+   * The figure in unit_code; null when not measured.
+   */
+  readonly value?: number | null;
+  /**
+   * Unit of the figure, of the metric's dimension.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code?: string | null;
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference?: string | null;
+  /**
+   * Link to the source: an http(s) URL or a URN.
+   * Length: 1 to 2000.
+   */
+  readonly source_uri?: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+  /**
+   * Why the figure is corrected: required when the value, unit or day changes, kept in the correction ledger and never returned.
+   * Length: 1 to 500.
+   */
+  readonly correction_reason?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectMeasurementCorrectionPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectMeasurementCorrection>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at.
+ */
+export interface ProjectMeasurementCorrection {
+  /**
+   * Identifier of the project measurement correction.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the figure that changed.
+   * Format: `uuid`.
+   */
+  readonly project_measurement_id: string;
+  /**
+   * What changed the figure.
+   */
+  readonly correction_kind: "Corrected" | "Withdrawn" | "Restored";
+  /**
+   * Value before the change; null when Unmeasured.
+   */
+  readonly previous_value: number | null;
+  /**
+   * Unit before the change.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly previous_unit_code: string | null;
+  /**
+   * Day before the change.
+   * Format: `date`.
+   */
+  readonly previous_measured_on: string;
+  /**
+   * Value after the change; null when Unmeasured.
+   */
+  readonly value: number | null;
+  /**
+   * Unit after the change.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly unit_code: string | null;
+  /**
+   * Day after the change.
+   * Format: `date`.
+   */
+  readonly measured_on: string;
+  /**
+   * Why the figure changed.
+   * Length: 1 to 500.
+   */
+  readonly reason: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface EarnedMediaItemPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<EarnedMediaItem>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated.
+ */
+export interface EarnedMediaItem {
+  /**
+   * Identifier of the earned media item.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Headline or title of the coverage.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * Publication, station, channel or account that ran it.
+   * Length: 1 to 200.
+   */
+  readonly outlet: string;
+  /**
+   * Where the coverage ran.
+   */
+  readonly medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+  /**
+   * Day it ran, on the project's calendar; never after today there.
+   * Format: `date`.
+   */
+  readonly published_on: string;
+  /**
+   * Link to the coverage; one live row per link in a project.
+   * Format: `uri`.
+   */
+  readonly url: string | null;
+  /**
+   * Audience the outlet reports for the piece; null when unreported.
+   * Range: 0 to unbounded.
+   */
+  readonly reach: number | null;
+  /**
+   * Sentiment of the coverage; null until rated.
+   */
+  readonly tone: "Positive" | "Neutral" | "Negative" | null;
+  /**
+   * How the figure reached XOS.
+   */
+  readonly source: "Manual" | "Import" | "Integration";
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * Fields accepted when creating a EarnedMediaItem.
+ */
+export interface EarnedMediaItemCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Headline or title of the coverage.
+   * Length: 1 to 300.
+   */
+  readonly title: string;
+  /**
+   * Publication, station, channel or account that ran it.
+   * Length: 1 to 200.
+   */
+  readonly outlet: string;
+  /**
+   * Where the coverage ran.
+   */
+  readonly medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+  /**
+   * Day it ran, on the project's calendar; never after today there.
+   * Format: `date`.
+   */
+  readonly published_on: string;
+  /**
+   * Link to the coverage; one live row per link in a project.
+   * Format: `uri`.
+   */
+  readonly url?: string | null;
+  /**
+   * Audience the outlet reports for the piece; null when unreported.
+   * Range: 0 to unbounded.
+   */
+  readonly reach?: number | null;
+  /**
+   * Sentiment of the coverage; null until rated.
+   */
+  readonly tone?: "Positive" | "Neutral" | "Negative" | null;
+  /**
+   * How the figure reached XOS.
+   */
+  readonly source?: "Manual" | "Import" | "Integration";
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference?: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Fields accepted when updating a EarnedMediaItem. Omitted fields are unchanged.
+ */
+export interface EarnedMediaItemUpdate {
+  /**
+   * Headline or title of the coverage.
+   * Length: 1 to 300.
+   */
+  readonly title?: string;
+  /**
+   * Publication, station, channel or account that ran it.
+   * Length: 1 to 200.
+   */
+  readonly outlet?: string;
+  /**
+   * Where the coverage ran.
+   */
+  readonly medium?: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+  /**
+   * Day it ran, on the project's calendar; never after today there.
+   * Format: `date`.
+   */
+  readonly published_on?: string;
+  /**
+   * Link to the coverage; one live row per link in a project.
+   * Format: `uri`.
+   */
+  readonly url?: string | null;
+  /**
+   * Audience the outlet reports for the piece; null when unreported.
+   * Range: 0 to unbounded.
+   */
+  readonly reach?: number | null;
+  /**
+   * Sentiment of the coverage; null until rated.
+   */
+  readonly tone?: "Positive" | "Neutral" | "Negative" | null;
+  /**
+   * How the figure reached XOS.
+   */
+  readonly source?: "Manual" | "Import" | "Integration";
+  /**
+   * What the figure came from, such as an invoice, a meter reading or a file name.
+   * Length: 1 to 300.
+   */
+  readonly source_reference?: string | null;
+  /**
+   * Note.
+   * Length: 1 to 2000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectMeasurementSummaryPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectMeasurementSummary>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero.
+ */
+export interface ProjectMeasurementSummary {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Metric (app.measurement_metrics).
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly metric_code: string;
+  /**
+   * Family of the figure.
+   */
+  readonly family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
+  /**
+   * Dimension of the figure.
+   */
+  readonly dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+  /**
+   * Unit of target_base and measured_base.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly base_unit_code: string;
+  /**
+   * How figures combine.
+   */
+  readonly aggregation: "Sum" | "Latest";
+  /**
+   * Identifier of the live gate 1 objective for the metric.
+   * Format: `uuid`.
+   */
+  readonly objective_id: string | null;
+  /**
+   * Direction of the objective.
+   */
+  readonly direction: "At Least" | "At Most" | null;
+  /**
+   * Target as set, in target_unit_code.
+   */
+  readonly target_value: number | null;
+  /**
+   * Unit the target was set in.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly target_unit_code: string | null;
+  /**
+   * Target in the base unit.
+   */
+  readonly target_base: number | null;
+  /**
+   * Figures with a value.
+   * Range: 0 to unbounded.
+   */
+  readonly measured_count: number;
+  /**
+   * Figures recorded as not measured; never counted as zero.
+   * Range: 0 to unbounded.
+   */
+  readonly unmeasured_count: number;
+  /**
+   * Total (Sum) or latest figure (Latest) in the base unit; null when nothing was measured.
+   */
+  readonly measured_base: number | null;
+  /**
+   * Day of the most recent measured figure.
+   * Format: `date`.
+   */
+  readonly last_measured_on: string | null;
+  /**
+   * Met, Not Met, Incomplete (unmeasured figures leave the objective undecided) or Unmeasured; null without an objective.
+   */
+  readonly outcome: "Met" | "Not Met" | "Incomplete" | "Unmeasured" | null;
 }
 
 /**
@@ -36287,10 +37381,39 @@ export interface AuroraFilterRequest {
    */
   readonly collections: ReadonlyArray<string>;
   /**
-   * IANA time zone the local time was entered in.
+   * Time zone the caller works in. Relative dates such as this month or overdue resolve on the org's calendar (its locale.time_zone setting), never on UTC.
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
    */
   readonly time_zone: string;
+  /**
+   * A page's own filters, offered instead of the API fields of the first collection: names, types, values and operators only, never record data. Restricted columns are never offered.
+   */
+  readonly fields?: ReadonlyArray<{
+    /**
+     * Filter name as the page's query string writes it.
+     * Pattern: `^[a-z][a-z0-9_.]*$`. Length: 0 to 64.
+     */
+    readonly name: string;
+    /**
+     * Value type.
+     */
+    readonly type: "string" | "number" | "date" | "boolean" | "enum";
+    /**
+     * The values an enum filter takes.
+     */
+    readonly values?: ReadonlyArray<string>;
+    /**
+     * What the filter means, in a sentence.
+     * Length: 1 to 300.
+     */
+    readonly description?: string;
+    /**
+     * The only operators the filter takes.
+     */
+    readonly ops?: ReadonlyArray<
+      "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains"
+    >;
+  }>;
 }
 
 /**
@@ -36460,6 +37583,89 @@ export interface AuroraBindCodeRequest {
      * Length: 0 to 20.
      */
     readonly urid: string;
+  }>;
+}
+
+/**
+ * What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered.
+ */
+export interface AuroraPreview {
+  /**
+   * Each record the request names, in order, with the gate readiness a gate summary adds.
+   */
+  readonly records: ReadonlyArray<AuroraPreviewRecord>;
+  /**
+   * Verbiage library terms a draft follows.
+   * Range: 0 to unbounded.
+   */
+  readonly vocabulary_terms: number;
+}
+
+/**
+ * One record as a model would see it.
+ */
+export interface AuroraPreviewRecord {
+  /**
+   * Collection of the record.
+   */
+  readonly collection: string;
+  /**
+   * Identifier of the record.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * False when the record cannot be read or its whole table is never sent to a model.
+   */
+  readonly sent: boolean;
+  /**
+   * Fields that would be sent.
+   */
+  readonly fields: ReadonlyArray<string>;
+  /**
+   * Fields left out: Restricted columns and masked values.
+   */
+  readonly withheld: ReadonlyArray<string>;
+  /**
+   * The values that would be sent; null when nothing of the record is sent.
+   */
+  readonly data: { readonly [key: string]: unknown } | null;
+}
+
+/**
+ * A drafting or summary request to preview before it is sent.
+ */
+export interface AuroraPreviewRequest {
+  /**
+   * The feature whose request is previewed.
+   */
+  readonly feature: "drafting" | "summaries";
+  /**
+   * For summaries, what is summarized.
+   */
+  readonly kind?: "record_activity" | "project_week" | "gate_readiness";
+  /**
+   * For summaries, the collection summarized.
+   * Pattern: `^[a-z][a-z0-9-]*$`.
+   */
+  readonly subject_collection?: string;
+  /**
+   * Identifier of the record or project summarized.
+   * Format: `uuid`.
+   */
+  readonly subject_id?: string;
+  /**
+   * The records the request names: a draft's context or a summary's items, read with the caller's permissions.
+   */
+  readonly items: ReadonlyArray<{
+    /**
+     * Pattern: `^[a-z][a-z0-9-]*$`.
+     */
+    readonly collection: string;
+    /**
+     * Format: `uuid`.
+     */
+    readonly id: string;
   }>;
 }
 
@@ -36806,6 +38012,977 @@ export interface AiUsage {
    * Range: 0 to unbounded.
    */
   readonly output_tokens: number | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface WorkDetailsPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<WorkDetails>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second).
+ */
+export interface WorkDetails {
+  /**
+   * Identifier of the work details.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person the work details belong to; always the caller.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  readonly shirt_size: GarmentLetterSize | null;
+  readonly jacket_size: GarmentLetterSize | null;
+  /**
+   * Pants size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly pants_size: string | null;
+  /**
+   * Shoe size with its system.
+   * Length: 1 to 20.
+   */
+  readonly shoe_size: string | null;
+  readonly glove_size: GarmentLetterSize | null;
+  /**
+   * Hat size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly hat_size: string | null;
+  /**
+   * Anything else about fit.
+   * Length: 1 to 500.
+   */
+  readonly uniform_notes: string | null;
+  /**
+   * Dietary needs, each once, in enum order.
+   */
+  readonly dietary_needs: ReadonlyArray<DietaryNeed>;
+  /**
+   * Allergies in the person's words, with how severe.
+   * Length: 1 to 500.
+   */
+  readonly allergies: string | null;
+  /**
+   * Other dietary notes.
+   * Length: 1 to 500.
+   */
+  readonly dietary_notes: string | null;
+  /**
+   * Accessibility needs, each once, in enum order.
+   */
+  readonly accessibility_needs: ReadonlyArray<AccessibilityNeed>;
+  /**
+   * Accessibility needs in the person's words.
+   * Length: 1 to 1000.
+   */
+  readonly accessibility_notes: string | null;
+  readonly seat_preference: SeatPreference | null;
+  /**
+   * Preferred in-flight meal.
+   * Length: 1 to 100.
+   */
+  readonly meal_preference: string | null;
+  /**
+   * IATA airport code.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly home_airport: string | null;
+  readonly passport_number: string | Masked | null;
+  /**
+   * Last four characters of the passport number.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly passport_number_last4: string | null;
+  /**
+   * Country that issued the passport.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly passport_issuing_country: string | null;
+  /**
+   * Day the passport expires.
+   * Format: `date`.
+   */
+  readonly passport_expires_on: string | null;
+  /**
+   * Name exactly as printed in the passport.
+   * Length: 1 to 200.
+   */
+  readonly passport_name: string | null;
+}
+
+/**
+ * Letter size for a shirt, jacket or gloves.
+ */
+export type GarmentLetterSize =
+  "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL";
+
+/**
+ * A dietary need hospitality caters for.
+ */
+export type DietaryNeed =
+  | "Vegetarian"
+  | "Vegan"
+  | "Pescatarian"
+  | "Halal"
+  | "Kosher"
+  | "Gluten Free"
+  | "Dairy Free"
+  | "Nut Free"
+  | "Shellfish Free";
+
+/**
+ * An accessibility need the person asks an engaging org to plan for.
+ */
+export type AccessibilityNeed =
+  | "Step-Free Access"
+  | "Accessible Parking"
+  | "Accessible Restroom"
+  | "Seating"
+  | "Sign Language Interpreter"
+  | "Captioning"
+  | "Large Print"
+  | "Service Animal"
+  | "Quiet Space"
+  | "Assistance on Arrival";
+
+/**
+ * Preferred seat when an org books travel.
+ */
+export type SeatPreference = "Window" | "Aisle" | "No Preference";
+
+/**
+ * Fields accepted when creating a WorkDetails.
+ */
+export interface WorkDetailsCreate {
+  readonly shirt_size?: GarmentLetterSize | null;
+  readonly jacket_size?: GarmentLetterSize | null;
+  /**
+   * Pants size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly pants_size?: string | null;
+  /**
+   * Shoe size with its system.
+   * Length: 1 to 20.
+   */
+  readonly shoe_size?: string | null;
+  readonly glove_size?: GarmentLetterSize | null;
+  /**
+   * Hat size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly hat_size?: string | null;
+  /**
+   * Anything else about fit.
+   * Length: 1 to 500.
+   */
+  readonly uniform_notes?: string | null;
+  /**
+   * Dietary needs, each once, in enum order.
+   */
+  readonly dietary_needs?: ReadonlyArray<DietaryNeed>;
+  /**
+   * Allergies in the person's words, with how severe.
+   * Length: 1 to 500.
+   */
+  readonly allergies?: string | null;
+  /**
+   * Other dietary notes.
+   * Length: 1 to 500.
+   */
+  readonly dietary_notes?: string | null;
+  /**
+   * Accessibility needs, each once, in enum order.
+   */
+  readonly accessibility_needs?: ReadonlyArray<AccessibilityNeed>;
+  /**
+   * Accessibility needs in the person's words.
+   * Length: 1 to 1000.
+   */
+  readonly accessibility_notes?: string | null;
+  readonly seat_preference?: SeatPreference | null;
+  /**
+   * Preferred in-flight meal.
+   * Length: 1 to 100.
+   */
+  readonly meal_preference?: string | null;
+  /**
+   * IATA airport code.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly home_airport?: string | null;
+  /**
+   * Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.
+   * Length: 5 to 30.
+   */
+  readonly passport_number?: string | null;
+  /**
+   * Country that issued the passport.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly passport_issuing_country?: string | null;
+  /**
+   * Day the passport expires.
+   * Format: `date`.
+   */
+  readonly passport_expires_on?: string | null;
+  /**
+   * Name exactly as printed in the passport.
+   * Length: 1 to 200.
+   */
+  readonly passport_name?: string | null;
+}
+
+/**
+ * Fields accepted when updating a WorkDetails. Omitted fields are unchanged.
+ */
+export interface WorkDetailsUpdate {
+  readonly shirt_size?: GarmentLetterSize | null;
+  readonly jacket_size?: GarmentLetterSize | null;
+  /**
+   * Pants size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly pants_size?: string | null;
+  /**
+   * Shoe size with its system.
+   * Length: 1 to 20.
+   */
+  readonly shoe_size?: string | null;
+  readonly glove_size?: GarmentLetterSize | null;
+  /**
+   * Hat size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly hat_size?: string | null;
+  /**
+   * Anything else about fit.
+   * Length: 1 to 500.
+   */
+  readonly uniform_notes?: string | null;
+  /**
+   * Dietary needs, each once, in enum order.
+   */
+  readonly dietary_needs?: ReadonlyArray<DietaryNeed>;
+  /**
+   * Allergies in the person's words, with how severe.
+   * Length: 1 to 500.
+   */
+  readonly allergies?: string | null;
+  /**
+   * Other dietary notes.
+   * Length: 1 to 500.
+   */
+  readonly dietary_notes?: string | null;
+  /**
+   * Accessibility needs, each once, in enum order.
+   */
+  readonly accessibility_needs?: ReadonlyArray<AccessibilityNeed>;
+  /**
+   * Accessibility needs in the person's words.
+   * Length: 1 to 1000.
+   */
+  readonly accessibility_notes?: string | null;
+  readonly seat_preference?: SeatPreference | null;
+  /**
+   * Preferred in-flight meal.
+   * Length: 1 to 100.
+   */
+  readonly meal_preference?: string | null;
+  /**
+   * IATA airport code.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly home_airport?: string | null;
+  /**
+   * Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.
+   * Length: 5 to 30.
+   */
+  readonly passport_number?: string | null;
+  /**
+   * Country that issued the passport.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly passport_issuing_country?: string | null;
+  /**
+   * Day the passport expires.
+   * Format: `date`.
+   */
+  readonly passport_expires_on?: string | null;
+  /**
+   * Name exactly as printed in the passport.
+   * Length: 1 to 200.
+   */
+  readonly passport_name?: string | null;
+}
+
+/**
+ * A revealed passport number. Each reveal is written to the person's access log.
+ */
+export interface PassportReveal {
+  /**
+   * The passport number in plain text.
+   */
+  readonly passport_number: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface EmergencyContactPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<EmergencyContact>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category.
+ */
+export interface EmergencyContact {
+  /**
+   * Identifier of the emergency contact.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person the contact belongs to; always the caller.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Contact's name.
+   * Length: 1 to 200.
+   */
+  readonly full_name: string;
+  /**
+   * How the contact relates to the person.
+   * Length: 1 to 60.
+   */
+  readonly relationship: string | null;
+  /**
+   * Contact's phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly phone_e164: string;
+  /**
+   * A second phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly alternate_phone_e164: string | null;
+  /**
+   * Contact's email address.
+   * Format: `email`.
+   */
+  readonly email: string | null;
+  /**
+   * Order to call in, lowest first.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order: number;
+}
+
+/**
+ * Fields accepted when creating a EmergencyContact.
+ */
+export interface EmergencyContactCreate {
+  /**
+   * Contact's name.
+   * Length: 1 to 200.
+   */
+  readonly full_name: string;
+  /**
+   * How the contact relates to the person.
+   * Length: 1 to 60.
+   */
+  readonly relationship?: string | null;
+  /**
+   * Contact's phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly phone_e164: string;
+  /**
+   * A second phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly alternate_phone_e164?: string | null;
+  /**
+   * Contact's email address.
+   * Format: `email`.
+   */
+  readonly email?: string | null;
+  /**
+   * Order to call in, lowest first.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order?: number;
+}
+
+/**
+ * Fields accepted when updating a EmergencyContact. Omitted fields are unchanged.
+ */
+export interface EmergencyContactUpdate {
+  /**
+   * Contact's name.
+   * Length: 1 to 200.
+   */
+  readonly full_name?: string;
+  /**
+   * How the contact relates to the person.
+   * Length: 1 to 60.
+   */
+  readonly relationship?: string | null;
+  /**
+   * Contact's phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly phone_e164?: string;
+  /**
+   * A second phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly alternate_phone_e164?: string | null;
+  /**
+   * Contact's email address.
+   * Format: `email`.
+   */
+  readonly email?: string | null;
+  /**
+   * Order to call in, lowest first.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order?: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface LoyaltyProgramPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<LoyaltyProgram>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category.
+ */
+export interface LoyaltyProgram {
+  /**
+   * Identifier of the loyalty program.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person the program belongs to; always the caller.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  readonly program_kind: LoyaltyProgramKind;
+  /**
+   * Program.
+   * Length: 1 to 100.
+   */
+  readonly program_name: string;
+  /**
+   * Membership number.
+   * Length: 1 to 40.
+   */
+  readonly member_number: string;
+  /**
+   * Display order.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order: number;
+}
+
+/**
+ * Kind of travel loyalty program.
+ */
+export type LoyaltyProgramKind = "Airline" | "Hotel" | "Car Rental" | "Rail";
+
+/**
+ * Fields accepted when creating a LoyaltyProgram.
+ */
+export interface LoyaltyProgramCreate {
+  readonly program_kind: LoyaltyProgramKind;
+  /**
+   * Program.
+   * Length: 1 to 100.
+   */
+  readonly program_name: string;
+  /**
+   * Membership number.
+   * Length: 1 to 40.
+   */
+  readonly member_number: string;
+  /**
+   * Display order.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order?: number;
+}
+
+/**
+ * Fields accepted when updating a LoyaltyProgram. Omitted fields are unchanged.
+ */
+export interface LoyaltyProgramUpdate {
+  readonly program_kind?: LoyaltyProgramKind;
+  /**
+   * Program.
+   * Length: 1 to 100.
+   */
+  readonly program_name?: string;
+  /**
+   * Membership number.
+   * Length: 1 to 40.
+   */
+  readonly member_number?: string;
+  /**
+   * Display order.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order?: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface WorkDetailSharePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<WorkDetailShare>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them.
+ */
+export interface WorkDetailShare {
+  /**
+   * Identifier of the work detail share.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the engagement the share serves; the caller must be its person.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Identifier of the person sharing.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Identifier of the work_details_sharing consent record for the org.
+   * Format: `uuid`.
+   */
+  readonly consent_record_id: string;
+  /**
+   * Categories shared.
+   */
+  readonly categories: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * When the share was given.
+   * Format: `date-time`.
+   */
+  readonly shared_at: string;
+  /**
+   * When the person revoked it; null while it stands.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+}
+
+/**
+ * A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.
+ */
+export type WorkDetailCategory =
+  | "Emergency Contacts"
+  | "Uniform Sizes"
+  | "Dietary Needs"
+  | "Accessibility Needs"
+  | "Travel Profile"
+  | "Passport";
+
+/**
+ * Fields accepted when creating a WorkDetailShare.
+ */
+export interface WorkDetailShareCreate {
+  /**
+   * Identifier of the engagement the share serves; the caller must be its person.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Categories shared.
+   */
+  readonly categories: ReadonlyArray<WorkDetailCategory>;
+}
+
+/**
+ * Fields accepted when updating a WorkDetailShare. Omitted fields are unchanged.
+ */
+export interface WorkDetailShareUpdate {
+  /**
+   * Categories shared.
+   */
+  readonly categories?: ReadonlyArray<WorkDetailCategory>;
+}
+
+/**
+ * What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked.
+ */
+export interface SharedWorkDetails {
+  /**
+   * Engagement.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Person the engagement names.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * Engaging org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Live share; null when none stands.
+   * Format: `uuid`.
+   */
+  readonly work_detail_share_id: string | null;
+  /**
+   * When the share was given.
+   * Format: `date-time`.
+   */
+  readonly shared_at: string | null;
+  /**
+   * The engagement is Onboarding to Closing; a closed engagement reads nothing.
+   */
+  readonly sharing_open: boolean;
+  /**
+   * Categories the person shared.
+   */
+  readonly categories: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * Shared categories the caller's project capabilities cover; the others come back null.
+   */
+  readonly readable: ReadonlyArray<WorkDetailCategory>;
+  readonly emergency_contacts: ReadonlyArray<SharedEmergencyContact> | null;
+  readonly uniform: SharedUniformSizes | null;
+  readonly dietary: SharedDietaryNeeds | null;
+  readonly accessibility: SharedAccessibilityNeeds | null;
+  readonly travel: SharedTravelProfile | null;
+  readonly passport: SharedPassport | null;
+}
+
+/**
+ * An emergency contact as an engaging org reads it.
+ */
+export interface SharedEmergencyContact {
+  /**
+   * Contact's name.
+   */
+  readonly full_name: string;
+  /**
+   * Relationship.
+   */
+  readonly relationship: string | null;
+  /**
+   * Contact's phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly phone_e164: string;
+  /**
+   * A second phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly alternate_phone_e164: string | null;
+  /**
+   * Email address.
+   */
+  readonly email: string | null;
+  /**
+   * Calling order.
+   */
+  readonly sort_order: number;
+}
+
+/**
+ * Uniform sizes as an engaging org reads them.
+ */
+export interface SharedUniformSizes {
+  readonly shirt_size: GarmentLetterSize | null;
+  readonly jacket_size: GarmentLetterSize | null;
+  /**
+   * Pants size.
+   */
+  readonly pants_size: string | null;
+  /**
+   * Shoe size.
+   */
+  readonly shoe_size: string | null;
+  readonly glove_size: GarmentLetterSize | null;
+  /**
+   * Hat size.
+   */
+  readonly hat_size: string | null;
+  /**
+   * Fit notes.
+   */
+  readonly uniform_notes: string | null;
+}
+
+/**
+ * Dietary needs as an engaging org reads them.
+ */
+export interface SharedDietaryNeeds {
+  readonly dietary_needs: ReadonlyArray<DietaryNeed>;
+  /**
+   * Allergies.
+   */
+  readonly allergies: string | null;
+  /**
+   * Other dietary notes.
+   */
+  readonly dietary_notes: string | null;
+}
+
+/**
+ * Accessibility needs as an engaging org reads them.
+ */
+export interface SharedAccessibilityNeeds {
+  readonly accessibility_needs: ReadonlyArray<AccessibilityNeed>;
+  /**
+   * Accessibility notes.
+   */
+  readonly accessibility_notes: string | null;
+}
+
+/**
+ * The travel profile as an engaging org reads it.
+ */
+export interface SharedTravelProfile {
+  readonly seat_preference: SeatPreference | null;
+  /**
+   * Preferred in-flight meal.
+   */
+  readonly meal_preference: string | null;
+  /**
+   * IATA airport code.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly home_airport: string | null;
+  readonly loyalty_programs: ReadonlyArray<SharedLoyaltyProgram>;
+}
+
+/**
+ * A loyalty program as an engaging org reads it.
+ */
+export interface SharedLoyaltyProgram {
+  readonly program_kind: LoyaltyProgramKind;
+  /**
+   * Program.
+   */
+  readonly program_name: string;
+  /**
+   * Membership number.
+   */
+  readonly member_number: string;
+}
+
+/**
+ * Passport details as an engaging org reads them, the number masked.
+ */
+export interface SharedPassport {
+  /**
+   * Always null: the number is masked; reveal it through revealPassport.
+   */
+  readonly passport_number: null;
+  /**
+   * Last four characters of the number.
+   */
+  readonly passport_number_last4: string | null;
+  /**
+   * A number is recorded and withheld.
+   */
+  readonly passport_number_masked: boolean;
+  /**
+   * Country that issued the passport.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly passport_issuing_country: string | null;
+  /**
+   * Day the passport expires.
+   * Format: `date`.
+   */
+  readonly passport_expires_on: string | null;
+  /**
+   * Name as printed in the passport.
+   */
+  readonly passport_name: string | null;
+}
+
+/**
+ * Request to reveal a shared passport number.
+ */
+export interface PassportRevealRequest {
+  /**
+   * Why the number is needed, 10 to 500 characters. Logged with the reveal.
+   * Length: 10 to 500.
+   */
+  readonly reason: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface WorkDetailEventPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<WorkDetailEvent>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One entry of a person's work details access log (Section 8.4): a change they made, a share or revocation, or a read or reveal by an engaging org, with the categories and changed column names but never a value. The person reads all of theirs; an org's audit readers read the entries naming their org.
+ */
+export interface WorkDetailEvent {
+  /**
+   * Identifier of the entry.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the person whose work details were touched.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Identifier of the person who acted; null for the database or a service.
+   * Format: `uuid`.
+   */
+  readonly actor_person_id: string | null;
+  /**
+   * Identifier of the org whose member acted or whose share changed.
+   * Format: `uuid`.
+   */
+  readonly org_id: string | null;
+  /**
+   * Identifier of the engagement of a share, read or reveal.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.
+   * Pattern: `^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$`.
+   */
+  readonly action: string;
+  /**
+   * Categories the act covered.
+   */
+  readonly categories: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * Columns an owner change touched, never their values.
+   */
+  readonly changed_columns: ReadonlyArray<string>;
+  /**
+   * Reason an org member gave for revealing the passport number.
+   * Length: 1 to 500.
+   */
+  readonly reason: string | null;
+  /**
+   * When it happened.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
 }
 
 /**
@@ -38180,6 +40357,1598 @@ export interface WholesaleBillingRequest {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface OwnershipTransferPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<OwnershipTransfer>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited.
+ */
+export interface OwnershipTransfer {
+  /**
+   * Identifier of the ownership transfer.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the Owner who offered the org.
+   * Format: `uuid`.
+   */
+  readonly from_person_id: string;
+  /**
+   * Identifier of the member the org is offered to.
+   * Format: `uuid`.
+   */
+  readonly to_person_id: string;
+  /**
+   * What happens to the Owner who offered on acceptance.
+   */
+  readonly previous_owner_outcome: "admin" | "leave";
+  /**
+   * When the offer was made.
+   * Format: `date-time`.
+   */
+  readonly offered_at: string;
+  /**
+   * When an unanswered offer lapses, 7 days after it was made.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * When the member accepted and became an Owner.
+   * Format: `date-time`.
+   */
+  readonly accepted_at: string | null;
+  /**
+   * When the member declined.
+   * Format: `date-time`.
+   */
+  readonly declined_at: string | null;
+  /**
+   * When an Owner withdrew the offer.
+   * Format: `date-time`.
+   */
+  readonly canceled_at: string | null;
+  /**
+   * Identifier of the Owner who withdrew it.
+   * Format: `uuid`.
+   */
+  readonly canceled_by: string | null;
+  /**
+   * When the lifecycle job lapsed the unanswered offer.
+   * Format: `date-time`.
+   */
+  readonly expired_at: string | null;
+}
+
+/**
+ * An ownership offer.
+ */
+export interface OwnershipTransferOfferRequest {
+  /**
+   * Identifier of the member to offer the org to.
+   * Format: `uuid`.
+   */
+  readonly to_person_id: string;
+  /**
+   * What happens to the offering Owner on acceptance.
+   */
+  readonly previous_owner_outcome: "admin" | "leave";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface OrgDeletionRequestPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<OrgDeletionRequest>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate.
+ */
+export interface OrgDeletionRequest {
+  /**
+   * Identifier of the org deletion request.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Why the org is deleted, in the Owner's words.
+   * Length: 1 to 20000.
+   */
+  readonly reason: string;
+  /**
+   * When the Owner asked for deletion.
+   * Format: `date-time`.
+   */
+  readonly requested_at: string;
+  /**
+   * End of the 7-day recovery window.
+   * Format: `date-time`.
+   */
+  readonly recover_until: string;
+  /**
+   * Identifier of the Owner who asked for deletion.
+   * Format: `uuid`.
+   */
+  readonly requested_by: string;
+  /**
+   * When an Owner recovered the org.
+   * Format: `date-time`.
+   */
+  readonly recovered_at: string | null;
+  /**
+   * Identifier of the Owner who recovered it.
+   * Format: `uuid`.
+   */
+  readonly recovered_by: string | null;
+}
+
+/**
+ * A deletion request.
+ */
+export interface OrgDeletionRequestCreate {
+  /**
+   * The org's name, typed exactly.
+   * Length: 1 to 200.
+   */
+  readonly confirm_name: string;
+  /**
+   * Why the org is deleted.
+   * Length: 1 to 20000.
+   */
+  readonly reason: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface DeletionCertificatePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<DeletionCertificate>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas.
+ */
+export interface DeletionCertificate {
+  /**
+   * Identifier of the deletion certificate.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Id the deleted org had.
+   * Format: `uuid`.
+   */
+  readonly deleted_org_id: string;
+  /**
+   * Name of the org when it was deleted.
+   * Length: 1 to 300.
+   */
+  readonly org_name: string;
+  /**
+   * Web address of the org when it was deleted.
+   * Length: 1 to 100.
+   */
+  readonly org_slug: string;
+  /**
+   * Day 90 of a cancellation, or the end of a deletion request's recovery window.
+   */
+  readonly basis: "cancellation" | "deletion_request";
+  /**
+   * When the Owner canceled or asked for deletion.
+   * Format: `date-time`.
+   */
+  readonly requested_at: string;
+  /**
+   * When the data became due for deletion.
+   * Format: `date-time`.
+   */
+  readonly due_at: string;
+  /**
+   * When every row of the org was deleted.
+   * Format: `date-time`.
+   */
+  readonly purged_at: string | null;
+  /**
+   * Tables rows were deleted from.
+   * Range: 0 to unbounded.
+   */
+  readonly tables_purged: number | null;
+  /**
+   * Rows deleted.
+   * Range: 0 to unbounded.
+   */
+  readonly rows_purged: number | null;
+  /**
+   * Stored files deleted.
+   * Range: 0 to unbounded.
+   */
+  readonly storage_objects_deleted: number;
+  /**
+   * SHA-256 of the certificate PDF.
+   * Length: 1 to 64.
+   */
+  readonly document_sha256: string | null;
+  /**
+   * When the certificate PDF was stored.
+   * Format: `date-time`.
+   */
+  readonly issued_at: string | null;
+  /**
+   * When the certificate was emailed to the former Owner.
+   * Format: `date-time`.
+   */
+  readonly delivered_at: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface PartnerStandingGrantPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<PartnerStandingGrant>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one.
+ */
+export interface PartnerStandingGrant {
+  /**
+   * Identifier of the partner standing grant.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the partner org whose staff may read.
+   * Format: `uuid`.
+   */
+  readonly partner_org_id: string;
+  /**
+   * The scope: one read capability a support session may grant.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly capability_code: string;
+  /**
+   * The clause of the agreement that provides the grant.
+   * Length: 1 to 300.
+   */
+  readonly agreement_reference: string;
+  /**
+   * When access began.
+   * Format: `date-time`.
+   */
+  readonly valid_from: string;
+  /**
+   * When access ends on its own.
+   * Format: `date-time`.
+   */
+  readonly valid_to: string;
+  /**
+   * Identifier of the org-level record grant the standing grant issued.
+   * Format: `uuid`.
+   */
+  readonly record_grant_id: string;
+  /**
+   * When someone ended the grant early.
+   * Format: `date-time`.
+   */
+  readonly ended_at: string | null;
+  /**
+   * Identifier of the person who ended it early.
+   * Format: `uuid`.
+   */
+  readonly ended_by: string | null;
+}
+
+/**
+ * A standing grant to record.
+ */
+export interface PartnerStandingGrantRecordRequest {
+  /**
+   * The read capability the grant covers.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly capability_code: string;
+  /**
+   * When the grant ends, within a year.
+   * Format: `date-time`.
+   */
+  readonly valid_to: string;
+  /**
+   * The clause of the agreement.
+   * Length: 1 to 300.
+   */
+  readonly agreement_reference: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ShareLinkPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ShareLink>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links.
+ */
+export interface ShareLink {
+  /**
+   * Identifier of the share link.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the file the link shares.
+   * Format: `uuid`.
+   */
+  readonly attachment_id: string;
+  /**
+   * Clean version the link opens, set from the file's current version.
+   * Format: `uuid`.
+   */
+  readonly attachment_version_id: string | null;
+  readonly classification: Classification;
+  /**
+   * True when the link asks for a 6-digit access code; always true for a Confidential file.
+   */
+  readonly access_code_required: boolean;
+  /**
+   * Who the link is for, lowercased. Required for a Confidential file.
+   * Format: `email`.
+   */
+  readonly recipient_email: string | null;
+  /**
+   * What the link is for.
+   * Length: 1 to 200.
+   */
+  readonly note: string | null;
+  /**
+   * When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string | null;
+  /**
+   * Wrong access codes entered; the link locks at 5.
+   * Range: 0 to unbounded.
+   */
+  readonly failed_attempts: number;
+  /**
+   * Successful opens.
+   * Range: 0 to unbounded.
+   */
+  readonly open_count: number;
+  /**
+   * When the link was last opened.
+   * Format: `date-time`.
+   */
+  readonly last_opened_at: string | null;
+  /**
+   * When the link was revoked; it never opens again.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Identifier of the person who revoked the link.
+   * Format: `uuid`.
+   */
+  readonly revoked_by: string | null;
+}
+
+/**
+ * A new share link with its token and access code, shown once.
+ */
+export interface ShareLinkToken {
+  /**
+   * The new link.
+   * Format: `uuid`.
+   */
+  readonly share_link_id: string;
+  /**
+   * The link token. The link is `{Atlas origin}/share/{token}`. Shown once; only its hash is stored.
+   * Pattern: `^xshr_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string | null;
+  readonly classification: Classification;
+  /**
+   * When the link stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string | null;
+}
+
+/**
+ * Fields accepted when creating a ShareLink.
+ */
+export interface ShareLinkCreate {
+  /**
+   * Identifier of the file the link shares.
+   * Format: `uuid`.
+   */
+  readonly attachment_id: string;
+  /**
+   * True when the link asks for a 6-digit access code; always true for a Confidential file.
+   */
+  readonly access_code_required?: boolean;
+  /**
+   * Who the link is for, lowercased. Required for a Confidential file.
+   * Format: `email`.
+   */
+  readonly recipient_email?: string | null;
+  /**
+   * What the link is for.
+   * Length: 1 to 200.
+   */
+  readonly note?: string | null;
+  /**
+   * When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+   * Format: `date-time`.
+   */
+  readonly expires_at?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface PersonCalendarFeedPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<PersonCalendarFeed>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good.
+ */
+export interface PersonCalendarFeed {
+  /**
+   * Identifier of the person calendar feed.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who owns the feed; always the caller.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Last four characters of the token.
+   * Length: 1 to 4.
+   */
+  readonly token_hint: string;
+  /**
+   * Last time a calendar fetched the feed.
+   * Format: `date-time`.
+   */
+  readonly last_accessed_at: string | null;
+  /**
+   * When the token was last replaced.
+   * Format: `date-time`.
+   */
+  readonly rotated_at: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectInboxPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectInbox>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled.
+ */
+export interface ProjectInbox {
+  /**
+   * Identifier of the project inbox.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project the inbox belongs to.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Part before the @ of the receiving domain: the project key and a random suffix.
+   * Length: 1 to 63.
+   */
+  readonly local_part: string;
+  /**
+   * When the address stopped accepting mail.
+   * Format: `date-time`.
+   */
+  readonly disabled_at: string | null;
+}
+
+/**
+ * The project to give an inbox.
+ */
+export interface ProjectInboxCreate {
+  /**
+   * Identifier of the project the inbox is for.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface InboundMessagePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<InboundMessage>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason.
+ */
+export interface InboundMessage {
+  /**
+   * Identifier of the inbound message.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * What the mail was sent to.
+   */
+  readonly purpose: "Project Inbox" | "Reply";
+  /**
+   * Identifier of the project inbox the mail was sent to.
+   * Format: `uuid`.
+   */
+  readonly inbound_address_id: string | null;
+  /**
+   * Sender address.
+   * Length: 1 to 320.
+   */
+  readonly from_address: string;
+  /**
+   * Subject.
+   * Length: 1 to 998.
+   */
+  readonly subject_line: string | null;
+  /**
+   * Plain-text body with quoted text stripped.
+   * Length: 1 to 20000.
+   */
+  readonly body_text: string | null;
+  /**
+   * True when the sender's DKIM signature verified.
+   */
+  readonly dkim_verified: boolean;
+  /**
+   * Processing status.
+   */
+  readonly inbound_status: "Received" | "Verified" | "Filed" | "Rejected";
+  /**
+   * Why the mail was rejected.
+   * Length: 1 to 500.
+   */
+  readonly rejection_reason: string | null;
+  /**
+   * When the mail arrived.
+   * Format: `date-time`.
+   */
+  readonly received_at: string;
+  /**
+   * Identifier of the document the mail was filed as.
+   * Format: `uuid`.
+   */
+  readonly filed_document_id: string | null;
+  /**
+   * Identifier of the record of the project the mail was filed to.
+   * Format: `uuid`.
+   */
+  readonly filed_record_id: string | null;
+  /**
+   * Identifier of the person who filed the mail.
+   * Format: `uuid`.
+   */
+  readonly filed_by: string | null;
+  /**
+   * When the mail was filed.
+   * Format: `date-time`.
+   */
+  readonly filed_at: string | null;
+  /**
+   * When the mail was discarded.
+   * Format: `date-time`.
+   */
+  readonly discarded_at: string | null;
+  /**
+   * Identifier of the person who discarded the mail.
+   * Format: `uuid`.
+   */
+  readonly discarded_by: string | null;
+  /**
+   * Why the mail was discarded.
+   * Length: 1 to 500.
+   */
+  readonly discard_reason: string | null;
+}
+
+/**
+ * How to file the mail.
+ */
+export interface InboundMessageFileRequest {
+  /**
+   * Document title; the subject when omitted.
+   * Length: 1 to 200.
+   */
+  readonly title?: string;
+  /**
+   * Identifier of the record of the project to file the mail to.
+   * Format: `uuid`.
+   */
+  readonly record_id?: string;
+}
+
+/**
+ * Why the mail is discarded.
+ */
+export interface InboundMessageDiscardRequest {
+  /**
+   * Why the mail is discarded.
+   * Length: 1 to 500.
+   */
+  readonly reason?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AutomationPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<Automation>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422).
+ */
+export interface Automation {
+  /**
+   * Identifier of the automation.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Name shown in Settings, Automations.
+   * Length: 1 to 120.
+   */
+  readonly name: string;
+  /**
+   * What the automation is for.
+   * Length: 1 to 500.
+   */
+  readonly description: string | null;
+  /**
+   * Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+   * Pattern: `^[a-z][a-z_]*\.[a-z][a-z_]*$`.
+   */
+  readonly trigger_event_type: string;
+  /**
+   * How the top-level conditions combine; set from the conditions document.
+   */
+  readonly condition_match: "all" | "any";
+  /**
+   * Identifier of the person the actions run as.
+   * Format: `uuid`.
+   */
+  readonly owner_person_id: string;
+  /**
+   * True while new events start runs.
+   */
+  readonly enabled: boolean;
+  /**
+   * When the engine turned the automation off because a run could not act as the owner; null otherwise. Turning it on again clears it.
+   * Format: `date-time`.
+   */
+  readonly paused_at: string | null;
+  /**
+   * Why the engine paused it: owner_left_org, owner_lost_capability, owner_cannot_sign_in or owner_access_refused.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly pause_reason: string | null;
+  readonly conditions: AutomationConditions;
+  readonly actions: AutomationActions;
+}
+
+/**
+ * An automation's conditions: {"all": [...]} or {"any": [...]} of conditions and one-level groups, at most 20 in all. An empty list always holds.
+ */
+export type AutomationConditions =
+  | {
+      readonly all: ReadonlyArray<
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+            /**
+             * Value compared, as text.
+             * Length: 0 to 1000.
+             */
+            readonly value: string;
+          }
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "in";
+            /**
+             * Comma-separated values, each trimmed.
+             * Pattern: `[^, ]`. Length: 0 to 1000.
+             */
+            readonly value: string;
+          }
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "is_null";
+            /**
+             * true (or absent) holds for a missing value, false for a present one.
+             */
+            readonly value?: "true" | "false" | null;
+          }
+        | {
+            readonly all: ReadonlyArray<AutomationCondition>;
+          }
+        | {
+            readonly any: ReadonlyArray<AutomationCondition>;
+          }
+      >;
+    }
+  | {
+      readonly any: ReadonlyArray<
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+            /**
+             * Value compared, as text.
+             * Length: 0 to 1000.
+             */
+            readonly value: string;
+          }
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "in";
+            /**
+             * Comma-separated values, each trimmed.
+             * Pattern: `[^, ]`. Length: 0 to 1000.
+             */
+            readonly value: string;
+          }
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "is_null";
+            /**
+             * true (or absent) holds for a missing value, false for a present one.
+             */
+            readonly value?: "true" | "false" | null;
+          }
+        | {
+            readonly all: ReadonlyArray<AutomationCondition>;
+          }
+        | {
+            readonly any: ReadonlyArray<AutomationCondition>;
+          }
+      >;
+    };
+
+/**
+ * One condition: a path of the event, an API filter operator (ADR 0003) and a text value. Numbers compare numerically, strings by code point; contains folds ASCII case or finds an array element; every operator but is_null is false on a missing value.
+ */
+export type AutomationCondition =
+  | {
+      /**
+       * Path into the event, such as data.record_kind.
+       * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+       */
+      readonly field: string;
+      readonly operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+      /**
+       * Value compared, as text.
+       * Length: 0 to 1000.
+       */
+      readonly value: string;
+    }
+  | {
+      /**
+       * Path into the event, such as data.record_kind.
+       * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+       */
+      readonly field: string;
+      readonly operator: "in";
+      /**
+       * Comma-separated values, each trimmed.
+       * Pattern: `[^, ]`. Length: 0 to 1000.
+       */
+      readonly value: string;
+    }
+  | {
+      /**
+       * Path into the event, such as data.record_kind.
+       * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+       */
+      readonly field: string;
+      readonly operator: "is_null";
+      /**
+       * true (or absent) holds for a missing value, false for a present one.
+       */
+      readonly value?: "true" | "false" | null;
+    };
+
+/**
+ * An automation's 1 to 10 actions, in the order they run.
+ */
+export type AutomationActions = ReadonlyArray<AutomationAction>;
+
+/**
+ * One action, run in order as the owner through a public API operation: create_task (records.create), update_status (records.transition), assign (records.update), add_comment (comments.postOnSubject), notify (automationRuns.notify) or call_webhook (automationRuns.deliverWebhook).
+ */
+export type AutomationAction =
+  | {
+      readonly type: "create_task";
+      /**
+       * Text; event paths in double braces are filled in, such as {{data.title}}.
+       * Length: 1 to 200.
+       */
+      readonly title: string;
+      /**
+       * Project the Task goes in, under its engagement root; null for the event's project.
+       * Pattern: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`.
+       */
+      readonly project_id?: string | null;
+      /**
+       * Gated phase of the Task.
+       * Pattern: `^[A-Z]{3}$`.
+       */
+      readonly phase_code: string;
+      /**
+       * Declared XYZ tag of the Task.
+       */
+      readonly xyz: "X" | "Y" | "Z";
+      /**
+       * Due at 17:00 on the org's calendar this many days after the run.
+       * Range: 0 to 365.
+       */
+      readonly due_in_days?: number | null;
+    }
+  | {
+      readonly type: "update_status";
+      /**
+       * Record state the subject record moves to.
+       */
+      readonly to_state:
+        "Proposed" | "Ready" | "Scheduled" | "Active" | "In Review" | "Complete" | "Canceled";
+      /**
+       * Text; event paths in double braces are filled in, such as {{data.title}}.
+       * Length: 1 to 2000.
+       */
+      readonly note?: string | null;
+    }
+  | {
+      readonly type: "update_status";
+      readonly to_state: "Blocked" | "Deferred";
+      /**
+       * The blocker (Blocked) or the replan reason (Deferred).
+       * Length: 1 to 2000.
+       */
+      readonly note: string;
+    }
+  | {
+      readonly type: "assign";
+      /**
+       * Member who becomes the subject record's owner.
+       * Pattern: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`.
+       */
+      readonly assignee_person_id: string;
+    }
+  | {
+      readonly type: "add_comment";
+      /**
+       * Text; event paths in double braces are filled in, such as {{data.title}}.
+       * Length: 1 to 2000.
+       */
+      readonly body: string;
+    }
+  | {
+      readonly type: "notify";
+      /**
+       * Member who receives the notification.
+       * Pattern: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`.
+       */
+      readonly recipient_person_id: string;
+      /**
+       * Text; event paths in double braces are filled in, such as {{data.title}}.
+       * Length: 1 to 200.
+       */
+      readonly title: string;
+      /**
+       * Text; event paths in double braces are filled in, such as {{data.title}}.
+       * Length: 1 to 2000.
+       */
+      readonly body?: string | null;
+    }
+  | {
+      readonly type: "call_webhook";
+      /**
+       * The org's webhook endpoint.
+       * Pattern: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`.
+       */
+      readonly webhook_endpoint_id: string;
+    };
+
+/**
+ * Fields accepted when creating a Automation.
+ */
+export interface AutomationCreate {
+  /**
+   * Name shown in Settings, Automations.
+   * Length: 1 to 120.
+   */
+  readonly name: string;
+  /**
+   * What the automation is for.
+   * Length: 1 to 500.
+   */
+  readonly description?: string | null;
+  /**
+   * Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+   * Pattern: `^[a-z][a-z_]*\.[a-z][a-z_]*$`.
+   */
+  readonly trigger_event_type: string;
+  /**
+   * True while new events start runs.
+   */
+  readonly enabled?: boolean;
+  readonly conditions: AutomationConditions;
+  readonly actions: AutomationActions;
+}
+
+/**
+ * Fields accepted when updating a Automation. Omitted fields are unchanged.
+ */
+export interface AutomationUpdate {
+  /**
+   * Name shown in Settings, Automations.
+   * Length: 1 to 120.
+   */
+  readonly name?: string;
+  /**
+   * What the automation is for.
+   * Length: 1 to 500.
+   */
+  readonly description?: string | null;
+  /**
+   * Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+   * Pattern: `^[a-z][a-z_]*\.[a-z][a-z_]*$`.
+   */
+  readonly trigger_event_type?: string;
+  /**
+   * True while new events start runs.
+   */
+  readonly enabled?: boolean;
+  readonly conditions?: AutomationConditions;
+  readonly actions?: AutomationActions;
+}
+
+/**
+ * A dry run of an automation's conditions: nothing runs and nothing is written.
+ */
+export interface AutomationTestResult {
+  /**
+   * Whether the conditions hold for the sample event.
+   */
+  readonly matched: boolean;
+  /**
+   * Each condition in document order.
+   */
+  readonly conditions: ReadonlyArray<AutomationConditionResult>;
+}
+
+/**
+ * One condition of a dry run.
+ */
+export interface AutomationConditionResult {
+  /**
+   * Path into the event.
+   * Length: 1 to 300.
+   */
+  readonly field: string;
+  /**
+   * Filter operator.
+   */
+  readonly operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains";
+  /**
+   * Value compared.
+   * Length: 1 to 1000.
+   */
+  readonly value: string | null;
+  /**
+   * Value found in the event; null when missing.
+   */
+  readonly actual?: unknown;
+  /**
+   * Whether the condition held.
+   */
+  readonly matched: boolean;
+}
+
+/**
+ * A sample event to test an automation against.
+ */
+export interface AutomationTestRequest {
+  /**
+   * A sample event body, as a webhook receives it; app.sample_automation_event gives the org's latest of the trigger type.
+   */
+  readonly event: { readonly [key: string]: unknown };
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AutomationRunPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AutomationRun>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice.
+ */
+export interface AutomationRun {
+  /**
+   * Identifier of the automation run.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the automation that ran.
+   * Format: `uuid`.
+   */
+  readonly automation_id: string;
+  /**
+   * Identifier of the domain event that started the run.
+   * Format: `uuid`.
+   */
+  readonly domain_event_id: string;
+  /**
+   * Identifier of the run whose action raised the event, when an automation caused it.
+   * Format: `uuid`.
+   */
+  readonly parent_run_id: string | null;
+  /**
+   * Automation runs that led to this one; 0 for an event a person raised.
+   * Range: 0 to unbounded.
+   */
+  readonly depth: number;
+  /**
+   * Queued, Running, Retrying after a failure the job queue retries with backoff, Succeeded, Failed, or Skipped (loop_depth, rate_limited, or the automation was off).
+   */
+  readonly run_status: "Queued" | "Running" | "Retrying" | "Succeeded" | "Failed" | "Skipped";
+  /**
+   * The event as webhooks send it: the run's input.
+   */
+  readonly event_payload: { readonly [key: string]: unknown };
+  /**
+   * Identifier of the person the run acted as.
+   * Format: `uuid`.
+   */
+  readonly owner_person_id: string | null;
+  /**
+   * Times the worker started the run.
+   * Range: 0 to unbounded.
+   */
+  readonly attempts: number;
+  /**
+   * Rule code of the failure or skip.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly error_code: string | null;
+  /**
+   * Why the run failed or was skipped.
+   * Length: 1 to 2000.
+   */
+  readonly error_message: string | null;
+  /**
+   * When the worker first started the run.
+   * Format: `date-time`.
+   */
+  readonly started_at: string | null;
+  /**
+   * When the run reached Succeeded, Failed or Skipped.
+   * Format: `date-time`.
+   */
+  readonly finished_at: string | null;
+  /**
+   * Milliseconds from the first start to the end.
+   * Range: 0 to unbounded.
+   */
+  readonly duration_ms: number | null;
+}
+
+/**
+ * The notification an automation sent.
+ */
+export interface AutomationNoticeResult {
+  /**
+   * Identifier of the notification created.
+   * Format: `uuid`.
+   */
+  readonly notification_id: string | null;
+}
+
+/**
+ * A notification an automation sends during a run.
+ */
+export interface AutomationNoticeRequest {
+  /**
+   * Identifier of the member who receives the notification.
+   * Format: `uuid`.
+   */
+  readonly recipient_person_id: string;
+  /**
+   * Notification title.
+   * Length: 1 to 200.
+   */
+  readonly title: string;
+  /**
+   * Message; the title is repeated when absent.
+   * Length: 1 to 2000.
+   */
+  readonly body?: string;
+}
+
+/**
+ * The delivery a run queued.
+ */
+export interface AutomationWebhookResult {
+  /**
+   * Identifier of the webhook delivery queued.
+   * Format: `uuid`.
+   */
+  readonly webhook_delivery_id: string;
+}
+
+/**
+ * The endpoint a run's event is delivered to.
+ */
+export interface AutomationWebhookRequest {
+  /**
+   * Identifier of the the org's webhook endpoint.
+   * Format: `uuid`.
+   */
+  readonly webhook_endpoint_id: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AutomationRunStepPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AutomationRunStep>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed.
+ */
+export interface AutomationRunStep {
+  /**
+   * Identifier of the automation run step.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the run the step belongs to.
+   * Format: `uuid`.
+   */
+  readonly automation_run_id: string;
+  /**
+   * Identifier of the action the step ran.
+   * Format: `uuid`.
+   */
+  readonly automation_action_id: string | null;
+  /**
+   * Position of the action, 1 first.
+   * Range: 1 to unbounded.
+   */
+  readonly position: number;
+  /**
+   * What the action does.
+   */
+  readonly action_type:
+    "create_task" | "update_status" | "assign" | "add_comment" | "notify" | "call_webhook";
+  /**
+   * Public API operation called.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly operation_id: string | null;
+  /**
+   * Outcome of the action.
+   */
+  readonly step_status: "Succeeded" | "Failed" | "Skipped";
+  /**
+   * Body sent, with templates filled in from the event.
+   */
+  readonly request_body: { readonly [key: string]: unknown } | null;
+  /**
+   * Identifying fields of the answer, or the problem it reported.
+   */
+  readonly response_body: { readonly [key: string]: unknown } | null;
+  /**
+   * HTTP status the API answered.
+   * Range: 100 to unbounded.
+   */
+  readonly http_status: number | null;
+  /**
+   * Rule code of the failure.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly error_code: string | null;
+  /**
+   * Why the step failed.
+   * Length: 1 to 2000.
+   */
+  readonly error_message: string | null;
+  /**
+   * When the step started.
+   * Format: `date-time`.
+   */
+  readonly started_at: string;
+  /**
+   * When the step ended.
+   * Format: `date-time`.
+   */
+  readonly finished_at: string;
+  /**
+   * Milliseconds the step took.
+   * Range: 0 to unbounded.
+   */
+  readonly duration_ms: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface WorkforceGroupPage {
   /**
    * Items on this page, in the documented default order.
@@ -38757,9 +42526,9 @@ export interface FeedPost {
    */
   readonly body: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -38780,6 +42549,11 @@ export interface FeedPost {
    * Format: `uuid`.
    */
   readonly group_id: string | null;
+  /**
+   * Canon department code of a Department audience (xpms.dim_department).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly department_code: string | null;
   /**
    * Identifier of the member who wrote the post.
    * Format: `uuid`.
@@ -38843,9 +42617,9 @@ export interface FeedPostCreate {
    */
   readonly body: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -38866,6 +42640,11 @@ export interface FeedPostCreate {
    * Format: `uuid`.
    */
   readonly group_id?: string | null;
+  /**
+   * Canon department code of a Department audience (xpms.dim_department).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly department_code?: string | null;
   /**
    * Whether every member of the audience must acknowledge it.
    */
@@ -38919,9 +42698,9 @@ export interface PollPostRequest {
    */
   readonly title?: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Project audience.
    * Format: `uuid`.
@@ -38942,6 +42721,11 @@ export interface PollPostRequest {
    * Format: `uuid`.
    */
   readonly group_id?: string;
+  /**
+   * Canon department code of a Department audience (xpms.dim_department).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly department_code?: string;
   /**
    * Poll question.
    * Length: 1 to 300.
@@ -39220,9 +43004,9 @@ export interface Survey {
    */
   readonly description: string | null;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -39283,9 +43067,9 @@ export interface SurveyDraftRequest {
    */
   readonly description?: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Project audience.
    * Format: `uuid`.
@@ -39740,9 +43524,9 @@ export interface WorkforceEvent {
    */
   readonly space_id: string | null;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -39828,9 +43612,9 @@ export interface WorkforceEventCreate {
    */
   readonly space_id?: string | null;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.

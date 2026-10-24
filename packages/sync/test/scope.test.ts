@@ -108,9 +108,26 @@ describe("download scope (Section 8.7)", () => {
 
   it("refuses unknown tables, admits canon reference tables and ignores non-string keys", () => {
     expect(admits("payroll_runs", { id: "x", org_id: "org-1" }, internal)).toBe(false);
-    expect(admits("emergency_codes", { id: "code-red" }, external("sponsor"))).toBe(true);
+    expect(admits("canon_emergency_codes", { id: "CODE_RED" }, external("sponsor"))).toBe(true);
     expect(admits("shifts", { id: "s", membership_id: 42 }, internal)).toBe(false);
     expect(ruleFor("shifts")?.anyOf.length).toBeGreaterThan(0);
+  });
+
+  it("admits an org's own emergency codes only to its members (WP18)", () => {
+    expect(admits("emergency_codes", { id: "ec-1", org_id: "org-1" }, internal)).toBe(true);
+    expect(admits("emergency_codes", { id: "ec-2", org_id: "org-2" }, internal)).toBe(false);
+    expect(admits("emergency_codes", { id: "ec-1", org_id: "org-1" }, external("crew"))).toBe(
+      false,
+    );
+    expect(admits("emergency_codes", { id: "ec-3" }, internal)).toBe(false);
+    // The audience gate on its own: an engaged person whose scope somehow named the org still gets none.
+    expect(
+      admits(
+        "emergency_codes",
+        { id: "ec-1", org_id: "org-1" },
+        { ...external("crew"), orgIds: ["org-1"] },
+      ),
+    ).toBe(false);
   });
 
   it("filters a downloaded batch", () => {
@@ -196,9 +213,9 @@ describe("SyncSession", () => {
     const store = new MemoryStore();
     const session = new SyncSession(store, external("crew"));
     await session.ingest("shifts", [{ id: "s1", engagement_id: "eng-mine" }]);
-    await session.ingest("emergency_codes", [{ id: "code-red" }]);
+    await session.ingest("canon_emergency_codes", [{ id: "CODE_RED" }]);
     expect(await session.narrow(external("crew", []))).toBe(1);
-    expect(await store.tables()).toEqual(["emergency_codes"]);
+    expect(await store.tables()).toEqual(["canon_emergency_codes"]);
   });
 
   it("wipes the store, queue included, on remote sign-out", async () => {
@@ -214,5 +231,61 @@ describe("SyncSession", () => {
     });
     expect(await session.remoteSignOut()).toBe(1);
     expect(await store.tables()).toEqual([]);
+  });
+});
+
+describe("SyncSession across several orgs (Section 4.5.7 org switching)", () => {
+  const orgA: DownloadScope = {
+    ...internal,
+    orgIds: ["org-a"],
+    membershipIds: ["mem-a"],
+    readableProjectIds: ["proj-a"],
+  };
+  const orgB: DownloadScope = {
+    ...internal,
+    audience: "field-supervisor",
+    orgIds: ["org-b"],
+    membershipIds: ["mem-b"],
+    readableProjectIds: ["proj-b"],
+  };
+  const engagedByC: DownloadScope = {
+    ...external("crew", ["eng-c"]),
+    engagedProjectIds: ["proj-c"],
+  };
+
+  it("stores each org's rows under that org's scope and refuses an org the person has no part in", async () => {
+    const store = new MemoryStore();
+    const session = new SyncSession(store, [orgA, orgB, engagedByC]);
+    expect(session.scope).toBe(orgA);
+    expect(session.scopes).toHaveLength(3);
+    const report = await session.ingest("shifts", [
+      { id: "a1", org_id: "org-a", project_id: "proj-a", membership_id: null },
+      { id: "b1", org_id: "org-b", project_id: "proj-b", membership_id: "mem-b" },
+      { id: "c1", project_id: "proj-c", engagement_id: "eng-c" },
+      { id: "x1", org_id: "org-x", project_id: "proj-x", membership_id: "mem-x" },
+    ]);
+    expect(report).toMatchObject({ written: 3, refused: 1 });
+    expect((await store.list("shifts")).map((r) => r.id).sort()).toEqual(["a1", "b1", "c1"]);
+    // Org-level reference rows follow the org too: org B's zones are stored, org X's never.
+    await session.ingest("zones", [
+      { id: "z-b", org_id: "org-b" },
+      { id: "z-x", org_id: "org-x" },
+    ]);
+    expect((await store.list("zones")).map((r) => r.id)).toEqual(["z-b"]);
+  });
+
+  it("purges only the rows of an org whose membership ended, and never device-local tables", async () => {
+    const store = new MemoryStore();
+    const session = new SyncSession(store, [orgA, orgB]);
+    await session.ingest("shifts", [
+      { id: "a1", org_id: "org-a", project_id: "proj-a" },
+      { id: "b1", org_id: "org-b", project_id: "proj-b" },
+    ]);
+    await store.transaction((tx) => tx.put("_uploads", { id: "u1", path: "org-b/x.jpg" }));
+    expect(await session.narrow([orgA])).toBe(1);
+    expect((await store.list("shifts")).map((r) => r.id)).toEqual(["a1"]);
+    expect(await store.get("_uploads", "u1")).toBeDefined();
+    await expect(session.ingest("_uploads", [])).rejects.toThrow("device-local");
+    expect(() => new SyncSession(store, []).scope).toThrow("at least one scope");
   });
 });

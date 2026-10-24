@@ -111,7 +111,10 @@ function emitSchemas(ir: ApiIR): string {
   for (const { name, schema } of ir.schemas) {
     const doc = comment(schema.description ? [schema.description] : []);
     const type = tsType(schema);
-    const isPlainObject = type.startsWith("{\n") && type.endsWith("}") && !type.includes("} & {");
+    // A union of object shapes (`anyOf`, such as AutomationConditions) is a type alias, never an interface.
+    const isUnion = schema.anyOf !== undefined || schema.oneOf !== undefined;
+    const isPlainObject =
+      !isUnion && type.startsWith("{\n") && type.endsWith("}") && !type.includes("} & {");
     out.push(
       isPlainObject
         ? `${doc}export interface ${name} ${type}\n`
@@ -369,7 +372,7 @@ ${ir.resources.map((r) => `  ${resourceClassName(r.name)},`).join("\n")}
  * OpenAPI document is a method.
  *
  * @example
- * const xos = new XosClient({ baseUrl: "https://atlas.example.com/api/v1", apiKey: process.env.XOS_API_KEY });
+ * const xos = new XosClient({ baseUrl: "https://api.ghxstship.tech/v1", apiKey: process.env.XOS_API_KEY });
  * for await (const project of xos.projects.listAll({ filter: { project_state: { eq: "Active" } } })) {
  *   console.log(project.name);
  * }

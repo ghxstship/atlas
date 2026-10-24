@@ -9,7 +9,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  */
 
 /** Categories an external party is notified under, in display order. */
-export const PARTY_CATEGORIES = ["finance"] as const;
+export const PARTY_CATEGORIES = ["finance", "opportunities", "expiry_reminders"] as const;
 export type PartyCategory = (typeof PARTY_CATEGORIES)[number];
 
 /** Outside channels an external party chooses; In App always shows. */
@@ -66,9 +66,13 @@ export interface PartyPreference {
 /** Channel defaults when a person states no preference (private.channel_defaults). */
 const DEFAULT_ON: Readonly<Record<PartyChannel, boolean>> = { Email: true, Push: true };
 
-/** Every party category and channel with the person's choice, or the default. */
+/**
+ * Every party category and channel with the person's choice, else the defaults of their company accounts (on
+ * when any has it on, as private.person_channel_enabled resolves them since 1434), else the channel default.
+ */
 export async function listMyNotificationPreferences(
   db: XosClient,
+  companyDefaults: readonly PartyPreference[] = [],
 ): Promise<Result<PartyPreference[]>> {
   const { data, error } = await db
     .from("person_notification_preferences")
@@ -76,6 +80,10 @@ export async function listMyNotificationPreferences(
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
   const rows = data ?? [];
+  const company = (category: PartyCategory, channel: PartyChannel) => {
+    const set = companyDefaults.filter((d) => d.category === category && d.channel === channel);
+    return set.length === 0 ? undefined : set.some((d) => d.enabled);
+  };
   return ok(
     PARTY_CATEGORIES.flatMap((category) =>
       PARTY_CHANNELS.map((channel) => ({
@@ -83,6 +91,7 @@ export async function listMyNotificationPreferences(
         channel,
         enabled:
           rows.find((r) => r.category_code === category && r.channel === channel)?.enabled ??
+          company(category, channel) ??
           DEFAULT_ON[channel],
       })),
     ),
@@ -111,4 +120,43 @@ export async function setMyNotificationPreference(
     enabled: input.enabled,
   });
   return inserted.error ? fail(toDataError(inserted.error)) : ok(null);
+}
+
+/** A person's own quiet hours (migration 1461), for notifications from orgs they are not a member of. */
+export interface MyQuietHours {
+  readonly timeZone: string;
+  /** Local `HH:MM` quiet hours begin, or null for none. */
+  readonly start: string | null;
+  readonly end: string | null;
+}
+
+/** The signed-in person's own quiet hours, or null when they never set any. */
+export async function getMyQuietHours(db: XosClient): Promise<Result<MyQuietHours | null>> {
+  const { data, error } = await db
+    .from("person_notification_settings")
+    .select("time_zone, quiet_hours_start, quiet_hours_end")
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data) return ok(null);
+  return ok({
+    timeZone: data.time_zone,
+    start: data.quiet_hours_start?.slice(0, 5) ?? null,
+    end: data.quiet_hours_end?.slice(0, 5) ?? null,
+  });
+}
+
+/**
+ * Records the signed-in person's quiet hours and the time zone they are read in (app.set_my_quiet_hours).
+ * Pushes from orgs they are not a member of wait them out, unless the kind bypasses quiet hours
+ * (ADR 0033 decision 35). Both times null turns quiet hours off.
+ */
+export async function setMyQuietHours(db: XosClient, input: MyQuietHours): Promise<Result<null>> {
+  const { error } = await db.rpc("set_my_quiet_hours", {
+    p_time_zone: input.timeZone,
+    ...(input.start && input.end
+      ? { p_quiet_hours_start: input.start, p_quiet_hours_end: input.end }
+      : {}),
+  });
+  return error ? fail(toDataError(error)) : ok(null);
 }

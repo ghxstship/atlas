@@ -23,7 +23,7 @@ We handle personal data in two different roles, and which role applies decides w
 - the public marketplace profile a person chooses to publish in Gateway
 - billing contacts and subscription records of Customers
 - visitors to our websites and documentation
-- support requests, community forum posts and feedback
+- support requests and feedback
 - security logs and fraud prevention
 - marketing communications to business contacts
 
@@ -41,7 +41,7 @@ The **Contact Page** means the page at /legal/contact. It lists our postal addre
 | Authentication and security | Password hash, multi-factor settings, session records, IP address, device type, sign-in events              | You and your device          |
 | Marketplace profile         | Headline, city-level location, skills, certifications, portfolio, press kit, rates, availability, languages | You, with visibility you set |
 | Billing                     | Billing contact, company name, tax ID, billing address, plan, invoices. Card data stays with Stripe         | Customer and Stripe          |
-| Communications              | Support tickets, diagnostics you consent to attach, emails, forum posts                                     | You                          |
+| Communications              | Support tickets, diagnostics you consent to attach, emails                                                  | You                          |
 | Website and app usage       | Pages viewed, features used, error reports, performance metrics                                             | Your browser and device      |
 | Consent and preferences     | Cookie choices, Global Privacy Control signals, SMS consent, email preferences, document acceptances        | You and your browser         |
 

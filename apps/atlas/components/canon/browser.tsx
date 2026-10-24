@@ -1,12 +1,7 @@
 import {
   listCanonExtensionProposals,
-  listCanonRoles,
-  listCategories,
-  listDepartments,
-  listDisciplines,
   listJurisdictions,
   listMetrics,
-  listPhases,
   listRecordKinds,
 } from "@xos/data/canon";
 import type { ReactNode } from "react";
@@ -23,11 +18,20 @@ import { InlineAlert, PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
+import {
+  localizedCanonRoles,
+  localizedCategories,
+  localizedDepartments,
+  localizedDisciplines,
+  localizedPhases,
+} from "@/lib/canon/labels";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 /**
  * The read-only Canon browser (Section 4.2 Canon, Section 7.2): the xpms canon every tenant shares,
- * with no create or edit controls. The org's own extensions in .50 to .99 are proposed under Org
+ * with no create or edit controls. Department, discipline, category, phase and role names read in the
+ * viewer's language where canon has a translation (xpms.canon_labels, Section 15); codes never change. The org's own extensions in .50 to .99 are proposed under Org
  * extensions; approved ones show beside canon here, marked as the org's.
  */
 
@@ -47,6 +51,7 @@ interface Detail {
 /** Renders one canon collection with its peek and full page, all read-only. */
 function CanonCollection({
   title,
+  today,
   views,
   search,
   path,
@@ -57,6 +62,8 @@ function CanonCollection({
   t,
 }: {
   title: string;
+  /** Today on the org's calendar (`orgToday`), for the calendar view's month. */
+  today: string;
   views: readonly ViewKind[];
   search: SearchParams;
   path: string;
@@ -66,7 +73,7 @@ function CanonCollection({
   detail: (id: string) => Detail | undefined;
   t: Copy;
 }) {
-  const state = collectionState(search, views);
+  const state = collectionState(search, views, today);
   const selected = state.peek ? detail(state.peek) : undefined;
   if (selected && state.full) {
     return (
@@ -127,13 +134,14 @@ async function approvedExtensions(ctx: OrgContext) {
 export async function CanonDepartments({ ctx, path, search }: PageProps) {
   const [t, departments, disciplines] = await Promise.all([
     getCopy("canonBrowser"),
-    listDepartments(ctx.viewer.db),
-    listDisciplines(ctx.viewer.db),
+    localizedDepartments(ctx),
+    localizedDisciplines(ctx),
   ]);
   const title = t("departments.title");
   if (!departments.ok || !disciplines.ok) return failed(title, t);
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}
@@ -190,9 +198,9 @@ export async function CanonDepartments({ ctx, path, search }: PageProps) {
 export async function CanonDisciplines({ ctx, path, search }: PageProps) {
   const [t, departments, disciplines, categories, extensions] = await Promise.all([
     getCopy("canonBrowser"),
-    listDepartments(ctx.viewer.db),
-    listDisciplines(ctx.viewer.db),
-    listCategories(ctx.viewer.db),
+    localizedDepartments(ctx),
+    localizedDisciplines(ctx),
+    localizedCategories(ctx),
     approvedExtensions(ctx),
   ]);
   const title = t("disciplines.title");
@@ -213,6 +221,7 @@ export async function CanonDisciplines({ ctx, path, search }: PageProps) {
   const sourceOf = (d: (typeof all)[number]) => (d.org ? t("orgExtension") : d.source);
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "tree", "list"]}
@@ -281,8 +290,8 @@ export async function CanonDisciplines({ ctx, path, search }: PageProps) {
 export async function CanonCategories({ ctx, path, search }: PageProps) {
   const [t, disciplines, categories, extensions] = await Promise.all([
     getCopy("canonBrowser"),
-    listDisciplines(ctx.viewer.db),
-    listCategories(ctx.viewer.db),
+    localizedDisciplines(ctx),
+    localizedCategories(ctx),
     approvedExtensions(ctx),
   ]);
   const title = t("categories.title");
@@ -304,6 +313,7 @@ export async function CanonCategories({ ctx, path, search }: PageProps) {
   const xyzLabel = (x: string | null) => (x ? t(`xyz.${x}`) : t("none"));
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "tree", "list"]}
@@ -362,11 +372,12 @@ export async function CanonCategories({ ctx, path, search }: PageProps) {
 }
 
 export async function CanonPhases({ ctx, path, search }: PageProps) {
-  const [t, phases] = await Promise.all([getCopy("canonBrowser"), listPhases(ctx.viewer.db)]);
+  const [t, phases] = await Promise.all([getCopy("canonBrowser"), localizedPhases(ctx)]);
   const title = t("phases.title");
   if (!phases.ok) return failed(title, t);
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}
@@ -436,6 +447,7 @@ export async function CanonRecordKinds({ ctx, path, search }: PageProps) {
   const idOf = (kind: string) => kind.replace(/[^A-Za-z0-9]+/g, "-");
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}
@@ -490,8 +502,8 @@ export async function CanonRecordKinds({ ctx, path, search }: PageProps) {
 export async function CanonRoles({ ctx, path, search }: PageProps) {
   const [t, roles, departments] = await Promise.all([
     getCopy("canonBrowser"),
-    listCanonRoles(ctx.viewer.db),
-    listDepartments(ctx.viewer.db),
+    localizedCanonRoles(ctx),
+    localizedDepartments(ctx),
   ]);
   const title = t("roles.title");
   if (!roles.ok || !departments.ok) return failed(title, t);
@@ -502,6 +514,7 @@ export async function CanonRoles({ ctx, path, search }: PageProps) {
       : t("roles.ratioLine", { ratio: r.staffingRatio, basis: r.ratioBasis ?? "" });
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}
@@ -556,6 +569,7 @@ export async function CanonJurisdictions({ ctx, path, search }: PageProps) {
   if (!jurisdictions.ok) return failed(title, t);
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}
@@ -632,8 +646,12 @@ export async function CanonMetrics({ ctx, path, search }: PageProps) {
   const title = t("metrics.title");
   if (!metrics.ok) return failed(title, t);
   const rows = metrics.data.map((m, i) => ({ ...m, id: `metric-${i + 1}` }));
+  // The domain by its plain name; its code stays in the key slot beside it (A59-017).
+  const domainName = (code: string) =>
+    t.has(`metrics.domains.${code}`) ? t(`metrics.domains.${code}`) : code.replaceAll("_", " ");
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}
@@ -652,7 +670,7 @@ export async function CanonMetrics({ ctx, path, search }: PageProps) {
         title: m.item,
         meta: String(m.value),
         cells: {
-          domain: m.domain,
+          domain: domainName(m.domain),
           item: m.item,
           value: String(m.value),
           qualifier: m.qualifier,
@@ -666,6 +684,7 @@ export async function CanonMetrics({ ctx, path, search }: PageProps) {
           key: m.domain,
           title: m.item,
           properties: [
+            { label: t("metrics.domain"), value: domainName(m.domain) },
             { label: t("metrics.value"), value: String(m.value) },
             { label: t("metrics.qualifier"), value: m.qualifier ?? t("none") },
             { label: t("metrics.source"), value: m.source ?? t("none") },

@@ -8,6 +8,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./locales": "./src/locales.ts",
+    "./load": "./src/load.ts",
+    "./formats": "./src/formats/index.ts",
+    "./units": "./src/formats/units.ts",
     "./extracts": "./src/extracts.generated.ts",
     "./messages/*": "./messages/*"
   },
@@ -23,7 +26,8 @@
     "translate:all": "node --experimental-strip-types --no-warnings scripts/translate.ts all",
     "translate:glossary": "node --experimental-strip-types --no-warnings scripts/translate.ts glossary",
     "translate:check": "node --experimental-strip-types --no-warnings scripts/translate.ts check",
-    "translate:lock": "node --experimental-strip-types --no-warnings scripts/translate.ts lock"
+    "translate:lock": "node --experimental-strip-types --no-warnings scripts/translate.ts lock",
+    "canon:sql": "node --experimental-strip-types --no-warnings scripts/canon-sql.ts"
   },
   "devDependencies": {
     "@formatjs/icu-messageformat-parser": "3.5.21",
@@ -34,5 +38,9 @@
     "typescript": "6.0.3",
     "vite": "8.3.3",
     "vitest": "5.0.3"
+  },
+  "dependencies": {
+    "libphonenumber-js": "1.13.14",
+    "localized-address-format": "1.3.3"
   }
 }

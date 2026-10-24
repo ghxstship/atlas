@@ -30,6 +30,7 @@
     "@xos/icons": "workspace:*",
     "@xos/infra": "workspace:*",
     "@xos/integrations": "workspace:*",
+    "@xos/platform": "workspace:*",
     "@xos/schemas": "workspace:*",
     "@xos/tokens": "workspace:*",
     "@xos/ui": "workspace:*",
@@ -41,7 +42,8 @@
     "radix-ui": "1.7.0",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "zod": "4.6.5"
+    "yjs": "13.6.33",
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

@@ -16,6 +16,7 @@ import type { XosClient } from "@xos/data";
 import { createApiApp } from "../../src/app.ts";
 import type { RequestContext } from "../../src/runtime/context.ts";
 import type { AnyModuleHandlers } from "../../src/runtime/handler.ts";
+import type { MountOptions } from "../../src/runtime/mount.ts";
 import type {
   BeginOutcome,
   IdempotencyStore,
@@ -247,6 +248,8 @@ export interface ContractAppOptions {
   readonly context?: Partial<RequestContext>;
   /** Null answers 401, as an anonymous caller. */
   readonly anonymous?: boolean;
+  /** The canon generation reader (canon-cache.ts); defaults to reading `xpms.version` from `db`. */
+  readonly canonGeneration?: MountOptions["canonGeneration"];
 }
 
 /** The API app with the given handlers, a fixed caller, response validation on and no rate limit. */
@@ -264,6 +267,7 @@ export function contractApp(options: ContractAppOptions) {
     idempotency: memoryIdempotencyStore(),
     onError: (error) => errors.push(error),
     requestId: () => "req-test",
+    ...(options.canonGeneration === undefined ? {} : { canonGeneration: options.canonGeneration }),
   });
   return Object.assign(app, { errors });
 }

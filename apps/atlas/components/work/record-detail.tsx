@@ -1,5 +1,8 @@
 import { listAttachments, type Attachment } from "@xos/data/attachments";
 import { listThreads, type Thread } from "@xos/data/comments";
+import { getFieldHistory, type HistoryEvent } from "@xos/data/field-history";
+import { FieldHistoryList } from "@/components/history/field-history-list";
+import { historyItems } from "@/lib/history/items";
 import { getActual, listDependencies, type Actual, type Dependency } from "@xos/data/schedule";
 import { getPunchItemForRecord } from "@xos/data/work-orders";
 import {
@@ -27,11 +30,14 @@ import {
 } from "@xos/data/work";
 import { InlineAlert, PropertyList } from "./ui";
 import { getFormatter, getLocale } from "next-intl/server";
+import { SummaryEntryRow } from "@/components/aurora/entry/summary-entry";
 import { ActualsForm, DependencyEditor } from "@/components/schedule/schedule-panels";
 import type { OrgContext } from "@/lib/shell/context";
+import { rememberView } from "@/lib/shell/recents";
 import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
-import { formatWhen, slipAmount } from "./format";
+import { formatScheduleTime, scheduleViewOf, slipAmount, type ScheduleView } from "./format";
+import { getShellSettings } from "@/lib/shell/org-settings";
 import { kindFields } from "./kind-fields";
 import { capabilitySet, loadRecordMeta, must, type RecordMeta } from "./load";
 import {
@@ -65,6 +71,8 @@ export interface RecordDetail {
   readonly watchId: string | null;
   readonly recurrence: Recurrence | null;
   readonly history: readonly StateEntry[];
+  /** Who changed which field and when, from the audit ledger (Section 4.10); null when unreadable. */
+  readonly fieldHistory: readonly HistoryEvent[] | null;
   readonly replans: readonly ReplanEntry[];
   readonly dependencies: readonly Dependency[];
   readonly siblings: readonly RecordSummary[];
@@ -78,6 +86,8 @@ export interface RecordDetail {
   readonly canWrite: boolean;
   readonly canSchedule: boolean;
   readonly canRecur: boolean;
+  /** How the viewer reads schedule times (me.time_zone_display and their own zone). */
+  readonly scheduleView: ScheduleView;
 }
 
 /** The record a display key names, with all it shows, or null when it is not visible. */
@@ -109,6 +119,8 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     punch,
     threads,
     attachments,
+    fieldHistory,
+    shell,
   ] = await Promise.all([
     loadRecordMeta(ctx),
     capabilitySet(ctx),
@@ -130,6 +142,10 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     getPunchItemForRecord(db, record.id),
     listThreads(db, subject),
     listAttachments(db, subject),
+    getFieldHistory(db, "app.records", record.id),
+    getShellSettings(db, ctx.org.id, null),
+    // The command menu's recent items (Section 11.7); beside the reads, so it adds no wait.
+    rememberView(ctx, "records", record.id),
   ]);
   return {
     record,
@@ -144,6 +160,7 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     watchId: must(watch, "watch")?.id ?? null,
     recurrence: must(recurrences, "recurrence").get(record.id) ?? null,
     history: must(history, "state history"),
+    fieldHistory: fieldHistory.ok ? fieldHistory.data : null,
     replans: must(replans, "replan log"),
     dependencies: must(deps, "dependencies"),
     siblings: must(siblings, "project records").filter((r) => r.id !== record.id),
@@ -154,6 +171,7 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     canWrite: caps.has("work.record.write") && !record.deletedAt,
     canSchedule: caps.has("schedule.timeline.write") && !record.deletedAt,
     canRecur: caps.has("work.recurring.write") && !record.deletedAt,
+    scheduleView: scheduleViewOf(shell.preferences, shell.viewerTimeZone),
   };
 }
 
@@ -168,7 +186,9 @@ export async function recordPropertyItems(detail: RecordDetail) {
   const locale = await getLocale();
   const { record, meta } = detail;
   const tz = record.timeZone ?? record.projectTimeZone;
-  const when = (v: string | null) => formatWhen(v, locale, tz) ?? t("work.values.notSet");
+  // Schedule times follow me.time_zone_display and carry their zone abbreviation (Section 15).
+  const when = (v: string | null) =>
+    formatScheduleTime(v, locale, tz, detail.scheduleView) ?? t("work.values.notSet");
   const person = (id: string | null) =>
     id
       ? (meta.people.find((p) => p.personId === id)?.name ?? t("work.values.unnamed"))
@@ -207,6 +227,28 @@ export async function recordPropertyItems(detail: RecordDetail) {
   ];
 }
 
+/**
+ * Labels of the record fields its field history shows; keys, the kind, numbering and bookkeeping
+ * columns are left out, and Trash is worded on its own.
+ */
+const RECORD_FIELD_LABELS: Readonly<Record<string, string>> = {
+  title: "work.fields.title",
+  record_subtype: "work.fields.subtype",
+  record_state: "work.columns.state",
+  phase_code: "work.fields.phase",
+  urid: "work.fields.urid",
+  xyz: "work.fields.xyz",
+  owner_party_id: "work.fields.owner",
+  accountable_party_id: "work.fields.accountable",
+  scope_node_id: "work.fields.scope",
+  starts_at: "work.fields.starts",
+  ends_at: "work.fields.ends",
+  due_at: "work.fields.due",
+  time_zone: "work.fields.timeZone",
+  blocker_text: "work.record.blockedBy",
+  replan_reason: "work.fields.replanReason",
+};
+
 /** The content column: state moves, editing, the kind's attributes, work, schedule and history. */
 export async function RecordBody({
   org,
@@ -229,11 +271,43 @@ export async function RecordBody({
   const names = Object.fromEntries(
     meta.people.map((p) => [p.personId, p.name ?? t("work.values.unnamed")]),
   );
-  const when = (v: string | null) => formatWhen(v, locale, tz) ?? t("work.values.notSet");
+  const when = (v: string | null) =>
+    formatScheduleTime(v, locale, tz, detail.scheduleView) ?? t("work.values.notSet");
   const dated = record.startsAt || record.endsAt || record.dueAt || detail.dependencies.length > 0;
+  // What Summarize reads (A95): the record, its state ledger and its comments, newest last.
+  const recordLabel = `${record.key} ${record.title}`;
+  const activity = [
+    { collection: "records", id: record.id, label: recordLabel },
+    ...detail.history.map((h) => ({
+      collection: "record-state-transitions",
+      id: h.id,
+      label:
+        h.from === null
+          ? t("aurora.entry.summary.itemCreated", { to: t(`work.states.${h.to}`) })
+          : t("aurora.entry.summary.itemMoved", {
+              from: t(`work.states.${h.from}`),
+              to: t(`work.states.${h.to}`),
+            }),
+    })),
+    ...detail.threads
+      .flatMap((th) => th.comments)
+      .filter((c) => c.deletedAt === null)
+      .map((c) => ({
+        collection: "comments",
+        id: c.id,
+        label: t("aurora.entry.summary.itemComment", {
+          name: names[c.authorPersonId] ?? t("work.values.unnamed"),
+        }),
+      })),
+  ].slice(0, 100);
 
   return (
     <div className="flex flex-col gap-24">
+      <SummaryEntryRow
+        subject={{ collection: "records", id: record.id, label: recordLabel }}
+        kinds={["record_activity"]}
+        items={{ record_activity: activity }}
+      />
       {record.state === "Blocked" && record.blockerText ? (
         <InlineAlert tone="warning" title={t("work.record.blockedBy")}>
           {record.blockerText}
@@ -333,6 +407,36 @@ export async function RecordBody({
           ))}
         </ol>
       </section>
+      {detail.fieldHistory ? (
+        <FieldHistoryList
+          id={record.id}
+          title={t("collab.history.title")}
+          empty={t("collab.history.empty")}
+          items={historyItems(detail.fieldHistory, {
+            t,
+            when: (iso) =>
+              format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
+            label: (field) => {
+              const key = RECORD_FIELD_LABELS[field];
+              return field === "deleted_at" ? t("collab.history.trash") : key ? t(key) : null;
+            },
+            value: (field, v) => {
+              const text = typeof v === "string" ? v : JSON.stringify(v);
+              if (field === "owner_party_id" || field === "accountable_party_id") {
+                return names[text] ?? t("work.values.unnamed");
+              }
+              if (field === "record_state") return t(`work.states.${text}`);
+              if (field === "phase_code") {
+                return meta.phases.find((p) => p.value === text)?.label ?? text;
+              }
+              if (field === "deleted_at") return when(text);
+              if (field === "starts_at" || field === "ends_at" || field === "due_at")
+                return when(text);
+              return text;
+            },
+          })}
+        />
+      ) : null}
       <section aria-labelledby={`replans-${record.id}`} className="flex flex-col gap-8">
         <h3 id={`replans-${record.id}`} className="m-0 text-label-13 font-semibold">
           {t("work.replans.title")}

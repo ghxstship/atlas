@@ -2,8 +2,11 @@ import {
   COST_CENTER_KINDS,
   UPL_FIELDS,
   listCostCenters,
+  getFxFeedStatus,
+  latestFxRates,
   listFxRates,
   listGlAccounts,
+  type FxFeedStatus,
   listPeriods,
   listPostingLines,
   listScopeNodes,
@@ -17,6 +20,8 @@ import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { exponentOf } from "@/lib/finance/money";
 import { sitemap } from "@/lib/shell/sitemap";
+import { getOrgTimeZone, orgToday } from "@/lib/shell/time-zone";
+import { dateIn } from "@xos/data/calendar";
 import { saveCostCenterAction } from "@/app/[org]/finance/actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Figures, Section, SimpleTable } from "./figures";
@@ -222,6 +227,8 @@ export async function UplView({ page }: { page: FinancePage }) {
         ) : (
           <CollectionTable
             label={t("finance.upl.tableLabel")}
+            // A posting line has no record panel: its row opens nothing.
+            activatable={false}
             columns={UPL_FIELDS.map((f, i) => ({
               key: f,
               label: columnsFor[i] ?? f,
@@ -311,6 +318,8 @@ export async function AccountsView({ page }: { page: FinancePage }) {
       ) : (
         <CollectionTable
           label={title}
+          // The chart is read-only and an account has no record panel: its row opens nothing.
+          activatable={false}
           columns={[
             { key: "code", label: t("finance.accounts.code"), type: "code" },
             { key: "name", label: t("finance.accounts.name"), wrap: true },
@@ -357,10 +366,12 @@ export async function CostCentersView({ page }: { page: FinancePage }) {
     return <FinanceCollection {...base} canCreate={false} refusal="finance.budget.read" />;
   }
   const db = ctx.viewer.db;
-  const [centers, scopes, rates] = await Promise.all([
+  const [centers, scopes, rates, feed, zone] = await Promise.all([
     listCostCenters(db, ctx.org.id),
     listScopeNodes(db, ctx.org.id),
     listFxRates(db, ctx.org.id),
+    getFxFeedStatus(db),
+    getOrgTimeZone(ctx),
   ]);
   if (!centers.ok || !scopes.ok || !rates.ok) {
     return (
@@ -491,6 +502,7 @@ export async function CostCentersView({ page }: { page: FinancePage }) {
           <div id="rates" className="mt-24 flex flex-col gap-12">
             <Section id="fx-rates" title={t("finance.fx.title")}>
               <p className="m-0 text-text-12 text-text-secondary">{t("finance.fx.sentence")}</p>
+              {feed.ok ? <FxFeedNote status={feed.data} zone={zone} date={c.date} t={t} /> : null}
               {rates.data.length === 0 ? (
                 <p className="m-0 text-text-13 text-text-secondary">{t("finance.fx.empty")}</p>
               ) : (
@@ -504,7 +516,7 @@ export async function CostCentersView({ page }: { page: FinancePage }) {
                     t("finance.fx.fields.source"),
                   ]}
                   numeric={[2]}
-                  rows={rates.data.map((r) => [
+                  rows={latestFxRates(rates.data).map((r) => [
                     r.base,
                     r.quote,
                     String(r.rate),
@@ -513,13 +525,16 @@ export async function CostCentersView({ page }: { page: FinancePage }) {
                   ])}
                 />
               )}
+              {rates.data.length > 0 ? (
+                <p className="m-0 text-text-12 text-text-secondary">{t("finance.fx.latestOnly")}</p>
+              ) : null}
               {canWrite ? (
                 <FxRateForm
                   org={ctx.org.slug}
                   currencies={currencies}
                   base="USD"
                   quote="EUR"
-                  today={new Date().toISOString().slice(0, 10)}
+                  today={await orgToday(ctx)}
                 />
               ) : null}
             </Section>
@@ -527,5 +542,54 @@ export async function CostCentersView({ page }: { page: FinancePage }) {
         </>
       }
     />
+  );
+}
+
+/**
+ * Where the ECB reference rates stand (Section 15, ADR 0053): when they last arrived and for which publication
+ * date, or that the feed is failing and why, so a stale conversion is never presented as current.
+ */
+function FxFeedNote({
+  status,
+  zone,
+  date,
+  t,
+}: {
+  status: FxFeedStatus;
+  zone: string;
+  date: (iso: string) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
+}) {
+  const day = (at: string) => date(dateIn(new Date(at), zone));
+  if (status.lastSuccessAt === null) {
+    return (
+      <p role="status" className="m-0 text-text-12 text-text-secondary">
+        {status.lastFailureAt
+          ? t("finance.fx.feed.neverFailed", {
+              date: day(status.lastFailureAt),
+              error: status.lastError ?? "",
+            })
+          : t("finance.fx.feed.never")}
+      </p>
+    );
+  }
+  if (status.failuresSinceSuccess > 0 && status.lastFailureAt) {
+    return (
+      <p role="status" className="m-0 text-text-12 text-warning-text">
+        {t("finance.fx.feed.failing", {
+          count: status.failuresSinceSuccess,
+          date: day(status.lastFailureAt),
+          error: status.lastError ?? "",
+        })}
+      </p>
+    );
+  }
+  return (
+    <p className="m-0 text-text-12 text-text-secondary">
+      {t("finance.fx.feed.arrived", {
+        date: day(status.lastSuccessAt),
+        rateDate: status.lastRateDate ? date(status.lastRateDate) : "",
+      })}
+    </p>
   );
 }

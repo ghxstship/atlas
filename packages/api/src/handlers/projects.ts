@@ -21,6 +21,7 @@ import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
 import { listPage } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
 import { requireOrg } from "../runtime/context.ts";
+import { measurementHandlers } from "./parts/measurements.ts";
 import { tableHandlers } from "./support/table.ts";
 
 type Project = Components["Project"];
@@ -427,4 +428,7 @@ export const handlers = defineHandlers("Projects", {
   // The authorities having jurisdiction over a project (app.project_authority, A54-002): a keyless view that
   // pages by project, service and agency, under the projects read policy.
   ...tableHandlers("Projects", "projectAuthorities", { softDelete: false, key: "agency" }),
+
+  // Project measurement (A98): see ./parts/measurements.ts.
+  ...measurementHandlers,
 });

@@ -1,0 +1,100 @@
+# Compass Maestro results (A66, RRR-111)
+
+The whole suite in `config.yaml` was run with `scripts/maestro-ios.sh`. Each run was one Maestro run of all 18 flows in order, on a freshly reset stack.
+
+- **Device:** iPhone 17 Pro simulator, iOS 26.5.
+- **Build:** Compass Release for the simulator, ad hoc signed, with the device recorder (not the fake).
+- **Stack:** a full local Supabase stack with the demo seed, project `xos4-a66`.
+- **Tools:** Maestro 1.39.0.
+- **Date:** 2026-10-20.
+
+Both runs passed every flow. Times are in seconds.
+
+| Flow                       | Run 1 | Run 2 | Notes                                                                                                                                        |
+| -------------------------- | ----- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| field-sign-in              | 106   | 70    |                                                                                                                                              |
+| field-clock-in-out         | 124   | 130   | Journey 52's Maestro half.                                                                                                                   |
+| field-shift-second-device  | 129   | 139   | Journey 10. The second device is refused.                                                                                                    |
+| field-claim-open-shift     | 103   | 132   | Journey 66.                                                                                                                                  |
+| field-clock-offline        | 135   | 149   | Clocks in while offline, then the queue drains on reconnect. iOS cuts the server (API gateway stopped); Android uses airplane mode.          |
+| field-incident-report      | 140   | 205   | Journeys 16 and 54, now fully offline. The voice note is recorded from the simulator's microphone. The report is filed once after reconnect. |
+| field-inspection-walk      | 120   | 165   | Journey 17. The punch record read waits for the upload.                                                                                      |
+| field-gate-scan            | 109   | 122   | Needed a fix: the code entry was under the keyboard (moved above the access points).                                                         |
+| field-receive-batch        | 156   | 145   | Journeys 5 and 53. Codes are typed, since the simulator has no camera.                                                                       |
+| field-asset-scan           | 120   | 86    | SIM-006.                                                                                                                                     |
+| desk-asset-custody         | 146   | 99    | Journey 19.                                                                                                                                  |
+| field-run-of-show          | 115   | 78    |                                                                                                                                              |
+| handoff-open-record        | 126   | 82    | Journey 58.                                                                                                                                  |
+| supervisor-kiosk           | 162   | 98    | Registers its own kiosk and PIN (`kiosk-device.js`). A wrong PIN answers "4 attempts left"; the right PIN's Kiosk punch reaches the server.  |
+| crew-external-today        | 96    | 76    |                                                                                                                                              |
+| vendor-external-scan       | 91    | 85    |                                                                                                                                              |
+| account-delete             | 92    | 75    | Journey 38.                                                                                                                                  |
+| settings-sunlight-sign-out | 68    | 53    |                                                                                                                                              |
+
+## Failures found, and their fixes
+
+| Failure                                                                                                     | Cause                                                                                                                                                                                                                                                | Fix                                                                                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Flows ran in random order; state-changing flows collided.                                                   | Maestro matches `flowsOrder` against each flow's `name`, not its file name. Every flow had a descriptive name, so the order was ignored.                                                                                                             | Each flow is named after its file, with the description kept as a comment. `test/maestro.test.ts` checks this.                                                                                                                                              |
+| Every flow after `crew-external-today` failed at sign-out.                                                  | `centerElement` cannot centre Settings on a short More menu (crew, vendor).                                                                                                                                                                          | The centred scroll is optional.                                                                                                                                                                                                                             |
+| `field-clock-offline` could not run on iOS.                                                                 | Maestro sets airplane mode only on Android.                                                                                                                                                                                                          | On iOS, `scripts/maestro-network.ts` stops and restarts the stack's API gateway. The device stays online, so the flow checks the queued banner instead of the offline notice.                                                                               |
+| `supervisor-kiosk` needed keys by hand.                                                                     | The flow expected `KIOSK_DEVICE_KEY` and PIN digits, and the nightly job passed none.                                                                                                                                                                | `kiosk-device.js` registers a kiosk and sets a PIN as the Demo Admin.                                                                                                                                                                                       |
+| `supervisor-kiosk` showed no verdict, or "saved, checked when back online".                                 | The kiosk-punch Edge Function boots the whole `@xos/platform` bundle. A new worker hits its CPU limit while starting and about half the requests answer 546, which the kiosk handled as being offline.                                               | App: the kiosk sends a punch again on a 5xx, up to three tries (`sendKioskPunch`, unit tested). Flow: wakes the function first, and checks the Kiosk punch landed on the server.                                                                            |
+| `supervisor-kiosk`: the right PIN was refused.                                                              | The kiosk key lives in the keychain, which outlives sign-out and reinstall. A key from a run against a since-reset stack opened the kiosk on its roster. Also, a repeated keypad tap could type a digit twice.                                       | The flow clears the keychain first, and keypad taps never repeat.                                                                                                                                                                                           |
+| `field-gate-scan`: "Access denied" never showed.                                                            | With five access points, the picker wrapped and pushed "Type a code" under the keyboard. Look Up could not be reached, and a person could not see the typed badge number.                                                                            | App: the code entry sits above the access points.                                                                                                                                                                                                           |
+| `field-inspection-walk`: the punch record count was 0.                                                      | The script read the server before the walk's upload finished.                                                                                                                                                                                        | The read retries for 30 seconds.                                                                                                                                                                                                                            |
+| `field-claim-open-shift` and `account-delete` failed at sign-out or sign-in.                                | The second sign-out tap raced the sign-out in progress. The iOS "Save Password?" sheet hid the screen beneath it.                                                                                                                                    | Settings names its sign-out warning (`settings-sign-out-queued`), and the subflow waits for either outcome. The save-password sheet is answered before the screen is read.                                                                                  |
+| Under a load average of 300 to 500: statement timeouts, dropped keystrokes, a leftover access-error screen. | The machine was overloaded by other agents' work.                                                                                                                                                                                                    | Sign-in uses Try Again on the access error, signs out of a leftover one, and retypes a refused sign-in once.                                                                                                                                                |
+| Voice note (A62): holding the record button produced no note.                                               | Not reproduced. The simulator records from the Mac's current audio input. Here the input was available and the microphone granted, so the note recorded in every run. A CI runner or a closed laptop has no input, and recording cannot start there. | `EXPO_PUBLIC_XOS_FAKE_RECORDER=1` builds a test-only silent recorder (`src/runtime/voiceRecorder.ts`). `app.config.ts` refuses it in EAS builds, and the nightly iOS job uses it. The production path is unchanged and was the one used in both runs above. |
+
+## Not run here
+
+- **Android.** This Mac has no Android SDK or emulator image. The nightly `maestro-android` job on GitHub runs the same suite on an API 34 emulator, with airplane mode for the offline flows.
+
+## The CI recorder
+
+The two runs above used the device recorder. A separate build with `EXPO_PUBLIC_XOS_FAKE_RECORDER=1`, the one the nightly iOS job makes, then passed `field-incident-report` on a fresh seed. Its voice note reached field-media as the 910-byte silent `audio/mp4` file. The device recorder's note was 87,839 bytes. Its unit tests are in `test/voice-recorder.test.ts`.
+
+## Open findings, not fixed here
+
+- **Kiosk-punch cold start.** The kiosk-punch Edge Function, like every function, imports `_shared/runtime.ts`, which loads the whole 1.5 MB `_vendor/xos-platform.js`. That bundle includes Stripe, Resend, react-email and every message catalog. Locally, each new worker reached its CPU soft limit while starting and was retired after one request, and about half of them hit the hard limit (546). Hosted Edge Functions have CPU limits as well, so per-function bundles for the PIN path are worth considering. The kiosk now sends a punch again on a 5xx, which covers the symptom.
+- **A kiosk cannot be re-keyed.** The kiosk device key is kept in the device settings (the keychain), which outlive sign-out and reinstall. If that key is retired or unknown to the server, the kiosk opens on its roster, every PIN is refused as a wrong PIN, and no failed attempt is counted. There is no "forget this kiosk" action. A distinct refusal for an unknown device key, and a way to clear it, would let a supervisor recover.
+
+## After merging batch-c (b77f81c3)
+
+`field-clock-offline`, `field-incident-report` and `vendor-external-scan` are the flows the merge conflicts touched. On the merged build, against a freshly reset stack with the merged migrations, all three passed. The load average was 150 to 400.
+
+Two earlier attempts in that session failed, for reasons outside these flows:
+
+- **A white screen at launch.** The data container kept the earlier build's local database, which SQLCipher could not decrypt ("hmac check failed for pgno=1"). Reinstalling cleared it.
+- **The second voice note.** One attempt reported "The microphone did not start". The recorder's stop took longer than its 3-second limit under that load. The rerun recorded both notes.
+
+## A92 flows (RRR-137): NFC, receipt capture and external screens
+
+A92 added `field-nfc-scan`, `field-expense-receipt` and `crew-external-work`, and moved `crew-external-today` and `vendor-external-scan` onto the native external screens. All five ran in one Maestro run, in `config.yaml` order.
+
+- **Device:** iPhone 17 Pro simulator, iOS 26.5.
+- **Build:** Compass Debug for the simulator, with its JavaScript from Metro on port 8192. Metro ran with `EXPO_PUBLIC_XOS_FAKE_NFC=1` and `EXPO_PUBLIC_XOS_FAKE_RECORDER=1` (both refused in EAS builds), since a simulator has no NFC radio.
+- **Stack:** project `xos4-a92`, freshly reset with batch-c 6a41bf17 merged, including seed 1490 (Demo Road Crew).
+- **Tools:** Maestro 1.39.0.
+- **Date:** 2026-10-23. The load average was 30 to 120.
+
+The final run passed every flow. Times are in seconds.
+
+| Flow                  | Time | Notes                                                                                                                                                                                |
+| --------------------- | ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| field-nfc-scan        | 109  | A wristband's NDEF text record at the Main Gate is refused as its QR code would be. Lookup reads AUD-0042 from a tag and writes it to a blank one. A bare chip goes to the desk.     |
+| field-expense-receipt | 114  | Receipt photo, budget line and amount, saved offline and filed once on reconnect: one expense of 4,250 cents with one receipt. Without Atlas, the screen says Aurora cannot read it. |
+| crew-external-today   | 96   | The crew member's engagement is in Onboarding, so clock-in and scanning stay closed. The onboarding checklist is a Compass screen.                                                   |
+| crew-external-work    | 130  | Demo Road Crew's timesheet (June 4 to 6) and per diem (3 days, 180.00), then travel and onboarding with the server stopped. The flight shows each end in its own zone.               |
+| vendor-external-scan  | 98   | Purchase orders, deliveries and submittals are Compass screens. The vendor has no orders yet, so the empty state shows.                                                              |
+
+### Failures found, and their fixes
+
+| Failure                                                                        | Cause                                                                                                                                                | Fix                                                                                                                                      |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `field-expense-receipt` typed "crewy" and "42.508".                            | The decimal pad has no return key, so `hideKeyboard` tapped one of its keys.                                                                         | App: dragging the form closes the keyboard (`keyboardDismissMode` on-drag), as a person does. Flow: it swipes instead of `hideKeyboard`. |
+| `crew-external-work`: the departure and arrival times were never visible.      | Hermes writes a narrow no-break space before AM and PM; the pattern had a plain space.                                                               | The pattern takes any character there.                                                                                                   |
+| `vendor-external-scan`: "Compass cannot reach the server" at sign-in.          | The flow before it failed while offline, before its own step to come back online, so the API gateway stayed stopped.                                 | Both offline flows restore the network in `onFlowComplete`, which runs however the flow ends.                                            |
+| `field-expense-receipt` on a second run: two expenses instead of one.          | The check counted the first run's expense as well.                                                                                                   | The check counts only expenses filed since the flow started, so it can run again on the same stack.                                      |
+| `crew-external-today` after `field-expense-receipt`: the More tab did nothing. | On a Debug build, React Native's harmless "Sending `onAnimatedValueUpdate` with no listeners registered" notice put a LogBox toast over the tab bar. | `index.ts` ignores that one notice. LogBox is off in release builds, so the nightly jobs never saw it.                                   |
