@@ -20,4 +20,4 @@ Cada alerta muestra su nombre, el tipo de rol que busca (o Cualquier tipo de rol
 - **Desactivar** las alertas para conservar la búsqueda sin avisos, y **Activar** para retomarlas
 - **Quitar** la búsqueda
 
-Las notificaciones push te llegan en Compass, en tu teléfono. El correo va a la dirección con la que inicias sesión.
+Las notificaciones push te llegan en este navegador cuando activas Notificaciones del Navegador en [Configuración, Notificaciones](help:settings-notifications), y en Compass, en tu teléfono. Una notificación push abre la oferta, o Alertas cuando coinciden varias. El correo va a la dirección con la que inicias sesión.
