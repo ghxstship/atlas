@@ -1429,7 +1429,7 @@ comment on column xpms.label_mapping.playbook_label is 'The label as the Playboo
 comment on column xpms.label_mapping.target_domain is 'Vocabulary the label maps into: state (canon states), unit, element_kind, counterparty_type, order_type, freight_type, record_kind, record_subtype, phase, department, category, or an app lifecycle (production_state, work_order_state, asset_state, shift_state).';
 comment on column xpms.label_mapping.canon_value is 'The existing value the label maps to (a record subtype as kind · subtype); NULL when the decision does not cover it.';
 comment on column xpms.label_mapping.basis is 'Why: casing-or-punctuation, same-label, closest-state, closest-value, not-added (a Playbook-only row) or deferred.';
-comment on column xpms.label_mapping.decision is 'Owner decision that set the mapping (D25).';
+comment on column xpms.label_mapping.decision is 'Owner decision that set the mapping: D25, or D39 for a unit its time dimension adds.';
 comment on column xpms.label_mapping.note is 'Reasoning for the mapping.';
 
 create table xpms.declared_gap (

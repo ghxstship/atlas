@@ -187,7 +187,12 @@ export const GOVERNANCE_TABLES: readonly TableSpec[] = [
         check:
           "basis in ('casing-or-punctuation', 'same-label', 'closest-state', 'closest-value', 'not-added', 'deferred')",
       },
-      { name: "decision", type: "code", comment: "Owner decision that set the mapping (D25)." },
+      {
+        name: "decision",
+        type: "code",
+        comment:
+          "Owner decision that set the mapping: D25, or D39 for a unit its time dimension adds.",
+      },
       { name: "note", type: "text", nullable: true, comment: "Reasoning for the mapping." },
     ],
     checks: ["(basis = 'deferred') = (canon_value is null)"],

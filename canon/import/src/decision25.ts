@@ -33,6 +33,8 @@ export interface Resolution {
   /** The value canon holds after the decision; null when canon holds none. */
   readonly canon: string | null;
   readonly note: string;
+  /** The owner decision a label mapping names when it is not decision 25 (xpms.label_mapping.decision). */
+  readonly decision?: string;
 }
 
 export interface LibraryLabel {
@@ -252,7 +254,7 @@ export function labelMappingRows(
       target_domain: targetDomain(d25, l.domain, l.label),
       canon_value: l.resolution.canon,
       basis: l.resolution.basis,
-      decision: d25.decision,
+      decision: l.resolution.decision ?? d25.decision,
       note: l.resolution.note,
     });
   }

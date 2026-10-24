@@ -129,6 +129,14 @@ describe("decision 39 applied to canon", () => {
       expect(aliases.find((a) => a["alias"] === u)?.["dimension_code"]).toBe("time");
     expect(aliases.find((a) => a["alias"] === "each")?.["dimension_code"]).toBeNull();
     expect(unitDimension(d39, "lot")).toBeNull();
+    const mapping = (label: string) =>
+      rows("label_mapping").find(
+        (m) =>
+          m["source_list"] === "Enumerations: Unit of Measure" && m["playbook_label"] === label,
+      );
+    expect(mapping("Hour")).toMatchObject({ canon_value: "hour", decision: "D39" });
+    expect(mapping("Week")).toMatchObject({ canon_value: "week", decision: "D39" });
+    expect(mapping("Day")).toMatchObject({ canon_value: "day", decision: "D25" });
   });
 
   it("declares the gaps of the phases with no Active element, and only those", () => {

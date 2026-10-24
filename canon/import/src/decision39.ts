@@ -166,6 +166,27 @@ export function unitDimensionRows(d39: Decision39): SqlRow[] {
   return d39.unit_dimensions.map((d) => ({ dimension_code: d.dimension_code, name: d.name }));
 }
 
+/**
+ * A Standard Library unit label that resolves only because the ruling adds its unit (Hour and Week): its mapping
+ * names decision 39 rather than decision 25's casing rule. Undefined for a unit the Item Catalog already states.
+ */
+export function addedUnitLabel(
+  d39: Decision39,
+  label: string,
+  unit: string,
+  catalogUnits: ReadonlySet<string>,
+): Resolution | undefined {
+  const dimension = d39.unit_dimensions.find((d) => d.units.includes(unit));
+  if (dimension === undefined || catalogUnits.has(unit)) return undefined;
+  return {
+    outcome: "mapped-to-existing",
+    basis: "casing-or-punctuation",
+    canon: unit,
+    decision: d39.decision,
+    note: `${rulingName(d39)}: the ${dimension.name.toLowerCase()} dimension adds ${unit} as a canon unit, so Unit of Measure ${label} resolves to it.`,
+  };
+}
+
 /** The ratified dimension of a unit, or null. */
 export function unitDimension(d39: Decision39, unit: string): string | null {
   return d39.unit_dimensions.find((d) => d.units.includes(unit))?.dimension_code ?? null;

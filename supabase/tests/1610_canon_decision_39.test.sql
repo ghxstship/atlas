@@ -32,12 +32,11 @@ select is(
     where source_sheet = 'Procurement Catalog' and source_column = 'DEFAULT PHASE' and intake_state = 'Canceled'),
   100, 'the Playbook''s phase names stay in intake for the round trip');
 
--- Rulings 2 to 5: labels, statements and role codes --------------------------------------------------------------
+-- Rulings 2 to 5: labels, statements and role codes. Rulings 2 and 3 change no stored value (canon stores the
+-- codes, never tab 27's or the Item Catalog's department labels), so canon/import/test/decision39.test.ts covers them.
 select is((select count(*)::int from xpms.canon_statement where tab like '23%'), 0, 'tab 23''s headings are not loaded');
 select is((select count(*)::int from xpms.dim_budget_template_rule where rule like '=%'), 0, 'no tab 34 rule is an empty formula');
 select is((select count(*)::int from xpms.dim_budget_template_rule), 10, 'tab 34 keeps its ten stated rules');
-select is((select department from xpms.dim_department d join xpms.dim_role r using (dept_code) where r.role_code = '4000.50.01'),
-  'Environment', 'department 4000 is Environment for its roles');
 select is((select count(*)::int from xpms.role where role_code in ('2000.50.02', '5000.50.03', '6000.50.03')), 3,
   'the Roles Library owns the three role codes tab 27 lacks');
 select is((select count(*)::int from xpms.dim_role where role_code in ('2000.50.02', '5000.50.03', '6000.50.03')), 0,
@@ -48,6 +47,9 @@ select is((select name from xpms.dim_unit_dimension where dimension_code = 'time
 select is((select string_agg(alias, ', ' order by alias) from xpms.dim_unit_alias where dimension_code = 'time'),
   'day, hour, week, year', 'hour, day, week and year are time units');
 select is((select count(*)::int from xpms.dim_unit_alias where dimension_code is null), 7, 'the other unit bases keep no dimension');
+select is((select string_agg(playbook_label || '=' || canon_value || ' ' || decision, ', ' order by playbook_label) from xpms.label_mapping
+  where source_list = 'Enumerations: Unit of Measure' and playbook_label in ('Hour', 'Week')),
+  'Hour=hour D39, Week=week D39', 'the Standard Library units Hour and Week map to the units decision 39 adds');
 
 -- Ruling 8 and doctrine 3.4: declared gaps ------------------------------------------------------------------------
 select is((select count(*)::int from xpms.v_phase_coverage where not has_active_element and not declared_gap), 0,

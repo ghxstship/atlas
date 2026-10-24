@@ -25,7 +25,7 @@ import {
   resolveValue,
 } from "../decision25.ts";
 import type { Decision25, Resolution } from "../decision25.ts";
-import { RulingUse, ruled, ruledPhase } from "../decision39.ts";
+import { RulingUse, addedUnitLabel, ruled, ruledPhase } from "../decision39.ts";
 import type { Decision39 } from "../decision39.ts";
 
 export const TEMPLATE_CODE = "XOS-4.0";
@@ -460,6 +460,7 @@ function crossCheckLibrary(
       values: new Set((tables.get("dim_unit_alias") ?? []).map((u) => String(u["alias"]))),
     },
   };
+  const catalogUnits = new Set((tables.get("elements") ?? []).map((e) => String(e["unit_basis"])));
   for (const e of tables.get("std_enumeration") ?? []) {
     const domain = String(e["enum_domain"] ?? "");
     const label = String(e["enum_label"] ?? "");
@@ -467,7 +468,13 @@ function crossCheckLibrary(
     if (!v) continue;
     if (!v.values.has(label)) {
       const key = String(e["record_id"] ?? "");
-      const resolution = libraryLabel(d25, domain, label, key, v.values);
+      const found = libraryLabel(d25, domain, label, key, v.values);
+      const resolution =
+        domain === "Unit of Measure" &&
+        found?.basis === "casing-or-punctuation" &&
+        found.canon !== null
+          ? (addedUnitLabel(d39, label, found.canon, catalogUnits) ?? found)
+          : found;
       if (resolution?.outcome === "deferred") used.deferred.add(`Enumerations|${key}`);
       else if (resolution && resolution.basis !== "casing-or-punctuation")
         used.library.add(`${domain}|${label}`);

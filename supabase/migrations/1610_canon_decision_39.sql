@@ -100,8 +100,9 @@ update xpms.dim_unit_alias set dimension_code = 'time' where alias in ('day', 'y
 update xpms.label_mapping m
 set canon_value = lower(m.playbook_label),
     basis = 'casing-or-punctuation',
-    note = format('Owner decision 25: Unit of Measure %s differs from canon %s only in casing or punctuation, so it follows the Bible.',
-      m.playbook_label, lower(m.playbook_label))
+    decision = 'D39',
+    note = format('Owner decision 39 (2026-10-23, RRR-66): the time dimension adds %s as a canon unit, so Unit of Measure %s resolves to it.',
+      lower(m.playbook_label), m.playbook_label)
 where m.source_list = 'Enumerations: Unit of Measure' and m.playbook_label in ('Hour', 'Week') and m.basis = 'deferred';
 
 -- Comments the regenerated 0101 carries ---------------------------------------------------------------------------
@@ -115,6 +116,7 @@ comment on column xpms.elements.purchase_account is 'Purchase account: the item'
 comment on column xpms.elements.sales_account is 'Sales account: the item''s explicit GL default on the revenue side (ruling D13 as owner decision 39 reads it).';
 comment on column xpms.dim_touchpoint.lifecycle_phase_code is 'Lifecycle gate, relabeled to 4.0; NULL where canon names a value that is not a gated phase (held in xpms.intake). A name an owner ruling reads as a gated phase takes that phase (decision 39: Show is OPR).';
 comment on table xpms.dim_unit_dimension is 'Physical dimensions of units (count, length, time and so on). Owner decision 39 (2026-10-23) ratifies time; any other dimension arrives through intake.';
+comment on column xpms.label_mapping.decision is 'Owner decision that set the mapping: D25, or D39 for a unit its time dimension adds.';
 comment on table xpms.dim_unit_alias is 'Unit bases used by canon (the Item Catalog unit_basis values, and hour and week, which owner decision 39 adds with the time dimension). A unit without a dimension refuses arithmetic rather than guessing.';
 
 -- Phase coverage reports the declared gaps (doctrine 3.4) --------------------------------------------------------
