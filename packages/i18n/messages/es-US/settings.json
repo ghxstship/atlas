@@ -724,6 +724,7 @@
       "push": "Push"
     },
     "cellLabel": "{category} por {channel}",
+    "notOffered": "No se envía nada de {category} por {channel}.",
     "urgent": "Urgente: nunca espera al resumen por correo electrónico.",
     "save": "Guardar configuración de notificaciones",
     "saved": "Configuración de notificaciones guardada.",

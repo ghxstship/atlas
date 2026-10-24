@@ -4,6 +4,22 @@ import { PlatformDbError, recipientProfile } from "./platform-stores.js";
 import { isLocale } from "./i18n-locales.js";
 import { formatMessage } from "./email-messages.js";
 import { z } from "zod";
+//#region ../schemas/src/notifications/model.ts
+/**
+ * The notification kind registry model (Section 3.15). `notification-kinds.yaml` declares every channel
+ * default, email template, preference category and notification kind once; the database reference rows,
+ * the preference matrix and the templates index are generated from it.
+ */
+/** Channels a notification can reach a person on (app.notification_channel), in matrix order. */
+var NOTIFICATION_CHANNELS = ["In App", "Email", "SMS", "Push"];
+/** Catalog keys (in the `email` namespace) of a kind's subject and body. */
+function copyKeys(kind) {
+  return {
+    subject: `kinds.${kind}.subject`,
+    body: `kinds.${kind}.body`,
+  };
+}
+//#endregion
 //#region ../schemas/src/notifications/registry.generated.ts
 /** The templates index: every notification kind. */
 var NOTIFICATION_KINDS = [
@@ -608,22 +624,6 @@ var NOTIFICATION_KINDS = [
     },
   },
 ];
-//#endregion
-//#region ../schemas/src/notifications/model.ts
-/**
- * The notification kind registry model (Section 3.15). `notification-kinds.yaml` declares every channel
- * default, email template, preference category and notification kind once; the database reference rows,
- * the preference matrix and the templates index are generated from it.
- */
-/** Channels a notification can reach a person on (app.notification_channel), in matrix order. */
-var NOTIFICATION_CHANNELS = ["In App", "Email", "SMS", "Push"];
-/** Catalog keys (in the `email` namespace) of a kind's subject and body. */
-function copyKeys(kind) {
-  return {
-    subject: `kinds.${kind}.subject`,
-    body: `kinds.${kind}.body`,
-  };
-}
 //#endregion
 //#region ../schemas/src/notifications/parse.ts
 var CODE = /^[a-z][a-z_]*$/;

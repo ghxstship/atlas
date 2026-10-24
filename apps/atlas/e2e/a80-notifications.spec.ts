@@ -5,7 +5,8 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
  * Notification settings (A80, RRR-125, finding A65-021): an Owner sets the org's defaults and makes
  * Safety mandatory on Settings, Notifications (Section 4.5.6 item 29); on Personal settings,
  * Notifications the member sees those defaults, cannot turn a locked channel off, and saves their own
- * choices, quiet hours and digest (item 8). Both pages render axe clean.
+ * choices, quiet hours and digest (item 8). Both pages render axe clean. Neither offers a channel a category's
+ * kinds never reach (A104): Opportunities has no SMS switch.
  */
 test("org notification defaults and the personal preference matrix", async ({ page }) => {
   test.setTimeout(5 * 60_000);
@@ -20,6 +21,10 @@ test("org notification defaults and the personal preference matrix", async ({ pa
   const org = page.getByRole("form", { name: "Organization notification defaults" });
   await expect(org.getByRole("heading", { name: "Defaults for members" })).toBeVisible();
   await expectAccessible(page);
+  await expect(
+    org.getByRole("checkbox", { name: "Opportunities by Email", exact: true }),
+  ).toBeVisible();
+  await expect(org.getByRole("checkbox", { name: "Opportunities by Text (SMS)" })).toHaveCount(0);
   const feedEmail = org.getByRole("checkbox", { name: "Feed by Email", exact: true });
   await expect(feedEmail).toBeChecked();
   await feedEmail.uncheck();
@@ -50,6 +55,7 @@ test("org notification defaults and the personal preference matrix", async ({ pa
   await expect(
     mine.getByRole("checkbox", { name: "Feed by Email", exact: true }),
   ).not.toBeChecked();
+  await expect(mine.getByRole("checkbox", { name: "Opportunities by Text (SMS)" })).toHaveCount(0);
   const lockedPush = mine.getByRole("checkbox", {
     name: "Safety by Push. Required by your organization",
   });

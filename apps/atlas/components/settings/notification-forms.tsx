@@ -14,7 +14,8 @@ import { MATRIX_CHANNELS } from "@/lib/settings/notification-matrix";
 /**
  * The notification matrix forms (Section 4.5.6): a member's categories by channel with quiet hours and
  * digest (Personal settings, Notifications), and the org's defaults with mandatory categories
- * (Settings, Notifications). Each page has one form and its one primary action.
+ * (Settings, Notifications). Each page has one form and its one primary action. A row carries a cell
+ * only for the channels its category's kinds reach (A104); the other columns show no switch.
  */
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -135,6 +136,15 @@ function Cell({
   );
 }
 
+/** A column the category's kinds never reach: an empty cell, with a sentence saying so for assistive technology. */
+function NotOffered({ label }: { label: string }) {
+  return (
+    <td className="px-8 py-8 text-center align-top">
+      <span className="sr-only">{label}</span>
+    </td>
+  );
+}
+
 /** Personal settings, Notifications: the matrix, quiet hours and digest in one form. */
 export function MyNotificationsForm({
   org,
@@ -179,12 +189,14 @@ export function MyNotificationsForm({
               {rows.map((row) => (
                 <tr key={row.category} className="border-b border-border-subtle">
                   <CategoryHeader category={row.category} urgent={row.urgent} />
-                  {row.cells.map((cell) => {
-                    const key = MATRIX_CHANNELS.find((c) => c.channel === cell.channel)?.key ?? "";
-                    const label = t("cellLabel", {
+                  {MATRIX_CHANNELS.map(({ channel, key }) => {
+                    const words = {
                       category: t(`categories.${row.category}.label`),
                       channel: t(`channels.${key}`),
-                    });
+                    };
+                    const cell = row.cells.find((c) => c.channel === channel);
+                    if (!cell) return <NotOffered key={channel} label={t("notOffered", words)} />;
+                    const label = t("cellLabel", words);
                     return cell.locked ? (
                       <Cell
                         key={cell.channel}
@@ -335,16 +347,18 @@ export function OrgNotificationDefaultsForm({
               {rows.map((row) => (
                 <tr key={row.category} className="border-b border-border-subtle">
                   <CategoryHeader category={row.category} urgent={row.urgent} />
-                  {row.cells.map((cell) => {
-                    const key = MATRIX_CHANNELS.find((c) => c.channel === cell.channel)?.key ?? "";
+                  {MATRIX_CHANNELS.map(({ channel, key }) => {
+                    const words = {
+                      category: t(`categories.${row.category}.label`),
+                      channel: t(`channels.${key}`),
+                    };
+                    const cell = row.cells.find((c) => c.channel === channel);
+                    if (!cell) return <NotOffered key={channel} label={t("notOffered", words)} />;
                     return (
                       <Cell
-                        key={cell.channel}
-                        name={`default.${row.category}.${cell.channel}`}
-                        label={t("cellLabel", {
-                          category: t(`categories.${row.category}.label`),
-                          channel: t(`channels.${key}`),
-                        })}
+                        key={channel}
+                        name={`default.${row.category}.${channel}`}
+                        label={t("cellLabel", words)}
                         checked={cell.enabled}
                         disabled={!canEdit}
                       />

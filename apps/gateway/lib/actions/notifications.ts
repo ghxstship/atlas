@@ -2,7 +2,7 @@
 
 import {
   PARTY_CATEGORIES,
-  PARTY_CHANNELS,
+  partyChannels,
   setMyNotificationPreference,
   setMyQuietHours,
 } from "@xos/data/party-notifications";
@@ -17,8 +17,8 @@ export interface PreferencesState {
 }
 
 /**
- * Saves the signed-in person's Email and Push choice for every party category (migration 1131).
- * A checkbox left unchecked turns the channel off. Each person writes only their own rows.
+ * Saves the signed-in person's Email and Push choice for every party category (migration 1131), on the channels
+ * the category reaches (A104). A checkbox left unchecked turns the channel off. Each person writes only their own rows.
  */
 export async function saveNotificationPreferencesAction(
   prev: PreferencesState,
@@ -26,7 +26,7 @@ export async function saveNotificationPreferencesAction(
 ): Promise<PreferencesState> {
   const ctx = await requireNode("settings.notifications");
   for (const category of PARTY_CATEGORIES) {
-    for (const channel of PARTY_CHANNELS) {
+    for (const channel of partyChannels(category)) {
       const result = await setMyNotificationPreference(ctx.db, {
         personId: ctx.personId,
         category,

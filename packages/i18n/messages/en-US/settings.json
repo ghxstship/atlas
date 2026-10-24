@@ -724,6 +724,7 @@
       "push": "Push"
     },
     "cellLabel": "{category} by {channel}",
+    "notOffered": "Nothing in {category} is sent by {channel}.",
     "urgent": "Urgent: never waits for the email digest.",
     "save": "Save notification settings",
     "saved": "Notification settings saved.",
