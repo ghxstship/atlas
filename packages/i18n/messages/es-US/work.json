@@ -333,7 +333,9 @@
     "none": "Ninguno",
     "notSet": "Sin definir",
     "unpriced": "Sin precio",
-    "gate": "Compuerta {gate} · {name}"
+    "gate": "Compuerta {gate} · {name}",
+    "yes": "Sí",
+    "no": "No"
   },
   "fields": {
     "title": "Título",
@@ -725,5 +727,13 @@
     "mitigation": "Mitigación",
     "baseline_locked_at": "Fijado en una línea base",
     "title": "Detalles de {kind}"
+  },
+  "undo": {
+    "edited": "Se editó {key}.",
+    "moved": "{key} pasó a {state}.",
+    "reason": "Se deshizo el último cambio de estado.",
+    "checked": "Se marcó {label}.",
+    "unchecked": "Se desmarcó {label}.",
+    "changedSince": "Alguien cambió esto después de su edición; vuelva a cargar la página para ver el cambio."
   }
 }

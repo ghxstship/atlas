@@ -17,7 +17,12 @@
     "someRow": "A selected row",
     "done": "{count, plural, one {Changed # row.} other {Changed # rows.}}",
     "failed": "The change couldn't be saved. Try again.",
-    "none": "None"
+    "none": "None",
+    "staleTitle": "{count, plural, one {# row changed} other {# rows changed}} after you loaded the page",
+    "staleBody": "Someone saved these rows after you opened this page. Keep your change on them, or take theirs and leave them out of this change.",
+    "staleRow": "{row}: you chose {mine}; someone else saved {theirs}.",
+    "keepMine": "Keep mine",
+    "takeTheirs": "Take theirs"
   },
   "undo": {
     "notifications": "Undo notifications",
@@ -75,5 +80,14 @@
     "offline": "Offline. Your changes stay here and are sent when you reconnect.",
     "saved": "Saved. Everyone in the document sees changes as you type.",
     "done": "Done"
+  },
+  "conflict": {
+    "title": "{subject} changed while you edited it",
+    "sentence": "Someone saved the same fields after you opened them. Choose which values to keep; nothing is overwritten until you choose.",
+    "field": "Field",
+    "mineColumn": "Your change",
+    "theirsColumn": "Saved by someone else",
+    "mine": "Keep mine",
+    "theirs": "Take theirs"
   }
 }

@@ -10,6 +10,8 @@ import {
   removeChecklistItem,
   restoreRecord,
   saveRecordExtension,
+  saveRecordExtensionFields,
+  saveRecordFields,
   setChecklistItemChecked,
   setRecurrence,
   transitionRecord,
@@ -19,12 +21,13 @@ import {
   updateRecord,
   watchRecord,
   type ExtensionValues,
+  type RecordFields,
 } from "@xos/data/work";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
-import { done, failed, invalid, type ActionResult } from "./action-result";
+import { done, failed, invalid, type ActionResult, type VersionedResult } from "./action-result";
 import { initialExtension } from "./kind-fields";
 
 /**
@@ -124,6 +127,66 @@ export async function updateRecordAction(
   return done(null);
 }
 
+const fieldsSchema = z.object({
+  title: z.string().trim().min(1).max(200).nullable().optional(),
+  subtype: z.string().min(1).max(80).nullable().optional(),
+  scopeNodeId: optionalId,
+  phaseCode: z
+    .string()
+    .regex(/^[A-Z]{3}$/)
+    .nullable()
+    .optional(),
+  ownerId: optionalId,
+  accountableId: optionalId,
+  startsAt: instant,
+  endsAt: instant,
+  dueAt: instant,
+});
+
+const versionedSchema = z.object({
+  set: fieldsSchema,
+  expect: fieldsSchema.partial().optional(),
+  version: z.string().min(1).max(64).nullable().optional(),
+  replanReason: z.string().trim().min(1).max(500).nullable().optional(),
+});
+
+export type RecordFieldsInput = z.input<typeof versionedSchema>;
+
+/**
+ * Saves record properties against the version the person edited (Section 11.7, ADR 0077): the values they started
+ * from and the record's updated_at go with the change. A save over someone else's change to the same property comes
+ * back as a conflict with their values; nothing is overwritten until the person chooses. Undo and redo send the
+ * inverse the same way, without a version, so only the properties they change are compared.
+ */
+export async function saveRecordFieldsAction(
+  org: string,
+  recordId: string,
+  input: RecordFieldsInput,
+): Promise<VersionedResult<RecordFields>> {
+  const ctx = await context(org);
+  const parsed = versionedSchema.safeParse(input);
+  if (!id.safeParse(recordId).success || !parsed.success) return invalid();
+  const { set, expect, version, replanReason } = parsed.data;
+  const fields = (values: Record<string, string | null | undefined>): RecordFields =>
+    Object.fromEntries(Object.entries(values).filter(([, v]) => v !== undefined)) as RecordFields;
+  const result = await saveRecordFields(ctx.viewer.db, recordId, {
+    set: fields(set),
+    ...(expect ? { expect: fields(expect) } : {}),
+    ...(version ? { version } : {}),
+    ...(replanReason ? { replanReason } : {}),
+  });
+  if (!result.ok) return failed(result.error);
+  if (!result.data.saved) {
+    return {
+      ok: false,
+      error: { key: "conflict" },
+      conflict: { theirs: result.data.current, version: result.data.version },
+    };
+  }
+  refresh(org);
+  return done({ version: result.data.version });
+}
+
 const transitionSchema = z.object({
   recordId: z.uuid(),
   expected: z.string().min(1).max(40),
@@ -183,6 +246,41 @@ export async function saveExtensionAction(
   if (!result.ok) return failed(result.error);
   refresh(org);
   return done(null);
+}
+
+/**
+ * Saves some of the kind's own attributes against the values the person started from (Section 11.7); someone else's
+ * change to one of the same attributes since comes back as a conflict with their values.
+ */
+export async function saveExtensionFieldsAction(
+  org: string,
+  input: { recordId: string; kind: string; set: ExtensionValues; expect: ExtensionValues },
+): Promise<VersionedResult<ExtensionValues>> {
+  const ctx = await context(org);
+  const values = z.record(z.string().regex(/^[a-z_]+$/), extensionValue);
+  const parsed = z
+    .object({
+      recordId: z.uuid(),
+      kind: z.string().regex(/^[A-Z][A-Za-z]+$/),
+      set: values,
+      expect: values,
+    })
+    .safeParse(input);
+  if (!parsed.success) return invalid();
+  const result = await saveRecordExtensionFields(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    ...parsed.data,
+  });
+  if (!result.ok) return failed(result.error);
+  if (!result.data.saved) {
+    return {
+      ok: false,
+      error: { key: "conflict" },
+      conflict: { theirs: result.data.current, version: null },
+    };
+  }
+  refresh(org);
+  return done({ version: null });
 }
 
 export async function addChecklistItemAction(

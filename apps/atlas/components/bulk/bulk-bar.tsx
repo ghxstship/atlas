@@ -42,6 +42,7 @@ export function BulkBar({
   const t = useTranslations("collab.bulk") as unknown as Translate;
   const router = useRouter();
   const labels = new Map(rows.map((r) => [r.id, r.label]));
+  const versions = new Map(rows.flatMap((r) => (r.version ? [[r.id, r.version] as const] : [])));
 
   /** Sends rows back through the RPC for an undo or a redo; the stack reports the outcome. */
   const send = async (batch: readonly BulkRow[]): Promise<UndoResult> => {
@@ -95,6 +96,7 @@ export function BulkBar({
           field={field}
           ids={[...selected]}
           labels={labels}
+          versions={versions}
           t={t}
           onClose={() => setField(null)}
           onDone={(outcome) => {
@@ -120,6 +122,7 @@ function BulkDialog({
   field,
   ids,
   labels,
+  versions,
   t,
   onClose,
   onDone,
@@ -128,6 +131,8 @@ function BulkDialog({
   field: BulkField;
   ids: readonly string[];
   labels: ReadonlyMap<string, string>;
+  /** Each row's version as the page loaded it; a row saved since comes back stale (Section 11.7). */
+  versions: ReadonlyMap<string, string>;
   t: Translate;
   onClose: () => void;
   onDone: (outcome: BulkOutcome) => void;
@@ -138,14 +143,22 @@ function BulkDialog({
   const [preview, setPreview] = useState<BulkOutcome | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
+  // Mine or theirs for stale rows: keeping mine sends the version the refusal named, taking theirs leaves the row
+  // out of this change.
+  const [kept, setKept] = useState<ReadonlyMap<string, string>>(() => new Map());
+  const [left, setLeft] = useState<ReadonlySet<string>>(() => new Set());
+  const included = ids.filter((id) => !left.has(id));
 
-  const run = (asPreview: boolean) =>
+  const run = (asPreview: boolean, keep = kept, rows = included) =>
     start(async () => {
       const set = { [field.key]: decode(value) };
       const result: BulkActionResult = await bulkUpdateAction({
         org: config.org,
         resource: config.resource,
-        rows: ids.map((id) => ({ id, set })),
+        rows: rows.map((id) => {
+          const version = keep.get(id) ?? versions.get(id);
+          return version ? { id, set, expect: { updated_at: version } } : { id, set };
+        }),
         preview: asPreview,
         ...(reason.trim() ? { reason: reason.trim() } : {}),
       });
@@ -162,9 +175,14 @@ function BulkDialog({
       setPreview(result.outcome);
     });
 
-  const count = ids.length;
+  const count = included.length;
+  const stale = (preview?.refused ?? []).filter((r) => r.rule === "bulk_stale" && r.current);
+  const refused = (preview?.refused ?? []).filter((r) => !stale.includes(r));
   const blocked = preview !== null && preview.refused.length > 0;
   const nothing = preview !== null && !blocked && preview.changed === 0;
+  const choiceLabel = (v: BulkValue | undefined) =>
+    field.options.find((o) => encode(o.value) === encode(v ?? null))?.label ??
+    (v === null || v === undefined ? t("none") : String(v));
   return (
     <Dialog
       open
@@ -228,11 +246,11 @@ function BulkDialog({
             )}
           </div>
         ) : null}
-        {preview && blocked ? (
-          <InlineAlert tone="warning" title={t("refusedTitle", { count: preview.refused.length })}>
+        {preview && refused.length > 0 ? (
+          <InlineAlert tone="warning" title={t("refusedTitle", { count: refused.length })}>
             <p className="m-0 mb-6">{t("refusedBody")}</p>
             <ul className="m-0 flex list-none flex-col gap-2 p-0">
-              {preview.refused.map((r, i) => (
+              {refused.map((r, i) => (
                 <li key={r.id ?? i}>
                   {t("refusedRow", {
                     row: (r.id ? labels.get(r.id) : undefined) ?? t("someRow"),
@@ -241,6 +259,53 @@ function BulkDialog({
                 </li>
               ))}
             </ul>
+          </InlineAlert>
+        ) : null}
+        {preview && stale.length > 0 ? (
+          <InlineAlert tone="warning" title={t("staleTitle", { count: stale.length })}>
+            <p className="m-0 mb-6">{t("staleBody")}</p>
+            <ul className="m-0 mb-8 flex list-none flex-col gap-2 p-0">
+              {stale.map((r, i) => (
+                <li key={r.id ?? i}>
+                  {t("staleRow", {
+                    row: (r.id ? labels.get(r.id) : undefined) ?? t("someRow"),
+                    mine: choiceLabel(decode(value)),
+                    theirs: choiceLabel(r.current?.[field.key]),
+                  })}
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap gap-8">
+              <Button
+                size="sm"
+                disabled={pending}
+                onClick={() => {
+                  const theirs = new Set([...left, ...stale.flatMap((r) => (r.id ? [r.id] : []))]);
+                  const rest = ids.filter((id) => !theirs.has(id));
+                  setLeft(theirs);
+                  if (rest.length === 0) onClose();
+                  else run(true, kept, rest);
+                }}
+              >
+                {t("takeTheirs")}
+              </Button>
+              <Button
+                size="sm"
+                variant="primary"
+                loading={pending}
+                onClick={() => {
+                  const keep = new Map(kept);
+                  for (const r of stale) {
+                    const version = r.current?.["updated_at"];
+                    if (r.id && typeof version === "string") keep.set(r.id, version);
+                  }
+                  setKept(keep);
+                  run(true, keep);
+                }}
+              >
+                {t("keepMine")}
+              </Button>
+            </div>
           </InlineAlert>
         ) : null}
       </div>

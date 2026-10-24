@@ -333,7 +333,9 @@
     "none": "None",
     "notSet": "Not set",
     "unpriced": "Unpriced",
-    "gate": "Gate {gate} · {name}"
+    "gate": "Gate {gate} · {name}",
+    "yes": "Yes",
+    "no": "No"
   },
   "fields": {
     "title": "Title",
@@ -725,5 +727,13 @@
     "mitigation": "Mitigation",
     "baseline_locked_at": "Locked into a baseline",
     "title": "{kind} details"
+  },
+  "undo": {
+    "edited": "Edited {key}.",
+    "moved": "Moved {key} to {state}.",
+    "reason": "Undid the last move.",
+    "checked": "Checked {label}.",
+    "unchecked": "Unchecked {label}.",
+    "changedSince": "Someone changed this after your edit; reload to see the change."
   }
 }

@@ -31,4 +31,9 @@ export interface BulkConfig {
 export interface BulkRowRef {
   readonly id: string;
   readonly label: string;
+  /**
+   * The row's updated_at as the page loaded it (Section 11.7): a change is sent against it, so a row someone saved
+   * since comes back stale with their value instead of being overwritten.
+   */
+  readonly version?: string;
 }
