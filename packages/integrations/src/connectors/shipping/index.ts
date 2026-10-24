@@ -3,7 +3,8 @@ import type { ProviderCode } from "../../framework/catalog.ts";
 import { ItemTally, type Connector, type SyncContext } from "../../framework/connector.ts";
 import { unwrap, type DbClient } from "../../framework/db.ts";
 import { IntegrationError } from "../../framework/errors.ts";
-import { callJson } from "../../framework/http.ts";
+import { callJson, callRaw, type HttpRequest } from "../../framework/http.ts";
+import { sha256Hex } from "../../framework/support.ts";
 
 export const TRACKING_STATUSES = [
   "Label Created",
@@ -51,13 +52,237 @@ export interface Carrier {
   track(context: SyncContext, trackingNumber: string): Promise<TrackingUpdate | null>;
 }
 
-function key(context: SyncContext): string {
+function credentialOf(context: SyncContext) {
   if (context.credential === null) {
     throw new IntegrationError("credential_required", "The connection has no stored credential.", {
       connectionError: true,
     });
   }
-  return context.credential.token;
+  return context.credential;
+}
+
+/** DHL's API key, stored as the connection's credential. */
+function key(context: SyncContext): string {
+  return credentialOf(context).token;
+}
+
+// Access tokens (UPS and FedEx) ------------------------------------------------------------------------------------------
+
+const CLIENT_CREDENTIAL_PROVIDERS: readonly string[] = ["ups", "fedex"] satisfies ProviderCode[];
+
+/** Whether the provider's connection stores a developer app's client ID and secret instead of a token. */
+export function usesClientCredentials(code: string): boolean {
+  return CLIENT_CREDENTIAL_PROVIDERS.includes(code);
+}
+
+/** A minted token stops being reused this long before the expiry the carrier stated. */
+export const TOKEN_SAFETY_MARGIN_MS = 5 * 60_000;
+
+interface MintedToken {
+  /** SHA-256 of the client ID and secret it was minted from, so a rotated pair never reuses it. */
+  readonly fingerprint: string;
+  readonly accessToken: string;
+  readonly usableUntil: number;
+}
+
+/**
+ * Access tokens minted with the OAuth 2.0 client-credentials grant, one per connection, kept until
+ * TOKEN_SAFETY_MARGIN_MS before they expire. The worker keeps one cache for as long as its isolate lives,
+ * so a warm worker reuses a token across runs; tests pass their own.
+ */
+export class CarrierTokenCache {
+  private readonly tokens = new Map<string, MintedToken>();
+
+  get(connectionId: string, fingerprint: string, now: number): string | null {
+    const cached = this.tokens.get(connectionId);
+    if (cached === undefined) return null;
+    if (cached.fingerprint !== fingerprint || now >= cached.usableUntil) {
+      this.tokens.delete(connectionId);
+      return null;
+    }
+    return cached.accessToken;
+  }
+
+  set(connectionId: string, token: MintedToken): void {
+    this.tokens.set(connectionId, token);
+  }
+
+  forget(connectionId: string): void {
+    this.tokens.delete(connectionId);
+  }
+}
+
+const workerTokens = new CarrierTokenCache();
+
+interface ClientPair {
+  readonly clientId: string;
+  readonly clientSecret: string;
+}
+
+interface TokenEndpoint {
+  readonly label: string;
+  request(pair: ClientPair): HttpRequest;
+}
+
+const form = (fields: Record<string, string>) => new URLSearchParams(fields).toString();
+
+/** Base64 of UTF-8 text without Node's Buffer, so the worker also runs in Deno. */
+function base64(text: string): string {
+  let binary = "";
+  for (const byte of new TextEncoder().encode(text)) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+
+/** UPS takes the pair as HTTP Basic authentication. */
+const UPS_TOKEN: TokenEndpoint = {
+  label: "UPS",
+  request: (pair) => ({
+    method: "POST",
+    url: "https://onlinetools.ups.com/security/v1/oauth/token",
+    headers: {
+      accept: "application/json",
+      authorization: `Basic ${base64(`${pair.clientId}:${pair.clientSecret}`)}`,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    body: form({ grant_type: "client_credentials" }),
+  }),
+};
+
+/** FedEx takes the pair (its "API key" and "secret key") in the form body. */
+const FEDEX_TOKEN: TokenEndpoint = {
+  label: "FedEx",
+  request: (pair) => ({
+    method: "POST",
+    url: "https://apis.fedex.com/oauth/token",
+    headers: { accept: "application/json", "content-type": "application/x-www-form-urlencoded" },
+    body: form({
+      grant_type: "client_credentials",
+      client_id: pair.clientId,
+      client_secret: pair.clientSecret,
+    }),
+  }),
+};
+
+function clientPair(context: SyncContext, label: string): ClientPair {
+  const fields = credentialOf(context).fields;
+  const clientId = fields["client_id"] ?? "";
+  const clientSecret = fields["client_secret"] ?? "";
+  if (clientId.length === 0 || clientSecret.length === 0) {
+    throw new IntegrationError(
+      "credential_incomplete",
+      `${label} needs the client ID and client secret of a ${label} developer app. Store them on the connection in Settings, Integrations.`,
+      { connectionError: true },
+    );
+  }
+  return { clientId, clientSecret };
+}
+
+/** Every form a credential could take in a provider's error body: raw, form-encoded and Basic. */
+function secretsOf(pair: ClientPair, ...tokens: string[]): string[] {
+  return [
+    pair.clientSecret,
+    form({ s: pair.clientSecret }).slice(2),
+    base64(`${pair.clientId}:${pair.clientSecret}`),
+    pair.clientId,
+    ...tokens,
+  ];
+}
+
+/**
+ * The error with every credential and token cut from its message, so none reaches the run's last error,
+ * the connection or a log. Code, retry and connection flags are kept.
+ */
+function scrubbed(error: unknown, secrets: readonly string[]): unknown {
+  if (!(error instanceof Error)) return error;
+  let message = error.message;
+  for (const secret of [...secrets].sort((a, b) => b.length - a.length)) {
+    if (secret.length > 0) message = message.split(secret).join("[redacted]");
+  }
+  if (message === error.message) return error;
+  if (error instanceof IntegrationError) {
+    return new IntegrationError(error.code, message, {
+      retryable: error.retryable,
+      connectionError: error.connectionError,
+      status: error.status,
+    });
+  }
+  const copy = new Error(message);
+  copy.name = error.name;
+  return copy;
+}
+
+async function mint(
+  context: SyncContext,
+  endpoint: TokenEndpoint,
+  pair: ClientPair,
+  fingerprint: string,
+): Promise<MintedToken> {
+  const response = await callRaw(context.http, endpoint.label, endpoint.request(pair)).catch(
+    (error: unknown) => {
+      throw scrubbed(error, secretsOf(pair));
+    },
+  );
+  let body: { access_token?: unknown; expires_in?: unknown } = {};
+  try {
+    body = (JSON.parse(response.body) ?? {}) as typeof body;
+  } catch {
+    // Not JSON: refused below like a body without a token.
+  }
+  const accessToken = typeof body.access_token === "string" ? body.access_token : "";
+  // UPS states the lifetime in seconds as a string, FedEx as a number.
+  const lifetimeMs = Number(body.expires_in) * 1000;
+  if (accessToken.length === 0 || !Number.isFinite(lifetimeMs) || lifetimeMs <= 0) {
+    throw new IntegrationError(
+      "provider_malformed_response",
+      `${endpoint.label} answered the token request without an access token and its lifetime.`,
+      { retryable: true },
+    );
+  }
+  return {
+    fingerprint,
+    accessToken,
+    // A token shorter-lived than twice the margin is still reused for half its life.
+    usableUntil:
+      context.now().getTime() + Math.max(lifetimeMs - TOKEN_SAFETY_MARGIN_MS, lifetimeMs / 2),
+  };
+}
+
+/**
+ * Runs a carrier call with the connection's access token, minting one from the stored client ID and
+ * secret when the cache has none that is still good. A 401 means the carrier dropped the token before its
+ * stated expiry: the token is forgotten, a new one minted and the call retried exactly once.
+ */
+async function withAccessToken<T>(
+  context: SyncContext,
+  tokens: CarrierTokenCache,
+  endpoint: TokenEndpoint,
+  call: (accessToken: string) => Promise<T>,
+): Promise<T> {
+  const pair = clientPair(context, endpoint.label);
+  const fingerprint = sha256Hex(`${pair.clientId}\n${pair.clientSecret}`);
+  const connectionId = context.connection.id;
+  const current = async () => {
+    const cached = tokens.get(connectionId, fingerprint, context.now().getTime());
+    if (cached !== null) return cached;
+    const minted = await mint(context, endpoint, pair, fingerprint);
+    tokens.set(connectionId, minted);
+    return minted.accessToken;
+  };
+  const first = await current();
+  try {
+    return await call(first);
+  } catch (error) {
+    if (!(error instanceof IntegrationError && error.status === 401)) {
+      throw scrubbed(error, secretsOf(pair, first));
+    }
+    tokens.forget(connectionId);
+  }
+  const second = await current();
+  try {
+    return await call(second);
+  } catch (error) {
+    throw scrubbed(error, secretsOf(pair, first, second));
+  }
 }
 
 const place = (...parts: (string | undefined | null)[]) => {
@@ -96,68 +321,73 @@ function upsInstant(date: string | undefined, time: string | undefined): string 
   return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}T${t.slice(0, 2)}:${t.slice(2, 4)}:${t.slice(4, 6)}Z`;
 }
 
-export const upsCarrier: Carrier = {
-  provider: "ups",
-  label: "UPS",
-  async track(context, trackingNumber) {
-    let body: {
-      trackResponse?: {
-        shipment?: {
-          package?: {
-            activity?: UpsActivity[];
-            deliveryDate?: { type: string; date: string }[];
-            currentStatus?: { type?: string; description?: string };
+/** UPS tracking, with access tokens minted into `tokens` (the worker's cache unless a test passes one). */
+export function upsCarrier(tokens: CarrierTokenCache = workerTokens): Carrier {
+  return {
+    provider: "ups",
+    label: "UPS",
+    async track(context, trackingNumber) {
+      let body: {
+        trackResponse?: {
+          shipment?: {
+            package?: {
+              activity?: UpsActivity[];
+              deliveryDate?: { type: string; date: string }[];
+              currentStatus?: { type?: string; description?: string };
+            }[];
           }[];
-        }[];
+        };
       };
-    };
-    try {
-      body = await callJson(context.http, "UPS", {
-        method: "GET",
-        url: `https://onlinetools.ups.com/api/track/v1/details/${encodeURIComponent(trackingNumber)}?locale=en_US`,
-        token: key(context),
-        headers: { transid: context.run.id, transactionsrc: "xos" },
-      });
-    } catch (error) {
-      if (error instanceof IntegrationError && error.code === "provider_not_found") return null;
-      throw error;
-    }
-    const pkg = body.trackResponse?.shipment?.[0]?.package?.[0];
-    if (pkg === undefined) return null;
-    const scans: TrackingScan[] = [];
-    for (const a of pkg.activity ?? []) {
-      const occurredAt = upsInstant(a.date, a.time);
-      if (occurredAt === null) continue;
-      scans.push({
-        status: UPS_TYPES[a.status?.type ?? ""] ?? "Unknown",
-        code: a.status?.code ?? a.status?.type ?? "UNKNOWN",
-        description: a.status?.description ?? "",
-        location: place(
-          a.location?.address?.city,
-          a.location?.address?.stateProvince,
-          a.location?.address?.countryCode,
-        ),
-        occurredAt,
-      });
-    }
-    const top = latest(scans);
-    const status = UPS_TYPES[pkg.currentStatus?.type ?? ""] ?? top?.status ?? "Unknown";
-    const estimate = pkg.deliveryDate?.find((d) => d.type !== "DEL");
-    const delivered = pkg.deliveryDate?.find((d) => d.type === "DEL");
-    return {
-      status,
-      statusText: pkg.currentStatus?.description ?? top?.description ?? null,
-      estimatedDeliveryAt: estimate ? upsInstant(estimate.date, undefined) : null,
-      deliveredAt:
-        status === "Delivered"
-          ? delivered
-            ? upsInstant(delivered.date, undefined)
-            : (top?.occurredAt ?? null)
-          : null,
-      scans,
-    };
-  },
-};
+      try {
+        body = await withAccessToken(context, tokens, UPS_TOKEN, (token) =>
+          callJson(context.http, "UPS", {
+            method: "GET",
+            url: `https://onlinetools.ups.com/api/track/v1/details/${encodeURIComponent(trackingNumber)}?locale=en_US`,
+            token,
+            headers: { transid: context.run.id, transactionsrc: "xos" },
+          }),
+        );
+      } catch (error) {
+        if (error instanceof IntegrationError && error.code === "provider_not_found") return null;
+        throw error;
+      }
+      const pkg = body.trackResponse?.shipment?.[0]?.package?.[0];
+      if (pkg === undefined) return null;
+      const scans: TrackingScan[] = [];
+      for (const a of pkg.activity ?? []) {
+        const occurredAt = upsInstant(a.date, a.time);
+        if (occurredAt === null) continue;
+        scans.push({
+          status: UPS_TYPES[a.status?.type ?? ""] ?? "Unknown",
+          code: a.status?.code ?? a.status?.type ?? "UNKNOWN",
+          description: a.status?.description ?? "",
+          location: place(
+            a.location?.address?.city,
+            a.location?.address?.stateProvince,
+            a.location?.address?.countryCode,
+          ),
+          occurredAt,
+        });
+      }
+      const top = latest(scans);
+      const status = UPS_TYPES[pkg.currentStatus?.type ?? ""] ?? top?.status ?? "Unknown";
+      const estimate = pkg.deliveryDate?.find((d) => d.type !== "DEL");
+      const delivered = pkg.deliveryDate?.find((d) => d.type === "DEL");
+      return {
+        status,
+        statusText: pkg.currentStatus?.description ?? top?.description ?? null,
+        estimatedDeliveryAt: estimate ? upsInstant(estimate.date, undefined) : null,
+        deliveredAt:
+          status === "Delivered"
+            ? delivered
+              ? upsInstant(delivered.date, undefined)
+              : (top?.occurredAt ?? null)
+            : null,
+        scans,
+      };
+    },
+  };
+}
 
 // FedEx ------------------------------------------------------------------------------------------------------------------
 
@@ -189,49 +419,55 @@ interface FedexResult {
   error?: { code?: string };
 }
 
-export const fedexCarrier: Carrier = {
-  provider: "fedex",
-  label: "FedEx",
-  async track(context, trackingNumber) {
-    const body = await callJson<{
-      output?: { completeTrackResults?: { trackResults?: FedexResult[] }[] };
-    }>(context.http, "FedEx", {
-      method: "POST",
-      url: "https://apis.fedex.com/track/v1/trackingnumbers",
-      token: key(context),
-      json: {
-        includeDetailedScans: true,
-        trackingInfo: [{ trackingNumberInfo: { trackingNumber } }],
-      },
-    });
-    const result = body.output?.completeTrackResults?.[0]?.trackResults?.[0];
-    if (result === undefined || result.error?.code === "TRACKING.TRACKINGNUMBER.NOTFOUND")
-      return null;
-    const scans: TrackingScan[] = (result.scanEvents ?? [])
-      .filter((e) => typeof e.date === "string")
-      .map((e) => ({
-        status: FEDEX_CODES[e.derivedStatusCode ?? e.eventType ?? ""] ?? "Unknown",
-        code: e.eventType ?? e.derivedStatusCode ?? "UNKNOWN",
-        description: e.eventDescription ?? "",
-        location: place(
-          e.scanLocation?.city,
-          e.scanLocation?.stateOrProvinceCode,
-          e.scanLocation?.countryCode,
-        ),
-        occurredAt: new Date(e.date as string).toISOString(),
-      }));
-    const status =
-      FEDEX_CODES[result.latestStatusDetail?.code ?? ""] ?? latest(scans)?.status ?? "Unknown";
-    const delivered = result.dateAndTimes?.find((d) => d.type === "ACTUAL_DELIVERY")?.dateTime;
-    return {
-      status,
-      statusText: result.latestStatusDetail?.description ?? null,
-      estimatedDeliveryAt: result.estimatedDeliveryTimeWindow?.window?.ends ?? null,
-      deliveredAt: status === "Delivered" ? (delivered ?? latest(scans)?.occurredAt ?? null) : null,
-      scans,
-    };
-  },
-};
+/** FedEx tracking, with access tokens minted into `tokens` (the worker's cache unless a test passes one). */
+export function fedexCarrier(tokens: CarrierTokenCache = workerTokens): Carrier {
+  return {
+    provider: "fedex",
+    label: "FedEx",
+    async track(context, trackingNumber) {
+      const body = await withAccessToken(context, tokens, FEDEX_TOKEN, (token) =>
+        callJson<{
+          output?: { completeTrackResults?: { trackResults?: FedexResult[] }[] };
+        }>(context.http, "FedEx", {
+          method: "POST",
+          url: "https://apis.fedex.com/track/v1/trackingnumbers",
+          token,
+          json: {
+            includeDetailedScans: true,
+            trackingInfo: [{ trackingNumberInfo: { trackingNumber } }],
+          },
+        }),
+      );
+      const result = body.output?.completeTrackResults?.[0]?.trackResults?.[0];
+      if (result === undefined || result.error?.code === "TRACKING.TRACKINGNUMBER.NOTFOUND")
+        return null;
+      const scans: TrackingScan[] = (result.scanEvents ?? [])
+        .filter((e) => typeof e.date === "string")
+        .map((e) => ({
+          status: FEDEX_CODES[e.derivedStatusCode ?? e.eventType ?? ""] ?? "Unknown",
+          code: e.eventType ?? e.derivedStatusCode ?? "UNKNOWN",
+          description: e.eventDescription ?? "",
+          location: place(
+            e.scanLocation?.city,
+            e.scanLocation?.stateOrProvinceCode,
+            e.scanLocation?.countryCode,
+          ),
+          occurredAt: new Date(e.date as string).toISOString(),
+        }));
+      const status =
+        FEDEX_CODES[result.latestStatusDetail?.code ?? ""] ?? latest(scans)?.status ?? "Unknown";
+      const delivered = result.dateAndTimes?.find((d) => d.type === "ACTUAL_DELIVERY")?.dateTime;
+      return {
+        status,
+        statusText: result.latestStatusDetail?.description ?? null,
+        estimatedDeliveryAt: result.estimatedDeliveryTimeWindow?.window?.ends ?? null,
+        deliveredAt:
+          status === "Delivered" ? (delivered ?? latest(scans)?.occurredAt ?? null) : null,
+        scans,
+      };
+    },
+  };
+}
 
 // DHL --------------------------------------------------------------------------------------------------------------------
 
@@ -322,8 +558,13 @@ export function trackingConnector(carrier: Carrier, source: TrackingSource): Con
   };
 }
 
-export function trackingConnectors(source: TrackingSource): Connector[] {
-  return [upsCarrier, fedexCarrier, dhlCarrier].map((c) => trackingConnector(c, source));
+export function trackingConnectors(
+  source: TrackingSource,
+  tokens: CarrierTokenCache = workerTokens,
+): Connector[] {
+  return [upsCarrier(tokens), fedexCarrier(tokens), dhlCarrier].map((c) =>
+    trackingConnector(c, source),
+  );
 }
 
 export function supabaseTrackingSource(db: DbClient): TrackingSource {

@@ -4,7 +4,8 @@ import { IntegrationError } from "./errors.ts";
 /**
  * A credential as read from Vault. OAuth connectors store JSON (`{"access_token": ..., "realm_id": ...}`);
  * key-based connectors store the key alone. Extra string fields (tenant, realm, account ids) stay
- * available to the connector by name.
+ * available to the connector by name. A client-credentials pair (`{"client_id": ..., "client_secret": ...}`,
+ * UPS and FedEx) has no token of its own: `token` is empty and the connector mints one from the fields.
  */
 export interface Credential {
   readonly token: string;
@@ -35,11 +36,13 @@ export function parseCredential(secret: string | null): Credential {
   for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
     if (typeof value === "string") fields[key] = value;
   }
-  const token = fields["access_token"] ?? fields["api_key"] ?? fields["token"];
+  const clientPair = fields["client_id"] !== undefined && fields["client_secret"] !== undefined;
+  const token =
+    fields["access_token"] ?? fields["api_key"] ?? fields["token"] ?? (clientPair ? "" : undefined);
   if (token === undefined) {
     throw new IntegrationError(
       "credential_malformed",
-      "The stored credential has no access token or key.",
+      "The stored credential has no access token or key, and no client ID and secret.",
       {
         connectionError: true,
       },

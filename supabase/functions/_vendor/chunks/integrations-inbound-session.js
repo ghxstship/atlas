@@ -106,6 +106,9 @@ var catalogs = {
       kindOAuth: "OAuth token",
       kindKey: "API key",
       kindServiceAccount: "Service account",
+      clientId: "Client ID",
+      clientSecret: "Client secret",
+      clientSecretHelp: "Stored encrypted and never shown again.",
       storeCredential: "Store credential",
       connect: "Connect",
       pause: "Pause",
@@ -122,6 +125,11 @@ var catalogs = {
       reasonResume: "Resumed from Atlas settings.",
       reasonDisconnect: "Disconnected from Atlas settings.",
     },
+    clientCredentialHelp: {
+      ups: "Create an app at developer.ups.com with the Tracking API, then copy its Client ID and Client Secret here. Atlas uses them to get a new access token each time it refreshes tracking.",
+      fedex:
+        "Create a project at developer.fedex.com with the Track API, then copy its API key into Client ID and its secret key into Client secret. Atlas uses them to get a new access token each time it refreshes tracking.",
+    },
     errors: {
       integration_plan_feature:
         "Your plan does not include this service. Upgrade the plan in Billing to connect it.",
@@ -129,6 +137,7 @@ var catalogs = {
       integration_credential_expired:
         "That credential has expired. Get a new one from the service and store it.",
       integration_credential_empty: "Paste the credential before storing it.",
+      clientCredentialsIncomplete: "Enter both the client ID and the client secret.",
       integration_credential_too_large:
         "That credential is too long. Check that you pasted only the token or key.",
       integration_not_connected: "Connect the integration before syncing it.",
@@ -242,6 +251,9 @@ var catalogs = {
       kindOAuth: "Token OAuth",
       kindKey: "Clave de API",
       kindServiceAccount: "Cuenta de servicio",
+      clientId: "ID de cliente",
+      clientSecret: "Secreto de cliente",
+      clientSecretHelp: "Se guarda cifrado y no se vuelve a mostrar.",
       storeCredential: "Guardar credencial",
       connect: "Conectar",
       pause: "Pausar",
@@ -259,6 +271,11 @@ var catalogs = {
       reasonResume: "Reanudada desde la configuración de Atlas.",
       reasonDisconnect: "Desconectada desde la configuración de Atlas.",
     },
+    clientCredentialHelp: {
+      ups: "Crea una app en developer.ups.com con la Tracking API y copia aquí su Client ID y su Client Secret. Atlas los usa para obtener un token de acceso nuevo cada vez que actualiza el rastreo.",
+      fedex:
+        "Crea un proyecto en developer.fedex.com con la Track API y copia su API key en ID de cliente y su secret key en Secreto de cliente. Atlas los usa para obtener un token de acceso nuevo cada vez que actualiza el rastreo.",
+    },
     errors: {
       integration_plan_feature:
         "Tu plan no incluye este servicio. Mejora el plan en Facturación para conectarlo.",
@@ -266,6 +283,7 @@ var catalogs = {
       integration_credential_expired:
         "Esa credencial venció. Obtén una nueva del servicio y guárdala.",
       integration_credential_empty: "Pega la credencial antes de guardarla.",
+      clientCredentialsIncomplete: "Ingresa el ID de cliente y el secreto de cliente.",
       integration_credential_too_large:
         "Esa credencial es demasiado larga. Revisa que pegaste solo el token o la clave.",
       integration_not_connected: "Conecta la integración antes de sincronizarla.",
@@ -333,11 +351,13 @@ function parseCredential(secret) {
   const fields = {};
   for (const [key, value] of Object.entries(parsed))
     if (typeof value === "string") fields[key] = value;
-  const token = fields["access_token"] ?? fields["api_key"] ?? fields["token"];
+  const clientPair = fields["client_id"] !== void 0 && fields["client_secret"] !== void 0;
+  const token =
+    fields["access_token"] ?? fields["api_key"] ?? fields["token"] ?? (clientPair ? "" : void 0);
   if (token === void 0)
     throw new IntegrationError(
       "credential_malformed",
-      "The stored credential has no access token or key.",
+      "The stored credential has no access token or key, and no client ID and secret.",
       { connectionError: true },
     );
   return {

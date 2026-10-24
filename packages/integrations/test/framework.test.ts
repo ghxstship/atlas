@@ -155,6 +155,14 @@ describe("support", () => {
       fields: { access_token: "a", realm_id: "r" },
     });
     expect(parseCredential('{"api_key":"k"}').token).toBe("k");
+    // UPS and FedEx store a client-credentials pair and mint their token from it.
+    expect(parseCredential('{"client_id":"i","client_secret":"s"}')).toEqual({
+      token: "",
+      fields: { client_id: "i", client_secret: "s" },
+    });
+    expect(() => parseCredential('{"client_id":"i"}')).toThrow(
+      expect.objectContaining({ code: "credential_malformed" }),
+    );
     expect(() => parseCredential(null)).toThrow(
       expect.objectContaining({ code: "credential_required", connectionError: true }),
     );

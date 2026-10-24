@@ -90,6 +90,9 @@
     "kindOAuth": "Token OAuth",
     "kindKey": "Clave de API",
     "kindServiceAccount": "Cuenta de servicio",
+    "clientId": "ID de cliente",
+    "clientSecret": "Secreto de cliente",
+    "clientSecretHelp": "Se guarda cifrado y no se vuelve a mostrar.",
     "storeCredential": "Guardar credencial",
     "connect": "Conectar",
     "pause": "Pausar",
@@ -106,11 +109,16 @@
     "reasonResume": "Reanudada desde la configuración de Atlas.",
     "reasonDisconnect": "Desconectada desde la configuración de Atlas."
   },
+  "clientCredentialHelp": {
+    "ups": "Crea una app en developer.ups.com con la Tracking API y copia aquí su Client ID y su Client Secret. Atlas los usa para obtener un token de acceso nuevo cada vez que actualiza el rastreo.",
+    "fedex": "Crea un proyecto en developer.fedex.com con la Track API y copia su API key en ID de cliente y su secret key en Secreto de cliente. Atlas los usa para obtener un token de acceso nuevo cada vez que actualiza el rastreo."
+  },
   "errors": {
     "integration_plan_feature": "Tu plan no incluye este servicio. Mejora el plan en Facturación para conectarlo.",
     "integration_credential_required": "Guarda la credencial del servicio antes de conectar.",
     "integration_credential_expired": "Esa credencial venció. Obtén una nueva del servicio y guárdala.",
     "integration_credential_empty": "Pega la credencial antes de guardarla.",
+    "clientCredentialsIncomplete": "Ingresa el ID de cliente y el secreto de cliente.",
     "integration_credential_too_large": "Esa credencial es demasiado larga. Revisa que pegaste solo el token o la clave.",
     "integration_not_connected": "Conecta la integración antes de sincronizarla.",
     "integration_sync_in_progress": "Ya hay una sincronización de ese tipo en curso. Espera a que termine.",

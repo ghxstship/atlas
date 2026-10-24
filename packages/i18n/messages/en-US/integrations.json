@@ -90,6 +90,9 @@
     "kindOAuth": "OAuth token",
     "kindKey": "API key",
     "kindServiceAccount": "Service account",
+    "clientId": "Client ID",
+    "clientSecret": "Client secret",
+    "clientSecretHelp": "Stored encrypted and never shown again.",
     "storeCredential": "Store credential",
     "connect": "Connect",
     "pause": "Pause",
@@ -106,11 +109,16 @@
     "reasonResume": "Resumed from Atlas settings.",
     "reasonDisconnect": "Disconnected from Atlas settings."
   },
+  "clientCredentialHelp": {
+    "ups": "Create an app at developer.ups.com with the Tracking API, then copy its Client ID and Client Secret here. Atlas uses them to get a new access token each time it refreshes tracking.",
+    "fedex": "Create a project at developer.fedex.com with the Track API, then copy its API key into Client ID and its secret key into Client secret. Atlas uses them to get a new access token each time it refreshes tracking."
+  },
   "errors": {
     "integration_plan_feature": "Your plan does not include this service. Upgrade the plan in Billing to connect it.",
     "integration_credential_required": "Store the service's credential before connecting.",
     "integration_credential_expired": "That credential has expired. Get a new one from the service and store it.",
     "integration_credential_empty": "Paste the credential before storing it.",
+    "clientCredentialsIncomplete": "Enter both the client ID and the client secret.",
     "integration_credential_too_large": "That credential is too long. Check that you pasted only the token or key.",
     "integration_not_connected": "Connect the integration before syncing it.",
     "integration_sync_in_progress": "A sync of that kind is already running. Wait for it to finish.",
