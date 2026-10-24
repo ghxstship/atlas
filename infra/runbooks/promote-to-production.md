@@ -303,7 +303,8 @@ SPF, DKIM and DMARC checks and `XOS_POSTAL_ADDRESS` holds the postal address; AD
 `RESEND_INBOUND_WEBHOOK_SECRET`, `RESEND_RECEIVING_API_KEY` and `XOS_INBOUND_DOMAIN` (`inbound.ghxstship.tech`,
 decision 60; `production.md`, Email), `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET` (test keys until Atlas Checkout ships and billing opens with live keys, decision 59), `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`, `SENTRY_DSN`, `XOS_ENVIRONMENT` (`production`),
-`XOS_LOG_LEVEL` (`info`). Unset `XOS_REPORT_MAILPIT_URL`, which only a local stack uses.
+`XOS_LOG_LEVEL` (`info`), `XOS_FILE_HANDOVER_SECRET` (a new random value for production, the same as on `atlas` in
+step 13; `production.md`, File handover). Unset `XOS_REPORT_MAILPIT_URL`, which only a local stack uses.
 
 Verify: the list shows each name; `XOS_ENVIRONMENT` digest differs from staging's. Rollback: set the previous
 value again.
@@ -375,12 +376,12 @@ the legacy keys; moving to them is a separate change, because `api-token` signs 
 Production environment only; the Preview environment moves to the staging branch in step 14. The full table is
 in `production.md`, "Environment variables".
 
-| App       | Production variables                                                                                                                                                                                                                           |
-| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `atlas`   | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `ATLAS_SITE_URL`, `GATEWAY_SITE_URL`, `XOS_API_HOST`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256` |
-| `gateway` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `GATEWAY_SITE_URL`, `GATEWAY_PLATFORM_HOSTS`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256`         |
-| `console` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `CONSOLE_SITE_URL` (`https://console.ghxstship.tech`), `CONSOLE_PASSWORD_SIGN_IN` (`false`)                                                                                                         |
-| `docs`    | None                                                                                                                                                                                                                                           |
+| App       | Production variables                                                                                                                                                                                                                                                                          |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `atlas`   | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `ATLAS_SITE_URL`, `GATEWAY_SITE_URL`, `XOS_API_HOST`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256`, `XOS_FILE_HANDOVER_SECRET` (the step 9 value) |
+| `gateway` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `GATEWAY_SITE_URL`, `GATEWAY_PLATFORM_HOSTS`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256`                                                        |
+| `console` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `CONSOLE_SITE_URL` (`https://console.ghxstship.tech`), `CONSOLE_PASSWORD_SIGN_IN` (`false`)                                                                                                                                                        |
+| `docs`    | None                                                                                                                                                                                                                                                                                          |
 
 `SUPABASE_URL` does not change (the project keeps its ref). Set on 2026-10-20: `ATLAS_SITE_URL`
 (`https://atlas.ghxstship.tech`) and `GATEWAY_SITE_URL` (`https://gateway.ghxstship.tech`) in both projects, and

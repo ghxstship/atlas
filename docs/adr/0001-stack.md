@@ -228,3 +228,11 @@ CI's license check, its SBOM and the release SBOM install production dependencie
 | Area         | Tool                                                                                            | Version |
 | ------------ | ----------------------------------------------------------------------------------------------- | ------- |
 | Supply chain | Node.js for the production install of the license check and the SBOMs (`ci.yml`, `release.yml`) | 22.23.3 |
+
+## Amendment (2026-10-24): stamping uploaded PDFs (A103, ADR 0061)
+
+pdfkit writes new PDFs only, so it cannot put the Section 8.6 watermark on a PDF someone uploaded. pdf-lib (MIT, pure JavaScript) opens one, keeps its pages and draws over them. It loads on first use in the Atlas server, like pdfkit, and never reaches a browser. It brings `@pdf-lib/standard-fonts` 1.0.0 and `@pdf-lib/upng` 1.0.1 (both MIT); its other dependencies, `pako` 1.0.11 and `tslib` 1.14.1, were already in the lockfile.
+
+| Area | Package                                                                                          | Version |
+| ---- | ------------------------------------------------------------------------------------------------ | ------- |
+| Data | `pdf-lib` (server only; the viewer watermark on uploaded Confidential and Restricted PDFs, A103) | 1.17.1  |
