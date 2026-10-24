@@ -8,10 +8,7 @@ import { useRef, useState } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { createRecordAction } from "./actions";
 import { fromLocalInput, withQuery } from "./format";
-import {
-  CustomFieldInputs,
-  type CustomFieldInputsHandle,
-} from "@/components/custom-fields/custom-field-inputs";
+import { CustomFieldInputs, type CustomFieldInputsHandle } from "@/components/custom-fields/inputs";
 
 /** The XYZ family a new record starts with when no URID category gives one (proposed ADR, A08). */
 function defaultXyz(recordClass: string | undefined, tags: readonly string[]): string {

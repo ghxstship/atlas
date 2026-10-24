@@ -6,7 +6,7 @@ import { Input, Select } from "@xos/ui";
 import { useMemo } from "react";
 import { saveVenueAction } from "@/app/[org]/places/actions";
 import { ActionForm, useCopy } from "../kit/form";
-import { CustomFieldInputs } from "@/components/custom-fields/custom-field-inputs";
+import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 
 /** IANA zones the runtime knows, with the venue's own zone first when it is missing from the list. */
 function timeZones(current: string | undefined): string[] {

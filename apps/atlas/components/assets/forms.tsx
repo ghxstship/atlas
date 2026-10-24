@@ -3,7 +3,7 @@
 import { Button, Input, Select, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { CustomFieldInputs } from "@/components/custom-fields/custom-field-inputs";
+import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 import { useState, useTransition } from "react";
 import {
   countLotAction,

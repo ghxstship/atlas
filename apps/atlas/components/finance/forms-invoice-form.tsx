@@ -4,7 +4,7 @@ import { Input, Select } from "@xos/ui";
 import { useActionState } from "react";
 import { saveInvoiceAction } from "@/app/[org]/finance/actions";
 import { ActionFeedback } from "./kit-action-feedback";
-import { CustomFieldInputs } from "@/components/custom-fields/custom-field-inputs";
+import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 import { fieldError } from "./kit-field-error";
 import { useAfterSave } from "./kit-use-after-save";
 import { useFinanceT } from "./kit-use-finance-t";

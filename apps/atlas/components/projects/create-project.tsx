@@ -7,7 +7,7 @@ import { useActionState, useState } from "react";
 import { createProjectAction } from "@/lib/projects/actions";
 import { DeferredDrawer } from "@/components/lazy-ui/deferred";
 import { ActionError } from "./action-error";
-import { CustomFieldInputs } from "@/components/custom-fields/custom-field-inputs";
+import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 
 import type { ProjectFormOptions } from "./project-fields";
 

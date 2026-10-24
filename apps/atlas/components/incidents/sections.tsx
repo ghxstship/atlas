@@ -53,7 +53,7 @@ import {
 } from "@/components/operations/kit";
 import { LiveRefresh } from "@/components/operations/peek";
 import { RecordCollab } from "@/components/operations/record-collab";
-import { CustomFieldInputs } from "@/components/custom-fields/custom-field-inputs";
+import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 import { CustomFieldList } from "@/components/custom-fields/list";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { customFieldColumns } from "@/components/custom-fields/format";
