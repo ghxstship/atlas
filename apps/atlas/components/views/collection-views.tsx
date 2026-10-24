@@ -26,6 +26,7 @@ import {
 } from "@/lib/views/query";
 import { DeferredDropdownMenu } from "@/components/shell/deferred-menus";
 import type { ViewDialogState } from "./view-dialogs";
+import { CollectionExport } from "./collection-export";
 import { onDemand, useOnDemand } from "@/components/shell/on-demand";
 
 /** The save, share and delete dialogs load when one opens (A24-009). */
@@ -290,6 +291,7 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
           onOpen={retryLoad}
         />
       ) : null}
+      <CollectionExport />
       <p role="status" className="sr-only">
         {status}
       </p>
