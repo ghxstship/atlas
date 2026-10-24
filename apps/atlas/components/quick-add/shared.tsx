@@ -1,6 +1,11 @@
 "use client";
 
-import { InlineAlert, type QuickAddResolver, type QuickAddTokenType } from "@xos/ui";
+import {
+  InlineAlert,
+  type QuickAddCopy,
+  type QuickAddResolver,
+  type QuickAddTokenType,
+} from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { resolveQuickAddAction, type ResolveQuickAddInput } from "@/lib/quick-add/actions";
 
@@ -24,6 +29,20 @@ export function quickAddResolver(
       ),
     });
     return result.ok ? result.data : {};
+  };
+}
+
+/**
+ * The sentences of a quick add line in the person's language. They come from the work catalog, which
+ * reaches the page with its messages, so the shared ui catalog in every page's JavaScript stays as is.
+ */
+export function useQuickAddCopy(): QuickAddCopy {
+  const t = useTranslations("work.quickAdd");
+  return {
+    field: (name, value) => t("field", { name, value }),
+    announce: (title, fields) => t("announce", { title, fields }),
+    choose: (token) => t("choose", { token }),
+    matches: (count) => t("matches", { count }),
   };
 }
 

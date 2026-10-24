@@ -97,13 +97,20 @@ record tags); reading `#` as the record subtype (subtypes are kind-scoped and wo
   before.
 - The rows load through `next/dynamic` for people who may create there, so the parser stays out of the route's first
   JavaScript (ADR 0027). The Create menu already loads the first time it opens.
+- Quick add adds no message to the shared `ui` catalog. That catalog is compiled into every page's first JavaScript,
+  and on batch-c 32f29903 it was 55 characters short of 10,000, the size at which the compiler emits it as
+  `JSON.parse` with quoted keys: about 190 bytes more on every route, while Projects had 141 bytes left of its
+  200 KB budget. The chips' sentences (a chip's name, the announcement, the candidate list) come from the app as
+  `copy`, from `work.quickAdd` in Atlas, which reaches the page with its messages. Without `copy`, chips are named
+  as typed and the announcement lists the title and the chips, so no untranslated sentence appears.
 
 ### 6. Accessibility
 
 - Each chip's remove button and candidate list are reachable with Tab. Removing a chip turns its token back into
   text and returns focus to the field.
-- Chips are named by what they set ("Owner: Dana Kim", "When: Fri, Oct 9, 8:00 AM"). A status region announces the
-  title and fields once typing pauses for 600 ms, and the new record's key after saving.
+- Chips are named by what they set ("Owner: Dana Kim", "When: Fri, Oct 9, 8:00 AM"); their remove buttons read
+  "Remove Owner: Dana Kim" through the existing `chip.remove` message. A status region announces the title and
+  fields once typing pauses for 600 ms, and the new record's key after saving.
 
 ## Consequences
 

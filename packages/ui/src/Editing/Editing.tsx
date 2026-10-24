@@ -15,7 +15,7 @@ export {
 export { parseQuickAdd, type QuickAddOptions } from "./parseQuickAdd.tsx";
 export { finalizeQuickAdd, quickAddKey, zonedInstant } from "./quickAddCore.ts";
 export { useQuickAdd, type QuickAddController, type UseQuickAddOptions } from "./useQuickAdd.ts";
-export { QuickAddChips, type QuickAddChipsProps } from "./QuickAddChips.tsx";
+export { QuickAddChips, type QuickAddChipsProps, type QuickAddCopy } from "./QuickAddChips.tsx";
 export { contrastRatio } from "./contrastRatio.tsx";
 export { FilterBuilder } from "./FilterBuilder.tsx";
 export { QuickAdd } from "./QuickAdd.tsx";

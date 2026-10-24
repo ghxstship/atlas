@@ -11,7 +11,7 @@ import {
 import { defaultFilter } from "cmdk";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { QuickAddAlert, quickAddResolver } from "@/components/quick-add/shared";
+import { QuickAddAlert, quickAddResolver, useQuickAddCopy } from "@/components/quick-add/shared";
 import { quickAddRecordAction } from "@/lib/quick-add/actions";
 import { quickAddInput } from "@/lib/quick-add/fields";
 import { orderForPage, type CreateItem } from "@/lib/shell/create-order";
@@ -30,7 +30,7 @@ export interface ShellCreateProps {
   readonly items: readonly CreateItem[];
   readonly pathname: string;
   readonly go: (href: string) => void;
-  readonly quickAdd?: ShellQuickAdd | null;
+  readonly quickAdd?: ShellQuickAdd | null | undefined;
 }
 
 /** The kind a Create menu line without /kind creates. */
@@ -56,6 +56,7 @@ export function ShellCreate({
 }: ShellCreateProps) {
   const t = useTranslations("shell.create");
   const tRoot = useTranslations() as unknown as Translate;
+  const copy = useQuickAddCopy();
   const [query, setQuery] = useState("");
   const [error, setError] = useState<{ key: string; detail?: string } | null>(null);
   const [saving, setSaving] = useState(false);
@@ -176,6 +177,7 @@ export function ShellCreate({
                 choices={quick.choices}
                 onChoose={quick.choose}
                 onDismiss={dismiss}
+                copy={copy}
                 labels={{
                   person: tRoot("work.quickAdd.types.person"),
                   tag: tRoot("work.quickAdd.types.tag"),

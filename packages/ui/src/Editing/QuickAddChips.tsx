@@ -15,6 +15,22 @@ import {
   type QuickAddTokenType,
 } from "./quickAddCore.ts";
 
+/**
+ * Sentences of a quick add line, from the app's own catalog. The shared `ui` catalog ships in every
+ * page's first JavaScript, so quick add adds none to it (ADR 0073); without these, chips are named as
+ * typed and the announcement lists the title and the chips.
+ */
+export interface QuickAddCopy {
+  /** Names a chip by what it sets, such as "Owner: Dana Kim". */
+  field?: (name: string, value: string) => string;
+  /** What is announced once typing pauses, such as "Hang truss, with Owner: Dana Kim". */
+  announce?: (title: string, fields: string) => string;
+  /** Names the list of an ambiguous token's candidates, such as "Choose a match for ~open". */
+  choose?: (token: string) => string;
+  /** The list's entry before a candidate is chosen, such as "Matches: 2". */
+  matches?: (count: number) => string;
+}
+
 export interface QuickAddChipsProps {
   parse: QuickAddParse;
   /** Resolutions by token key; without them every token shows as typed. */
@@ -27,6 +43,7 @@ export interface QuickAddChipsProps {
   onChoose?: (token: QuickAddToken, id: string) => void;
   /** What each kind of token sets, for chip names and the announcement, such as Owner or Due. */
   labels?: Partial<Record<QuickAddTokenType, string>>;
+  copy?: QuickAddCopy;
 }
 
 /** A parsed day and time spoken in the person's language; the wall clock is formatted as is. */
@@ -63,10 +80,10 @@ export function QuickAddChips({
   onDismiss,
   onChoose,
   labels = {},
+  copy = {},
 }: QuickAddChipsProps): ReactElement {
   const t = useT();
   const locale = useLocale();
-  const nameOf = (type: QuickAddTokenType) => labels[type] ?? t(`quickAdd.types.${type}`);
   // Tokens still waiting for an answer show as typed, so the title does not jump while it comes.
   const shown: Record<string, QuickAddResolution> = {};
   const chips = parse.tokens.filter((token) => {
@@ -78,18 +95,24 @@ export function QuickAddChips({
   });
   const preview = finalizeQuickAdd(parse, resolutions === undefined ? undefined : shown, choices);
   const title = preview.title || t("record.untitled");
+  const typed = (token: QuickAddToken) => `${quickAddSigil(token.type)}${token.value}`;
   const valueOf = (token: QuickAddToken) =>
     token.type === "date"
       ? spokenDate(locale, token)
       : (preview.tokens.find((p) => p.type === token.type)?.label ?? token.value);
+  /** A chip's name: what it sets and its value when the app names them, else its value as typed. */
+  const fieldOf = (token: QuickAddToken, value: string) => {
+    const name = labels[token.type];
+    if (name && copy.field) return copy.field(name, value);
+    return token.type === "date" || value !== token.value ? value : typed(token);
+  };
 
-  const summary = preview.tokens.map((token) =>
-    t("quickAdd.field", { name: nameOf(token.type), value: valueOf(token) }),
-  );
+  const summary = preview.tokens.map((token) => fieldOf(token, valueOf(token)));
   const message =
-    summary.length > 0
-      ? t("quickAdd.announce", { title, fields: formatList(locale, summary) })
-      : t("quickAdd.announceTitle", { title });
+    summary.length === 0
+      ? title
+      : (copy.announce?.(title, formatList(locale, summary)) ??
+        formatList(locale, [title, ...summary]));
   const [spoken, setSpoken] = useState("");
   useEffect(() => {
     const timer = setTimeout(() => setSpoken(message), 600);
@@ -115,30 +138,30 @@ export function QuickAddChips({
             {token.type === "kind" && isRecordKind(kind) ? (
               <RecordKindGlyph kind={kind} size={12} />
             ) : null}
-            {text}
             {candidates && !chosen ? (
               <select
-                aria-label={t("quickAdd.choose", {
-                  token: `${quickAddSigil(token.type)}${token.value}`,
-                })}
+                aria-label={copy.choose?.(typed(token)) ?? typed(token)}
                 value=""
                 onChange={(e) => onChoose?.(token, e.target.value)}
-                className="xos-hit ms-2 max-w-full border-0 bg-transparent text-inherit cursor-pointer"
+                className="xos-hit max-w-full border-0 bg-transparent text-inherit cursor-pointer"
               >
-                <option value="">{t("quickAdd.matches", { count: candidates.length })}</option>
+                <option value="">
+                  {copy.matches?.(candidates.length) ?? `${token.value} (${candidates.length})`}
+                </option>
                 {candidates.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.detail ? `${c.label} · ${c.detail}` : c.label}
                   </option>
                 ))}
               </select>
-            ) : null}
+            ) : (
+              text
+            )}
             {onDismiss ? (
               <button
                 type="button"
-                aria-label={t("quickAdd.remove", {
-                  name: nameOf(token.type),
-                  value: chosen?.label ?? valueOf(token),
+                aria-label={t("chip.remove", {
+                  label: fieldOf(token, chosen?.label ?? valueOf(token)),
                 })}
                 onClick={() => onDismiss(token)}
                 className="xos-hit inline-grid place-items-center ms-2 p-0 border-0 bg-transparent text-text-tertiary hover:text-text-primary rounded-mark cursor-pointer"

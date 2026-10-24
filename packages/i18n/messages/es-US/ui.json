@@ -362,20 +362,7 @@
     "source": "Fuente"
   },
   "quickAdd": {
-    "label": "Agregar rápido",
-    "types": {
-      "person": "Persona",
-      "tag": "Etiqueta",
-      "kind": "Tipo",
-      "scope": "Alcance",
-      "date": "Fecha"
-    },
-    "field": "{name}: {value}",
-    "announce": "{title}, con {fields}",
-    "announceTitle": "{title}, sin otros campos",
-    "remove": "Quitar {name}: {value}",
-    "choose": "Elegir una coincidencia para {token}",
-    "matches": "Coincidencias: {count}"
+    "label": "Agregar rápido"
   },
   "radio": {
     "assignment": "Asignación",

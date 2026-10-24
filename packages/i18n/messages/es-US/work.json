@@ -747,6 +747,10 @@
       "scope": "Alcance",
       "date": "Cuándo"
     },
-    "created": "{key} creado"
+    "created": "{key} creado",
+    "field": "{name}: {value}",
+    "announce": "{title}, con {fields}",
+    "choose": "Elegir una coincidencia para {token}",
+    "matches": "Coincidencias: {count}"
   }
 }

@@ -363,20 +363,7 @@
       "source": "‮Sonɹɔǝ‬"
     },
     "quickAdd": {
-      "label": "‮Ꝺnıɔʞ ɐpp‬",
-      "types": {
-        "person": "‮Ԁǝɹsou‬",
-        "tag": "‮ꓕɐƃ‬",
-        "kind": "‮ꓘıup‬",
-        "scope": "‮Sɔodǝ‬",
-        "date": "‮ꓷɐʇǝ‬"
-      },
-      "field": "‮{name}: {value}‬",
-      "announce": "‮{title}, ʍıʇɥ {fields}‬",
-      "announceTitle": "‮{title}, uo oʇɥǝɹ ɟıǝlps‬",
-      "remove": "‮ꓤǝɯoʌǝ {name}: {value}‬",
-      "choose": "‮Ɔɥoosǝ ɐ ɯɐʇɔɥ ɟoɹ {token}‬",
-      "matches": "‮Wɐʇɔɥǝs: {count}‬"
+      "label": "‮Ꝺnıɔʞ ɐpp‬"
     },
     "radio": {
       "assignment": "‮∀ssıƃuɯǝuʇ‬",

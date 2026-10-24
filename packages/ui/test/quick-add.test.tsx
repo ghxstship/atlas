@@ -248,7 +248,13 @@ describe("QuickAdd with a resolver", () => {
         referenceDate={monday}
         timeZone="America/New_York"
         resolve={resolve}
-        labels={{ person: "Owner", tag: "Category", date: "When" }}
+        labels={{ person: "Owner", tag: "Category", kind: "Kind", scope: "Scope", date: "When" }}
+        copy={{
+          field: (name, value) => `${name}: ${value}`,
+          announce: (title, fields) => `${title}, with ${fields}`,
+          choose: (token) => `Choose a match for ${token}`,
+          matches: (count) => `Matches: ${count}`,
+        }}
         onSubmit={onSubmit}
       />,
     );
@@ -316,13 +322,27 @@ describe("QuickAdd with a resolver", () => {
 
   it("reads dates in Spanish under an es-US provider and names chips in its copy", async () => {
     render(
-      <XOSProvider locale="es-US" messages={{ "quickAdd.remove": "Quitar {name}: {value}" }}>
+      <XOSProvider locale="es-US" messages={{ "chip.remove": "Quitar {label}" }}>
         <QuickAdd referenceDate={monday} timeZone="America/New_York" onSubmit={() => undefined} />
       </XOSProvider>,
     );
     await userEvent.type(screen.getByRole("textbox"), "Colgar truss viernes 8am");
     const chips = screen.getByText("Colgar truss").parentElement as HTMLElement;
     expect(within(chips).getByText("viernes 8am")).toBeTruthy();
-    expect(within(chips).getByRole("button", { name: /^Quitar Date: vie, 9 de oct/ })).toBeTruthy();
+    expect(within(chips).getByRole("button", { name: /^Quitar vie, 9 de oct/ })).toBeTruthy();
+  });
+
+  it("without the app's copy, names chips as typed and lists them in the announcement", async () => {
+    const resolve = directory();
+    render(<QuickAdd referenceDate={monday} resolve={resolve} onSubmit={() => undefined} />);
+    await userEvent.type(screen.getByRole("textbox"), "Rig @dan @x ~open #zz");
+    await screen.findByText("Dana Kim");
+    expect(screen.getByRole("button", { name: "Remove Dana Kim" })).toBeTruthy();
+    const choice = screen.getByRole("combobox", { name: "~open" });
+    expect(within(choice).getByRole("option", { name: "open (2)" })).toBeTruthy();
+    await waitFor(() =>
+      // The second person, the unchosen scope and the unknown tag stay in the title.
+      expect(screen.getByRole("status").textContent).toBe("Rig @x ~open #zz and Dana Kim"),
+    );
   });
 });

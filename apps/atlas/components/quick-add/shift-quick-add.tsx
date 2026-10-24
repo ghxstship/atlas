@@ -8,7 +8,7 @@ import { useState } from "react";
 import { withQuery } from "@/components/work/format";
 import { quickAddShiftAction } from "@/lib/quick-add/actions";
 import { quickAddInput } from "@/lib/quick-add/fields";
-import { QuickAddAlert, quickAddResolver } from "./shared";
+import { QuickAddAlert, quickAddResolver, useQuickAddCopy } from "./shared";
 
 export interface ShiftQuickAddProps {
   readonly org: string;
@@ -25,6 +25,7 @@ export interface ShiftQuickAddProps {
  */
 export function ShiftQuickAdd({ org, timeZone, projectId }: ShiftQuickAddProps) {
   const t = useTranslations("crew.shifts.quickAdd");
+  const copy = useQuickAddCopy();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -68,6 +69,7 @@ export function ShiftQuickAdd({ org, timeZone, projectId }: ShiftQuickAddProps) 
           scope: t("types.scope"),
           date: t("types.date"),
         }}
+        copy={copy}
         onSubmit={submit}
       />
       <QuickAddAlert error={error} />

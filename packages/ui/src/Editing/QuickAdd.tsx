@@ -21,6 +21,7 @@ export function QuickAdd({
   timeZone,
   resolve,
   labels,
+  copy,
   id,
   disabled = false,
 }: QuickAddProps): ReactElement {
@@ -79,6 +80,7 @@ export function QuickAdd({
           choices={quick.choices}
           onChoose={quick.choose}
           {...(labels ? { labels } : {})}
+          {...(copy ? { copy } : {})}
           {...(onSubmit
             ? {
                 onDismiss: (token) => {

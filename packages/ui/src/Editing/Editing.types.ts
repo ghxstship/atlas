@@ -4,6 +4,7 @@ import type {
   FilterBuilderProps as ReferenceFilterBuilderProps,
   QuickAddProps as ReferenceQuickAddProps,
 } from "../types/reference";
+import type { QuickAddCopy } from "./QuickAddChips.tsx";
 import type { QuickAddResolver, QuickAddResult, QuickAddTokenType } from "./quickAddCore.ts";
 
 export type Filter = ReferenceFilterBuilderProps["filters"][number];
@@ -33,6 +34,8 @@ export type QuickAddProps = ReferenceQuickAddProps & {
   resolve?: QuickAddResolver;
   /** What each kind of token sets, for chip names and the announcement, such as Owner or Due. */
   labels?: Partial<Record<QuickAddTokenType, string>>;
+  /** Sentences for chip names, the announcement and candidate lists, from the app's catalog. */
+  copy?: QuickAddCopy;
   id?: string;
   disabled?: boolean;
 };

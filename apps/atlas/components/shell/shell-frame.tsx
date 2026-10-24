@@ -466,7 +466,7 @@ export function ShellFrame(props: ShellFrameProps) {
             items={props.create}
             pathname={pathname}
             go={go}
-            quickAdd={props.quickAdd ?? null}
+            quickAdd={props.quickAdd}
           />
         ) : null}
         {pendingKey !== null && keyModule ? (

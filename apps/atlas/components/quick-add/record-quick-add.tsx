@@ -8,7 +8,7 @@ import { useCopy } from "@/components/work/action-ui";
 import { withQuery } from "@/components/work/format";
 import { quickAddRecordAction } from "@/lib/quick-add/actions";
 import { quickAddInput } from "@/lib/quick-add/fields";
-import { QuickAddAlert, quickAddResolver } from "./shared";
+import { QuickAddAlert, quickAddResolver, useQuickAddCopy } from "./shared";
 
 export interface RecordQuickAddProps {
   readonly org: string;
@@ -35,6 +35,7 @@ export function RecordQuickAdd({
   defaultKind,
 }: RecordQuickAddProps) {
   const t = useCopy("work");
+  const copy = useQuickAddCopy();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -83,6 +84,7 @@ export function RecordQuickAdd({
           scope: t("quickAdd.types.scope"),
           date: t("quickAdd.types.date"),
         }}
+        copy={copy}
         onSubmit={submit}
       />
       <QuickAddAlert error={error} />

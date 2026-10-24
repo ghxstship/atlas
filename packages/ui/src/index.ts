@@ -449,6 +449,7 @@ export {
   type QuickAddToken,
   type QuickAddCandidate,
   type QuickAddChipsProps,
+  type QuickAddCopy,
   type QuickAddController,
   type QuickAddOptions,
   type QuickAddParse,
