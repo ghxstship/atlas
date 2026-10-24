@@ -60,6 +60,8 @@ Vault is in no archive either, since the login has no grant on it, and losing it
 
 So a weekly archive is the last resort, for when Supabase's own backups are gone. Whenever a daily backup or PITR can restore, use it: both keep Vault.
 
+Tested on 2026-10-24 against a local stack with every migration to 1671 and the seeds: the archive restored in the order below into a fresh stack with no migrations in 17 seconds. All 818 tables it holds matched the source in row count and content checksum (the accounts without their tokens), and so did the 18 worker schedules, the 4 triggers and 22 storage policies of `platform.sql`, and the grants on the 1,701 application functions, 1,083 relations and 5 schemas. The history recorded from `migrations.txt` matched all 371 migrations, and the foundation, canon, Playbook round-trip, security catalog and 1650 suites passed on the copy.
+
 ### Set up the production backup login (OWNER)
 
 Do this once migrations 1650 to 1659 are on production, and again to rotate the password.
