@@ -88,6 +88,29 @@ const EnvSchema = z.object({
    * The report-run Edge Function reads the same variable for scheduled report runs.
    */
   XOS_READ_REPLICA_URL: z.url({ protocol: /^https?$/ }).optional(),
+  /**
+   * The owner's Stripe secret or restricted key (owner decision 21 of 2026-10-23): a test mode key on
+   * staging, a live one once billing opens in production. Server only; Checkout and the customer portal
+   * in Billing and Plan call Stripe with it. Unset, Billing and Plan says billing is not open yet.
+   */
+  STRIPE_SECRET_KEY: z
+    .string()
+    .regex(
+      /^(sk|rk)_(test|live)_[A-Za-z0-9]{8,}$/,
+      "Use a Stripe secret key (sk_test_..., sk_live_...) or restricted key (rk_...).",
+    )
+    .optional(),
+  /**
+   * A local fake of the Stripe API for end-to-end journeys (e2e/billing-checkout.spec.ts), such as
+   * http://127.0.0.1:12111. Honored only on a loopback origin with a test mode STRIPE_SECRET_KEY.
+   */
+  STRIPE_API_URL: z
+    .string()
+    .regex(
+      /^http:\/\/(127\.0\.0\.1|localhost):\d{2,5}$/,
+      "Use a loopback origin such as http://127.0.0.1:12111.",
+    )
+    .optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -100,6 +123,15 @@ function checkApiHost(config: Env): string | null {
     : null;
 }
 
+/** A local fake of Stripe only ever stands in for test mode, so no deployment sends billing elsewhere. */
+function checkStripeFake(config: Env): string | null {
+  if (config.STRIPE_API_URL === undefined) return null;
+  return config.STRIPE_SECRET_KEY?.startsWith("sk_test_") ||
+    config.STRIPE_SECRET_KEY?.startsWith("rk_test_")
+    ? null
+    : "  STRIPE_API_URL: needs a test mode STRIPE_SECRET_KEY.";
+}
+
 export class EnvError extends Error {
   override readonly name = "EnvError";
 }
@@ -107,7 +139,9 @@ export class EnvError extends Error {
 /** Parses an environment record; throws one EnvError listing every invalid variable. */
 export function parseEnv(source: Readonly<Record<string, string | undefined>>): Env {
   const result = EnvSchema.safeParse(source);
-  const conflict = result.success ? checkApiHost(result.data) : null;
+  const conflict = result.success
+    ? (checkApiHost(result.data) ?? checkStripeFake(result.data))
+    : null;
   if (result.success && conflict === null) return result.data;
   const problems = result.success
     ? conflict
