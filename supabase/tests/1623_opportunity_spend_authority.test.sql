@@ -1,6 +1,6 @@
--- pgTAP: migration 1623, owner decision 23 of 2026-10-23 (RRR-125). Spend authority when publishing an opportunity
+-- pgTAP: migration 1623, ADR 0033 decision 61 (2026-10-23, RRR-125). Spend authority when publishing an opportunity
 -- applies only to orgs that set spend limits for requisitions. Without one, a Crew posting publishes without a
--- requisition and a named requisition only has to match its project and role; a limit for other documents changes
+-- requisition and a named requisition only has to be live and match its project and role; a limit for other documents changes
 -- nothing; once the org sets a requisition limit, Contractor, Crew and Staff postings publish only from an Approved
 -- requisition again (0774's rule).
 begin;
@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(11);
+select plan(12);
 
 create function pg_temp.publish(p_key text) returns void language plpgsql as $$
 begin
@@ -30,6 +30,8 @@ grant execute on function pg_temp.opp(text, text, text, text) to public;
 select pg_temp.as_user('alice');
 with r as (insert into app.requisitions (project_id, role_code, headcount, currency_code, justification)
   values (pg_temp.id('prj_a'), '5000.51.02', 2, 'USD', 'Two more riggers.') returning id) insert into world select 'req_open', id from r;
+with r as (insert into app.requisitions (project_id, role_code, headcount, currency_code, justification)
+  values (pg_temp.id('prj_a'), '5000.51.02', 1, 'USD', 'A rigger we no longer need.') returning id) insert into world select 'req_gone', id from r;
 select pg_temp.as_platform();
 
 select ok(not private.org_sets_spend_limits(pg_temp.id('org_a'), 'Requisition'), 'Northwind sets no spend limit for requisitions');
@@ -39,10 +41,16 @@ select pg_temp.as_user('carol');
 select pg_temp.opp('crew_free', 'Crew', '5000.51.02', null);
 select pg_temp.opp('crew_open_req', 'Crew', '5000.51.02', 'req_open');
 select pg_temp.opp('crew_wrong_role', 'Crew', '2000.50.02', 'req_open');
+select pg_temp.opp('crew_gone_req', 'Crew', '5000.51.02', 'req_gone');
+select pg_temp.as_platform();
+update app.requisitions set deleted_at = now() where id = pg_temp.id('req_gone');
+select pg_temp.as_user('carol');
 select lives_ok($$select pg_temp.publish('crew_free')$$, 'a Crew posting publishes without a requisition');
 select lives_ok($$select pg_temp.publish('crew_open_req')$$, 'and from a requisition nobody could approve, when it matches');
 select throws_ok($$select pg_temp.publish('crew_wrong_role')$$, 'XR001',
   'requisition_mismatch: The requisition is for another project or role.', 'a named requisition still has to match the role');
+select throws_ok($$select pg_temp.publish('crew_gone_req')$$, 'XR001',
+  'requisition_missing: The requisition was deleted; choose another or publish without one.', 'and must not be deleted');
 
 -- A limit for another document says nothing about staffing.
 select pg_temp.as_user('alice');

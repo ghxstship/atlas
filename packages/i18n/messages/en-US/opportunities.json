@@ -133,6 +133,7 @@
       "requisition_required": "Your organization sets spend limits for requisitions, so Contractor, Crew and Staff postings publish only from an Approved requisition. Choose one, then publish.",
       "requisition_not_approved": "That requisition is not Approved yet. Get it approved under spend authority first.",
       "requisition_mismatch": "That requisition is for another project or role. Choose the matching requisition.",
+      "requisition_missing": "That requisition was deleted. Choose another, or publish without one.",
       "pay_range_required": "This jurisdiction requires a posted pay range. Add the lowest and highest pay, then publish.",
       "plan_feature_unavailable": "Public marketplace listings need the Pro plan or above. Choose another visibility or upgrade.",
       "opportunity_jurisdiction_unknown": "Give the posting a venue or jurisdiction so pay transparency can be checked.",

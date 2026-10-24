@@ -133,6 +133,7 @@
       "requisition_required": "Tu organización fija límites de gasto para las requisiciones, así que las publicaciones de Contratista, Equipo técnico y Personal solo se publican desde una requisición Aprobada. Elige una y luego publica.",
       "requisition_not_approved": "Esa requisición aún no está Aprobada. Apruébala primero según la autoridad de gasto.",
       "requisition_mismatch": "Esa requisición es de otro proyecto o rol. Elige la requisición correspondiente.",
+      "requisition_missing": "Esa requisición se eliminó. Elige otra o publica sin ninguna.",
       "pay_range_required": "Esta jurisdicción exige publicar un rango de pago. Añade el pago más bajo y el más alto y luego publica.",
       "plan_feature_unavailable": "Las publicaciones públicas en el mercado requieren el plan Pro o superior. Elige otra visibilidad o mejora el plan.",
       "opportunity_jurisdiction_unknown": "Indica un lugar o una jurisdicción para poder comprobar la transparencia salarial.",

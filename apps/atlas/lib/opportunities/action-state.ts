@@ -19,6 +19,7 @@ export const KNOWN_RULES: ReadonlySet<string> = new Set([
   "requisition_required",
   "requisition_not_approved",
   "requisition_mismatch",
+  "requisition_missing",
   "pay_range_required",
   "plan_feature_unavailable",
   "opportunity_jurisdiction_unknown",

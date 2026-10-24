@@ -1,6 +1,6 @@
 -- pgTAP: migration 0774. Spend authority before publishing (Contractor, Crew and Staff need an Approved requisition for
 -- the same project and role; any named requisition must be Approved; the requisition is fixed once published), here for
--- an org that sets spend limits for requisitions, the only orgs the rule applies to since 1623 (owner decision 23),
+-- an org that sets spend limits for requisitions, the only orgs the rule applies to since 1623 (ADR 0033 decision 61),
 -- engagement and marketplace tables as comment subjects, and self-billing consent by the billed party only.
 begin;
 create extension if not exists pgtap with schema extensions;
