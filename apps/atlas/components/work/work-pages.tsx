@@ -184,6 +184,7 @@ export async function WorkOrdersPage({
       state={state}
       canCreate={caps.has("work.work_order.write")}
       bulk={bulk}
+      peekedId={peek && peekId ? peekId : null}
       create={
         <CreateWorkOrderDialog
           org={ctx.org.slug}

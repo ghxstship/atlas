@@ -111,6 +111,7 @@ export function WorkOrderCollection({
   peek,
   canCreate,
   bulk,
+  peekedId = null,
 }: {
   org: string;
   title: string;
@@ -126,6 +127,8 @@ export function WorkOrderCollection({
   canCreate: boolean;
   /** Bulk edit of the table view's selection, for people who may change work orders. */
   bulk?: BulkConfig | null;
+  /** The work order whose peek is open, closed when its row menu deletes it. */
+  peekedId?: string | null;
 }) {
   const t = useCopy("work");
   const locale = useLocale();
@@ -266,7 +269,7 @@ export function WorkOrderCollection({
                           danger: true,
                           onSelect: () =>
                             removal.remove(o, () => {
-                              if (params.get("peek") === o.id) go({ peek: null, full: null });
+                              if (peekedId === o.id) go({ peek: null, full: null });
                             }),
                         },
                       ],
