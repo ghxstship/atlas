@@ -127,6 +127,7 @@ insert into register_restated values
   ('app.dock_slots.project_id', 'app.shipments.project_id', 'own'),
   ('app.email_digest_queue.sent_at', 'app.notification_deliveries.sent_at', 'own'),
   ('app.engagements.currency_code', 'app.applications.currency_code', 'fact'),
+  ('app.enumerations.is_default', 'xpms.std_enumeration.is_default', 'own'),
   ('app.feed_posts.department_code', 'app.groups.department_code', 'own'),
   ('app.feed_posts.project_id', 'app.groups.project_id', 'own'),
   ('app.form_submissions.form_template_id', 'app.form_template_versions.form_template_id', 'finding'),
