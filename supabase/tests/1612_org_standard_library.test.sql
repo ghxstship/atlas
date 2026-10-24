@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(30);
+select plan(34);
 
 create function pg_temp.status(p_org uuid) returns table (library text, standard_count integer, adopted_count integer)
 language sql as $$ select * from app.standard_library_status(p_org) $$;
@@ -49,6 +49,12 @@ select is((select code from app.emergency_codes where org_id = pg_temp.id('new_o
 update app.sops set title = 'Rigging Inspection' where org_id = pg_temp.id('new_org') and std_sop_id = 'SOP-001';
 update app.verbiage_terms set deleted_at = now() where org_id = pg_temp.id('new_org') and std_verbiage_id = 'VRB-001';
 select is((select label from xpms.emergency_code where code = 'CODE_RED'), 'Code Red', 'canon keeps its own label');
+select lives_ok($$insert into app.vendor_classes (org_id, name, std_vendor_class_id)
+  select c.org_id, 'Touring Audio', c.std_vendor_class_id from app.vendor_classes c
+  where c.org_id = (select id from world where key = 'new_org') and c.std_vendor_class_id is not null order by c.id limit 1$$,
+  'a second class can still name a standard class the org holds a copy of');
+select is((select adopted_count - standard_count from pg_temp.status(pg_temp.id('new_org')) where library = 'vendor_classes'), 0,
+  'the status counts each standard class once');
 
 -- Adopting again changes nothing ------------------------------------------------------------------------------------
 create temporary table before_counts as select library, adopted_count from pg_temp.status(pg_temp.id('new_org'));
@@ -74,7 +80,14 @@ insert into world values ('demo_owner_user', '01920000-0000-7000-8000-0000000001
 select pg_temp.as_user('demo_owner');
 select is((select adopted_count from pg_temp.status(pg_temp.id('demo')) where library = 'emergency_codes'), 0,
   'an org created before the Standard Library was copied holds no emergency codes');
+-- The demo org's rate card holds six standard rates; priced in euros, it must not take the US dollar ones.
+update app.rate_cards set currency_code = 'EUR' where org_id = pg_temp.id('demo') and name = '2027 Crew Rates';
 select is((app.adopt_standard_library(pg_temp.id('demo')) ->> 'emergency_codes')::int, 14, 'the action copies them');
+select is((select count(*)::int from app.rate_card_lines l join app.rate_cards c on c.id = l.rate_card_id
+  where c.org_id = pg_temp.id('demo') and c.name = '2027 Crew Rates'), 6, 'a card in another currency takes no standard rate');
+select is((select count(*)::int from app.rate_card_lines l join app.rate_cards c on c.id = l.rate_card_id
+  where c.org_id = pg_temp.id('demo') and c.currency_code = 'USD' and l.canon_rate_card_id is not null),
+  (select count(*)::int from xpms.rate_card) - 6, 'the rest go on a card in US dollars');
 select is((select count(*)::int from app.sops where org_id = pg_temp.id('demo') and std_sop_id is null), 4, 'the org''s own SOPs stay as they were');
 select is((select count(*)::int from app.sops where org_id = pg_temp.id('demo') and std_sop_id is not null), 34,
   'every standard SOP is copied, a used code taking the next free one');

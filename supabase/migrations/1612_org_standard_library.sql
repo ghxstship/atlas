@@ -70,7 +70,8 @@ alter table app.documents add column std_document_id text references xpms.std_do
 create unique index documents_std_document_id_key on app.documents (std_document_id, org_id) where std_document_id is not null;
 comment on column app.documents.std_document_id is 'Document & Asset Library row the document was copied from (xpms.std_document_library); NULL for a document the org added. A copy starts with no version: the org uploads its own file.';
 
-create unique index vendor_classes_std_vendor_class_key on app.vendor_classes (std_vendor_class_id, org_id) where std_vendor_class_id is not null;
+-- app.vendor_classes.std_vendor_class_id (0330) stays non-unique: Atlas and API v1 let several of an org's classes
+-- name one standard class. Adoption copies a standard class only when no class of the org names it.
 
 -- Vendor entitlements -------------------------------------------------------------------------------------------------
 
@@ -214,6 +215,8 @@ declare
   v_card uuid;
   v_sop record;
   v_code text;
+  v_currency text;
+  v_rows integer;
 begin
   -- One adoption at a time per org, so two concurrent runs never copy a row twice.
   perform 1 from app.organizations o where o.id = p_org_id for update;
@@ -246,16 +249,22 @@ begin
   get diagnostics v_n = row_count;
   v_counts := v_counts || jsonb_build_object('enumerations', v_n);
 
-  -- Labor rate cards: the standard lines go on one org rate card, the one already holding standard lines if any.
-  if exists (select 1 from xpms.rate_card s
-             where not exists (select 1 from app.rate_card_lines l where l.org_id = p_org_id and l.canon_rate_card_id = s.rate_card_id)) then
+  -- Labor rate cards: the standard lines go on one org rate card in their currency, the one already holding standard
+  -- lines in that currency if any, so a standard rate never lands on a card priced in another currency.
+  v_n := 0;
+  for v_currency in
+    select distinct s.currency_code from xpms.rate_card s
+    where not exists (select 1 from app.rate_card_lines l where l.org_id = p_org_id and l.canon_rate_card_id = s.rate_card_id)
+    order by 1
+  loop
+    v_card := null;
     select l.rate_card_id into v_card from app.rate_card_lines l
-    join app.rate_cards c on c.id = l.rate_card_id and c.deleted_at is null
+    join app.rate_cards c on c.id = l.rate_card_id and c.deleted_at is null and c.currency_code = v_currency
     where l.org_id = p_org_id and l.canon_rate_card_id is not null
     order by c.created_at limit 1;
     if v_card is null then
       insert into app.rate_cards (org_id, name, currency_code, effective_from)
-      values (p_org_id, 'XOS Standard Labor Rates', 'USD', private.org_today(p_org_id))
+      values (p_org_id, 'XOS Standard Labor Rates', v_currency, private.org_today(p_org_id))
       returning id into v_card;
     end if;
     insert into app.rate_card_lines (org_id, rate_card_id, role_code, worker_classification, pay_basis, arrangement,
@@ -263,13 +272,13 @@ begin
     select p_org_id, v_card, s.role_code, s.worker_classification, s.pay_basis, s.arrangement, s.rate_card_id,
       s.overtime_rule_id, s.standard_rate_minor
     from xpms.rate_card s
-    where not exists (select 1 from app.rate_card_lines l where l.org_id = p_org_id and l.canon_rate_card_id = s.rate_card_id)
+    where s.currency_code = v_currency
+      and not exists (select 1 from app.rate_card_lines l where l.org_id = p_org_id and l.canon_rate_card_id = s.rate_card_id)
     order by s.rate_card_id
     on conflict do nothing;
-    get diagnostics v_n = row_count;
-  else
-    v_n := 0;
-  end if;
+    get diagnostics v_rows = row_count;
+    v_n := v_n + v_rows;
+  end loop;
   v_counts := v_counts || jsonb_build_object('labor_rate_cards', v_n);
 
   insert into app.radio_channel_plan (org_id, zone_number, channel_number, assignment, std_radio_channel_id)
@@ -325,10 +334,14 @@ begin
   get diagnostics v_n = row_count;
   v_counts := v_counts || jsonb_build_object('vendor_classes', v_n);
 
+  -- Each entitlement goes on the org's oldest live class that names its standard class.
   insert into app.vendor_class_entitlements (org_id, vendor_class_id, module, is_permitted, std_vendor_entitlement_id)
   select p_org_id, c.id, s.module, coalesce(s.permitted, false), s.record_id
   from xpms.std_vendor_entitlement s
-  join app.vendor_classes c on c.org_id = p_org_id and c.std_vendor_class_id = s.vendor_class and c.deleted_at is null
+  cross join lateral (
+    select v.id from app.vendor_classes v
+    where v.org_id = p_org_id and v.std_vendor_class_id = s.vendor_class and v.deleted_at is null
+    order by v.id limit 1) c
   where s.module is not null
     and not exists (select 1 from app.vendor_class_entitlements e where e.org_id = p_org_id and e.std_vendor_entitlement_id = s.record_id)
   order by s.source_row
@@ -404,7 +417,7 @@ begin
     (7, 'sops', (select count(*) from xpms.std_sop),
       (select count(*) from app.sops s where s.org_id = p_org_id and s.std_sop_id is not null)),
     (8, 'vendor_classes', (select count(*) from xpms.std_vendor_class),
-      (select count(*) from app.vendor_classes c where c.org_id = p_org_id and c.std_vendor_class_id is not null)),
+      (select count(distinct c.std_vendor_class_id) from app.vendor_classes c where c.org_id = p_org_id)),
     (9, 'vendor_entitlements', (select count(*) from xpms.std_vendor_entitlement),
       (select count(*) from app.vendor_class_entitlements e where e.org_id = p_org_id and e.std_vendor_entitlement_id is not null)),
     (10, 'verbiage', (select count(*) from xpms.std_verbiage),
