@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactElement } from "re
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { useCompass } from "../../src/runtime/CompassProvider";
+import { countKey } from "../../src/runtime/i18n";
 import { BrandChip } from "../../src/screens/OrgSwitcher";
 import { useMirror, useQueuedWrite } from "../../src/screens/settings/hooks";
 import { ConfirmSheet, OfflineNotice, WriteNotice } from "../../src/screens/settings/parts";
@@ -168,11 +169,7 @@ export default function OrganizationsScreen(): ReactElement {
     const left = await endAccountMembership(db, leavingAccount.membershipId);
     setBusy(false);
     if (!left.ok) {
-      setError(
-        left.error.kind === "refusal"
-          ? left.error.message.replace(/^[a-z_]+:\s*/, "")
-          : t("compassSettings.common.failed"),
-      );
+      setError(t("compassSettings.common.failed"));
       return;
     }
     setNotice(t("compassSettings.organizations.left", { org: leavingAccount.account.name }));
@@ -192,12 +189,9 @@ export default function OrganizationsScreen(): ReactElement {
     const meta = [
       row.kind === "member"
         ? roleText(row) || t("compassSettings.organizations.member")
-        : t(
-            row.engagements === 1
-              ? "compassSettings.organizations.engagementsOne"
-              : "compassSettings.organizations.engagementsOther",
-            { count: row.engagements },
-          ),
+        : t(countKey("compassSettings.organizations.engagements", row.engagements), {
+            count: row.engagements,
+          }),
     ];
     return (
       <View key={row.orgId} testID={`settings-org-${row.orgId}`}>
