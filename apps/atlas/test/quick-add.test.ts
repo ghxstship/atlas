@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { QuickAddRecordInput } from "@/lib/quick-add/actions";
 import type { OrgContext } from "@/lib/shell/context";
 import { quickAddInput, recordWhen, shiftWhen } from "@/lib/quick-add/fields";
 import { CANDIDATE_LIMIT, matchNamed, slug, type Named } from "@/lib/quick-add/match";
@@ -386,7 +387,7 @@ describe("resolveQuickAddAction", () => {
   });
 });
 
-const line = {
+const line: QuickAddRecordInput = {
   title: "Truss Load Test",
   kind: "Inspection",
   defaultKind: "Task",
@@ -437,7 +438,7 @@ describe("quickAddRecordAction", () => {
   });
 
   it("refuses what the caller cannot see or the page does not create", async () => {
-    const refusal = async (patch: Partial<typeof line> & Record<string, unknown>) => {
+    const refusal = async (patch: Partial<QuickAddRecordInput>) => {
       const result = await quickAddRecordAction("northwind", { ...line, ...patch });
       return result.ok ? null : result.error.key;
     };
