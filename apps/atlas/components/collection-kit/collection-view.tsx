@@ -88,7 +88,7 @@ export function CollectionView({
   const params = useSearchParams();
   const [query, setQuery] = useState(params.get("q") ?? "");
   useLiveRefresh(live ?? null);
-  const bulkRows = useMemo(() => rows.map((r) => ({ id: r.id, label: r.key })), [rows]);
+  const bulkRows = useMemo(() => rows.map((r) => ({ id: r.id, label: r.label ?? r.key })), [rows]);
   const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
@@ -280,10 +280,11 @@ export function CollectionView({
         onRowActivate={(row) => open(String(row["id"]))}
         onRowContextMenu={(row, _index, at, cell) => {
           const id = String(row["id"]);
+          const named = rows.find((r) => r.id === id);
           rowMenu.open(
             {
               id,
-              label: rows.find((r) => r.id === id)?.key ?? id,
+              label: named?.label ?? named?.key ?? id,
               open: () => open(id),
               href: href({ peek: id, full: "1", create: null }),
               bulk: bulkKit,

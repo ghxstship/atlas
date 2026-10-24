@@ -16,6 +16,7 @@ import {
 import { listCurrencies, listVendorProducts } from "@xos/data/procurement";
 import { nextStates } from "@xos/data/commercial-common";
 import { getFormatter } from "next-intl/server";
+import { vendorBulk } from "@/lib/bulk/procurement";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import {
   addBankAccountAction,
@@ -100,6 +101,7 @@ export async function VendorDirectory({
     id: v.id,
     key: v.counterpartyType ?? t("directory.untyped"),
     title: v.name ?? t("directory.unnamed"),
+    label: v.name ?? t("directory.unnamed"),
     state: { state: recordStateOf(v.state), label: stateLabel(v.state) },
     meta: v.classIds
       .map((c) => className.get(c))
@@ -118,6 +120,13 @@ export async function VendorDirectory({
         .join(", "),
     },
   }));
+
+  // Bulk edit (Section 11.7): state, payment terms and default currency across a selection.
+  const currencies = canWrite ? await listCurrencies(db) : null;
+  const bulk = vendorBulk(ctx.org.slug, ctx.capabilities, t, {
+    currencies: currencies?.ok ? currencies.data.map((c) => c.code) : [],
+    terms: vendors.data.map((v) => v.paymentTermsDays),
+  });
 
   let drawer = null;
   if (state.create && canWrite) {
@@ -187,6 +196,7 @@ export async function VendorDirectory({
           <EmptyRefresh icon="Building2" sentence={t("directory.emptyRead")} />
         )
       }
+      bulk={bulk}
     >
       {drawer}
     </CollectionView>
