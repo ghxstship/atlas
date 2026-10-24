@@ -28,7 +28,12 @@
     "loadErrorTitle": "La actividad no se cargó",
     "loadError": "No se pudo cargar la actividad. Revisa tu conexión e inténtalo de nuevo.",
     "retry": "Intentar de nuevo",
-    "times": "{count, plural, one {una vez} other {# veces}}"
+    "times": "{count, plural, one {una vez} other {# veces}}",
+    "restore": "Restaurar",
+    "restoreLabel": "Restaurar {target}",
+    "restoreUntil": "Se puede restaurar hasta el {date}",
+    "restored": "Se restauró {target}.",
+    "restoreFailed": "No se pudo restaurar: {message}"
   },
   "audit": {
     "title": "Registro de auditoría",
@@ -122,7 +127,8 @@
     "swap_approved": "aprobó un intercambio en",
     "updated": "actualizó",
     "verified": "verificó",
-    "fallback": "cambió"
+    "fallback": "cambió",
+    "trashed": "movió a la papelera"
   },
   "subjects": {
     "access_scan": "un escaneo de acceso",
@@ -225,6 +231,7 @@
     "sponsor_asset": "un activo de patrocinio",
     "cost_center": "un centro de costos",
     "time_off_request": "una solicitud de tiempo libre",
-    "access_grid": "una entrada de la matriz de acceso"
+    "access_grid": "una entrada de la matriz de acceso",
+    "settlement_line": "una línea de liquidación"
   }
 }

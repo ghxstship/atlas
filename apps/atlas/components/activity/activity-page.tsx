@@ -1,4 +1,4 @@
-import { labelActivity, listActivity } from "@xos/data/activity";
+import { labelActivity, listActivity, restorableEntries } from "@xos/data/activity";
 import { getNode } from "@xos/ia";
 import { getTranslations } from "next-intl/server";
 import { LoadError } from "@/components/projects/load-error";
@@ -19,7 +19,7 @@ function one(search: Search, name: string): string | undefined {
 /**
  * An activity feed page (Section 4.5.5 Activity > Org activity feed, Section 4.5.4 project
  * Activity): newest first through app.activity_feed, in the views the sitemap allows, paged by
- * time with `before`.
+ * time with `before`. Entries for rows still in Trash offer Restore (Section 11.7).
  */
 export async function ActivityPage({
   ctx,
@@ -50,6 +50,10 @@ export async function ActivityPage({
     limit: 50,
   });
   if (!page.ok) return <LoadError title={t("title")} />;
+  const [entries, restorable] = await Promise.all([
+    labelActivity(ctx.viewer.db, page.data.entries),
+    restorableEntries(ctx.viewer.db, page.data.entries),
+  ]);
   const emptyHref = project
     ? (nodeHref("project.overview", params) ?? "")
     : (nodeHref("projects", params) ?? "");
@@ -58,7 +62,8 @@ export async function ActivityPage({
       <PageHeader title={t("title")} />
       <ActivityFeed
         label={project ? t("projectLabel", { key: project.key }) : t("label")}
-        entries={await labelActivity(ctx.viewer.db, page.data.entries)}
+        entries={entries}
+        restorable={restorable}
         views={views}
         view={view}
         next={page.data.next}
