@@ -1,11 +1,19 @@
 import { expect, test } from "./engine-test";
-import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
+import {
+  createOrganization,
+  expectAccessible,
+  openChoices,
+  signUp,
+  testEmail,
+  uniqueId,
+} from "./support";
 
 /**
  * Notification settings (A80, RRR-125, finding A65-021): an Owner sets the org's defaults and makes
  * Safety mandatory on Settings, Notifications (Section 4.5.6 item 29); on Personal settings,
  * Notifications the member sees those defaults, cannot turn a locked channel off, and saves their own
- * choices, quiet hours and digest (item 8). Both pages render axe clean.
+ * choices, quiet hours and digest (item 8). Both pages render axe clean. Each category is a closed group
+ * naming its channels (gate 27), opened to change them.
  */
 test("org notification defaults and the personal preference matrix", async ({ page }) => {
   test.setTimeout(5 * 60_000);
@@ -20,11 +28,17 @@ test("org notification defaults and the personal preference matrix", async ({ pa
   const org = page.getByRole("form", { name: "Organization notification defaults" });
   await expect(org.getByRole("heading", { name: "Defaults for members" })).toBeVisible();
   await expectAccessible(page);
+  await expect(org.locator("summary").filter({ hasText: "Feed" })).toContainText("In app, Email");
+  await openChoices(org, "Feed");
+  await openChoices(org, "Safety");
   const feedEmail = org.getByRole("checkbox", { name: "Feed by Email", exact: true });
   await expect(feedEmail).toBeChecked();
   await feedEmail.uncheck();
   await org.getByRole("checkbox", { name: "Safety by Text (SMS)", exact: true }).check();
   await org.getByRole("checkbox", { name: "Safety is mandatory" }).check();
+  // The closed summaries follow the boxes.
+  await expect(org.locator("summary").filter({ hasText: "Feed" })).not.toContainText("Email");
+  await expect(org.locator("summary").filter({ hasText: "Safety" })).toContainText("Mandatory");
   await org.getByRole("button", { name: "Save notification settings" }).click();
   await expect(org.getByRole("status")).toHaveText("Notification settings saved.", {
     timeout: 20_000,
@@ -32,6 +46,8 @@ test("org notification defaults and the personal preference matrix", async ({ pa
 
   await page.reload();
   await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
+  await openChoices(page, "Feed");
+  await openChoices(page, "Safety");
   await expect(
     page.getByRole("checkbox", { name: "Feed by Email", exact: true }),
   ).not.toBeChecked();
@@ -47,6 +63,9 @@ test("org notification defaults and the personal preference matrix", async ({ pa
     mine.getByText("Add and verify a phone number on your account to receive texts."),
   ).toBeVisible();
   await expectAccessible(page);
+  await openChoices(mine, "Feed");
+  await openChoices(mine, "Safety");
+  await openChoices(mine, "Mentions");
   await expect(
     mine.getByRole("checkbox", { name: "Feed by Email", exact: true }),
   ).not.toBeChecked();
@@ -73,6 +92,8 @@ test("org notification defaults and the personal preference matrix", async ({ pa
   await page.reload();
   await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
   const saved = page.getByRole("form", { name: "Your notification settings" });
+  await openChoices(saved, "Feed");
+  await openChoices(saved, "Mentions");
   await expect(
     saved.getByRole("checkbox", { name: "Mentions by Push", exact: true }),
   ).not.toBeChecked();

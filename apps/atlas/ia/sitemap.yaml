@@ -687,6 +687,21 @@ nodes:
             label: nav.atlas.pages.people.helpDesk
             route: "/{org}/people/help-desk"
             list: { views: [table, list, board], default: table }
+          # Reported posts, comments and messages (ADR 0033 decision 57): the org's moderators, who hold
+          # org.communication.write (Owners and Admins by default), decide each within 24 hours.
+          - id: people.moderation
+            kind: page
+            label: nav.atlas.pages.people.moderation
+            route: "/{org}/people/moderation"
+            list: { views: [table, list], default: table }
+            visibility:
+              owner: full
+              admin: full
+              manager: hidden
+              member: hidden
+              collaborator: hidden
+              field: hidden
+              viewer: hidden
       - id: opportunities
         kind: item
         label: nav.atlas.items.opportunities

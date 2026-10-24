@@ -2,7 +2,14 @@ import type { Page } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { expect as baseExpect, test } from "./engine-test";
 import { expectAccessibleInBothThemes } from "./a16-support";
-import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
+import {
+  createOrganization,
+  expectAccessible,
+  openChoices,
+  signUp,
+  testEmail,
+  uniqueId,
+} from "./support";
 import { enrollAuthenticator } from "./totp";
 
 /**
@@ -107,6 +114,11 @@ test("departments in use and venue defaults save through the save bar", async ({
   const form = page.getByRole("form", { name: "Departments and disciplines in use" });
   await expect(page.getByText("None chosen yet, so every department is offered.")).toBeVisible();
   await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
+  // Every department is a box, so they sit closed behind how many are chosen (gate 27).
+  await expect(form.locator("summary").filter({ hasText: "Departments" })).toContainText(
+    /0 of \d+ chosen/,
+  );
+  await openChoices(form, "Departments");
   await form.getByRole("checkbox", { name: "Production · 5000" }).check();
   await expect(form.getByText("1 unsaved change")).toBeVisible();
   await form.getByRole("button", { name: "Discard" }).click();
@@ -114,6 +126,7 @@ test("departments in use and venue defaults save through the save bar", async ({
   await form.getByRole("checkbox", { name: "Production · 5000" }).check();
   await form.getByRole("checkbox", { name: "Operations · 6000" }).check();
   await expect(form.getByText("1 unsaved change")).toBeVisible();
+  await expect(form.locator("summary").filter({ hasText: "Departments" })).toContainText("2 of");
   await form.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText("2 departments and 0 disciplines in use.")).toBeVisible();
   await expectAccessibleInBothThemes(page);
@@ -185,6 +198,7 @@ test("a Pro org allows personal tokens; one is created behind step-up, shown onc
   await page.goto(`/${slug}/me/developer`);
   const tokenForm = page.getByRole("form", { name: "Create a token" });
   await tokenForm.getByLabel("Name").fill("Laptop scripts");
+  await openChoices(tokenForm, "Areas it may use");
   await tokenForm.getByRole("checkbox", { name: "work", exact: true }).check();
   await tokenForm.getByRole("button", { name: "Create token" }).click();
   // No second factor yet: the step-up dialog sets one up, and verifying it submits the form again.
@@ -210,6 +224,7 @@ test("a Pro org allows personal tokens; one is created behind step-up, shown onc
   await expect(page.getByRole("listitem").filter({ hasText: "Accounting sync" })).toBeVisible();
   const key = page.getByRole("form", { name: "Create an API key" });
   await key.getByLabel("Name").fill("Ledger export");
+  await openChoices(key, "Areas it may use");
   await key.getByRole("checkbox", { name: "finance", exact: true }).check();
   await key.getByRole("button", { name: "Create key" }).click();
   await expect(page.getByLabel("API key", { exact: true })).toHaveValue(/^xos_live_[0-9a-f]{48}$/);
@@ -218,6 +233,7 @@ test("a Pro org allows personal tokens; one is created behind step-up, shown onc
   await page.goto(`/${slug}/settings/webhooks`);
   const hook = page.getByRole("form", { name: "Add an endpoint" });
   await hook.getByLabel("Endpoint URL").fill("https://hooks.example.com/xos");
+  await openChoices(hook, "Events");
   await hook.getByRole("checkbox").first().check();
   await hook.getByRole("button", { name: "Add endpoint" }).click();
   await expect(page.getByLabel("Signing secret", { exact: true })).toHaveValue(

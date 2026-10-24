@@ -117,18 +117,19 @@ supabase secrets set --env-file ./functions.env
 
 En una pila autoalojada, monta `supabase/functions` en el servicio de funciones de Compose. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token`, `integration-inbound` y `file-download` autentican a quien las llama por sí mismas y se despliegan sin verificación de JWT, como declara `supabase/config.toml`.
 
-| Secreto                                                   | Lo usa                                                                                                                     |
-| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`                                 | `api-token`, `integration-worker` y `automation-run`, que firman tokens de corta duración; usa el secreto JWT del proyecto |
-| `SUPABASE_SERVICE_ROLE_KEY`                               | Las funciones de trabajo (Supabase alojado la proporciona automáticamente)                                                 |
-| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | Los enlaces y la dirección postal de los correos                                                                           |
-| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | El correo saliente mediante Resend (`XOS_EMAIL_TRANSPORT=resend`); sin ellos, el correo se registra y no se envía          |
-| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | Quién puede recibir correo; usa `XOS_EMAIL_DELIVER_TO_ANY=true` solo en producción                                         |
-| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | `inbound-email`, para las respuestas por correo y las bandejas de proyecto                                                 |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | `stripe-webhook`, solo si cobras mediante Stripe                                                                           |
-| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | `upload-scan`, el demonio de ClamAV; el puerto predeterminado es 3310 (consulta Análisis de archivos subidos)              |
-| `XOS_READ_REPLICA_URL`                                    | `report-run`, que lee las definiciones y filas de informes de una réplica de lectura y luego de la principal               |
-| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | Reporte de errores y nivel de registro opcionales                                                                          |
+| Secreto                                                     | Lo usa                                                                                                                                             |
+| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `XOS_API_JWT_SIGNING_KEY`                                   | `api-token`, `integration-worker` y `automation-run`, que firman tokens de corta duración; usa el secreto JWT del proyecto                         |
+| `SUPABASE_SERVICE_ROLE_KEY`                                 | Las funciones de trabajo (Supabase alojado la proporciona automáticamente)                                                                         |
+| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`      | Los enlaces y la dirección postal de los correos                                                                                                   |
+| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`   | El correo saliente mediante Resend (`XOS_EMAIL_TRANSPORT=resend`); sin ellos, el correo se registra y no se envía                                  |
+| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`           | Quién puede recibir correo; usa `XOS_EMAIL_DELIVER_TO_ANY=true` solo en producción                                                                 |
+| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                  | `inbound-email`, para las respuestas por correo y las bandejas de proyecto                                                                         |
+| `RESEND_INBOUND_WEBHOOK_SECRET`, `RESEND_RECEIVING_API_KEY` | `inbound-email`, cuando Resend recibe el correo: el secreto de firma del webhook y una clave con acceso completo, en lugar de `XOS_INBOUND_SECRET` |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`                | `stripe-webhook`, solo si cobras mediante Stripe                                                                                                   |
+| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                        | `upload-scan`, el demonio de ClamAV; el puerto predeterminado es 3310 (consulta Análisis de archivos subidos)                                      |
+| `XOS_READ_REPLICA_URL`                                      | `report-run`, que lee las definiciones y filas de informes de una réplica de lectura y luego de la principal                                       |
+| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`            | Reporte de errores y nivel de registro opcionales                                                                                                  |
 
 ### Programa las funciones de trabajo
 

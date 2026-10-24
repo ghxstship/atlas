@@ -1,10 +1,12 @@
 "use client";
 
 import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
+import { useTranslations } from "next-intl";
 import { useActionState, useRef, useState } from "react";
 import { errorText, useSecurityCopy } from "@/components/auth/security/copy";
 import { useStepUpForm } from "@/components/auth/security/step-up";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { ChoiceDisclosure, useCheckedCount } from "./choice-disclosure";
 import {
   apiKeySavedAction,
   createApiKeyAction,
@@ -29,6 +31,12 @@ export function CreateApiKeyForm({
   scopeLabels: Readonly<Record<string, string>>;
 }) {
   const t = useSecurityCopy();
+  const chosen = useTranslations("settings");
+  const {
+    ref: scopesRef,
+    count: scopesChosen,
+    recount: recountScopes,
+  } = useCheckedCount<HTMLFieldSetElement>(0);
   const [state, dispatch, pending] = useActionState(createApiKeyAction, INITIAL);
   const form = useRef<HTMLFormElement>(null);
   const stepUp = useStepUpForm(state, (s) => s.error === "step_up_required", form);
@@ -102,21 +110,32 @@ export function CreateApiKeyForm({
           required
           {...(state.fieldErrors?.["name"] ? { error: errorText(t, "invalid") } : {})}
         />
-        <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
-          <legend className="mb-4 text-label-13 font-medium">{t("apiKeys.scopes")}</legend>
+        {/* Every scope is a box, more than a form may show, so they sit closed behind how many are chosen (gate 27). */}
+        <fieldset
+          ref={scopesRef}
+          onChange={recountScopes}
+          className="m-0 flex flex-col gap-8 border-0 p-0"
+        >
+          <legend className="sr-only">{t("apiKeys.scopes")}</legend>
+          <ChoiceDisclosure
+            title={t("apiKeys.scopes")}
+            summary={chosen("chosen", { count: scopesChosen, total: groups.length })}
+            open={Boolean(state.fieldErrors?.["scopes"])}
+          >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {groups.map((group) => (
+                <Checkbox
+                  key={group}
+                  name="scopes"
+                  value={group}
+                  label={scopeLabels[group] ?? group}
+                />
+              ))}
+            </div>
+          </ChoiceDisclosure>
           {state.fieldErrors?.["scopes"] ? (
             <p className="m-0 text-text-12 text-danger-text">{t("apiKeys.scopesNone")}</p>
           ) : null}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {groups.map((group) => (
-              <Checkbox
-                key={group}
-                name="scopes"
-                value={group}
-                label={scopeLabels[group] ?? group}
-              />
-            ))}
-          </div>
         </fieldset>
         <Select
           id="api-key-days"

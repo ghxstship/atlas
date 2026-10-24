@@ -11,6 +11,7 @@
   "lockValue": "Lock value",
   "discard": "Discard",
   "unsaved": "{count, plural, one {# unsaved change} other {# unsaved changes}}",
+  "chosen": "{count, number} of {total, number} chosen",
   "loadFailed": "These settings could not be loaded. Reload the page to try again.",
   "registryHeading": "Settings on this page",
   "personalSections": "Personal settings sections",
@@ -716,7 +717,6 @@
     "failed": "The sidebar was not saved. Try again."
   },
   "notifications": {
-    "category": "Category",
     "channels": {
       "inApp": "In app",
       "email": "Email",
@@ -724,6 +724,7 @@
       "push": "Push"
     },
     "cellLabel": "{category} by {channel}",
+    "noChannels": "No channels",
     "urgent": "Urgent: never waits for the email digest.",
     "save": "Save notification settings",
     "saved": "Notification settings saved.",

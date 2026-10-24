@@ -80,4 +80,20 @@ The owner decisions of 2026-10-23 (ADR 0033, decisions 39 to 80) and the work me
 | The Stripe sandbox key (`sk_test_` or `rk_test_`): on the owner's machine for the test catalogue, then on staging's Atlas and Edge Functions; Stripe Tax on                                         | `infra/runbooks/production.md`, Stripe catalogue; decisions 19 and 59       |
 | A Better Stack account for the log drains and the uptime checks                                                                                                                                     | `infra/runbooks/production.md`, Monitoring and alerting; decision 45        |
 | The mailbox that receives DMARC aggregate reports for `mail.ghxstship.tech`                                                                                                                         | `infra/runbooks/production.md`, Email from mail.ghxstship.tech; decision 46 |
-| Resend inbound mail for `inbound.ghxstship.tech`, with `XOS_INBOUND_SECRET` and `XOS_INBOUND_DOMAIN`                                                                                                | `infra/runbooks/production.md`, Email from mail.ghxstship.tech; decision 60 |
+| Resend inbound mail for `inbound.ghxstship.tech`, with `RESEND_INBOUND_WEBHOOK_SECRET`, `RESEND_RECEIVING_API_KEY` and `XOS_INBOUND_DOMAIN`                                                         | `infra/runbooks/production.md`, Email from mail.ghxstship.tech; decision 60 |
+| Sign in with Apple for Compass: the App ID capability, a Services ID, a key and the `apple-revoke` secrets, the Supabase Apple provider, the relay email domain, `EXPO_PUBLIC_APPLE_SIGN_IN`        | Part E below; `infra/runbooks/production.md`, Sign in with Apple (OWNER)    |
+
+## Part E: Sign in with Apple
+
+ADR 0033 decision 58 adds Sign in with Apple to Compass on iOS. The code is in place; it waits on Apple Developer setup only the Owner can do, listed here by name. None of the values belongs in this repository: identifiers go where `infra/runbooks/production.md`, "Sign in with Apple (OWNER)", says, and the key goes only to the Owner's secret store.
+
+| Item                                                | What the Owner does                                                                                                  | Kind of value                  |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| Sign in with Apple capability on the Compass App ID | Tick it on `pro.ghxstship.compass`, and on each Enterprise tenant build's bundle ID                                  | A setting, no value            |
+| Services ID                                         | Register it with the Supabase project domain and callback URL                                                        | Identifier, not secret         |
+| Sign in with Apple key and its Key ID               | Create it and keep the `.p8` file in the secret store; it signs `apple-revoke`'s and the web flow's client secrets   | Secret (the key file)          |
+| `apple-revoke` Edge Function secrets                | Set `APPLE_SIGN_IN_KEY_ID`, `APPLE_SIGN_IN_KEY_PEM`, `APPLE_SIGN_IN_CLIENT_IDS`, `APPLE_TEAM_ID`; deploy it          | Secret and identifiers         |
+| Supabase Auth Apple provider                        | Turn it on with Compass's bundle ID first among the client IDs, nonce checks on, Secret Key empty until the web flow | Settings and identifiers       |
+| Email to private relay addresses                    | Register `mail.ghxstship.tech` and the From address under Sign in with Apple for Email Communication                 | Domain and address, not secret |
+| `EXPO_PUBLIC_APPLE_SIGN_IN` in EAS                  | Set it to `1` in `production` and `preview`, then build Compass again                                                | Public build value             |
+| Privacy Policy                                      | Name Apple, as Google, as a source of account data for people who sign in with it (counsel to confirm the wording)   | Drafting                       |
