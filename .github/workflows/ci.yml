@@ -359,9 +359,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      # The production install runs on Node 22.23.3, not .nvmrc's 22.14.0: pnpm leaves out an optional
+      # package whose engines the running Node misses, so on 22.14.0 the install missed one that Vercel's
+      # 22.x install holds (rollup's @napi-rs/lzma-linux-x64-gnu needs 22.20; infra/runbooks/production.md),
+      # and `pnpm licenses list`, which checks only os, cpu and libc, failed looking for it. An exact
+      # release at least two weeks old (ADR 0001), so the report does not change with the day it runs.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: .nvmrc
+          node-version: "22.23.3"
           cache: pnpm
       - name: Actions pinned to the commits of their tags (git ls-remote)
         run: node --experimental-strip-types --no-warnings infra/security/src/cli.ts pins --remote
@@ -445,6 +450,8 @@ jobs:
       - name: Write the app environment from the stack
         run: |
           ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          # Without a key the app exits at boot (lib/env.ts) and the failure shows only later.
+          test -n "$ANON" || { echo "::error title=Supabase status::no anon key; is the stack healthy?"; exit 1; }
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
       - run: pnpm turbo run build --filter=@xos/${{ matrix.app }}^...
@@ -454,6 +461,12 @@ jobs:
           CLOCK="--require $GITHUB_WORKSPACE/packages/testing/clock/node-clock.cjs"
           (cd apps/${{ matrix.app }} && NODE_OPTIONS="$CLOCK" nohup pnpm exec next dev --port "$PORT" > /tmp/app.log 2>&1 &)
           for i in $(seq 90); do curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in" && break; sleep 2; done
+          # A server that never answers fails here, its last lines in the annotation, rather than
+          # leaving Playwright in the container to start a second one on the port this one holds.
+          if ! curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in"; then
+            echo "::error title=next dev did not answer::$(tail -n 20 /tmp/app.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+            exit 1
+          fi
           echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
       - name: Core screens in the pinned Playwright image
         run: packages/testing/ci/visual-in-container.sh ${{ matrix.app }}
