@@ -1242,7 +1242,6 @@
     "factsHelp": "What the content says or does that the decision rests on.",
     "statement": "Statement of reasons",
     "statementHelp": "Sent to the people who reported it and, when you remove it, to its author.",
-    "submit": "Record Decision",
-    "notYours": "You wrote this, so another moderator decides it."
+    "submit": "Record Decision"
   }
 }

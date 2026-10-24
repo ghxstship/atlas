@@ -133,7 +133,6 @@ describe("the moderators' queue", () => {
             author_name: "Carol Nguyen",
             body: "Anyone late is useless.",
             removed: false,
-            decidable_by_me: true,
           },
           reports: [
             {
@@ -166,7 +165,7 @@ describe("the moderators' queue", () => {
     expect(result.ok && result.data.subject).toMatchObject({
       kind: "Feed Post",
       authorName: "Carol Nguyen",
-      decidableByMe: true,
+      removed: false,
     });
     expect(result.ok && result.data.reports[0]).toMatchObject({
       reporterName: "Dave Lindqvist",
@@ -186,7 +185,6 @@ describe("the moderators' queue", () => {
         authorName: null,
         body: null,
         removed: false,
-        decidableByMe: false,
       },
       reports: [],
       decisions: [],

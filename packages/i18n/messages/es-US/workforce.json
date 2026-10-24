@@ -1242,7 +1242,6 @@
     "factsHelp": "Lo que el contenido dice o hace y en lo que se basa la decisión.",
     "statement": "Declaración de motivos",
     "statementHelp": "Se envía a quienes lo denunciaron y, si lo eliminas, a quien lo escribió.",
-    "submit": "Registrar decisión",
-    "notYours": "Tú lo escribiste, así que otro moderador lo decide."
+    "submit": "Registrar decisión"
   }
 }

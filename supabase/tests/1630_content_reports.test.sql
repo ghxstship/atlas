@@ -2,19 +2,31 @@
 -- person reports content they can see, never their own; the org's moderators (org.communication.write: Alice the owner
 -- and Bob the admin) are notified, read the report with its snapshot and decide it with a statement of reasons. Removal
 -- hides a post, deletes a comment or deletes a message; the reporters hear the outcome and the author gets the
--- statement. A report still open after 24 hours reminds the moderators once.
+-- statement, recorded with no actor. A moderator never reads a report about their own content. A report still open
+-- after 24 hours reminds the moderators once. The nightly chat purge (1324) takes reported messages and their reports
+-- and keeps the decisions.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(57);
+select plan(76);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
 
 select has_table('app', 'content_reports', 'app.content_reports exists');
 select has_table('app', 'content_moderation_decisions', 'app.content_moderation_decisions exists');
+select is((select string_agg(confdeltype::text, '' order by conname) from pg_catalog.pg_constraint
+           where conrelid = 'app.content_reports'::regclass and contype = 'f'
+             and confrelid in ('app.feed_posts'::regclass, 'app.comments'::regclass, 'app.chat_messages'::regclass)), 'ccc',
+  'a report''s references to its post, comment or message cascade on delete');
+select is((select count(*)::int from pg_catalog.pg_constraint
+           where conrelid = 'app.content_moderation_decisions'::regclass and contype = 'f'
+             and confrelid in ('app.feed_posts'::regclass, 'app.comments'::regclass, 'app.chat_messages'::regclass)), 0,
+  'a decision names its item with no foreign key, so it outlives the item');
+select ok(not exists (select 1 from pg_catalog.pg_trigger where tgrelid = 'app.content_reports'::regclass and tgname = 't85_audit_trail'),
+  'reports keep no audit trail, which would copy the reported text');
 
 -- A post by Carol (a manager, not a moderator) to the whole org.
 select pg_temp.as_user('carol');
@@ -94,15 +106,24 @@ select is((select message_args ->> 'statement' from app.notifications where kind
   'We removed your post because it insults crew members.', 'the author receives the statement of reasons');
 select is((select message_args ->> 'actorName' from app.notifications where kind = 'content.removed'
            and recipient_person_id = pg_temp.id('carol')), 'Northwind Live', 'the notice names the org, not the moderator');
+select is((select count(*)::int from app.notifications where kind in ('content.removed', 'content_report.decided')
+           and subject_id = (select id from k where key = 'd1') and actor_person_id is null), 2,
+  'and both notices are recorded with no actor');
 select throws_ok($$update app.content_moderation_decisions set facts = 'Changed.' where id = (select id from k where key = 'd1')$$,
   'XR001', null, 'decisions are append-only');
 
+select is((select count(*)::int from app.content_moderation_decisions), 1, 'the moderator reads the decision');
+select pg_temp.as_user('alice');
+select is((select count(*)::int from app.content_moderation_decisions), 1, 'and so does the other moderator');
 select pg_temp.as_user('carol');
-select is((select count(*)::int from app.content_moderation_decisions), 1, 'the author reads the decision about their post');
+select is((select count(*)::int from app.content_moderation_decisions), 0,
+  'the author does not read the decision, which names the moderator; the notice carries the statement');
+select is((select count(*)::int from app.inbox_items where kind = 'content.removed' and actor_person_id is null), 1,
+  'and her Inbox shows the notice with no actor');
 select pg_temp.as_user('dave');
-select is((select count(*)::int from app.content_moderation_decisions), 1, 'the reporter reads the decision on their report');
+select is((select count(*)::int from app.content_moderation_decisions), 0, 'nor does the reporter, who has the outcome as a notice');
 select pg_temp.as_user('erin');
-select is((select count(*)::int from app.content_moderation_decisions), 0, 'nobody else does');
+select is((select count(*)::int from app.content_moderation_decisions), 0, 'nor anyone else');
 
 select pg_temp.as_user('alice');
 select throws_ok($$select app.report_content('Feed Post', (select id from k where key = 'post'), 'Spam')$$,
@@ -117,18 +138,31 @@ select pg_temp.as_platform();
 select is((select count(*)::int from app.notifications where kind = 'content_report.filed' and subject_id = (select id from k where key = 'r2')
            and recipient_person_id = pg_temp.id('alice')), 0, 'a moderator is not told about a report on their own post');
 select pg_temp.as_user('alice');
+select is((select count(*)::int from app.content_reports where feed_post_id = (select id from k where key = 'own')), 0,
+  'nor reads the report or who filed it');
+select is((select count(*)::int from app.content_moderation_queue(pg_temp.id('org_a')) where subject_id = (select id from k where key = 'own')), 0,
+  'nor finds it in the queue');
+select throws_ok($$select app.content_report_detail(pg_temp.id('org_a'), 'Feed Post', (select id from k where key = 'own'))$$,
+  '42501', 'no report about this item', 'and opening it answers as if nobody had reported it');
 select throws_ok($$select app.decide_content_report(pg_temp.id('org_a'), 'Feed Post', (select id from k where key = 'own'),
   'No Action', 'No Violation', 'Acceptable Use Policy 1', 'A parking notice.', 'The post breaks no rule.')$$,
   'XR001', 'content_moderation_own: Another moderator decides reports about your own post, comment or message.',
   'a moderator never decides about their own content');
 select pg_temp.as_user('bob');
+select is((select count(*)::int from app.content_reports where feed_post_id = (select id from k where key = 'own')), 1,
+  'another moderator reads the report');
 select lives_ok($$select app.decide_content_report(pg_temp.id('org_a'), 'Feed Post', (select id from k where key = 'own'),
   'No Action', 'No Violation', 'Acceptable Use Policy 1', 'A parking notice.', 'The post breaks no rule.')$$,
-  'another moderator takes no action');
+  'and takes no action');
 select pg_temp.as_platform();
 select ok((select hidden_at is null from app.feed_posts where id = (select id from k where key = 'own')), 'no action leaves the post');
 select is((select count(*)::int from app.notifications where kind = 'content.removed' and recipient_person_id = pg_temp.id('alice')), 0,
   'and its author receives no removal notice');
+select pg_temp.as_user('alice');
+select is((select count(*)::int from app.content_moderation_decisions where feed_post_id = (select id from k where key = 'own')), 0,
+  'nor reads that a decision about her post was made');
+select is((select count(*)::int from app.content_moderation_queue(pg_temp.id('org_a'), false) where subject_id = (select id from k where key = 'own')), 0,
+  'nor finds it among the decided items');
 
 -- A comment on a post ---------------------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');
@@ -177,6 +211,29 @@ select ok((select deleted_at is not null from app.chat_messages where id = (sele
 select pg_temp.as_user('bob');
 select is((select count(*)::int from app.content_moderation_queue(pg_temp.id('org_a'))), 0, 'the open queue is empty');
 select is((select count(*)::int from app.content_moderation_queue(pg_temp.id('org_a'), false)), 4, 'and the decided view lists every item');
+
+-- The org's message retention -------------------------------------------------------------------------------------------
+-- A message still under an open report and the removed one both age past the org's 30 days.
+select pg_temp.as_user('frank');
+insert into k select 'msg2', app.send_chat_message((select id from k where key = 'dm'), 'Last warning.');
+select pg_temp.as_user('dave');
+insert into k select 'r5', app.report_content('Chat Message', (select id from k where key = 'msg2'), 'Harassment');
+select pg_temp.as_user('bob');
+select app.set_setting(pg_temp.id('org_a'), 'communication.message_retention_days', 'Organization', pg_temp.id('org_a'), p_value_integer => 30);
+select pg_temp.as_platform();
+select ok(private.purge_chat_messages_past_retention(now() + interval '31 days') >= 2,
+  'the nightly purge deletes the org''s messages past its 30 days, reported ones included');
+select ok(not exists (select 1 from private.retention_runs where table_name = 'app.chat_messages' and error_message is not null),
+  'without failing the org''s purge');
+select is((select count(*)::int from app.chat_messages where id in ((select id from k where key = 'msg'), (select id from k where key = 'msg2'))), 0,
+  'both reported messages are gone');
+select is((select count(*)::int from app.content_reports where id in ((select id from k where key = 'r4'), (select id from k where key = 'r5'))), 0,
+  'and their reports, open or decided, with the copies of their text');
+select is((select count(*)::int from app.content_moderation_decisions where chat_message_id = (select id from k where key = 'msg')), 1,
+  'the decision about the removed message stays as the org''s record');
+select pg_temp.as_user('bob');
+select is((select count(*)::int from app.content_moderation_queue(pg_temp.id('org_a'), false)), 3,
+  'and the decided view no longer lists the purged message');
 
 select pg_temp.as_anon();
 select throws_ok('select 1 from app.content_reports', '42501', null, 'anon reads no reports');

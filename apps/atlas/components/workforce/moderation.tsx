@@ -210,56 +210,52 @@ export async function ModerationSection({
               </KitSection>
             ) : null}
             {selected.openReports > 0 ? (
-              detail.data.subject.decidableByMe ? (
-                <KitSection id="moderation-decide" title={t("moderation.decide")}>
-                  <EntityForm
-                    id={`moderation-decide-${selected.id}`}
-                    action={decideContentReportAction}
-                    hidden={{ org: ctx.org.slug, id: selected.id, kind: selected.kind }}
-                    refusals={REFUSALS}
-                    submitLabel={t("moderation.submit")}
-                    successHref={withQuery(path, scoped)}
-                    fields={[
-                      {
-                        kind: "select",
-                        name: "decision",
-                        label: t("moderation.decision"),
-                        required: true,
-                        defaultValue: "removeTerms",
-                        options: ["removeTerms", "removeIllegal", "noAction"].map((c) => ({
-                          value: c,
-                          label: t(`moderation.choices.${c}`),
-                        })),
-                      },
-                      {
-                        kind: "text",
-                        name: "ruleReference",
-                        label: t("moderation.ruleReference"),
-                        help: t("moderation.ruleReferenceHelp"),
-                        required: true,
-                      },
-                      {
-                        kind: "textarea",
-                        name: "facts",
-                        label: t("moderation.facts"),
-                        help: t("moderation.factsHelp"),
-                        required: true,
-                        rows: 3,
-                      },
-                      {
-                        kind: "textarea",
-                        name: "statement",
-                        label: t("moderation.statement"),
-                        help: t("moderation.statementHelp"),
-                        required: true,
-                        rows: 4,
-                      },
-                    ]}
-                  />
-                </KitSection>
-              ) : (
-                <p className="m-0 text-text-13 text-text-secondary">{t("moderation.notYours")}</p>
-              )
+              <KitSection id="moderation-decide" title={t("moderation.decide")}>
+                <EntityForm
+                  id={`moderation-decide-${selected.id}`}
+                  action={decideContentReportAction}
+                  hidden={{ org: ctx.org.slug, id: selected.id, kind: selected.kind }}
+                  refusals={REFUSALS}
+                  submitLabel={t("moderation.submit")}
+                  successHref={withQuery(path, scoped)}
+                  fields={[
+                    {
+                      kind: "select",
+                      name: "decision",
+                      label: t("moderation.decision"),
+                      required: true,
+                      defaultValue: "removeTerms",
+                      options: ["removeTerms", "removeIllegal", "noAction"].map((c) => ({
+                        value: c,
+                        label: t(`moderation.choices.${c}`),
+                      })),
+                    },
+                    {
+                      kind: "text",
+                      name: "ruleReference",
+                      label: t("moderation.ruleReference"),
+                      help: t("moderation.ruleReferenceHelp"),
+                      required: true,
+                    },
+                    {
+                      kind: "textarea",
+                      name: "facts",
+                      label: t("moderation.facts"),
+                      help: t("moderation.factsHelp"),
+                      required: true,
+                      rows: 3,
+                    },
+                    {
+                      kind: "textarea",
+                      name: "statement",
+                      label: t("moderation.statement"),
+                      help: t("moderation.statementHelp"),
+                      required: true,
+                      rows: 4,
+                    },
+                  ]}
+                />
+              </KitSection>
             ) : null}
           </>
         )}

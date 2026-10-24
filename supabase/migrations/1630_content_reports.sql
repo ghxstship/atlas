@@ -7,14 +7,23 @@
 --     already removed.
 --   * The org's moderators are the members holding org.communication.write across the org, who already hide any feed
 --     post (0801). Each is notified when a report arrives (content_report.filed), and again once when a report is
---     still undecided after 24 hours (content_report.overdue, hourly job). The author of the item is never told.
+--     still undecided after 24 hours (content_report.overdue, hourly job). The author of the item is never told: a
+--     moderator neither hears of, lists, opens nor reads a report about their own content, and only another
+--     moderator decides it.
 --   * app.content_moderation_decisions: a moderator decides an item with A90's statement of reasons in parts (1473):
 --     the action (Removed or No Action), the ground (app.moderation_ground), the rule relied on, the facts and the
 --     statement the people involved receive. Removal hides a post (as a moderator's hide does), deletes a comment or
 --     deletes a message. One decision decides every open report on the item; each reporter is told the outcome
 --     (content_report.decided) and, on removal, the author receives the statement (content.removed). Decisions are
 --     append-only; nobody decides about their own content.
---   * Notifications about a decision name the org, never the moderator who decided.
+--   * Notifications about a decision name the org, never the moderator who decided: their copy carries the org's name
+--     and they are recorded with no actor. Decisions read to the moderators only; the reporters and the author get
+--     theirs as the notice.
+--   * A report leaves with the item it is about. Its reference cascades, so the nightly purge of chat messages past
+--     the org's communication.message_retention_days (1324) and the row purge take the reports, and their copy of
+--     the text, with the message, post or comment (as 1392 does for translations), and reports keep no audit trail
+--     of that copy. A decision is the org's record and stays: it names the item by id with no foreign key, because
+--     an append-only row could neither block the purge nor be cleared.
 -- Platform operators do not see these reports: workspace content is the org's data, processed for it (A90's console
 -- moderates public marketplace listings only).
 
@@ -37,9 +46,10 @@ create table app.content_moderation_decisions (
   id uuid primary key default private.uuid_v7(),
   org_id uuid not null references app.organizations (id),
   subject_kind app.content_subject_kind not null,
-  feed_post_id uuid references app.feed_posts (id),
-  comment_id uuid references app.comments (id),
-  chat_message_id uuid references app.chat_messages (id),
+  -- No foreign keys: the decision outlives the item, which the retention purges delete.
+  feed_post_id uuid,
+  comment_id uuid,
+  chat_message_id uuid,
   author_person_id uuid references app.people (id),
   action app.content_moderation_action not null,
   ground app.moderation_ground not null,
@@ -70,11 +80,11 @@ create index content_moderation_decisions_decided_by_idx on app.content_moderati
 call private.install_domain_table('app.content_moderation_decisions', null, null,
   array['app.feed_posts', 'feed_post_id', 'app.comments', 'comment_id', 'app.chat_messages', 'chat_message_id'], true);
 
-call private.describe('app.content_moderation_decisions', 'Append-only decisions by an org''s moderators on reported posts, comments and messages (ADR 0033 decision 57), with A90''s statement of reasons in parts (1473). Written only through app.decide_content_report; one decision decides every open report on the item.', array[
+call private.describe('app.content_moderation_decisions', 'Append-only decisions by an org''s moderators on reported posts, comments and messages (ADR 0033 decision 57), with A90''s statement of reasons in parts (1473). Written only through app.decide_content_report; one decision decides every open report on the item. Read by the org''s moderators only, never about their own content; the reporters and the author receive the outcome as a notice.', array[
   'subject_kind', 'Feed Post, Comment or Chat Message.',
-  'feed_post_id', 'Post decided, when the item is a post.',
-  'comment_id', 'Comment decided, when the item is a comment on a post.',
-  'chat_message_id', 'Message decided, when the item is a chat message.',
+  'feed_post_id', 'Post decided, when the item is a post. No foreign key: the decision stays after the post is purged.',
+  'comment_id', 'Comment decided, when the item is a comment on a post. No foreign key: the decision stays after the comment is purged.',
+  'chat_message_id', 'Message decided, when the item is a chat message. No foreign key: the decision stays after the org''s message retention purges the message (1324).',
   'author_person_id', 'Person who wrote the item, who receives the statement of reasons on removal.',
   'action', 'Removed or No Action.',
   'ground', 'Illegal Content or Terms Violation for a removal, No Violation for no action.',
@@ -92,9 +102,9 @@ create table app.content_reports (
   id uuid primary key default private.uuid_v7(),
   org_id uuid not null references app.organizations (id),
   subject_kind app.content_subject_kind not null,
-  feed_post_id uuid references app.feed_posts (id),
-  comment_id uuid references app.comments (id),
-  chat_message_id uuid references app.chat_messages (id),
+  feed_post_id uuid references app.feed_posts (id) on delete cascade,
+  comment_id uuid references app.comments (id) on delete cascade,
+  chat_message_id uuid references app.chat_messages (id) on delete cascade,
   author_person_id uuid references app.people (id),
   reporter_person_id uuid not null references app.people (id),
   reason app.content_report_reason not null,
@@ -132,12 +142,12 @@ create unique index content_reports_one_open on app.content_reports
 create index content_reports_open_idx on app.content_reports (org_id, due_at)
   where content_moderation_decision_id is null and deleted_at is null;
 
-call private.describe('app.content_reports', 'Reports of a post, a comment on a post or a chat message to the org''s moderators (ADR 0033 decision 57, App Store Review Guideline 1.2). Filed only through app.report_content; open until a moderator''s decision on the item decides it, due 24 hours after it arrived.', array[
+call private.describe('app.content_reports', 'Reports of a post, a comment on a post or a chat message to the org''s moderators (ADR 0033 decision 57, App Store Review Guideline 1.2). Filed only through app.report_content; open until a moderator''s decision on the item decides it, due 24 hours after it arrived. Read by the reporter and by the org''s moderators other than the item''s author; leaves with the item.', array[
   'subject_kind', 'Feed Post, Comment or Chat Message.',
-  'feed_post_id', 'Post reported, when the item is a post.',
-  'comment_id', 'Comment reported, when the item is a comment on a post.',
-  'chat_message_id', 'Message reported, when the item is a chat message.',
-  'author_person_id', 'Person who wrote the item; never told who reported it.',
+  'feed_post_id', 'Post reported, when the item is a post. Deleting the post deletes its reports.',
+  'comment_id', 'Comment reported, when the item is a comment on a post. Deleting the comment deletes its reports.',
+  'chat_message_id', 'Message reported, when the item is a chat message. Deleting the message, as the org''s message retention does (1324), deletes its reports and their copy of its text.',
+  'author_person_id', 'Person who wrote the item; never reads a report about it, even as a moderator.',
   'reporter_person_id', 'Person who reported, from the session.',
   'reason', 'Harassment, Hate, Sexual Content, Violence, Spam or Other.',
   'details', 'What the reporter added, optional.',
@@ -148,18 +158,22 @@ call private.describe('app.content_reports', 'Reports of a post, a comment on a 
   'content_moderation_decision_id', 'Decision that decided the report; NULL while it is open.'
 ]);
 
+-- A report reads to its reporter and to the org's moderators, except the author of the item it is about.
 call private.install_policies('app.content_reports',
   $$reporter_person_id = (select private.current_person_id())
-    or org_id in (select private.orgs_with_capability('org.communication.write'))$$);
-call private.install_audit_trail('app.content_reports');
-call private.install_default_retention('app.content_reports');
+    or (org_id in (select private.orgs_with_capability('org.communication.write'))
+        and author_person_id is distinct from (select private.current_person_id()))$$);
+-- No audit trail: the ledger would keep the copy of the text for seven years after the item and the report are gone
+-- (chat messages keep none either). Filing and deciding are domain events (content.reported, content.moderated), and
+-- the decisions are an audited ledger.
+insert into private.retention_policies (table_name, basis, time_column, retention, purge_method, rationale) values
+  ('app.content_reports', 'Soft Deleted', 'deleted_at', interval '7 years', 'Delete',
+   'Never soft-deleted: a report leaves with the post, comment or message it is about, so its copy of the text never outlives the item.');
 
--- A decision reads to the moderators, the author and the people whose reports it decided.
+-- A decision reads to the moderators, except the author of the item; the reporters and the author get it as a notice.
 call private.install_policies('app.content_moderation_decisions',
-  $$author_person_id = (select private.current_person_id())
-    or org_id in (select private.orgs_with_capability('org.communication.write'))
-    or id in (select r.content_moderation_decision_id from app.content_reports r
-              where r.reporter_person_id = (select private.current_person_id()))$$);
+  $$org_id in (select private.orgs_with_capability('org.communication.write'))
+    and author_person_id is distinct from (select private.current_person_id())$$);
 call private.install_audit_trail('app.content_moderation_decisions');
 call private.install_default_retention('app.content_moderation_decisions');
 
@@ -345,8 +359,9 @@ stable
 security definer
 set search_path = ''
 as $$
+declare
+  v_person uuid := private.require_content_moderator(p_org_id);
 begin
-  perform private.require_content_moderator(p_org_id);
   return query
   select q.subject_kind, q.subject_id, q.author_person_id, pe.full_name, q.content_excerpt, coalesce(i.removed, true),
     q.open_reports, q.total_reports, q.reasons, q.first_reported_at, q.due_at, q.due_at <= now(), d.action, d.decided_at
@@ -360,7 +375,7 @@ begin
       min(r.reported_at) filter (where r.content_moderation_decision_id is null) as first_reported_at,
       min(r.due_at) filter (where r.content_moderation_decision_id is null) as due_at
     from app.content_reports r
-    where r.org_id = p_org_id and r.deleted_at is null
+    where r.org_id = p_org_id and r.deleted_at is null and r.author_person_id is distinct from v_person
     group by r.subject_kind, coalesce(r.feed_post_id, r.comment_id, r.chat_message_id)
   ) q
   left join app.people pe on pe.id = q.author_person_id
@@ -374,7 +389,7 @@ begin
 end;
 $$;
 
-comment on function app.content_moderation_queue(uuid, boolean) is 'The org moderators'' queue (org.communication.write): reported posts, comments and messages with open reports, the one due first at the top, each with its newest snapshot, author, report counts, reasons, due time and whether it is overdue; or, with p_open false, items whose reports are all decided, newest decision first.';
+comment on function app.content_moderation_queue(uuid, boolean) is 'The org moderators'' queue (org.communication.write): reported posts, comments and messages with open reports, the one due first at the top, each with its newest snapshot, author, report counts, reasons, due time and whether it is overdue; or, with p_open false, items whose reports are all decided, newest decision first. Leaves out the signed-in moderator''s own content, which another moderator decides.';
 revoke all on function app.content_moderation_queue(uuid, boolean) from public, anon;
 grant execute on function app.content_moderation_queue(uuid, boolean) to authenticated, service_role;
 
@@ -391,7 +406,8 @@ declare
   v_context text;
 begin
   select * into v_item from private.reported_content(p_subject_kind, p_subject_id);
-  if v_item.org_id is distinct from p_org_id
+  -- A moderator's own content answers as if nobody had reported it: its author never learns of a report.
+  if v_item.org_id is distinct from p_org_id or v_item.author_person_id = v_person
      or not exists (select 1 from app.content_reports r where r.org_id = p_org_id and r.deleted_at is null
                       and coalesce(r.feed_post_id, r.comment_id, r.chat_message_id) = p_subject_id) then
     raise exception using errcode = '42501', message = 'no report about this item';
@@ -410,8 +426,7 @@ begin
       'author_person_id', v_item.author_person_id,
       'author_name', (select pe.full_name from app.people pe where pe.id = v_item.author_person_id),
       'body', case when v_item.removed then null else v_item.body end,
-      'removed', v_item.removed,
-      'decidable_by_me', v_item.author_person_id is distinct from v_person),
+      'removed', v_item.removed),
     'reports', coalesce((select jsonb_agg(jsonb_build_object('id', r.id, 'reason', r.reason, 'details', r.details,
                            'content_excerpt', r.content_excerpt, 'reported_at', r.reported_at, 'due_at', r.due_at,
                            'reporter_name', pe.full_name, 'open', r.content_moderation_decision_id is null)
@@ -429,7 +444,7 @@ begin
 end;
 $$;
 
-comment on function app.content_report_detail(uuid, app.content_subject_kind, uuid) is 'One reported item for the org''s moderators (org.communication.write): the item (its text while not removed, where it was posted, its author, and whether the signed-in moderator may decide it, never their own), every report on it with the snapshot and who reported it, and every decision with its statement of reasons.';
+comment on function app.content_report_detail(uuid, app.content_subject_kind, uuid) is 'One reported item for the org''s moderators (org.communication.write): the item (its text while not removed, where it was posted and its author), every report on it with the snapshot and who reported it, and every decision with its statement of reasons. The signed-in moderator''s own content is refused as an item nobody reported.';
 revoke all on function app.content_report_detail(uuid, app.content_subject_kind, uuid) from public, anon;
 grant execute on function app.content_report_detail(uuid, app.content_subject_kind, uuid) to authenticated, service_role;
 
@@ -522,6 +537,28 @@ $$;
 comment on function app.decide_content_report(uuid, app.content_subject_kind, uuid, app.content_moderation_action, app.moderation_ground, text, text, text) is 'An org moderator (org.communication.write) decides a reported item with a statement of reasons in parts: Removed hides a post, deletes a comment or deletes a message; No Action leaves it. Decides every open report on the item, tells each reporter the outcome (content_report.decided) and, on removal, sends the author the statement (content.removed); the notices name the org. Refuses a moderator deciding about their own content and an item with no open report. Returns the decision id.';
 revoke all on function app.decide_content_report(uuid, app.content_subject_kind, uuid, app.content_moderation_action, app.moderation_ground, text, text, text) from public, anon;
 grant execute on function app.decide_content_report(uuid, app.content_subject_kind, uuid, app.content_moderation_action, app.moderation_ground, text, text, text) to authenticated, service_role;
+
+-- private.notify records the signed-in person as a notification's actor, and app.inbox_items and API v1's notifications
+-- show it: a decision's notices are recorded with no actor, as a job's are, so the reporters and the author never read
+-- which moderator decided. A trigger rather than a change to private.notify, which other migrations redefine.
+create or replace function private.content_decision_notice_without_actor()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  new.actor_person_id := null;
+  return new;
+end;
+$$;
+
+comment on function private.content_decision_notice_without_actor() is 'Trigger: records the notices of an org moderator''s decision (content_report.decided, content.removed) with no actor, so they name the org and never the moderator (1630).';
+revoke all on function private.content_decision_notice_without_actor() from public, anon, authenticated;
+
+create trigger t35_content_decision_notice_without_actor before insert on app.notifications
+  for each row when (new.kind in ('content_report.decided', 'content.removed'))
+  execute function private.content_decision_notice_without_actor();
 
 -- Reports past their 24 hours --------------------------------------------------------------------------------------------
 

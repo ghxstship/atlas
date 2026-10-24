@@ -98,7 +98,8 @@ export interface ContentQueueItem {
 
 /**
  * The org moderators' queue: items with open reports, the one due first at the top; or, with `open` false, the
- * decided items, newest decision first. Refused without org.communication.write.
+ * decided items, newest decision first. The moderator's own content is left out. Refused without
+ * org.communication.write.
  */
 export async function listContentModerationQueue(
   db: XosClient,
@@ -139,8 +140,6 @@ export interface ContentReportDetail {
     /** The current text; null once removed. */
     readonly body: string | null;
     readonly removed: boolean;
-    /** False when the signed-in moderator wrote it: another moderator decides. */
-    readonly decidableByMe: boolean;
   };
   readonly reports: readonly {
     readonly id: string;
@@ -177,7 +176,6 @@ export function parseContentReportDetail(raw: unknown): ContentReportDetail {
       authorName: strOrNull(s["author_name"]),
       body: strOrNull(s["body"]),
       removed: bool(s["removed"]),
-      decidableByMe: bool(s["decidable_by_me"]),
     },
     reports: arr(d["reports"]).map((x) => {
       const r = obj(x);
@@ -208,7 +206,10 @@ export function parseContentReportDetail(raw: unknown): ContentReportDetail {
   };
 }
 
-/** One reported item with every report and decision, for a moderator. */
+/**
+ * One reported item with every report and decision, for a moderator. The moderator's own content is refused as an
+ * item nobody reported: its author never learns of a report, and another moderator decides it.
+ */
 export async function getContentReportDetail(
   db: XosClient,
   orgId: string,
