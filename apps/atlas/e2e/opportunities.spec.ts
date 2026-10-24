@@ -1,3 +1,4 @@
+import pg from "pg";
 import { expect, settle, test, type Page } from "./engine-test";
 import { expectAccessible } from "./support";
 
@@ -31,12 +32,55 @@ async function expectAccessibleInBothThemes(page: Page) {
   await settle(page);
 }
 
+/** Reads and writes the local stack directly, for the org settings Atlas has no screen for yet (spend limits). */
+async function localSql<T extends pg.QueryResultRow>(text: string, args: unknown[]): Promise<T[]> {
+  const url =
+    process.env["E2E_DATABASE_URL"] ?? "postgresql://postgres:postgres@127.0.0.1:55422/postgres";
+  if (!/@(127\.0\.0\.1|localhost):/.test(url))
+    throw new Error("Set E2E_DATABASE_URL to the local stack.");
+  const client = new pg.Client({ connectionString: url });
+  await client.connect();
+  try {
+    return (await client.query<T>(text, args)).rows;
+  } finally {
+    await client.end();
+  }
+}
+
+/** A Crew posting saved as a draft with only a title and a pay range, opened on its detail page. */
+async function draftPosting(page: Page, label: string): Promise<string> {
+  await page.goto(`/${ORG}/opportunities/postings?create=1`);
+  const title = `${label} ${Date.now().toString(36).toUpperCase()}`;
+  await page.getByLabel("Title", { exact: true }).fill(title);
+  await page.getByLabel("Rate type").selectOption("Day");
+  await page.getByLabel("Lowest pay").fill("900.00");
+  await page.getByLabel("Highest pay").fill("950.00");
+  await page.getByRole("button", { name: "Save draft" }).click();
+  await expect(page.getByRole("status").filter({ hasText: "Draft saved" })).toBeVisible();
+  await page.goto(`/${ORG}/opportunities/postings`);
+  await page.getByRole("link", { name: title }).click();
+  await page.waitForURL(/postings\?.*id=/);
+  return title;
+}
+
+/** Moves the open posting to Pending Approval, then asks to publish it. */
+async function publishFromDetail(page: Page) {
+  const move = page.getByRole("form", { name: "Move to" });
+  await move.getByLabel("Next state").selectOption("Pending Approval");
+  await move.getByLabel("Reason").fill("Ready.");
+  await move.getByRole("button", { name: "Move" }).click();
+  await expect(page.getByText("Pending Approval").first()).toBeVisible();
+  await move.getByLabel("Next state").selectOption("Published");
+  await move.getByLabel("Reason").fill("Publish.");
+  await move.getByRole("button", { name: "Move" }).click();
+}
+
 test.describe("Opportunities, org side", () => {
   test.beforeEach(async ({ page }) => {
     await signInAsProducer(page);
   });
 
-  test("requisition to published posting, with the refusal for a posting without a requisition", async ({
+  test("requisition to published posting, and a posting without a requisition only where requisition limits are set", async ({
     page,
   }) => {
     await page.goto(`/${ORG}/opportunities/requisitions`);
@@ -72,25 +116,40 @@ test.describe("Opportunities, org side", () => {
     await moveTo.getByRole("button", { name: "Move" }).click();
     await expect(page.getByText("Published").first()).toBeVisible();
 
-    // A Crew posting without a requisition is refused at publishing, with copy that names the fix.
-    await page.goto(`/${ORG}/opportunities/postings?create=1`);
-    const loose = `Loose Crew Call ${Date.now().toString(36).toUpperCase()}`;
-    await page.getByLabel("Title", { exact: true }).fill(loose);
-    await page.getByRole("button", { name: "Save draft" }).click();
-    await expect(page.getByRole("status").filter({ hasText: "Draft saved" })).toBeVisible();
-    await page.goto(`/${ORG}/opportunities/postings`);
-    await page.getByRole("link", { name: loose }).click();
-    await page.waitForURL(/postings\?.*id=/);
-    const looseMove = page.getByRole("form", { name: "Move to" });
-    await looseMove.getByLabel("Next state").selectOption("Pending Approval");
-    await looseMove.getByLabel("Reason").fill("Ready.");
-    await looseMove.getByRole("button", { name: "Move" }).click();
-    await expect(page.getByText("Pending Approval").first()).toBeVisible();
-    await looseMove.getByLabel("Next state").selectOption("Published");
-    await looseMove.getByLabel("Reason").fill("Publish.");
-    await looseMove.getByRole("button", { name: "Move" }).click();
-    await expect(page.getByText("publish only from an Approved requisition")).toBeVisible();
-    await expectAccessible(page);
+    // Spend authority before publishing applies only where the org sets spend limits for requisitions (ADR 0033
+    // decision 61, migration 1623). The demo org sets limits for other documents only, so a Crew posting without a
+    // requisition publishes.
+    const loose = await draftPosting(page, "Loose Crew Call");
+    await publishFromDetail(page);
+    await expect(page.getByText("Published").first()).toBeVisible();
+    await expect
+      .poll(async () => {
+        const [row] = await localSql<{ state: string; requisition: string | null }>(
+          `select opportunity_state::text as state, requisition_id::text as requisition
+             from app.opportunities where title = $1`,
+          [loose],
+        );
+        return row;
+      })
+      .toEqual({ state: "Published", requisition: null });
+
+    // Once the org sets a requisition limit, a Crew posting without a requisition is refused at publishing, with copy
+    // that names the fix.
+    const [limit] = await localSql<{ id: string }>(
+      `insert into app.spend_authorities (org_id, role_id, document_type, currency_code, limit_minor)
+       select o.id, r.id, 'Requisition', 'USD', 5000000 from app.organizations o, app.roles r
+        where o.slug = $1 and r.org_id is null and r.code = 'manager'
+       returning id`,
+      [ORG],
+    );
+    try {
+      await draftPosting(page, "Limited Crew Call");
+      await publishFromDetail(page);
+      await expect(page.getByText("publish only from an Approved requisition")).toBeVisible();
+      await expectAccessible(page);
+    } finally {
+      await localSql(`delete from app.spend_authorities where id = $1`, [limit?.id]);
+    }
   });
 
   test("pipeline to engagement, onboarding verification, activation and a signing link", async ({

@@ -2,7 +2,13 @@ import { getMessages, locales } from "@xos/i18n";
 import { engagementTabIds, isNodeVisible } from "@xos/ia";
 import { loadSitemapFile } from "@xos/ia/node";
 import { describe, expect, it } from "vitest";
-import { closedArea, doesPaidWork, isLiveEngagement, overviewRows } from "../lib/engagement-state";
+import {
+  closedArea,
+  doesPaidWork,
+  engagementTitle,
+  isLiveEngagement,
+  overviewRows,
+} from "../lib/engagement-state";
 import { navContext, routeNeeds } from "../lib/shell/standing";
 
 /**
@@ -109,17 +115,15 @@ describe("the Overview shows each role type what applies to it (A59-033)", () =>
     }
   });
 
-  it("never shows a client or a sponsor a rate, a pay basis or a role", () => {
-    for (const roleType of ["client", "sponsor"]) {
-      const rows = overviewRows(roleType);
-      expect(rows).not.toContain("rate");
-      expect(rows).not.toContain("payBasis");
-      expect(rows).not.toContain("role");
-    }
-    expect(overviewRows("client")).toContain("contractValue");
-    expect(overviewRows("client")).toContain("approvalsWaiting");
-    expect(overviewRows("sponsor")).toContain("sponsorshipFee");
-    expect(overviewRows("sponsor")).toContain("entitlements");
+  it("never shows a client or a sponsor a rate, a pay basis or a role, which they do not have (1624)", () => {
+    expect(overviewRows("client")).toEqual(["org", "project", "dates", "approvalsWaiting"]);
+    expect(overviewRows("sponsor")).toEqual(["org", "project", "dates", "entitlements"]);
+  });
+
+  it("names an engagement by its job title, or a client's or sponsor's by its role type", () => {
+    const label = (r: string) => `label:${r}`;
+    expect(engagementTitle({ jobTitle: "Rigger", roleType: "Crew" }, label)).toBe("Rigger");
+    expect(engagementTitle({ jobTitle: null, roleType: "Sponsor" }, label)).toBe("label:Sponsor");
   });
 
   it("gives clients and sponsors no worker tabs", () => {
