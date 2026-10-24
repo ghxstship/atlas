@@ -421,10 +421,15 @@ export async function saveInvoiceAction(_: ActionState, form: FormData): Promise
 export async function saveInvoiceLineAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);
   const f = fields(form);
-  if (f["delete"] === "1") {
+  if (f["delete"] === "1" || f["restore"] === "1") {
     const id = z.uuid().safeParse(f["id"]);
     if (!id.success) return { error: { kind: "not-found" } };
-    return finish(ctx, await finance.deleteInvoiceLine(ctx.viewer.db, id.data));
+    return finish(
+      ctx,
+      f["restore"] === "1"
+        ? await finance.restoreInvoiceLine(ctx.viewer.db, id.data)
+        : await finance.deleteInvoiceLine(ctx.viewer.db, id.data),
+    );
   }
   const invoice = z.uuid().safeParse(f["invoiceId"]);
   if (!invoice.success) return { error: { kind: "not-found" } };
@@ -885,10 +890,15 @@ export async function saveSettlementLineAction(
 ): Promise<ActionState> {
   const ctx = await contextFor(form);
   const f = fields(form);
-  if (f["delete"] === "1") {
+  if (f["delete"] === "1" || f["restore"] === "1") {
     const id = z.uuid().safeParse(f["id"]);
     if (!id.success) return { error: { kind: "not-found" } };
-    return finish(ctx, await settlements.deleteSettlementLine(ctx.viewer.db, id.data));
+    return finish(
+      ctx,
+      f["restore"] === "1"
+        ? await settlements.restoreSettlementLine(ctx.viewer.db, id.data)
+        : await settlements.deleteSettlementLine(ctx.viewer.db, id.data),
+    );
   }
   const settlement = z.uuid().safeParse(f["settlementId"]);
   if (!settlement.success) return { error: { kind: "not-found" } };

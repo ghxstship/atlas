@@ -27,7 +27,7 @@ import { RecordPaymentForm } from "./forms-record-payment-form";
 import { SelfBillForm } from "./forms-self-bill-form";
 import { EditButton } from "./kit-edit-button";
 import { FormSheet } from "./kit-form-sheet";
-import { InlineActionButton } from "./kit-inline-action-button";
+import { LineDeleteButton } from "./kit-line-delete-button";
 import { TransitionBar } from "./kit-transition-bar";
 import { type Row } from "./kit.types";
 import { RecordActivity, RecordCollab } from "./record";
@@ -224,12 +224,13 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
                   c.money(l.extendedMinor, peek.currency),
                   ...(editable
                     ? [
-                        <InlineActionButton
+                        <LineDeleteButton
                           key="d"
                           action={saveInvoiceLineAction}
-                          fields={{ org: ctx.org.slug, id: l.id, delete: "1" }}
+                          org={ctx.org.slug}
+                          id={l.id}
+                          description={l.description}
                           label={t("finance.common.remove")}
-                          icon="Trash2"
                         />,
                       ]
                     : []),

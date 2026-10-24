@@ -25,7 +25,7 @@ import {
   type GridColumn,
 } from "@xos/ui";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import {
   addBudgetLinesAction,
   deleteBudgetLinesAction,
@@ -35,6 +35,8 @@ import {
   type ActionState,
 } from "@/app/[org]/finance/actions";
 import { parsePastedLines } from "@/lib/finance/paste";
+import { propertyEdit, softDelete } from "@/components/undo/entries";
+import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
 import { ActionFeedback } from "./kit-action-feedback";
 import { fieldError } from "./kit-field-error";
 import { useFinanceT } from "./kit-use-finance-t";
@@ -46,7 +48,9 @@ import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
  * was read at; when someone else saved first, a conflict dialog shows both values and the person
  * chooses (Section 11.7, journey 33). Lines are added one at a time, from catalog elements at a
  * chosen grade with the grade's price or Unpriced (journey 3), or pasted from a spreadsheet as one
- * batch that Undo removes (journey 34).
+ * batch that Undo removes (journey 34). Cell edits, pastes and deletes go on the session's undo stack
+ * (Section 11.7): Cmd or Ctrl+Z undoes them through the server, and the toast of a paste or a delete
+ * acts on the same entry.
  */
 
 export interface CostCenterOption {
@@ -110,9 +114,80 @@ export function BudgetEditor(props: Props) {
   const [conflict, setConflict] = useState<{ mine: BudgetLineInput; theirs: BudgetLine } | null>(
     null,
   );
-  const [undo, setUndo] = useState<{ ids: string[]; message: string; restore: boolean } | null>(
-    null,
+  // The undo stack entry a paste or delete toast shows.
+  const [undo, setUndo] = useState<{ entry: number; message: string } | null>(null);
+  // Each line's latest version, so an undo of a cell edit saves against what the line holds now.
+  const versions = useRef(new Map<string, string>());
+  useEffect(() => {
+    for (const l of lines) {
+      const known = versions.current.get(l.id);
+      if (!known || known < l.updatedAt) versions.current.set(l.id, l.updatedAt);
+    }
+  }, [lines]);
+  useEffect(
+    () =>
+      undoStack.subscribe((event) => {
+        if (event.kind === "undone") {
+          setUndo((u) => (u?.entry === event.entry.id ? null : u));
+        }
+      }),
+    [],
   );
+  // A refusal reads in the catalog's words (finance.refusals), never the database's sentence.
+  const outcome = (result: ActionState): UndoResult => {
+    if (result.ok) return { ok: true };
+    const error = result.error;
+    if (result.conflict || !error) return { ok: false, message: t("common.lineUndo") };
+    if (error.kind === "refusal") {
+      const key = `refusals.${error.rule}`;
+      return {
+        ok: false,
+        message: t.has(key) ? t(key) : t("refusals.unknown", { rule: error.rule }),
+      };
+    }
+    return { ok: false, message: t(`errors.${error.kind}`) };
+  };
+  /** Deletes or restores lines for an undo or a redo, refreshing the grid either way. */
+  const batch = async (ids: readonly string[], restore: boolean) => {
+    const result = await submit(deleteBudgetLinesAction, {
+      org: props.org,
+      ids: ids.join(","),
+      ...(restore ? { restore: "1" } : {}),
+    });
+    setStatus(result);
+    start(() => router.refresh());
+    return outcome(result);
+  };
+  /** A paste (restore false) or a delete (restore true) on the stack, with its toast. */
+  const pushBatch = (ids: string[], message: string, restore: boolean) =>
+    setUndo({
+      entry: undoStack.push(
+        softDelete({
+          label: message,
+          toast: false,
+          restore: () => batch(ids, restore),
+          remove: () => batch(ids, !restore),
+        }),
+      ).id,
+      message,
+    });
+  /** Saves a line's values for an undo or a redo of a cell edit, against its latest version. */
+  const resave = async (id: string, input: BudgetLineInput): Promise<UndoResult> => {
+    const result = await submit(updateBudgetLineAction, {
+      org: props.org,
+      id,
+      expectedUpdatedAt: versions.current.get(id) ?? "",
+      line: JSON.stringify(input),
+    });
+    if (result.line) {
+      const saved = result.line;
+      versions.current.set(saved.id, saved.updatedAt);
+      setLines((current) => current.map((l) => (l.id === saved.id ? { ...l, ...saved } : l)));
+      setGridKey((k) => k + 1);
+      start(() => router.refresh());
+    }
+    return outcome(result);
+  };
   const [sheet, setSheet] = useState<"add" | "catalog" | "paste" | "delete" | "draw" | null>(null);
   const [, start] = useTransition();
 
@@ -230,8 +305,19 @@ export function BudgetEditor(props: Props) {
     setStatus(result);
     if (result.line) {
       const saved = result.line;
+      versions.current.set(saved.id, saved.updatedAt);
       setLines((current) => current.map((l) => (l.id === saved.id ? { ...l, ...saved } : l)));
       start(() => router.refresh());
+      const before = inputOf(line);
+      undoStack.push(
+        propertyEdit({
+          label: t("budgets.edited", { number: line.lineNumber }),
+          toast: false,
+          before: { line: JSON.stringify(before) },
+          after: { line: JSON.stringify(input) },
+          save: (set) => resave(line.id, JSON.parse(String(set.line)) as BudgetLineInput),
+        }),
+      );
     } else {
       setGridKey((k) => k + 1);
     }
@@ -345,7 +431,7 @@ export function BudgetEditor(props: Props) {
           onClose={() => setSheet(null)}
           onPasted={(ids) => {
             setSheet(null);
-            setUndo({ ids, message: t("budgets.pasted", { count: ids.length }), restore: false });
+            pushBatch(ids, t("budgets.pasted", { count: ids.length }), false);
           }}
         />
       ) : null}
@@ -356,7 +442,7 @@ export function BudgetEditor(props: Props) {
           onClose={() => setSheet(null)}
           onDeleted={(ids) => {
             setSheet(null);
-            setUndo({ ids, message: t("budgets.deleted", { count: ids.length }), restore: true });
+            pushBatch(ids, t("budgets.deleted", { count: ids.length }), true);
           }}
         />
       ) : null}
@@ -366,19 +452,12 @@ export function BudgetEditor(props: Props) {
       <ToastRegion label={t("common.notifications")}>
         {undo ? (
           <UndoToast
-            key={undo.ids.join(",")}
+            key={undo.entry}
             message={undo.message}
             onUndo={() => {
               const target = undo;
               setUndo(null);
-              void submit(deleteBudgetLinesAction, {
-                org: props.org,
-                ids: target.ids.join(","),
-                ...(target.restore ? { restore: "1" } : {}),
-              }).then((r) => {
-                setStatus(r);
-                start(() => router.refresh());
-              });
+              void undoStack.undo(target.entry);
             }}
             onExpire={() => setUndo(null)}
           />

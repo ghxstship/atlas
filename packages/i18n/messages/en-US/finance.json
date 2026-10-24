@@ -55,7 +55,9 @@
     "unnamedCounterparty": "Unnamed counterparty",
     "unpriced": "Unpriced",
     "vendor": "Vendor",
-    "viewLabel": "View"
+    "viewLabel": "View",
+    "lineRemoved": "Removed {description}.",
+    "lineUndo": "Someone changed this line after you removed it; reload to see the change."
   },
   "views": {
     "table": "Table",
@@ -479,7 +481,8 @@
     },
     "xyzCategory": "From the category",
     "xyzDeclare": "Disciplines need a declared tag.",
-    "xyzFromCategory": "The category's tag is {tag}; choose another only to declare a different one."
+    "xyzFromCategory": "The category's tag is {tag}; choose another only to declare a different one.",
+    "edited": "Edited line {number}."
   },
   "expenses": {
     "create": "New expense",
