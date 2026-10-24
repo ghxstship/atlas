@@ -20,6 +20,7 @@ import {
   type LiveTopic,
 } from "@xos/ui";
 import type { Route } from "next";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { useCopy } from "./use-copy";
@@ -30,6 +31,9 @@ import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 import { collectionPeek } from "@/components/shell/collection-peek";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
+import type { CustomFieldListView } from "@/lib/custom-fields/types";
+import { conditionParam, conditionsOf, fieldParamKey, matchesShown } from "@/lib/views/conditions";
 
 /**
  * The Collection template (Section 11.6) for every A16 list: page header with the view switcher
@@ -54,6 +58,7 @@ export function CollectionView({
   filters,
   live,
   bulk,
+  customFields = null,
   children,
 }: {
   title: string;
@@ -79,10 +84,16 @@ export function CollectionView({
   live?: readonly LiveTopic[];
   /** Bulk edit of the table view's selection (Section 11.7), for resources with a bulk RPC. */
   bulk?: BulkConfig | null;
+  /**
+   * The table's filterable custom fields and their values (A117, `customFieldList(...).view(ids)`): table
+   * columns, and fields the Add filter control offers. The loader applies their conditions.
+   */
+  customFields?: CustomFieldListView | null;
   /** The peek or create drawer, rendered after the body. */
   children?: ReactNode;
 }) {
   const t = useCopy("procurement.kit");
+  const tv = useTranslations("views");
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -108,17 +119,29 @@ export function CollectionView({
   const peek = collectionPeek(params.get("peek"), children);
 
   const needle = query.trim().toLowerCase();
+  const custom = useCustomFieldColumns(customFields);
+  // The Add filter control offers the columns (A117); their `f.*` conditions match on the shown text.
+  const declared = useMemo(() => declaredFields(columns, rows), [columns, rows]);
+  const conditions = useMemo(() => conditionsOf(params), [params]);
+  const fieldConditions = useMemo(
+    () => conditions.filter((c) => c.scope === "field"),
+    [conditions],
+  );
   const visible = useMemo(
     () =>
-      needle === ""
-        ? rows
-        : rows.filter((r) =>
+      rows.filter(
+        (r) =>
+          (needle === "" ||
             [r.key, r.title, r.meta ?? "", ...Object.values(r.cells).map(cellText)]
               .join(" ")
               .toLowerCase()
-              .includes(needle),
-          ),
-    [rows, needle],
+              .includes(needle)) &&
+          fieldConditions.every((c) => {
+            const column = columns.find((col) => fieldParamKey(col.key) === c.key);
+            return column ? matchesShown(cellText(r.cells[column.key]), c) : true;
+          }),
+      ),
+    [rows, needle, fieldConditions, columns],
   );
 
   const switcher =
@@ -128,6 +151,8 @@ export function CollectionView({
         value={view}
         options={views.map((v) => ({ value: v, label: t(`view.${v}`) }))}
         onChange={(next) => router.replace(href({ view: next }), { scroll: false })}
+        fields={declared}
+        customFields={customFields}
       />
     ) : null;
 
@@ -150,17 +175,20 @@ export function CollectionView({
     ) : null;
 
   let body: ReactNode;
-  if (rows.length === 0) {
+  if (rows.length === 0 && conditions.length === 0) {
     body = empty;
   } else if (visible.length === 0) {
+    // Filters may have left no row (A117): clearing takes away the search and every condition.
+    const filtersOnly = needle === "" && conditions.length > 0;
     body = (
       <EmptyState
         icon="SearchX"
-        sentence={t("noMatches")}
-        actionLabel={t("clearSearch")}
+        sentence={filtersOnly ? tv("filter.noMatches") : t("noMatches")}
+        actionLabel={filtersOnly ? tv("filter.clear") : t("clearSearch")}
         onAction={() => {
           setQuery("");
-          router.replace(href({ q: null }), { scroll: false });
+          const cleared = Object.fromEntries(conditions.map((c) => [conditionParam(c)[0], null]));
+          router.replace(href({ q: null, ...cleared }), { scroll: false });
         }}
       />
     );
@@ -270,12 +298,12 @@ export function CollectionView({
       />
     );
   } else {
-    const tableRows = visible.map((r) => ({ id: r.id, ...r.cells }));
+    const tableRows = visible.map((r) => ({ id: r.id, ...r.cells, ...custom.cells(r.id) }));
     body = (
       <DataTable
         caption={title}
         label={title}
-        columns={columns.map((c) => ({ ...c }))}
+        columns={[...columns, ...custom.columns].map((c) => ({ ...c }))}
         rows={tableRows}
         onRowActivate={(row) => open(String(row["id"]))}
         onRowContextMenu={(row, _index, at, cell) => {
@@ -320,6 +348,20 @@ export function CollectionView({
       {rowMenu.menu}
     </TemplateCollection>
   );
+}
+
+/** Columns as filter fields, each with its shown values to pick from when there are few. */
+function declaredFields(columns: readonly KitColumn[], rows: readonly KitRow[]) {
+  return columns.map((c) => {
+    const shown = [...new Set(rows.map((r) => cellText(r.cells[c.key])).filter(Boolean))].sort();
+    return {
+      key: fieldParamKey(c.key),
+      label: c.label,
+      ...(shown.length > 0 && shown.length <= 30
+        ? { options: shown.map((v) => ({ value: v, label: v })) }
+        : {}),
+    };
+  });
 }
 
 function cellText(cell: unknown): string {

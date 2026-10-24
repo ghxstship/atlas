@@ -27,6 +27,9 @@ import {
 import { DeferredDropdownMenu } from "@/components/shell/deferred-menus";
 import type { ViewDialogState } from "./view-dialogs";
 import { onDemand, useOnDemand } from "@/components/shell/on-demand";
+import { CollectionFilters } from "./filter-bar";
+import type { FilterField } from "./filter-model";
+import type { CustomFieldListView } from "@/lib/custom-fields/types";
 
 /** The save, share and delete dialogs load when one opens (A24-009). */
 const viewDialogs = onDemand(() => import("./view-dialogs"));
@@ -49,9 +52,19 @@ export interface CollectionViewsProps {
   readonly options: readonly CollectionViewOption[];
   /** How the page switches view; by default the `view` query parameter is replaced. */
   readonly onChange?: (view: string) => void;
+  /**
+   * Fields the page declares for the Add filter control (A117), which the page matches itself on what it
+   * shows (`f.<key>` conditions). The org's filterable custom fields come from the surrounding
+   * CustomFieldList.
+   */
+  readonly fields?: readonly FilterField[];
+  /** The page's filterable custom fields, when it hands them over instead of a CustomFieldList. */
+  readonly customFields?: CustomFieldListView | null;
 }
 
 type Dialogs = ViewDialogState | null;
+
+const NO_FIELDS: readonly FilterField[] = [];
 
 /**
  * The one view switcher of every Atlas collection (Section 11.15): the views that fit the data, and
@@ -59,9 +72,17 @@ type Dialogs = ViewDialogState | null;
  * grouping, search), so switching view type keeps the filters, and opening a saved view lands on the
  * same screen a link would. Views are saved per person, shared with the org or with teams, and one can
  * open by default on the page; a shared view shows each viewer only what their own access allows.
+ * Beside them, the Add filter control (A117) writes conditions into the query, so saved views keep them.
  * Drop-in for the SegmentedControl a page used before: the same label, value, options and onChange.
  */
-export function CollectionViews({ label, value, options, onChange }: CollectionViewsProps) {
+export function CollectionViews({
+  label,
+  value,
+  options,
+  onChange,
+  fields = NO_FIELDS,
+  customFields,
+}: CollectionViewsProps) {
   const t = useTranslations("views") as unknown as Translate;
   const router = useRouter();
   const pathname = usePathname();
@@ -298,6 +319,13 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
           {error}
         </p>
       ) : null}
+      <CollectionFilters
+        search={search}
+        fields={fields}
+        {...(customFields !== undefined ? { customFields } : {})}
+        onNavigate={go}
+        {...(collection && !active ? { onSave: () => setDialog({ kind: "save" }) } : {})}
+      />
       {dialog && dialogsModule ? (
         <dialogsModule.ViewDialog
           dialog={dialog}

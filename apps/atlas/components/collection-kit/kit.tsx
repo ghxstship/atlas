@@ -17,13 +17,21 @@ import {
   type ButtonProps,
 } from "@xos/ui";
 import type { Route } from "next";
+import dynamic from "next/dynamic";
 import NextLink from "next/link";
 import { keepInputOnSubmit, useResetOnSuccess } from "./keep-input";
 import { useCopy } from "./use-copy";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import type { ActionState } from "@/lib/collection-kit/forms";
+import { CUSTOM_FIELD_SHOWN } from "@/lib/custom-fields/names";
+import type { CustomFieldTable } from "@/lib/custom-fields/types";
 import type { KitState } from "./types";
+
+/** A create form's custom field inputs load with the form that shows them (A117, A24-009). */
+const CustomFieldInputs = dynamic(() =>
+  import("@/components/custom-fields/custom-field-inputs").then((m) => m.CustomFieldInputs),
+);
 
 /**
  * Client building blocks of the A16 pages: the side peek, the full record page, the generic form,
@@ -318,10 +326,16 @@ export function EntityForm({
   refusals,
   successHref,
   onCancelHref,
+  customFields,
 }: {
   id: string;
   action: ServerAction;
   fields: FieldSpec[];
+  /**
+   * The table whose custom fields a create form shows after its own fields (A117); the action saves them
+   * through `customFieldsOf` (lib/custom-fields/form.ts).
+   */
+  customFields?: CustomFieldTable;
   hidden?: Readonly<Record<string, string>>;
   submitLabel: string;
   /** Secondary for a form beside the page's own primary action (gate 27). */
@@ -439,6 +453,13 @@ export function EntityForm({
             );
         }
       })}
+      {customFields ? (
+        <>
+          {/* Present from the first paint, so the action holds the form to required fields. */}
+          <input type="hidden" name={CUSTOM_FIELD_SHOWN} value="1" />
+          <CustomFieldInputs table={customFields} idPrefix={id} />
+        </>
+      ) : null}
       <div className="flex flex-wrap items-center gap-8">
         <Button type="submit" variant={submitVariant} loading={pending}>
           {submitLabel}

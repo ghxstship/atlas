@@ -53,6 +53,12 @@ import {
 } from "@/components/operations/kit";
 import { LiveRefresh } from "@/components/operations/peek";
 import { RecordCollab } from "@/components/operations/record-collab";
+import { CustomFieldInputs } from "@/components/custom-fields/custom-field-inputs";
+import { CustomFieldList } from "@/components/custom-fields/list";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
+import { customFieldColumns } from "@/components/custom-fields/format";
+import { customFieldList } from "@/lib/custom-fields/server";
+import { customConditionsOf } from "@/lib/views/conditions";
 import { EmergencyCodeCard, TemplateSplitView } from "@/components/operations/ui";
 import { MapView } from "@/components/platform/client/map-view";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
@@ -146,18 +152,26 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
   const format = await getFormatter();
   const stateFilter = param(page.search, "state") as IncidentState | undefined;
   const severityFilter = param(page.search, "severity");
-  const [incidentsResult, severitiesResult] = await Promise.all([
+  const [incidentsResult, severitiesResult, custom] = await Promise.all([
     listIncidents(page.ctx.viewer.db, {
       orgId: page.ctx.org.id,
       ...(page.project ? { projectId: page.project.id } : {}),
       ...(stateFilter && INCIDENT_STATES.includes(stateFilter) ? { states: [stateFilter] } : {}),
     }),
     listIncidentSeverities(page.ctx.viewer.db),
+    customFieldList(page.ctx, "app.incidents", page.search),
   ]);
   const severities = unwrap(severitiesResult, "severities");
   const incidents = unwrap(incidentsResult, "incidents").filter(
-    (i) => !severityFilter || i.severityId === severityFilter,
+    (i) => (!severityFilter || i.severityId === severityFilter) && custom.keep(i.id),
   );
+  const customView = await custom.view(incidents.map((i) => i.id));
+  const customColumns = customFieldColumns(customView, {
+    format,
+    yes: t("platform.customFields.yes"),
+    no: t("platform.customFields.no"),
+    someone: t("platform.customFields.someone"),
+  });
   const located = incidents.some((i) => i.latitude !== null);
   const declared = chooseView("safety.incidents", param(page.search, "view"));
   // The map view appears only when the data has a location (Section 11.15).
@@ -195,6 +209,11 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
       primary: true,
       render: (i) => <StateChip page={page} state={i.state} />,
     },
+    ...customColumns.columns.map((c) => ({
+      key: c.key,
+      label: c.label,
+      render: (i: Incident) => customColumns.cells(i.id)[c.key] ?? "",
+    })),
   ];
   const item = (i: Incident): ListItem => ({
     key: i.id,
@@ -209,7 +228,11 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
     body = (
       <EmptyStateLink
         icon="Siren"
-        sentence={t(stateFilter || severityFilter ? "incidents.emptyFiltered" : "incidents.empty")}
+        sentence={t(
+          stateFilter || severityFilter || customConditionsOf(page.search).length > 0
+            ? "incidents.emptyFiltered"
+            : "incidents.empty",
+        )}
         actionLabel={t("incidents.report")}
         href={sectionHref(page, { create: "1", section })}
       />
@@ -244,7 +267,7 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
   }
 
   return (
-    <>
+    <CustomFieldList value={customView}>
       <Header
         page={page}
         section={section}
@@ -302,7 +325,7 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
       {peekId ? (
         <IncidentRecord page={page} id={peekId} section={section} severities={severities} />
       ) : null}
-    </>
+    </CustomFieldList>
   );
 }
 
@@ -401,6 +424,7 @@ async function ReportForm({
           defaultValue={instantToLocal(new Date().toISOString(), project.timeZone)}
           help={t("incidents.timeZoneHelp", { zone: project.timeZone })}
         />
+        <CustomFieldInputs table="app.incidents" />
       </ActionForm>
     </RecordSection>
   );
@@ -855,6 +879,7 @@ async function IncidentRecord({
           <p className="m-0 text-text-13 text-text-secondary">{t("incidents.noHistory")}</p>
         )}
       </RecordSection>
+      <CustomFieldsPanel org={page.ctx.org.slug} table="app.incidents" id={incident.id} />
       <RecordCollab
         page={page}
         table="app.incidents"

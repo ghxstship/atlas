@@ -22,6 +22,7 @@ import type { Route } from "next";
 import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { transitionRecordAction } from "./actions";
 import { formatScheduleTime, formatWhen, stateToken, withQuery } from "./format";
@@ -118,6 +119,8 @@ export function RecordCollection({
   const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
+  // The org's filterable record fields (A117), from the CustomFieldList the page wraps this in.
+  const custom = useCustomFieldColumns();
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   const open = (key: string) =>
@@ -284,6 +287,7 @@ export function RecordCollection({
             { key: "owner", label: t("columns.owner") },
             { key: "next", label: t("columns.next") },
             { key: "project", label: t("columns.project") },
+            ...custom.columns,
           ]}
           rows={records.map((r) => ({
             id: r.id,
@@ -296,6 +300,7 @@ export function RecordCollection({
             owner: r.ownerName ?? t("values.unassigned"),
             next: nextOf(r) ?? t("values.noDate"),
             project: r.projectName,
+            ...custom.cells(r.id),
           }))}
           onRowActivate={(row) => open(String(row["key"]))}
           onRowContextMenu={(_row, index, at, cell) => {

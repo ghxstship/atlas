@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { useRowMenu } from "@/components/menus/use-row-menu";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { useFinanceT } from "./kit-use-finance-t";
 import { useQueryNav } from "./kit-use-query-nav";
 import { type Row } from "./kit.types";
@@ -43,6 +44,8 @@ export function CollectionTable({
   const rowMenu = useRowMenu();
   const pathname = usePathname();
   const search = useSearchParams();
+  // The list's filterable custom fields (A117), when the page wraps it in a CustomFieldList.
+  const custom = useCustomFieldColumns();
   const fullHref = (id: string) => {
     const q = new URLSearchParams(search.toString());
     q.set("peek", id);
@@ -54,8 +57,8 @@ export function CollectionTable({
       <DataTable
         caption={label}
         label={label}
-        columns={columns}
-        rows={[...rows]}
+        columns={[...columns, ...custom.columns]}
+        rows={rows.map((r) => ({ ...r, ...custom.cells(r.id) }))}
         {...(totals ? { totals, totalsLabel: t("common.total") } : {})}
         {...(activatable ? { onRowActivate: (row) => go({ peek: String(row["id"]) }) } : {})}
         {...(activatable || selection

@@ -28,6 +28,9 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useAssetsCopy } from "./copy";
 import { CreateDialogContext } from "./dialog";
 import { CollectionViews } from "@/components/views/collection-views";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
+import type { CustomFieldColumns } from "@/components/custom-fields/format";
+import type { CustomFieldListView } from "@/lib/custom-fields/types";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { useRowMenu } from "@/components/menus/use-row-menu";
@@ -85,6 +88,8 @@ export interface CollectionProps {
   readonly before?: ReactNode;
   /** Bulk edit of the table view's selection (Section 11.7); rows need an `id`. */
   readonly bulk?: BulkConfig | null;
+  /** The table's filterable custom fields (A117): columns, and fields the Add filter control offers. */
+  readonly customFields?: CustomFieldListView | null;
 }
 
 const NOT_TABLE = new Set(["list", "board", "gallery", "calendar", "resource-schedule"]);
@@ -122,6 +127,7 @@ export function AssetsCollection(props: CollectionProps) {
     [props.rows],
   );
   const bulkKit = useBulk(NOT_TABLE.has(props.view) ? null : props.bulk, refs);
+  const custom = useCustomFieldColumns(props.customFields ?? null);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
   const onContext = (
@@ -157,6 +163,7 @@ export function AssetsCollection(props: CollectionProps) {
             value={props.view}
             options={props.views.map((v) => ({ value: v.value, label: v.label }))}
             onChange={(view) => go({ view })}
+            customFields={props.customFields ?? null}
           />
         ) : null
       }
@@ -248,7 +255,7 @@ export function AssetsCollection(props: CollectionProps) {
   } else {
     body = (
       <>
-        {renderView(props, t, open, byKey, selection, onContext)}
+        {renderView(withCustomColumns(props, custom), t, open, byKey, selection, onContext)}
         {bar}
         {rowMenu.menu}
       </>
@@ -291,6 +298,16 @@ export function AssetsCollection(props: CollectionProps) {
       ) : null}
     </TemplateCollection>
   );
+}
+
+/** The props with the custom field columns after the page's own (A117). */
+function withCustomColumns(props: CollectionProps, custom: CustomFieldColumns): CollectionProps {
+  if (custom.columns.length === 0) return props;
+  return {
+    ...props,
+    columns: [...props.columns, ...custom.columns],
+    rows: props.rows.map((r) => ({ ...r, cells: { ...r.cells, ...custom.cells(r.id ?? "") } })),
+  };
 }
 
 function renderView(

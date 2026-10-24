@@ -7,6 +7,7 @@ import { useActionState, useState } from "react";
 import { createProjectAction } from "@/lib/projects/actions";
 import { DeferredDrawer } from "@/components/lazy-ui/deferred";
 import { ActionError } from "./action-error";
+import { CustomFieldInputs } from "@/components/custom-fields/custom-field-inputs";
 
 import type { ProjectFormOptions } from "./project-fields";
 
@@ -57,6 +58,7 @@ export function CreateProjectDialog({
         <input type="hidden" name="org" value={org} />
         <ActionError state={state} />
         <DrawerFields idPrefix="create" options={options} state={state} />
+        <CustomFieldInputs table="app.projects" />
       </form>
     </DeferredDrawer>
   );
