@@ -27852,7 +27852,7 @@
           "type": "text"
         },
         {
-          "comment": "Where the raw message is kept. Through Resend: its object name in the private inbound-mail bucket, resend/<email id>.eml (1651), or resend:<email id> when it was over 50 MiB and only Resend keeps it, for 30 days. Through a provider posting a parsed message: the path that provider sent.",
+          "comment": "Where the raw message is kept. Through Resend: its object name in the private inbound-mail bucket, <org id>/resend/<email id>.eml (1651), or resend:<email id> when it was over 50 MiB and only Resend keeps it, for 30 days. Through a provider posting a parsed message: the path that provider sent.",
           "name": "raw_object_path",
           "nullable": false,
           "references": null,
