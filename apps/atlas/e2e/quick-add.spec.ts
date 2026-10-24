@@ -49,11 +49,11 @@ test("one line sets a record's date, owner, category, kind and scope; plain crea
   await field.fill(`Truss Load Test Friday 8am @sam #rigging /inspection ~${KEY}-E01`);
   // Every token resolves to what the owner may see and shows as a chip before saving.
   const chips = chipsOf(field);
-  await expect(chips.getByText("Sam Scheduler")).toBeVisible();
+  await expect(chips.getByText("Sam Scheduler", { exact: true })).toBeVisible();
   await expect(chips.getByText("Rigging", { exact: true })).toBeVisible();
-  await expect(chips.getByText("Inspection")).toBeVisible();
-  await expect(chips.getByText(PROJECT)).toBeVisible();
-  await expect(chips.getByText("Friday 8am")).toBeVisible();
+  await expect(chips.getByText("Inspection", { exact: true })).toBeVisible();
+  await expect(chips.getByText(PROJECT, { exact: true })).toBeVisible();
+  await expect(chips.getByText("Friday 8am", { exact: true })).toBeVisible();
   await expect(chips.getByText("Truss Load Test", { exact: true })).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Owner: Sam Scheduler" })).toHaveText(
     /^Truss Load Test, with .*When: Fri.*8:00/,
@@ -112,7 +112,7 @@ test("the Create menu adds a record from its search field, and a kind's name sti
 
   await search.fill(`Rigging Plan /document @me ~${KEY} tomorrow 9am`);
   await expect(menu.getByRole("option", { name: "Add Rigging Plan as Document" })).toBeVisible();
-  await expect(menu.getByText("Sam Scheduler")).toBeVisible();
+  await expect(menu.getByText("Sam Scheduler", { exact: true })).toBeVisible();
   await expectAccessible(page);
   await page.keyboard.press("Enter");
   await page.waitForURL(new RegExp(`/${slug}/r/${KEY}-1$`));
@@ -126,8 +126,8 @@ test("one line plans a Draft shift with its role, person, scope and times", asyn
   const field = page.getByRole("textbox", { name: "Quick add a shift" });
   await field.fill(`#stagehand @me ~${KEY}-E01 Friday 8am-4pm`);
   const chips = chipsOf(field);
-  await expect(chips.getByText("Lead Stagehand / Deck Crew Chief")).toBeVisible();
-  await expect(chips.getByText("Sam Scheduler")).toBeVisible();
+  await expect(chips.getByText("Lead Stagehand / Deck Crew Chief", { exact: true })).toBeVisible();
+  await expect(chips.getByText("Sam Scheduler", { exact: true })).toBeVisible();
   await expectAccessible(page);
   await field.press("Enter");
   await page.waitForURL(/peek=/);
