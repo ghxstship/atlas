@@ -26,6 +26,8 @@ function fakeStripe(
     sessions?: Record<string, Status>;
     /** Sessions whose expire call fails, and what Stripe says about them afterwards. */
     expireFails?: Record<string, Status>;
+    /** Sessions this Stripe account does not have, such as ones opened under an earlier sandbox key. */
+    missing?: string[];
     portalConfigured?: boolean;
   } = {},
 ) {
@@ -60,6 +62,13 @@ function fakeStripe(
         },
         retrieve: async (id: string) => {
           calls.push({ method: "checkout.sessions.retrieve", params: id });
+          if (options.missing?.includes(id)) {
+            throw Object.assign(new Error(`No such checkout.session: '${id}'`), {
+              type: "StripeInvalidRequestError",
+              code: "resource_missing",
+              statusCode: 404,
+            });
+          }
           return { id, status: sessions.get(id) ?? "expired" };
         },
         expire: async (id: string) => {
@@ -226,6 +235,17 @@ describe("startPlanCheckout", () => {
     expect(stripe.sessions.get("cs_test_New1")).toBe("expired");
   });
 
+  it("treats an open session the Stripe account does not have as gone, so Checkout still opens", async () => {
+    const stripe = fakeStripe({ missing: ["cs_test_OldKey"] });
+    const account = accountStore({
+      openSessionIds: ["cs_test_OldKey"],
+      closedByRecord: ["cs_test_OldKey"],
+    });
+    const opened = await startPlanCheckout(stripe.client, registry, account.store, request);
+    expect(opened.sessionId).toBe("cs_test_New1");
+    expect(stripe.calls.some((c) => c.method === "checkout.sessions.expire")).toBe(false);
+  });
+
   it("expires a session another tab opened, and lets an expiry Stripe already did pass", async () => {
     const stripe = fakeStripe({ sessions: { cs_test_Tab: "open" } });
     const account = accountStore({ closedByRecord: ["cs_test_Tab"] });
@@ -290,6 +310,21 @@ describe("expireCheckoutSession", () => {
     await expect(expireCheckoutSession(stuck.client, "cs_test_R")).rejects.toThrow(
       /Only open sessions/,
     );
+  });
+
+  it("passes on any other Stripe failure", async () => {
+    const stripe = fakeStripe();
+    const down = {
+      ...stripe.client,
+      checkout: {
+        sessions: {
+          retrieve: async () => {
+            throw Object.assign(new Error("Stripe is unavailable"), { statusCode: 503 });
+          },
+        },
+      },
+    } as unknown as StripeClient;
+    await expect(expireCheckoutSession(down, "cs_test_R")).rejects.toThrow(/unavailable/);
   });
 });
 

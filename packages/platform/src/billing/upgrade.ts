@@ -45,15 +45,29 @@ export class CheckoutCompletedError extends Error {
   }
 }
 
+/** Stripe's answer for an id the account does not have (StripeInvalidRequestError, code resource_missing). */
+function isMissing(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { readonly code?: unknown }).code === "resource_missing"
+  );
+}
+
 /**
  * Expires an open Checkout session. Refuses with CheckoutCompletedError when it completed instead, so
- * the org never pays twice; an expired session needs nothing.
+ * the org never pays twice; an expired session needs nothing, and neither does one the Stripe account does
+ * not have (recorded under an earlier sandbox account or key), which nobody can pay.
  */
 export async function expireCheckoutSession(
   stripe: StripeClient,
   sessionId: string,
 ): Promise<void> {
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  const session = await stripe.checkout.sessions.retrieve(sessionId).catch((error: unknown) => {
+    if (isMissing(error)) return null;
+    throw error;
+  });
+  if (session === null) return;
   if (session.status === "complete") throw new CheckoutCompletedError(sessionId);
   if (session.status !== "open") return;
   try {
