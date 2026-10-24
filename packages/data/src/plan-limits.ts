@@ -1,7 +1,6 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { bool, num, numOrNull, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
-import { untyped } from "./untyped.ts";
 
 /**
  * Objects over the plan's limits (A107, migrations 1720 and 1721; Section 16, ADR 0060). A downgrade or the end of a
@@ -124,12 +123,11 @@ export async function getProjectOverLimit(
   db: XosClient,
   projectId: string,
 ): Promise<Result<ProjectOverLimit | null>> {
-  const { data, error } = await untyped(db)
+  const { data, error } = await db
     .from("over_limit_objects")
     .select("plan_code, created_at")
     .eq("project_id", projectId)
     .maybeSingle();
   if (error) return fail(toDataError(error));
-  const row = data as Raw | null;
-  return ok(row ? { planCode: str(row["plan_code"]), since: str(row["created_at"]) } : null);
+  return ok(data ? { planCode: data.plan_code, since: data.created_at } : null);
 }
