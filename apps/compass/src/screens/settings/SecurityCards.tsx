@@ -325,10 +325,12 @@ export function RenameSheet({
   const [label, setLabel] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Starts from the current name each time the sheet opens for a factor or passkey.
+  const targetName = target?.name ?? null;
   useEffect(() => {
-    setLabel(target?.name ?? "");
+    setLabel(targetName ?? "");
     setError(null);
-  }, [target]);
+  }, [targetName]);
   const save = async () => {
     const checked = checkFactorLabel(label);
     if (!checked.ok) {
