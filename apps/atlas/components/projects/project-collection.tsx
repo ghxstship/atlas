@@ -9,7 +9,6 @@ import {
   Input,
   PageHeader,
   PhaseChip,
-  PropertyList,
   StateChip,
   TemplateCollection,
 } from "@xos/ui";
@@ -29,6 +28,7 @@ import {
   Calendar,
   Drawer,
   Gallery,
+  PropertyList,
   RecordList,
   RecordRow,
   Timeline,
