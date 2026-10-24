@@ -1,8 +1,8 @@
 "use client";
 
-import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
+import { Accordion, Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useActionState } from "react";
+import { useActionState, useState, type ReactNode } from "react";
 import {
   saveMyNotificationsAction,
   saveOrgNotificationDefaultsAction,
@@ -15,6 +15,10 @@ import { MATRIX_CHANNELS } from "@/lib/settings/notification-matrix";
  * The notification matrix forms (Section 4.5.6): a member's categories by channel with quiet hours and
  * digest (Personal settings, Notifications), and the org's defaults with mandatory categories
  * (Settings, Notifications). Each page has one form and its one primary action.
+ *
+ * Fifteen categories by four channels is 60 checkboxes, far past the seven fields a form shows before
+ * More fields (Section 11.10, gate 27). So each category is a section of its own that says which
+ * channels are on and opens to change them; closed sections stay in the form, so every cell submits.
  */
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -68,70 +72,88 @@ function Status({ state }: { state: NotificationFormState }) {
   return null;
 }
 
-function CategoryHeader({ category, urgent }: { category: string; urgent: boolean }) {
+/** The checked boxes of a group (`category.channel` cells, or mandatory categories) as they change. */
+function useChecked(initial: () => Iterable<string>) {
+  const [checked, setChecked] = useState<ReadonlySet<string>>(() => new Set(initial()));
+  const set = (key: string, on: boolean) =>
+    setChecked((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  return [checked, set] as const;
+}
+
+/** The channels of a category that are on, in column order: "In app, Email", or Off. */
+function useSummary() {
+  const t = useCopy();
+  return (category: string, on: ReadonlySet<string>) => {
+    const names = MATRIX_CHANNELS.filter((c) => on.has(`${category}.${c.channel}`)).map((c) =>
+      t(`channels.${c.key}`),
+    );
+    return names.length > 0 ? names.join(", ") : t("summaryOff");
+  };
+}
+
+/** One category's section: what it is, then a checkbox per channel and anything else it needs. */
+function CategoryChoices({
+  category,
+  urgent,
+  children,
+}: {
+  category: string;
+  urgent: boolean;
+  children: ReactNode;
+}) {
   const t = useCopy();
   return (
-    <th scope="row" className="py-8 pe-16 text-start align-top font-normal">
-      <span className="block text-text-14 font-semibold">{t(`categories.${category}.label`)}</span>
-      <span className="block text-text-13 text-text-secondary">
+    <div className="flex flex-col gap-8 text-text-primary">
+      <p className="m-0 text-text-13 text-text-secondary">
         {t(`categories.${category}.help`)}
         {urgent ? ` ${t("urgent")}` : ""}
-      </span>
-    </th>
+      </p>
+      <div className="flex flex-wrap gap-x-16 gap-y-4">{children}</div>
+    </div>
   );
 }
 
-function ChannelHeaders({ extra }: { extra?: string }) {
-  const t = useCopy();
-  return (
-    <thead>
-      <tr className="border-b border-border-subtle text-text-13 text-text-secondary">
-        <th scope="col" className="py-8 pe-16 text-start font-medium">
-          {t("category")}
-        </th>
-        {MATRIX_CHANNELS.map((c) => (
-          <th key={c.key} scope="col" className="px-8 py-8 text-center font-medium">
-            {t(`channels.${c.key}`)}
-          </th>
-        ))}
-        {extra ? (
-          <th scope="col" className="px-8 py-8 text-center font-medium">
-            {extra}
-          </th>
-        ) : null}
-      </tr>
-    </thead>
-  );
-}
-
-/** A checkbox in a matrix cell, labeled for assistive technology by its row and column. */
+/** A checkbox for one channel, named for assistive technology by its category and channel. */
 function Cell({
   name,
   label,
+  channel,
   checked,
+  onChange,
   disabled,
+  value,
   note,
 }: {
   name: string;
   label: string;
+  channel: string;
   checked: boolean;
+  onChange?: (checked: boolean) => void;
   disabled?: boolean;
+  value?: string;
+  /** Why the box cannot change, as a tooltip. */
   note?: string;
 }) {
   return (
-    <td className="px-8 py-8 text-center align-top">
-      <label className="inline-flex min-h-touch-min min-w-touch-min items-center justify-center">
-        <input
-          type="checkbox"
-          name={name}
-          defaultChecked={checked}
-          disabled={disabled}
-          aria-label={label}
-          title={note}
-          className="size-icon-16"
-        />
-      </label>
-    </td>
+    <label className="inline-flex min-h-touch-min items-center gap-8 text-text-14">
+      <input
+        type="checkbox"
+        name={name}
+        value={value}
+        checked={checked}
+        onChange={(e) => onChange?.(e.currentTarget.checked)}
+        disabled={disabled}
+        aria-label={label}
+        title={note}
+        className="size-icon-16"
+      />
+      <span>{channel}</span>
+    </label>
   );
 }
 
@@ -152,6 +174,13 @@ export function MyNotificationsForm({
 }) {
   const t = useCopy();
   const [state, action, pending] = useActionState(saveMyNotificationsAction, INITIAL);
+  // A locked cell is on whatever the member chose.
+  const [on, setOn] = useChecked(() =>
+    rows.flatMap((r) =>
+      r.cells.filter((c) => c.enabled || c.locked).map((c) => `${r.category}.${c.channel}`),
+    ),
+  );
+  const summary = useSummary();
   const field = (name: string) =>
     state.fieldErrors?.[name] ? t(`fieldErrors.${state.fieldErrors[name]}`) : "";
   const hours: Option[] = Array.from({ length: 24 }, (_, h) => ({
@@ -172,24 +201,25 @@ export function MyNotificationsForm({
           {t("mine.matrixTitle")}
         </h2>
         <p className="m-0 text-text-secondary">{t("mine.matrixDescription")}</p>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-text-14">
-            <ChannelHeaders />
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.category} className="border-b border-border-subtle">
-                  <CategoryHeader category={row.category} urgent={row.urgent} />
+        <Accordion
+          keepMounted
+          items={rows.map((row) => {
+            const label = t(`categories.${row.category}.label`);
+            return {
+              title: label,
+              meta: summary(row.category, on),
+              content: (
+                <CategoryChoices category={row.category} urgent={row.urgent}>
                   {row.cells.map((cell) => {
                     const key = MATRIX_CHANNELS.find((c) => c.channel === cell.channel)?.key ?? "";
-                    const label = t("cellLabel", {
-                      category: t(`categories.${row.category}.label`),
-                      channel: t(`channels.${key}`),
-                    });
+                    const channel = t(`channels.${key}`);
+                    const name = t("cellLabel", { category: label, channel });
                     return cell.locked ? (
                       <Cell
                         key={cell.channel}
                         name={`locked.${row.category}.${cell.channel}`}
-                        label={`${label}. ${t("mine.locked")}`}
+                        label={`${name}. ${t("mine.locked")}`}
+                        channel={channel}
                         note={t("mine.locked")}
                         checked
                         disabled
@@ -198,16 +228,18 @@ export function MyNotificationsForm({
                       <Cell
                         key={cell.channel}
                         name={`cell.${row.category}.${cell.channel}`}
-                        label={label}
-                        checked={cell.enabled}
+                        label={name}
+                        channel={channel}
+                        checked={on.has(`${row.category}.${cell.channel}`)}
+                        onChange={(checked) => setOn(`${row.category}.${cell.channel}`, checked)}
                       />
                     );
                   })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                </CategoryChoices>
+              ),
+            };
+          })}
+        />
         {rows.flatMap((row) =>
           row.cells
             .filter((cell) => !cell.locked)
@@ -313,6 +345,13 @@ export function OrgNotificationDefaultsForm({
 }) {
   const t = useCopy();
   const [state, action, pending] = useActionState(saveOrgNotificationDefaultsAction, INITIAL);
+  const [on, setOn] = useChecked(() =>
+    rows.flatMap((r) => r.cells.filter((c) => c.enabled).map((c) => `${r.category}.${c.channel}`)),
+  );
+  const [mandatory, setMandatory] = useChecked(() =>
+    rows.filter((r) => r.mandatory).map((r) => r.category),
+  );
+  const summary = useSummary();
   return (
     <form
       action={action}
@@ -328,48 +367,47 @@ export function OrgNotificationDefaultsForm({
         </h2>
         <p className="m-0 text-text-secondary">{t("org.matrixDescription")}</p>
         {canEdit ? null : <InlineAlert tone="info">{t("org.readOnly")}</InlineAlert>}
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-text-14">
-            <ChannelHeaders extra={t("org.mandatory")} />
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.category} className="border-b border-border-subtle">
-                  <CategoryHeader category={row.category} urgent={row.urgent} />
+        <Accordion
+          keepMounted
+          items={rows.map((row) => {
+            const label = t(`categories.${row.category}.label`);
+            const channels = summary(row.category, on);
+            return {
+              title: label,
+              meta: mandatory.has(row.category)
+                ? t("org.summaryMandatory", { channels })
+                : channels,
+              content: (
+                <CategoryChoices category={row.category} urgent={row.urgent}>
                   {row.cells.map((cell) => {
                     const key = MATRIX_CHANNELS.find((c) => c.channel === cell.channel)?.key ?? "";
+                    const channel = t(`channels.${key}`);
                     return (
                       <Cell
                         key={cell.channel}
                         name={`default.${row.category}.${cell.channel}`}
-                        label={t("cellLabel", {
-                          category: t(`categories.${row.category}.label`),
-                          channel: t(`channels.${key}`),
-                        })}
-                        checked={cell.enabled}
+                        label={t("cellLabel", { category: label, channel })}
+                        channel={channel}
+                        checked={on.has(`${row.category}.${cell.channel}`)}
+                        onChange={(checked) => setOn(`${row.category}.${cell.channel}`, checked)}
                         disabled={!canEdit}
                       />
                     );
                   })}
-                  <td className="px-8 py-8 text-center align-top">
-                    <label className="inline-flex min-h-touch-min min-w-touch-min items-center justify-center">
-                      <input
-                        type="checkbox"
-                        name="mandatory"
-                        value={row.category}
-                        defaultChecked={row.mandatory}
-                        disabled={!canEdit}
-                        aria-label={t("org.mandatoryLabel", {
-                          category: t(`categories.${row.category}.label`),
-                        })}
-                        className="size-icon-16"
-                      />
-                    </label>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  <Cell
+                    name="mandatory"
+                    value={row.category}
+                    label={t("org.mandatoryLabel", { category: label })}
+                    channel={t("org.mandatory")}
+                    checked={mandatory.has(row.category)}
+                    onChange={(checked) => setMandatory(row.category, checked)}
+                    disabled={!canEdit}
+                  />
+                </CategoryChoices>
+              ),
+            };
+          })}
+        />
         <p className="m-0 text-text-13 text-text-secondary">{t("org.mandatoryHelp")}</p>
       </section>
       <Status state={state} />

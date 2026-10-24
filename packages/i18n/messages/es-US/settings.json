@@ -725,6 +725,7 @@
     },
     "cellLabel": "{category} por {channel}",
     "urgent": "Urgente: nunca espera al resumen por correo electrónico.",
+    "summaryOff": "Desactivada",
     "save": "Guardar configuración de notificaciones",
     "saved": "Configuración de notificaciones guardada.",
     "loadFailed": "No se pudo cargar la configuración de notificaciones. Vuelve a cargar la página para intentarlo de nuevo.",
@@ -768,6 +769,7 @@
       "matrixTitle": "Valores predeterminados para los miembros",
       "matrixDescription": "Lo que reciben los miembros mientras no elijan por su cuenta. Marca una categoría como obligatoria para mantener activados sus canales marcados para todos.",
       "mandatory": "Obligatoria",
+      "summaryMandatory": "Obligatoria: {channels}",
       "mandatoryLabel": "{category} es obligatoria",
       "mandatoryHelp": "Las categorías obligatorias siguen activadas en cada canal marcado aquí. Los mensajes de texto siguen necesitando el consentimiento de cada miembro, y STOP sigue deteniéndolos.",
       "readOnly": "Puedes ver los valores predeterminados. Para cambiarlos necesitas el permiso de configuración de notificaciones."

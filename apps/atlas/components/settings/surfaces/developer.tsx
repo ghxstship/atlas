@@ -285,18 +285,18 @@ export async function ApiKeysPanel({ ctx }: SettingsPanelProps) {
                   defaultValue: accounts.data[0]?.id ?? "",
                 },
                 {
-                  kind: "checkboxes",
-                  name: "scopes",
-                  label: f.t(`${P}.fields.scopes`),
-                  help: f.t(`${P}.apiKeys.scopesHelp`),
-                  options: scopeOptions(f, groups.data),
-                },
-                {
                   kind: "select",
                   name: "expiresIn",
                   label: f.t(`${P}.fields.expires`),
                   options: expiryOptions(f.t),
                   defaultValue: "90",
+                },
+                {
+                  kind: "checkboxes",
+                  name: "scopes",
+                  label: f.t(`${P}.fields.scopes`),
+                  help: f.t(`${P}.apiKeys.scopesHelp`),
+                  options: scopeOptions(f, groups.data),
                 },
               ]}
             />
@@ -431,18 +431,18 @@ export async function MyTokensPanel({ ctx }: SettingsPanelProps) {
                 maxLength: 200,
               },
               {
-                kind: "checkboxes",
-                name: "scopes",
-                label: f.t(`${P}.fields.scopes`),
-                help: f.t(`${P}.tokens.scopesHelp`),
-                options: scopeOptions(f, groups),
-              },
-              {
                 kind: "select",
                 name: "expiresIn",
                 label: f.t(`${P}.fields.expires`),
                 options: expiryOptions(f.t),
                 defaultValue: "90",
+              },
+              {
+                kind: "checkboxes",
+                name: "scopes",
+                label: f.t(`${P}.fields.scopes`),
+                help: f.t(`${P}.tokens.scopesHelp`),
+                options: scopeOptions(f, groups),
               },
             ]}
           />

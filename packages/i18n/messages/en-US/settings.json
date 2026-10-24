@@ -725,6 +725,7 @@
     },
     "cellLabel": "{category} by {channel}",
     "urgent": "Urgent: never waits for the email digest.",
+    "summaryOff": "Off",
     "save": "Save notification settings",
     "saved": "Notification settings saved.",
     "loadFailed": "Notification settings could not be loaded. Reload the page to try again.",
@@ -768,6 +769,7 @@
       "matrixTitle": "Defaults for members",
       "matrixDescription": "What members receive until they choose for themselves. Mark a category mandatory to keep its checked channels on for everyone.",
       "mandatory": "Mandatory",
+      "summaryMandatory": "Mandatory: {channels}",
       "mandatoryLabel": "{category} is mandatory",
       "mandatoryHelp": "Mandatory categories stay on for every channel checked here. Texts still need each member's consent, and STOP still stops them.",
       "readOnly": "You can see the defaults. Changing them needs the notification settings permission."

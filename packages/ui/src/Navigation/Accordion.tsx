@@ -27,7 +27,7 @@ export function Accordion({
             <Heading className="m-0">
               <RAccordion.Trigger
                 className={cx(
-                  "flex items-center gap-6 w-full h-(--ui-accordion-row) px-12 bg-transparent border-0 cursor-pointer",
+                  "flex items-center gap-6 w-full min-h-(--ui-accordion-row) px-12 bg-transparent border-0 cursor-pointer",
                   "font-medium text-text-13 text-start pointer-coarse:min-h-target-coarse",
                 )}
               >
@@ -38,7 +38,9 @@ export function Accordion({
                 />
                 <span>{it.title}</span>
                 {it.meta ? (
-                  <span className="ms-auto text-text-secondary font-regular">{it.meta}</span>
+                  <span className="ms-auto text-end text-text-secondary font-regular">
+                    {it.meta}
+                  </span>
                 ) : null}
               </RAccordion.Trigger>
             </Heading>

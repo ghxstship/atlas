@@ -110,6 +110,7 @@ export async function DepartmentsPanel({ ctx }: SettingsPanelProps) {
                 <div className="pt-12">
                   <SaveBarFields
                     formId={`disciplines-${d.code}`}
+                    disclosed
                     fields={[
                       {
                         kind: "checkboxes",

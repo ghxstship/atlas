@@ -185,6 +185,8 @@ test("a Pro org allows personal tokens; one is created behind step-up, shown onc
   await page.goto(`/${slug}/me/developer`);
   const tokenForm = page.getByRole("form", { name: "Create a token" });
   await tokenForm.getByLabel("Name").fill("Laptop scripts");
+  // Areas past the form's seven fields sit under More fields (gate 27).
+  await tokenForm.getByRole("button", { name: "More fields" }).click();
   await tokenForm.getByRole("checkbox", { name: "Work records", exact: true }).check();
   await tokenForm.getByRole("button", { name: "Create token" }).click();
   // No second factor yet: the step-up dialog sets one up, and verifying it submits the form again.
@@ -210,6 +212,7 @@ test("a Pro org allows personal tokens; one is created behind step-up, shown onc
   await expect(page.getByRole("listitem").filter({ hasText: "Accounting sync" })).toBeVisible();
   const key = page.getByRole("form", { name: "Create an API key" });
   await key.getByLabel("Name").fill("Ledger export");
+  await key.getByRole("button", { name: "More fields" }).click();
   await key.getByRole("checkbox", { name: "Finance", exact: true }).check();
   await key.getByRole("button", { name: "Create key" }).click();
   await expect(page.getByLabel("API key", { exact: true })).toHaveValue(/^xos_live_[0-9a-f]{48}$/);
