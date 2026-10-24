@@ -84,9 +84,10 @@ ADR 0033 decision 57 (2026-10-23) asks for a minimal report and block for user-g
 
 7. **A report leaves with its item.** A report keeps a copy of the text, so it must not outlive the item: its reference to the post, comment or message cascades, and the nightly purge of messages past the org's `communication.message_retention_days` (1324) takes the reports with the messages, as 1392 does for translations. Reports keep no audit trail, which would hold the copy for seven years. A decision is the org's record and stays after the item is purged; it names the item by id without a foreign key, because an append-only row can neither block the purge nor be cleared.
 
+8. **The notification kind seed moves to 1639.** The four new kinds (`content_report.filed`, `content_report.overdue`, `content_report.decided`, `content.removed`) need a new seed, and the seed is a complete upsert that replaces the quiet-hours bypass list as a set. 1639 is generated from the `notification-kinds.yaml` that also holds the 2026-10-23 notification decisions, so it carries 1620's kinds and bypass rows, and 1620's drift test gave way to 1639's.
+
 ### Follow-ups
 
 - An appeal of an org moderator's decision, as A90 offers for listings, is not built; the statement names the rule and the people involved can raise it with the org.
 - Atlas has no report button on its own feed and chat pages; the App Store requirement is Compass's.
-- The notification kind seed moved to 1639 for the four new kinds; the 2026-10-23 notification decisions (1620 to 1629) may move it too, and the later seed must carry both sets of kinds. The seed also replaces the quiet-hours bypass list as a set, so the integrator merges `notification-kinds.yaml` and regenerates one seed when both land, or 1639 drops the other track's bypass rows.
 - In an org whose only moderator wrote the reported item, nobody else can see or decide the report, and the overdue reminder reaches no one. The reporter can block the author at once. Routing such a report to another person (a platform operator, or a person the org names) is not built.
