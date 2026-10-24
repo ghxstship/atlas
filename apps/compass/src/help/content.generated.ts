@@ -1340,14 +1340,297 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "settings-account",
+        title: "Your account",
+        summary:
+          "Your name, your sign-in email, the ways you sign in, and where to delete your account.",
+        kind: "page",
+        nodes: ["settings.account"],
+        order: 2,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Your Name" },
+                {
+                  t: "text",
+                  v: ": your full name as you write it, and optional given and family names for formal address and sorting. Tap ",
+                },
+                { t: "strong", v: "Save Name" },
+                {
+                  t: "text",
+                  v: ". It saves on this phone offline and uploads when you're back online.",
+                },
+              ],
+              [
+                { t: "strong", v: "How You Sign In" },
+                {
+                  t: "text",
+                  v: ": the email you sign in with and the ways linked to it, such as Google or Apple. This one account works in Gateway, Atlas and Compass for every organization.",
+                },
+              ],
+              [
+                { t: "strong", v: "Delete Account" },
+                { t: "text", v: " opens " },
+                { t: "link", v: "Delete your account", href: "help:delete-account" },
+                { t: "text", v: ", which needs a connection." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "To change your password or your second factor, use " },
+              { t: "link", v: "Security", href: "help:settings-security" },
+              { t: "text", v: "." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-organizations",
+        title: "Organizations",
+        summary:
+          "The organizations you belong to or work with, which one is open, your default, leaving one, and your company accounts.",
+        kind: "page",
+        nodes: ["settings.organizations"],
+        order: 1,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Organizations You Belong To" },
+                { t: "text", v: " lists your roles in each. " },
+                { t: "strong", v: "Open" },
+                { t: "text", v: " shows that organization in Compass now. " },
+                { t: "strong", v: "Make Default" },
+                {
+                  t: "text",
+                  v: " makes it the one Atlas and the API act in, and the one Compass opens on a phone that hasn't opened another; it saves offline too. ",
+                },
+                { t: "strong", v: "Leave" },
+                {
+                  t: "text",
+                  v: " ends your access at once and needs a connection. The only Owner of an organization makes someone else Owner first.",
+                },
+              ],
+              [
+                { t: "strong", v: "Organizations You Work With" },
+                { t: "text", v: " are those that engaged you. " },
+                { t: "strong", v: "Open" },
+                { t: "text", v: " shows their work; an engagement ends with its contract." },
+              ],
+              [
+                { t: "strong", v: "Company accounts" },
+                {
+                  t: "text",
+                  v: " are the vendor, agency or contractor companies you belong to in Gateway. ",
+                },
+                { t: "strong", v: "Leave" },
+                { t: "text", v: " ends your access to one. Create a company account in Gateway." },
+              ],
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-privacy",
+        title: "Profile privacy",
+        summary:
+          "Who sees your profile and each section, marketplace search, search engines, the shares you gave and the people you blocked.",
+        kind: "page",
+        nodes: ["settings.profile-privacy"],
+        order: 1,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Who sees your profile" },
+                {
+                  t: "text",
+                  v: ": Private (only you, and organizations you share it with), Network (people and organizations you have worked with) or Public. Then whether the marketplace lists you, and whether search engines may index a Public profile. Tap ",
+                },
+                { t: "strong", v: "Save privacy" },
+                { t: "text", v: "." },
+              ],
+              [
+                { t: "strong", v: "Each section" },
+                {
+                  t: "text",
+                  v: ": a section can be narrower than the profile, never wider. A choice saves at once.",
+                },
+              ],
+              [
+                { t: "strong", v: "Profile shares" },
+                { t: "text", v: ": each share sent the fields you chose to one organization. " },
+                { t: "strong", v: "Revoke" },
+                { t: "text", v: " stops future updates." },
+              ],
+              [
+                { t: "strong", v: "Blocked People and Organizations" },
+                {
+                  t: "text",
+                  v: ": you don't see posts, comments, shout-outs or messages from anyone you block. ",
+                },
+                { t: "strong", v: "Unblock" },
+                { t: "text", v: " shows them again." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Visibility and sections save on this phone offline. Shares and blocks need a connection.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-profile",
+        title: "Your profile",
+        summary:
+          "The handle, facts, rate, skills, certifications, languages and links organizations see when you apply or share your profile.",
+        kind: "page",
+        nodes: ["settings.profile"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Settings, Profile edits what organizations see when you apply or share your profile in Gateway.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "About You" },
+                {
+                  t: "text",
+                  v: ": your handle (your Gateway address, which changes once every 30 days), preferred name, pronouns, headline, bio, city, country and published rate. Tap ",
+                },
+                { t: "strong", v: "Save profile" },
+                { t: "text", v: "." },
+              ],
+              [
+                { t: "strong", v: "Skills" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Certifications" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Languages" },
+                { t: "text", v: " and " },
+                { t: "strong", v: "Links" },
+                { t: "text", v: ": add one with its form, or tap " },
+                { t: "strong", v: "Remove" },
+                { t: "text", v: ". A certification an organization verified shows " },
+                { t: "strong", v: "Verified by an organization" },
+                { t: "text", v: "." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Once you have opened Profile online, it opens without a connection too. Changes save on this phone and upload when you're back online; the Offline Queue lists them. Choosing a skill needs a connection.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Who sees each part is under " },
+              { t: "link", v: "Profile privacy", href: "help:settings-privacy" },
+              { t: "text", v: "." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-security",
+        title: "Security",
+        summary:
+          "Your password, two-step verification, recovery codes, passkeys, and the sessions and devices you're signed in on.",
+        kind: "page",
+        nodes: ["settings.security"],
+        order: 1,
+        body: [
+          { t: "p", c: [{ t: "text", v: "Security needs a connection." }] },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Password" },
+                {
+                  t: "text",
+                  v: ": type a new one twice, at least 12 characters with letters and digits. If you signed in more than a day ago, Compass emails you a code to enter first.",
+                },
+              ],
+              [
+                { t: "strong", v: "Two-step verification" },
+                { t: "text", v: ": tap " },
+                { t: "strong", v: "Set up authenticator app" },
+                {
+                  t: "text",
+                  v: ", open the app from the button or add the setup key, then enter its 6-digit code. Rename or remove a factor here; add a security key in Gateway.",
+                },
+              ],
+              [
+                { t: "strong", v: "Recovery codes" },
+                { t: "text", v: ": single-use codes for when you can't use your app. " },
+                { t: "strong", v: "Share Codes" },
+                {
+                  t: "text",
+                  v: " saves them to your password manager or notes. You see them only once.",
+                },
+              ],
+              [
+                { t: "strong", v: "Passkeys" },
+                { t: "text", v: ": rename or remove them here; add one in Gateway." },
+              ],
+              [
+                { t: "strong", v: "Sessions and devices" },
+                { t: "text", v: ": sign out of any session you don't recognize, or all others." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Removing a factor, making recovery codes and, once you have a second factor, changing your password or removing a passkey ask for a code from your authenticator app or a recovery code first.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "settings",
         title: "Settings",
         summary:
-          "Theme and Sunlight, haptics, battery and data use, biometric unlock, kiosk mode and signing out.",
+          "This device's theme, haptics, battery, data and lock, then your own settings, help, account deletion and signing out.",
         kind: "page",
         nodes: ["settings", "settings.*"],
         order: 1,
         body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "This Device" },
+              { t: "text", v: " holds what applies to this phone only:" },
+            ],
+          },
           {
             t: "ul",
             items: [
@@ -1377,10 +1660,25 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "Kiosk Mode" },
                 { t: "text", v: ", if you run a shared clock-in device." },
               ],
-              [
-                { t: "strong", v: "Personal settings" },
-                { t: "text", v: ": opens your settings in Gateway." },
-              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Your Settings" },
+              { t: "text", v: " are the same in Atlas, Gateway and Compass. Under " },
+              { t: "strong", v: "You" },
+              {
+                t: "text",
+                v: ", Profile, Profile Privacy, Account, Security and Organizations open here. A section marked ",
+              },
+              { t: "strong", v: "Opens in Gateway" },
+              { t: "text", v: " opens in your browser." },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
               [
                 { t: "strong", v: "Help" },
                 { t: "text", v: ": articles and Contact Support." },
@@ -3494,14 +3792,303 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "settings-account",
+        title: "Tu cuenta",
+        summary:
+          "Tu nombre, tu correo de inicio de sesión, las formas en que inicias sesión y dónde eliminar tu cuenta.",
+        kind: "page",
+        nodes: ["settings.account"],
+        order: 2,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Tu nombre" },
+                {
+                  t: "text",
+                  v: ": tu nombre completo como lo escribes, y nombres de pila y apellidos opcionales para el trato formal y el orden. Toca ",
+                },
+                { t: "strong", v: "Guardar nombre" },
+                {
+                  t: "text",
+                  v: ". Se guarda en este teléfono sin conexión y se sube cuando vuelves a tener conexión.",
+                },
+              ],
+              [
+                { t: "strong", v: "Cómo inicias sesión" },
+                {
+                  t: "text",
+                  v: ": el correo con el que inicias sesión y las formas vinculadas a él, como Google o Apple. Esta única cuenta funciona en Gateway, Atlas y Compass para cada organización.",
+                },
+              ],
+              [
+                { t: "strong", v: "Eliminar cuenta" },
+                { t: "text", v: " abre " },
+                { t: "link", v: "Eliminar tu cuenta", href: "help:delete-account" },
+                { t: "text", v: ", que necesita conexión." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Para cambiar tu contraseña o tu segundo factor, usa " },
+              { t: "link", v: "Seguridad", href: "help:settings-security" },
+              { t: "text", v: "." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-organizations",
+        title: "Organizaciones",
+        summary:
+          "Las organizaciones a las que perteneces o con las que trabajas, cuál está abierta, tu predeterminada, cómo salir de una y tus cuentas de empresa.",
+        kind: "page",
+        nodes: ["settings.organizations"],
+        order: 1,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Organizaciones a las que perteneces" },
+                { t: "text", v: " muestra tus roles en cada una. " },
+                { t: "strong", v: "Abrir" },
+                { t: "text", v: " muestra esa organización en Compass ahora. " },
+                { t: "strong", v: "Hacer predeterminada" },
+                {
+                  t: "text",
+                  v: " la convierte en la que usan Atlas y la API, y en la que Compass abre en un teléfono que no ha abierto otra; también se guarda sin conexión. ",
+                },
+                { t: "strong", v: "Salir" },
+                {
+                  t: "text",
+                  v: " termina tu acceso de inmediato y necesita conexión. El único Propietario de una organización primero nombra a otro Propietario.",
+                },
+              ],
+              [
+                { t: "strong", v: "Organizaciones con las que trabajas" },
+                { t: "text", v: " son las que te contrataron. " },
+                { t: "strong", v: "Abrir" },
+                { t: "text", v: " muestra su trabajo; una contratación termina con su contrato." },
+              ],
+              [
+                { t: "strong", v: "Cuentas de empresa" },
+                {
+                  t: "text",
+                  v: " son las empresas de proveedores, agencias o contratistas a las que perteneces en Gateway. ",
+                },
+                { t: "strong", v: "Salir" },
+                {
+                  t: "text",
+                  v: " termina tu acceso a una. Crea una cuenta de empresa en Gateway.",
+                },
+              ],
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-privacy",
+        title: "Privacidad del perfil",
+        summary:
+          "Quién ve tu perfil y cada sección, la búsqueda del marketplace, los buscadores, lo que compartiste y las personas que bloqueaste.",
+        kind: "page",
+        nodes: ["settings.profile-privacy"],
+        order: 1,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Quién ve tu perfil" },
+                {
+                  t: "text",
+                  v: ": Privado (solo tú y las organizaciones con las que lo compartes), Red (personas y organizaciones con las que has trabajado) o Público. Luego, si el marketplace te muestra y si los buscadores pueden indexar un perfil Público. Toca ",
+                },
+                { t: "strong", v: "Guardar privacidad" },
+                { t: "text", v: "." },
+              ],
+              [
+                { t: "strong", v: "Cada sección" },
+                {
+                  t: "text",
+                  v: ": una sección puede ser más restringida que el perfil, nunca más abierta. Cada elección se guarda de inmediato.",
+                },
+              ],
+              [
+                { t: "strong", v: "Perfiles compartidos" },
+                {
+                  t: "text",
+                  v: ": cada vez que compartiste enviaste los campos que elegiste a una organización. ",
+                },
+                { t: "strong", v: "Revocar" },
+                { t: "text", v: " detiene las actualizaciones futuras." },
+              ],
+              [
+                { t: "strong", v: "Personas y organizaciones bloqueadas" },
+                {
+                  t: "text",
+                  v: ": no ves publicaciones, comentarios, reconocimientos ni mensajes de quien bloqueas. ",
+                },
+                { t: "strong", v: "Desbloquear" },
+                { t: "text", v: " los muestra otra vez." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "La visibilidad y las secciones se guardan en este teléfono sin conexión. Lo compartido y los bloqueos necesitan conexión.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-profile",
+        title: "Tu perfil",
+        summary:
+          "El identificador, los datos, la tarifa, las habilidades, certificaciones, idiomas y enlaces que ven las organizaciones cuando postulas o compartes tu perfil.",
+        kind: "page",
+        nodes: ["settings.profile"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Ajustes, Perfil edita lo que ven las organizaciones cuando postulas o compartes tu perfil en Gateway.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Sobre ti" },
+                {
+                  t: "text",
+                  v: ": tu identificador (tu dirección de Gateway, que cambia una vez cada 30 días), nombre preferido, pronombres, titular, biografía, ciudad, país y tarifa publicada. Toca ",
+                },
+                { t: "strong", v: "Guardar perfil" },
+                { t: "text", v: "." },
+              ],
+              [
+                { t: "strong", v: "Habilidades" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Certificaciones" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Idiomas" },
+                { t: "text", v: " y " },
+                { t: "strong", v: "Enlaces" },
+                { t: "text", v: ": agrega uno con su formulario o toca " },
+                { t: "strong", v: "Quitar" },
+                { t: "text", v: ". Una certificación que verificó una organización muestra " },
+                { t: "strong", v: "Verificada por una organización" },
+                { t: "text", v: "." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Después de abrir Perfil con conexión, también se abre sin conexión. Los cambios se guardan en este teléfono y se suben cuando vuelves a tener conexión; la Cola sin conexión los muestra. Para elegir una habilidad necesitas conexión.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Quién ve cada parte está en " },
+              { t: "link", v: "Privacidad del perfil", href: "help:settings-privacy" },
+              { t: "text", v: "." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-security",
+        title: "Seguridad",
+        summary:
+          "Tu contraseña, la verificación en dos pasos, los códigos de recuperación, las llaves de acceso y las sesiones y dispositivos donde iniciaste sesión.",
+        kind: "page",
+        nodes: ["settings.security"],
+        order: 1,
+        body: [
+          { t: "p", c: [{ t: "text", v: "Seguridad necesita conexión." }] },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Contraseña" },
+                {
+                  t: "text",
+                  v: ": escribe una nueva dos veces, de al menos 12 caracteres con letras y números. Si iniciaste sesión hace más de un día, Compass te envía por correo un código que escribes primero.",
+                },
+              ],
+              [
+                { t: "strong", v: "Verificación en dos pasos" },
+                { t: "text", v: ": toca " },
+                { t: "strong", v: "Configurar app de autenticación" },
+                {
+                  t: "text",
+                  v: ", abre la app con el botón o agrega la clave de configuración, y escribe su código de 6 dígitos. Cambia el nombre de un factor o quítalo aquí; agrega una llave de seguridad en Gateway.",
+                },
+              ],
+              [
+                { t: "strong", v: "Códigos de recuperación" },
+                { t: "text", v: ": códigos de un solo uso para cuando no puedas usar tu app. " },
+                { t: "strong", v: "Compartir códigos" },
+                {
+                  t: "text",
+                  v: " los guarda en tu administrador de contraseñas o tus notas. Solo los ves una vez.",
+                },
+              ],
+              [
+                { t: "strong", v: "Llaves de acceso" },
+                { t: "text", v: ": cámbiales el nombre o quítalas aquí; agrega una en Gateway." },
+              ],
+              [
+                { t: "strong", v: "Sesiones y dispositivos" },
+                { t: "text", v: ": cierra cualquier sesión que no reconozcas, o todas las demás." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Quitar un factor, crear códigos de recuperación y, cuando ya tienes un segundo factor, cambiar tu contraseña o quitar una llave de acceso piden antes un código de tu app de autenticación o un código de recuperación.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "settings",
         title: "Ajustes",
         summary:
-          "Tema y modo Sol, vibración, batería y datos, desbloqueo biométrico, modo quiosco y cierre de sesión.",
+          "El tema, la vibración, la batería, los datos y el bloqueo de este dispositivo, y después tus ajustes, la ayuda, la eliminación de la cuenta y el cierre de sesión.",
         kind: "page",
         nodes: ["settings", "settings.*"],
         order: 1,
         body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Este dispositivo" },
+              { t: "text", v: " reúne lo que aplica solo a este teléfono:" },
+            ],
+          },
           {
             t: "ul",
             items: [
@@ -3531,10 +4118,25 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "Modo quiosco" },
                 { t: "text", v: ", si administras un dispositivo compartido para marcar." },
               ],
-              [
-                { t: "strong", v: "Ajustes personales" },
-                { t: "text", v: ": abre tu configuración en Gateway." },
-              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Tus ajustes" },
+              { t: "text", v: " son los mismos en Atlas, Gateway y Compass. En " },
+              { t: "strong", v: "Tú" },
+              {
+                t: "text",
+                v: ", Perfil, Privacidad del perfil, Cuenta, Seguridad y Organizaciones se abren aquí. Una sección marcada ",
+              },
+              { t: "strong", v: "Se abre en Gateway" },
+              { t: "text", v: " se abre en tu navegador." },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
               [
                 { t: "strong", v: "Ayuda" },
                 { t: "text", v: ": artículos y Contactar a soporte." },
