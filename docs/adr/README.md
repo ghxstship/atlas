@@ -57,5 +57,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0053](0053-beta-locales-canon-labels-rates-and-units.md)           | Beta Locales, Canon Label Translations, ECB Rates and Display Units              | Proposed |
 | [0054](0054-project-measurement.md)                                 | Project Measurement Against Gate 1 Objectives                                    | Proposed |
 | [0055](0055-recovery-codes-sessions-step-up-and-oauth.md)           | Recovery Codes, Signed-In Sessions, More Step-Up and OAuth 2.1                   | Proposed |
+| [0060](0060-collection-exports-and-the-export-worker.md)            | Exports of Every Collection and the Export Worker                                | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.

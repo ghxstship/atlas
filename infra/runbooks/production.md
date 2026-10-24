@@ -227,7 +227,7 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, `search-embed`, each every minute; `infra/runbooks/integrations.md`; and `xos_fx_rates_ecb`, which a migration creates, section Exchange rates) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, `search-embed`, each every minute; `infra/runbooks/integrations.md`; and `xos_fx_rates_ecb` and `xos_export_render`, which migrations create, sections Exchange rates and Exports) still exist: `select jobname, schedule from cron.job order by 1;`.
 
 How the functions are bundled (A85, RRR-130):
 
@@ -588,6 +588,28 @@ it.
    scheduled run records a failure saying the feed is not configured, and Finance, Cost centers says so.
 4. A failing feed: `select ran_at, error from private.fx_feed_runs where outcome = 'Failed' order by ran_at desc
 limit 5;`. Conversions keep using the newest rate recorded, show its date, and say when it is stale.
+
+## Exports (OWNER, A102)
+
+Every Atlas collection exports its current view to CSV, .xlsx or PDF (ADR 0060, migration 1680). The Edge Function
+`export-render` writes the files: it claims `export.render` jobs, reads each export's rows as the person who asked
+(from the read replica when `XOS_READ_REPLICA_URL` is set), stores the file in the private `export-files` bucket for
+7 days, watermarks every page of a Confidential or Restricted PDF with the requester's email and the time, and removes
+expired files. pg_cron job `xos_export_render` calls it every minute, but only while an export is queued or a file has
+expired.
+
+1. Deploy it with the others: `supabase functions deploy export-render --project-ref <ref>`. It keeps the default
+   `verify_jwt = true` and checks the service key, as the other workers do. It loads exceljs and pdfkit only for
+   .xlsx and PDF exports.
+2. The schedule reads the same Vault secrets as the exchange rates, `xos_functions_url` and `xos_worker_key`
+   (section Exchange rates, step 2). Without them it does nothing and exports stay at "Preparing your export".
+3. Check: export a list from Atlas (the Export menu beside Saved views); within a minute it downloads. These show no
+   growing Queued count, and why an export failed:
+
+   ```sql
+   select export_status, count(*) from app.export_jobs group by 1;
+   select job_status, last_error from app.job_queue where job_kind = 'export.render' order by created_at desc limit 5;
+   ```
 
 ## Push and SMS (OWNER)
 
