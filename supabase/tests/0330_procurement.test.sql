@@ -51,17 +51,17 @@ select pg_temp.as_platform();
 
 -- Bank details: Restricted and masked (Section 8.3) ------------------------------------------------------
 select pg_temp.as_user('carol');
-select lives_ok($$insert into app.vendor_bank_accounts (vendor_id, bank_name, account_holder, account_last4, account_number, routing_number)
-  values ((select id from world where key = 'ven'), 'Gulf Coast Bank', 'Harborline Staging', '6789', '0001-2345-6789', '063100277')$$, 'a Manager records bank details');
-select throws_ok($$insert into app.vendor_bank_accounts (vendor_id, bank_name, account_holder, account_last4, account_number) values ((select id from world where key = 'ven'), 'B', 'H', '1111', '99992222')$$,
-  '23514', null, 'the visible last four must match the account number');
+select lives_ok($$select app.set_vendor_bank_account((select id from world where key = 'ven'), 'Gulf Coast Bank', 'Harborline Staging', '0001-2345-6789', '063100277')$$,
+  'a Manager records bank details through the encrypting RPC (1660)');
+select throws_ok($$insert into app.vendor_bank_accounts (vendor_id, bank_name, account_holder, account_last4) values ((select id from world where key = 'ven'), 'B', 'H', '1111')$$,
+  '42501', null, 'bank details are never inserted directly');
 select pg_temp.as_user('dave');
 select throws_ok($$select account_number from app.vendor_bank_accounts$$, '42501', null, 'a Restricted column is not selectable directly');
 select is((select account_last4 from app.vendor_bank_accounts), '6789', 'the last four stay readable');
 select is((select account_number from app.vendor_bank_accounts_masked), null, 'without data.restricted.read.banking the number is masked');
 select is((select is_masked from app.vendor_bank_accounts_masked), true, 'and the view says it is masked');
 select pg_temp.as_user('alice');
-select is((select account_number from app.vendor_bank_accounts_masked), '0001-2345-6789', 'the holder of data.restricted.read.banking reads the number');
+select is((select account_number from app.vendor_bank_accounts_masked), '000123456789', 'the holder of data.restricted.read.banking reads the number, its letters and digits');
 select is((select is_masked from app.vendor_bank_accounts_masked), false, 'unmasked for them');
 select pg_temp.as_user('gina');
 select is((select count(*)::int from app.vendor_bank_accounts_masked), 0, 'a Viewer without vendors.vendor.read sees no bank rows');
