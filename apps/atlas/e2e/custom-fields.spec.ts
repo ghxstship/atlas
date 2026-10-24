@@ -91,6 +91,7 @@ test("a custom field is defined in Settings, filled on a record, filtered on and
   const sheet = page.getByRole("dialog", { name: "New record" });
   await sheet.getByLabel("Kind").selectOption("Task");
   await sheet.getByLabel("Title").fill("Stage the north dock");
+  await expect(sheet.getByLabel("Dock door")).toBeVisible();
   await sheet.getByRole("button", { name: "Create record" }).click();
   await expect(sheet.getByText("Dock door is required. Enter a value.")).toBeVisible();
   await expect(sheet.getByLabel("Dock door")).toBeFocused();
