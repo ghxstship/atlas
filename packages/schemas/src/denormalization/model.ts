@@ -167,7 +167,8 @@ export function registerProblems(register: DenormalizationRegister): string[] {
   const own = register.ownNames.map((n) => n.name);
   for (const name of duplicates(own)) problems.push(`own_names: ${name} is listed twice`);
   if (unsorted(own)) problems.push("own_names: entries are not sorted by name");
-  for (const name of own) if (!NAME.test(name)) problems.push(`own_names: ${name} is not a column name`);
+  for (const name of own)
+    if (!NAME.test(name)) problems.push(`own_names: ${name} is not a column name`);
 
   const lists: [string, readonly (Reviewed<string> & { name: string; column: string })[]][] = [
     ["json", register.json.map((e) => ({ ...e, name: e.column }))],
