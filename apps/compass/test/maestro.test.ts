@@ -42,6 +42,10 @@ const DYNAMIC = [
   "external-",
   "settings-section-",
   "settings-privacy-section-",
+  // A111's settings: a registered setting by key, a notification cell by category and channel, a Work Details field.
+  "setting-",
+  "notify-",
+  "work-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

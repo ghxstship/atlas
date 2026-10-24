@@ -216,7 +216,12 @@
       "_me_person_links": "Profile link",
       "_me_person_certifications": "Profile certification",
       "_me_profile_section_visibility": "Profile section privacy",
-      "_me_default_org": "Default organization"
+      "_me_default_org": "Default organization",
+      "_me_personal_settings": "Setting",
+      "_me_notification_matrix": "Notification choice",
+      "_me_notification_settings": "Quiet hours and digest",
+      "_me_party_preferences": "Notification choice",
+      "_me_quiet_hours": "Quiet hours"
     },
     "punchActions": {
       "in": "Clock in",

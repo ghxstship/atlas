@@ -17,6 +17,12 @@ export const NATIVE_SECTIONS: ReadonlySet<string> = new Set([
   "settings.account",
   "settings.security",
   "settings.organizations",
+  // A111 (ADR 0071).
+  "settings.preferences",
+  "settings.accessibility",
+  "settings.notifications",
+  "settings.out-of-office",
+  "settings.work-details",
 ]);
 
 /** How the list groups the sections: who you are, how Compass behaves for you, and your work. */

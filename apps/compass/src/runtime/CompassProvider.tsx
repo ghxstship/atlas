@@ -3,7 +3,6 @@
  * shared with every screen through context.
  */
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
-import type { XosClient } from "@xos/data";
 import {
   OFFLINE,
   SyncEngine,

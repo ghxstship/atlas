@@ -15,7 +15,7 @@ order: 1
 - **Desbloqueo biométrico**: Face ID, Touch ID o tu código al abrir Compass.
 - **Modo quiosco**, si administras un dispositivo compartido para marcar.
 
-**Tus ajustes** son los mismos en Atlas, Gateway y Compass. En **Tú**, Perfil, Privacidad del perfil, Cuenta, Seguridad y Organizaciones se abren aquí. Una sección marcada **Se abre en Gateway** se abre en tu navegador.
+**Tus ajustes** son los mismos en Atlas, Gateway y Compass. En **Tú**, Perfil, Privacidad del perfil, Cuenta, Seguridad y Organizaciones se abren aquí; también todas las secciones de **Preferencias** y [Datos de trabajo](help:settings-work-details). Una sección marcada **Se abre en Gateway** se abre en tu navegador.
 
 - **Ayuda**: artículos y Contactar a soporte.
 - **Eliminar cuenta**: consulta [Eliminar tu cuenta](help:delete-account).
