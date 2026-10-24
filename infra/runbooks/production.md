@@ -152,7 +152,7 @@ wired differently: the webhook carries metadata only, and it is signed instead o
   the rest do not, and such mail is never filed.
 - **Raw message:** Resend keeps a received message for 30 days, behind a signed download URL. `inbound-email` copies it
   into the private `inbound-mail` bucket (migration 1651) as `resend/<email id>.eml`, which `raw_object_path` records
-  and an org purge finds. Resend publishes no size limit; a message over 50 MiB, the bucket's limit, is filed without
+  and an org purge finds, once the database has taken the message: mail to an address with no inbox leaves nothing. Resend publishes no size limit; a message over 50 MiB, the bucket's limit, is filed without
   its raw copy and records `resend:<email id>` instead.
 - **Authentication:** Resend signs each webhook the Svix way (HMAC-SHA256 over the id, timestamp and raw body, with the
   endpoint's `whsec_` signing secret) instead of sending a bearer secret. `inbound-email` refuses a bad signature and

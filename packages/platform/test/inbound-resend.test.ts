@@ -5,6 +5,7 @@ import {
   MAX_INBOUND_BODY_CHARS,
   MAX_RAW_MESSAGE_BYTES,
   htmlToText,
+  inboundRawReferences,
   inboundStore,
   parseResendEvent,
   receiveInbound,
@@ -69,16 +70,23 @@ function fakeResend(
   return { send, calls };
 }
 
-function fakeStores() {
+/**
+ * The database answers receive_inbound_email with `filed` (null when it took nothing: no inbox, or a redelivery) and
+ * finds a message by raw object name only in `existing`.
+ */
+function fakeStores(filed: string | null = "msg-1", existing: readonly string[] = []) {
   const received: Readonly<Record<string, unknown>>[] = [];
+  const looked: Readonly<Record<string, string>>[] = [];
   const db: PlatformDb = {
     async rpc(fn, args) {
       expect(fn).toBe("receive_inbound_email");
       received.push(args);
-      return "msg-1";
+      return filed;
     },
-    async selectOne() {
-      return null;
+    async selectOne(table, columns, match) {
+      expect([table, columns]).toEqual(["inbound_messages", "id"]);
+      looked.push(match);
+      return existing.includes(match["raw_object_path"] ?? "") ? { id: "msg-0" } : null;
     },
   };
   const stored: { name: string; bytes: Uint8Array }[] = [];
@@ -87,7 +95,14 @@ function fakeStores() {
       stored.push({ name, bytes });
     },
   };
-  return { store: inboundStore(db), received, rawMail, stored };
+  return {
+    store: inboundStore(db),
+    references: inboundRawReferences(db),
+    received,
+    looked,
+    rawMail,
+    stored,
+  };
 }
 
 describe("Resend webhook signature (Svix)", () => {
@@ -195,6 +210,7 @@ describe("receiveResendEmail", () => {
     const outcome = await receiveResendEmail(event(), {
       store: stores.store,
       rawMail: stores.rawMail,
+      references: stores.references,
       apiKey: "re_test_receiving",
       inboundDomain: DOMAIN,
       fetch: resend.send,
@@ -211,6 +227,7 @@ describe("receiveResendEmail", () => {
     expect(resend.calls[1]?.url).toBe(
       `https://raw.resend.test/emails/${EMAIL_ID}.eml?expires=1792787472`,
     );
+    expect(stores.looked).toEqual([]);
     expect(stores.stored).toHaveLength(1);
     expect(stores.stored[0]?.name).toBe(`resend/${EMAIL_ID}.eml`);
     expect(Buffer.from(stores.stored[0]?.bytes ?? []).equals(Buffer.from(RAW))).toBe(true);
@@ -317,6 +334,34 @@ describe("receiveResendEmail", () => {
       p_message_id_header: "<plot-v4.20261023@bayside-audio.test>",
     });
     expect(stores2.received[0]?.["p_message_id_header"]).toBe(`<${EMAIL_ID}@resend>`);
+  });
+
+  it("stores nothing for mail the database did not take, such as spam to an address with no inbox", async () => {
+    const stores = fakeStores(null);
+    const outcome = await receiveResendEmail(event(), {
+      ...stores,
+      apiKey: "re_test_receiving",
+      inboundDomain: DOMAIN,
+      fetch: fakeResend().send,
+    });
+    expect(outcome).toEqual({
+      status: "received",
+      inboundMessageId: null,
+      rawObjectPath: `resend/${EMAIL_ID}.eml`,
+    });
+    expect(stores.looked).toEqual([{ raw_object_path: `resend/${EMAIL_ID}.eml` }]);
+    expect(stores.stored).toHaveLength(0);
+  });
+
+  it("stores the raw file again on a redelivery the database already holds, after an upload failed", async () => {
+    const stores = fakeStores(null, [`resend/${EMAIL_ID}.eml`]);
+    await receiveResendEmail(event(), {
+      ...stores,
+      apiKey: "re_test_receiving",
+      inboundDomain: DOMAIN,
+      fetch: fakeResend().send,
+    });
+    expect(stores.stored.map((s) => s.name)).toEqual([`resend/${EMAIL_ID}.eml`]);
   });
 
   it("keeps no raw file over 50 MiB or without one, and records Resend's copy instead", async () => {

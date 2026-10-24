@@ -117,7 +117,8 @@ does (RRR-139, migration 1651), wired two ways differently from the generic pipe
 - **Recipients** come from To, Cc, Bcc and the forwarded-for addresses, so forwarded and blind-copied mail finds its
   inbox. Mail for no address on the inbound domain is ignored before any call to Resend.
 - **The raw message** is kept in the private `inbound-mail` bucket as `resend/<email id>.eml`, because Resend keeps a
-  received message for 30 days and inbound mail is kept two years. A message over 50 MiB, the bucket's limit, records
+  received message for 30 days and inbound mail is kept two years. It is stored only once the database has taken the
+  message, or holds it from a delivery whose upload failed, so spam to an address with no inbox leaves nothing. A message over 50 MiB, the bucket's limit, records
   `resend:<email id>` and is filed without its raw copy.
 - **Bounds.** A body over 100,000 characters is cut and a sender address over 320 characters ignored, on either path, so
   the database never refuses a message that the provider would then retry for a day.

@@ -1,12 +1,9 @@
-// Inbound mail endpoint (Section 4.6.5, ADR 0040). Two ways in:
-//   * Resend's inbound mail (ADR 0033, decision 60): an `email.received` event signed with
-//     RESEND_INBOUND_WEBHOOK_SECRET (svix-id, svix-timestamp, svix-signature). The message is read from Resend's
-//     Receiving API with RESEND_RECEIVING_API_KEY (full access), and its raw file kept in the inbound-mail bucket;
-//   * any other provider that posts a parsed message with its DKIM result, authenticated by XOS_INBOUND_SECRET.
-// Project inbox mail is filed; replies are accepted only from signed addresses, with DKIM passing and quoted text
-// stripped. A message that is not for XOS answers 200, so the provider does not retry it.
+// Inbound mail (Section 4.6.5, ADR 0040). Resend's inbound mail (ADR 0033, decision 60) posts events signed with
+// RESEND_INBOUND_WEBHOOK_SECRET and read through RESEND_RECEIVING_API_KEY; another provider posts a parsed message
+// with XOS_INBOUND_SECRET. Mail that is not for XOS answers 200, so the provider does not retry it.
 import { z } from "zod";
 import {
+  inboundRawReferences,
   inboundStore,
   parseResendEvent,
   receiveInbound,
@@ -56,8 +53,10 @@ async function fromResend(request: Request): Promise<Response> {
   if (event === null) {
     return json(422, { type: "/problems/invalid-message", title: "Invalid message", status: 422 });
   }
+  const db = serviceDb();
   const outcome = await receiveResendEmail(event, {
-    store: inboundStore(serviceDb()),
+    store: inboundStore(db),
+    references: inboundRawReferences(db),
     rawMail: storageRawMailStore({
       url: env("SUPABASE_URL"),
       serviceKey: env("SUPABASE_SERVICE_ROLE_KEY"),

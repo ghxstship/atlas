@@ -1,12 +1,10 @@
 /**
- * Resend's inbound mail (ADR 0033, decision 60; ADR 0040). Resend receives mail for the inbound domain, keeps it for
- * 30 days and posts an `email.received` event that carries only metadata, signed the Svix way (svix-id,
- * svix-timestamp, svix-signature). This module verifies the signature, reads the message from Resend's Receiving API
- * (text and HTML, the DKIM verdict Resend's own mail server computed, a signed URL for the raw file), keeps the raw
- * message in the private inbound-mail bucket, and hands the result to receiveInbound like any other provider's parsed
- * message. A full-access API key is needed: Resend refuses received mail to sending-only keys.
+ * Resend's inbound mail (ADR 0033, decision 60; ADR 0040): a Svix-signed `email.received` event with metadata only.
+ * The message is read from the Receiving API (full-access key), its DKIM verdict is Resend's own, its raw file goes to
+ * the inbound-mail bucket (Resend keeps mail 30 days), and it is filed through receiveInbound like any parsed message.
  */
 import { z } from "zod";
+import type { PlatformDb } from "../stores.ts";
 import type { FetchLike } from "../webhooks/dispatch.ts";
 import { localPartFor, receiveInbound, type InboundStore } from "./parse.ts";
 
@@ -45,9 +43,8 @@ function constantTimeEqual(a: string, b: string): boolean {
 }
 
 /**
- * True when a Resend webhook request is signed with the endpoint's signing secret (`whsec_` and base64 key bytes):
- * svix-signature holds space-separated `v1,<base64 HMAC-SHA256>` entries over `<svix-id>.<svix-timestamp>.<raw body>`,
- * and svix-timestamp is within the tolerance of now. The body must be the raw text, never re-serialized JSON.
+ * True when svix-signature holds a `v1,<base64 HMAC-SHA256>` entry, keyed with the secret's base64 bytes after `whsec_`,
+ * over `<svix-id>.<svix-timestamp>.<raw body>`, and the timestamp is within the tolerance of now.
  */
 export async function verifyResendSignature(
   headers: ResendSignatureHeaders,
@@ -143,11 +140,7 @@ const ENTITIES: Readonly<Record<string, string>> = {
   nbsp: " ",
 };
 
-/**
- * Plain text from an HTML body, for mail sent without a text part: scripts, styles and quoted blocks (blockquote, the
- * way mail clients quote a reply) are dropped, block ends become line breaks, tags go, entities are decoded and
- * non-breaking spaces become spaces.
- */
+/** Text from an HTML-only body: no scripts, styles or quoted blockquotes, block ends as line breaks, entities decoded. */
 export function htmlToText(html: string): string {
   return html
     .replace(/<(head|style|script|blockquote)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, "")
@@ -166,12 +159,11 @@ export function htmlToText(html: string): string {
     .trim();
 }
 
-/** Where raw messages are kept: the private inbound-mail bucket, written through the Storage API. */
 export interface RawMailStore {
   put(objectName: string, bytes: Uint8Array<ArrayBuffer>): Promise<void>;
 }
 
-/** The Storage API with the service role key. An existing object is replaced, so a redelivery stores the same file. */
+/** The inbound-mail bucket through the Storage API, replacing an existing object (a redelivery stores the same file). */
 export function storageRawMailStore(options: {
   readonly url: string;
   readonly serviceKey: string;
@@ -201,9 +193,25 @@ export function storageRawMailStore(options: {
   };
 }
 
+/** Whether a message already records a raw object: a redelivery of mail the database took. */
+export interface InboundRawReferences {
+  referenced(objectName: string): Promise<boolean>;
+}
+
+export function inboundRawReferences(db: PlatformDb): InboundRawReferences {
+  return {
+    async referenced(objectName) {
+      return (
+        (await db.selectOne("inbound_messages", "id", { raw_object_path: objectName })) !== null
+      );
+    },
+  };
+}
+
 export interface ResendInboundDeps {
   readonly store: InboundStore;
   readonly rawMail: RawMailStore;
+  readonly references: InboundRawReferences;
   /** A full-access Resend API key. */
   readonly apiKey: string;
   readonly inboundDomain: string;
@@ -218,7 +226,7 @@ export type ResendInboundOutcome =
       readonly rawObjectPath: string;
     };
 
-/** The received email, read from Resend's Receiving API. A failure throws, so the webhook answers 500 and Resend retries. */
+/** The received email from the Receiving API; a failure throws, so the webhook answers 500 and Resend retries. */
 export async function fetchReceivedEmail(
   emailId: string,
   apiKey: string,
@@ -234,10 +242,7 @@ export async function fetchReceivedEmail(
   return receivedEmail.parse(await response.json());
 }
 
-/**
- * The raw message from its signed URL, or null when it is over the bucket's 50 MiB limit (by its declared length or
- * its actual size). Only an https URL from Resend's answer is fetched.
- */
+/** The raw message from its https URL, or null when it is over the bucket's 50 MiB limit. */
 async function downloadRaw(url: string, send: FetchLike): Promise<Uint8Array<ArrayBuffer> | null> {
   if (!url.startsWith("https://")) throw new Error("Resend's raw message URL is not https");
   const response = await send(url, { method: "GET" });
@@ -252,12 +257,10 @@ async function downloadRaw(url: string, send: FetchLike): Promise<Uint8Array<Arr
 }
 
 /**
- * Files one `email.received` event. Mail for no address on the inbound domain is ignored before any call to Resend.
- * Otherwise the message is read from the Receiving API, its raw file is kept as `resend/<email id>.eml` in the
- * inbound-mail bucket (or recorded as `resend:<email id>`, which only Resend holds for 30 days, when it is over
- * 50 MiB), and the message goes to receiveInbound with DKIM passing only when Resend's own check says `pass`.
- * Recipients come from To, Cc, Bcc and the forwarded-for addresses, so a forwarded or blind-copied message still
- * finds its inbox.
+ * Files one `email.received` event; mail for no address on the inbound domain is ignored before any call to Resend.
+ * Recipients come from To, Cc, Bcc and forwarded-for; DKIM passes only on Resend's `pass`. The raw file, recorded as
+ * `resend/<id>.eml` (`resend:<id>` over 50 MiB), is stored only for mail the database took, now or on an earlier
+ * delivery, so spam to an address with no inbox leaves nothing in storage.
  */
 export async function receiveResendEmail(
   event: ResendReceivedEvent,
@@ -277,11 +280,7 @@ export async function receiveResendEmail(
 
   const email = await fetchReceivedEmail(event.data.email_id, deps.apiKey, send);
   const raw = email.raw ? await downloadRaw(email.raw.download_url, send) : null;
-  let rawObjectPath = `resend:${email.id}`;
-  if (raw !== null) {
-    rawObjectPath = `resend/${email.id}.eml`;
-    await deps.rawMail.put(rawObjectPath, raw);
-  }
+  const rawObjectPath = raw === null ? `resend:${email.id}` : `resend/${email.id}.eml`;
 
   const recipients = [
     ...new Set([...email.to, ...email.cc, ...email.bcc, ...email.received_for, ...listed]),
@@ -300,5 +299,11 @@ export async function receiveResendEmail(
     },
     deps.inboundDomain,
   );
+  if (
+    raw !== null &&
+    (inboundMessageId !== null || (await deps.references.referenced(rawObjectPath)))
+  ) {
+    await deps.rawMail.put(rawObjectPath, raw);
+  }
   return { status: "received", inboundMessageId, rawObjectPath };
 }
