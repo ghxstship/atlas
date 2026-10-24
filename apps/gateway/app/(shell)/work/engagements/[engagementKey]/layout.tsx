@@ -10,14 +10,17 @@ import { formatDateRange } from "@/lib/format";
 import { handoffLink } from "@/lib/handoff";
 import { sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
+import { engagementTitle } from "@/lib/engagement-state";
 import { toneFor } from "@/lib/states";
 
 export async function generateMetadata({
   params,
 }: LayoutProps<"/work/engagements/[engagementKey]">): Promise<Metadata> {
   const { engagementKey } = await params;
-  const view = await loadEngagementView(engagementKey);
-  return { title: `${view.engagement.jobTitle} · ${view.engagement.orgName}` };
+  const [view, t] = await Promise.all([loadEngagementView(engagementKey), getTranslate()]);
+  return {
+    title: `${engagementTitle(view.engagement, (r) => t(enumLabelKey("externalRoleType", r)))} · ${view.engagement.orgName}`,
+  };
 }
 
 /**
@@ -33,6 +36,7 @@ export default async function EngagementLayout({
   const view = await loadEngagementView(engagementKey);
   const [t, locale] = await Promise.all([getTranslate(), getLocale()]);
   const e = view.engagement;
+  const title = engagementTitle(e, (r) => t(enumLabelKey("externalRoleType", r)));
   // Continue on another device (Section 11.10 item 13, ADR 0030): the same engagement in Compass.
   const handoff = handoffLink({ kind: "engagement", engagementKey });
   return (
@@ -51,7 +55,7 @@ export default async function EngagementLayout({
           <span>{e.projectName}</span>
         </div>
         <div className="flex flex-wrap items-center gap-12">
-          <h1 className="m-0 text-heading-20 font-semibold">{e.jobTitle}</h1>
+          <h1 className="m-0 text-heading-20 font-semibold">{title}</h1>
           <Tag tone={toneFor(e.state)}>{t(enumLabelKey("engagementState", e.state))}</Tag>
           {view.representation ? (
             <Tag tone="accent">
@@ -67,9 +71,9 @@ export default async function EngagementLayout({
                 button: t("handoff.button"),
                 title: t("handoff.title"),
                 sentence: t(handoff.universal ? "handoff.sentenceUniversal" : "handoff.sentence", {
-                  item: e.jobTitle,
+                  item: title,
                 }),
-                qr: t("handoff.qr", { item: `${e.jobTitle} · ${e.orgName}` }),
+                qr: t("handoff.qr", { item: `${title} · ${e.orgName}` }),
                 link: t("handoff.link"),
               }}
             />
