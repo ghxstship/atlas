@@ -11,6 +11,10 @@
 -- definitions with only the account lookup changed: app.approve_expense (0321), private.post_invoice (1305) and the
 -- views app.budget_line_amounts (0321) and app.change_order_line_facts (0480), which report the account a line posts
 -- to. app.budget_line_facts (0480) reads its account from budget_line_amounts; only its comment changes.
+-- A budget line's item prices an invoice or change order line only while that line keeps the budget line's URID: a
+-- line naming a URID of its own (app.invoice_lines.urid, 0362) bills something else and posts by that URID's class.
+-- The comments on app.budget_lines (0320) and app.invoice_lines.urid (0362), which said the class alone decides the
+-- account, are restated.
 
 create or replace function private.gl_account_for_line(
   p_urid text,
@@ -124,8 +128,11 @@ begin
   v_date := case when p_reverse then private.reversal_date(v_inv.org_id, 'invoices', p_invoice_id)
                  else coalesce(v_inv.issued_on, private.project_today(v_inv.project_id)) end;
 
+  -- The budget line's item prices the line only while the line keeps the budget line's URID; a line naming a URID of
+  -- its own bills something else and posts by that URID's class.
   for v_line in
-    select l.id, l.description, coalesce(l.urid, bl.urid) as urid, bl.cost_center_id, bl.element_id,
+    select l.id, l.description, coalesce(l.urid, bl.urid) as urid, bl.cost_center_id,
+      case when l.urid is null or l.urid = bl.urid then bl.element_id end as element_id,
       private.extended_minor(l.quantity, l.unit_price_minor) as amount_minor,
       coalesce(round(private.extended_minor(l.quantity, l.unit_price_minor) * r.rate_percent / 100)::bigint, 0) as tax_minor
     from app.invoice_lines l
@@ -192,7 +199,7 @@ begin
 end;
 $$;
 
-comment on function private.post_invoice(uuid, boolean) is 'Posts an invoice to the journal, or reverses its posting. Receivable: Accounts Receivable debited with the total, each line''s revenue account and Sales Tax Payable credited per line. Payable: each line''s expense account debited including tax, Accounts Payable credited. A line''s account is private.gl_account_for_line: the priced item''s explicit GL default, else its earning or expense class account, else the counterparty type''s default (decision 39). Dated issued_on (today on the project''s calendar when unset; A71); a reversal is dated by private.reversal_date. Refuses a line without a price, a URID or a resolvable account, and a missing or closed period. Posts at most once per standing posting.';
+comment on function private.post_invoice(uuid, boolean) is 'Posts an invoice to the journal, or reverses its posting. Receivable: Accounts Receivable debited with the total, each line''s revenue account and Sales Tax Payable credited per line. Payable: each line''s expense account debited including tax, Accounts Payable credited. A line''s account is private.gl_account_for_line: the explicit GL default of the item its budget line prices, when the line has no URID of its own or the budget line''s, else its URID''s earning or expense class account, else the counterparty type''s default (decision 39). Dated issued_on (today on the project''s calendar when unset; A71); a reversal is dated by private.reversal_date. Refuses a line without a price, a URID or a resolvable account, and a missing or closed period. Posts at most once per standing posting.';
 revoke all on function private.post_invoice(uuid, boolean) from public, anon, authenticated;
 
 create or replace view app.budget_line_amounts with (security_invoker = true) as
@@ -223,3 +230,10 @@ left join app.budget_lines bl on bl.id = l.budget_line_id
 where l.deleted_at is null and c.deleted_at is null;
 
 comment on column app.change_order_line_facts.account_code is 'Expense account of the change: the explicit GL default of the item the adjusted budget line prices, when the change keeps that line''s URID, else the URID class''s expense account (decision D13 as owner decision 39 reads it).';
+
+-- Comments that said the class alone decides the account (0320, 0362) -------------------------------------------------
+
+comment on table app.budget_lines is 'Budget lines (Section 7.4). The unit price is NULL when unpriced and never defaulted to zero; the extended amount is derived. The GL account is derived, never stored: the priced item''s explicit GL default first, then the URID''s class account, then the counterparty type''s default (decision D13 as owner decision 39 reads it, private.gl_account_for_line).';
+comment on column app.budget_lines.urid is 'Dimension 2: canon discipline or category the line spends on. Its class gives the GL account when the priced item carries no explicit GL default; the counterparty type''s default applies only when neither gives one.';
+comment on column app.budget_lines.element_id is 'Catalog element priced by the line, when one applies. Its explicit GL default (purchase account) comes before the URID class''s account.';
+comment on column app.invoice_lines.urid is 'Dimension 2: canon discipline or category the line bills or is billed for, when it has no budget line or differs from it. The line posts to the explicit GL default of the item its budget line prices only while this is unset or the budget line''s URID, else to this URID''s class revenue or expense account, else to the counterparty type''s default.';
