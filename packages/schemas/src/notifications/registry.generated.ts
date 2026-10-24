@@ -369,7 +369,9 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.account.recovery_code_used.subject",

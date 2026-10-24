@@ -34,10 +34,11 @@
 # Quiet hours (ADR 0033 decision 35): texts and pushes wait out the person's quiet hours, and texts also wait
 # out 21:00 to 08:00 in their time zone when they set none; held texts go out as one summary. Only the kinds
 # flagged bypasses_quiet_hours below go at once, and the list stays short: safety alerts, a change to the
-# person's sign-in security, emergency access taken in their org, and a shift assigned or changed that starts
-# within 12 hours (`starts_within_hours`, read from the startsAt argument; owner decision 24, 2026-10-23).
-# Billing notices wait until morning. A mandatory or urgent category alone never bypasses. Sign-in and
-# verification codes are sent by Supabase Auth itself, never through this queue, so they are never held.
+# person's sign-in security or a recovery code used on their account, emergency access taken in their org, and
+# a shift assigned or changed that starts within 12 hours (`starts_within_hours`, read from the startsAt
+# argument; ADR 0033 decision 62). Billing notices wait until morning. A mandatory or urgent category alone
+# never bypasses. Sign-in and verification codes are sent by Supabase Auth itself, never through this queue,
+# so they are never held.
 
 version: 1
 
@@ -229,6 +230,8 @@ kinds:
       decision: "A follow-up to A77 and A99 (RRR-122, RRR-144) emits it from the password, email, phone and factor change paths; no owner decision pending"
   - kind: account.recovery_code_used
     category: account
+    # Someone got past the second factor with a code: the security notice that is sent today (ADR 0033 decision 62).
+    bypasses_quiet_hours: true
     emitted_by:
       - emitter: supabase/migrations/1560_recovery_codes.sql#app.redeem_recovery_code
         test: supabase/tests/1560_recovery_codes.test.sql
@@ -328,7 +331,7 @@ kinds:
       # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
       - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#app.console_decide_appeal
         test: supabase/tests/1473_moderation_console.test.sql
-  # Reports and imports (0520). A delivered report reaches the Inbox and a push only (owner decision 39): the
+  # Reports and imports (0520). A delivered report reaches the Inbox and a push only (ADR 0033 decision 77): the
   # report.deliver worker's own email (1127, packages/data report-deliveries.ts) stays the only email.
   - kind: report.delivered
     category: reports

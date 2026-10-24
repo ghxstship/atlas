@@ -265,6 +265,7 @@ select set_eq(
   ('occupancy.threshold', null::interval),
   ('weather.alert', null::interval),
   ('account.security_changed', null::interval),
+  ('account.recovery_code_used', null::interval),
   ('access.break_glass_started', null::interval)$$,
   'the kinds that bypass quiet hours match notification-kinds.yaml (ADR 0033 decision 35)');
 

@@ -38,11 +38,12 @@ select ok(not private.bypasses_quiet_hours('shift.changed', jsonb_build_object('
 select ok(not private.bypasses_quiet_hours('shift.changed', '{}'::jsonb, now())
   and not private.bypasses_quiet_hours('shift.changed', '{"startsAt": "soon"}'::jsonb, now()),
   'a shift change without a readable start waits');
-select ok(not private.bypasses_quiet_hours('account.recovery_code_used', '{}'::jsonb, now())
+select ok(not private.bypasses_quiet_hours('account.session_signed_out', '{}'::jsonb, now())
   and not private.bypasses_quiet_hours('billing.payment_failed', '{}'::jsonb, now()),
   'an urgent category alone does not bypass quiet hours');
--- Owner decision 24 (1620) added a new shift within 12 hours, security changes and emergency access.
-select is((select count(*)::integer from private.notification_quiet_hours_bypass), 7, 'the list is short: seven kinds');
+-- ADR 0033 decision 62 (1620) added a new shift within 12 hours, security changes (with a recovery code used) and
+-- emergency access.
+select is((select count(*)::integer from private.notification_quiet_hours_bypass), 8, 'the list is short: eight kinds');
 
 -- 2. The recipient's time zone, never UTC -----------------------------------------------------------------------------
 select is(private.recipient_time_zone(pg_temp.id('org_p'), pg_temp.id('paul'), null), null::text,

@@ -204,7 +204,7 @@ var NOTIFICATION_KINDS = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.account.recovery_code_used.subject",
@@ -1302,7 +1302,7 @@ async function recordTarget(db, claim) {
 }
 /**
  * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, a delivered
- * report's report (decision 39), else the org's Inbox; in Gateway, Home. A path, never a full URL: the service worker
+ * report's report (ADR 0033 decision 77), else the org's Inbox; in Gateway, Home. A path, never a full URL: the service worker
  * resolves it on its own origin.
  */
 async function webPushLink(db, claim, app) {

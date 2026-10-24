@@ -1424,7 +1424,8 @@ describe("texts held by quiet hours go out as one summary", () => {
   });
 
   it("keeps the bypass list short and in the registry", () => {
-    // Owner decision 24 (1620) adds a new shift within 12 hours, security changes and emergency access.
+    // ADR 0033 decision 62 (1620) adds a new shift within 12 hours, security changes (with a recovery code used)
+    // and emergency access.
     expect(
       NOTIFICATION_KINDS.filter((k) => k.quietHoursBypass !== null).map((k) => k.kind),
     ).toEqual([
@@ -1434,6 +1435,7 @@ describe("texts held by quiet hours go out as one summary", () => {
       "occupancy.threshold",
       "weather.alert",
       "account.security_changed",
+      "account.recovery_code_used",
       "access.break_glass_started",
     ]);
   });

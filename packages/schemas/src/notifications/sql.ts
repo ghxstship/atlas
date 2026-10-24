@@ -12,8 +12,8 @@ import type { NotificationKindRegistry } from "./model.ts";
  * account notices of recovery codes and signed-out sessions (A99, ADR 0055), with A89's marketplace match and
  * expiry reminders and A90's marketplace moderation kinds (1473); A89's and A90's own seeds never merged, so 1569
  * carries their kinds. 1620 applies the owner decisions of 2026-10-23: shift.assigned, account.security_changed and
- * access.break_glass_started join the bypass list (decision 24), and report.delivered reaches only the Inbox and a
- * push (decision 39).
+ * access.break_glass_started join the bypass list (ADR 0033 decision 62), and report.delivered reaches only the Inbox and a
+ * push (ADR 0033 decision 77).
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
   "supabase/migrations/1620_notification_kind_seed.sql";
@@ -83,7 +83,7 @@ function rows(registry: NotificationKindRegistry): Rows {
 
 /**
  * The channel rows of each kind that names its own channels, for the channels it leaves out: a kind seeded on every
- * channel before it named fewer (report.delivered, decision 39) would otherwise keep the rows of the others.
+ * channel before it named fewer (report.delivered, ADR 0033 decision 77) would otherwise keep the rows of the others.
  */
 function narrowedChannelsSql(registry: NotificationKindRegistry): string {
   const narrowed = registry.kinds.filter((k) => k.channels.length < registry.channels.length);

@@ -5,7 +5,7 @@
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
 -- 9 email templates, 15 categories, 50 kinds (197 kind and channel rows),
--- 7 kinds that bypass quiet hours (ADR 0033 decision 35).
+-- 8 kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows of kinds the registry does not name are left in place and fail the
 -- drift test (1620_notification_kind_seed.test.sql); a kind that names its own channels loses the rows of
 -- the others, and the quiet-hours bypass list is replaced as a set.
@@ -268,7 +268,7 @@ where (kind = 'report.delivered' and channel not in ('In App', 'Push'))
 -- Kinds that bypass quiet hours (replaced as a set) -------------------------
 
 delete from private.notification_quiet_hours_bypass
-where kind not in ('shift.assigned', 'shift.changed', 'incident.reported', 'occupancy.threshold', 'weather.alert', 'account.security_changed', 'access.break_glass_started');
+where kind not in ('shift.assigned', 'shift.changed', 'incident.reported', 'occupancy.threshold', 'weather.alert', 'account.security_changed', 'account.recovery_code_used', 'access.break_glass_started');
 
 insert into private.notification_quiet_hours_bypass (kind, starts_within) values
   ('shift.assigned', interval '12 hours'),
@@ -277,6 +277,7 @@ insert into private.notification_quiet_hours_bypass (kind, starts_within) values
   ('occupancy.threshold', null::interval),
   ('weather.alert', null::interval),
   ('account.security_changed', null::interval),
+  ('account.recovery_code_used', null::interval),
   ('access.break_glass_started', null::interval)
 on conflict (kind) do update set starts_within = excluded.starts_within;
 

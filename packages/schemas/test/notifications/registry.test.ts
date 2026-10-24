@@ -69,7 +69,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     });
     expect(notificationKind("export.ready")?.emailTemplate).toBe("export_ready");
     // ADR 0033 decision 35: a short, reviewable bypass list; mandatory or urgent categories alone never bypass.
-    // Owner decision 24 (2026-10-23) adds a new shift within 12 hours, security changes and emergency access.
+    // ADR 0033 decision 62 adds a new shift within 12 hours, security changes (with a recovery code used) and
+    // emergency access.
     expect(
       registry.kinds
         .filter((k) => k.quietHoursBypass !== null)
@@ -81,13 +82,14 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       ["occupancy.threshold", null],
       ["weather.alert", null],
       ["account.security_changed", null],
+      ["account.recovery_code_used", null],
       ["access.break_glass_started", null],
     ]);
     // Billing notices wait until morning, although the account category is urgent.
     expect(
       registry.kinds.filter((k) => k.kind.startsWith("billing.")).map((k) => k.quietHoursBypass),
     ).toEqual([null, null, null, null]);
-    // Owner decision 39: a delivered report reaches the Inbox and a push, never a second email.
+    // ADR 0033 decision 77: a delivered report reaches the Inbox and a push, never a second email.
     expect(notificationKind("report.delivered")?.channels).toEqual(["In App", "Push"]);
     expect(notificationKind("no.such_kind")).toBeUndefined();
   });
