@@ -1,0 +1,63 @@
+name: Weekly backup
+
+# Encrypted logical backups to separate storage (Section 9, infra/runbooks/backup-and-restore.md). Each job dumps one
+# project with infra/ci/backup-weekly.sh, encrypts the archive to the owner's public key
+# (infra/backup/backup-public-key.asc) and keeps it as an artifact for 35 days. Both fail until the owner commits that key
+# and sets the job's connection string, so a missing backup is never silent.
+
+on:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backup-weekly
+  cancel-in-progress: false
+
+jobs:
+  staging:
+    name: Encrypted logical backup of staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.120.0
+      - name: Dump and encrypt
+        env:
+          XOS_BACKUP_DB_URL: ${{ secrets.STAGING_DB_URL }}
+        run: infra/ci/backup-weekly.sh staging "$RUNNER_TEMP/backup"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: xos-staging-backup
+          path: ${{ runner.temp }}/backup/*.gpg
+          retention-days: 35
+          if-no-files-found: error
+
+  production:
+    name: Encrypted logical backup of production (read-only login)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # The connection string is a secret of this environment, which only main may use (ADR 0033, decision 47).
+    environment: production-backup
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The CLI names the Postgres image whose pg_dump and psql the script runs; it does not dump itself, because it
+      # always switches to the postgres role, which the backup login (migration 1650) cannot.
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.120.0
+      - name: Dump and encrypt
+        env:
+          XOS_BACKUP_DB_URL: ${{ secrets.PRODUCTION_BACKUP_DB_URL }}
+        run: infra/ci/backup-weekly.sh production "$RUNNER_TEMP/backup" --reader
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: xos-production-backup
+          path: ${{ runner.temp }}/backup/*.gpg
+          retention-days: 35
+          if-no-files-found: error
