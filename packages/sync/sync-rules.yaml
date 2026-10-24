@@ -13,6 +13,7 @@
 #     api_external projection named beside it in supabase/tests/1022_external_compass_sync_views.test.sql,
 #     which checks every source is a table and every column exists in the table and in that projection;
 #   * geofence shapes come from app.geofences with the boundary as GeoJSON;
+#   * the org's emergency codes come from app.emergency_codes (WP18, 1612), live rows only;
 #   * canon lists come from xpms.emergency_code and xpms.std_enumeration by domain.
 # The kiosk roster joins memberships to people, which a sync rule cannot express; it stays on the REST
 # downloader until a replicable source exists.
@@ -80,6 +81,7 @@ bucket_definitions:
       - SELECT * FROM app.asset_custody WHERE org_id = bucket.org_id
       - SELECT * FROM app.sops WHERE org_id = bucket.org_id
       - SELECT * FROM app.zones WHERE org_id = bucket.org_id
+      - SELECT id, org_id, code, label, emergency, sort_order FROM app.emergency_codes WHERE org_id = bucket.org_id AND deleted_at IS NULL
       - SELECT id, org_id, venue_id, zone_id, name, ST_AsGeoJSON(boundary) AS boundary_geojson FROM app.geofences AS geofence_shapes WHERE org_id = bucket.org_id AND deleted_at IS NULL
 
   external_engagement:
@@ -107,7 +109,7 @@ bucket_definitions:
 
   canon_reference:
     data:
-      - SELECT code AS id, label, emergency, swatch, sort_order FROM xpms.emergency_code AS emergency_codes
+      - SELECT code AS id, label, emergency, swatch, sort_order FROM xpms.emergency_code AS canon_emergency_codes
       - SELECT record_id AS id, enum_code AS code, enum_label AS label, sort_order, color_code FROM xpms.std_enumeration AS incident_severities WHERE enum_domain = 'Incident Severity'
       - SELECT record_id AS id, enum_code AS code, enum_label AS label, sort_order FROM xpms.std_enumeration AS inspection_result_values WHERE enum_domain = 'Inspection Result'
       - SELECT role_code AS id, job_title FROM xpms.role AS roles

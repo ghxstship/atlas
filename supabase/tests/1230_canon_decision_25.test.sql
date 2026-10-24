@@ -1,6 +1,7 @@
 -- pgTAP: owner decision 25 (2026-10-19, RRR-101), migration 1230 and the regenerated canon seed.
 -- The Bible wins on structure, values the Bible lacks are imported and marked as from the Playbook,
--- labels map to the closest existing value, and the CSMIA26 template rows stay private (RRR-67).
+-- labels map to the closest existing value, and the CSMIA26 template rows stay private (RRR-67). Owner decision 39
+-- (2026-10-23, RRR-66, migration 1610) settled what decision 25 left deferred, so the counts below include it.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -32,14 +33,14 @@ select is(
   (select count(*)::int from xpms.intake i join xpms.playbook_sourced_value s
      on s.source_file = i.source_file and s.source_sheet = i.source_sheet and s.source_row = i.source_row and s.source_column = i.source_column),
   0, 'no imported value is still proposed in intake');
-select is((select count(*)::int from xpms.intake where intake_state = 'Canceled'), 247,
-  'Playbook values the decision does not adopt stay in intake as Canceled');
-select is((select count(*)::int from xpms.intake where intake_state = 'Canceled' and reason not like '%Owner decision 25%'), 0,
+select is((select count(*)::int from xpms.intake where intake_state = 'Canceled'), 347,
+  'Playbook values the decisions do not adopt stay in intake as Canceled (247 by decision 25, 100 phase names by decision 39)');
+select is((select count(*)::int from xpms.intake where intake_state = 'Canceled' and reason not like '%Owner decision 25%' and reason not like '%Owner decision 39%'), 0,
   'each kept value names the decision');
 select is((select count(*)::int from xpms.intake where intake_state = 'Proposed' and source_file like 'XOS-4.0_Production-Playbook%'), 0,
   'no Playbook difference is left undecided');
-select ok(exists (select 1 from xpms.intake where intake_state = 'Proposed'),
-  'Bible inconsistencies (RRR-66) still wait in intake');
+select ok(not exists (select 1 from xpms.intake where intake_state = 'Proposed'),
+  'no Bible inconsistency waits in intake: decision 39 ruled on RRR-66');
 
 -- Structure: no state, type or code is added ----------------------------------------------------------
 select is((select count(*)::int from xpms.dim_counterparty_type where counterparty_type = 'Landlord'), 0, 'Landlord is not added as a counterparty type');
@@ -69,8 +70,9 @@ select is(
       else false end),
   0, 'every mapped label names an existing canon or lifecycle value');
 select is((select count(*)::int from xpms.label_mapping), 102, 'every label the decision maps is recorded');
-select is((select string_agg(playbook_label, ', ' order by playbook_label) from xpms.label_mapping where basis = 'deferred'),
-  'Hour, Week', 'only the units with no close canon unit are deferred (RRR-66)');
+select is((select string_agg(playbook_label || ' ' || canon_value, ', ' order by playbook_label) from xpms.label_mapping
+            where source_list = 'Enumerations: Unit of Measure' and playbook_label in ('Hour', 'Week')),
+  'Hour hour, Week week', 'the units decision 25 deferred resolve to the time units decision 39 ratified');
 select is((select canon_value from xpms.label_mapping where source_list = 'Crew Shifts STATUS' and playbook_label = 'Confirmed'),
   'Accepted', 'a status label maps to the closest state of its lifecycle');
 select throws_ok($$insert into xpms.label_mapping (source_list, playbook_label, target_domain, canon_value, basis, decision) values ('x', 'y', 'state', null, 'closest-state', 'D25')$$,

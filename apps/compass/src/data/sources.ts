@@ -146,6 +146,15 @@ const INTERNAL_SOURCES: readonly Source[] = [
   },
   { table: "zones", schema: "app", relation: "zones", select: "id,org_id,venue_id,code,name" },
   {
+    // The org's own emergency codes (WP18, 1612): its copy of each canon code, relabeled and reordered. A removed
+    // code is kept on the server so adopting the Standard Library again never brings it back; the device drops it.
+    table: "emergency_codes",
+    schema: "app",
+    relation: "emergency_codes",
+    select: "id,org_id,code,label,emergency,sort_order,deleted_at",
+    map: (r) => (r["deleted_at"] ? {} : { ...r, sort_order: Number(r["sort_order"]) }),
+  },
+  {
     table: "dock_slots",
     schema: "app",
     relation: "dock_slots",
@@ -504,11 +513,12 @@ const EXTERNAL_SOURCES: readonly Source[] = [
 /** Canon reference rows every device caches for offline use (Section 13: reference available offline). */
 const CANON_SOURCES: readonly Source[] = [
   {
-    table: "emergency_codes",
+    // The canon codes (decision D15): the swatch of every org's codes, and the list for an org that holds none.
+    table: "canon_emergency_codes",
     schema: "xpms",
     relation: "emergency_code",
-    select: "*",
-    map: (r) => ({ ...r, id: r["code"] }),
+    select: "code,label,emergency,swatch,sort_order",
+    map: (r) => ({ ...r, id: r["code"], sort_order: Number(r["sort_order"]) }),
   },
   {
     table: "incident_severities",
