@@ -1,14 +1,15 @@
 -- pgTAP: migration 1631, what a person block hides (ADR 0033 decision 57, App Store Review Guideline 1.2). Dave blocks
 -- Frank and Carol through app.block_member: their posts (except one that needs acknowledgment), comments on posts,
 -- shout-outs and messages, in a direct and a group conversation, disappear for Dave and stay for everyone else; the
--- notifications about them leave Dave's Inbox and their deliveries are Suppressed. Lifting the block shows everything
--- again. A shout-out whose post a moderator hid reads to nobody.
+-- notifications about them (announcement.posted, comment.created and mention.created on a post, message.received and
+-- recognition.received) leave Dave's Inbox and their deliveries are Suppressed, except an announcement that needs
+-- acknowledgment. Lifting the block shows everything again. A shout-out whose post a moderator hid reads to nobody.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(31);
+select plan(39);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
@@ -18,10 +19,14 @@ select pg_temp.as_user('carol');
 insert into k select 'post', app.create_feed_post(pg_temp.id('org_a'), 'Update', 'Catering moves to the west tent.');
 insert into k select 'ack', app.create_feed_post(pg_temp.id('org_a'), 'Announcement', 'Hard hats on the deck from today.',
   p_requires_acknowledgment => true);
+insert into k select 'ann', app.create_feed_post(pg_temp.id('org_a'), 'Announcement', 'Crew meal moves to 18:00.');
 select pg_temp.as_user('alice');
 insert into k select 'alice_post', app.create_feed_post(pg_temp.id('org_a'), 'Update', 'Thanks for a smooth load-in.');
 select pg_temp.as_user('carol');
 insert into k select 'comment', app.post_comment('app.feed_posts', (select id from k where key = 'alice_post'), 'Agreed, great work.', '{}', null);
+-- Comment notifications go at commit; each test comment fires them as its author.
+set constraints all immediate;
+set constraints all deferred;
 select pg_temp.as_user('bob');
 with g as (insert into app.groups (org_id, name, group_kind) values (pg_temp.id('org_a'), 'Deck Crew', 'Crew') returning id)
   insert into k select 'crew', id from g;
@@ -68,6 +73,14 @@ select is((select count(*)::int from app.feed_posts where id = (select id from k
 select is((select count(*)::int from app.comments where id = (select id from k where key = 'comment')), 0,
   'her comment on Alice''s post is gone for Dave');
 select is((select count(*)::int from app.feed_posts where id = (select id from k where key = 'alice_post')), 1, 'Alice''s post stays');
+select is((select count(*)::int from app.notifications where kind = 'announcement.posted' and subject_id = (select id from k where key = 'ann')), 0,
+  'the notification about Carol''s announcement leaves Dave''s Inbox');
+select is((select count(*)::int from app.notifications where kind = 'announcement.posted' and subject_id = (select id from k where key = 'ack')), 1,
+  'the one about her announcement that needs acknowledgment stays');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.notifications where kind = 'announcement.posted' and recipient_person_id = pg_temp.id('dave')
+           and subject_id in ((select id from k where key = 'ann'), (select id from k where key = 'ack'))), 2,
+  'both announcement notifications were made for Dave');
 
 select pg_temp.as_user('erin');
 select is((select count(*)::int from app.chat_messages where conversation_id = (select id from k where key = 'crew_conv')), 1,
@@ -90,6 +103,9 @@ select is((select count(*)::int from app.notifications where subject_id in ((sel
 select is((select count(*)::int from app.recognitions where id = (select id from k where key = 'shout')), 0,
   'the shout-out Frank gave Dave is hidden from Dave');
 select pg_temp.as_platform();
+select is((select array_agg(kind order by kind) from app.notifications where recipient_person_id = pg_temp.id('dave')
+           and subject_id in ((select id from k where key = 'dm2'), (select id from k where key = 'shout'))),
+  array['message.received', 'recognition.received'], 'both notifications were made for Dave');
 select ok((select count(*) > 0 and count(*) filter (where d.message_status <> 'Suppressed') = 0
            from app.notification_deliveries d join app.notifications n on n.id = d.notification_id
            where n.recipient_person_id = pg_temp.id('dave') and n.subject_id = (select id from k where key = 'dm2')),
@@ -107,6 +123,26 @@ select ok((select count(*) > 0 and count(*) filter (where d.message_status = 'Su
            where n.recipient_person_id = pg_temp.id('erin') and n.subject_id = (select id from k where key = 'group1')),
   'nothing is suppressed for anyone else');
 
+-- Carol comments on a post Dave follows, and mentions him.
+select pg_temp.as_user('dave');
+select app.post_comment('app.feed_posts', (select id from k where key = 'alice_post'), 'Seconded.', '{}', null);
+set constraints all immediate;
+set constraints all deferred;
+select pg_temp.as_user('carol');
+select app.post_comment('app.feed_posts', (select id from k where key = 'alice_post'), 'Thanks, everyone.', '{}', null);
+select app.post_comment('app.feed_posts', (select id from k where key = 'alice_post'), 'Dave, can you lock the tent?', array[pg_temp.id('dave')], null);
+set constraints all immediate;
+set constraints all deferred;
+select pg_temp.as_platform();
+select is((select array_agg(kind order by kind) from app.notifications where recipient_person_id = pg_temp.id('dave')
+           and subject_id = (select id from k where key = 'alice_post') and actor_person_id = pg_temp.id('carol')),
+  array['comment.created', 'mention.created'], 'Carol''s comment and mention notify Dave');
+select pg_temp.as_user('dave');
+select is((select count(*)::int from app.notifications where kind = 'comment.created' and subject_id = (select id from k where key = 'alice_post')), 0,
+  'the comment notification leaves his Inbox');
+select is((select count(*)::int from app.notifications where kind = 'mention.created' and subject_id = (select id from k where key = 'alice_post')), 0,
+  'and so does the mention');
+
 -- Lifting the block -----------------------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');
 update app.blocks set deleted_at = now() where id = (select id from k where key = 'block_frank');
@@ -115,6 +151,8 @@ select is((select count(*)::int from app.chat_messages where conversation_id = (
 select is((select count(*)::int from app.notifications where subject_id = (select id from k where key = 'dm2')), 1,
   'and the notification about his message');
 select is((select count(*)::int from app.recognitions where id = (select id from k where key = 'shout')), 1, 'and his shout-out');
+select is((select count(*)::int from app.notifications where kind = 'recognition.received' and subject_id = (select id from k where key = 'shout')), 1,
+  'and the notification about it');
 
 -- A shout-out whose post a moderator hid --------------------------------------------------------------------------------
 select pg_temp.as_user('frank');
