@@ -229,6 +229,14 @@ CI's license check, its SBOM and the release SBOM install production dependencie
 | ------------ | ----------------------------------------------------------------------------------------------- | ------- |
 | Supply chain | Node.js for the production install of the license check and the SBOMs (`ci.yml`, `release.yml`) | 22.23.3 |
 
+## Amendment (2026-10-24): zod security release (RRR-139)
+
+zod 4.6.6 fixes GHSA-mrhx-c7xc-m3w5 (high: memory exhaustion validating oversized constrained collections). It was 13 days old when taken, one day short of the two-week minimum; the owner approved it as a security exception, as for Next.js 16.4.2 and Storybook 10.6.2. zod 3.25.76 stays only under the Expo command line tool, which has no patched 3.x and is not part of the Compass bundle; the audit allowlist accepts that version alone.
+
+| Area                                      | Package | Version |
+| ----------------------------------------- | ------- | ------- |
+| Web, API, Edge Functions, shared packages | `zod`   | 4.6.6   |
+
 ## Amendment (2026-10-24): stamping uploaded PDFs (A103, ADR 0061)
 
 pdfkit writes new PDFs only, so it cannot put the Section 8.6 watermark on a PDF someone uploaded. pdf-lib (MIT, pure JavaScript) opens one, keeps its pages and draws over them. It loads on first use in the Atlas server, like pdfkit, and never reaches a browser. It brings `@pdf-lib/standard-fonts` 1.0.0 and `@pdf-lib/upng` 1.0.1 (both MIT); its other dependencies, `pako` 1.0.11 and `tslib` 1.14.1, were already in the lockfile.
