@@ -92,7 +92,7 @@ export async function stampPdfWatermark(
       const height = quarter % 180 === 0 ? box.height : box.width;
       page.pushOperators(lib.beginMarkedContent("Artifact"));
 
-      // Across the middle, centred on the page as displayed.
+      // Across the middle, centered on the page as displayed.
       const span = Math.hypot(width, height) * 0.6;
       const size = Math.max(9, Math.min(26, span / unit));
       const theta = (DIAGONAL_DEGREES * Math.PI) / 180;
