@@ -36,16 +36,15 @@ cache="$root/node_modules/.cache/pg-clock"
 lib="$cache/libfaketime.so.1"
 image="mcr.microsoft.com/playwright:v1.64.0-noble"
 
-# Ready means Postgres accepts connections and Docker reports the container healthy again. After a
-# restart Docker reads "starting" until its next health check passes, seconds after pg_isready does,
-# and the Supabase CLI refuses the stack until then: `supabase status` fails with "container is not
-# ready", which left the core-screen job's app without an anon key.
+# Back means healthy to Docker too. The Supabase CLI refuses a container whose health check has not
+# passed since the restart ("supabase status": "container is not ready: starting"), and that check
+# runs every 10 s, so pg_isready alone answered first: the visual job's `supabase status` then printed
+# no anon key, Atlas got an empty SUPABASE_ANON_KEY and its next dev exited at boot.
 wait_ready() {
+  local health
   for _ in $(seq 90); do
-    if docker exec "$container" pg_isready -U postgres -q &&
-      [ "$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}healthy{{end}}' "$container")" = healthy ]; then
-      return 0
-    fi
+    health=$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}healthy{{end}}' "$container")
+    if [ "$health" = healthy ] && docker exec "$container" pg_isready -U postgres -q; then return 0; fi
     sleep 1
   done
   echo "Postgres in $container did not come back" >&2
