@@ -150,3 +150,14 @@ export function useHoverCards(lookup: (id: string, column: string) => HoverInfo 
     card: loaded && shown ? <loaded.HoverPreview {...shown} /> : null,
   };
 }
+
+/**
+ * Hover cards for a view whose items are named by their record key (`data-item`): the key or title
+ * previews the record, read on demand as the viewer (an Activity line, a record's dependencies, the
+ * punch and recurring lists).
+ */
+export function useRecordKeyHovers(org: string): ReturnType<typeof useHoverCards> {
+  return useHoverCards((recordKey, column) =>
+    column === "key" || column === "title" ? { kind: "recordKey", org, recordKey } : null,
+  );
+}

@@ -6,7 +6,7 @@ import { Button, Drawer, IconButton, Input, Select } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { useHoverCards } from "@/components/hover/use-hover-cards";
+import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
 import { fromLocalInput, toLocalInput, withQuery } from "@/components/work/format";
 import {
@@ -46,7 +46,7 @@ export function DependencyEditor({
     const r = byId.get(id);
     return r ? `${r.key} ${r.title}` : t("dependencies.hidden");
   };
-  const hover = useHoverCards((recordKey) => ({ kind: "recordKey", org, recordKey }));
+  const hover = useRecordKeyHovers(org);
   const before = dependencies.filter((d) => d.successorId === record.id);
   const after = dependencies.filter((d) => d.predecessorId === record.id);
   const row = (d: Dependency, other: string) => (

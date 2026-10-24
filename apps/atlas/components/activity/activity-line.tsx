@@ -6,7 +6,7 @@ import NextLink from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { ActivityDescription } from "./describe";
-import { useHoverCards } from "@/components/hover/use-hover-cards";
+import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
 import { peekHref as shellPeekHref } from "@/lib/shell/peek";
 
 /**
@@ -30,7 +30,7 @@ export function ActivityLine({
   const org = pathname.split("/")[1] ?? "";
   // A peek where the shell opens it, else the record page (lib/shell/peek).
   const peekHref = (key: string) => shellPeekHref(org, pathname, search.toString(), key) as Route;
-  const hover = useHoverCards((recordKey) => ({ kind: "recordKey", org, recordKey }));
+  const hover = useRecordKeyHovers(org);
   return (
     <article className="flex max-w-(--layout-peek) items-start gap-12" {...hover.hoverProps}>
       <Avatar name={description.actor} />
