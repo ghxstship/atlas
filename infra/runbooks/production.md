@@ -354,31 +354,32 @@ None. The site is built from the repository and the OpenAPI document. Project se
 
 ### Edge Functions (production Supabase project secrets)
 
-| Secret                                                    | Notes                                                                                                                                                     |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`, `integration-worker` and `automation-run` (ADR 0047)                                                           |
-| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)                                                  |
-| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key                                            |
-| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, at cutover, once the domain passes its checks and `XOS_POSTAL_ADDRESS` is set (ADR 0033, decision 41) |
-| `RESEND_INBOUND_WEBHOOK_SECRET`                           | The signing secret of Resend's `inbound-email` webhook (Email, above)                                                                                     |
-| `RESEND_RECEIVING_API_KEY`                                | A full-access Resend key for the Receiving API; `RESEND_API_KEY` stays sending-only                                                                       |
-| `XOS_INBOUND_DOMAIN`                                      | `inbound.ghxstship.tech`, for reply by email and project inboxes. `XOS_INBOUND_SECRET` is not needed with Resend                                          |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | Live Stripe keys, once billing opens after Atlas Checkout ships (ADR 0033, decision 59); test keys until then                                             |
-| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | The private address and port of clamd ("Upload scanning (ClamAV)" below); the port defaults to 3310                                                       |
-| `XOS_SLACK_SIGNING_SECRET`                                | Slack events and slash commands (`integration-inbound`), `infra/runbooks/integrations.md`                                                                 |
-| `XOS_XERO_WEBHOOK_KEY`                                    | Xero change notices (`integration-inbound`), once the Xero app exists                                                                                     |
-| `XOS_QUICKBOOKS_VERIFIER_TOKEN`                           | QuickBooks Online change notices (`integration-inbound`), once the app exists                                                                             |
-| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | The Edge Functions' Sentry DSN; `production`; `info`                                                                                                      |
-| `XOS_PUSH_TRANSPORT`, `EXPO_ACCESS_TOKEN`                 | `expo` to send push ("Push and SMS" below); the access token only if enhanced push security is on                                                         |
-| `XOS_WEB_PUSH_TRANSPORT`, `VAPID_SUBJECT`                 | `vapid` to send browser push ("Web push" below); a `mailto:` or `https:` contact for the push services                                                    |
-| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`                   | `<87 base64url characters>`, the same public key as the apps; `<43 base64url characters>`                                                                 |
-| `XOS_SMS_TRANSPORT`, `TWILIO_ACCOUNT_SID`                 | `twilio` to send SMS; the account SID, `AC<32 hex characters>`                                                                                            |
-| `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`       | `<32 hex characters>`; the 10DLC Messaging Service, `MG<32 hex characters>`                                                                               |
-| `XOS_SMS_HELP_CONTACT`                                    | The mailbox or page HELP replies name (OWNER_INPUTS item 6)                                                                                               |
-| `XOS_SMS_ALLOWLIST`, `XOS_SMS_DELIVER_TO_ANY`             | `XOS_SMS_DELIVER_TO_ANY=true` only in production, once Twilio approves the 10DLC campaign (ADR 0033, decision 65)                                         |
-| `XOS_SMS_WEBHOOK_URL`                                     | Only when Twilio calls `sms-webhook` through another host; defaults to the function's own URL                                                             |
-| `APPLE_SIGN_IN_KEY_ID`, `APPLE_SIGN_IN_KEY_PEM`           | The Sign in with Apple key, for `apple-revoke`: revoking Compass's Apple tokens when a person deletes their account ("Sign in with Apple (OWNER)")        |
-| `APPLE_TEAM_ID`, `APPLE_SIGN_IN_CLIENT_IDS`               | The team ID `wallet-pass` also uses; the bundle IDs the key serves, `pro.ghxstship.compass` first                                                         |
+| Secret                                                           | Notes                                                                                                                                                     |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `XOS_API_JWT_SIGNING_KEY`                                        | The project's JWT secret, for `api-token`, `integration-worker` and `automation-run` (ADR 0047)                                                           |
+| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`           | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)                                                  |
+| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`        | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key                                            |
+| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`                | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, at cutover, once the domain passes its checks and `XOS_POSTAL_ADDRESS` is set (ADR 0033, decision 41) |
+| `RESEND_INBOUND_WEBHOOK_SECRET`                                  | The signing secret of Resend's `inbound-email` webhook (Email, above)                                                                                     |
+| `RESEND_RECEIVING_API_KEY`                                       | A full-access Resend key for the Receiving API; `RESEND_API_KEY` stays sending-only                                                                       |
+| `XOS_INBOUND_DOMAIN`                                             | `inbound.ghxstship.tech`, for reply by email and project inboxes. `XOS_INBOUND_SECRET` is not needed with Resend                                          |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`                     | Live Stripe keys, once billing opens after Atlas Checkout ships (ADR 0033, decision 59); test keys until then                                             |
+| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                             | clamd's address and port ("Upload scanning (ClamAV)" below): `xos-clamav.fly.dev` and `3311` on Fly.io; the port defaults to 3310                         |
+| `XOS_CLAMAV_TLS_CA`, `XOS_CLAMAV_TLS_CERT`, `XOS_CLAMAV_TLS_KEY` | The scanning CA and upload-scan's client certificate and key (PEM) for mutual TLS to clamd's stunnel (`infra/scanning/fly/README.md`)                     |
+| `XOS_SLACK_SIGNING_SECRET`                                       | Slack events and slash commands (`integration-inbound`), `infra/runbooks/integrations.md`                                                                 |
+| `XOS_XERO_WEBHOOK_KEY`                                           | Xero change notices (`integration-inbound`), once the Xero app exists                                                                                     |
+| `XOS_QUICKBOOKS_VERIFIER_TOKEN`                                  | QuickBooks Online change notices (`integration-inbound`), once the app exists                                                                             |
+| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`                 | The Edge Functions' Sentry DSN; `production`; `info`                                                                                                      |
+| `XOS_PUSH_TRANSPORT`, `EXPO_ACCESS_TOKEN`                        | `expo` to send push ("Push and SMS" below); the access token only if enhanced push security is on                                                         |
+| `XOS_WEB_PUSH_TRANSPORT`, `VAPID_SUBJECT`                        | `vapid` to send browser push ("Web push" below); a `mailto:` or `https:` contact for the push services                                                    |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`                          | `<87 base64url characters>`, the same public key as the apps; `<43 base64url characters>`                                                                 |
+| `XOS_SMS_TRANSPORT`, `TWILIO_ACCOUNT_SID`                        | `twilio` to send SMS; the account SID, `AC<32 hex characters>`                                                                                            |
+| `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`              | `<32 hex characters>`; the 10DLC Messaging Service, `MG<32 hex characters>`                                                                               |
+| `XOS_SMS_HELP_CONTACT`                                           | The mailbox or page HELP replies name (OWNER_INPUTS item 6)                                                                                               |
+| `XOS_SMS_ALLOWLIST`, `XOS_SMS_DELIVER_TO_ANY`                    | `XOS_SMS_DELIVER_TO_ANY=true` only in production, once Twilio approves the 10DLC campaign (ADR 0033, decision 65)                                         |
+| `XOS_SMS_WEBHOOK_URL`                                            | Only when Twilio calls `sms-webhook` through another host; defaults to the function's own URL                                                             |
+| `APPLE_SIGN_IN_KEY_ID`, `APPLE_SIGN_IN_KEY_PEM`                  | The Sign in with Apple key, for `apple-revoke`: revoking Compass's Apple tokens when a person deletes their account ("Sign in with Apple (OWNER)")        |
+| `APPLE_TEAM_ID`, `APPLE_SIGN_IN_CLIENT_IDS`                      | The team ID `wallet-pass` also uses; the bundle IDs the key serves, `pro.ghxstship.compass` first                                                         |
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase. The worker schedules read the service role key from Vault (`xos_worker_key`).
 
@@ -425,6 +426,10 @@ A preview or production build on EAS stops in `apps/compass/app.config.ts` when 
 Uploads are scanned by self-hosted ClamAV (owner decision 10, ADR 0034). Until clamd answers, every upload
 stays quarantined: attachments cannot be downloaded, imports wait, and private uploads reach only their
 uploader. Files never leave XOS infrastructure, so ClamAV is not a subprocessor.
+
+**Hosting (owner approved 2026-10-24):** one always-on Fly.io machine with stunnel in front of clamd, reached by the
+Edge Functions over mutual TLS. The files and the owner's steps are in `infra/scanning/fly/README.md`. The rest of this
+section describes clamd itself, for that machine or any other host.
 
 **Run clamd**
 
