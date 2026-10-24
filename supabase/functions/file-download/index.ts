@@ -2,8 +2,9 @@
 // has no session, so api_public.open_share_link answers a single-use download ticket instead of the file. The web
 // shell POSTs that ticket here; this function consumes it with the service role (app.consume_file_download_ticket:
 // once, within 2 minutes, only while the link is not revoked) and answers the stored bytes. The ticket is the only
-// credential, so the function takes no JWT (verify_jwt = false in config.toml). Watermarking Confidential images
-// happens in the web shell, which renders them through the ADR 0031 pipeline before the visitor gets them.
+// credential, so the function takes no JWT (verify_jwt = false in config.toml). Watermarking Confidential PDFs and
+// images happens in the web shell (A103, ADR 0061): it stamps each page of a PDF and renders an image through the
+// ADR 0031 pipeline before the visitor gets either, and refuses a file that cannot carry the mark.
 import { createClient } from "@supabase/supabase-js";
 import { env, json, serve } from "../_shared/runtime.ts";
 

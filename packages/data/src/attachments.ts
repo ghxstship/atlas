@@ -205,7 +205,8 @@ export async function uploadAttachment(
 
 /**
  * The route that delivers a Confidential or Restricted version (Section 8.6): the web shell logs the
- * download, holds it to the export capability and watermarks images, so no signed URL is issued.
+ * download, holds it to the export capability and watermarks PDFs and images, so no signed URL is
+ * issued.
  */
 export function classifiedDownloadPath(versionId: string): string {
   return `/files/${versionId}`;

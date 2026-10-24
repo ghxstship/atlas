@@ -13,7 +13,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  *   back once from {@link createShareLink}; the database keeps only their hashes.
  * - {@link openShareLink} runs as an anonymous caller and answers a single-use download ticket, which
  *   {@link fetchTicketFile} trades at the file-download Edge Function for the bytes. Confidential
- *   images are watermarked by the web shell before the visitor gets them.
+ *   PDFs and images are watermarked by the web shell before the visitor gets them (A103).
  * - {@link recordFileDownload} logs an in-app download of a classified file and says whether the copy
  *   needs the watermark.
  */
@@ -213,6 +213,8 @@ export const SHARE_LINK_REFUSALS = [
   "share_link_access_code_required",
   "share_link_access_code",
   "share_link_rate_limited",
+  // Answered by the web shell, not the database: the file must carry the watermark and cannot (A103).
+  "share_link_watermark_unsupported",
 ] as const;
 
 export type ShareLinkRefusal = (typeof SHARE_LINK_REFUSALS)[number];
@@ -328,7 +330,7 @@ export async function fetchTicketFile(
 
 export interface FileDownload {
   readonly classification: DataClassification;
-  /** True when the copy must carry the viewer watermark: a Confidential or Restricted PNG or JPEG. */
+  /** True when the copy must carry the viewer watermark: a Confidential or Restricted PDF, PNG or JPEG. */
   readonly watermark: boolean;
   readonly viewerEmail: string | null;
 }

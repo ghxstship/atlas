@@ -63,7 +63,7 @@
       "share_link_confidential": "Compartir un archivo confidencial necesita la capacidad de exportación de datos confidenciales.",
       "share_link_recipient": "Escribe el correo del destinatario. La marca de agua lo lleva.",
       "share_link_recipient_format": "Escribe un correo válido.",
-      "share_link_watermark_unsupported": "Este archivo confidencial no puede llevar la marca de agua, así que no se puede compartir por enlace. Solo pueden las imágenes PNG y JPEG.",
+      "share_link_watermark_unsupported": "Esta imagen confidencial no puede llevar la marca de agua, así que no se puede compartir por enlace. Sí pueden los PDF y las imágenes PNG o JPEG.",
       "share_link_expiry": "Elige una fecha de vencimiento.",
       "share_link_expiry_range": "Elige una fecha posterior a hoy y dentro del límite.",
       "share_link_file": "Espera a que el análisis del archivo termine sin problemas.",
@@ -79,7 +79,7 @@
     "accessCode": "Código de acceso",
     "accessCodeHelp": "Escribe el código de 6 dígitos si lo recibiste con el enlace.",
     "submit": "Abrir archivo",
-    "watermark": "Las imágenes confidenciales se descargan como un PDF que muestra tu correo y la hora.",
+    "watermark": "Los PDF y las imágenes confidenciales se descargan como un PDF con tu correo y la hora en cada página.",
     "refusals": {
       "share_link_invalid": "Este enlace no funciona. Puede que lo hayan revocado o que esté mal escrito.",
       "share_link_locked": "Este enlace está bloqueado tras demasiados códigos incorrectos. Pide uno nuevo a quien lo envió.",
@@ -87,13 +87,15 @@
       "share_link_reclassified": "Este archivo ya no se puede compartir así. Consulta a quien lo envió.",
       "share_link_access_code_required": "Escribe el código de acceso que llegó con el enlace.",
       "share_link_access_code": "Ese código no es correcto. Tras 5 códigos incorrectos el enlace se bloquea.",
-      "share_link_rate_limited": "Demasiados intentos desde tu red. Espera 10 minutos e inténtalo de nuevo."
+      "share_link_rate_limited": "Demasiados intentos desde tu red. Espera 10 minutos e inténtalo de nuevo.",
+      "share_link_watermark_unsupported": "Este archivo no puede llevar tu correo y la hora, así que no se puede abrir. Pide a quien lo envió un PDF sin contraseña."
     }
   },
   "download": {
     "download_confidential": "Descargar un archivo confidencial necesita la capacidad de exportación de datos confidenciales.",
     "download_restricted": "Descargar un archivo restringido necesita la capacidad de exportación restringida.",
     "step_up_required": "Descargar un archivo restringido necesita un segundo factor de inicio de sesión. Vuelve a iniciar sesión con tu segundo factor e inténtalo de nuevo.",
+    "download_watermark_unsupported": "Este archivo no puede llevar la marca de agua que necesitan los archivos confidenciales y restringidos, así que no se puede descargar. Pide a quien lo agregó un PDF sin contraseña o una imagen PNG o JPEG.",
     "notFound": "Este archivo no está disponible."
   },
   "cookies": {

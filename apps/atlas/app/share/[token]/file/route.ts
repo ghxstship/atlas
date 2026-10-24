@@ -9,8 +9,10 @@ import { createServerSupabase } from "@/lib/supabase/server";
  * Opens a share link and sends its file (Section 8.6, finding A65-016; migration 1380). The page's
  * form POSTs the access code here: api_public.open_share_link checks the link (locked after 5 wrong
  * codes, failures counted per address) and answers a single-use ticket, which the file-download Edge
- * Function trades for the bytes. A Confidential image goes out as a PDF carrying the recipient's email
- * and the time; anything else goes out as stored. A refusal returns to the page with its reason.
+ * Function trades for the bytes. A Confidential PDF goes out with the recipient's email and the time
+ * on every page, and a PNG or JPEG as a PDF carrying them (A103); a file that cannot carry them is
+ * refused, never sent unmarked. Anything else goes out as stored. A refusal returns to the page with
+ * its reason.
  */
 export async function POST(
   request: Request,
@@ -56,5 +58,9 @@ export async function POST(
     locale: isLocale(negotiated) ? negotiated : "en-US",
     sourceUrl: new URL(`/share/${token}`, config.ATLAS_SITE_URL).toString(),
   });
-  return fileResponse(copy);
+  if (!copy.ok) {
+    if (copy.reason === "unreadable") console.error("share link watermark failed");
+    return back("share_link_watermark_unsupported");
+  }
+  return fileResponse(copy.file);
 }

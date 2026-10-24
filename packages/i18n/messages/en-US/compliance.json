@@ -63,7 +63,7 @@
       "share_link_confidential": "Sharing a Confidential file needs the export capability for Confidential data.",
       "share_link_recipient": "Enter the recipient's email. The watermark carries it.",
       "share_link_recipient_format": "Enter a valid email address.",
-      "share_link_watermark_unsupported": "This Confidential file cannot carry the viewer watermark, so it cannot be shared by link. Only PNG and JPEG images can.",
+      "share_link_watermark_unsupported": "This Confidential image cannot carry the viewer watermark, so it cannot be shared by link. PDFs and PNG or JPEG images can.",
       "share_link_expiry": "Choose an expiry date.",
       "share_link_expiry_range": "Choose a date after today and within the limit.",
       "share_link_file": "Wait until the file has scanned clean.",
@@ -79,7 +79,7 @@
     "accessCode": "Access code",
     "accessCodeHelp": "Enter the 6-digit code if you received one with the link.",
     "submit": "Open file",
-    "watermark": "Confidential images download as a PDF that shows your email and the time.",
+    "watermark": "Confidential PDFs and images download as a PDF with your email and the time on every page.",
     "refusals": {
       "share_link_invalid": "This link does not work. It may have been revoked or mistyped.",
       "share_link_locked": "This link is locked after too many wrong codes. Ask the sender for a new one.",
@@ -87,13 +87,15 @@
       "share_link_reclassified": "This file can no longer be shared this way. Ask the sender.",
       "share_link_access_code_required": "Enter the access code that came with the link.",
       "share_link_access_code": "That code is not right. After 5 wrong codes the link locks.",
-      "share_link_rate_limited": "Too many attempts from your network. Wait 10 minutes and try again."
+      "share_link_rate_limited": "Too many attempts from your network. Wait 10 minutes and try again.",
+      "share_link_watermark_unsupported": "This file cannot carry your email and the time, so it cannot be opened. Ask the sender for a PDF without a password."
     }
   },
   "download": {
     "download_confidential": "Downloading a Confidential file needs the export capability for Confidential data.",
     "download_restricted": "Downloading a Restricted file needs the restricted export capability.",
     "step_up_required": "Downloading a Restricted file needs a second sign-in factor. Sign in again with your second factor, then try again.",
+    "download_watermark_unsupported": "This file cannot carry the viewer watermark that Confidential and Restricted files need, so it cannot be downloaded. Ask whoever added it for a PDF without a password, or a PNG or JPEG image.",
     "notFound": "This file is not available."
   },
   "cookies": {
