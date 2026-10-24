@@ -1,8 +1,8 @@
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import type { PlanRegistry } from "@xos/schemas/plans";
 import { extraSeatForLookupKey, planForLookupKey, type BillingInterval } from "./plans.ts";
 
-/** What the webhook handler needs from the database (implemented over the 0560 and 1250 RPCs). */
+/** What the webhook handler needs from the database (implemented over the 0560, 1250 and 1640 RPCs). */
 export interface BillingStore {
   recordStripeEvent(event: {
     readonly id: string;
@@ -36,6 +36,11 @@ export interface BillingStore {
     readonly livemode: boolean;
     readonly paidAt: Date;
   }): Promise<string>;
+  /**
+   * Records that a Checkout session Atlas opened completed or expired (1640). False when Atlas never
+   * opened it, such as an add-on payment.
+   */
+  finishCheckout(sessionId: string, state: "Completed" | "Expired"): Promise<boolean>;
 }
 
 export type WebhookOutcome =
@@ -52,7 +57,7 @@ export interface StripeWebhookRequest {
   readonly livemode: boolean;
   readonly registry: PlanRegistry;
   readonly store: BillingStore;
-  /** Clock for signature tolerance; Stripe's own when omitted. */
+  /** Clock for the signature's five-minute tolerance, in epoch milliseconds; the current time when omitted. */
   readonly receivedAt?: number;
 }
 
@@ -72,10 +77,14 @@ const SUBSCRIPTION_EVENTS = new Set([
   "customer.subscription.resumed",
 ]);
 
-/** Checkout events that can complete a one-time add-on payment. */
-const PAYMENT_EVENTS = new Set([
+/**
+ * Checkout events: a completed session ends a plan checkout Atlas opened (1640) or pays for a one-time
+ * add-on; a later successful payment can complete an add-on; an expired session closes a checkout.
+ */
+const CHECKOUT_EVENTS = new Set([
   "checkout.session.completed",
   "checkout.session.async_payment_succeeded",
+  "checkout.session.expired",
 ]);
 
 function customerIdOf(customer: string | { readonly id: string } | null): string | null {
@@ -118,22 +127,26 @@ function readSubscriptionItems(
  * stores the event once (idempotent ingestion), and applies:
  *   - subscription events through app.sync_subscription_from_stripe, with the plan from the plan
  *     price's lookup key and the extra seats from the quantity of the plan's extra-seat price
+ *   - completed and expired plan checkouts Atlas opened through app.finish_billing_checkout_from_stripe
+ *     (1640); the plan itself follows the subscription events
  *   - completed, paid Checkout sessions for a one-time add-on through
  *     app.record_addon_purchase_from_stripe (ADR 0035)
- * A redelivered event that was applied is a duplicate; one that failed is applied again.
+ * A redelivered event that was applied is a duplicate; one that failed is applied again. The Stripe SDK
+ * loads only once a request carries a signature to check (A85, the Edge boot budgets).
  */
 export async function handleStripeWebhook(request: StripeWebhookRequest): Promise<WebhookOutcome> {
   if (request.signature === null || request.signature.length === 0) {
     throw new StripeSignatureError("Missing Stripe-Signature header");
   }
+  const { default: StripeSdk } = await import("stripe");
   let event: Stripe.Event;
   try {
-    event = await Stripe.webhooks.constructEventAsync(
+    event = await StripeSdk.webhooks.constructEventAsync(
       request.rawBody,
       request.signature,
       request.webhookSecret,
       undefined,
-      Stripe.createSubtleCryptoProvider(),
+      StripeSdk.createSubtleCryptoProvider(),
       request.receivedAt,
     );
   } catch (error) {
@@ -143,7 +156,7 @@ export async function handleStripeWebhook(request: StripeWebhookRequest): Promis
   const subscription = SUBSCRIPTION_EVENTS.has(event.type)
     ? (event.data.object as Stripe.Subscription)
     : null;
-  const session = PAYMENT_EVENTS.has(event.type)
+  const session = CHECKOUT_EVENTS.has(event.type)
     ? (event.data.object as Stripe.Checkout.Session)
     : null;
   const customerId =
@@ -196,6 +209,25 @@ export async function handleStripeWebhook(request: StripeWebhookRequest): Promis
       });
   } else {
     const paid = session as Stripe.Checkout.Session;
+    const finished =
+      event.type === "checkout.session.expired"
+        ? "Expired"
+        : event.type === "checkout.session.completed" && paid.mode === "subscription"
+          ? "Completed"
+          : null;
+    if (finished !== null) {
+      try {
+        const opened = await request.store.finishCheckout(paid.id, finished);
+        await request.store.finishStripeEvent(recorded.rowId, null);
+        return opened
+          ? { outcome: "applied", eventId: event.id, state: `checkout_${finished.toLowerCase()}` }
+          : { outcome: "ignored", eventId: event.id, reason: "Atlas did not open this checkout" };
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        await request.store.finishStripeEvent(recorded.rowId, message);
+        return { outcome: "failed", eventId: event.id, error: message };
+      }
+    }
     if (paid.mode !== "payment")
       return ignore("Subscription checkouts apply through subscription events");
     if (paid.payment_status !== "paid") return ignore("The checkout is not paid yet");

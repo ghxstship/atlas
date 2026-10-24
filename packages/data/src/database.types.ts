@@ -8419,6 +8419,87 @@ export type Database = {
           },
         ];
       };
+      billing_checkouts: {
+        Row: {
+          billing_interval: Database["app"]["Enums"]["billing_interval"];
+          checkout_state: Database["app"]["Enums"]["billing_checkout_state"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expires_at: string;
+          finished_at: string | null;
+          id: string;
+          livemode: boolean;
+          org_id: string;
+          plan_code: string;
+          stripe_checkout_session_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          billing_interval: Database["app"]["Enums"]["billing_interval"];
+          checkout_state?: Database["app"]["Enums"]["billing_checkout_state"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at: string;
+          finished_at?: string | null;
+          id?: string;
+          livemode: boolean;
+          org_id: string;
+          plan_code: string;
+          stripe_checkout_session_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          billing_interval?: Database["app"]["Enums"]["billing_interval"];
+          checkout_state?: Database["app"]["Enums"]["billing_checkout_state"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string;
+          finished_at?: string | null;
+          id?: string;
+          livemode?: boolean;
+          org_id?: string;
+          plan_code?: string;
+          stripe_checkout_session_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "billing_checkouts_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "billing_checkouts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "billing_checkouts_plan_code_fkey";
+            columns: ["plan_code"];
+            isOneToOne: false;
+            referencedRelation: "plans";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "billing_checkouts_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       billing_draws: {
         Row: {
           amount_requested_minor: number;
@@ -58979,6 +59060,14 @@ export type Database = {
         }[];
       };
       begin_automation_run: { Args: { p_job_id?: string; p_run_id: string }; Returns: Json };
+      begin_billing_checkout: {
+        Args: { p_livemode: boolean; p_org_id: string; p_plan_code: string };
+        Returns: {
+          open_session_ids: string[];
+          stripe_customer_id: string;
+          trial_ends_at: string;
+        }[];
+      };
       begin_file_import: {
         Args: { p_link_id: string };
         Returns: {
@@ -59004,6 +59093,17 @@ export type Database = {
         };
         Returns: string;
       };
+      billing_account: {
+        Args: { p_livemode: boolean; p_org_id: string };
+        Returns: {
+          awaiting_subscription: boolean;
+          billing_interval: Database["app"]["Enums"]["billing_interval"];
+          current_period_end: string;
+          has_stripe_customer: boolean;
+          paid_through_stripe: boolean;
+        }[];
+      };
+      billing_portal_customer: { Args: { p_livemode: boolean; p_org_id: string }; Returns: string };
       block_profile: { Args: { p_handle: string; p_kind: string }; Returns: string };
       bulk_update_asset_units: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
@@ -60236,6 +60336,13 @@ export type Database = {
         };
         Returns: Database["app"]["Enums"]["automation_run_status"];
       };
+      finish_billing_checkout_from_stripe: {
+        Args: {
+          p_checkout_state: Database["app"]["Enums"]["billing_checkout_state"];
+          p_stripe_checkout_session_id: string;
+        };
+        Returns: boolean;
+      };
       finish_file_import: {
         Args: { p_checksum_sha256: string; p_imported_version: string; p_link_id: string };
         Returns: Database["app"]["Enums"]["scan_status"];
@@ -61193,6 +61300,17 @@ export type Database = {
           p_step_status: Database["app"]["Enums"]["automation_step_status"];
         };
         Returns: string;
+      };
+      record_billing_checkout: {
+        Args: {
+          p_billing_interval: Database["app"]["Enums"]["billing_interval"];
+          p_expires_at: string;
+          p_livemode: boolean;
+          p_org_id: string;
+          p_plan_code: string;
+          p_stripe_checkout_session_id: string;
+        };
+        Returns: string[];
       };
       record_chat_message_translation: {
         Args: {
@@ -63023,6 +63141,7 @@ export type Database = {
       availability_kind: "Available" | "Unavailable" | "Tentative";
       availability_visibility: "Private" | "Shared on Application" | "Public";
       background_check_result: "Pending" | "Clear" | "Consider" | "Suspended" | "Canceled";
+      billing_checkout_state: "Open" | "Completed" | "Expired";
       billing_interval: "Monthly" | "Annual";
       brand_radius_scale: "Compact" | "Default" | "Rounded";
       budget_line_type: "Cost" | "Labor" | "Fee" | "Contingency";
@@ -69543,6 +69662,7 @@ export const Constants = {
       availability_kind: ["Available", "Unavailable", "Tentative"],
       availability_visibility: ["Private", "Shared on Application", "Public"],
       background_check_result: ["Pending", "Clear", "Consider", "Suspended", "Canceled"],
+      billing_checkout_state: ["Open", "Completed", "Expired"],
       billing_interval: ["Monthly", "Annual"],
       brand_radius_scale: ["Compact", "Default", "Rounded"],
       budget_line_type: ["Cost", "Labor", "Fee", "Contingency"],

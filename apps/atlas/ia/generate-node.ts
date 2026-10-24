@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadSitemapFile } from "@xos/ia/node";
+import { parsePlanRegistry as parseValidatedPlans } from "@xos/schemas/plans";
 import { format, resolveConfig } from "prettier";
 import {
   GENERATED_PREFIX,
@@ -26,7 +27,8 @@ export async function renderGeneratedFiles(): Promise<Map<string, string>> {
   const plans = parsePlanRegistry(plansYaml);
   const addons = parseAddons(plansYaml);
   const offers = parseOffers(plansYaml);
-  for (const [path, source] of generateFiles(sitemap, legal, plans, addons, offers)) {
+  const registry = parseValidatedPlans(plansYaml);
+  for (const [path, source] of generateFiles(sitemap, legal, plans, addons, offers, registry)) {
     const filepath = join(appRoot, path);
     const options = (await resolveConfig(filepath)) ?? {};
     out.set(path, await format(source, { ...options, filepath }));
