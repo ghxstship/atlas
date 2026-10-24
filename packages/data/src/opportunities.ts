@@ -152,7 +152,7 @@ export const DOCUMENT_ORG_MOVES: Readonly<
 };
 
 /**
- * Role types whose engagements carry no work terms (owner decision 31, migration 1624): a client pays the org and a
+ * Role types whose engagements carry no work terms (ADR 0033 decision 69, migration 1624): a client pays the org and a
  * sponsor contributes, so neither has a canon role, worker classification, pay basis, rate or employment terms.
  */
 export const ROLE_TYPES_WITHOUT_WORK_TERMS: readonly ExternalRoleType[] = ["Client", "Sponsor"];

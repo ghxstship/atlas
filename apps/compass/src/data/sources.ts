@@ -208,7 +208,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
   {
     // Expenses (Section 4.3 item 11, A92): the lines a person may post to, with no amounts, so the picker works
     // offline. app.expense_budget_lines (1622) keeps them to projects where the person records expenses, which a
-    // field crew member does without reading the budget (owner decision 38).
+    // field crew member does without reading the budget (ADR 0033 decision 76).
     table: "budget_lines",
     schema: "app",
     relation: "expense_budget_lines",

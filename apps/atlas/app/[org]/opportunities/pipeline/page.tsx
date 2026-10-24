@@ -548,7 +548,7 @@ async function ApplicationRecord({
               action={createEngagementAction}
               hidden={hidden}
               fields={[
-                // A client or sponsor engagement keeps no classification or pay terms (decision 31, 1624).
+                // A client or sponsor engagement keeps no classification or pay terms (ADR 0033 decision 69, 1624).
                 ...(hasWorkTerms(a.roleType) ? engagementTermsFields(page, a) : []),
                 { name: "startDate", label: t("fields.startsOn"), kind: "date" },
                 { name: "endDate", label: t("fields.endsOn"), kind: "date" },

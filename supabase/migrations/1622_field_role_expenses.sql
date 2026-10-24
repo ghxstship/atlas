@@ -1,6 +1,6 @@
 -- 1622_field_role_expenses.sql
 --
--- Notification and access decisions (ADR 0022, 1620-1629), RRR-125; owner decision 38 of 2026-10-23 (ADR 0033). The
+-- Notification and access decisions (ADR 0022, 1620-1629), RRR-125; ADR 0033 decision 76 (2026-10-23). The
 -- Field role records expenses, so field crews file them from Compass with A92's receipt capture (1490, ADR 0048).
 -- Approval still goes through the budget owner: Field holds no finance.expense.approve, and app.approve_expense refuses
 -- the submitter whoever they are (sod_expense_submitter, 0321).

@@ -482,7 +482,7 @@ export const additions = defineAdditions("Opportunities", {
       change:
         "`worker_classification` in the read shape becomes nullable: it is null for Client and Sponsor engagements, as `pay_basis` and `arrangement` already are. The create body still requires it; for an opportunity for a client or sponsor it is accepted and not kept.",
       reason:
-        "app.engagements (1624, owner decision 31) keeps no role, worker classification, pay or employment terms on a Client or Sponsor engagement: a client pays the org and a sponsor contributes, neither works for it. Every field stays in the shape.",
+        "app.engagements (1624, ADR 0033 decision 69) keeps no role, worker classification, pay or employment terms on a Client or Sponsor engagement: a client pays the org and a sponsor contributes, neither works for it. Every field stays in the shape.",
       apply: editShape({
         add: {
           worker_classification: {

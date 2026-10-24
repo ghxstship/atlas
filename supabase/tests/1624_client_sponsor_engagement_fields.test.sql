@@ -1,4 +1,4 @@
--- pgTAP: migration 1624, owner decision 31 of 2026-10-23 (RRR-125, ADR 0019 amendment). Client and Sponsor engagements
+-- pgTAP: migration 1624, ADR 0033 decision 69 (2026-10-23, RRR-125, ADR 0019 amendment). Client and Sponsor engagements
 -- carry no canon role, worker classification, pay or employment terms; every other engagement still names a role and a
 -- classification. The views every surface reads keep an engagement without a role, with its workforce columns NULL, and
 -- engaging a sponsor from an accepted application keeps none of the terms the caller passes.

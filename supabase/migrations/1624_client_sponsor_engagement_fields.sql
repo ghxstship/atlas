@@ -1,6 +1,6 @@
 -- 1624_client_sponsor_engagement_fields.sql
 --
--- Notification and access decisions (ADR 0022, 1620-1629), RRR-125; owner decision 31 of 2026-10-23 (ADR 0033), which
+-- Notification and access decisions (ADR 0022, 1620-1629), RRR-125; ADR 0033 decision 69 (2026-10-23), which
 -- settles ADR 0019's open question on Client and Sponsor engagements. A client pays the org and a sponsor contributes to
 -- a project; neither works for the org, so their engagements drop the fields that only describe work: the canon role
 -- and worker classification (which also chose the onboarding documents, a W-9 for an independent contractor), the pay
@@ -37,7 +37,7 @@ declare
   v_jurisdiction text;
 begin
   -- A client pays the org and a sponsor contributes to the project: neither works for the org, so neither carries a
-  -- canon role, a worker classification, pay terms or employment terms (owner decision 31, 1624). The rules below are
+  -- canon role, a worker classification, pay terms or employment terms (ADR 0033 decision 69, 1624). The rules below are
   -- about workers and do not apply.
   if new.role_type in ('Client', 'Sponsor') then
     if num_nonnulls(new.role_code, new.worker_classification, new.pay_basis, new.arrangement, new.agreed_rate_minor,

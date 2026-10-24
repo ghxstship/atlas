@@ -1,4 +1,4 @@
--- pgTAP: migration 1622, owner decision 38 of 2026-10-23 (RRR-125). The Field role records expenses on the projects its
+-- pgTAP: migration 1622, ADR 0033 decision 76 (2026-10-23, RRR-125). The Field role records expenses on the projects its
 -- holder is assigned to, so frank (Field, a member of prj_a only) picks a budget line in Compass without reading the
 -- budget, stores the receipt photo and files the expense. Approval stays with the budget owner: frank cannot approve,
 -- nor cancel an expense someone else filed. Write alone reads only the receipts of one's own expenses.

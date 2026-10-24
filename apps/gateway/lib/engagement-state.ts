@@ -16,8 +16,8 @@ export type OverviewRow =
  * The Overview property rows for a role type (Section 4.5.8). People the org pays (crew, staff,
  * contractors, vendors, artists and their representatives) see their role, rate and pay basis. A
  * client pays the org, so it sees the approvals waiting on it; a sponsor contributes, so it sees
- * its entitlement progress. Their engagements carry no role, rate or pay basis at all (owner
- * decision 31, migration 1624), so neither is shown one.
+ * its entitlement progress. Their engagements carry no role, rate or pay basis at all (ADR 0033
+ * decision 69, migration 1624), so neither is shown one.
  */
 export function overviewRows(roleType: string): readonly OverviewRow[] {
   switch (roleType) {
