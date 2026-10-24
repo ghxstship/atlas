@@ -151,11 +151,13 @@ function displayed(element: HTMLElement): boolean {
  *
  * A route's loading state can hide an open overlay together with its opener (React hides a
  * suspended boundary's content and runs its effects again when it shows it). Radix then reports a
- * close while both are hidden, and this effect runs again with focus on the page body; the opener
- * survives both and takes focus on the real close.
+ * close while both are hidden, and this effect runs again with focus on the page body; while `open`
+ * stays true the opener survives both and takes focus on the real close. Once `open` turns false
+ * the opener is used or dropped, so a later open never inherits it.
  */
 export function useReturnFocus(open: boolean): (event: Event) => void {
   const opener = useRef<HTMLElement | null>(null);
+  const isOpen = useRef(false);
   /* A layout effect runs before the dialog's own focus move (a passive effect), so it still sees
      the opener. */
   useLayoutEffect(() => {
@@ -164,9 +166,11 @@ export function useReturnFocus(open: boolean): (event: Event) => void {
       const focused = active instanceof HTMLElement && active !== document.body ? active : null;
       const requested = requestedBy?.isConnected ? requestedBy : null;
       requestedBy = null;
-      // Kept from the run before when shown again: the overlay has been open all along.
-      opener.current = opener.current?.isConnected ? opener.current : (focused ?? requested);
+      // Kept from the run before only when shown again: the overlay has been open all along.
+      const kept = isOpen.current && opener.current?.isConnected ? opener.current : null;
+      opener.current = kept ?? focused ?? requested;
     }
+    isOpen.current = open;
   }, [open]);
   return useCallback((event: Event) => {
     const target = opener.current;
@@ -175,7 +179,8 @@ export function useReturnFocus(open: boolean): (event: Event) => void {
       return;
     }
     event.preventDefault();
-    if (!displayed(target)) return;
+    // A loading state hid the open overlay and its opener: keep it for the real close.
+    if (isOpen.current && !displayed(target)) return;
     opener.current = null;
     target.focus();
   }, []);

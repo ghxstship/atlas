@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Suspense, useState as useStateHook } from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -193,11 +193,8 @@ describe("focus return", () => {
     await userEvent.keyboard("{Enter}");
     expect(screen.getByRole("dialog", { name: "Install the stage deck" })).toBeTruthy();
     await userEvent.keyboard("{Escape}");
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
+    await waitFor(() => expect(document.activeElement).toBe(row));
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(document.activeElement).toBe(row);
   });
 
   it("hands focus back after a loading state hid the open peek and its row", async () => {
@@ -253,20 +250,74 @@ describe("focus return", () => {
     row.focus();
     await userEvent.keyboard("{Enter}");
     expect(screen.getByRole("dialog", { name: "Hang the main truss" })).toBeTruthy();
-    act(() => screen.getByRole("button", { name: "Load" }).click());
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-    await act(async () => {
-      release();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
+    // Radix moves focus on close in a timeout; run it while the loading state hides both.
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      act(() => screen.getByRole("button", { name: "Load" }).click());
+      expect(screen.getByText("Loading")).toBeTruthy();
+      act(() => vi.runOnlyPendingTimers());
+    } finally {
+      vi.useRealTimers();
+    }
+    act(() => release());
+    await waitFor(() => expect(screen.queryByText("Loading")).toBeNull());
+    expect(screen.getByRole("dialog", { name: "Hang the main truss" })).toBeTruthy();
     await userEvent.keyboard("{Escape}");
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
+    await waitFor(() => expect(document.activeElement).toBe(row));
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(document.activeElement).toBe(row);
+  });
+
+  it("hands focus to the row that opened the peek, not to an earlier row hidden at its close", async () => {
+    // Row A's section hides while its peek is open and the peek closes; the next peek opens from
+    // Row B and has to hand focus back to Row B.
+    function App() {
+      const [open, setOpen] = useStateHook(false);
+      const [hidden, setHidden] = useStateHook(false);
+      return (
+        <div>
+          <div style={{ display: hidden ? "none" : "block" }}>
+            <button type="button" onClick={() => setOpen(true)}>
+              Row A
+            </button>
+          </div>
+          <button type="button" onClick={() => setOpen(true)}>
+            Row B
+          </button>
+          <button type="button" onClick={() => setHidden(false)}>
+            Show Row A
+          </button>
+          <SidePeek
+            open={open}
+            onOpenChange={setOpen}
+            recordKey="NWS-4"
+            kind="Task"
+            title="Focus the follow spots"
+            state="scheduled"
+            stateLabel="Scheduled"
+          >
+            <button type="button" onClick={() => setHidden(true)}>
+              Hide Row A
+            </button>
+          </SidePeek>
+        </div>
+      );
+    }
+    render(<App />);
+    const a = screen.getByRole("button", { name: "Row A" });
+    const b = screen.getByRole("button", { name: "Row B" });
+    a.focus();
+    await userEvent.keyboard("{Enter}");
+    const peek = screen.getByRole("dialog", { name: "Focus the follow spots" });
+    await userEvent.click(within(peek).getByRole("button", { name: "Hide Row A" }));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    await userEvent.click(screen.getByRole("button", { name: "Show Row A" }));
+    b.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(screen.getByRole("dialog", { name: "Focus the follow spots" })).toBeTruthy();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(document.activeElement).toBe(b));
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("hands focus back after the command menu closes from its hotkey (A23-003)", async () => {
