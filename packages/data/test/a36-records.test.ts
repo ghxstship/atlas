@@ -11,6 +11,7 @@ import {
   keyFromLabel,
   listObjectRecords,
   listObjectTypes,
+  listRecordLinks,
   setObjectValue,
   valueColumns,
   type ObjectType,
@@ -104,6 +105,44 @@ const TYPE_ROW = {
 };
 
 describe("custom objects repository", () => {
+  it("lists the custom object records that link to a record, leaving out those in Trash", async () => {
+    const type = { object_key: "sponsors", label: "Sponsors", deleted_at: null };
+    const { db, calls } = moduleClient({
+      "from:custom_object_relations": [
+        ok([
+          {
+            id: "l1",
+            relation_key: "activation_partner",
+            from_record: { id: "c1", title: "Acme Beverages", deleted_at: null, type },
+          },
+          {
+            id: "l2",
+            relation_key: "sponsor",
+            from_record: { id: "c2", title: "Gone", deleted_at: "t", type },
+          },
+          { id: "l3", relation_key: "sponsor", from_record: null },
+        ]),
+        denied,
+      ],
+    });
+    expect(await listRecordLinks(db, "r1")).toEqual({
+      ok: true,
+      data: [
+        {
+          id: "l1",
+          relationKey: "activation_partner",
+          objectKey: "sponsors",
+          objectLabel: "Sponsors",
+          recordId: "c1",
+          title: "Acme Beverages",
+        },
+      ],
+    });
+    expect(stepsOf(calls[0], "eq")).toEqual([["to_record_id", "r1"]]);
+    expect(stepsOf(calls[0], "is")).toEqual([["deleted_at", null]]);
+    expect((await listRecordLinks(db, "r1")).ok).toBe(false);
+  });
+
   it("reads types with ordered live fields and choices", async () => {
     const { db } = moduleClient({
       "from:custom_object_types": [ok([TYPE_ROW]), ok([TYPE_ROW]), ok([])],
