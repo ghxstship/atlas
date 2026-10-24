@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { NextRequest } from "next/server";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { authErrorKey, isAuthNotice, oauthCallbackError } from "../lib/auth/errors";
-import { providerQueryParams } from "../lib/auth/providers";
+import { parseEnabledProviders, providerQueryParams } from "../lib/auth/providers";
 import { signInErrorPath, siteUrl } from "../lib/auth/redirect";
 import { buildCsp } from "../lib/security/headers";
 
@@ -301,6 +301,12 @@ describe("Gateway OAuth helpers", () => {
       "/auth/sign-in?error=provider_error",
     );
     expect(providerQueryParams("google")).toEqual({ prompt: "select_account" });
+  });
+
+  it("never offers Apple, which is on for Compass's native sign-in only (owner decision 20)", () => {
+    expect(parseEnabledProviders({ external: { google: true, apple: true, azure: true } })).toEqual(
+      ["google", "azure"],
+    );
   });
 
   it("let the no-JavaScript sign-in form redirect through to Google's consent screen", () => {

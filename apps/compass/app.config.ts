@@ -127,6 +127,22 @@ export function withGoogleSignIn(config: ExpoConfig, iosClientId: string | undef
 }
 
 /**
+ * Sign in with Apple (owner decision 20). EXPO_PUBLIC_APPLE_SIGN_IN, a public build value ("1"), turns it on: the
+ * build asks for the Sign in with Apple capability (ios.usesAppleSignIn, which EAS enables on the App ID) and
+ * expo-apple-authentication's config plugin adds the entitlement. Unset, the build has neither, and Compass shows no
+ * Apple button, nor a Google one on iOS (src/domain/appleSignIn.ts).
+ */
+export function withAppleSignIn(config: ExpoConfig, flag: string | undefined): ExpoConfig {
+  const value = flag?.trim().toLowerCase();
+  if (value !== "1" && value !== "true") return config;
+  return {
+    ...config,
+    ios: { ...config.ios, usesAppleSignIn: true },
+    plugins: [...(config.plugins ?? []), "expo-apple-authentication"],
+  };
+}
+
+/**
  * Store builds (RRR-113, `eas.json`). The EAS environment of each build profile supplies these values; none is
  * committed:
  * - XOS_APPLE_TEAM_ID: the Apple Developer team id (10 characters). @bacons/apple-targets signs the widget
@@ -407,9 +423,12 @@ export default ({ config, projectRoot }: ConfigContext): ExpoConfig => {
   const hosts = tenant
     ? tenant.universalLinkHosts
     : (process.env["XOS_UNIVERSAL_LINK_HOSTS"] ?? PRODUCTION_LINK_HOSTS);
-  const linked = withGoogleSignIn(
-    withUniversalLinks(config as ExpoConfig, universalLinkHosts(hosts)),
-    process.env["EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID"],
+  const linked = withAppleSignIn(
+    withGoogleSignIn(
+      withUniversalLinks(config as ExpoConfig, universalLinkHosts(hosts)),
+      process.env["EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID"],
+    ),
+    process.env["EXPO_PUBLIC_APPLE_SIGN_IN"],
   );
   const branded = tenant ? withTenant(linked, tenant) : linked;
   return withStoreBuild(

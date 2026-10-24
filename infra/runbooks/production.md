@@ -329,6 +329,7 @@ Set in the EAS dashboard (project, Environment variables, `production`). Every v
 | `XOS_UNIVERSAL_LINK_HOSTS`         | Leave unset: the build claims `atlas.ghxstship.tech` and `gateway.ghxstship.tech`. An empty value turns universal links off for that build |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The Google Web client ID (public), "Sign in with Google (OWNER)" below                                                                     |
 | `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | The Google iOS client ID (public), the same section                                                                                        |
+| `EXPO_PUBLIC_APPLE_SIGN_IN`        | `1` once Sign in with Apple is set up, "Sign in with Apple (OWNER)" below; unset, iOS shows neither Apple nor Google                       |
 | `XOS_APPLE_TEAM_ID`                | The Apple team id (signs the widget extension in local device builds)                                                                      |
 | `GOOGLE_SERVICES_JSON`             | Secret file variable: the Firebase `google-services.json` for `pro.ghxstship.compass` (Android push)                                       |
 
@@ -685,6 +686,74 @@ Without `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` Compass shows no Google button; witho
 5. Cancel on Google's account picker: the sign-in page says you left before it finished.
 
 Rollback: turn "Enable Sign in with Google" off. The buttons disappear within five minutes (Atlas and Gateway cache the provider list); accounts keep their google identity and can still sign in by email.
+
+## Sign in with Apple (OWNER)
+
+Compass offers "Sign in with Apple" on iOS (owner decision 20, App Store Review Guideline 4.8; ADR 0036, amendment of 2026-10-23). The phone signs in with Apple's own sheet and hands Apple's identity token, with a nonce Supabase Auth checks, to the Supabase project. On iOS the Google button shows only beside Apple's, so until this section is done an iOS build shows neither; Android keeps Google. Atlas and Gateway do not offer Apple, even with the provider on.
+
+**Every value in the table below is an example of the format; none is real.** The key file is a secret: keep it in the owner's secret store and never commit it, paste it in a ticket or send it in chat. Identifiers are not secrets.
+
+| Value                  | Where it comes from                                               | Example of the format (not real)                            |
+| ---------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- |
+| Team ID                | Apple Developer, Membership details                               | 10 letters and digits, such as `AB12CD34EF`                 |
+| App ID (bundle ID)     | Already registered for Compass ("Compass releases" below)         | `pro.ghxstship.compass`                                     |
+| Services ID            | Certificates, Identifiers and Profiles, Identifiers, Services IDs | A reverse-domain identifier, such as `pro.ghxstship.signin` |
+| Sign in with Apple key | Certificates, Identifiers and Profiles, Keys (downloaded once)    | A `.p8` file named `AuthKey_<key ID>.p8`                    |
+| Key ID                 | The same key's page                                               | 10 letters and digits                                       |
+| Supabase callback URL  | Supabase, Authentication, Sign In / Providers, Apple              | `https://fquuqnzlpobaawucczgq.supabase.co/auth/v1/callback` |
+
+### 1. The App ID (Compass)
+
+1. Certificates, Identifiers and Profiles, Identifiers, `pro.ghxstship.compass`: tick **Sign in with Apple** (Enable as a primary App ID) and save. EAS also asks for the capability when it next signs a build with `EXPO_PUBLIC_APPLE_SIGN_IN` set (step 5), because the build sets `ios.usesAppleSignIn`; doing it here first avoids a failed build.
+2. Each Enterprise tenant build (`tenant-<slug>`, "Compass tenant builds") has its own bundle ID: tick the capability on each one too, in the tenant's Apple account.
+
+### 2. The Services ID
+
+The Services ID is what Apple knows the web sign-in by, and what the key in step 3 signs a client secret for. Compass's native sign-in does not use it, but it is set up now so the web flow and token revocation (ADR 0036, amendment follow-ups) do not wait on Apple later.
+
+1. Identifiers, the plus button, **Services IDs**, description `XOS Sign in with Apple`, identifier as in the table.
+2. Tick **Sign in with Apple**, Configure: primary App ID `pro.ghxstship.compass`; Domains and Subdomains `fquuqnzlpobaawucczgq.supabase.co`; Return URLs the Supabase callback URL from the table. Save, then Continue and Register.
+
+### 3. The key
+
+1. Keys, the plus button, name `XOS Sign in with Apple`, tick **Sign in with Apple**, Configure: primary App ID `pro.ghxstship.compass`. Register.
+2. Download the `.p8` file (Apple offers it once) into the owner's secret store with its Key ID and the Team ID, and delete the downloaded copy.
+3. Nothing in Compass or Supabase needs the key today. It signs the client secret Supabase's Apple provider takes for the web flow, a JWT that Apple accepts for at most six months: when Atlas or Gateway offer Apple, generate it from the Team ID, Key ID, Services ID and the key with Supabase's documented tool, enter it in step 4's Secret Key field and set a reminder to replace it within six months.
+
+### 4. Supabase (Authentication, Sign In / Providers, Apple) (OWNER CONFIRMS)
+
+| Setting                   | Value                                                                                                                                                        |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Enable Sign in with Apple | On                                                                                                                                                           |
+| Client IDs                | `pro.ghxstship.compass`, then the Services ID, then each tenant build's bundle ID, comma-separated, no spaces. The first is the audience of Compass's tokens |
+| Secret Key (for OAuth)    | Empty for now (step 3)                                                                                                                                       |
+| Skip nonce checks         | **Off.** Compass sends the nonce, and Supabase Auth refuses a token whose nonce does not match                                                               |
+| Allow users without email | Off                                                                                                                                                          |
+
+Accounts link by verified email as with Google (ADR 0036, decision 5). A person who chooses Hide My Email gets a `privaterelay.appleid.com` address and an account of its own.
+
+### 5. Email to private relay addresses
+
+Apple forwards mail sent to a `privaterelay.appleid.com` address only from domains registered with it. Without this step, sign-in links and notifications to people who hid their email bounce.
+
+1. Certificates, Identifiers and Profiles, Services, **Sign in with Apple for Email Communication**, Configure.
+2. Add the sending domain `mail.ghxstship.tech` and the From address set as `XOS_EMAIL_FROM` and in Supabase SMTP ("Email from mail.ghxstship.tech" above). Apple checks the domain's SPF record, which the Resend setup adds.
+
+### 6. Compass (EAS) and a new build
+
+1. In EAS, Environment variables, add `EXPO_PUBLIC_APPLE_SIGN_IN` with the value `1` to `production` and `preview`, visibility Plain text.
+2. Build Compass again (`eas build --platform ios --profile production`, "Compass releases" below). The capability and the native module are part of the binary, so an over-the-air update is not enough. Android builds are unchanged.
+
+### 7. Verify
+
+1. Compass on an iPhone: the sign-in page shows Sign in with Apple, then Continue with Google.
+2. Sign in with Apple with an Apple ID that has no XOS account and share the email: a new account with the name from Apple.
+3. Sign in with Apple choosing Hide My Email: a new account; a sign-in link sent to it arrives (step 5).
+4. Sign in with Apple using the email of an existing XOS account: you land in that account, its name unchanged.
+5. Close Apple's sheet: the sign-in page says you left before it finished.
+6. Compass on Android: Continue with Google only, as before.
+
+Rollback: build Compass without `EXPO_PUBLIC_APPLE_SIGN_IN`, which removes both buttons on iOS. Turning the provider off in Supabase alone leaves the button in place and refuses the sign-in. Accounts keep their apple identity and can still sign in by email.
 
 ## Feedback triage and sandboxes (OWNER)
 

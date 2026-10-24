@@ -76,3 +76,27 @@ The owner's remaining work should be creating the Google OAuth clients and enter
 - Magic links started on an org's custom Gateway domain have the same return-host problem as OAuth (decision 2) and are not changed here.
 - Apple and Microsoft: the same buttons, callback and messages apply; each needs its brand mark, its CSP origin and its own owner setup.
 - Single sign-on enforcement per org, if an org asks for it, would raise `sso_required` (decision 7).
+
+## Amendment (2026-10-23): Sign in with Apple in Compass
+
+Owner decision 20 (ADR 0033, 2026-10-23) adds Sign in with Apple to Compass before App Store submission, and keeps the Google button off iOS until then: App Store Review Guideline 4.8 asks an app that offers a third-party sign-in to offer an equivalent private one, and Sign in with Apple is it. Track compass-trust (RRR-137) built it.
+
+1. **Compass signs in natively on iOS.** `expo-apple-authentication` 57.0.2 (MIT, Expo's module for SDK 57) shows Apple's sheet, asking for the name and email, and returns an identity token; `supabase.auth.signInWithIdToken({ provider: "apple", token, nonce })` exchanges it for a session, as Google's token is exchanged (decision 8). It is the same account: a verified email links to the existing person (decision 5), and the bootstrap is the email sign-up's (decision 6).
+
+2. **The nonce is checked.** Unlike Google's iOS SDK (decision 9), Apple's takes a nonce. Compass makes 32 random bytes with `expo-crypto`, gives Apple their SHA-256 as hex, which Apple signs into the token, and gives Supabase Auth the bytes themselves, which Supabase Auth hashes and compares. The hosted Apple provider keeps "Skip nonce checks" off. A new nonce is made for every sign-in and is never stored.
+
+3. **Which buttons show is explicit configuration.** `EXPO_PUBLIC_APPLE_SIGN_IN=1`, a public EAS build value, turns Apple on: `app.config.ts` then sets `ios.usesAppleSignIn` and adds the module's config plugin (the `com.apple.developer.applesignin` entitlement). On iOS, Apple shows when the build turned it on and `isAvailableAsync` answers true, and Google shows only beside Apple; an iOS build without Apple configured shows neither. Android and other platforms keep Google as decision 8 describes, and never show Apple. `apps/compass/src/domain/appleSignIn.ts` holds the rule (`signInButtons`) and the flow (`signInWithApple`); `test/apple-sign-in.test.ts` covers both with fakes.
+
+4. **The button is Apple's own.** `AppleAuthenticationButton` (Sign In type, black on a light theme and white on a dark one, the design system's control radius) follows Apple's Human Interface Guidelines; iOS draws its label and reads it aloud in the device's language, so it takes no catalog string. The error messages are catalog strings (`compass.signIn.appleCancelled`, `appleFailed`, `appleUnavailable`), and Supabase Auth's refusals map as Google's do (decision 4).
+
+5. **The name.** Apple sends the person's name on the first authorization only and never in the token. Compass keeps it in the auth metadata and on the person row while that row has no name, so a sign-in that links an existing account never renames it (decision 5). Keeping it is best effort: a failure is logged and the sign-in still succeeds.
+
+6. **Atlas and Gateway do not offer Apple.** Turning the provider on for Compass would otherwise put a "Continue with Apple" button on their sign-in pages. Their web flow needs Apple's own button style, Apple's origin in the CSP's `form-action` and a client secret that Apple accepts for at most six months, none of which they have, so `parseEnabledProviders` leaves Apple out on both until that flow is built.
+
+7. **Configuration.** `supabase/config.toml` keeps `[auth.external.apple]` off: a native Apple sign-in needs a device build signed by the Apple team, which a local stack never sees. The owner's steps (the capability on the App ID, the Services ID, the key, the Supabase provider with Compass's bundle ID first among the client IDs, the private relay email domain, and the EAS value) are in `infra/runbooks/production.md`, "Sign in with Apple (OWNER)", and `legal/OWNER_INPUTS.md`, Part D.
+
+### Follow-ups
+
+- **Token revocation on account deletion.** Apple expects an app that offers Sign in with Apple to revoke the person's Apple tokens when they delete their account (App Store Review Guideline 5.1.1(v)). That needs the authorization code from the sign-in exchanged with Apple using the client secret, in an Edge Function holding the key; Compass's account deletion (1112) does not do it yet.
+- The web flow in Atlas and Gateway, as decision 6 of this amendment describes.
+- The Privacy Policy names Apple, as it should Google, as a source of account data (the legal track).
