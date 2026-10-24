@@ -75,11 +75,11 @@ insert into app.suppression_list (org_id, channel, address, reason, category_cod
 values (pg_temp.id('org_a'), 'SMS', '+15555550122', 'Unsubscribe', 'approvals');
 insert into n values ('a3', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'approval.requested', null, null, null,
   '{"title": "Lighting rental", "actorName": "Bob Okafor"}'));
-insert into n values ('sec', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'account.security_changed', null, null, null,
-  '{"change": "password"}'));
+insert into n values ('sec', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'billing.payment_failed', null, null, null,
+  '{"days": 1}'));
 select pg_temp.morning();
 create temporary table s2 as select * from app.claim_sms_summaries();
-select is((select concat_ws('|', held_count, kind) from s2), '1|account.security_changed',
+select is((select concat_ws('|', held_count, kind) from s2), '1|billing.payment_failed',
   'the summary leaves out the held text of the unsubscribed category');
 select is((select concat_ws('|', message_status, last_error) from pg_temp.sms((select id from n where key = 'a3'))),
   'Suppressed|Address is on the suppression list.', 'that text is suppressed, as a single text would be');
@@ -203,8 +203,8 @@ where id = (select id from n where key = 'shift_late');
 set local session_replication_role = origin;
 update app.notification_deliveries set deliver_after = now() - interval '1 second'
 where id = (pg_temp.sms((select id from n where key = 'shift_late'))).id;
-insert into n values ('dave_day', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'account.security_changed', null, null, null,
-  '{"change": "password"}'));
+insert into n values ('dave_day', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'billing.payment_failed', null, null, null,
+  '{"days": 1}'));
 select lives_ok($$select * from app.claim_notification_deliveries('SMS', 50)$$,
   'the retry, after the shift started and inside quiet hours, does not fail the claim');
 select is((select concat_ws('|', d.message_status, (d.deliver_after = now() + interval '10 hours')::text) from app.notification_deliveries d
@@ -288,10 +288,10 @@ select app.record_notification_delivery((select d.id from app.notification_deliv
 select is(pg_temp.usage((select d.id from app.notification_deliveries d
   where d.notification_id = (select id from n where key = 'shift_window') and d.channel = 'Push')), 'push_sent 1', 'a push still counts once');
 select pg_temp.night();
-insert into n values ('sec2', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'account.security_changed', null, null, null,
-  '{"change": "email"}'));
-insert into n values ('sec3', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'account.security_changed', null, null, null,
-  '{"change": "phone"}'));
+insert into n values ('sec2', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'billing.payment_failed', null, null, null,
+  '{"days": 2}'));
+insert into n values ('sec3', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'billing.payment_failed', null, null, null,
+  '{"days": 3}'));
 select pg_temp.morning();
 create temporary table s3 as select * from app.claim_sms_summaries();
 select app.record_sms_summary((select delivery_ids from s3), 'Sent', 'SM-1393-summary-3', null, 4);

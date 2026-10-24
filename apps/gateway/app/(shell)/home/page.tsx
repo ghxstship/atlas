@@ -34,6 +34,7 @@ import { needsYou, pickUpNext, UP_NEXT_KINDS, type FeedItem } from "@/lib/home";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getNode } from "@xos/ia";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
+import { engagementTitle } from "@/lib/engagement-state";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslate();
@@ -230,7 +231,7 @@ function UpNextCardView({
     const e = upNext.engagement;
     return (
       <Card
-        title={e.jobTitle}
+        title={engagementTitle(e, (r) => t(enumLabelKey("externalRoleType", r)))}
         meta={
           <span className="font-semibold text-accent-text">
             {formatCountdown(locale, startOfDayIn(e.startDate, e.projectTimeZone), now)}
@@ -356,7 +357,7 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
         t("gateway.home.needsYou.onboarding", { n: item.open, org: item.engagement.orgName }),
         item.blocking > 0
           ? t("gateway.home.needsYou.onboardingBlocking", { n: item.blocking })
-          : item.engagement.jobTitle,
+          : engagementTitle(item.engagement, (r) => t(enumLabelKey("externalRoleType", r))),
         <ButtonLink
           href={engagementHref(item.engagement, "onboarding")}
           variant="secondary"
@@ -389,7 +390,7 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
       return row(
         "Star",
         t("gateway.home.needsYou.rate", { org: item.engagement.orgName }),
-        `${item.engagement.jobTitle} · ${formatDate(locale, item.engagement.endDate ?? item.engagement.startDate)}`,
+        `${engagementTitle(item.engagement, (r) => t(enumLabelKey("externalRoleType", r)))} · ${formatDate(locale, item.engagement.endDate ?? item.engagement.startDate)}`,
         <ButtonLink href={engagementHref(item.engagement)} size="sm">
           {t("gateway.home.needsYou.rateAction")}
         </ButtonLink>,

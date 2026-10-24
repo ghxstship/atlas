@@ -52,12 +52,14 @@ export interface Engagement {
   readonly projectId: string;
   readonly projectName: string;
   readonly roleType: ExternalRoleType;
-  readonly roleCode: string;
-  readonly jobTitle: string;
+  /** The canon role and its job title; null for Client and Sponsor engagements, which carry no work terms (1624). */
+  readonly roleCode: string | null;
+  readonly jobTitle: string | null;
   readonly personId: string | null;
   readonly accountId: string | null;
-  readonly payBasis: string;
-  readonly arrangement: string;
+  /** Null for an unpaid engagement and for Client and Sponsor engagements. */
+  readonly payBasis: string | null;
+  readonly arrangement: string | null;
   /** The party's own rate in minor units while the money area is open; null when unpriced or closed. */
   readonly rateMinor: number | null;
   readonly rateCurrency: string | null;
@@ -82,12 +84,12 @@ function toEngagement(row: ExternalRow<"engagements">): Engagement {
     projectId: req(row.project_id, "engagements.project_id"),
     projectName: req(row.project_name, "engagements.project_name"),
     roleType: req(row.role_type, "engagements.role_type"),
-    roleCode: req(row.role_code, "engagements.role_code"),
-    jobTitle: req(row.job_title, "engagements.job_title"),
+    roleCode: row.role_code,
+    jobTitle: row.job_title,
     personId: row.person_id,
     accountId: row.account_id,
-    payBasis: req(row.pay_basis, "engagements.pay_basis"),
-    arrangement: req(row.arrangement, "engagements.arrangement"),
+    payBasis: row.pay_basis,
+    arrangement: row.arrangement,
     rateMinor: row.rate_minor,
     rateCurrency: row.rate_currency_code,
     startDate: req(row.start_date, "engagements.start_date"),

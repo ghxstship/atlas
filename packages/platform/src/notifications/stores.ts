@@ -50,13 +50,25 @@ function browsers(value: unknown): string[] {
   });
 }
 
-/** The record key and org slug of a notification about a record, or null. */
+/** What the links of a push read from its claim; the kind and message arguments name a record or a Gateway page. */
+type LinkClaim = Pick<ClaimedPush, "orgId" | "subjectTable" | "subjectId"> &
+  Partial<Pick<ClaimedPush, "kind" | "messageArgs">>;
+
+/** A Gateway path an emitter names (gatewayPath): absolute, on Gateway's own origin, with no query. */
+const GATEWAY_PATH = /^\/(?!\/)[A-Za-z0-9._~/-]{0,199}$/;
+
+/**
+ * The record key and org slug of a notification about a record, or null: the key it carries (message_args.recordKey,
+ * 1600), else the record's and its project's.
+ */
 async function recordTarget(
   db: PlatformDb,
-  claim: Pick<ClaimedPush, "orgId" | "subjectTable" | "subjectId">,
+  claim: LinkClaim,
 ): Promise<{ readonly slug: string | null; readonly recordKey: string | null }> {
   const org = await db.selectOne("organizations", "slug", { id: claim.orgId });
   const slug = optionalText(org, "slug");
+  const carried = claim.messageArgs?.["recordKey"];
+  if (typeof carried === "string" && isRecordKey(carried)) return { slug, recordKey: carried };
   if (claim.subjectId === null || !["records", "app.records"].includes(claim.subjectTable ?? ""))
     return { slug, recordKey: null };
   const record = await db.selectOne("records", "project_id, record_number", {
@@ -70,41 +82,40 @@ async function recordTarget(
 }
 
 /**
- * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, else the
- * org's Inbox; in Gateway, Home. A path, never a full URL: the service worker resolves it on its own origin.
+ * Where a push opens in Gateway (A101): the page its emitter names (gatewayPath), such as a marketplace match's listing
+ * or Explore Alerts (1462); a match that names none opens Explore Alerts, and anything else Home.
+ */
+function gatewayPushPath(claim: LinkClaim): string {
+  const path = claim.messageArgs?.["gatewayPath"];
+  if (typeof path === "string" && GATEWAY_PATH.test(path)) return path;
+  return claim.kind === "opportunity.matched" ? "/explore/alerts" : "/home";
+}
+
+/**
+ * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, a delivered
+ * report's report (ADR 0033 decision 77), else the org's Inbox; in Gateway the page the notification names, else Home.
+ * A path, never a full URL: the service worker resolves it on its own origin.
  */
 export async function webPushLink(
   db: PlatformDb,
-  claim: Pick<ClaimedPush, "orgId" | "subjectTable" | "subjectId">,
+  claim: LinkClaim,
   app: WebPushDevice["app"],
 ): Promise<string> {
-  if (app === "Gateway") return "/home";
+  if (app === "Gateway") return gatewayPushPath(claim);
   const target = await recordTarget(db, claim);
   if (target.slug === null) return "/";
+  if (claim.subjectTable === "app.report_definitions" && claim.subjectId !== null)
+    return `/${target.slug}/reports/saved-reports?peek=${encodeURIComponent(claim.subjectId)}`;
   return target.recordKey === null
     ? `/${target.slug}/inbox`
     : `/${target.slug}/r/${target.recordKey}`;
 }
 
 /** The Compass deep link of a notification: the record screen for a record, else the Inbox. */
-export async function compassLink(
-  db: PlatformDb,
-  claim: Pick<ClaimedPush, "orgId" | "subjectTable" | "subjectId">,
-): Promise<string> {
-  const inbox = `${COMPASS_SCHEME}://inbox`;
-  if (claim.subjectId === null || !["records", "app.records"].includes(claim.subjectTable ?? ""))
-    return inbox;
-  const record = await db.selectOne("records", "project_id, record_number", {
-    id: claim.subjectId,
-  });
-  const projectId = optionalText(record, "project_id");
-  if (record === null || projectId === null) return inbox;
-  const project = await db.selectOne("projects", "project_key", { id: projectId });
-  const org = await db.selectOne("organizations", "slug", { id: claim.orgId });
-  const recordKey = `${optionalText(project, "project_key") ?? ""}-${String(record["record_number"] ?? "")}`;
-  const slug = optionalText(org, "slug");
-  if (slug === null || !isRecordKey(recordKey)) return inbox;
-  return compassSchemeUrl({ kind: "record", org: slug, recordKey });
+export async function compassLink(db: PlatformDb, claim: LinkClaim): Promise<string> {
+  const target = await recordTarget(db, claim);
+  if (target.slug === null || target.recordKey === null) return `${COMPASS_SCHEME}://inbox`;
+  return compassSchemeUrl({ kind: "record", org: target.slug, recordKey: target.recordKey });
 }
 
 /** PushStore over app.claim_notification_deliveries, app.record_push_tickets and the receipt RPCs. */

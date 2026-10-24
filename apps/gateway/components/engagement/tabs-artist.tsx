@@ -17,6 +17,7 @@ import {
 import { personToday } from "@/lib/time-zone";
 import { listEngagedGuests, type GuestEntryState } from "@/lib/party";
 import { enumLabelKey } from "@/lib/shell/translate";
+import { engagementTitle } from "@/lib/engagement-state";
 import { toneFor, type Tone } from "@/lib/states";
 import { AreaClosed, RowList, TabEmpty } from "./rows";
 import { GuestRequestForm, SettlementResponseForm } from "./party-forms";
@@ -379,7 +380,7 @@ export async function RosterTab({ view, t, locale }: TabProps) {
                 label={r.artistName ?? ""}
                 items={theirs.map((e) => ({
                   id: e.id,
-                  title: e.jobTitle,
+                  title: engagementTitle(e, (r) => t(enumLabelKey("externalRoleType", r))),
                   meta: [e.orgName, formatDateRange(locale, e.startDate, e.endDate)],
                   tag: {
                     label: t(enumLabelKey("engagementState", e.state)),

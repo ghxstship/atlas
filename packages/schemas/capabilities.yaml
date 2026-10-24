@@ -721,6 +721,9 @@ modules:
       - code: finance.expense.read
         class: read
         description: Read expenses.
+      # Migration 1622 (ADR 0033 decision 76, 2026-10-23) grants this to the Field role at assigned reach after the
+      # 0203 seed, so field crews file expenses from Compass; approval stays with finance.expense.approve. 0203 stays
+      # the generator's output.
       - code: finance.expense.write
         class: write
         description: Record expenses against a budget line.

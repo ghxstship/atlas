@@ -53,7 +53,7 @@ export function mergeConversations(
         subject: t.subject,
         orgId: e?.orgId ?? "",
         orgName: e?.orgName ?? "",
-        context: e ? `${e.jobTitle} · ${e.projectName}` : "",
+        context: e ? [e.jobTitle, e.projectName].filter(Boolean).join(" · ") : "",
         at: t.createdAt,
         unread: 0,
       };

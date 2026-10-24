@@ -24,10 +24,8 @@ select pg_temp.as_user('cleo');
 insert into world values ('acct_c', app.create_external_account('Coral Group', 'coral-group'));
 select pg_temp.as_user('alice');
 insert into world values ('cp_c_a', app.create_counterparty(pg_temp.id('org_a'), null, null, pg_temp.id('acct_c')));
-with e as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification, pay_basis,
-    arrangement, start_date)
-  values (pg_temp.id('prj_a'), pg_temp.id('cleo'), pg_temp.id('cp_c_a'), 'Client', '5000.51.02', 'INDEPENDENT_CONTRACTOR',
-    'Day Rate', 'Per Engagement', '2027-06-01') returning id) insert into world select 'eng_client', id from e;
+with e as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, start_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('cleo'), pg_temp.id('cp_c_a'), 'Client', '2027-06-01') returning id) insert into world select 'eng_client', id from e;
 with b as (insert into app.budgets (project_id, name, currency_code, is_baseline) values (pg_temp.id('prj_a'), 'Summer Series Budget', 'USD', true) returning id)
   insert into world select 'bud', id from b;
 with c as (insert into app.change_orders (project_id, budget_id, title, order_type_enum_id, reason)

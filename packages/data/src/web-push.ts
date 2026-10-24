@@ -3,8 +3,9 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Browser notifications through Web Push (Section 4.10, A65-023, migration 1533). A browser registers for every org
- * the person belongs to and belongs to one person at a time; the notification dispatcher sends it the Push
- * deliveries, under A80's quiet hours and preferences.
+ * the person belongs to and, in Gateway, for the person (1670), whose own browser takes the pushes of orgs they work
+ * with as an external party and their marketplace matches. It belongs to one person at a time; the notification
+ * dispatcher sends it the Push deliveries, under A80's quiet hours and preferences.
  */
 
 export type WebPushApp = "Atlas" | "Gateway";
@@ -34,7 +35,7 @@ export function browserSubscription(input: unknown): BrowserSubscription | null 
   return { endpoint, p256dh, auth };
 }
 
-/** Turns browser notifications on: registers the browser for each org the person belongs to. */
+/** Turns browser notifications on: registers the browser for each org the person belongs to, and in Gateway for them. */
 export async function registerWebPush(
   db: XosClient,
   app: WebPushApp,

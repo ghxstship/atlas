@@ -24,10 +24,8 @@ select pg_temp.as_user('sol');
 insert into world values ('acct_s', app.create_external_account('Brightwave Drinks', 'brightwave-drinks'));
 select pg_temp.as_user('alice');
 insert into world values ('cp_s_a', app.create_counterparty(pg_temp.id('org_a'), null, null, pg_temp.id('acct_s')));
-with e as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification, pay_basis,
-    arrangement, start_date)
-  values (pg_temp.id('prj_a'), pg_temp.id('sol'), pg_temp.id('cp_s_a'), 'Sponsor', '5000.51.02', 'INDEPENDENT_CONTRACTOR',
-    'Day Rate', 'Per Engagement', '2027-06-01') returning id) insert into world select 'eng_sponsor', id from e;
+with e as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, start_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('sol'), pg_temp.id('cp_s_a'), 'Sponsor', '2027-06-01') returning id) insert into world select 'eng_sponsor', id from e;
 insert into app.sponsor_entitlements (project_id, counterparty_id, description, quantity, due_on) values
   (pg_temp.id('prj_a'), pg_temp.id('cp_s_a'), 'Due yesterday', 1, pg_temp.local_on() - 1),
   (pg_temp.id('prj_a'), pg_temp.id('cp_s_a'), 'Due today', 1, pg_temp.local_on()),

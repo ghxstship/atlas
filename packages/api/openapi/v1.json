@@ -27420,9 +27420,9 @@
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "worker_classification": {
-            "type": "string",
+            "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Worker classification, from xpms.worker_classification.",
+            "description": "Worker classification, from xpms.worker_classification; null for Client and Sponsor engagements.",
             "example": "INDEPENDENT_CONTRACTOR"
           },
           "pay_basis": {

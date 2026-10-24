@@ -20,4 +20,4 @@ Each alert shows its name, the role type it looks for (or Any role type) and its
 - **Turn off** alerts to keep the search without notifications, and **Turn on** to start them again
 - **Remove** the search
 
-Push notifications reach you in Compass on your phone. Email goes to the address you sign in with.
+Push notifications reach this browser once you turn on Browser Notifications in [Settings, Notifications](help:settings-notifications), and Compass on your phone. A push opens the listing, or Alerts when several match. Email goes to the address you sign in with.

@@ -1,6 +1,7 @@
 -- pgTAP: migration 1490, expense receipts filed from Compass (A92, RRR-137, A65-011 part 1). A person with
 -- finance.expense.write on the project stores the receipt photo under <org_id>/expense-receipts/<project_id>/ and files
--- the expense with it in one call, replayed once from an offline queue; a field member and another org cannot. The
+-- the expense with it in one call, replayed once from an offline queue; a viewer and another org cannot (the Field
+-- role records expenses since 1622, covered there). The
 -- receipt reads with the expense. A confirmed Aurora receipt extraction is applied with the expense; someone else's
 -- suggestion is refused. Incident, inspection and kiosk media keep their rules.
 begin;
@@ -43,9 +44,9 @@ select is((select count(*)::int from private.field_media_subject(pg_temp.receipt
 select pg_temp.as_user('carol');
 select lives_ok(format($$insert into storage.objects (bucket_id, name) values ('field-media', %L)$$, pg_temp.receipt_path('org_a', 'prj_a', 'r1.jpg')),
   'a person who records expenses on the project stores the receipt photo');
-select pg_temp.as_user('frank');
-select throws_ok(format($$insert into storage.objects (bucket_id, name) values ('field-media', %L)$$, pg_temp.receipt_path('org_a', 'prj_a', 'frank.jpg')),
-  '42501', null, 'a field member without finance.expense.write cannot store receipts');
+select pg_temp.as_user('gina');
+select throws_ok(format($$insert into storage.objects (bucket_id, name) values ('field-media', %L)$$, pg_temp.receipt_path('org_a', 'prj_a', 'gina.jpg')),
+  '42501', null, 'a viewer without finance.expense.write cannot store receipts');
 select pg_temp.as_user('xavier');
 select throws_ok(format($$insert into storage.objects (bucket_id, name) values ('field-media', %L)$$, pg_temp.receipt_path('org_a', 'prj_a', 'x.jpg')),
   '42501', null, 'another org cannot store receipts for the project');
@@ -77,10 +78,10 @@ select throws_ok(format($$insert into app.expense_receipts (expense_id, media_ur
     pg_temp.id('exp_1'), pg_temp.receipt_path('org_a', 'prj_a', 'direct.jpg')),
   '42501', null, 'receipts are written only through app.submit_expense_receipt');
 
-select pg_temp.as_user('frank');
+select pg_temp.as_user('gina');
 select throws_ok(format($$select app.submit_expense_receipt(gen_random_uuid(), %L, 'Taxi', 100, 'USD', '2027-06-10', %L)$$,
-    pg_temp.id('line_a'), pg_temp.receipt_path('org_a', 'prj_a', 'f.jpg')),
-  '42501', null, 'a field member without finance.expense.write cannot file an expense');
+    pg_temp.id('line_a'), pg_temp.receipt_path('org_a', 'prj_a', 'g.jpg')),
+  '42501', null, 'a viewer without finance.expense.write cannot file an expense');
 select pg_temp.as_user('xavier');
 select throws_ok(format($$select app.submit_expense_receipt(gen_random_uuid(), %L, 'Taxi', 100, 'USD', '2027-06-10', %L)$$,
     pg_temp.id('line_a'), pg_temp.receipt_path('org_a', 'prj_a', 'x.jpg')),
@@ -105,7 +106,7 @@ select throws_ok(format($$select app.submit_expense_receipt(gen_random_uuid(), %
 select pg_temp.as_user('dave');
 select is((select count(*)::int from app.expense_receipts), 2, 'a member who reads expenses reads their receipts');
 select pg_temp.as_user('frank');
-select is((select count(*)::int from app.expense_receipts), 0, 'a field member reads none');
+select is((select count(*)::int from app.expense_receipts), 0, 'a field member reads none of the receipts others filed');
 select pg_temp.as_user('xavier');
 select is((select count(*)::int from app.expense_receipts), 0, 'another org reads none');
 

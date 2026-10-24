@@ -1,0 +1,50 @@
+appId: pro.ghxstship.compass
+name: A101, a tap on a push opens the record it is about, from a cold start and while Compass is open
+---
+# Needs the push tap helper (scripts/push-tap.sh starts it and runs this flow): Maestro scripts cannot run
+# xcrun simctl push, so the helper pushes a notification about the Inspection record NWS-14 the way Expo would,
+# with its record key (migration 1600) and its deep link in the data. Kept out of flows/ because it needs it.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+# Allow notifications when Compass asks; a device that already allowed them shows no prompt.
+- runFlow:
+    when:
+      visible: "Allow"
+    commands:
+      - tapOn: "Allow"
+# Cold start: Compass is closed when the push arrives, and the tap launches it.
+- stopApp
+- runScript:
+    file: ../scripts/push-helper.js
+    env:
+      STEP: push
+- assertTrue: ${output.helper.ok}
+- extendedWaitUntil:
+    visible: ".*Assigned to you.*"
+    timeout: 15000
+- tapOn: ".*Assigned to you.*"
+- extendedWaitUntil:
+    visible:
+      id: "record-native"
+    timeout: 30000
+- assertVisible: "NWS-14"
+- assertVisible: ".*Fire Marshal Walk.*"
+# Warm: Compass is open on another tab when the push arrives; the banner shows and its tap opens the record.
+- tapOn:
+    id: "tab-today"
+- runScript:
+    file: ../scripts/push-helper.js
+    env:
+      STEP: push
+- assertTrue: ${output.helper.ok}
+- extendedWaitUntil:
+    visible: ".*Assigned to you.*"
+    timeout: 15000
+- tapOn: ".*Assigned to you.*"
+- extendedWaitUntil:
+    visible:
+      id: "record-native"
+    timeout: 30000
+- assertVisible: "NWS-14"

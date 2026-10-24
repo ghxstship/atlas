@@ -11899,8 +11899,8 @@ class Engagement(TypedDict):
     completed_at: Optional[str]
     #: Identifier of the accepted application the engagement came from.
     application_id: Optional[str]
-    #: Worker classification, from xpms.worker_classification.
-    worker_classification: str
+    #: Worker classification, from xpms.worker_classification; null for Client and Sponsor engagements.
+    worker_classification: Optional[str]
     #: Pay basis; with the arrangement a permitted canon pair.
     pay_basis: Optional[str]
     #: Arrangement; with the pay basis a permitted canon pair.

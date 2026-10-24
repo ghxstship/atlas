@@ -65,6 +65,8 @@ The production domains of Atlas and Gateway, and the Apple and Android signing i
 
    Compass registers that category with two actions, Approve and Reject (Reject asks for the reason). Both run in the background and require an unlocked device. Compass answers through `notifications.act` (`POST /api/v1/notifications/{id}/act`) with the person's own token and an `Idempotency-Key` of `push-{notificationId}-{action}`, then confirms the outcome with a local notification. Notification permission is asked from the Inbox, never at sign-in. The device registers its Expo push token in `app.push_subscriptions` when push is available.
 
+   Update (A101, RRR-147, ADR 0056): the data also carries `url`, the deep link, and `recordKey`, the key of the record a notification is about. Every tap on the notification itself opens the record or the deep link, the tap that launched Compass included, and the device also registers for the person (`app.register_push_device`).
+
 ## Alternatives considered
 
 - **Opening records only on the web from Compass:** rejected. Journey 58 lands on the record in Compass.

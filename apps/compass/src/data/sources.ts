@@ -207,33 +207,24 @@ const INTERNAL_SOURCES: readonly Source[] = [
   },
   {
     // Expenses (Section 4.3 item 11, A92): the lines a person may post to, with no amounts, so the picker works
-    // offline. Row level security keeps them to projects where the person reads budgets.
+    // offline. app.expense_budget_lines (1622) keeps them to projects where the person records expenses, which a
+    // field crew member does without reading the budget (ADR 0033 decision 76).
     table: "budget_lines",
     schema: "app",
-    relation: "budget_lines",
+    relation: "expense_budget_lines",
     select:
-      "id,org_id,line_number,description,urid,deleted_at,budgets!inner(project_id,name,currency_code,is_baseline,deleted_at)",
-    map: (r) => {
-      const budget = r["budgets"] as {
-        project_id?: string;
-        name?: string;
-        currency_code?: string;
-        is_baseline?: boolean;
-        deleted_at?: string | null;
-      } | null;
-      if (r["deleted_at"] || !budget || budget.deleted_at) return {};
-      return {
-        id: r["id"],
-        org_id: r["org_id"],
-        project_id: budget.project_id,
-        budget_name: budget.name ?? "",
-        currency_code: budget.currency_code,
-        is_baseline: budget.is_baseline === true,
-        line_number: Number(r["line_number"]),
-        description: r["description"],
-        urid: r["urid"] ?? null,
-      };
-    },
+      "id,org_id,project_id,budget_name,currency_code,is_baseline,line_number,description,urid",
+    map: (r) => ({
+      id: r["id"],
+      org_id: r["org_id"],
+      project_id: r["project_id"],
+      budget_name: r["budget_name"] ?? "",
+      currency_code: r["currency_code"],
+      is_baseline: r["is_baseline"] === true,
+      line_number: Number(r["line_number"]),
+      description: r["description"],
+      urid: r["urid"] ?? null,
+    }),
   },
   {
     // The person's own expenses: they read every expense they submitted (0321), whatever else they may read.

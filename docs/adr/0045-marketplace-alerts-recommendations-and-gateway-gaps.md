@@ -63,7 +63,7 @@ This record lists the choices made while closing them.
 - Decision 35 of ADR 0033 holds texts and pushes during the recipient's quiet hours. Quiet hours were a membership setting, so external parties and marketplace users had none.
 - `app.person_notification_settings` holds a person's own quiet hours and the zone they are read in. The zone is required and never assumed to be UTC. People set it in Gateway Settings, Notifications.
 - A push from an org the person is not a member of waits them out at queue and claim time, unless its kind is on the bypass list. External parties receive no SMS, and email is never held.
-- `private.notify` and `app.claim_notification_deliveries` were redefined from their 1367 definitions with every later behavior kept. Any branch that redefines them again must start from 1461.
+- `private.notify` and `app.claim_notification_deliveries` were redefined from their 1367 definitions with every later behavior kept. Any branch that redefines them again must start from their latest definitions (for the claim, 1671 since ADR 0056).
 
 ### 7. Expiry reminders
 
@@ -120,6 +120,6 @@ An hourly job, `private.send_expiry_reminders`, reminds before these items expir
 
 ## Consequences
 
-- Push for people with no membership in the sending org is recorded, then suppressed as "No registered device", because push devices register per membership (1131's existing behavior). Their email goes out, and the push reaches them once device registration exists for external parties.
+- Push for people with no membership in the sending org reaches their own devices (ADR 0056, migrations 1670 and 1671): their Gateway browser and their Compass device, registered for the person rather than per membership. Before that it was recorded, then suppressed as "No registered device", and the claim also suppressed the email of a match to a person who works with no org; 1671 sends both.
 - The API v1 `marketplace.search` operation keeps its frozen shape and its deadline order. The recommendation score is in the database RPC that Gateway calls. Exposing it in the API would be an addition for a later contract version.
 - The notification kind seed moved to 1469. A branch that adds kinds moves it to its own range and regenerates.

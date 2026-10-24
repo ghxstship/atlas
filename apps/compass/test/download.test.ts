@@ -69,9 +69,8 @@ describe("sources", () => {
   it("selects the column each table's device scope rule checks, for every audience", () => {
     // A row the scope check cannot place is refused, so a source that leaves out the scope column
     // downloads nothing (geofence shapes once lacked org_id and Today said the site had no geofence).
-    // Columns the downloader adds after the pull are listed here; a source with a parent takes its project, and
-    // budget lines take theirs from the budget they embed (A92).
-    const enriched: Readonly<Record<string, readonly string[]>> = { budget_lines: ["project_id"] };
+    // Columns the downloader adds after the pull are listed here; a source with a parent takes its project.
+    const enriched: Readonly<Record<string, readonly string[]>> = {};
     const audiences: readonly Audience[] = [...INTERNAL_AUDIENCES, ...EXTERNAL_AUDIENCES];
     const gaps: string[] = [];
     for (const audience of audiences) {

@@ -16,6 +16,7 @@ import {
 import { resolveSettings } from "@xos/data/settings";
 import type { Route } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import {
   addPoolMemberAction,
@@ -54,8 +55,11 @@ import {
   deliverableIcon,
   documentIcon,
   engagementIcon,
+  engagementLine,
+  engagementProperties,
   enumKey,
   formatMoney,
+  type EngagementProperty,
 } from "@/lib/opportunities/format";
 import { must, type PageSetup } from "@/lib/opportunities/page";
 
@@ -145,7 +149,8 @@ export async function EngagementsView({
                           {e.partyName ?? t("engagements.unnamed")}
                         </span>
                         <span className="text-text-12 text-text-secondary">
-                          {e.projectKey} · {e.jobTitle ?? e.roleCode}
+                          {e.projectKey} ·{" "}
+                          {e.jobTitle ?? e.roleCode ?? t(`roleTypes.${enumKey(e.roleType)}`)}
                         </span>
                         {e.openBlockingCount > 0 ? (
                           <Tag tone="warning">
@@ -170,8 +175,7 @@ export async function EngagementsView({
               <div className="flex min-w-0 flex-col gap-2">
                 <RowLink href={open(e)}>{e.partyName ?? t("engagements.unnamed")}</RowLink>
                 <span className="text-text-12 text-text-secondary">
-                  {e.projectKey} · {t(`roleTypes.${enumKey(e.roleType)}`)} ·{" "}
-                  {e.jobTitle ?? e.roleCode}
+                  {engagementLine(e, t(`roleTypes.${enumKey(e.roleType)}`))}
                 </span>
               </div>
               <StateChip
@@ -271,6 +275,38 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
   const canRate = ctx.capabilities.has("opportunities.rating.write");
   const canPool = ctx.capabilities.has("opportunities.pool.write");
   const resolved = must(rate, "rate");
+  // A client or sponsor engagement shows no role, classification, rate or pay basis (engagementProperties, 1624).
+  const properties: Record<EngagementProperty, { label: string; value: ReactNode }> = {
+    role: {
+      label: t("fields.role"),
+      value: (
+        <span>
+          {e.jobTitle ?? e.roleCode}{" "}
+          <span className="font-mono text-text-12 text-text-secondary">{e.roleCode}</span>
+        </span>
+      ),
+    },
+    classification: {
+      label: t("fields.classification"),
+      value: e.workerClassification ? t(`classifications.${e.workerClassification}`) : t("none"),
+    },
+    account: { label: t("fields.account"), value: e.accountName ?? t("none") },
+    dates: {
+      label: t("fields.dates"),
+      value: t("dateRange", { start: e.startDate, end: e.endDate ?? t("openEnded") }),
+    },
+    rate: {
+      label: t("fields.rate"),
+      value: resolved.masked
+        ? t("engagements.rateMasked")
+        : (formatMoney(page.locale, resolved.rateMinor, resolved.currencyCode) ??
+          (resolved.payBasis ? t("unpriced") : t("engagements.unpaid"))),
+    },
+    payBasis: {
+      label: t("fields.payBasis"),
+      value: resolved.payBasis ? t(`payBases.${enumKey(resolved.payBasis)}`) : t("none"),
+    },
+  };
   const myRatings = must(ratings, "ratings").filter((r) => r.engagementId === e.id);
   const partyRating = myRatings.find((r) => r.side === "Party");
   const orgRating = myRatings.find((r) => r.side === "Organization");
@@ -321,37 +357,7 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
         <div className="flex flex-col gap-16">
           <Properties
             label={t("record.properties")}
-            items={[
-              {
-                label: t("fields.role"),
-                value: (
-                  <span>
-                    {e.jobTitle ?? e.roleCode}{" "}
-                    <span className="font-mono text-text-12 text-text-secondary">{e.roleCode}</span>
-                  </span>
-                ),
-              },
-              {
-                label: t("fields.classification"),
-                value: t(`classifications.${e.workerClassification}`),
-              },
-              { label: t("fields.account"), value: e.accountName ?? t("none") },
-              {
-                label: t("fields.dates"),
-                value: t("dateRange", { start: e.startDate, end: e.endDate ?? t("openEnded") }),
-              },
-              {
-                label: t("fields.rate"),
-                value: resolved.masked
-                  ? t("engagements.rateMasked")
-                  : (formatMoney(page.locale, resolved.rateMinor, resolved.currencyCode) ??
-                    (resolved.payBasis ? t("unpriced") : t("engagements.unpaid"))),
-              },
-              {
-                label: t("fields.payBasis"),
-                value: resolved.payBasis ? t(`payBases.${enumKey(resolved.payBasis)}`) : t("none"),
-              },
-            ]}
+            items={engagementProperties(e.roleType).map((key) => properties[key])}
           />
           {canWrite && moves.length > 0 ? (
             <ActionForm

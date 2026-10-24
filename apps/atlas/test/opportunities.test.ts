@@ -6,6 +6,8 @@ import {
   deliverableIcon,
   documentIcon,
   engagementIcon,
+  engagementLine,
+  engagementProperties,
   enumKey,
   formatMoney,
   formatPayRange,
@@ -53,6 +55,28 @@ describe("opportunities format", () => {
     expect(formatPayRange("en-US", 80000, 80000, "USD", range)).toBe("$800.00");
     expect(formatPayRange("en-US", null, 95000, "USD", range)).toBe("$950.00");
     expect(formatPayRange("en-US", null, null, null, range)).toBeNull();
+  });
+});
+
+describe("engagement record", () => {
+  it("shows no role, classification, rate or pay basis for a client or sponsor engagement (1624)", () => {
+    const work = ["role", "classification", "account", "dates", "rate", "payBasis"];
+    for (const roleType of ["Crew", "Staff", "Contractor", "Artist", "Vendor"] as const) {
+      expect(engagementProperties(roleType)).toEqual(work);
+    }
+    expect(engagementProperties("Client")).toEqual(["account", "dates"]);
+    expect(engagementProperties("Sponsor")).toEqual(["account", "dates"]);
+  });
+
+  it("names the role under the party when the engagement has one", () => {
+    const crew = { projectKey: "NWS", jobTitle: null, roleCode: "5000.51.02" };
+    expect(engagementLine(crew, "Crew")).toBe("NWS · Crew · 5000.51.02");
+    expect(engagementLine({ ...crew, jobTitle: "Head Rigger" }, "Crew")).toBe(
+      "NWS · Crew · Head Rigger",
+    );
+    expect(engagementLine({ projectKey: "NWS", jobTitle: null, roleCode: null }, "Sponsor")).toBe(
+      "NWS · Sponsor",
+    );
   });
 });
 

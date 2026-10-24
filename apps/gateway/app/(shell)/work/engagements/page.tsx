@@ -16,6 +16,7 @@ import { inBrandScope } from "@/lib/brand/brand";
 import { formatDateRange } from "@/lib/format";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
+import { engagementTitle } from "@/lib/engagement-state";
 import { ENGAGEMENT_STATE_STYLE, toneFor } from "@/lib/states";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -42,7 +43,9 @@ function Row({ e, locale, t }: { e: Engagement; locale: string; t: Translate }) 
         className="flex min-h-touch-min flex-wrap items-center gap-x-12 gap-y-4 px-16 py-12 text-text-primary no-underline hover:bg-bg-hover"
       >
         <span className="flex min-w-0 flex-1 flex-col gap-2">
-          <span className="font-medium">{e.jobTitle}</span>
+          <span className="font-medium">
+            {engagementTitle(e, (r) => t(enumLabelKey("externalRoleType", r)))}
+          </span>
           <span className="text-text-13 text-text-secondary">
             {e.projectName} · {formatDateRange(locale, e.startDate, e.endDate)} ·{" "}
             {t(enumLabelKey("externalRoleType", e.roleType))}
@@ -110,7 +113,7 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
               .filter((e) => e.state === state)
               .map((e) => ({
                 key: e.id,
-                title: e.jobTitle,
+                title: engagementTitle(e, (r) => t(enumLabelKey("externalRoleType", r))),
                 meta: `${e.orgName} · ${e.projectName}`,
                 href: href(e),
               })),
@@ -128,7 +131,7 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
           ]}
           rows={shown.map((e) => ({
             href: href(e),
-            role: e.jobTitle,
+            role: engagementTitle(e, (r) => t(enumLabelKey("externalRoleType", r))),
             org: e.orgName,
             project: e.projectName,
             dates: formatDateRange(locale, e.startDate, e.endDate),

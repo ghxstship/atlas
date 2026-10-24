@@ -20453,10 +20453,10 @@ export interface Engagement {
    */
   readonly application_id: string | null;
   /**
-   * Worker classification, from xpms.worker_classification.
+   * Worker classification, from xpms.worker_classification; null for Client and Sponsor engagements.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly worker_classification: string;
+  readonly worker_classification: string | null;
   /**
    * Pay basis; with the arrangement a permitted canon pair.
    * Length: 1 to 300.

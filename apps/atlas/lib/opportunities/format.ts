@@ -1,11 +1,13 @@
 import type { RecordState } from "@xos/ui";
-import type {
-  ApplicationState,
-  DeliverableState,
-  EngagementDocumentState,
-  EngagementState,
-  OfferState,
-  OpportunityState,
+import {
+  hasWorkTerms,
+  type ApplicationState,
+  type DeliverableState,
+  type EngagementDocumentState,
+  type EngagementState,
+  type ExternalRoleType,
+  type OfferState,
+  type OpportunityState,
 } from "@xos/data/opportunities";
 
 /**
@@ -177,4 +179,30 @@ export function formatPayRange(
   const high = formatMoney(locale, max, currency);
   if (low && high) return low === high ? low : range(low, high);
   return low ?? high;
+}
+
+/** A property on an engagement's record panel. */
+export type EngagementProperty =
+  "role" | "classification" | "account" | "dates" | "rate" | "payBasis";
+
+/**
+ * The properties an engagement's record shows, in order. A client or sponsor engagement carries no role,
+ * classification, rate or pay basis (ADR 0033 decision 69, migration 1624), so it shows its account and dates only.
+ */
+export function engagementProperties(roleType: ExternalRoleType): readonly EngagementProperty[] {
+  return hasWorkTerms(roleType)
+    ? ["role", "classification", "account", "dates", "rate", "payBasis"]
+    : ["account", "dates"];
+}
+
+/** The line under an engagement's party name: project, role type and role, without the parts it does not have. */
+export function engagementLine(
+  e: {
+    readonly projectKey: string;
+    readonly jobTitle: string | null;
+    readonly roleCode: string | null;
+  },
+  roleTypeLabel: string,
+): string {
+  return [e.projectKey, roleTypeLabel, e.jobTitle ?? e.roleCode].filter(Boolean).join(" · ");
 }

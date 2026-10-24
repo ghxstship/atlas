@@ -140,7 +140,8 @@ interface EngagementRow extends AuditRow {
   role_type: Engagement["role_type"];
   engagement_state: Engagement["engagement_state"];
   application_id: string | null;
-  worker_classification: string;
+  /** Null for Client and Sponsor engagements, which carry no work terms (1624). */
+  worker_classification: string | null;
   pay_basis: string | null;
   arrangement: string | null;
   start_date: string;

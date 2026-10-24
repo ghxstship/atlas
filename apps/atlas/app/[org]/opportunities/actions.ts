@@ -391,13 +391,10 @@ export const withdrawOfferAction: Action = action(z.object({ offerId: uuid, reas
 export const createEngagementAction: Action = action(
   z.object({
     applicationId: uuid,
-    workerClassification: z.enum([
-      "EMPLOYEE",
-      "INDEPENDENT_CONTRACTOR",
-      "VENDOR_SUPPLIED",
-      "UNPAID_INTERN",
-      "VOLUNTEER",
-    ]),
+    // Absent for a client or sponsor opportunity, whose engagement keeps no work terms (1624).
+    workerClassification: z
+      .enum(["EMPLOYEE", "INDEPENDENT_CONTRACTOR", "VENDOR_SUPPLIED", "UNPAID_INTERN", "VOLUNTEER"])
+      .optional(),
     payBasis: z.string().trim().max(60).default(""),
     arrangement: z.string().trim().max(60).default(""),
     startDate: optionalDate,
@@ -406,7 +403,7 @@ export const createEngagementAction: Action = action(
   (ctx, v) =>
     repo.createEngagementFromApplication(ctx.viewer.db, {
       applicationId: v.applicationId,
-      workerClassification: v.workerClassification,
+      workerClassification: v.workerClassification ?? null,
       payBasis: v.payBasis === "" ? null : v.payBasis,
       arrangement: v.arrangement === "" ? null : v.arrangement,
       startDate: v.startDate,

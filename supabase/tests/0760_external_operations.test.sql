@@ -34,10 +34,8 @@ begin
 
   perform pg_temp.as_user('alice');
   insert into world values ('cp_c_a', app.create_counterparty(pg_temp.id('org_a'), null, null, pg_temp.id('acct_c')));
-  insert into app.engagements (project_id, person_id, counterparty_id, role_type, role_code, worker_classification, pay_basis,
-    arrangement, start_date)
-  values (pg_temp.id('prj_a'), pg_temp.id('cleo'), pg_temp.id('cp_c_a'), 'Client', '5000.51.02', 'INDEPENDENT_CONTRACTOR',
-    'Day Rate', 'Per Engagement', '2027-06-01') returning id into v_id;
+  insert into app.engagements (project_id, person_id, counterparty_id, role_type, start_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('cleo'), pg_temp.id('cp_c_a'), 'Client', '2027-06-01') returning id into v_id;
   insert into world values ('eng_client_a', v_id);
 
   insert into app.run_of_show (project_id, scope_node_id, name, show_date)

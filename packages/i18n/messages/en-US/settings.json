@@ -753,7 +753,7 @@
       "locked": "Required by your organization",
       "smsNote": "Texts go only to a verified phone number you agreed to receive texts on. Reply STOP to any text to stop them.",
       "quietTitle": "Quiet hours and digest",
-      "quietDescription": "During quiet hours, push notifications wait until the end and texts arrive together as one message. Texts also wait between 21:00 and 08:00 in your time zone unless you set your own quiet hours. Safety alerts and changes to a shift starting within 12 hours always arrive at once.",
+      "quietDescription": "During quiet hours, push notifications wait until the end and texts arrive together as one message. Texts also wait between 21:00 and 08:00 in your time zone unless you set your own quiet hours. Safety alerts, changes to your sign-in security, a recovery code used on your account, emergency access taken in your organization and a new or changed shift starting within 12 hours always arrive at once.",
       "quietStart": "Quiet hours start",
       "quietEnd": "Quiet hours end",
       "timeZone": "Time zone",
