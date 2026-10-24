@@ -66,7 +66,7 @@ export interface ScopeAlternative {
 export interface TableRule {
   readonly table: string;
   readonly anyOf: readonly ScopeAlternative[];
-  /** Canon reference tables shared by every tenant, such as emergency codes. */
+  /** Canon reference tables shared by every tenant, such as the canon emergency codes. */
   readonly global?: boolean;
 }
 
@@ -192,6 +192,8 @@ export const TABLE_RULES: readonly TableRule[] = [
   { table: "fulfillments", anyOf: [internalProject] },
   { table: "sops", anyOf: [internalOrg] },
   { table: "zones", anyOf: [internalOrg] },
+  // The org's own emergency codes (WP18, 1612): members read them; others fall back to the canon codes.
+  { table: "emergency_codes", anyOf: [internalOrg] },
   // Memberships joined to people's names: no single replicable table holds it.
   { table: "kiosk_roster", anyOf: [{ ...internalOrg, restOnly: true }] },
   // Expenses (Section 4.3 item 11, A92): the budget lines the person may post to with their budget's project and
@@ -245,7 +247,8 @@ export const TABLE_RULES: readonly TableRule[] = [
     table,
     anyOf: [{ column, key, audiences, restOnly: true }],
   })),
-  { table: "emergency_codes", anyOf: [], global: true },
+  // The canon codes: the swatch of every org's codes, and the list an org that holds no codes shows.
+  { table: "canon_emergency_codes", anyOf: [], global: true },
   { table: "incident_severities", anyOf: [], global: true },
   { table: "inspection_result_values", anyOf: [], global: true },
   // Canon job titles, so a shift reads "Head Arena / Festival Rigger" instead of its role code.

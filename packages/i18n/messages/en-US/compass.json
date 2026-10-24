@@ -104,6 +104,7 @@
       "asset_custody": "gear hand-overs",
       "asset_identifiers": "gear codes",
       "asset_units": "gear",
+      "canon_emergency_codes": "standard emergency codes",
       "clock_punches": "clock punches",
       "credentials": "credentials",
       "cues": "cues",
@@ -585,6 +586,7 @@
   "reference": {
     "title": "Reference",
     "emergencyEmpty": "No emergency codes are cached yet. Connect once to download them.",
+    "emergencyStandard": "These are the standard emergency codes. Your organization may use its own names, meanings and order for them; ask your supervisor which to use on site.",
     "radioEmpty": "No radio plan for this project yet.",
     "channel": "Channel {number}",
     "mapsEmpty": "No venue maps for this project yet.",
