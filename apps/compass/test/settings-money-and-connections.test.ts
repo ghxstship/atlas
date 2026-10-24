@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getMessages } from "@xos/i18n";
 import { describe, expect, it } from "vitest";
@@ -672,5 +673,54 @@ describe("Developer", () => {
     expect(createTokenUrl("https://gateway.ghxstship.tech")).toBe(
       "https://gateway.ghxstship.tech/settings/developer",
     );
+  });
+});
+
+// Copy -------------------------------------------------------------------------------------------------------------
+
+describe("copy of the four screens", () => {
+  const files = [
+    "app/settings/payout-and-tax.tsx",
+    "app/settings/calendar-feeds.tsx",
+    "app/settings/connected-apps.tsx",
+    "app/settings/developer.tsx",
+    "src/screens/settings/ConnectionParts.tsx",
+  ];
+
+  /**
+   * Every message key a screen names: quoted keys of the catalogs it reads, and keys built from its namespace
+   * constant (const C = "gateway.settings.calendarFeeds"; `${C}.add`). A key finished at runtime from a value is
+   * listed with its values below.
+   */
+  function keysOf(file: string): string[] {
+    const source = readFileSync(new URL(`../${file}`, import.meta.url), "utf8");
+    const constants = new Map(
+      [...source.matchAll(/^\s*const ([A-Z]) = "([A-Za-z.]+)";$/gm)].map((m) => [m[1], m[2]]),
+    );
+    const quoted = [
+      ...source.matchAll(
+        /["`]((?:compass|compassSettings|gateway|settingsSurfaces|payouts|nav)\.[A-Za-z0-9_.]+)["`]/g,
+      ),
+    ]
+      .map((m) => m[1] as string)
+      .filter((key) => ![...constants.values()].includes(key));
+    const built = [...source.matchAll(/`\$\{([A-Z])\}\.([A-Za-z0-9_.]+)(`|\$)/g)]
+      .filter((m) => m[3] === "`" && constants.has(m[1] as string))
+      .map((m) => `${constants.get(m[1] as string)}.${m[2]}`);
+    return [...quoted, ...built];
+  }
+
+  it("names only keys that exist in English and Spanish", () => {
+    const keys = new Set([
+      ...files.flatMap(keysOf),
+      "compassSettings.payoutTax.address.needed",
+      "compassSettings.payoutTax.address.complete",
+      "compassSettings.payoutTax.addressIncomplete",
+      "settingsSurfaces.active",
+      "settingsSurfaces.expired",
+      "settingsSurfaces.revoked",
+    ]);
+    expect(keys.size).toBeGreaterThan(70);
+    for (const key of keys) expectMessage(key);
   });
 });
