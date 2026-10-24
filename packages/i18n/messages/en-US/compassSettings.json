@@ -1,0 +1,119 @@
+{
+  "index": {
+    "device": "This Device",
+    "personal": "Your Settings",
+    "inGateway": "{lead} Opens in Gateway."
+  },
+  "groups": {
+    "identity": "You",
+    "preferences": "Preferences",
+    "work": "Work"
+  },
+  "leads": {
+    "organizations": "Organizations you belong to or work with, your default, and company accounts."
+  },
+  "common": {
+    "offlineQueues": "You're offline. Changes save on this phone and upload when you're back online.",
+    "offlineNeeds": "This needs a connection. Connect, then try again.",
+    "offlineFirst": "Connect once to load this section. After that it opens offline too.",
+    "saved": "Saved.",
+    "queued": "Saved on this phone. It uploads when you're back online.",
+    "loadFailed": "This could not be loaded. Check your connection, then try again.",
+    "failed": "That didn't work. Try again."
+  },
+  "profile": {
+    "facts": "About You",
+    "publicProfile": "Your Gateway Profile",
+    "currencyHelp": "Three-letter code, for example USD.",
+    "searchSkills": "Search skills",
+    "noSkillMatch": "No skill matches {query}.",
+    "skillsOffline": "Choosing a skill needs a connection.",
+    "dateHelp": "Year, month and day, for example 2026-05-01.",
+    "expiresHelp": "Optional. Year, month and day."
+  },
+  "privacy": {
+    "revokeTitle": "Revoke the share with {org}?",
+    "blockedTitle": "Blocked People and Organizations",
+    "blockedIntro": "You don't see posts, comments, shout-outs or messages from anyone you block. Unblock to see them again.",
+    "blockedEmpty": "You haven't blocked anyone.",
+    "unblock": "Unblock",
+    "unblocked": "{name} is unblocked.",
+    "unblockFailed": "{name} could not be unblocked. Try again.",
+    "someone": "Someone",
+    "organization": "Organization"
+  },
+  "account": {
+    "nameTitle": "Your Name",
+    "fullNameHelp": "As you write it. Your crews and the organizations you work with see it.",
+    "saveName": "Save Name",
+    "signInTitle": "How You Sign In",
+    "email": "Sign-in email",
+    "linked": "Linked",
+    "providers": {
+      "email": "Email and password or email link",
+      "google": "Google",
+      "apple": "Apple",
+      "phone": "Phone",
+      "other": "{provider}"
+    },
+    "errors": {
+      "namePart": "Keep each name under 100 characters."
+    }
+  },
+  "security": {
+    "passwordTitle": "Password",
+    "passwordBody": "Change the password you sign in with, or set one if you sign in with Google or an email link. You're told by email and in your Inbox.",
+    "newPassword": "New password",
+    "confirmPassword": "Type it again",
+    "passwordHelp": "At least 12 characters, with letters and digits.",
+    "changePassword": "Change Password",
+    "passwordChanged": "Your password is changed. Your other devices stay signed in; sign them out below if you need to.",
+    "emailCode": "Code from the email",
+    "emailCodeHelp": "We sent it to {email}.",
+    "codeSent": "You signed in more than a day ago, so we emailed a code to {email}. Enter it, then change your password.",
+    "resendCode": "Send a New Code",
+    "enrollSentence": "Open your authenticator app with the button below, or add the setup key to it, then enter the 6-digit code it shows.",
+    "openAuthenticator": "Open Authenticator App",
+    "setupKeyHelp": "Select it to copy it into your authenticator app.",
+    "sixDigitCode": "6-digit code",
+    "keysInGateway": "Add a security key in Gateway",
+    "keysInGatewayHelp": "Security keys and passkeys belong to a web address, so you add them in Gateway, Settings, Security.",
+    "passkeysInGateway": "Opens Gateway, Settings, Security.",
+    "shareCodes": "Share Codes",
+    "recoveryLowOne": "Only {count} code left. Make a new set soon.",
+    "recoveryLowOther": "Only {count} codes left. Make a new set soon.",
+    "signedOutOthersNone": "No other session was signed in.",
+    "signedOutOthersOne": "Signed out of {count} other session.",
+    "signedOutOthersOther": "Signed out of {count} other sessions.",
+    "errors": {
+      "passwordLength": "Use 12 to 256 characters.",
+      "passwordRule": "Use letters and digits.",
+      "passwordContext": "Leave out your name, your email and product names.",
+      "passwordMismatch": "The two passwords don't match.",
+      "emailCode": "Enter the code from the email we just sent.",
+      "samePassword": "That is your current password. Choose a new one.",
+      "weakPassword": "That password is too easy to guess or was found in a data breach. Choose another."
+    }
+  },
+  "stepUp": {
+    "recoverySentence": "Enter one of your saved recovery codes. Each code works once.",
+    "elsewhere": "Your second factor is a security key, which Compass can't use. Confirm it's you in Gateway, Settings, Security, then make this change there."
+  },
+  "organizations": {
+    "membersTitle": "Organizations You Belong To",
+    "engagedTitle": "Organizations You Work With",
+    "member": "Member",
+    "engagementsOne": "{count} engagement",
+    "engagementsOther": "{count} engagements",
+    "openNow": "Open now",
+    "open": "Open",
+    "default": "Default",
+    "makeDefault": "Make Default",
+    "defaultHelp": "Your default organization is the one Atlas and the API act in, and the one Compass opens on a phone that hasn't opened another.",
+    "engagedHelp": "These organizations engaged you. Open one to see its work; an engagement ends with its contract, not here.",
+    "left": "You left {org}.",
+    "leaveAccountBody": "You lose access to {org}'s company account at once. Your own profile and documents stay yours.",
+    "accountsNone": "You don't belong to a company account.",
+    "createInGateway": "Opens Gateway, Settings, Organizations."
+  }
+}

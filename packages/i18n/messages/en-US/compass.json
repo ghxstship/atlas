@@ -208,7 +208,15 @@
       "gate_queue": "Gate arrival",
       "marshalling_log": "Marshalling entry",
       "fulfillments": "Fulfillment",
-      "expenses": "Expense"
+      "expenses": "Expense",
+      "_me_profile": "Profile",
+      "_me_person": "Your name",
+      "_me_person_skills": "Profile skill",
+      "_me_person_languages": "Profile language",
+      "_me_person_links": "Profile link",
+      "_me_person_certifications": "Profile certification",
+      "_me_profile_section_visibility": "Profile section privacy",
+      "_me_default_org": "Default organization"
     },
     "punchActions": {
       "in": "Clock in",

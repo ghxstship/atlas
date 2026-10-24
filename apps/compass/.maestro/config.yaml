@@ -38,5 +38,10 @@ executionOrder:
     - crew-external-work
     - vendor-external-scan
     - multi-org-today
+    - settings-identity-profile
+    - settings-identity-privacy
+    - settings-identity-account
+    - settings-identity-security
+    - settings-identity-organizations
     - account-delete
     - settings-sunlight-sign-out
