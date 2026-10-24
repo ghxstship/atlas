@@ -8,7 +8,10 @@ import {
   firstStep,
   nounKey,
   REASON_KEYS,
+  REASON_PICKER_TEST_ID,
+  REASON_SLUGS,
   REASON_TEST_IDS,
+  reasonOfSlug,
   REPORT_RESPONSE_HOURS,
 } from "../src/domain/contentSafety";
 
@@ -40,6 +43,15 @@ describe("the content safety sheet's rules", () => {
     expect(Object.keys(REASON_KEYS)).toEqual([...CONTENT_REPORT_REASONS]);
     expect(new Set(Object.values(REASON_TEST_IDS)).size).toBe(CONTENT_REPORT_REASONS.length);
     for (const id of Object.values(REASON_TEST_IDS)) expect(id).toMatch(/^report-reason-[a-z-]+$/);
+  });
+
+  it("picks the reason from a radio group whose options carry the reasons' test ids", () => {
+    for (const r of CONTENT_REPORT_REASONS) {
+      expect(`${REASON_PICKER_TEST_ID}-${REASON_SLUGS[r]}`).toBe(REASON_TEST_IDS[r]);
+      expect(reasonOfSlug(REASON_SLUGS[r])).toBe(r);
+    }
+    expect(reasonOfSlug("")).toBeNull();
+    expect(reasonOfSlug("Harassment")).toBeNull();
   });
 
   it("promises the moderators' 24 hours", () => {

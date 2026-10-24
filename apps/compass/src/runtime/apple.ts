@@ -1,7 +1,9 @@
 /**
  * expo-apple-authentication behind domain/appleSignIn's AppleNative (ADR 0033 decision 58), expo-crypto behind its
- * NonceSource, and the person's own client behind SaveAppleName. The Apple module is loaded only when it is used,
- * so Android and a build without Apple never touch it.
+ * NonceSource, and the person's own client behind SaveAppleName. The availability check and the sign-in load the
+ * module's functions when first called. SignIn.tsx imports its button statically, which Android and a build without
+ * Apple can load: the package looks its native module up optionally, and the button renders only when
+ * appleAvailable() answers true.
  */
 import type { XosClient } from "@xos/data/client";
 import * as Crypto from "expo-crypto";

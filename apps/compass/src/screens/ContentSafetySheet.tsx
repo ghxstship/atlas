@@ -16,13 +16,15 @@ import {
   firstStep,
   nounKey,
   REASON_KEYS,
-  REASON_TEST_IDS,
+  REASON_PICKER_TEST_ID,
+  REASON_SLUGS,
+  reasonOfSlug,
   REPORT_DETAILS_MAX,
   REPORT_RESPONSE_HOURS,
   type ContentNoun,
   type SafetyStep,
 } from "../domain/contentSafety";
-import { Button, InlineAlert, Sheet, Text, TextField, useTheme } from "../ui";
+import { Button, InlineAlert, SegmentedControl, Sheet, Text, TextField, useTheme } from "../ui";
 
 export interface ContentSafetySheetProps {
   /** The item the sheet is about; null keeps it closed. */
@@ -149,16 +151,17 @@ export function ContentSafetySheet({
         {step === "report" ? (
           <>
             <Text variant="label13">{t("compass.safety.reasonTitle")}</Text>
-            {CONTENT_REPORT_REASONS.map((r) => (
-              <Button
-                key={r}
-                testID={REASON_TEST_IDS[r]}
-                label={t(`compass.safety.reasons.${REASON_KEYS[r]}`)}
-                variant={reason === r ? "primary" : "secondary"}
-                block
-                onPress={() => setReason(r)}
-              />
-            ))}
+            {/* A radio group, so a screen reader says which reason is chosen. */}
+            <SegmentedControl
+              testID={REASON_PICKER_TEST_ID}
+              label={t("compass.safety.reasonTitle")}
+              value={reason === null ? "" : REASON_SLUGS[reason]}
+              options={CONTENT_REPORT_REASONS.map((r) => ({
+                value: REASON_SLUGS[r],
+                label: t(`compass.safety.reasons.${REASON_KEYS[r]}`),
+              }))}
+              onChange={(slug) => setReason(reasonOfSlug(slug))}
+            />
             <TextField
               testID="report-details"
               label={t("compass.safety.details")}

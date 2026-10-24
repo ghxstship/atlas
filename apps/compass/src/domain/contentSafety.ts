@@ -30,7 +30,21 @@ export const REASON_KEYS: Readonly<Record<ContentReportReason, string>> = {
   Other: "other",
 };
 
-/** The test id of each reason's button, written out so Maestro flows can name them. */
+/**
+ * Each reason's option in the reason picker, a radio group whose test id is REASON_PICKER_TEST_ID: the option is
+ * named `${REASON_PICKER_TEST_ID}-${slug}`, written out in REASON_TEST_IDS so Maestro flows can name them.
+ */
+export const REASON_SLUGS: Readonly<Record<ContentReportReason, string>> = {
+  Harassment: "harassment",
+  Hate: "hate",
+  "Sexual Content": "sexual-content",
+  Violence: "violence",
+  Spam: "spam",
+  Other: "other",
+};
+
+export const REASON_PICKER_TEST_ID = "report-reason";
+
 export const REASON_TEST_IDS: Readonly<Record<ContentReportReason, string>> = {
   Harassment: "report-reason-harassment",
   Hate: "report-reason-hate",
@@ -39,6 +53,11 @@ export const REASON_TEST_IDS: Readonly<Record<ContentReportReason, string>> = {
   Spam: "report-reason-spam",
   Other: "report-reason-other",
 };
+
+/** The reason a picker option stands for; null for anything else. */
+export function reasonOfSlug(slug: string): ContentReportReason | null {
+  return CONTENT_REPORT_REASONS.find((r) => REASON_SLUGS[r] === slug) ?? null;
+}
 
 /** The catalog key suffix for a noun (compass.safety.reportPost, actionsMessage, ...). */
 export function nounKey(noun: ContentNoun): "Post" | "Message" | "ShoutOut" {
