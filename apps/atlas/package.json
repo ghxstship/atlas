@@ -30,6 +30,7 @@
     "@xos/icons": "workspace:*",
     "@xos/infra": "workspace:*",
     "@xos/integrations": "workspace:*",
+    "@xos/platform": "workspace:*",
     "@xos/schemas": "workspace:*",
     "@xos/tokens": "workspace:*",
     "@xos/ui": "workspace:*",
