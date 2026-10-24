@@ -1,4 +1,5 @@
 import type { DataError, Result } from "@xos/data/gateway";
+import { observability } from "@/lib/observability";
 
 /**
  * What a Gateway server action returns to the page: success, or a catalog key under
@@ -57,7 +58,7 @@ export function outcomeFor(error: DataError): string {
     case "invalid":
       return "invalid";
     case "unexpected":
-      console.error("Gateway action failed", error);
+      observability.logger.error("Gateway action failed", { error: error });
       return "unexpected";
   }
 }

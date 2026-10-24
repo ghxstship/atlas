@@ -16,13 +16,9 @@ import { PLAN_REGISTRY } from "@/lib/billing/plan-registry.generated";
 import { BillingDataError, atlasBillingEnv, checkoutAccountStore } from "@/lib/billing/stripe";
 import { env } from "@/lib/env";
 import { contextFor } from "@/lib/platform/action-context";
-import {
-  done,
-  field,
-  fromDataError,
-  inputError,
-  type PlatformActionState,
-} from "@/lib/platform/state";
+import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
+import { fromDataError } from "@/lib/platform/data-error";
+import { observability } from "@/lib/observability";
 
 /**
  * Billing and Plan's actions (ADR 0033 decision 59): open Stripe Checkout to move the org from a
@@ -47,7 +43,7 @@ function billingFailure(error: unknown): PlatformActionState {
   if (error instanceof NotSelfServeError) return refused("plan_not_self_serve");
   if (error instanceof PriceNotFoundError) return refused("billing_price_missing");
   if (error instanceof BillingNotConfiguredError) return refused("billing_not_open");
-  console.error("billing action failed", error);
+  observability.logger.error("billing action failed", { error: error });
   return { error: "unexpected", at: Date.now() };
 }
 

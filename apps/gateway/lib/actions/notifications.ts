@@ -8,6 +8,7 @@ import {
 } from "@xos/data/party-notifications";
 import { revalidatePath } from "next/cache";
 import { requireNode } from "@/lib/shell/sitemap";
+import { observability } from "@/lib/observability";
 
 /** What the notification preferences form shows after a save. */
 export interface PreferencesState {
@@ -35,7 +36,7 @@ export async function saveNotificationPreferencesAction(
       });
       if (!result.ok) {
         if (result.error.kind === "unexpected")
-          console.error("notification preference", result.error);
+          observability.logger.error("notification preference", { error: result.error });
         return { error: result.error.kind === "unexpected" ? "unexpected" : "denied" };
       }
     }
@@ -78,7 +79,8 @@ export async function saveQuietHoursAction(
   if (!result.ok) {
     if (result.error.kind === "refusal" && result.error.rule === "time_zone_unknown")
       return { error: "zone" };
-    if (result.error.kind === "unexpected") console.error("quiet hours", result.error);
+    if (result.error.kind === "unexpected")
+      observability.logger.error("quiet hours", { error: result.error });
     return { error: result.error.kind === "unexpected" ? "unexpected" : "denied" };
   }
   revalidatePath("/settings/notifications");

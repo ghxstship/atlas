@@ -8,6 +8,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * API keys and OAuth apps on org settings (A99, RRR-144; ADR 0055). Each action resolves the viewer's org context again
@@ -38,7 +39,7 @@ function errorKey(error: DataError): string {
   if (error.kind === "not-found") return "denied";
   if (error.kind === "invalid") return "invalid";
   if (error.kind === "conflict") return "conflict";
-  console.error("org security action failed", error);
+  observability.logger.error("org security action failed", { error: error });
   return "unexpected";
 }
 

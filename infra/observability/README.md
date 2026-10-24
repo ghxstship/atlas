@@ -21,6 +21,7 @@ The modules have no runtime dependencies and import each other with explicit `.t
 - **Values.** Every string is scanned for JWTs, bearer and basic credentials, `xos_live_` and Stripe keys, secrets in query strings, emails, SSNs, card numbers that pass the Luhn check, E.164 and North American phone numbers, and IPv4 and IPv6 addresses.
 - **URLs.** Paths are logged without their query string or fragment.
 - **Kept.** UUIDs (org, person, request ids), route templates, status codes, durations. They are pseudonymous and needed for incident response.
+- **Console.** Server code never logs to the console: the shared lint rule `xos/no-server-console` refuses it outside client modules, so every line goes through the redacting logger (A69-014).
 - **Sentry.** `scrubEvent` keeps only the user id, drops cookies, the query string, the request body, the server name and every header except content negotiation and correlation headers. Sentry 11 no longer reads `sendDefaultPii`, so `sentryInitOptions` sets `dataCollection` to collect no user fields, cookies, bodies, query strings or stack frame variables and only the kept request headers, and `scrubEvent` drops every other header attribute from traces and spans (A69-012). There is no Session Replay anywhere: it records screens that show personal data.
 
 ## Server runtimes (Atlas and Gateway)
