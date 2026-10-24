@@ -253,10 +253,55 @@ export async function labelActivity(
     if (record) return { ...e, recordKey: record.key, recordTitle: record.title };
     const role = shift ? shiftLabels.get(shift) : undefined;
     if (role) return { ...e, subjectLabel: role.label, subjectAt: role.at };
+    // A line moved to Trash (1771) names itself by the description its event carries.
     const label =
-      labels.get(e.subjectId) ?? (table(e) === "org_domains" ? text(e.data["hostname"]) : null);
+      labels.get(e.subjectId) ??
+      (table(e) === "org_domains" ? text(e.data["hostname"]) : null) ??
+      (e.type.endsWith(".trashed") ? (text(e.data["description"]) ?? text(e.data["title"])) : null);
     return label ? { ...e, subjectLabel: label } : e;
   });
+}
+
+/** A deleted row an activity entry can restore: its table, its id and when the purge removes it for good. */
+export interface RestoreTarget {
+  readonly table: string;
+  readonly id: string;
+  readonly purgeAfter: string;
+}
+
+/**
+ * The entries that offer Restore (Section 11.7, migration 1771): each `.trashed` entry whose row is still in Trash
+ * (app.trash_items, read under the reader's row level security, so a row they cannot see offers nothing), keyed by
+ * the entry's id. When a row went to Trash more than once, only its newest entry offers it. A failed lookup offers
+ * nothing and never fails the feed.
+ */
+export async function restorableEntries(
+  db: XosClient,
+  entries: readonly ActivityEntry[],
+): Promise<Record<string, RestoreTarget>> {
+  const newest = new Map<string, ActivityEntry>();
+  for (const e of entries) {
+    if (e.type.endsWith(".trashed") && !newest.has(e.subjectId)) newest.set(e.subjectId, e);
+  }
+  if (newest.size === 0) return {};
+  try {
+    const { data, error } = await untyped(db)
+      .from("trash_items")
+      .select("subject_table, subject_id, purge_after")
+      .in("subject_id", [...newest.keys()]);
+    if (error || !Array.isArray(data)) return {};
+    const out: Record<string, RestoreTarget> = {};
+    for (const row of data as Record<string, unknown>[]) {
+      const id = String(row["subject_id"] ?? "");
+      const entry = newest.get(id);
+      const purgeAfter = String(row["purge_after"] ?? "");
+      if (!entry || purgeAfter === "" || Date.parse(purgeAfter) <= Date.now()) continue;
+      out[entry.id] = { table: String(row["subject_table"] ?? ""), id, purgeAfter };
+    }
+    return out;
+  } catch {
+    return {};
+  }
 }
 
 export interface AuditEntry {

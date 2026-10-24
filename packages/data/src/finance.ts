@@ -1885,8 +1885,21 @@ export async function addInvoiceLine(
   );
 }
 
+/** Deletes an invoice line to Trash (soft delete); the invoice must still be Proposed. */
 export async function deleteInvoiceLine(db: XosClient, lineId: string): Promise<Result<null>> {
   return done(db.from("invoice_lines").update({ deleted_at: now() }).eq("id", lineId));
+}
+
+/**
+ * Restores a deleted invoice line through the Trash RPC (migration 1031), for its Undo and for Activity: the
+ * line's own rules decide (the invoice must still be Proposed), and a number a newer line took moves it to the end
+ * (migration 1771).
+ */
+export async function restoreInvoiceLine(db: XosClient, lineId: string): Promise<Result<null>> {
+  const r = await rpcValue(
+    db.rpc("restore_trash_item", { p_subject_table: "invoice_lines", p_subject_id: lineId }),
+  );
+  return r.ok ? ok(null) : r;
 }
 
 export async function issueInvoice(

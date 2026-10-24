@@ -13,7 +13,11 @@ export type BulkResource = (typeof BULK_RESOURCES)[number];
 
 export type BulkValue = string | number | boolean | null;
 
-/** One row of a bulk change: the values to set and, optionally, the values it must still hold. */
+/**
+ * One row of a bulk change: the values to set and, optionally, the values it must still hold. `expect` may carry
+ * `updated_at`, the version the caller loaded: a row saved since is refused as stale only over a field both people
+ * changed (migration 1770).
+ */
 export interface BulkRow {
   readonly id: string;
   readonly set: Readonly<Record<string, BulkValue>>;
@@ -25,6 +29,11 @@ export interface BulkRefusal {
   readonly id: string | null;
   readonly rule: string;
   readonly message: string;
+  /**
+   * For a stale row (bulk_stale, migration 1770): the values the row holds now for every field the row set or
+   * expected, and its updated_at, so the person sees theirs beside their own and a resend can expect that version.
+   */
+  readonly current?: Readonly<Record<string, BulkValue>>;
 }
 
 export interface BulkOutcome {
@@ -79,6 +88,9 @@ export function toBulkOutcome(raw: unknown): BulkOutcome {
       id: typeof r["id"] === "string" ? r["id"] : null,
       rule: typeof r["rule"] === "string" ? r["rule"] : "refused",
       message: typeof r["message"] === "string" ? r["message"] : "",
+      ...(typeof r["current"] === "object" && r["current"] !== null
+        ? { current: asValues(r["current"]) }
+        : {}),
     })),
     inverse: list(o["inverse"]).flatMap((r) =>
       typeof r["id"] === "string"

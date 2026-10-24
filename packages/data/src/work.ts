@@ -2,6 +2,7 @@ import type { Database, XosClient } from "./client.ts";
 import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
+import { saveVersioned, type FieldValue, type FieldValues } from "./versioned.ts";
 
 /**
  * Work repository (Section 3.10, Section 4.2 Work): the record spine for all 26 record kinds, their
@@ -616,6 +617,84 @@ export async function updateRecord(
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
+/** The record properties a versioned save writes (record page, peek), by the column that holds them. */
+const RECORD_FIELD_COLUMNS = {
+  title: "title",
+  subtype: "record_subtype",
+  scopeNodeId: "scope_node_id",
+  phaseCode: "phase_code",
+  ownerId: "owner_party_id",
+  accountableId: "accountable_party_id",
+  startsAt: "starts_at",
+  endsAt: "ends_at",
+  dueAt: "due_at",
+} as const;
+
+export type RecordField = keyof typeof RECORD_FIELD_COLUMNS;
+export type RecordFields = Partial<Record<RecordField, string | null>>;
+
+export type RecordSaveOutcome =
+  | { readonly saved: true; readonly version: string }
+  | { readonly saved: false; readonly current: RecordFields; readonly version: string };
+
+function toColumns(fields: RecordFields): Record<string, FieldValue> {
+  const out: Record<string, FieldValue> = {};
+  for (const [field, column] of Object.entries(RECORD_FIELD_COLUMNS)) {
+    const value = fields[field as RecordField];
+    if (value === undefined) continue;
+    out[column] = field === "title" && typeof value === "string" ? value.trim() : value;
+  }
+  return out;
+}
+
+function fromColumns(values: FieldValues): RecordFields {
+  const out: Record<string, string | null> = {};
+  for (const [field, column] of Object.entries(RECORD_FIELD_COLUMNS)) {
+    if (column in values) {
+      const v = values[column];
+      out[field] = v === null || v === undefined ? null : String(v);
+    }
+  }
+  return out;
+}
+
+/**
+ * Saves a record's properties against the version the person edited (Section 11.7): `expect` holds the values they
+ * started from and `version` the record's updated_at. A save over someone else's change to the same property comes
+ * back as the record's current values instead of overwriting them. The replan reason is written with the save and
+ * never compared.
+ */
+export async function saveRecordFields(
+  db: XosClient,
+  id: string,
+  input: {
+    readonly set: RecordFields;
+    readonly expect?: RecordFields;
+    readonly version?: string | null;
+    readonly replanReason?: string | null;
+  },
+): Promise<Result<RecordSaveOutcome>> {
+  const set = toColumns(input.set);
+  if (input.replanReason) set["replan_reason"] = input.replanReason;
+  if (Object.keys(set).length === 0) return fail({ kind: "invalid", message: "Nothing to save." });
+  const result = await saveVersioned(
+    db,
+    "records",
+    { column: "id", value: id },
+    {
+      set,
+      ...(input.expect ? { expect: toColumns(input.expect) } : {}),
+      ...(input.version ? { version: input.version } : {}),
+    },
+  );
+  if (!result.ok) return result;
+  return ok(
+    result.data.saved
+      ? { saved: true, version: result.data.version }
+      : { saved: false, current: fromColumns(result.data.current), version: result.data.version },
+  );
+}
+
 export interface TransitionInput {
   readonly recordId: string;
   readonly expected: string;
@@ -790,6 +869,49 @@ export async function saveRecordExtension(
       record_kind: input.kind,
     });
   return error ? fail(toDataError(error)) : ok(null);
+}
+
+export type ExtensionSaveOutcome =
+  { readonly saved: true } | { readonly saved: false; readonly current: ExtensionValues };
+
+/**
+ * Saves some of the kind's own attributes against the values the person started from (Section 11.7): when someone
+ * else changed one of the same attributes since, the save comes back with the current values instead. A record
+ * without its attribute row yet gets one, as in saveRecordExtension.
+ */
+export async function saveRecordExtensionFields(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly recordId: string;
+    readonly kind: string;
+    readonly set: ExtensionValues;
+    readonly expect: ExtensionValues;
+  },
+): Promise<Result<ExtensionSaveOutcome>> {
+  const editable = (values: ExtensionValues) =>
+    Object.fromEntries(
+      Object.entries(values).filter(([c]) => !EXTENSION_MACHINERY.has(c) && c !== "score"),
+    );
+  const set = editable(input.set);
+  if (Object.keys(set).length === 0) return ok({ saved: true });
+  const result = await saveVersioned(
+    db,
+    extensionTable(input.kind),
+    { column: "record_id", value: input.recordId },
+    { set, expect: editable(input.expect) },
+  );
+  if (!result.ok && result.error.kind === "not-found") {
+    const created = await saveRecordExtension(db, {
+      orgId: input.orgId,
+      recordId: input.recordId,
+      kind: input.kind,
+      fields: set,
+    });
+    return created.ok ? ok({ saved: true }) : created;
+  }
+  if (!result.ok) return result;
+  return ok(result.data.saved ? { saved: true } : { saved: false, current: result.data.current });
 }
 
 // History ----------------------------------------------------------------------------------------------
