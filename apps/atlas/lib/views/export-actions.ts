@@ -36,6 +36,8 @@ export type ExportResult<T> =
   { readonly ok: true; readonly data: T } | { readonly ok: false; readonly error: ExportError };
 
 const ID = z.string().uuid();
+/** A project filter may carry the project's id rather than its key. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const REQUEST = z.object({
   pathname: z.string().min(2).max(500),
   search: z.string().max(4000),
@@ -82,6 +84,7 @@ async function resolveFilters(
 ): Promise<readonly ExportFilter[] | null> {
   const db = ctx.viewer.db;
   const projectId = async (key: string): Promise<string> => {
+    if (UUID.test(key)) return key;
     const project = await getProjectByKey(db, ctx.org.id, key);
     // A key the viewer cannot open matches no row, as the page shows none.
     return project.ok ? project.data.id : key;

@@ -10,7 +10,8 @@ import { queryToView } from "./query";
  *
  * - `filters` maps a URL filter (Section 11.15: every query key that is not view, q, group, sort or
  *   navigation) to the column it compares. A list such as `state=Open,Done` matches any value; a
- *   project key resolves to the project's id. Query keys a source does not name are left out.
+ *   project key resolves to the project's id, and a source with a project column honors `project`
+ *   without saying so. Query keys a source does not name are left out.
  * - `project` scopes a project tab to the project in its path; `objectType` scopes a custom object page
  *   to the object type in its path.
  * - `fixed` holds the filters the page itself applies, such as Milestones showing Milestone records.
@@ -88,7 +89,12 @@ function source<R extends ExportRelation>(
   columns: readonly ColumnOf<R>[],
   options: SourceOptions<ColumnOf<R>> = {},
 ): ExportSource {
-  const filters: Record<string, ExportFilterSpec> = {};
+  // A source with the project column narrows to the project its page filters on (`?project=NWL`).
+  const filters: Record<string, ExportFilterSpec> = (columns as readonly string[]).includes(
+    "project_id",
+  )
+    ? { project: { column: "project_id", resolve: "project" } }
+    : {};
   for (const [key, spec] of Object.entries(options.filters ?? {})) {
     if (spec === undefined) continue;
     filters[key] = typeof spec === "string" ? { column: spec } : spec;
@@ -143,13 +149,7 @@ const records = source(
     "due_at",
     "project_id",
   ],
-  {
-    filters: {
-      project: { column: "project_id", resolve: "project" },
-      kind: "record_kind",
-      state: "record_state",
-    },
-  },
+  { filters: { kind: "record_kind", state: "record_state" } },
 );
 
 const homeRecords = source("app.records", [
@@ -251,15 +251,19 @@ const accessScans = source("app.access_scans", [
   "project_id",
 ]);
 
-const shifts = source("app.shifts", [
-  "project_id",
-  "membership_id",
-  "role_code",
-  "starts_at",
-  "ends_at",
-  "scheduled_break_minutes",
-  "shift_state",
-]);
+const shifts = source(
+  "app.shifts",
+  [
+    "project_id",
+    "membership_id",
+    "role_code",
+    "starts_at",
+    "ends_at",
+    "scheduled_break_minutes",
+    "shift_state",
+  ],
+  { filters: { state: "shift_state" } },
+);
 
 const documents = source("app.documents", ["title", "project_id", "updated_at"]);
 
@@ -535,7 +539,9 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "credentials/issued": credentials,
   "credentials/scan_log": accessScans,
 
-  "crew/pay_periods": source("app.pay_periods", ["starts_on", "ends_on", "pay_period_state"]),
+  "crew/pay_periods": source("app.pay_periods", ["starts_on", "ends_on", "pay_period_state"], {
+    filters: { state: "pay_period_state" },
+  }),
   "crew/payroll_exports": source("app.payroll_exports", [
     "created_at",
     "payroll_run_id",
@@ -558,13 +564,17 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   ),
   "crew/schedule": shifts,
   "crew/shifts": shifts,
-  "crew/swaps": source("app.shift_swaps", [
-    "project_id",
-    "shift_id",
-    "requested_by_membership_id",
-    "proposed_membership_id",
-    "swap_state",
-  ]),
+  "crew/swaps": source(
+    "app.shift_swaps",
+    [
+      "project_id",
+      "shift_id",
+      "requested_by_membership_id",
+      "proposed_membership_id",
+      "swap_state",
+    ],
+    { filters: { state: "swap_state" } },
+  ),
   "crew/time_entries": source("app.time_entries", [
     "membership_id",
     "project_id",
@@ -574,21 +584,16 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "source",
     "needs_review",
   ]),
-  "crew/time_off": source("app.time_off_requests", [
-    "membership_id",
-    "time_off_policy_id",
-    "starts_on",
-    "ends_on",
-    "hours",
-    "time_off_state",
-  ]),
-  "crew/timesheets": source("app.timesheets", [
-    "membership_id",
-    "project_id",
-    "period_start",
-    "period_end",
-    "timesheet_state",
-  ]),
+  "crew/time_off": source(
+    "app.time_off_requests",
+    ["membership_id", "time_off_policy_id", "starts_on", "ends_on", "hours", "time_off_state"],
+    { filters: { state: "time_off_state" } },
+  ),
+  "crew/timesheets": source(
+    "app.timesheets",
+    ["membership_id", "project_id", "period_start", "period_end", "timesheet_state"],
+    { filters: { state: "timesheet_state" } },
+  ),
 
   "finance/budgets": source("app.budget_revised_totals", [
     "budget_id",
@@ -749,15 +754,19 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "project/show": inProject(runsOfShow),
   "project/work": inProject(records),
 
-  "people/agreements": source("app.agreements", [
-    "title",
-    "agreement_kind",
-    "person_id",
-    "counterparty_id",
-    "agreement_state",
-    "signed_at",
-    "created_at",
-  ]),
+  "people/agreements": source(
+    "app.agreements",
+    [
+      "title",
+      "agreement_kind",
+      "person_id",
+      "counterparty_id",
+      "agreement_state",
+      "signed_at",
+      "created_at",
+    ],
+    { filters: { state: "agreement_state" } },
+  ),
   "people/certifications": source("app.certification_holders", [
     "person_id",
     "certification_id",
@@ -777,7 +786,9 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "assignee_membership_id",
     "help_desk_response_due_at",
   ]),
-  "people/offers": source("app.offers", ["application_id", "offer_state", "created_at"]),
+  "people/offers": source("app.offers", ["application_id", "offer_state", "created_at"], {
+    filters: { state: "offer_state" },
+  }),
   "people/recognition": source("app.recognitions", [
     "to_membership_id",
     "from_membership_id",
@@ -785,16 +796,20 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "project_id",
     "created_at",
   ]),
-  "people/requisitions": source("app.requisitions", [
-    "project_id",
-    "role_code",
-    "headcount",
-    "rate_minor",
-    "currency_code",
-    "starts_on",
-    "ends_on",
-    "requisition_state",
-  ]),
+  "people/requisitions": source(
+    "app.requisitions",
+    [
+      "project_id",
+      "role_code",
+      "headcount",
+      "rate_minor",
+      "currency_code",
+      "starts_on",
+      "ends_on",
+      "requisition_state",
+    ],
+    { filters: { state: "requisition_state" } },
+  ),
   "people/roles": source("app.role_assignments", [
     "role_code",
     "person_id",
@@ -938,10 +953,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "schedule/milestones": source(
     "app.records",
     ["record_number", "title", "record_state", "due_at", "project_id"],
-    {
-      filters: { project: { column: "project_id", resolve: "project" }, state: "record_state" },
-      fixed: { record_kind: "Milestone" },
-    },
+    { filters: { state: "record_state" }, fixed: { record_kind: "Milestone" } },
   ),
   "schedule/timeline": records,
 
