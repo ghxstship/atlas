@@ -43,6 +43,12 @@ export interface AllowlistEntry {
   readonly package: string;
   readonly severity: string;
   readonly path?: string;
+  /**
+   * The installed versions the entry accepts. When set, a finding that also reports any other version is not
+   * accepted, so an entry for a version reached only through a build tool never covers that package returning to a
+   * shipped dependency at a vulnerable version.
+   */
+  readonly versions?: readonly string[];
   readonly reason: string;
   readonly recorded: string;
   readonly review_by: string;
@@ -62,6 +68,8 @@ export interface Finding {
   readonly title: string;
   readonly url: string;
   readonly path: string;
+  /** The installed versions the report found vulnerable. */
+  readonly versions: readonly string[];
 }
 
 export interface AuditResult {
@@ -101,6 +109,9 @@ function findingsOf(report: PnpmAuditReport, scope: Scope): Finding[] {
     title: advisory.title,
     url: advisory.url ?? "",
     path: advisory.findings?.[0]?.paths?.[0]?.replaceAll("__", "/").replaceAll(">", " > ") ?? "",
+    versions: [
+      ...new Set((advisory.findings ?? []).flatMap((f) => (f.version ? [f.version] : []))),
+    ].sort(),
   }));
 }
 
@@ -113,6 +124,11 @@ function validate(entry: AllowlistEntry): string | null {
   if (!entry.reason || entry.reason.trim().length < 20) return `${entry.id}: gives no reason`;
   if (!DATE.test(entry.recorded ?? "")) return `${entry.id}: recorded is not a YYYY-MM-DD date`;
   if (!DATE.test(entry.review_by ?? "")) return `${entry.id}: review_by is not a YYYY-MM-DD date`;
+  if (
+    entry.versions !== undefined &&
+    (!Array.isArray(entry.versions) || entry.versions.length === 0)
+  )
+    return `${entry.id}: versions, when given, lists at least one version`;
   return null;
 }
 
@@ -149,12 +165,16 @@ export function evaluateAudit(
   for (const finding of findings) {
     const key = `${finding.id} ${finding.package}`;
     const entry = valid.get(key);
-    if (entry !== undefined) {
+    const covered =
+      entry !== undefined &&
+      (entry.versions === undefined || finding.versions.every((v) => entry.versions?.includes(v)));
+    if (entry !== undefined && covered) {
       used.add(key);
       if (entry.review_by < today) expired.set(key, entry);
       else accepted.push(finding);
       continue;
     }
+    if (entry !== undefined) used.add(key);
     const floor = finding.scope === "production" ? PRODUCTION_FAIL_AT : TREE_FAIL_AT;
     (atLeast(finding.severity, floor) ? failures : warnings).push(finding);
   }
