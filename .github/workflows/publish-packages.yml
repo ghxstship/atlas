@@ -93,7 +93,9 @@ jobs:
             if npm view "$1@${VERSION}" version >/dev/null 2>&1; then
               echo "$1@${VERSION} is already published; skipping."
             else
-              npm publish "$2" --access public --provenance
+              # No --provenance: npm signs provenance only for packages built in a public repository, and
+              # this one is private (owner decision, 2026-10-24).
+              npm publish "$2" --access public
             fi
           }
           publish @xos/sdk "npm/xos-sdk-${VERSION}.tgz"
@@ -118,3 +120,5 @@ jobs:
         with:
           packages-dir: dist
           skip-existing: true
+          # PEP 740 attestations need a public repository; this one is private (owner decision, 2026-10-24).
+          attestations: false

@@ -22,17 +22,17 @@ The Vercel projects `atlas` and `gateway` exist. The orchestrator creates `docs`
 
 Owner decision 5 (ADR 0033, amended 2026-10-20): `ghxstship.tech`, one subdomain per app.
 
-| Host                                                             | Serves                                                                 | Vercel project     | State on 2026-10-23                                                                      |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------- |
-| `atlas.ghxstship.tech`                                           | Atlas                                                                  | `atlas`            | Serving, with a certificate                                                              |
-| `gateway.ghxstship.tech`                                         | Gateway on the platform brand                                          | `gateway`          | Serving, with a certificate. `gateway-umber-omega.vercel.app` is a platform host too     |
-| `api.ghxstship.tech`                                             | The public API, served by Atlas at `/v1`                               | `atlas`            | The orchestrator attaches it                                                             |
-| `docs.ghxstship.tech`                                            | The docs site                                                          | `docs`             | The orchestrator creates the project                                                     |
-| `console.ghxstship.tech`                                         | The operator console (ADR 0046)                                        | `console`          | Project and domain created (ADR 0033, decision 79); the variables below are still to set |
-| `mail.ghxstship.tech`                                            | The sending domain for email through Resend                            | None               | DNS records to add                                                                       |
-| `inbound.ghxstship.tech`                                         | The receiving domain for project inboxes and reply by email (ADR 0040) | None               | MX records for Resend's inbound mail to add (ADR 0033, decision 60)                      |
-| `status.ghxstship.tech`                                          | The status page on GitHub Pages (ADR 0025 item 7)                      | None               | A CNAME to GitHub Pages to add (ADR 0033, decision 72)                                   |
-| `atlas-staging.ghxstship.tech`, `gateway-staging.ghxstship.tech` | Atlas and Gateway on the persistent staging branch                     | `atlas`, `gateway` | Kept (ADR 0033, decision 63)                                                             |
+| Host                                                             | Serves                                                                                               | Vercel project     | State on 2026-10-23                                                                      |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------- |
+| `atlas.ghxstship.tech`                                           | Atlas                                                                                                | `atlas`            | Serving, with a certificate                                                              |
+| `gateway.ghxstship.tech`                                         | Gateway on the platform brand                                                                        | `gateway`          | Serving, with a certificate. `gateway-umber-omega.vercel.app` is a platform host too     |
+| `api.ghxstship.tech`                                             | The public API, served by Atlas at `/v1`                                                             | `atlas`            | The orchestrator attaches it                                                             |
+| `docs.ghxstship.tech`                                            | The docs site                                                                                        | `docs`             | The orchestrator creates the project                                                     |
+| `console.ghxstship.tech`                                         | The operator console (ADR 0046)                                                                      | `console`          | Project and domain created (ADR 0033, decision 79); the variables below are still to set |
+| `mail.ghxstship.tech`                                            | The sending domain for email through Resend                                                          | None               | DNS records to add                                                                       |
+| `inbound.ghxstship.tech`                                         | The receiving domain for project inboxes and reply by email (ADR 0040)                               | None               | MX records for Resend's inbound mail to add (ADR 0033, decision 60)                      |
+| `status.ghxstship.tech`                                          | The status page, a static Vercel project `status` (ADR 0025 item 7; decision 72, amended 2026-10-24) | None               | A CNAME to GitHub Pages to add (ADR 0033, decision 72)                                   |
+| `atlas-staging.ghxstship.tech`, `gateway-staging.ghxstship.tech` | Atlas and Gateway on the persistent staging branch                                                   | `atlas`, `gateway` | Kept (ADR 0033, decision 63)                                                             |
 
 Each org's custom Gateway domain is added to the `gateway` project when the org verifies it in Atlas.
 
@@ -218,14 +218,14 @@ To rotate, create the new key or roll the signing secret in Resend, set the secr
 
 ### DNS records still needed
 
-| Name                             | Type    | For                            | Value from                                              |
-| -------------------------------- | ------- | ------------------------------ | ------------------------------------------------------- |
-| `api`                            | CNAME   | Vercel project `atlas`         | Vercel, when the domain is added                        |
-| `docs`                           | CNAME   | Vercel project `docs`          | Vercel, when the domain is added                        |
-| Resend's records under `mail`    | TXT, MX | SPF, return path, DKIM         | Resend, Domains, `mail.ghxstship.tech`                  |
-| `_dmarc.mail`                    | TXT     | DMARC                          | The owner's policy (above)                              |
-| Resend's records under `inbound` | MX, TXT | Receiving, DKIM                | Resend, Domains, `inbound.ghxstship.tech` (decision 60) |
-| `status`                         | CNAME   | The status page (GitHub Pages) | `infra/ci/README.md`, Repository settings; decision 72  |
+| Name                             | Type    | For                                       | Value from                                              |
+| -------------------------------- | ------- | ----------------------------------------- | ------------------------------------------------------- |
+| `api`                            | CNAME   | Vercel project `atlas`                    | Vercel, when the domain is added                        |
+| `docs`                           | CNAME   | Vercel project `docs`                     | Vercel, when the domain is added                        |
+| Resend's records under `mail`    | TXT, MX | SPF, return path, DKIM                    | Resend, Domains, `mail.ghxstship.tech`                  |
+| `_dmarc.mail`                    | TXT     | DMARC                                     | The owner's policy (above)                              |
+| Resend's records under `inbound` | MX, TXT | Receiving, DKIM                           | Resend, Domains, `inbound.ghxstship.tech` (decision 60) |
+| `status`                         | CNAME   | The status page (Vercel project `status`) | `infra/ci/README.md`, Repository settings; decision 72  |
 
 `atlas` and `gateway` resolve already, and `console`, `atlas-staging` and `gateway-staging` exist (decisions 63 and 79). Passkeys on the web need nothing at the apex `ghxstship.tech`.
 
@@ -874,12 +874,33 @@ Rollback: build Compass without `EXPO_PUBLIC_APPLE_SIGN_IN`, which removes both 
 | Errors        | Sentry projects `xos-atlas` and `xos-gateway`, plus the Edge Functions' DSN; scrubbed of personal data (`infra/observability`)                                   | Create one alert rule per project: a new issue, or more than 10 events in 5 minutes, emails on-call                                                           |
 | Logs          | Vercel runtime logs; Supabase logs (API, Postgres, Auth, Edge Functions). One JSON line per event, with `request_id`                                             | Search by `x-request-id` from a user report. Log drains go to Better Stack (ADR 0033, decision 45): **OWNER** creates the account and a source for each drain |
 | Uptime        | `synthetics.yml` every 5 minutes from `us-east`: sign-in, Gateway, API, Realtime, sync, notifications; Better Stack every minute from five regions (decision 45) | A failed required check posts to `XOS_ALERT_WEBHOOK_URL` and turns the status page red                                                                        |
-| Status page   | `https://status.ghxstship.tech` (decision 72): GitHub Pages from `gh-pages`, history on `status-data`, incidents in `infra/status/incidents.json`                | Public; updated every synthetics run                                                                                                                          |
+| Status page   | `https://status.ghxstship.tech` (decision 72): the Vercel project `status`, history on `status-data`, incidents in `infra/status/incidents.json`                 | Public; updated every synthetics run                                                                                                                          |
 | Deploy health | The release gate's error rate and p95 per rollout stage                                                                                                          | Rolls back on its thresholds (`progressive-delivery.md`)                                                                                                      |
 | Database      | Supabase reports (CPU, connections, disk), advisors, and the weekly restore drill                                                                                | Supabase usage emails at 80 percent of plan quotas                                                                                                            |
 | Backups       | Daily backups listed in Dashboard, Backups; `backup-weekly.yml` run status                                                                                       | A failed scheduled run emails whoever last changed the workflow's schedule or re-enabled it, not the admins (`backup-and-restore.md`, step 4)                 |
 
 One-minute checks from five regions (Section 5.1) run on Better Stack (ADR 0033, decision 45; `infra/ci/README.md`, Frequency and regions). **OWNER** creates the account. Its monitors cover the components `infra/synthetics` checks, sign in only as the synthetic account and alert on-call; `synthetics.yml` keeps feeding the status page. Vercel and Supabase each drain their logs to a Better Stack source, which is on the Subprocessor List.
+
+**Mask bearer tokens in the log drains (OWNER, finding A69-012).** Vercel's request log records every path, and some
+paths carry a bearer token: `/share/`, `/advance/`, `/sign/`, `/auth/invite/` and `/ical/`. The app's redactor never
+sees that log, so each Better Stack source that receives a drain (Vercel's and Supabase's) masks the tokens before it
+stores anything. In Better Stack, open the source, then Transformations, and add this VRL (approved by the owner on
+2026-10-24):
+
+```
+# A69-012: a bearer token in a request path or a prefixed secret never reaches the log store.
+. = map_values(., recursive: true) -> |v| {
+  if is_string(v) {
+    s = replace(string!(v), r'(^|[\s"(=,]|//[^/\s"]+)(/(?:share|advance|sign|auth/invite|ical)/)[^/?#\s"]+', "$1$2[token]")
+    replace(s, r'(?i)(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlnk|xshr|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}', "[token]")
+  } else {
+    v
+  }
+}
+```
+
+Check it with Better Stack's test event: a Vercel request line for `/share/xshr_` followed by 64 hex digits must be
+stored as `/share/[token]`.
 
 ## On-call checklist
 
