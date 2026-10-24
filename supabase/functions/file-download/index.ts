@@ -15,7 +15,7 @@ import { createClient } from "@supabase/supabase-js";
 import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
 
 const TICKET = /^xdlt_[0-9a-f]{64}$/;
-/** Shorter secrets are treated as unset, so a placeholder never opens the handover. */
+/** A shorter value is treated as unset, so a sample or truncated value never opens the handover. */
 const HANDOVER_MIN_LENGTH = 32;
 const notFound = () => json(404, { type: "/problems/not-found", title: "Not found", status: 404 });
 
