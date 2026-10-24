@@ -303,6 +303,24 @@ export {
   type JwtSigner,
 } from "./wallet/google.ts";
 export {
+  APPLE_ID_ORIGIN,
+  CLIENT_SECRET_SECONDS,
+  appleClientSecret,
+  appleRevokeResponse,
+  callerAppleSubjectLoader,
+  identityTokenSubject,
+  parseAppleRevokeRequest,
+  readAppleRevokeEnv,
+  unconfiguredAppleSigner,
+  webCryptoEs256Signer,
+  type AppleRevokeConfig,
+  type AppleRevokeDeps,
+  type AppleRevokeEnv,
+  type AppleRevokeRequest,
+  type AppleRevokeResponse,
+  type AppleSecretSigner,
+} from "./apple-sign-in/revoke.ts";
+export {
   PKPASS_TYPE,
   callerPassLoader,
   parseWalletRequest,
