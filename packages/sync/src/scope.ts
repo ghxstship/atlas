@@ -204,6 +204,17 @@ export const TABLE_RULES: readonly TableRule[] = [
       { column: "submitter_person_id", key: "personIds", audiences: INTERNAL, restOnly: true },
     ],
   },
+  // The person's own certifications and documents on the Compass Profile (Section 4.3 item 13, A109): api_external views
+  // that return only the signed-in person's rows (1730), for every audience. PowerSync does not replicate views, so the
+  // REST downloader serves them.
+  {
+    table: "profile_certifications",
+    anyOf: [{ column: "person_id", key: "personIds", restOnly: true }],
+  },
+  {
+    table: "profile_documents",
+    anyOf: [{ column: "person_id", key: "personIds", restOnly: true }],
+  },
   // The external More screens (Section 4.5.7 role table, A92) read api_external projections, which PowerSync does
   // not replicate, so the REST downloader serves them. Each table admits only the role types whose menu lists it;
   // lines without a project of their own take their parent's on download.

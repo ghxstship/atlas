@@ -312,6 +312,19 @@ export function certificationsUrl(
     : `${urls.gatewayUrl.replace(/\/+$/, "")}/profile`;
 }
 
+/**
+ * Where a person manages the documents on their Compass Profile (A109): an external person in Gateway's Documents,
+ * where they sign and renew them; an internal member in Atlas, which opens on their organization.
+ */
+export function documentsUrl(
+  audience: Audience,
+  urls: { readonly atlasUrl: string; readonly gatewayUrl: string },
+): string {
+  return isInternal(audience)
+    ? elsewhereLink(audience, urls).url
+    : `${urls.gatewayUrl.replace(/\/+$/, "")}/documents`;
+}
+
 /** Today's content blocks for the audience, with their message keys. */
 export function todayBlocks(audience: Audience): { id: string; label: string }[] {
   const labels: Readonly<Record<string, string>> = navigation.contentLabels;
