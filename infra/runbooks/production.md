@@ -486,6 +486,7 @@ How it behaves:
 2. Set the Edge Function secrets `STRIPE_WEBHOOK_SECRET` (the endpoint's signing secret, `whsec_...`) and `STRIPE_SECRET_KEY` (the same key; the function reads its mode, so test events never touch live billing).
 3. Set `STRIPE_SECRET_KEY` on the `atlas` Vercel project for the staging environment, then redeploy. Without it Billing and Plan says billing is not open yet.
 4. Check on staging: sign up, create an org (it starts the Pro trial), open Settings, Billing and plan, choose Core, pass the second factor, and pay with Stripe's test card `4242 4242 4242 4242`. Back in Atlas the page says the org is on Core; "Open the billing portal" opens the portal on the org's customer. In the Dashboard, the webhook endpoint shows every event delivered with HTTP 200.
+5. If a payment went through and Billing and Plan keeps saying Stripe is confirming it, the subscription's event has not been applied yet. Find the failed `customer.subscription.*` delivery on the endpoint and resend it. Meanwhile Atlas offers that org no second Checkout, for up to three days after the payment (Stripe's retry window); after that a new checkout can open, so resolve it before then.
 
 ### 4. Opening billing in production
 
