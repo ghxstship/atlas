@@ -87,7 +87,11 @@ export function Sidebar({ label, active, groups }: SidebarProps): ReactElement {
                     className={sidebarItemClass}
                   />
                   {item.items && item.items.length > 0 ? (
-                    <ul aria-label={item.itemsLabel} className="m-0 ps-16 py-0 pe-0 list-none">
+                    <ul
+                      aria-label={item.itemsLabel}
+                      data-sidebar-subitems=""
+                      className="m-0 ps-16 py-0 pe-0 list-none"
+                    >
                       {item.items.map((child) => (
                         <li key={`${child.label}-${child.href ?? ""}`}>
                           <NavLink

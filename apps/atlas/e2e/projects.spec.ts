@@ -156,7 +156,8 @@ test("journey 2: a gate is refused with the named criterion, then passes on evid
   await expect(page.getByText("passed a gate on").first()).toBeVisible();
   await expectAccessible(page);
   await page.goto(`/${slug}/home/gate-readiness`);
-  await expect(page.getByText("Gate Trial Expo")).toBeVisible();
+  // In the page, not the sidebar, which lists the project among the recent ones too.
+  await expect(page.getByRole("main").getByText("Gate Trial Expo")).toBeVisible();
   await expectAccessible(page);
 });
 
