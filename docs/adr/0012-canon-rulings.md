@@ -34,3 +34,7 @@ Owner decision 39 (ADR 0033, RRR-66) settles the Bible inconsistencies decision 
 - **D13.** An item and a counterparty type may carry an explicit GL default, and a balance-sheet item needs one because no class derives it. A posting takes the item's explicit account first, then its class's account, then the counterparty type's default (`private.gl_account_for_line`, migration 1611). Roles still post by class.
 
 The decision also ratifies the time unit dimension and declares Scope, Engage, Amplify and Close as gaps under doctrine 3.4 (`xpms.declared_gap`), which answers ADR 0014 open decision 6 and the unit dimensions of open decision 7.
+
+## Amendment (2026-10-23): org copies of the emergency codes
+
+WP18 (migration 1612, finding A65-027) narrows **D15**. The emergency code words and the protocols stay global, because crisis alerts and protocol steps name them, but each org now holds an editable copy of the codes in `app.emergency_codes`, as Section 7.2 asks of the whole Standard Library: the org sets each code's label, the emergency it announces and its place in the list, and cannot add a code word canon lacks. API v1's `emergencyCodes` still serves the global codes, and Compass's offline reference still caches them.

@@ -409,13 +409,18 @@ export const additions = defineAdditions("Canon", {
               fields.bool("True when at least one participating element is Active.", true),
             ),
           },
+          // The example row has an Active element, so it carries no gap and no reason.
           declared_gap_reason: {
             schema: orNull(
               fields.text(
                 "Why the phase has no Active element, as its declared gap states it; null without one.",
                 "No Scope item is Active yet; the Item Catalog proposes every one.",
               ),
-            ),
+            ).meta({
+              description:
+                "Why the phase has no Active element, as its declared gap states it; null without one.",
+              example: null,
+            }),
           },
         },
       }),

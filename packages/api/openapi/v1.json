@@ -34122,7 +34122,7 @@
             "minLength": 1,
             "maxLength": 300,
             "description": "Why the phase has no Active element, as its declared gap states it; null without one.",
-            "example": "No Scope item is Active yet; the Item Catalog proposes every one."
+            "example": null
           }
         },
         "required": [
@@ -115709,7 +115709,7 @@
                       "element_count": 42,
                       "category_count": 7,
                       "has_active_element": true,
-                      "declared_gap_reason": "No Scope item is Active yet; the Item Catalog proposes every one."
+                      "declared_gap_reason": null
                     }
                   ],
                   "next_cursor": null
