@@ -17,8 +17,10 @@ import {
 } from "@xos/data/work";
 import { getNode, isNodeVisible } from "@xos/ia";
 import { notFound } from "next/navigation";
+import type { BulkConfig } from "@/components/bulk/types";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
+import type { Translate } from "@/lib/shell/translate";
 
 /**
  * Server loaders shared by the Schedule, Work and Show pages (A08). Each page resolves the viewer's
@@ -111,6 +113,44 @@ export async function loadRecordMeta(ctx: OrgContext): Promise<RecordMeta> {
     people: must(people, "people"),
     phases: must(phases, "phases"),
     xyzTags: [...tags].sort(),
+  };
+}
+
+/**
+ * Bulk edit of records (Section 11.7): state, owner and phase across a selection, through the
+ * records bulk RPC. Blocked and Deferred need a blocker or a reason per record, so they stay single
+ * edits. Every record collection, My Work and the record page's title row offer the same changes.
+ */
+export function recordBulkConfig(org: string, meta: RecordMeta, t: Translate): BulkConfig {
+  return {
+    org,
+    resource: "records",
+    fields: [
+      {
+        key: "record_state",
+        label: t("work.columns.state"),
+        reason: true,
+        options: meta.states
+          .filter((s) => s.state !== "Blocked" && s.state !== "Deferred")
+          .map((s) => ({ value: s.state, label: t(`work.states.${s.state}`) })),
+      },
+      {
+        key: "owner_party_id",
+        label: t("work.columns.owner"),
+        options: [
+          { value: null, label: t("work.values.unassigned") },
+          ...meta.people.map((p) => ({ value: p.personId, label: p.name ?? p.personId })),
+        ],
+      },
+      {
+        key: "phase_code",
+        label: t("work.fields.phase"),
+        options: [
+          { value: null, label: t("work.values.notSet") },
+          ...meta.phases.map((p) => ({ value: p.value, label: p.label })),
+        ],
+      },
+    ],
   };
 }
 

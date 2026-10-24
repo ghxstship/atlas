@@ -67,6 +67,7 @@
     "region": "Cost region",
     "tier": "Tier",
     "venue": "Venue",
+    "archiveStatus": "Archive status",
     "timeZone": "Time zone",
     "startsOn": "First production day",
     "endsOn": "Last production day",
@@ -77,6 +78,8 @@
   "values": {
     "unresolved": "Not resolved",
     "none": "None",
+    "archived": "Archived",
+    "notArchived": "Not archived",
     "noDates": "No dates",
     "dateRange": "{start} to {end}",
     "from": "From {start}",

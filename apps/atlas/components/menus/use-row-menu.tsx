@@ -29,6 +29,8 @@ export interface RowActions {
   /** The row's full page, for Open as a page and Copy link. */
   readonly href?: string;
   readonly bulk?: Bulk;
+  /** The row's own actions after the changes, the ones its peek offers, such as Delete draft. */
+  readonly more?: readonly MenuItem[];
 }
 
 /**
@@ -71,13 +73,17 @@ export function useRowMenu(): {
           shortcut: "X",
           onSelect: () => bulk.toggle(actions.id),
         });
-        for (const field of bulk.fields.slice(0, 4)) {
+        for (const field of bulk.fieldsFor(actions.id).slice(0, 4)) {
           items.push({
             label: t("change", { field: field.label }),
             icon: "PenLine",
             onSelect: () => bulk.edit(field, actions.id),
           });
         }
+      }
+      if (actions.more && actions.more.length > 0) {
+        if (items.length > 0) items.push({ separator: true });
+        items.push(...actions.more);
       }
       if (items.length === 0) return;
       const rect = cell.getBoundingClientRect();

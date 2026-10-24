@@ -67,6 +67,7 @@
     "region": "Región de costos",
     "tier": "Nivel",
     "venue": "Recinto",
+    "archiveStatus": "Estado de archivo",
     "timeZone": "Zona horaria",
     "startsOn": "Primer día de producción",
     "endsOn": "Último día de producción",
@@ -77,6 +78,8 @@
   "values": {
     "unresolved": "Sin resolver",
     "none": "Ninguno",
+    "archived": "Archivado",
+    "notArchived": "No archivado",
     "noDates": "Sin fechas",
     "dateRange": "{start} a {end}",
     "from": "Desde {start}",

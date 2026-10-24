@@ -23,7 +23,8 @@ import {
 import type { Route } from "next";
 import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import type { ActionResult } from "./action-result";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { formatWhen, fromLocalInput, toLocalInput, withQuery, workOrderToken } from "./format";
 import {
@@ -32,10 +33,15 @@ import {
   createWorkOrderAction,
   deleteWorkOrderAction,
   priceBidAction,
+  restoreWorkOrderAction,
   transitionWorkOrderAction,
   updateWorkOrderAction,
   withdrawBidAction,
 } from "./work-order-actions";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
+import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
 import { CollectionViews } from "@/components/views/collection-views";
 
 export interface BidderOption {
@@ -59,9 +65,37 @@ function lowestBid(bids: readonly Bid[]): Bid | null {
 }
 
 /**
+ * Deletes a Draft work order with an 8-second Undo (Section 11.7): it moves to Trash and goes on
+ * the session's undo stack, so the shell's Undo toast and Cmd or Ctrl+Z restore it through Trash,
+ * and redo deletes it again. The peek's Delete draft and a row's menu share it.
+ */
+function useWorkOrderDelete(org: string) {
+  const t = useCopy("work");
+  const { pending, error, run } = useAction();
+  const asUndo = async (action: () => Promise<ActionResult>): Promise<UndoResult> => {
+    const result = await action();
+    return result.ok ? { ok: true } : { ok: false, message: t(`errors.${result.error.key}`) };
+  };
+  const remove = (order: { readonly id: string; readonly key: string }, after?: () => void) =>
+    run(
+      () => deleteWorkOrderAction(org, order.id),
+      () => {
+        undoStack.push({
+          label: t("trash.moved", { key: order.key }),
+          undo: () => asUndo(() => restoreWorkOrderAction(org, order.id)),
+          redo: () => asUndo(() => deleteWorkOrderAction(org, order.id)),
+        });
+        after?.();
+      },
+    );
+  return { pending, error, remove };
+}
+
+/**
  * Work > Work orders (Section 4.5.5): work orders as a list, table or board by state, with the
  * peek holding bids, the award and the lifecycle. The view, search and state live in the query
- * string; `?peek=<id>` opens the peek and `&full=1` shows it as a full page.
+ * string; `?peek=<id>` opens the peek and `&full=1` shows it as a full page. The table selects
+ * rows for bulk state changes, and each row's menu offers what its peek does (Section 11.7).
  */
 export function WorkOrderCollection({
   org,
@@ -76,6 +110,7 @@ export function WorkOrderCollection({
   create,
   peek,
   canCreate,
+  bulk,
 }: {
   org: string;
   title: string;
@@ -89,6 +124,8 @@ export function WorkOrderCollection({
   create: ReactNode;
   peek: ReactNode;
   canCreate: boolean;
+  /** Bulk edit of the table view's selection, for people who may change work orders. */
+  bulk?: BulkConfig | null;
 }) {
   const t = useCopy("work");
   const locale = useLocale();
@@ -96,6 +133,10 @@ export function WorkOrderCollection({
   const pathname = usePathname();
   const params = useSearchParams();
   const [search, setSearch] = useState(q);
+  const bulkRows = useMemo(() => orders.map((o) => ({ id: o.id, label: o.key })), [orders]);
+  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const rowMenu = useRowMenu();
+  const removal = useWorkOrderDelete(org);
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   const open = (id: string) =>
@@ -175,34 +216,72 @@ export function WorkOrderCollection({
     );
   } else if (view === "table") {
     body = (
-      <DataTable
-        caption={title}
-        columns={[
-          { key: "key", label: t("columns.key"), type: "code" },
-          { key: "title", label: t("columns.title"), wrap: true },
-          { key: "state", label: t("columns.state"), type: "state" },
-          { key: "bids", label: t("columns.bids"), type: "number" },
-          { key: "lowest", label: t("columns.lowest") },
-          { key: "budget", label: t("columns.budget") },
-          { key: "due", label: t("columns.due") },
-        ]}
-        rows={orders.map((o) => {
-          const low = lowestBid(o.bids);
-          return {
-            id: o.id,
-            key: o.key,
-            title: o.title,
-            state: { state: workOrderToken(o.state), label: stateLabel(o.state) },
-            bids: o.bids.filter((b) => !b.withdrawnAt).length,
-            lowest: low
-              ? formatMoneyText(low.amountMinor, low.currencyCode, locale)
-              : t("values.unpriced"),
-            budget: formatMoneyText(o.budgetMinor, o.currencyCode, locale) ?? t("values.unpriced"),
-            due: formatWhen(o.scheduledEndsAt, locale, o.timeZone) ?? t("values.noDate"),
-          };
-        })}
-        onRowActivate={(row) => open(String(row["id"]))}
-      />
+      <>
+        <ActionErrorAlert error={removal.error} />
+        <DataTable
+          caption={title}
+          columns={[
+            { key: "key", label: t("columns.key"), type: "code" },
+            { key: "title", label: t("columns.title"), wrap: true },
+            { key: "state", label: t("columns.state"), type: "state" },
+            { key: "bids", label: t("columns.bids"), type: "number" },
+            { key: "lowest", label: t("columns.lowest") },
+            { key: "budget", label: t("columns.budget") },
+            { key: "due", label: t("columns.due") },
+          ]}
+          rows={orders.map((o) => {
+            const low = lowestBid(o.bids);
+            return {
+              id: o.id,
+              key: o.key,
+              title: o.title,
+              state: { state: workOrderToken(o.state), label: stateLabel(o.state) },
+              bids: o.bids.filter((b) => !b.withdrawnAt).length,
+              lowest: low
+                ? formatMoneyText(low.amountMinor, low.currencyCode, locale)
+                : t("values.unpriced"),
+              budget:
+                formatMoneyText(o.budgetMinor, o.currencyCode, locale) ?? t("values.unpriced"),
+              due: formatWhen(o.scheduledEndsAt, locale, o.timeZone) ?? t("values.noDate"),
+            };
+          })}
+          onRowActivate={(row) => open(String(row["id"]))}
+          onRowContextMenu={(_row, index, at, cell) => {
+            const o = orders[index];
+            if (!o) return;
+            rowMenu.open(
+              {
+                id: o.id,
+                label: o.key,
+                open: () => open(o.id),
+                href: withQuery(pathname, params, { peek: o.id, full: "1" }),
+                bulk: bulkKit,
+                // A Draft work order deletes from its menu as from its peek.
+                ...(canCreate && o.state === "Draft"
+                  ? {
+                      more: [
+                        {
+                          label: t("workOrders.delete"),
+                          icon: "Trash2" as const,
+                          danger: true,
+                          onSelect: () =>
+                            removal.remove(o, () => {
+                              if (params.get("peek") === o.id) go({ peek: null, full: null });
+                            }),
+                        },
+                      ],
+                    }
+                  : {}),
+              },
+              at,
+              cell,
+            );
+          }}
+          {...(bulkKit.selection ? { selection: bulkKit.selection } : {})}
+        />
+        {bulkKit.bar}
+        {rowMenu.menu}
+      </>
     );
   } else if (view === "board") {
     body = (
@@ -448,6 +527,7 @@ export function WorkOrderBody({
   const details = useAction();
   const lifecycle = useAction();
   const bidsAction = useAction();
+  const removal = useWorkOrderDelete(org);
   const [title, setTitle] = useState(order.title);
   const [scope, setScope] = useState(order.scopeOfWork ?? "");
   const [location, setLocation] = useState(order.locationText ?? "");
@@ -510,6 +590,7 @@ export function WorkOrderBody({
             {t("transition.title")}
           </h3>
           <ActionErrorAlert error={lifecycle.error} />
+          <ActionErrorAlert error={removal.error} />
           <div className="flex flex-wrap gap-6">
             {nextStates.map((s) => (
               <Button key={s} size="sm" onClick={() => setMove(s)}>
@@ -521,13 +602,12 @@ export function WorkOrderBody({
                 size="sm"
                 variant="ghost"
                 icon="Trash2"
+                loading={removal.pending}
                 onClick={() =>
-                  lifecycle.run(
-                    () => deleteWorkOrderAction(org, order.id),
-                    () =>
-                      router.replace(
-                        withQuery(pathname, params, { peek: null, full: null }) as Route,
-                      ),
+                  removal.remove(order, () =>
+                    router.replace(
+                      withQuery(pathname, params, { peek: null, full: null }) as Route,
+                    ),
                   )
                 }
               >

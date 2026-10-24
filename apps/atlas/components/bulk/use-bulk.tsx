@@ -3,6 +3,7 @@
 import type { DataTableSelection } from "@xos/ui";
 import { useMemo, useState, type ReactNode } from "react";
 import { onDemand, useOnDemand } from "@/components/shell/on-demand";
+import { allowedFields } from "./fields";
 import type { BulkConfig, BulkField, BulkRowRef } from "./types";
 
 /** The bulk bar, its edit dialog and Radix load the first time a row is selected (ADR 0027). */
@@ -15,6 +16,11 @@ export interface Bulk {
   readonly bar: ReactNode;
   /** The properties that change in bulk, for a row's context menu. */
   readonly fields: readonly BulkField[];
+  /**
+   * The properties a row's menu offers: those every selected row allows when the row is in the
+   * selection, else those the row allows, since a change acts on the selection or on the row alone.
+   */
+  readonly fieldsFor: (id: string) => readonly BulkField[];
   readonly isSelected: (id: string) => boolean;
   readonly toggle: (id: string) => void;
   /**
@@ -47,6 +53,7 @@ export function useBulk(config: BulkConfig | null | undefined, rows: readonly Bu
       selection: undefined,
       bar: null,
       fields: [],
+      fieldsFor: () => [],
       isSelected: () => false,
       toggle: () => undefined,
       edit: () => undefined,
@@ -56,7 +63,7 @@ export function useBulk(config: BulkConfig | null | undefined, rows: readonly Bu
     selection: { selected, onChange: setPicked },
     bar: loaded ? (
       <loaded.BulkBar
-        config={config}
+        config={{ ...config, fields: allowedFields(config.fields, selected) }}
         rows={rows}
         selected={selected}
         field={field}
@@ -65,6 +72,7 @@ export function useBulk(config: BulkConfig | null | undefined, rows: readonly Bu
       />
     ) : null,
     fields: config.fields,
+    fieldsFor: (id) => allowedFields(config.fields, selected.has(id) ? selected : [id]),
     isSelected: (id) => selected.has(id),
     toggle,
     edit: (f, id) => {

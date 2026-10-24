@@ -23,6 +23,9 @@ import { phaseCode, PROJECT_STATE_ORDER, stateIcon } from "@/lib/projects/format
 import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 // Views other than the default table, and the peek, load when shown (A24-009).
 import {
   Board,
@@ -48,7 +51,8 @@ export type BoardMode = "state" | "phase";
  * The Projects collection (Collection template, Section 11.6): the views the sitemap allows for the
  * page, a search over key and name, the archived filter, a side peek and the New project dialog.
  * Every view keeps the same search and filter state, and the view lives in the query string
- * (Section 4.5.3), so a link reopens the same view.
+ * (Section 4.5.3), so a link reopens the same view. The table selects projects for bulk changes,
+ * and each row's menu offers the same changes as the bulk bar (Section 11.7).
  */
 export function ProjectCollection({
   org,
@@ -63,6 +67,7 @@ export function ProjectCollection({
   today,
   create,
   sharers = [],
+  bulk,
 }: {
   org: string;
   title: string;
@@ -80,6 +85,8 @@ export function ProjectCollection({
    * Producers), named in the empty state so it never sends them in a loop (A59-014).
    */
   sharers?: readonly string[];
+  /** Bulk edit of the table view's selection, for people who may change projects. */
+  bulk?: BulkConfig | null;
 }) {
   const t = useTranslations("projects");
   const format = useFormatter();
@@ -105,6 +112,11 @@ export function ProjectCollection({
       ? projects
       : projects.filter((p) => p.key.toLowerCase().includes(q) || p.name.toLowerCase().includes(q));
   }, [projects, query]);
+
+  // The selection keeps only projects the search still shows (Section 11.7).
+  const bulkRows = useMemo(() => shown.map((p) => ({ id: p.id, label: p.key })), [shown]);
+  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const rowMenu = useRowMenu();
 
   const setParam = (name: string, value: string | null) => {
     const next = new URLSearchParams(params.toString());
@@ -205,30 +217,50 @@ export function ProjectCollection({
     );
   } else if (view === "table") {
     body = (
-      <DataTable
-        caption={t("list.caption")}
-        columns={[
-          { key: "key", label: t("fields.key"), type: "code", width: 88 },
-          { key: "name", label: t("fields.name"), wrap: true },
-          { key: "state", label: t("fields.state"), type: "state", width: 128 },
-          { key: "phase", label: t("fields.phase"), width: 160 },
-          { key: "jurisdiction", label: t("fields.jurisdiction"), type: "code", width: 180 },
-          { key: "venue", label: t("fields.venue"), width: 180 },
-          { key: "dates", label: t("fields.dates"), width: 220 },
-        ]}
-        pinStart={["key"]}
-        rows={shown.map((p) => ({
-          id: p.key,
-          key: p.key,
-          name: p.name,
-          state: { state: stateIcon(p.projectState), label: stateLabel(p) },
-          phase: t("gates.gate", { gate: gateOf(p.phaseCode) }) + ` · ${phaseName(p.phaseCode)}`,
-          jurisdiction: p.jurisdictionId ?? t("values.unresolved"),
-          venue: p.venueName ?? t("values.none"),
-          dates: dates(p),
-        }))}
-        onRowActivate={(row) => setPeekKey(String(row["key"]))}
-      />
+      <>
+        <DataTable
+          caption={t("list.caption")}
+          columns={[
+            { key: "key", label: t("fields.key"), type: "code", width: 88 },
+            { key: "name", label: t("fields.name"), wrap: true },
+            { key: "state", label: t("fields.state"), type: "state", width: 128 },
+            { key: "phase", label: t("fields.phase"), width: 160 },
+            { key: "jurisdiction", label: t("fields.jurisdiction"), type: "code", width: 180 },
+            { key: "venue", label: t("fields.venue"), width: 180 },
+            { key: "dates", label: t("fields.dates"), width: 220 },
+          ]}
+          pinStart={["key"]}
+          rows={shown.map((p) => ({
+            id: p.id,
+            key: p.key,
+            name: p.name,
+            state: { state: stateIcon(p.projectState), label: stateLabel(p) },
+            phase: t("gates.gate", { gate: gateOf(p.phaseCode) }) + ` · ${phaseName(p.phaseCode)}`,
+            jurisdiction: p.jurisdictionId ?? t("values.unresolved"),
+            venue: p.venueName ?? t("values.none"),
+            dates: dates(p),
+          }))}
+          onRowActivate={(row) => setPeekKey(String(row["key"]))}
+          onRowContextMenu={(_row, index, at, cell) => {
+            const p = shown[index];
+            if (!p) return;
+            rowMenu.open(
+              {
+                id: p.id,
+                label: p.key,
+                open: () => setPeekKey(p.key),
+                href: projectHref(p.key),
+                bulk: bulkKit,
+              },
+              at,
+              cell,
+            );
+          }}
+          {...(bulkKit.selection ? { selection: bulkKit.selection } : {})}
+        />
+        {bulkKit.bar}
+        {rowMenu.menu}
+      </>
     );
   } else if (view === "list") {
     body = (
