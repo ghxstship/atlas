@@ -415,6 +415,12 @@ the branch. Rollback: point the secret and variables back.
 - Supabase advisors (`infra/security/supabase-advisors.sh`) report nothing new.
 - Synthetic checks green against production and staging.
 - The hosted Data API's exposed schemas still match `[api] schemas` in `supabase/config.toml` (step 5).
+- The account security notice triggers (migration 1700, ADR 0064) exist on staging and production. They sit on
+  Supabase Auth's tables, which a dump of the `app` and `private` schemas leaves out. This query lists
+  `xos_notify_security_change` on `auth.users`, `xos_notify_factor_change` on `auth.mfa_factors` and
+  `xos_notify_passkey_change` on `auth.webauthn_credentials`; a missing one means a password, second factor or
+  passkey change there tells nobody:
+  `select tgrelid::regclass, tgname from pg_trigger where tgname like 'xos_notify_%';`
 - `https://api.ghxstship.tech/` answers the JSON pointer, `https://api.ghxstship.tech/v1/openapi.json` the
   document, and `https://api.ghxstship.tech/auth/sign-in` a 404 problem with no `Set-Cookie`.
 
