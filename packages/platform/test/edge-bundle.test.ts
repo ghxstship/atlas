@@ -96,7 +96,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "file-download": 64,
   "fx-rates-ecb": 64,
   "import-run": 120,
-  "inbound-email": 64,
+  // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
+  // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
+  "inbound-email": 80,
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,
