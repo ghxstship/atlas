@@ -6,7 +6,8 @@
  * app/[org] and follow the names each page uses through its local imports, so a new page cannot
  * read `?peek` without handing an unshown key over or answering it with its own not-found state.
  * They also keep row ids out of `?peek` where no record panel would show them (a page with no
- * panel, or one where the shell opens the key itself), and keep every read of a `?peek` row by id
+ * panel, or one where the shell opens the key itself), whether a query change, a row component or
+ * an href written as a template literal puts them there, and keep every read of a `?peek` row by id
  * counting a key that is no id as no row (peekRowMissing).
  */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -134,14 +135,25 @@ interface Rendered {
   readonly attributes: ReadonlySet<string>;
   /** Passes `activatable={false}`: a row component whose rows open nothing. */
   readonly inert: boolean;
+  /** Passes `activatable={activatable}`: a row component that opens rows when its renderer does. */
+  readonly forwards: boolean;
 }
 
 /** What a declaration does with `?peek`, read from its syntax (peekUse). */
 interface PeekUse {
   /** Reads the URL's `?peek`. */
   readonly reads: boolean;
-  /** Puts a value in `?peek` with a query change: `go({ peek: id })`, `q.set("peek", id)`. */
+  /**
+   * Puts a value in `?peek` of its own page: a query change (`go({ peek: id })`,
+   * `q.set("peek", id)`), or an href that sets it on a path it does not spell out
+   * (`` `${pathname}?peek=${id}` ``, `` `?peek=${id}` ``, `` `${path}?peek={id}` ``, `"?peek=" + id`).
+   */
   readonly writes: boolean;
+  /**
+   * Hrefs that set `?peek` on a path they spell out (`` `/${org}/crew/shifts?peek=${id}` ``): each
+   * path, its substitutions as HOLE, for the page it names to answer for (linkedPage).
+   */
+  readonly links: readonly string[];
   /** Compares a failed read's kind with "not-found" itself instead of asking peekRowMissing. */
   readonly kindNotFound: boolean;
   readonly elements: readonly Rendered[];
@@ -279,12 +291,62 @@ const EQUALITY: ReadonlySet<ts.SyntaxKind> = new Set([
 const isKind = (e: ts.Expression): boolean =>
   ts.isPropertyAccessExpression(e) && e.name.text === "kind";
 
+/** A template literal's substitution in the text peekUse reads its URL from. */
+const HOLE = "\u0000";
+
+/** `?peek=` or `&peek=` given a value: a substitution, or a `{id}` placeholder filled in later. */
+const PEEK_VALUE = new RegExp(`[?&]peek=(?:${HOLE}|\\{)`);
+
+/** `?peek=` or `&peek=` at the end of a literal a value is appended to (`"?peek=" + id`). */
+const PEEK_OPEN = /[?&]peek=$/;
+
+/** A template literal's text with each substitution as a HOLE, the way peekUse reads an href. */
+const templateText = (n: ts.TemplateExpression): string =>
+  n.head.text + n.templateSpans.map((span) => `${HOLE}${span.literal.text}`).join("");
+
+/**
+ * The text of each `const` in `node`, then at the top of its file, that holds a string or a template
+ * literal (`const pipeline = `/${org}/opportunities/pipeline``), so an href that starts with one
+ * names the path it holds.
+ */
+function constTexts(node: ts.Node): ReadonlyMap<string, string> {
+  const texts = new Map<string, string>();
+  const take = (d: ts.VariableDeclaration) => {
+    const list = d.parent;
+    const value = d.initializer;
+    if (!ts.isIdentifier(d.name) || texts.has(d.name.text) || !value) return;
+    if (!ts.isVariableDeclarationList(list) || !(list.flags & ts.NodeFlags.Const)) return;
+    if (ts.isTemplateExpression(value)) texts.set(d.name.text, templateText(value));
+    else if (ts.isStringLiteral(value) || ts.isNoSubstitutionTemplateLiteral(value)) {
+      texts.set(d.name.text, value.text);
+    }
+  };
+  const walk = (n: ts.Node) => {
+    if (ts.isVariableDeclaration(n)) take(n);
+    ts.forEachChild(n, walk);
+  };
+  walk(node);
+  for (const stmt of node.getSourceFile().statements) {
+    if (ts.isVariableStatement(stmt)) stmt.declarationList.declarations.forEach(take);
+  }
+  return texts;
+}
+
 /** What `node` does with `?peek`, from its syntax alone. */
 function peekUse(node: ts.Node): PeekUse {
   let reads = false;
   let writes = false;
   let kindNotFound = false;
   const elements: Rendered[] = [];
+  const links: string[] = [];
+  const consts = constTexts(node);
+  // An href that sets `?peek`: on a path it spells out, a link to that page; else its own page's.
+  const href = (text: string) => {
+    if (!PEEK_VALUE.test(text)) return;
+    const path = text.split(/[?&]/)[0] ?? "";
+    if (path.startsWith("/")) links.push(path);
+    else writes = true;
+  };
   const walk = (n: ts.Node) => {
     // Reads: `search["peek"]`, `params.get("peek")`, `param(search, "peek")`, `state.peek`, and
     // `const { peek } = search` (or `{ peek: key }`, or `{ query: { peek } } = page`).
@@ -340,6 +402,25 @@ function peekUse(node: ts.Node): PeekUse {
     if (ts.isShorthandPropertyAssignment(n) && n.name.text === "peek" && queryChange(n.parent)) {
       writes = true;
     }
+    // Writes and links: an href built as a template literal, a string or a concatenation.
+    if (ts.isTemplateExpression(n)) {
+      // `${pipeline}?peek=${id}` names the path the const pipeline holds.
+      const [first] = n.templateSpans;
+      const lead =
+        n.head.text === "" && first && ts.isIdentifier(first.expression)
+          ? consts.get(first.expression.text)
+          : undefined;
+      href(lead === undefined ? templateText(n) : lead + templateText(n).slice(HOLE.length));
+    }
+    if (ts.isStringLiteral(n) || ts.isNoSubstitutionTemplateLiteral(n)) href(n.text);
+    if (
+      ts.isBinaryExpression(n) &&
+      n.operatorToken.kind === ts.SyntaxKind.PlusToken &&
+      (ts.isStringLiteral(n.left) || ts.isNoSubstitutionTemplateLiteral(n.left)) &&
+      PEEK_OPEN.test(n.left.text)
+    ) {
+      href(`${n.left.text}${HOLE}`);
+    }
     if (
       ts.isBinaryExpression(n) &&
       EQUALITY.has(n.operatorToken.kind) &&
@@ -361,6 +442,7 @@ function peekUse(node: ts.Node): PeekUse {
     ) {
       const attributes = new Set<string>();
       let inert = false;
+      let forwards = false;
       for (const a of n.attributes.properties) {
         if (!ts.isJsxAttribute(a)) continue;
         const name = a.name.getText();
@@ -368,13 +450,16 @@ function peekUse(node: ts.Node): PeekUse {
         const value =
           a.initializer && ts.isJsxExpression(a.initializer) ? a.initializer.expression : undefined;
         if (name === "activatable" && value?.kind === ts.SyntaxKind.FalseKeyword) inert = true;
+        if (name === "activatable" && value && ts.isIdentifier(value) && value.text === name) {
+          forwards = true;
+        }
       }
-      elements.push({ tag: n.tagName.text, attributes, inert });
+      elements.push({ tag: n.tagName.text, attributes, inert, forwards });
     }
     ts.forEachChild(n, walk);
   };
   walk(node);
-  return { reads, writes, kindNotFound, elements };
+  return { reads, writes, links, kindNotFound, elements };
 }
 
 /** A component whose props include `activatable`, destructured or in a `props` type literal. */
@@ -406,22 +491,23 @@ const modules = new Map<string, Module>();
 function parse(file: string): Module {
   const known = modules.get(file);
   if (known) return known;
-  const kind = file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
-  const sf = ts.createSourceFile(
-    file,
-    readFileSync(file, "utf8"),
-    ts.ScriptTarget.Latest,
-    true,
-    kind,
-  );
-  const mod: Module = {
-    declarations: new Map(),
-    imports: new Map(),
-    exports: new Map(),
-    reexports: new Map(),
-    stars: [],
-  };
+  const mod = emptyModule();
   modules.set(file, mod);
+  return parseInto(mod, file, readFileSync(file, "utf8"));
+}
+
+const emptyModule = (): Module => ({
+  declarations: new Map(),
+  imports: new Map(),
+  exports: new Map(),
+  reexports: new Map(),
+  stars: [],
+});
+
+/** Reads `text` as the source of `file` into `mod`; parse() caches each file's module. */
+function parseInto(mod: Module, file: string, text: string): Module {
+  const kind = file.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
+  const sf = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, kind);
   const declare = (declared: readonly string[], node: ts.Node, opener = false) => {
     const names = new Set<string>();
     const loads: string[] = [];
@@ -568,6 +654,19 @@ function rendersOpener(from: Declaration, tag: string): boolean {
 /** Attributes that give a row component rows to show; one rendered without rows opens nothing. */
 const ROWS: readonly string[] = ["rows", "items", "listItems", "board", "columns"];
 
+const FINANCE_COLLECTION = "components/finance/collection.tsx#FinanceCollection";
+
+/**
+ * The row components an opener renders with rows but without its own `activatable` (or `false`):
+ * where they open rows whatever the page passed the opener.
+ */
+function dropsActivatable(opener: Declaration): string[] {
+  return opener.elements
+    .filter((e) => ROWS.some((a) => e.attributes.has(a)) && !e.forwards && !e.inert)
+    .filter((e) => rendersOpener(opener, e.tag))
+    .map((e) => `${at(opener)} <${e.tag}>`);
+}
+
 const HANDS_OFF = /<PeekHandoff\b/;
 
 const SAMPLE: Readonly<Record<string, string>> = {
@@ -581,6 +680,8 @@ const SAMPLE: Readonly<Record<string, string>> = {
 interface Page {
   /** The page's directory under app/[org]. */
   readonly page: string;
+  /** Its path segments, a dynamic one (`[projectKey]`) as itself. */
+  readonly segments: readonly string[];
   /** Whether the shell leaves `?peek` on the page's route to the page (pageOwnsPeek). */
   readonly ownsPeek: boolean;
   /** The declarations the page reaches that read `?peek` (`file#name`), and whether each hands off. */
@@ -592,6 +693,11 @@ interface Page {
   readonly writes: readonly string[];
   /** Every declaration the page reaches. */
   readonly reached: ReadonlySet<Declaration>;
+  /**
+   * The hrefs the page renders that set `?peek` on a path they spell out (`file#name`), each with
+   * the page under app/[org] the path names, or null when it names none.
+   */
+  readonly links: readonly { readonly at: string; readonly page: string | null }[];
 }
 
 const at = (d: Declaration) => `${relative(atlas, d.file)}#${d.name}`;
@@ -625,12 +731,37 @@ const pages: readonly Page[] = (readdirSync(orgApp, { recursive: true }) as stri
       .sort();
     return {
       page,
+      segments: page.split("/").filter(Boolean),
       ownsPeek: pageOwnsPeek(`/${route}`),
       readers,
       writes: [...new Set(writes)],
       reached: all,
+      linkPaths: [...all]
+        .filter((d) => !relative(atlas, d.file).startsWith("lib/"))
+        .flatMap((d) => d.links.map((path) => ({ at: at(d), path }))),
     };
-  });
+  })
+  .map(({ linkPaths, ...page }, _i, all) => ({
+    ...page,
+    links: linkPaths.map((l) => ({ at: l.at, page: linkedPage(all, l.path) })),
+  }));
+
+/**
+ * The page under app/[org] a link's path names: `/${org}/crew/shifts` is crew/shifts and
+ * `/${org}/p/${key}/work` p/[projectKey]/work (a substitution stands for a dynamic segment); null
+ * for a path outside the org or no page.
+ */
+function linkedPage(all: readonly Pick<Page, "page" | "segments">[], path: string): string | null {
+  const [lead, org, ...rest] = path.split("/");
+  if (lead !== "" || org !== HOLE) return null;
+  const segments = rest.filter(Boolean);
+  const found = all.find(
+    (p) =>
+      p.segments.length === segments.length &&
+      p.segments.every((s, i) => s === segments[i] || (/^\[.+\]$/.test(s) && segments[i] === HOLE)),
+  );
+  return found?.page ?? null;
+}
 
 const byPage = new Map(pages.map((p) => [p.page, p]));
 
@@ -726,6 +857,65 @@ describe("rows on a page with no record panel open nothing", () => {
       }
     }
     expect([...missing]).toEqual([]);
+  });
+
+  it("passes a row component's activatable on to the row components it renders", () => {
+    // FinanceCollection takes activatable={false} for a page with no record panel; its table, list
+    // and board are where the rows open, so each must get it, or the page's rows open ?peek anyway.
+    const openers = [...new Set(pages.flatMap((p) => [...p.reached]))].filter((d) => d.opener);
+    expect(openers.flatMap(dropsActivatable)).toEqual([]);
+    const finance = openers.find((d) => at(d) === FINANCE_COLLECTION);
+    expect(finance, FINANCE_COLLECTION).toBeDefined();
+    const kit = finance ? finance.elements.filter((e) => rendersOpener(finance, e.tag)) : [];
+    expect(kit.map((e) => e.tag).sort()).toEqual([
+      "CollectionBoard",
+      "CollectionList",
+      "CollectionTable",
+    ]);
+  });
+
+  it("fails when FinanceCollection stops passing activatable to its table, list or board", () => {
+    const file = join(atlas, "components", "finance", "collection.tsx");
+    const source = readFileSync(file, "utf8");
+    for (const tag of ["CollectionTable", "CollectionList", "CollectionBoard"]) {
+      const dropped = source.replace(
+        new RegExp(`(<${tag}\\b[^>]*?)\\s*activatable=\\{activatable\\}`),
+        "$1",
+      );
+      expect(dropped, tag).not.toBe(source);
+      // The changed source in the same file, so its tags resolve through the same imports.
+      const changed = parseInto(emptyModule(), file, dropped).declarations.get("FinanceCollection");
+      expect(changed ? dropsActivatable(changed) : null, tag).toEqual([
+        `${FINANCE_COLLECTION} <${tag}>`,
+      ]);
+    }
+  });
+
+  it("links no row's id to ?peek of a page with no record panel or where the shell opens it", () => {
+    const pageOf = new Map(pages.map((p) => [p.page, p]));
+    const wrong = pages.flatMap((p) =>
+      p.links.flatMap(({ at: writer, page }) => {
+        // A link names a page under app/[org]: a path that names none is a typo.
+        if (page === null) return [`${p.page}: ${writer} links to no page`];
+        if (page in NO_RECORD_PANEL) return [`${p.page}: ${writer} links a row to ${page}`];
+        const target = pageOf.get(page);
+        return target && !target.ownsPeek && !(writer in SHELL_KEYS)
+          ? [`${p.page}: ${writer} puts a key in ?peek of ${page}, which the shell opens`]
+          : [];
+      }),
+    );
+    // Link a page where the shell opens ?peek with record keys only (list the writer in SHELL_KEYS),
+    // and a page with no record panel with no ?peek at all.
+    expect(wrong).toEqual([]);
+    // The guard sees links like these: shifts by id on Swaps, a custom object record by id.
+    expect(byPage.get("crew/swaps")?.links).toContainEqual({
+      at: "app/[org]/crew/swaps/page.tsx#Page",
+      page: "crew/shifts",
+    });
+    expect(byPage.get("work/all-records")?.links).toContainEqual({
+      at: "components/work/related-records.tsx#RelatedRecords",
+      page: "objects/[objectKey]",
+    });
   });
 
   it("sees a row component left activatable and a query change that sets ?peek", () => {
@@ -824,6 +1014,57 @@ describe("what the guard counts as reading and writing ?peek", () => {
     ).elements;
     expect(open).toMatchObject({ tag: "CollectionTable", inert: false });
     expect(inert).toMatchObject({ tag: "CollectionTable", inert: true });
+  });
+
+  it("tells a row component given its renderer's activatable from one that is not", () => {
+    const [forwarded, dropped, other] = use(
+      "<><CollectionList items={items} activatable={activatable} /><CollectionList items={items} /><CollectionList items={items} activatable={open} /></>",
+    ).elements;
+    expect(forwarded).toMatchObject({ forwards: true, inert: false });
+    expect(dropped).toMatchObject({ forwards: false, inert: false });
+    expect(other).toMatchObject({ forwards: false, inert: false });
+  });
+
+  it("writes ?peek with an href written as a template literal, a string or a concatenation", () => {
+    for (const source of [
+      "router.push(`${pathname}?peek=${row.id}`);",
+      "const href = `?peek=${encodeURIComponent(id)}`;",
+      "const next = `${base}?view=list&peek=${id}`;",
+      "<Form successHref={`${path}?peek={id}`} />;",
+      "const href = '?peek=' + id;",
+      'const href = "?peek={id}";',
+    ]) {
+      expect(use(source).writes, source).toBe(true);
+      expect(use(source).links, source).toEqual([]);
+    }
+    for (const source of [
+      "const href = `/${org}/r/${key}`;",
+      "const href = `${base}?view=list`;",
+      "const cleared = `${pathname}?peek=`;",
+      "/** `?peek=<id>` opens the row. */ const a = 1;",
+    ]) {
+      expect(use(source).writes, source).toBe(false);
+      expect(use(source).links, source).toEqual([]);
+    }
+  });
+
+  it("reads a template-literal href to another path as a link to that page", () => {
+    const shifts = use("<Link href={`/${crew.slug}/crew/shifts?peek=${s.shiftId}`} />;");
+    expect(shifts).toMatchObject({ writes: false, links: [`/${HOLE}/crew/shifts`] });
+    const named = use(
+      "const pipeline = `/${org}/opportunities/pipeline`; const a = <Link href={`${pipeline}?peek=${id}`} />;",
+    );
+    expect(named).toMatchObject({ writes: false, links: [`/${HOLE}/opportunities/pipeline`] });
+    const work = use("const href = `/${org}/p/${key}/work?view=list&peek=${id}`;");
+    expect(work.links).toEqual([`/${HOLE}/p/${HOLE}/work`]);
+    const all = [
+      { page: "crew/shifts", segments: ["crew", "shifts"] },
+      { page: "p/[projectKey]/work", segments: ["p", "[projectKey]", "work"] },
+    ];
+    expect(linkedPage(all, `/${HOLE}/crew/shifts`)).toBe("crew/shifts");
+    expect(linkedPage(all, `/${HOLE}/p/${HOLE}/work`)).toBe("p/[projectKey]/work");
+    expect(linkedPage(all, `/${HOLE}/crew/shift`)).toBeNull();
+    expect(linkedPage(all, "/auth/sign-in")).toBeNull();
   });
 
   it("compares a kind with not-found in an equality or a switch", () => {
