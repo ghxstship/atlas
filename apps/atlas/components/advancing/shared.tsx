@@ -12,6 +12,17 @@ export const PACKET_RECORD_STATE: Readonly<Record<PacketState, RecordState>> = {
   Complete: "complete",
 };
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Whether a `?peek` key has the shape of an advancing row id (a UUID). A key without it (a record
+ * key from elsewhere) names no packet, rider, run, guest or submission, so the page hands it to the
+ * shell's peek; an id with no row still answers the page's own 404.
+ */
+export function isRowId(key: string): boolean {
+  return UUID.test(key);
+}
+
 /** Search params flattened to their first value. */
 export type Search = Readonly<Record<string, string>>;
 

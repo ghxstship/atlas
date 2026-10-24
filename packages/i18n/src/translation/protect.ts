@@ -35,6 +35,8 @@ export interface Range {
 
 interface Matcher {
   readonly regex: RegExp;
+  /** A term's own text: the regex cannot match a string that does not contain it. */
+  readonly literal: string | null;
   readonly except: ReadonlySet<string>;
   readonly only: ReadonlySet<string> | null;
   readonly check: boolean;
@@ -58,12 +60,14 @@ export function compileProtector(dnt: DoNotTranslate): Protector {
   const matchers: Matcher[] = [
     ...dnt.terms.map((t) => ({
       regex: wholeWord(t.term),
+      literal: t.term,
       except: new Set(t.except ?? []),
       only: t.only ? new Set(t.only) : null,
       check: true,
     })),
     ...dnt.patterns.map((p) => ({
       regex: new RegExp(p.pattern, `${(p.flags ?? "").replace(/g/g, "")}gu`),
+      literal: null,
       except: new Set<string>(),
       only: null,
       check: p.check !== false,
@@ -75,6 +79,9 @@ export function compileProtector(dnt: DoNotTranslate): Protector {
     for (const m of matchers) {
       if (m.except.has(key) || (m.only !== null && !m.only.has(key)) || (onlyChecked && !m.check))
         continue;
+      // Most strings hold none of the terms. A substring test is far cheaper than the whole-word
+      // regex with its Unicode lookarounds, which made masking every catalog string take seconds.
+      if (m.literal !== null && !text.includes(m.literal)) continue;
       m.regex.lastIndex = 0;
       for (const hit of text.matchAll(m.regex)) {
         if (hit[0] !== "") found.push({ start: hit.index, end: hit.index + hit[0].length });

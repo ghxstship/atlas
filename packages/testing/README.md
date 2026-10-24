@@ -90,6 +90,10 @@ limit. `supabase db reset` recreates the container; reset to an early migration
 (`--version 0207`), set the clock, then `supabase migration up`, so partitions and other "now"
 defaults are made at the faked time.
 
+The core-screen baselines (gate 9) always run on this clock, at one fixed instant:
+`ci/visual-clock.sh` does the reset, migrates, seeds at that instant and prints
+`E2E_CLOCK_OFFSET_MS`, and the visual configs refuse to run without it (`apps/<app>/e2e/visual`).
+
 ## Load tests (k6)
 
 The scripts cover the Section 5.1 targets and assert its objectives as k6 thresholds:

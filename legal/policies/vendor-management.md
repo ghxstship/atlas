@@ -16,11 +16,11 @@ This policy governs how GHXSTSHIP Industries LLC ("GHXSTSHIP") selects, contract
 
 ## 2. Vendor Tiers
 
-| Tier | Definition                                                                                      | Examples                                                                                                  |
-| ---- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| 1    | Processes Customer Personal Data or hosts production                                            | Supabase, Vercel, Anthropic, Resend, Twilio, Stripe, Checkr, Sentry, Expo, Apple and Google push services |
-| 2    | Has access to source code, CI, credentials or internal confidential data, but not Customer Data | Source host and CI, password manager, email and office suite                                              |
-| 3    | No access to confidential data                                                                  | Design tools used with public material, documentation fonts                                               |
+| Tier | Definition                                                                                      | Examples                                                                                                                                          |
+| ---- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | Processes Customer Personal Data or hosts production                                            | Supabase, Vercel, Anthropic, Resend, Twilio, Stripe, Checkr, Sentry, Better Stack, Expo, Apple and Google push services, Google Cloud Translation |
+| 2    | Has access to source code, CI, credentials or internal confidential data, but not Customer Data | Source host and CI, password manager, email and office suite                                                                                      |
+| 3    | No access to confidential data                                                                  | Design tools used with public material, documentation fonts                                                                                       |
 
 Customer-directed integrations (for example accounting, payroll, calendar and storage connectors) are vendors of the Customer, not of GHXSTSHIP. GHXSTSHIP reviews the security of each connector it builds, but does not onboard the provider as its own vendor.
 

@@ -33,6 +33,8 @@ These are tracked in Linear under RRR-17.
 - **Carry-over across orgs:** carrying person-owned items (certifications) across orgs with consent.
 - **Exception list:** the A02 org_id check could list the person-owned tables as a stated exception.
 
+_Amended 2026-10-23:_ none of these is open now. Pay transparency moved to ADR 0029 (item 5), and carry-over across orgs with consent was built in migration 0860 (`app.person_certifications` and `app.certification_shares`, under a profile-sharing consent record). ADR 0033 settles the rest: spend authority applies at publish only for orgs with spend limits set (decision 61); Client and Sponsor engagements drop the workforce-only fields, distance search is ratified, and the person-owned tables are a stated exception (decision 69).
+
 ## Consequences
 
 - Every Section 8.7 projection has pgTAP coverage. Each one is checked for access through the party's own engagement, an account engagement and a representation; for denial on another party's engagement and after the time box; and for leaking internal-only columns.

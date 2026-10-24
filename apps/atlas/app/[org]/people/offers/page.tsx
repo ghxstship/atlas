@@ -7,6 +7,7 @@ import { CrewRecord } from "@/components/crew/record";
 import { FilterSelect } from "@/components/crew/views-filter-select";
 import { PeekBoard } from "@/components/crew/views-peek-board";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, withParams } from "@/lib/crew/context";
 import { money } from "@/lib/crew/format";
@@ -204,7 +205,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/p
           ]}
         />
       }
-      peek={peek}
+      peek={collectionPeek(search["peek"], peek)}
     >
       {body}
     </CrewFrame>

@@ -19,8 +19,8 @@ Puede adjuntar diagnósticos: la página donde estaba, la versión de la aplicac
 Los administradores pueden contactar al equipo de la plataforma desde **Configuración, Ayuda y soporte**. La respuesta depende de su plan:
 
 - **Core:** correo, primera respuesta en 2 días hábiles.
-- **Pro:** correo y chat en la aplicación, en 1 día hábil.
+- **Pro:** correo, en 1 día hábil.
 - **Team:** cola prioritaria, en 8 horas hábiles.
 - **Enterprise:** canal dedicado, en 1 hora para severidad 1.
 
-El plan Access incluye el centro de ayuda y el foro de la comunidad. El equipo de la plataforma nunca ve los datos de su organización salvo que un propietario conceda una sesión de soporte.
+El plan Access incluye el centro de ayuda. El equipo de la plataforma nunca ve los datos de su organización salvo que un propietario conceda una sesión de soporte.

@@ -3,7 +3,13 @@ import { describe, expect, it } from "vitest";
 import { buildDocumentModel } from "../../src/documents/generate.ts";
 import { DOCUMENT_KINDS } from "../../src/documents/model.ts";
 import { qrMatrix } from "../../src/documents/qr.ts";
-import { isEmbeddableImage, printable, renderDocumentPdf } from "../../src/documents/render.ts";
+import { INTER_REGULAR_HEX } from "../../src/documents/fonts.generated.ts";
+import {
+  isEmbeddableImage,
+  printable,
+  renderDocumentPdf,
+  sfntFromWoff,
+} from "../../src/documents/render.ts";
 import { BRAND, FIXTURES, LOGO_PNG, NOW } from "./fixtures.ts";
 
 const EN: unknown = JSON.parse(
@@ -39,6 +45,28 @@ describe("images and QR codes", () => {
     expect(m.every((row) => row.length === m.length)).toBe(true);
     // Finder pattern corner.
     expect(m[0]?.[0]).toBe(true);
+  });
+});
+
+describe("embedded fonts", () => {
+  it("unwraps Inter's WOFF into the TrueType font it holds, every table intact", async () => {
+    const woff = Buffer.from(INTER_REGULAR_HEX, "hex");
+    const font = await sfntFromWoff(woff);
+    const count = font.readUInt16BE(4);
+    expect(font.readUInt32BE(0)).toBe(woff.readUInt32BE(4));
+    expect(count).toBe(woff.readUInt16BE(12));
+    for (let i = 0; i < count; i++) {
+      const tag = font.toString("latin1", 12 + 16 * i, 16 + 16 * i);
+      const offset = font.readUInt32BE(20 + 16 * i);
+      const table = Buffer.from(font.subarray(offset, offset + font.readUInt32BE(24 + 16 * i)));
+      // The checksum WOFF keeps is the uncompressed table's; head's skips checkSumAdjustment.
+      if (tag === "head") table.writeUInt32BE(0, 8);
+      const words = Buffer.concat([table, Buffer.alloc(3)]);
+      let sum = 0;
+      for (let at = 0; at < table.length; at += 4) sum = (sum + words.readUInt32BE(at)) >>> 0;
+      expect([tag, sum]).toEqual([tag, font.readUInt32BE(16 + 16 * i)]);
+      expect(offset % 4).toBe(0);
+    }
   });
 });
 

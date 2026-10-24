@@ -12,6 +12,7 @@ import {
 import { listScopeNodeRefs, type ProjectRef, type ScopeNodeRef } from "@xos/data/work";
 import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollabPanels } from "@/components/work/collab";
 import {
   capabilitySet,
@@ -150,7 +151,7 @@ export async function RunsPage({
           open={param(search, "create") === "1"}
         />
       }
-      peek={peek}
+      peek={collectionPeek(peekId, peek)}
     />
   );
 }
@@ -189,7 +190,8 @@ export async function DaySheetsPage({
       projects={meta.projects}
       canWrite={caps.has("show.day_sheet.write")}
       open={param(search, "create") === "1"}
-      peek={
+      peek={collectionPeek(
+        peekId,
         open ? (
           <DaySheetPeek
             org={ctx.org.slug}
@@ -200,8 +202,8 @@ export async function DaySheetsPage({
             <DocumentActions org={ctx.org.slug} kind="day-sheet" id={open.id} />
             {await collab(ctx, meta, { table: "app.day_sheets", id: open.id })}
           </DaySheetPeek>
-        ) : null
-      }
+        ) : null,
+      )}
     />
   );
 }
@@ -260,7 +262,7 @@ export async function CallSheetsPage({
       projects={meta.projects}
       canWrite={caps.has("show.call_sheet.publish")}
       open={param(search, "create") === "1"}
-      peek={peek}
+      peek={collectionPeek(peekId, peek)}
     />
   );
 }

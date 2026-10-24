@@ -19,6 +19,7 @@ import {
   recordOshaCaseAction,
   saveOshaSummaryAction,
 } from "@/lib/compliance/actions";
+import { usComplianceFormsOn } from "@/lib/compliance/flag";
 import type { OrgContext } from "@/lib/shell/context";
 
 /**
@@ -26,6 +27,8 @@ import type { OrgContext } from "@/lib/shell/context";
  * Locations and Venues lists the establishments with their Form 300 and 300A for a year and the
  * summary's employment figures and certification; an incident's record carries its recordable cases
  * and Form 301. Cases are health information: only holders of data.restricted.read.medical see them.
+ * Both panels render only while the org has the compliance.us_forms flag on (ADR 0033 decision 54,
+ * migration 1593).
  */
 
 type T = (key: string, values?: Record<string, string | number>) => string;
@@ -181,7 +184,8 @@ async function EstablishmentCard({
 
 /** Settings, Locations and Venues: OSHA establishments and their forms for the current year and the last. */
 export async function OshaEstablishmentsPanel({ ctx }: { ctx: OrgContext }) {
-  if (!ctx.capabilities.has("safety.incident.read")) return null;
+  if (!ctx.capabilities.has("safety.incident.read") || !(await usComplianceFormsOn(ctx)))
+    return null;
   const t = await copy();
   const establishments = await listOshaEstablishments(ctx.viewer.db, ctx.org.id);
   const list = establishments.ok ? establishments.data : [];
@@ -266,7 +270,8 @@ export async function IncidentOshaPanel({
   incidentId: string;
   members: readonly Member[];
 }) {
-  if (!ctx.capabilities.has("data.restricted.read.medical")) return null;
+  if (!ctx.capabilities.has("data.restricted.read.medical") || !(await usComplianceFormsOn(ctx)))
+    return null;
   const t = await copy();
   const [cases, establishments] = await Promise.all([
     listOshaCases(ctx.viewer.db, { incidentId }),

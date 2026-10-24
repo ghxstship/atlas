@@ -24,7 +24,8 @@ Daily backups alone give a 24 hour RPO. The 1 hour RPO holds only once PITR is o
 1. The job runs `supabase db dump` three times, writing roles, schema and data into separate files, against the project's direct connection string. That string is a GitHub Actions secret, so the job never prints it.
 2. The files are encrypted with `gpg --encrypt --recipient` to the owner's public backup key, which is committed at `infra/backup/backup-public-key.asc` once the owner provides it. The private key never touches CI.
 3. The encrypted archive is uploaded as a workflow artifact kept 35 days. The repository is public, so only the encrypted file is ever uploaded. The SHA-256 of the encrypted file is written to the job summary.
-4. EU-region projects run the same job with their own secret. Their archives go to EU storage through the owner's chosen bucket; this needs a storage decision before the EU region launches.
+4. Production runs the same job weekly with its own read-only database login, never the `postgres` role (ADR 0033, decision 47). The login is created in migrations 1650 to 1659, and its connection string is a GitHub secret of its own, separate from `STAGING_DB_URL`. Database network restrictions on production stay off for now, because GitHub runners connect from changing addresses.
+5. EU-region projects would run the same job with their own secret, their archives going to EU storage through a bucket the owner chooses. EU data residency is deferred until the first EU Enterprise contract (ADR 0033, decision 53), so that storage decision waits for it.
 
 ## Restore drill (local, every week and before each release)
 
@@ -101,9 +102,10 @@ Vault secrets (`vault.secrets`) are encrypted with the project's own key. A rest
 
 ## Settings for the orchestrator to apply
 
-| Where                                          | Setting                                                                  |
-| ---------------------------------------------- | ------------------------------------------------------------------------ |
-| Supabase, xos-atlas-staging, Database, Backups | Confirm daily backups are listed (included in Pro)                       |
-| Supabase, production project, Add-ons          | Point in Time Recovery, 7 days: only after the owner approves the cost   |
-| GitHub, repository secrets                     | `STAGING_DB_URL` (direct connection string, read by the backup job only) |
-| Repository                                     | Commit the owner's public key as `infra/backup/backup-public-key.asc`    |
+| Where                                          | Setting                                                                                                                        |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Supabase, xos-atlas-staging, Database, Backups | Confirm daily backups are listed (included in Pro)                                                                             |
+| Supabase, production project, Add-ons          | Point in Time Recovery, 7 days: only after the owner approves the cost                                                         |
+| GitHub, repository secrets                     | `STAGING_DB_URL` (direct connection string, read by the backup job only)                                                       |
+| GitHub, repository secrets                     | The production connection string of the read-only backup login (ADR 0033, decision 47), once migrations 1650 to 1659 create it |
+| Repository                                     | Commit the owner's public key as `infra/backup/backup-public-key.asc`                                                          |

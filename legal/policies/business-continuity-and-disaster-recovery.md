@@ -39,7 +39,7 @@ A restore drill script restores the latest backup to an isolated environment, ru
 ## 5. Resilience by Design
 
 - **Offline-first field app.** Compass keeps working without a connection. Writes queue with idempotency keys and sync in order when service returns.
-- **Progressive delivery.** Releases go to 5, 25 and then 100 percent with automatic rollback on error-rate regression. Risky features ship behind flags with kill switches.
+- **Progressive delivery.** Atlas releases go to 5, 25 and then 100 percent, each stage approved only when error rates hold, and roll back when they regress. Every web application can return at once to its previous deployment. Risky features ship behind flags with kill switches.
 - **Expand and contract migrations.** No release breaks the version before it, so rollback is always possible.
 - **Connection pooling and read replicas** isolate reporting load from transactions.
 - **Monitoring.** Synthetic checks every minute from five regions cover sign-in, an API read, a Realtime subscription and a Compass sync.
