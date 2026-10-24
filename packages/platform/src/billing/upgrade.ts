@@ -1,5 +1,10 @@
 import type { PlanRegistry } from "@xos/schemas/plans";
-import { createCheckoutSession, createPortalSession, findPortalConfiguration } from "./checkout.ts";
+import {
+  createCheckoutSession,
+  createPortalSession,
+  findPortalConfiguration,
+  stripeTrialEnd,
+} from "./checkout.ts";
 import type { StripeClient } from "./env.ts";
 import { lookupKeyFor, type BillingInterval } from "./plans.ts";
 
@@ -90,6 +95,11 @@ export interface PlanCheckoutRequest {
   /** The Owner's email, for the org's first checkout; later ones reuse its Stripe customer. */
   readonly customerEmail?: string;
   readonly successUrl: string;
+  /**
+   * Where Checkout returns when it carried a running trial over, so Stripe saved the card and charged nothing yet;
+   * successUrl otherwise, and also when this is left out.
+   */
+  readonly trialSuccessUrl?: string;
   readonly cancelUrl: string;
   /** The current time, for tests. */
   readonly now?: Date;
@@ -100,7 +110,8 @@ export interface PlanCheckoutRequest {
  *   1. the plan has Stripe prices in plans.yaml (NotSelfServeError for Access or a quoted plan)
  *   2. the database's checks, step-up last (a refusal from the store)
  *   3. the org's open sessions are expired, or CheckoutCompletedError when one was paid meanwhile
- *   4. the session opens on the org's Stripe customer, carrying the rest of a running trial
+ *   4. the session opens on the org's Stripe customer, carrying the rest of a running trial (and then
+ *      returning to trialSuccessUrl, since nothing is charged before the trial ends)
  *   5. the session is recorded; any session another tab opened in the meantime is expired too
  * Returns the URL to send the Owner to.
  */
@@ -117,6 +128,9 @@ export async function startPlanCheckout(
     livemode: request.livemode,
   });
   for (const id of account.openSessionIds) await expireCheckoutSession(stripe, id);
+  const now = request.now ?? new Date();
+  const carriesTrial =
+    account.trialEndsAt !== null && stripeTrialEnd(account.trialEndsAt, now) !== undefined;
   const session = await createCheckoutSession(stripe, registry, {
     orgId: request.orgId,
     planCode: request.planCode,
@@ -127,9 +141,9 @@ export async function startPlanCheckout(
         ? { customerEmail: request.customerEmail }
         : {}),
     ...(account.trialEndsAt === null ? {} : { trialEnd: account.trialEndsAt }),
-    successUrl: request.successUrl,
+    successUrl: carriesTrial ? (request.trialSuccessUrl ?? request.successUrl) : request.successUrl,
     cancelUrl: request.cancelUrl,
-    ...(request.now === undefined ? {} : { now: request.now }),
+    now,
   });
   const closed = await store.record({
     orgId: request.orgId,
