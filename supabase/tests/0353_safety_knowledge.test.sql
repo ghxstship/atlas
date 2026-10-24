@@ -106,7 +106,7 @@ select throws_ok(format($$insert into app.verbiage_terms (org_id, term, casing_r
   '23514', null, 'inv_24_no_em_dash: verbiage refuses the em dash (invariant 24)');
 select throws_ok($$insert into app.verbiage_terms (org_id, term, casing_rule, definition) values ((select id from world where key = 'org_a'), 'Load-In', 'Title Case', 'No period')$$,
   '23514', null, 'a definition is a period-terminated sentence');
-with x as (insert into app.sops (org_id, code, title, body) values (pg_temp.id('org_a'), 'SOP-001', 'Working at Height', 'Wear a harness.') returning id) insert into world select 'sop', id from x;
+with x as (insert into app.sops (org_id, code, title, body) values (pg_temp.id('org_a'), 'SOP-101', 'Working at Height', 'Wear a harness.') returning id) insert into world select 'sop', id from x;
 select pg_temp.as_user('dave');
 select throws_ok($$insert into app.sop_acknowledgments (sop_id, person_id) values ((select id from world where key = 'sop'), (select id from world where key = 'dave'))$$,
   'XR001', 'sop_unpublished: Only a published SOP is acknowledged.', 'an unpublished SOP is not acknowledged');

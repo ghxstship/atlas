@@ -157,10 +157,10 @@ select throws_ok($$insert into app.rate_card_lines (rate_card_id, role_code, wor
 insert into app.rate_card_lines (rate_card_id, role_code, worker_classification, pay_basis, arrangement, canon_rate_card_id, overtime_rule_id, rate_minor)
 values (pg_temp.id('rc'), '0000.50.01', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Retainer', 'LRC-001', 'OTR-002', 85000);
 select throws_ok($$select rate_minor from app.rate_card_lines$$, '42501', null, 'a Restricted rate is not selectable directly');
-select is((select rate_minor from app.rate_card_lines_masked), null::bigint, 'without data.restricted.read.payroll the rate is masked');
-select is((select is_masked from app.rate_card_lines_masked), true, 'and marked masked');
+select is((select rate_minor from app.rate_card_lines_masked where rate_card_id = pg_temp.id('rc')), null::bigint, 'without data.restricted.read.payroll the rate is masked');
+select is((select is_masked from app.rate_card_lines_masked where rate_card_id = pg_temp.id('rc')), true, 'and marked masked');
 select pg_temp.as_user('alice');
-select is((select rate_minor from app.rate_card_lines_masked), 85000::bigint, 'the holder of data.restricted.read.payroll reads the rate');
+select is((select rate_minor from app.rate_card_lines_masked where rate_card_id = pg_temp.id('rc')), 85000::bigint, 'the holder of data.restricted.read.payroll reads the rate');
 select pg_temp.as_user('bob');
 insert into app.pay_rates (membership_id, role_code, rate_minor, currency_code, effective_from) values (pg_temp.id('frank@org_a'), '0000.50.01', 3200, 'USD', '2027-01-01');
 select pg_temp.as_user('frank');
