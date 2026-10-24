@@ -135,11 +135,24 @@ export function rememberOverlayOpener(): void {
   requestedBy = active instanceof HTMLElement && active !== document.body ? active : null;
 }
 
+/** Whether an element and its ancestors are displayed (React hides a suspended boundary's content). */
+function displayed(element: HTMLElement): boolean {
+  for (let node: HTMLElement | null = element; node; node = node.parentElement) {
+    if (getComputedStyle(node).display === "none") return false;
+  }
+  return true;
+}
+
 /**
  * Focus return for an overlay opened without its own trigger (a hotkey, a row click): remembers the
  * element focused when `open` turns true (or, with focus on the page body, the control that asked
  * for the overlay) and hands it back on close, so focus never drops to the page body (WCAG 2.4.3).
  * Pass the result to Radix `onCloseAutoFocus`.
+ *
+ * A route's loading state can hide an open overlay together with its opener (React hides a
+ * suspended boundary's content and runs its effects again when it shows it). Radix then reports a
+ * close while both are hidden, and this effect runs again with focus on the page body; the opener
+ * survives both and takes focus on the real close.
  */
 export function useReturnFocus(open: boolean): (event: Event) => void {
   const opener = useRef<HTMLElement | null>(null);
@@ -149,16 +162,21 @@ export function useReturnFocus(open: boolean): (event: Event) => void {
     if (open) {
       const active = document.activeElement;
       const focused = active instanceof HTMLElement && active !== document.body ? active : null;
-      opener.current = focused ?? (requestedBy?.isConnected ? requestedBy : null);
+      const requested = requestedBy?.isConnected ? requestedBy : null;
       requestedBy = null;
+      // Kept from the run before when shown again: the overlay has been open all along.
+      opener.current = opener.current?.isConnected ? opener.current : (focused ?? requested);
     }
   }, [open]);
   return useCallback((event: Event) => {
     const target = opener.current;
-    opener.current = null;
-    if (target?.isConnected) {
-      event.preventDefault();
-      target.focus();
+    if (!target?.isConnected) {
+      opener.current = null;
+      return;
     }
+    event.preventDefault();
+    if (!displayed(target)) return;
+    opener.current = null;
+    target.focus();
   }, []);
 }

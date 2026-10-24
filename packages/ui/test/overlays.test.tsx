@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { useState as useStateHook } from "react";
+import { Suspense, useState as useStateHook } from "react";
 import { describe, expect, it, vi } from "vitest";
 import {
   Accordion,
@@ -192,6 +192,75 @@ describe("focus return", () => {
     row.focus();
     await userEvent.keyboard("{Enter}");
     expect(screen.getByRole("dialog", { name: "Install the stage deck" })).toBeTruthy();
+    await userEvent.keyboard("{Escape}");
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(row);
+  });
+
+  it("hands focus back after a loading state hid the open peek and its row", async () => {
+    // The page re-suspends while the peek is open: React hides the row and the peek, Radix reports a
+    // close, and both effects run again when the content shows.
+    let release: () => void = () => undefined;
+    let pending: Promise<void> | null = null;
+    function Gate() {
+      if (pending) throw pending;
+      return null;
+    }
+    function App() {
+      const [open, setOpen] = useStateHook(false);
+      const [, setTick] = useStateHook(0);
+      return (
+        <Suspense fallback={<p>Loading</p>}>
+          <button type="button" onClick={() => setOpen(true)}>
+            Open NWS-3
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              pending = new Promise<void>((resolve) => {
+                release = () => {
+                  pending = null;
+                  resolve();
+                };
+              });
+              setTick((n) => n + 1);
+            }}
+          >
+            Load
+          </button>
+          <Gate />
+          {open ? (
+            <SidePeek
+              open
+              onOpenChange={setOpen}
+              recordKey="NWS-3"
+              kind="Task"
+              title="Hang the main truss"
+              state="scheduled"
+              stateLabel="Scheduled"
+            >
+              Activity
+            </SidePeek>
+          ) : null}
+        </Suspense>
+      );
+    }
+    render(<App />);
+    const row = screen.getByRole("button", { name: "Open NWS-3" });
+    row.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(screen.getByRole("dialog", { name: "Hang the main truss" })).toBeTruthy();
+    act(() => screen.getByRole("button", { name: "Load" }).click());
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+    await act(async () => {
+      release();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
     await userEvent.keyboard("{Escape}");
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
