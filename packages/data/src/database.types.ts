@@ -32203,6 +32203,83 @@ export type Database = {
           },
         ];
       };
+      person_push_devices: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expo_push_token: string | null;
+          id: string;
+          last_seen_at: string;
+          person_id: string;
+          platform: string;
+          revoked_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          web_app: string | null;
+          web_auth: string | null;
+          web_endpoint: string | null;
+          web_p256dh: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expo_push_token?: string | null;
+          id?: string;
+          last_seen_at?: string;
+          person_id: string;
+          platform: string;
+          revoked_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          web_app?: string | null;
+          web_auth?: string | null;
+          web_endpoint?: string | null;
+          web_p256dh?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expo_push_token?: string | null;
+          id?: string;
+          last_seen_at?: string;
+          person_id?: string;
+          platform?: string;
+          revoked_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          web_app?: string | null;
+          web_auth?: string | null;
+          web_endpoint?: string | null;
+          web_p256dh?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "person_push_devices_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_push_devices_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_push_devices_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       person_references: {
         Row: {
           contact_email: string | null;
@@ -35724,8 +35801,9 @@ export type Database = {
           notification_created_at: string;
           notification_delivery_id: string;
           org_id: string;
+          person_push_device_id: string | null;
           push_service: string;
-          push_subscription_id: string;
+          push_subscription_id: string | null;
           receipt_checked_at: string | null;
           updated_at: string;
           updated_by: string | null;
@@ -35743,8 +35821,9 @@ export type Database = {
           notification_created_at: string;
           notification_delivery_id: string;
           org_id: string;
+          person_push_device_id?: string | null;
           push_service?: string;
-          push_subscription_id: string;
+          push_subscription_id?: string | null;
           receipt_checked_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -35761,8 +35840,9 @@ export type Database = {
           notification_created_at?: string;
           notification_delivery_id?: string;
           org_id?: string;
+          person_push_device_id?: string | null;
           push_service?: string;
-          push_subscription_id?: string;
+          push_subscription_id?: string | null;
           receipt_checked_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -35787,6 +35867,13 @@ export type Database = {
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "push_tickets_person_push_device_id_fkey";
+            columns: ["person_push_device_id"];
+            isOneToOne: false;
+            referencedRelation: "person_push_devices";
             referencedColumns: ["id"];
           },
           {
@@ -61477,6 +61564,10 @@ export type Database = {
       };
       register_onboarding_upload: {
         Args: { p_checksum_sha256: string; p_object_name: string; p_title: string };
+        Returns: string;
+      };
+      register_push_device: {
+        Args: { p_expo_push_token: string; p_platform: string };
         Returns: string;
       };
       register_web_push: {
