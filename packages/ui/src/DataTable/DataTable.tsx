@@ -182,14 +182,15 @@ function CellValue({
 
 /**
  * The full text of a cell that may be cut off with an ellipsis, as its title (Section 15: a longer
- * translation never hides text). Wrapping columns and numbers never clip.
+ * translation never hides text). Numbers never clip. A wrap column's cell carries the title too:
+ * cellClass still keeps it to one line, because cx only joins classes and its whitespace-nowrap
+ * wins over the column's whitespace-normal.
  */
 function cellTitle(
   column: ReferenceDataTableColumn | undefined,
   value: unknown,
 ): string | undefined {
-  if (!column || column.wrap || column.type === "money" || column.type === "number")
-    return undefined;
+  if (!column || column.type === "money" || column.type === "number") return undefined;
   if (column.type === "state") return isStateValue(value) ? value.label : undefined;
   return typeof value === "string" && value !== "" ? value : undefined;
 }
