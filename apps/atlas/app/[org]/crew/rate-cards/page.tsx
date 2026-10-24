@@ -29,6 +29,7 @@ import { RateGrid } from "@/components/crew/rate-grid";
 import { CrewRecord } from "@/components/crew/record";
 import { InlineAlert, StateChip } from "@/components/crew/ui";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   flatParams,
@@ -528,7 +529,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         : {})}
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }

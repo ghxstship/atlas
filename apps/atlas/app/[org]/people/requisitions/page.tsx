@@ -23,6 +23,7 @@ import { CrewRecord } from "@/components/crew/record";
 import { FilterSelect } from "@/components/crew/views-filter-select";
 import { PeekBoard } from "@/components/crew/views-peek-board";
 import { PeekTable } from "@/components/crew/views-peek-table";
+import { collectionPeek } from "@/components/shell/collection-peek";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   flatParams,
@@ -34,6 +35,7 @@ import {
 import { money } from "@/lib/crew/format";
 import { fromMinor } from "@/lib/crew/money";
 import { peopleStateIcon } from "@/lib/people/states";
+import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 
@@ -238,7 +240,7 @@ export default async function Page({
         if (search["full"] === "1") return record;
         peek = record;
       }
-    } else if (detail.error.kind !== "not-found") {
+    } else if (!peekRowMissing(detail.error)) {
       throw new Error(`Cannot read requisition: ${detail.error.kind}`);
     }
   }
@@ -527,7 +529,7 @@ export default async function Page({
       }
       peek={
         <>
-          {peek}
+          {collectionPeek(search["peek"], peek)}
           {drawer}
         </>
       }

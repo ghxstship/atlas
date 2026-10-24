@@ -8,6 +8,7 @@ import { ActionForm } from "@/components/operations/action-form";
 import { SelectField, TextField } from "@/components/operations/fields";
 import { Button } from "@/components/ui";
 import { saveCertifiedPayrollHeaderAction } from "@/lib/compliance/actions";
+import { usComplianceFormsOn } from "@/lib/compliance/flag";
 import { lastWeekEnding } from "@/lib/crew/time";
 import type { OrgContext } from "@/lib/shell/context";
 import { getOrgWeekStart } from "@/lib/shell/time-zone";
@@ -17,7 +18,8 @@ import { getOrgWeekStart } from "@/lib/shell/time-zone";
  * 0041). Each covered project keeps its header (contract and wage determination numbers, business
  * name and address, location); issuing a week numbers it and downloads the form as PDF or CSV. Pay
  * rates are Restricted: the database asks for the restricted export capability and step-up
- * authentication, and a refusal answers with its rule.
+ * authentication, and a refusal answers with its rule. Shown only while the org has the
+ * compliance.us_forms flag on (ADR 0033 decision 54, migration 1593).
  */
 
 type T = (key: string, values?: Record<string, string | number>) => string;
@@ -103,7 +105,8 @@ function IssueForm({
 }
 
 export async function CertifiedPayrollPanel({ ctx }: { ctx: OrgContext }) {
-  if (!ctx.capabilities.has("crew.payroll.export")) return null;
+  if (!ctx.capabilities.has("crew.payroll.export") || !(await usComplianceFormsOn(ctx)))
+    return null;
   const t = (await getTranslations("compliance.wh347")) as unknown as T;
   const projects = await listProjects(ctx);
   const headers = (

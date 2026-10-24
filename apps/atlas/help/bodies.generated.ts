@@ -184,7 +184,7 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Pro:" },
-            { t: "text", v: " email and in-app chat, within 1 business day." },
+            { t: "text", v: " email, within 1 business day." },
           ],
           [
             { t: "strong", v: "Team:" },
@@ -201,7 +201,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "The Access plan includes the help center and community forum. The platform team never sees your organization's data unless an owner grants a support session.",
+            v: "The Access plan includes the help center. The platform team never sees your organization's data unless an owner grants a support session.",
           },
         ],
       },
@@ -2314,7 +2314,7 @@ export const HELP_BODIES: HelpBodies = {
           ],
           [
             { t: "strong", v: "Pro:" },
-            { t: "text", v: " correo y chat en la aplicación, en 1 día hábil." },
+            { t: "text", v: " correo, en 1 día hábil." },
           ],
           [
             { t: "strong", v: "Team:" },
@@ -2331,7 +2331,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "El plan Access incluye el centro de ayuda y el foro de la comunidad. El equipo de la plataforma nunca ve los datos de su organización salvo que un propietario conceda una sesión de soporte.",
+            v: "El plan Access incluye el centro de ayuda. El equipo de la plataforma nunca ve los datos de su organización salvo que un propietario conceda una sesión de soporte.",
           },
         ],
       },
