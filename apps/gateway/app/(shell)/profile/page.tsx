@@ -211,7 +211,10 @@ export default async function ProfilePage() {
               {strength.missing.map((step) => (
                 <li key={step} className="flex items-center gap-8 text-text-13">
                   <Icon name="Circle" size={14} />
-                  <Link href={STRENGTH_LINKS[step] as Route} className="text-accent-text underline">
+                  <Link
+                    href={STRENGTH_LINKS[step] as Route}
+                    className="inline-flex min-h-24 items-center text-accent-text underline"
+                  >
                     {t(`gateway.profile.strength.missing.${step}`)}
                   </Link>
                 </li>
