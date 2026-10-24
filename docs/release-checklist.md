@@ -68,7 +68,7 @@ Open questions before public submission:
 3. **Privacy answers:** Product Interaction and Health (`apps/compass/store/ios/app-privacy.md`), and IARC location sharing (`apps/compass/store/age-rating.md`).
 4. **Sentry in Compass** (ADR 0033, decision 9) is not wired; when it is, the privacy answers gain Crash Data and Performance Data in the same release.
 5. **Sign in with Apple.** Built (ADR 0033 decision 58; ADR 0036, amendment of 2026-10-23). The owner sets it up (`infra/runbooks/production.md`, Sign in with Apple (OWNER)) and builds iOS with `EXPO_PUBLIC_APPLE_SIGN_IN=1`. On iOS, Google shows only beside Apple, so `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` can be set before then; a build without Apple shows neither.
-6. **Apple token revocation (guideline 5.1.1(v)).** Not built: when a person who signed in with Apple deletes their account, Apple expects the app to revoke their Apple tokens. It needs an Edge Function holding the Sign in with Apple key and the authorization code from a fresh Apple sign-in (ADR 0036, amendment of 2026-10-23, follow-ups). App Review may ask for it, so decide before submission whether it ships first.
+6. **Apple token revocation (guideline 5.1.1(v)).** Built (ADR 0036, amendment of 2026-10-23, decision 8): deleting an account that signs in with Apple first shows Apple's sheet once more, and the `apple-revoke` Edge Function revokes Compass's Apple tokens. Before submission the owner sets its secrets and deploys it (`infra/runbooks/production.md`, Sign in with Apple (OWNER), step 3); until then the deletion still goes ahead and tells the person to remove Compass in their Apple Account settings.
 
 ## Release day, in order
 

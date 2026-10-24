@@ -337,6 +337,8 @@ None. The site is built from the repository and the OpenAPI document. Project se
 | `XOS_SMS_HELP_CONTACT`                                    | The mailbox or page HELP replies name (OWNER_INPUTS item 6)                                                                                               |
 | `XOS_SMS_ALLOWLIST`, `XOS_SMS_DELIVER_TO_ANY`             | `XOS_SMS_DELIVER_TO_ANY=true` only in production, once Twilio approves the 10DLC campaign (ADR 0033, decision 65)                                         |
 | `XOS_SMS_WEBHOOK_URL`                                     | Only when Twilio calls `sms-webhook` through another host; defaults to the function's own URL                                                             |
+| `APPLE_SIGN_IN_KEY_ID`, `APPLE_SIGN_IN_KEY_PEM`           | The Sign in with Apple key, for `apple-revoke`: revoking Compass's Apple tokens when a person deletes their account ("Sign in with Apple (OWNER)")        |
+| `APPLE_TEAM_ID`, `APPLE_SIGN_IN_CLIENT_IDS`               | The team ID `wallet-pass` also uses; the bundle IDs the key serves, `pro.ghxstship.compass` first                                                         |
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase. The worker schedules read the service role key from Vault (`xos_worker_key`).
 
@@ -756,7 +758,7 @@ Compass offers "Sign in with Apple" on iOS (ADR 0033 decision 58, App Store Revi
 
 ### 2. The Services ID
 
-The Services ID is what Apple knows the web sign-in by, and what the key in step 3 signs a client secret for. Compass's native sign-in does not use it, but it is set up now so the web flow and token revocation (ADR 0036, amendment follow-ups) do not wait on Apple later.
+The Services ID is what Apple knows the web sign-in by, and what the key in step 3 signs a client secret for when Atlas or Gateway offer Apple. Compass's native sign-in and its token revocation use the bundle ID instead, but the Services ID is set up now so the web flow (ADR 0036, amendment follow-ups) does not wait on Apple later.
 
 1. Identifiers, the plus button, **Services IDs**, description `XOS Sign in with Apple`, identifier as in the table.
 2. Tick **Sign in with Apple**, Configure: primary App ID `pro.ghxstship.compass`; Domains and Subdomains `fquuqnzlpobaawucczgq.supabase.co`; Return URLs the Supabase callback URL from the table. Save, then Continue and Register.
@@ -765,7 +767,18 @@ The Services ID is what Apple knows the web sign-in by, and what the key in step
 
 1. Keys, the plus button, name `XOS Sign in with Apple`, tick **Sign in with Apple**, Configure: primary App ID `pro.ghxstship.compass`. Register.
 2. Download the `.p8` file (Apple offers it once) into the owner's secret store with its Key ID and the Team ID, and delete the downloaded copy.
-3. Nothing in Compass or Supabase needs the key today. It signs the client secret Supabase's Apple provider takes for the web flow, a JWT that Apple accepts for at most six months: when Atlas or Gateway offer Apple, generate it from the Team ID, Key ID, Services ID and the key with Supabase's documented tool, enter it in step 4's Secret Key field and set a reminder to replace it within six months.
+3. Give the key to the `apple-revoke` Edge Function. When a person who signs in with Apple deletes their account, Compass asks Apple's sheet once more for a fresh authorization code, and the function exchanges it and revokes Compass's Apple tokens, as App Store Review Guideline 5.1.1(v) asks (ADR 0036, amendment of 2026-10-23, decision 8). It signs a five-minute client secret for each request and stores nothing. Until these secrets are set it answers 503, and Compass tells the person to remove Compass from Sign in with Apple in their Apple Account settings:
+
+   ```sh
+   npx supabase secrets set --project-ref <project-ref> \
+     APPLE_TEAM_ID=<10 characters> APPLE_SIGN_IN_KEY_ID=<10 characters> \
+     APPLE_SIGN_IN_KEY_PEM="$(cat AuthKey_<key ID>.p8)" APPLE_SIGN_IN_CLIENT_IDS=pro.ghxstship.compass
+   npx supabase functions deploy apple-revoke --project-ref <project-ref>
+   ```
+
+   `APPLE_TEAM_ID` is the same team ID `wallet-pass` uses. `APPLE_SIGN_IN_CLIENT_IDS` lists the bundle IDs this team's key serves, comma-separated: Compass's, and a tenant build's only when that build is signed by the same team. A tenant build in the tenant's own Apple account needs its own key and is not revoked by this function, so its people get the same instruction. Read the `.p8` file from the secret store; the key never goes into this repository, a ticket or a chat.
+
+4. The same key signs the client secret Supabase's Apple provider takes for the web flow, a JWT that Apple accepts for at most six months: when Atlas or Gateway offer Apple, generate it from the Team ID, Key ID, Services ID and the key with Supabase's documented tool, enter it in step 4's Secret Key field and set a reminder to replace it within six months.
 
 ### 4. Supabase (Authentication, Sign In / Providers, Apple) (OWNER CONFIRMS)
 
@@ -798,7 +811,8 @@ Apple forwards mail sent to a `privaterelay.appleid.com` address only from domai
 3. Sign in with Apple choosing Hide My Email: a new account; a sign-in link sent to it arrives (step 5).
 4. Sign in with Apple using the email of an existing XOS account: you land in that account, its name unchanged.
 5. Close Apple's sheet: the sign-in page says you left before it finished.
-6. Compass on Android: Continue with Google only, as before.
+6. In the account from step 2, Settings, Account, delete the account: Compass shows Apple's sheet once more before deleting. Afterwards the Apple Account's Sign in with Apple list (Settings on the iPhone, the Apple Account, Sign in with Apple) no longer shows Compass. A 503 from `apple-revoke` in the function logs means step 3's secrets are missing.
+7. Compass on Android: Continue with Google only, as before.
 
 Rollback: build Compass without `EXPO_PUBLIC_APPLE_SIGN_IN`, which removes both buttons on iOS. Turning the provider off in Supabase alone leaves the button in place and refuses the sign-in. Accounts keep their apple identity and can still sign in by email.
 
