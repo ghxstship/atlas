@@ -127,7 +127,9 @@ export async function iconControlProblems(page: Page): Promise<string[]> {
 /**
  * Gate 27 (cognitive load): no screen has more than one primary action, more than 5 visible toolbar
  * actions, or more than 7 visible form fields before "More fields" (collapsed fields are not
- * visible). An open dialog is its own screen; the page behind it is not counted.
+ * visible). An open dialog is its own screen; the page behind it is not counted. A field is one
+ * question (Section 11.10): a radio group or a list of checkboxes under one name counts once, and so
+ * does a grid of controls laid out in a table (a notification matrix).
  */
 export async function cognitiveLoadProblems(page: Page): Promise<string[]> {
   return page.evaluate(() => {
@@ -170,6 +172,7 @@ export async function cognitiveLoadProblems(page: Page): Promise<string[]> {
     const forms = dialog ? [dialog] : [...screen.querySelectorAll("form")];
     for (const f of forms) {
       const seen = new Set<string>();
+      const tables = [...f.querySelectorAll("table")];
       let count = 0;
       for (const el of f.querySelectorAll<HTMLElement>(
         "input, select, textarea, [role='combobox'], [role='switch']",
@@ -178,8 +181,16 @@ export async function cognitiveLoadProblems(page: Page): Promise<string[]> {
         const type = el.getAttribute("type") ?? "";
         if (["hidden", "submit", "button", "reset"].includes(type)) continue;
         if (type === "search") continue;
+        const name = el.getAttribute("name");
+        const table = el.closest("table");
         const key =
-          type === "radio" ? `radio:${el.getAttribute("name")}` : `el:${count}:${seen.size}`;
+          table && tables.includes(table)
+            ? `table:${tables.indexOf(table)}`
+            : type === "radio"
+              ? `radio:${name}`
+              : type === "checkbox" && name
+                ? `checkbox:${name}`
+                : `el:${count}:${seen.size}`;
         if (seen.has(key)) continue;
         seen.add(key);
         count += 1;
