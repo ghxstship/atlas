@@ -142,8 +142,9 @@ jobs:
   e2e:
     name: Playwright ${{ matrix.suite }} (${{ matrix.app }}) (gates 6, 8)
     runs-on: ubuntu-24.04
-    # Atlas runs about 150 journeys and page checks, about 40 minutes on a laptop.
-    timeout-minutes: 90
+    # Atlas runs about 240 journeys, 40 minutes on a laptop and 80 to 95 on a hosted runner (run
+    # 40106184653 was cut off at 90 with 206 passed and none failed).
+    timeout-minutes: 150
     strategy:
       fail-fast: false
       # Journeys (gate 6) and axe on every signed-in page per role (gate 8) run on separate runners;
