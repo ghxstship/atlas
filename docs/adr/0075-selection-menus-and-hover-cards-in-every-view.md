@@ -48,8 +48,8 @@ system's `HoverCard` shows it. A shift, an invoice, an asset unit or a collectio
 of them, so the card then shows the key, title, state and one more line. Server pages compute
 previews for client tables (`PeekTable` rows, `PeekCalendar` events), because a function cannot
 cross from a server component. A key a page shows without its record (an Activity line, a
-dependency on a record page) is read on demand by `recordCardAction`, as the viewer, and cached
-for the session like person cards.
+dependency on a record page, the punch, recurring and Home lists) is read on demand by
+`recordCardAction`, as the viewer, and cached for the session like person cards.
 
 ### 4. The same record menu everywhere, including the record page
 
