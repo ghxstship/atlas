@@ -259,16 +259,10 @@ const FieldHistoryEvent = z
   });
 
 const historyQuery = z.object({
-  limit: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(1000)
-    .optional()
-    .meta({
-      description: "At most this many changes, newest first; 200 when omitted.",
-      example: 50,
-    }),
+  limit: z.coerce.number().int().min(1).max(1000).optional().meta({
+    description: "At most this many changes, newest first; 200 when omitted.",
+    example: 50,
+  }),
 });
 
 /** `fieldHistory` on one resource that keeps a field history (private.field_history_subjects). */
