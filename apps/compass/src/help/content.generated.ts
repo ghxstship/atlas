@@ -104,6 +104,47 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "blocked-people",
+        title: "Blocked people",
+        summary: "Who you blocked, what a block hides, and how to unblock someone.",
+        kind: "page",
+        nodes: ["settings.profile-privacy"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Blocked People lists everyone you blocked. You block someone from the three dots on their post, message or shout-out.",
+              },
+            ],
+          },
+          { t: "h2", v: "What a block hides" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Their posts, comments on posts, shout-outs and messages, in every conversation, and the notifications about them. A post that asks you to acknowledge it still shows. They are not told, and their work with you carries on as before.",
+              },
+            ],
+          },
+          { t: "h2", v: "Unblock" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Choose " },
+              { t: "strong", v: "Unblock" },
+              {
+                t: "text",
+                v: " next to the name. Their posts and messages show again. Unblocking needs a connection.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "client-reports",
         title: "Reports",
         summary: "The reports an organization shared with its client, listed in Compass.",
@@ -1630,6 +1671,15 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: ". Messages you write offline send when you reconnect." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tap the three dots on a message from someone else to report it to your organization's moderators, who review it within 24 hours, or to block its author. A block hides their messages in every conversation. Reporting and blocking need a connection.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -1764,6 +1814,18 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "Acknowledgments and votes work offline and upload when you reconnect.",
               },
+            ],
+          },
+          { t: "h2", v: "Report or block" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tap the three dots on someone else's post to report it to your organization's moderators, who review it within 24 hours, or to block its author. Nobody is told who reported. See ",
+              },
+              { t: "link", v: "Blocked people", href: "help:blocked-people" },
+              { t: "text", v: "." },
             ],
           },
         ],
@@ -1951,6 +2013,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Send" },
               { t: "text", v: ". Recognitions also appear in the feed." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tap the three dots on a shout-out from someone else to report it to your organization's moderators or to block its author.",
+              },
             ],
           },
         ],
@@ -2182,6 +2253,47 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Nueva conversación" },
               { t: "text", v: " empieza de nuevo." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "blocked-people",
+        title: "Personas bloqueadas",
+        summary: "A quién bloqueaste, qué oculta un bloqueo y cómo desbloquear a alguien.",
+        kind: "page",
+        nodes: ["settings.profile-privacy"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Personas bloqueadas muestra a todas las personas que bloqueaste. Bloqueas a alguien desde los tres puntos de su publicación, mensaje o reconocimiento.",
+              },
+            ],
+          },
+          { t: "h2", v: "Lo que oculta un bloqueo" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Sus publicaciones, sus comentarios en publicaciones, sus reconocimientos y sus mensajes, en todas las conversaciones, y las notificaciones sobre ellos. Una publicación que te pide confirmar la lectura se sigue mostrando. No se le avisa, y su trabajo contigo sigue como antes.",
+              },
+            ],
+          },
+          { t: "h2", v: "Desbloquear" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Elige " },
+              { t: "strong", v: "Desbloquear" },
+              {
+                t: "text",
+                v: " junto al nombre. Sus publicaciones y mensajes vuelven a mostrarse. Desbloquear necesita conexión.",
+              },
             ],
           },
         ],
@@ -3782,6 +3894,15 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: ". Los mensajes que escribes sin conexión se envían al reconectar." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Toca los tres puntos en un mensaje de otra persona para denunciarlo ante los moderadores de tu organización, que lo revisan en 24 horas, o para bloquear a quien lo escribió. Un bloqueo oculta sus mensajes en todas las conversaciones. Denunciar y bloquear necesitan conexión.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -3923,6 +4044,18 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "Las confirmaciones y los votos funcionan sin conexión y se suben al reconectar.",
               },
+            ],
+          },
+          { t: "h2", v: "Denunciar o bloquear" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Toca los tres puntos en la publicación de otra persona para denunciarla ante los moderadores de tu organización, que la revisan en 24 horas, o para bloquear a quien la escribió. No se avisa a nadie de quién denunció. Consulta ",
+              },
+              { t: "link", v: "Personas bloqueadas", href: "help:blocked-people" },
+              { t: "text", v: "." },
             ],
           },
         ],
@@ -4142,6 +4275,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Enviar" },
               { t: "text", v: ". Los reconocimientos también aparecen en el muro." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Toca los tres puntos en un reconocimiento de otra persona para denunciarlo ante los moderadores de tu organización o para bloquear a quien lo escribió.",
+              },
             ],
           },
         ],

@@ -833,7 +833,10 @@
     "guest_credential_holder": "That credential belongs to someone else.",
     "lost_item_not_held": "Only a held item takes a claim.",
     "lost_item_claim_settled": "This claim is already settled.",
-    "lost_item_rejection_note": "Say why the claim is rejected."
+    "lost_item_rejection_note": "Say why the claim is rejected.",
+    "content_report_own": "You cannot report your own post, comment or message.",
+    "content_report_removed": "This was already removed.",
+    "block_self": "You cannot block yourself."
   },
   "settingsPanels": {
     "groupsTitle": "Group spaces",

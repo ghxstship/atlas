@@ -1,0 +1,74 @@
+appId: pro.ghxstship.compass
+# Owner decision 19 (App Store Review Guideline 1.2): the Demo Field Lead reports a post by the Demo Producer to the
+# org's moderators, then blocks the Producer from the same sheet. The Producer's posts leave the feed, except the
+# pinned announcement that asks for acknowledgment (0229 seeds it). The flow lifts the block in Settings, Blocked
+# People, so the flows after it see the feed as seeded. The report stays open for the moderators in Atlas.
+# Named after its file: config.yaml orders flows by name.
+name: field-report-block
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: workforce/feed
+# Each post by someone else carries the three dots; the Field Lead wrote none of the seeded posts.
+- extendedWaitUntil:
+    visible:
+      id: "content-actions"
+    timeout: 60000
+- assertVisible: ".*Help us pick the Saturday crew meal.*"
+- tapOn:
+    id: "content-actions"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "content-safety"
+    timeout: 10000
+- tapOn:
+    id: "content-report"
+- tapOn:
+    id: "report-reason-spam"
+- tapOn:
+    id: "report-details"
+- inputText: "Maestro check"
+- hideKeyboard
+- tapOn:
+    id: "report-submit"
+- extendedWaitUntil:
+    visible:
+      id: "report-sent"
+    timeout: 30000
+# Block the author from the confirmation, as a person who reported them would.
+- tapOn:
+    id: "report-block"
+- tapOn:
+    id: "block-confirm"
+- extendedWaitUntil:
+    visible:
+      id: "block-done-sentence"
+    timeout: 30000
+- tapOn:
+    id: "block-done"
+# The feed reads again without the Producer's posts; the announcement that needs acknowledgment stays.
+- extendedWaitUntil:
+    notVisible: ".*Help us pick the Saturday crew meal.*"
+    timeout: 30000
+- assertVisible: ".*Wristband Change Friday.*"
+# Lift the block so later flows see the seeded feed.
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/profile-privacy
+- extendedWaitUntil:
+    visible:
+      id: "blocked-unblock"
+    timeout: 30000
+- tapOn:
+    id: "blocked-unblock"
+- extendedWaitUntil:
+    visible:
+      id: "blocked-message"
+    timeout: 30000

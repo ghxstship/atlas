@@ -833,7 +833,10 @@
     "guest_credential_holder": "Esa credencial es de otra persona.",
     "lost_item_not_held": "Solo un objeto guardado puede recibir un reclamo.",
     "lost_item_claim_settled": "Este reclamo ya se resolvió.",
-    "lost_item_rejection_note": "Indica por qué se rechaza el reclamo."
+    "lost_item_rejection_note": "Indica por qué se rechaza el reclamo.",
+    "content_report_own": "No puedes denunciar tu propia publicación, comentario o mensaje.",
+    "content_report_removed": "Esto ya se eliminó.",
+    "block_self": "No puedes bloquearte a ti mismo."
   },
   "settingsPanels": {
     "groupsTitle": "Espacios de grupo",
