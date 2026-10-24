@@ -283,6 +283,7 @@
     "assets": "Activos",
     "credentials": "Credenciales",
     "safety": "Seguridad laboral",
+    "workforce": "Operaciones del sitio",
     "people": "Personas",
     "opportunities": "Oportunidades",
     "crew": "Equipo",
@@ -296,8 +297,7 @@
     "audit": "Registro de auditoría",
     "org": "Configuración y miembros de la organización",
     "data": "Datos, exportaciones y campos Restricted",
-    "me": "Tu propia cuenta",
-    "workforce": "Operaciones del sitio"
+    "me": "Tu propia cuenta"
   },
   "oauthApps": {
     "title": "Apps OAuth",

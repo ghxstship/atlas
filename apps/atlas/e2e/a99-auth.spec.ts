@@ -5,6 +5,7 @@ import pg from "pg";
 import {
   createOrganization,
   expectAccessible,
+  openChoices,
   PASSWORD,
   signUp,
   testEmail,
@@ -283,6 +284,7 @@ test("step-up on API key creation and on a role change", async ({ page, browser 
   const keys = page.getByRole("region", { name: "API keys" });
   const create = keys.getByRole("form", { name: "Create an API key" });
   await create.getByLabel("Name").fill("Payroll sync");
+  await openChoices(create, "Areas it may use");
   await create.getByRole("checkbox", { name: "Crew", exact: true }).check();
   await create.getByRole("button", { name: "Create key" }).click();
   const setUp = page.getByRole("dialog", { name: "Set up a second factor" });

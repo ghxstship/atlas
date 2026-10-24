@@ -275,7 +275,6 @@
     "chosen": "{departments, plural, one {# departamento} other {# departamentos}} y {disciplines, plural, one {# disciplina} other {# disciplinas}} en uso.",
     "departments": "Departamentos",
     "departmentsHelp": "Al desmarcar un departamento también se desmarcan sus disciplinas.",
-    "disciplinesOf": "{name}: {count, plural, one {# disciplina} other {# disciplinas}}",
     "disciplines": "Disciplinas de {name}",
     "option": "{name} · {code}",
     "extensionsTitle": "Sus extensiones de disciplina",

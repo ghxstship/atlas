@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import pg from "pg";
 import { settle } from "./engine-test";
 
@@ -111,4 +111,14 @@ export async function endTrial(slug: string): Promise<void> {
   } finally {
     await client.end();
   }
+}
+
+/**
+ * Opens a closed group of choices in a settings form (a long checkbox list, a notification category; gate 27 keeps
+ * them behind their summary), named by the title its summary shows, so its boxes can be checked.
+ */
+export async function openChoices(scope: Page | Locator, title: string): Promise<void> {
+  const summary = scope.locator("summary").filter({ hasText: title });
+  await summary.click();
+  await expect(summary.locator("xpath=..")).toHaveAttribute("open", "");
 }
