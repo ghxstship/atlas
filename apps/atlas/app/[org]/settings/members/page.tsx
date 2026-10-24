@@ -6,6 +6,7 @@ import {
   RemoveMemberButton,
   RevokeInviteButton,
 } from "@/components/settings/forms";
+import { LimitBanners } from "@/components/plan-limits/banners";
 import { ContributedPanels } from "@/components/settings/contributed-panels";
 import { SectionHeader } from "@/components/settings/section-header";
 import { requireNode } from "@/lib/shell/require-node";
@@ -14,7 +15,8 @@ import { getTranslate } from "@/lib/shell/translate";
 /**
  * Members (Section 4.5.6, item 4): invite with a role and expiry (app.invite_member), change roles,
  * remove members (app.end_membership) and revoke pending invitations. Invitation email is A18's;
- * until it lands, the inviter shares the one-time link shown after creating the invite.
+ * until it lands, the inviter shares the one-time link shown after creating the invite. Seats a plan limit made
+ * read-only are counted at the top (A107).
  */
 export default async function MembersSettingsPage({
   params,
@@ -46,6 +48,7 @@ export default async function MembersSettingsPage({
   return (
     <>
       <SectionHeader node="settings.members" />
+      <LimitBanners ctx={ctx} limits={["seats", "field_members"]} />
       {canInvite ? (
         <InviteForm
           org={ctx.org.slug}

@@ -1,6 +1,7 @@
 import { getSeatUsage, getSubscription } from "@xos/data";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { BillingLifecycleNotice } from "@/components/lifecycle/billing-notice";
+import { ContributedPanels } from "@/components/settings/contributed-panels";
 import { SectionHeader } from "@/components/settings/section-header";
 import { requireNode } from "@/lib/shell/require-node";
 import { Button, Card, InlineAlert } from "@/components/ui";
@@ -12,12 +13,14 @@ import { getTranslate } from "@/lib/shell/translate";
  * usage, the plans of packages/schemas/plans.yaml with their prices, seats, extra-seat prices, limits
  * and features, and the Aurora request pack (ADR 0035). Subscribing, buying extra seats and buying a
  * pack run through Stripe (@xos/platform billing); their buttons stay disabled until Atlas is connected
- * to billing. Enterprise is sold by quote and never checks out.
+ * to billing. Enterprise is sold by quote and never checks out. Panels other modules contribute follow, such as
+ * A107's choice of what stays writable over the plan's limits.
  */
 export default async function BillingSettingsPage({
   params,
 }: PageProps<"/[org]/settings/billing-and-plan">) {
-  const ctx = await requireNode("settings.billing-and-plan", await params);
+  const routeParams = await params;
+  const ctx = await requireNode("settings.billing-and-plan", routeParams);
   const [subscription, seats, t, tp, translate, format] = await Promise.all([
     getSubscription(ctx.viewer.db, ctx.org.id),
     getSeatUsage(ctx.viewer.db, ctx.org.id),
@@ -198,6 +201,7 @@ export default async function BillingSettingsPage({
           })}
         </p>
       ) : null}
+      <ContributedPanels node="settings.billing-and-plan" ctx={ctx} params={routeParams} />
     </>
   );
 }

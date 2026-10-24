@@ -156,6 +156,7 @@
     "unexpected": "Algo salió mal al guardar este cambio. Inténtalo de nuevo y contacta a soporte si sigue ocurriendo.",
     "refused": "El cambio fue rechazado ({rule}). Revisa el proyecto e inténtalo de nuevo.",
     "plan_limit_exceeded": "Se alcanzó el límite de proyectos activos de tu plan. Completa o cancela un proyecto, o cambia de plan, para agregar otro.",
+    "plan_limit_read_only": "Este proyecto es de solo lectura porque la organización supera el límite de proyectos activos de su plan. El aviso en la parte superior de la página explica cómo levantarlo.",
     "time_zone_unknown": "Esa zona horaria no se reconoce. Elige una de la lista.",
     "gate_criteria_unmet": "La compuerta {gate} no puede pasar hasta que cada criterio bloqueante tenga evidencia. Falta: {criteria}.",
     "gate_phase_conflict": "El proyecto pasó a otra fase mientras trabajabas. Vuelve a cargar para ver su compuerta actual.",
