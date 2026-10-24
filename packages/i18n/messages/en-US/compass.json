@@ -833,6 +833,8 @@
     "deleteHoldHint": "Hold for 2 seconds to delete your account",
     "stepUpPrompt": "Confirm it is you to delete your account",
     "stepUpFailed": "That did not confirm it is you, so nothing was deleted. Try again.",
+    "appleCancelled": "Confirm with Apple so Compass stops using your Apple Account, then delete again. Nothing was deleted.",
+    "appleNotRevoked": "Compass could not stop using your Apple Account. To finish, remove Compass from Sign in with Apple in your Apple Account settings.",
     "refusedTitle": "Your account was not deleted",
     "failed": "Your account was not deleted: {reason}. Try again.",
     "doneTitle": "Your account is deleted",

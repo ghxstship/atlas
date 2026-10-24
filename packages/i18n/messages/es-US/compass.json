@@ -833,6 +833,8 @@
     "deleteHoldHint": "Mantén presionado 2 segundos para eliminar tu cuenta",
     "stepUpPrompt": "Confirma que eres tú para eliminar tu cuenta",
     "stepUpFailed": "No se confirmó que eres tú, así que no se eliminó nada. Vuelve a intentarlo.",
+    "appleCancelled": "Confirma con Apple para que Compass deje de usar tu Cuenta de Apple y vuelve a eliminar. No se eliminó nada.",
+    "appleNotRevoked": "Compass no pudo dejar de usar tu Cuenta de Apple. Para terminar, quita Compass de Iniciar sesión con Apple en la configuración de tu Cuenta de Apple.",
     "refusedTitle": "Tu cuenta no se eliminó",
     "failed": "Tu cuenta no se eliminó: {reason}. Vuelve a intentarlo.",
     "doneTitle": "Tu cuenta está eliminada",

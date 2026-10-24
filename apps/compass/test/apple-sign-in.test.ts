@@ -6,11 +6,14 @@ import {
   appleFullName,
   appleTokenRefusal,
   readAppleSignIn,
+  revokeAppleBeforeDeletion,
+  signedInWithApple,
   signInButtons,
   signInWithApple,
   type AppleCredential,
   type AppleIdTokenAuth,
   type AppleNative,
+  type AppleRevokeCall,
   type NonceSource,
 } from "../src/domain/appleSignIn";
 
@@ -94,11 +97,16 @@ const nonces: NonceSource = {
 function native(
   credential: AppleCredential | Error,
   failure: AppleNative["failure"] = () => "other",
+  reauthorization: string | null | Error = "fresh-authorization-code",
 ) {
   return {
     signIn: vi.fn<AppleNative["signIn"]>(async () => {
       if (credential instanceof Error) throw credential;
       return credential;
+    }),
+    reauthorize: vi.fn<AppleNative["reauthorize"]>(async () => {
+      if (reauthorization instanceof Error) throw reauthorization;
+      return reauthorization;
     }),
     failure: vi.fn(failure),
   } satisfies AppleNative;
@@ -220,6 +228,120 @@ describe("the nonce flow", () => {
     expect(appleFullName(CREDENTIAL)).toBe("Ana Reyes");
     expect(appleFullName({ ...CREDENTIAL, familyName: null })).toBe("Ana");
     expect(appleFullName({ ...CREDENTIAL, givenName: " ", familyName: null })).toBeNull();
+  });
+});
+
+describe("revoking Compass's Apple tokens before an account deletion", () => {
+  function revoker(status: number, reason: string | null = null) {
+    return vi.fn<AppleRevokeCall>(async () => ({ status, reason }));
+  }
+
+  it("knows an account that signs in with Apple by its identities", () => {
+    expect(signedInWithApple([{ provider: "email" }, { provider: "apple" }])).toBe(true);
+    expect(signedInWithApple([{ provider: "email" }, { provider: "google" }])).toBe(false);
+    expect(signedInWithApple(undefined)).toBe(false);
+  });
+
+  it("hands a fresh authorization code to the function, and revokes", async () => {
+    const apple = native(CREDENTIAL);
+    const revoke = revoker(200);
+    expect(
+      await revokeAppleBeforeDeletion({
+        signedInWithApple: true,
+        appleOnDevice: true,
+        native: async () => apple,
+        revoke,
+      }),
+    ).toEqual({ kind: "revoked" });
+    expect(apple.reauthorize).toHaveBeenCalledTimes(1);
+    expect(apple.signIn).not.toHaveBeenCalled();
+    expect(revoke).toHaveBeenCalledWith("fresh-authorization-code");
+  });
+
+  it("does nothing for an account that does not sign in with Apple", async () => {
+    const apple = native(CREDENTIAL);
+    const revoke = revoker(200);
+    expect(
+      await revokeAppleBeforeDeletion({
+        signedInWithApple: false,
+        appleOnDevice: true,
+        native: async () => apple,
+        revoke,
+      }),
+    ).toEqual({ kind: "not-needed" });
+    expect(apple.reauthorize).not.toHaveBeenCalled();
+    expect(revoke).not.toHaveBeenCalled();
+  });
+
+  it("stops the deletion only when the person closes Apple's sheet", async () => {
+    const revoke = revoker(200);
+    expect(
+      await revokeAppleBeforeDeletion({
+        signedInWithApple: true,
+        appleOnDevice: true,
+        native: async () => native(CREDENTIAL, () => "cancelled", new Error("closed")),
+        revoke,
+      }),
+    ).toEqual({ kind: "cancelled" });
+    expect(revoke).not.toHaveBeenCalled();
+  });
+
+  it("lets the deletion go ahead, unrevoked, whenever Compass cannot revoke", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const base = { signedInWithApple: true, appleOnDevice: true };
+    // No Apple sheet on this device (Android, or a build without Apple).
+    const revoke = revoker(200);
+    expect(
+      await revokeAppleBeforeDeletion({
+        ...base,
+        appleOnDevice: false,
+        native: async () => native(CREDENTIAL),
+        revoke,
+      }),
+    ).toEqual({ kind: "not-revoked" });
+    expect(revoke).not.toHaveBeenCalled();
+    const outcomes = await Promise.all([
+      // The function is not set up yet.
+      revokeAppleBeforeDeletion({
+        ...base,
+        native: async () => native(CREDENTIAL),
+        revoke: revoker(503, "apple_revoke_not_configured"),
+      }),
+      // Apple refused the code, or the network failed.
+      revokeAppleBeforeDeletion({
+        ...base,
+        native: async () => native(CREDENTIAL),
+        revoke: revoker(502, "apple_revoke_exchange_failed"),
+      }),
+      revokeAppleBeforeDeletion({
+        ...base,
+        native: async () => native(CREDENTIAL),
+        revoke: vi.fn<AppleRevokeCall>(async () => {
+          throw new Error("offline");
+        }),
+      }),
+      // The sheet failed for another reason, or sent no code.
+      revokeAppleBeforeDeletion({
+        ...base,
+        native: async () => native(CREDENTIAL, () => "other", new Error("boom")),
+        revoke: revoker(200),
+      }),
+      revokeAppleBeforeDeletion({
+        ...base,
+        native: async () => native(CREDENTIAL, () => "other", null),
+        revoke: revoker(200),
+      }),
+      // The native module did not load.
+      revokeAppleBeforeDeletion({
+        ...base,
+        native: async () => {
+          throw new Error("no module");
+        },
+        revoke: revoker(200),
+      }),
+    ]);
+    expect(outcomes).toEqual(Array.from({ length: 6 }, () => ({ kind: "not-revoked" })));
+    warn.mockRestore();
   });
 });
 

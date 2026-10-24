@@ -459,6 +459,15 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: " for 2 seconds." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "If you sign in with Apple, Compass shows Apple's sheet once more, so it can stop using your Apple Account. If it cannot, your account is still deleted, and Compass tells you to remove it from Sign in with Apple in your Apple Account settings.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -2644,6 +2653,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Eliminar mi cuenta" },
               { t: "text", v: " durante 2 segundos." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Si inicias sesión con Apple, Compass muestra otra vez la hoja de Apple para dejar de usar tu Cuenta de Apple. Si no puede, tu cuenta se elimina de todos modos, y Compass te indica que la quites de Iniciar sesión con Apple en la configuración de tu Cuenta de Apple.",
+              },
             ],
           },
         ],

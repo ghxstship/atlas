@@ -12,6 +12,9 @@
  * (EXPO_PUBLIC_APPLE_SIGN_IN), and on iOS the Google button waits for Apple (Guideline 4.8 asks for Sign in with
  * Apple beside any third-party sign-in), so an iOS build without Apple configured shows neither. Android and other
  * platforms keep Google as before. The native module sits behind AppleNative, so this file stays testable.
+ *
+ * Deleting an account that signs in with Apple first revokes Compass's Apple tokens (revokeAppleBeforeDeletion, App
+ * Store Review Guideline 5.1.1(v)) with a fresh authorization code from Apple's sheet.
  */
 import { googleSignInAvailable, idTokenRefusal, type GoogleClientIds } from "./googleSignIn";
 
@@ -59,6 +62,11 @@ export interface AppleCredential {
 export interface AppleNative {
   /** Shows Apple's sheet asking for the name and email, with the nonce's SHA-256. */
   signIn(options: { readonly hashedNonce: string }): Promise<AppleCredential>;
+  /**
+   * Shows Apple's sheet again, asking for nothing, for a fresh authorization code: the one the account deletion hands
+   * the apple-revoke function. Null when Apple sent none.
+   */
+  reauthorize(): Promise<string | null>;
   /** Classifies an error the module threw. */
   failure(error: unknown): AppleNativeFailure;
 }
@@ -170,4 +178,73 @@ export async function signInWithApple(
     }
   }
   return { kind: "signed-in" };
+}
+
+/** Whether an account signs in with Apple: one of its Supabase Auth identities is Apple's. */
+export function signedInWithApple(
+  identities: readonly { readonly provider: string }[] | null | undefined,
+): boolean {
+  return (identities ?? []).some((identity) => identity.provider === "apple");
+}
+
+/**
+ * The apple-revoke function's answer, as the account deletion reads it: its status and the problem's reason. A network
+ * failure is status 0.
+ */
+export type AppleRevokeCall = (
+  authorizationCode: string,
+) => Promise<{ readonly status: number; readonly reason: string | null }>;
+
+export type AppleRevokeOutcome =
+  /** The account does not sign in with Apple: nothing to revoke. */
+  | { readonly kind: "not-needed" }
+  | { readonly kind: "revoked" }
+  /** The person closed Apple's sheet: the deletion waits until they confirm with Apple. */
+  | { readonly kind: "cancelled" }
+  /**
+   * Compass could not revoke (no Apple sheet on this device, revocation not set up, or Apple or the network failed):
+   * the deletion goes ahead and Compass tells the person how to remove it from their Apple Account themselves.
+   */
+  | { readonly kind: "not-revoked" };
+
+/**
+ * Before an account that signs in with Apple is deleted, revokes Compass's Apple tokens (App Store Review Guideline
+ * 5.1.1(v); ADR 0036, amendment of 2026-10-23): a fresh authorization code from Apple's sheet goes to the apple-revoke
+ * Edge Function, which exchanges it and revokes the token. Only closing the sheet stops the deletion; anything else
+ * that keeps Compass from revoking lets the deletion go ahead, because a person's deletion never waits on Apple.
+ */
+export async function revokeAppleBeforeDeletion(input: {
+  /** Whether the account signs in with Apple (signedInWithApple). */
+  readonly signedInWithApple: boolean;
+  /** Whether this device shows Apple's sheet: iOS, a build with Apple on, and isAvailableAsync. */
+  readonly appleOnDevice: boolean;
+  readonly native: () => Promise<AppleNative>;
+  readonly revoke: AppleRevokeCall;
+}): Promise<AppleRevokeOutcome> {
+  if (!input.signedInWithApple) return { kind: "not-needed" };
+  if (!input.appleOnDevice) return { kind: "not-revoked" };
+  let native: AppleNative;
+  let code: string | null;
+  try {
+    native = await input.native();
+  } catch (error) {
+    console.warn("Loading Sign in with Apple failed", error);
+    return { kind: "not-revoked" };
+  }
+  try {
+    code = await native.reauthorize();
+  } catch (error) {
+    if (native.failure(error) === "cancelled") return { kind: "cancelled" };
+    console.warn("Apple's sheet failed before the account deletion", error);
+    return { kind: "not-revoked" };
+  }
+  if (code === null) return { kind: "not-revoked" };
+  try {
+    const answer = await input.revoke(code);
+    if (answer.status >= 200 && answer.status < 300) return { kind: "revoked" };
+    console.warn("Revoking the Apple tokens failed", answer.status, answer.reason);
+  } catch (error) {
+    console.warn("Revoking the Apple tokens failed", error);
+  }
+  return { kind: "not-revoked" };
 }

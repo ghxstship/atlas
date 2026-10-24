@@ -1,19 +1,22 @@
 /**
  * expo-apple-authentication behind domain/appleSignIn's AppleNative (ADR 0033 decision 58), expo-crypto behind its
- * NonceSource, and the person's own client behind SaveAppleName. The availability check and the sign-in load the
- * module's functions when first called. SignIn.tsx imports its button statically, which Android and a build without
- * Apple can load: the package looks its native module up optionally, and the button renders only when
- * appleAvailable() answers true.
+ * NonceSource, the person's own client behind SaveAppleName, and the apple-revoke Edge Function behind its
+ * AppleRevokeCall. The availability check and the sign-in load the module's functions when first called. SignIn.tsx
+ * imports its button statically, which Android and a build without Apple can load: the package looks its native
+ * module up optionally, and the button renders only when appleAvailable() answers true.
  */
 import type { XosClient } from "@xos/data/client";
+import Constants from "expo-constants";
 import * as Crypto from "expo-crypto";
 import { Platform } from "react-native";
 import {
   readAppleSignIn,
   type AppleNative,
   type AppleNativeFailure,
+  type AppleRevokeCall,
   type NonceSource,
   type SaveAppleName,
+  signedInWithApple,
 } from "../domain/appleSignIn";
 
 /** Whether this build turned Sign in with Apple on. Expo inlines each EXPO_PUBLIC_ value at build time. */
@@ -47,6 +50,7 @@ export async function loadAppleNative(): Promise<AppleNative> {
         familyName: credential.fullName?.familyName ?? null,
       };
     },
+    reauthorize: async () => (await signInAsync({ requestedScopes: [] })).authorizationCode,
     failure: (error): AppleNativeFailure => {
       const code =
         typeof error === "object" && error !== null && "code" in error
@@ -92,4 +96,42 @@ export function appleNameSaver(client: XosClient): SaveAppleName {
       .is("full_name", null);
     if (error) throw error;
   };
+}
+
+/**
+ * Posts a fresh authorization code and this build's bundle ID to the apple-revoke Edge Function with the person's own
+ * session, before their account is deleted. The bundle ID tells the function which app the code was issued to.
+ */
+export function appleRevoker(client: XosClient, supabaseUrl: string): AppleRevokeCall {
+  return async (authorizationCode) => {
+    const token = (await client.auth.getSession()).data.session?.access_token;
+    const clientId = Constants.expoConfig?.ios?.bundleIdentifier;
+    if (!token || !clientId) return { status: 0, reason: null };
+    let response: Response;
+    try {
+      response = await fetch(`${supabaseUrl.replace(/\/+$/, "")}/functions/v1/apple-revoke`, {
+        method: "POST",
+        headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
+        body: JSON.stringify({ authorizationCode, clientId }),
+      });
+    } catch {
+      return { status: 0, reason: null };
+    }
+    const problem = (await response.json().catch(() => null)) as { reason?: unknown } | null;
+    return {
+      status: response.status,
+      reason: typeof problem?.reason === "string" ? problem.reason : null,
+    };
+  };
+}
+
+/**
+ * Whether the signed-in account signs in with Apple, from Supabase Auth's answer, or from the session this device holds
+ * when Supabase Auth does not answer.
+ */
+export async function accountSignsInWithApple(client: XosClient): Promise<boolean> {
+  const { data, error } = await client.auth.getUser();
+  if (!error && data.user) return signedInWithApple(data.user.identities);
+  const session = (await client.auth.getSession()).data.session;
+  return signedInWithApple(session?.user.identities);
 }
