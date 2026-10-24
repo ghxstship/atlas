@@ -51,15 +51,9 @@ insert into world select 'sop', id from x;
 insert into world select 'doc', (app.open_doc('app.sops', pg_temp.id('sop'), 'body') ->> 'doc_id')::uuid;
 select pg_temp.as_platform();
 
--- Messages are partitioned by inserted_at, and the running Realtime service makes the partitions for the days around
--- today; a database started without it (CI's `supabase db start`) has none. The test makes its own partition, far
--- ahead of any Realtime makes, and stamps every message inside it, so it depends on neither the clock nor the service.
--- Inserts and reads go through realtime.messages, whose policies are the ones applied.
-create table realtime.messages_xos_1710_test partition of realtime.messages
-  for values from ('2099-01-01') to ('2099-01-02');
-create temporary table channel (topic text, stamp timestamp);
+create temporary table channel (topic text);
 grant all on channel to public;
-insert into channel values ('doc:' || pg_temp.id('doc'), '2099-01-01 12:00');
+insert into channel values ('doc:' || pg_temp.id('doc'));
 
 create function pg_temp.join_channel(p_key text) returns void
 language plpgsql as $$
@@ -68,30 +62,52 @@ begin
   perform set_config('realtime.topic', (select topic from channel), true);
 end $$;
 
+-- Realtime stamps each message now; the message lands in today's partition.
 create function pg_temp.send(p_extension text) returns void
 language sql as $$
-  insert into realtime.messages (topic, extension, event, payload, private, inserted_at)
-  select topic, p_extension, 'yjs', '{"update": "AQI="}'::jsonb, true, stamp from channel;
+  insert into realtime.messages (topic, extension, event, payload, private)
+  select topic, p_extension, 'yjs', '{"update": "AQI="}'::jsonb, true from channel;
 $$;
 
-select pg_temp.join_channel('carol');
-select lives_ok($$select pg_temp.send('broadcast')$$, 'a writer broadcasts on the document''s channel');
-select lives_ok($$select pg_temp.send('presence')$$, 'and tracks presence there');
-select is((select count(*)::int from realtime.messages where topic = (select topic from channel)), 2,
-  'and receives both');
+create function pg_temp.received() returns integer
+language sql as $$
+  select count(*)::int from realtime.messages where topic = (select topic from channel);
+$$;
 
-select pg_temp.join_channel('gina');
-select is((select count(*)::int from realtime.messages where topic = (select topic from channel)), 2,
-  'a reader receives the broadcasts and presence');
-select throws_ok($$select pg_temp.send('broadcast')$$, '42501', null, 'but a reader''s broadcast is refused');
-select lives_ok($$select pg_temp.send('presence')$$, 'while a reader may track presence');
+-- Messages are partitioned by day. Realtime makes the partitions from yesterday to a few days ahead (the CLI's schema
+-- setup does too, so `supabase db start` has them), and only realtime.messages' owner may add one. Where no partition
+-- covers today, no message can be stored and Realtime authorizes nothing, so these checks are skipped.
+create function pg_temp.channel_rules_applied() returns setof text
+language plpgsql as $$
+begin
+  if not exists (
+    select 1 from pg_inherits i join pg_class c on c.oid = i.inhrelid
+    where i.inhparent = 'realtime.messages'::regclass
+      and localtimestamp >= substring(pg_get_expr(c.relpartbound, c.oid) from $re$FROM \('([^']+)'\)$re$)::timestamp
+      and localtimestamp < substring(pg_get_expr(c.relpartbound, c.oid) from $re$TO \('([^']+)'\)$re$)::timestamp
+  ) then
+    return next skip('Realtime has made no partition of realtime.messages for today on this database', 9);
+    return;
+  end if;
 
-select pg_temp.join_channel('xavier');
-select is((select count(*)::int from realtime.messages where topic = (select topic from channel)), 0,
-  'a non-reader of the document receives nothing on its channel');
-select throws_ok($$select pg_temp.send('presence')$$, '42501', null, 'and cannot join it with presence');
-select throws_ok($$select pg_temp.send('broadcast')$$, '42501', null, 'nor broadcast on it');
-select pg_temp.as_platform();
+  perform pg_temp.join_channel('carol');
+  return next lives_ok($q$select pg_temp.send('broadcast')$q$, 'a writer broadcasts on the document''s channel');
+  return next lives_ok($q$select pg_temp.send('presence')$q$, 'and tracks presence there');
+  return next is(pg_temp.received(), 2, 'and receives both');
+
+  perform pg_temp.join_channel('gina');
+  return next is(pg_temp.received(), 2, 'a reader receives the broadcasts and presence');
+  return next throws_ok($q$select pg_temp.send('broadcast')$q$, '42501', null, 'but a reader''s broadcast is refused');
+  return next lives_ok($q$select pg_temp.send('presence')$q$, 'while a reader may track presence');
+
+  perform pg_temp.join_channel('xavier');
+  return next is(pg_temp.received(), 0, 'a non-reader of the document receives nothing on its channel');
+  return next throws_ok($q$select pg_temp.send('presence')$q$, '42501', null, 'and cannot join it with presence');
+  return next throws_ok($q$select pg_temp.send('broadcast')$q$, '42501', null, 'nor broadcast on it');
+  perform pg_temp.as_platform();
+end $$;
+
+select * from pg_temp.channel_rules_applied();
 
 select * from finish();
 rollback;
