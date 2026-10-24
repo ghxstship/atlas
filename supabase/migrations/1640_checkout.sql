@@ -8,9 +8,9 @@
 --     ones first, so two browser tabs never pay for two subscriptions. The webhook marks a session Completed or
 --     Expired as Stripe reports it.
 --   * app.begin_billing_checkout: the checks before Atlas calls Stripe (org.billing.manage; a live org that is neither
---     a sandbox, nor billed by its partner, nor read-only; a self-serve plan; no paid Stripe subscription yet; then a
---     second factor in the last 15 minutes) and what Checkout needs: the org's Stripe customer, the trial end to carry
---     over and the sessions still open.
+--     a sandbox, nor billed by its partner, nor read-only; a self-serve plan; no paid Stripe subscription yet, nor a
+--     completed checkout whose subscription has not synced; then a second factor in the last 15 minutes) and what
+--     Checkout needs: the org's Stripe customer, the trial end to carry over and the sessions still open.
 --   * app.record_billing_checkout: records the session Stripe opened, after the same checks, and closes the org's
 --     other open sessions, naming them so Atlas expires them in Stripe too.
 --   * app.finish_billing_checkout_from_stripe: the webhook's record that a session completed or expired (service role).
@@ -42,7 +42,7 @@ create index billing_checkouts_open_idx on app.billing_checkouts (org_id, expire
 create index billing_checkouts_plan_code_idx on app.billing_checkouts (plan_code);
 
 call private.install_domain_table('app.billing_checkouts');
-call private.describe('app.billing_checkouts', 'Stripe Checkout sessions Atlas opened to move an org onto a paid plan (ADR 0033 decision 59). A newer checkout of the same org expires the open ones first, so an org never pays for two subscriptions. The plan itself changes only when the webhook syncs the paid Stripe subscription (app.sync_subscription_from_stripe).', array[
+call private.describe('app.billing_checkouts', 'Stripe Checkout sessions Atlas opened to move an org onto a paid plan (ADR 0033 decision 59). A newer checkout of the same org expires the open ones first, and waits while a completed one''s subscription has not synced, so an org never pays for two subscriptions. The plan itself changes only when the webhook syncs the paid Stripe subscription (app.sync_subscription_from_stripe).', array[
   'plan_code', 'Plan the checkout sells.',
   'billing_interval', 'Monthly or Annual.',
   'stripe_checkout_session_id', 'Stripe Checkout session (cs_...), unique.',
@@ -94,6 +94,24 @@ $$;
 comment on function private.stripe_customer_of(uuid, boolean) is 'The Stripe customer of the org''s latest Stripe subscription in that mode, current or ended, or null when it never paid through Stripe. Checkout reuses it, so invoices and cards stay on one customer.';
 revoke all on function private.stripe_customer_of(uuid, boolean) from public, anon, authenticated;
 
+create or replace function private.checkout_awaiting_subscription(p_org_id uuid, p_livemode boolean)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from app.billing_checkouts c
+    where c.org_id = p_org_id and c.livemode = p_livemode and c.checkout_state = 'Completed'
+      and c.deleted_at is null and c.finished_at > now() - interval '3 days'
+      and not exists (select 1 from app.stripe_subscription_links l
+                      where l.org_id = p_org_id and l.livemode = p_livemode and l.created_at >= c.created_at));
+$$;
+
+comment on function private.checkout_awaiting_subscription(uuid, boolean) is 'True while a Checkout of the org in that mode completed in the last three days and no Stripe subscription has been linked to the org since it opened: Stripe took the payment, but the subscription it created has not synced yet (Stripe does not order its events, and retries a failed one for up to three days). Another Checkout waits meanwhile, so the org never pays for two subscriptions; a subscription still missing after three days is for support to resolve.';
+revoke all on function private.checkout_awaiting_subscription(uuid, boolean) from public, anon, authenticated;
+
 create or replace function private.assert_billing_checkout(p_org_id uuid, p_plan_code text, p_livemode boolean)
 returns void
 language plpgsql
@@ -127,11 +145,14 @@ begin
   if private.paid_through_stripe(p_org_id, coalesce(p_livemode, false)) then
     perform private.refuse('billing_already_subscribed', 'This organization already pays through Stripe. Change the plan or the payment method in the billing portal.');
   end if;
+  if private.checkout_awaiting_subscription(p_org_id, coalesce(p_livemode, false)) then
+    perform private.refuse('checkout_completed', 'A checkout for this organization just completed. The plan shown here updates in a moment.');
+  end if;
   perform private.require_second_factor('change billing');
 end;
 $$;
 
-comment on function private.assert_billing_checkout(uuid, text, boolean) is 'The checks before a Checkout for a plan opens or is recorded: the caller holds org.billing.manage (42501 otherwise); the org is live, not a sandbox, not billed by its partner and not read-only for deletion or cancellation; the plan is sold through Checkout (a USD list price above zero, so neither Access nor a quoted plan); the org does not already pay through Stripe in that mode; and, last, a second factor in the last 15 minutes (step_up_required).';
+comment on function private.assert_billing_checkout(uuid, text, boolean) is 'The checks before a Checkout for a plan opens or is recorded: the caller holds org.billing.manage (42501 otherwise); the org is live, not a sandbox, not billed by its partner and not read-only for deletion or cancellation; the plan is sold through Checkout (a USD list price above zero, so neither Access nor a quoted plan); the org does not already pay through Stripe in that mode, nor has a completed checkout whose subscription has not synced yet (checkout_completed); and, last, a second factor in the last 15 minutes (step_up_required).';
 revoke all on function private.assert_billing_checkout(uuid, text, boolean) from public, anon, authenticated;
 
 -- Atlas: opening and recording a checkout -------------------------------------------------------------------------
@@ -193,7 +214,7 @@ begin
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('billing:' || p_org_id::text, 0));
   with closed as (
     update app.billing_checkouts c set checkout_state = 'Expired', finished_at = now()
-    where c.org_id = p_org_id and c.checkout_state = 'Open' and c.deleted_at is null
+    where c.org_id = p_org_id and c.checkout_state = 'Open' and c.livemode = p_livemode and c.deleted_at is null
       and c.stripe_checkout_session_id <> p_stripe_checkout_session_id
     returning c.stripe_checkout_session_id, c.created_at
   )
@@ -206,7 +227,7 @@ begin
 end;
 $$;
 
-comment on function app.record_billing_checkout(uuid, text, app.billing_interval, text, boolean, timestamptz) is 'Atlas, once Stripe opened a Checkout session for a plan: runs the checkout checks again, records the session as Open (once; a repeat changes nothing) and closes every other open session of the org as Expired, returning their ids so Atlas expires them in Stripe too. Serialized per org with the billing lock of app.sync_subscription_from_stripe.';
+comment on function app.record_billing_checkout(uuid, text, app.billing_interval, text, boolean, timestamptz) is 'Atlas, once Stripe opened a Checkout session for a plan: runs the checkout checks again, records the session as Open (once; a repeat changes nothing) and closes every other open session of the org in that mode as Expired, returning their ids so Atlas expires them in Stripe too. Serialized per org with the billing lock of app.sync_subscription_from_stripe.';
 
 -- Webhook: a session completed or expired -----------------------------------------------------------------------
 
@@ -263,7 +284,7 @@ $$;
 comment on function app.billing_portal_customer(uuid, boolean) is 'Atlas, before it opens the Stripe customer portal (plan, payment method, invoices and cancellation): the org''s Stripe customer in that mode, for a caller with org.billing.manage (42501 otherwise) who passed a second factor in the last 15 minutes (step_up_required). Refuses billing_no_customer for an org that never paid through Stripe.';
 
 create or replace function app.billing_account(p_org_id uuid, p_livemode boolean)
-returns table (paid_through_stripe boolean, has_stripe_customer boolean, billing_interval app.billing_interval, current_period_end timestamptz)
+returns table (paid_through_stripe boolean, has_stripe_customer boolean, awaiting_subscription boolean, billing_interval app.billing_interval, current_period_end timestamptz)
 language plpgsql
 stable
 security definer
@@ -276,6 +297,7 @@ begin
   return query
     select private.paid_through_stripe(p_org_id, p_livemode),
       private.stripe_customer_of(p_org_id, p_livemode) is not null,
+      private.checkout_awaiting_subscription(p_org_id, p_livemode),
       l.billing_interval, l.current_period_end
     from (select 1) as one
     left join lateral (
@@ -289,7 +311,7 @@ begin
 end;
 $$;
 
-comment on function app.billing_account(uuid, boolean) is 'Billing and Plan''s summary of the org''s Stripe billing in that mode, for a caller with org.billing.read: whether the current subscription pays through Stripe (then the customer portal changes it; otherwise Checkout does), whether the org has a Stripe customer at all, and the term and period end of the paid subscription.';
+comment on function app.billing_account(uuid, boolean) is 'Billing and Plan''s summary of the org''s Stripe billing in that mode, for a caller with org.billing.read: whether the current subscription pays through Stripe (then the customer portal changes it; otherwise Checkout does), whether the org has a Stripe customer at all, whether a completed checkout still waits for its subscription to sync (then Checkout waits too), and the term and period end of the paid subscription.';
 
 -- Privileges --------------------------------------------------------------------------------------------------------
 

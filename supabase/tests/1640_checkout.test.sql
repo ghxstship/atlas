@@ -1,12 +1,14 @@
 -- pgTAP: migration 1640, Checkout (ADR 0033 decision 59, RRR-130). The Owner of an org on a trial or Access
--- opens Checkout for a self-serve plan after step-up; a newer checkout closes the open ones; the webhook records each
--- session completed or expired; an org that pays through Stripe changes its billing in the customer portal instead.
+-- opens Checkout for a self-serve plan after step-up, which is asked only once the org and plan checks pass; a newer
+-- checkout closes the open ones of its mode; the webhook records each session completed or expired, and a completed one
+-- holds back another until its subscription syncs; an org that pays through Stripe changes its billing in the customer
+-- portal instead.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(45);
+select plan(56);
 
 -- Nina starts an org on the 14-day Pro trial (1350), and a second org that is her sandbox (1530).
 select pg_temp.as_user('nina');
@@ -57,6 +59,17 @@ select throws_ok($$select * from app.begin_billing_checkout(pg_temp.id('org_c'),
   'XR001', 'billing_through_partner: Your partner bills this organization. Ask the partner to change its plan.',
   'a client org its partner bills does not check out on its own');
 
+-- Step-up comes last: an Owner without a recent second factor hears the refusal, never a step-up prompt first.
+select pg_temp.as_user('nina');
+select throws_ok($$select * from app.begin_billing_checkout(pg_temp.id('org_s'), 'core', false)$$,
+  'XR001', 'sandbox_not_billable: A sandbox is never billed.', 'a sandbox is refused before step-up is asked');
+select throws_ok($$select * from app.begin_billing_checkout(pg_temp.id('org_n'), 'access', false)$$,
+  'XR001', 'plan_not_self_serve: The access plan cannot be bought through Checkout.', 'so is a plan Checkout does not sell');
+select pg_temp.as_user('cora');
+select throws_ok($$select * from app.begin_billing_checkout(pg_temp.id('org_c'), 'pro', false)$$,
+  'XR001', 'billing_through_partner: Your partner bills this organization. Ask the partner to change its plan.',
+  'and a client org its partner bills');
+
 select pg_temp.as_user_stepped_up('mia');
 select throws_ok($$select * from app.begin_billing_checkout(pg_temp.id('org_b'), 'team', false)$$,
   '42501', null, 'a Viewer cannot open a checkout either');
@@ -102,6 +115,14 @@ select pg_temp.as_user('nina');
 select is((select count(*)::integer from app.billing_checkouts c where c.org_id = pg_temp.id('org_n')), 2,
   'the Owner reads them');
 
+select pg_temp.as_user_stepped_up('xavier');
+select is(app.record_billing_checkout(pg_temp.id('org_b'), 'team', 'Monthly', 'cs_live_XavLive', true, now() + interval '1 day'),
+  '{}'::text[], 'a live mode session is recorded');
+select is(app.record_billing_checkout(pg_temp.id('org_b'), 'team', 'Monthly', 'cs_test_XavTest', false, now() + interval '1 day'),
+  '{}'::text[], 'a test mode session leaves the live one open');
+select is((select b.open_session_ids from app.begin_billing_checkout(pg_temp.id('org_b'), 'team', true) b),
+  array['cs_live_XavLive'], 'and a live checkout hears only of live sessions');
+
 -- The webhook ----------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
 set local role service_role;
@@ -116,6 +137,25 @@ select is(app.finish_billing_checkout_from_stripe('cs_test_Unknown', 'Expired'),
 select throws_ok($$select app.finish_billing_checkout_from_stripe('cs_test_N1naSecond', 'Open')$$,
   'XR001', 'checkout_state_invalid: A Checkout session finishes Completed or Expired.', 'a session never reopens');
 
+-- Paid, before the subscription syncs ------------------------------------------------------------------------------
+select pg_temp.as_user_stepped_up('nina');
+select throws_ok($$select * from app.begin_billing_checkout(pg_temp.id('org_n'), 'team', false)$$,
+  'XR001', 'checkout_completed: A checkout for this organization just completed. The plan shown here updates in a moment.',
+  'a paid checkout whose subscription has not synced yet holds back a second one');
+select is((select b.awaiting_subscription::text || ' ' || b.paid_through_stripe::text from app.billing_account(pg_temp.id('org_n'), false) b),
+  'true false', 'Billing and Plan sees the payment waiting for its subscription');
+select pg_temp.as_user('nina');
+select throws_ok($$select * from app.begin_billing_checkout(pg_temp.id('org_n'), 'team', false)$$,
+  'XR001', 'checkout_completed: A checkout for this organization just completed. The plan shown here updates in a moment.',
+  'before step-up is asked');
+select pg_temp.as_platform();
+update app.billing_checkouts set finished_at = now() - interval '4 days' where stripe_checkout_session_id = 'cs_test_N1naSecond';
+select pg_temp.as_user_stepped_up('nina');
+select is((select b.open_session_ids from app.begin_billing_checkout(pg_temp.id('org_n'), 'team', false) b), '{}'::text[],
+  'after three days Stripe no longer retries the subscription''s events, and Checkout opens again');
+select pg_temp.as_platform();
+update app.billing_checkouts set finished_at = now() where stripe_checkout_session_id = 'cs_test_N1naSecond';
+
 -- Once the org pays through Stripe -------------------------------------------------------------------------------
 select is(app.sync_subscription_from_stripe(pg_temp.id('org_n'), 'cus_N1na', 'sub_N1na', 'pro', 'Annual', 'trialing',
   now() + interval '14 days', false), 'active'::app.subscription_state, 'the paid subscription converts the trial');
@@ -123,8 +163,9 @@ select pg_temp.as_user_stepped_up('nina');
 select throws_ok($$select * from app.begin_billing_checkout(pg_temp.id('org_n'), 'team', false)$$,
   'XR001', 'billing_already_subscribed: This organization already pays through Stripe. Change the plan or the payment method in the billing portal.',
   'an org that pays changes its plan in the portal, never through a second checkout');
-select is((select b.paid_through_stripe::text || ' ' || b.has_stripe_customer::text || ' ' || b.billing_interval::text
-  from app.billing_account(pg_temp.id('org_n'), false) b), 'true true Annual', 'Billing and Plan sees the paid subscription');
+select is((select b.paid_through_stripe::text || ' ' || b.has_stripe_customer::text || ' ' || b.awaiting_subscription::text
+  || ' ' || b.billing_interval::text from app.billing_account(pg_temp.id('org_n'), false) b), 'true true false Annual',
+  'Billing and Plan sees the paid subscription, no longer waiting for it');
 select is((select b.paid_through_stripe from app.billing_account(pg_temp.id('org_n'), true) b), false,
   'live mode billing is separate from test mode');
 select is(app.billing_portal_customer(pg_temp.id('org_n'), false), 'cus_N1na', 'the portal opens on the org''s customer');
@@ -151,6 +192,10 @@ select pg_temp.as_user_stepped_up('xavier');
 select throws_ok($$select * from app.begin_billing_checkout(pg_temp.id('org_b'), 'core', false)$$,
   'XR001', 'org_read_only: This organization is read-only. Recover or reactivate it in Settings, Danger zone, before choosing a plan.',
   'a canceled org reactivates before it chooses a plan');
+select pg_temp.as_user('xavier');
+select throws_ok($$select * from app.begin_billing_checkout(pg_temp.id('org_b'), 'core', false)$$,
+  'XR001', 'org_read_only: This organization is read-only. Recover or reactivate it in Settings, Danger zone, before choosing a plan.',
+  'and hears so before step-up is asked');
 
 select * from finish();
 rollback;

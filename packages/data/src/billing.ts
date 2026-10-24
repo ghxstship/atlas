@@ -98,6 +98,8 @@ export interface BillingAccount {
   readonly paidThroughStripe: boolean;
   /** The org has a Stripe customer, current or from an ended subscription, so the portal has invoices. */
   readonly hasStripeCustomer: boolean;
+  /** A checkout completed and its subscription has not synced yet: Stripe is confirming, and Checkout waits. */
+  readonly awaitingSubscription: boolean;
   readonly interval: BillingInterval | null;
   readonly currentPeriodEnd: string | null;
 }
@@ -119,6 +121,7 @@ export async function getBillingAccount(
   return ok({
     paidThroughStripe: row.paid_through_stripe,
     hasStripeCustomer: row.has_stripe_customer,
+    awaitingSubscription: row.awaiting_subscription,
     interval: interval === "Monthly" || interval === "Annual" ? interval : null,
     currentPeriodEnd: textOrNull(row.current_period_end),
   });

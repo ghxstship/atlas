@@ -12615,7 +12615,7 @@
           "type": "timestamp with time zone"
         }
       ],
-      "comment": "Stripe Checkout sessions Atlas opened to move an org onto a paid plan (ADR 0033 decision 59). A newer checkout of the same org expires the open ones first, so an org never pays for two subscriptions. The plan itself changes only when the webhook syncs the paid Stripe subscription (app.sync_subscription_from_stripe).",
+      "comment": "Stripe Checkout sessions Atlas opened to move an org onto a paid plan (ADR 0033 decision 59). A newer checkout of the same org expires the open ones first, and waits while a completed one's subscription has not synced, so an org never pays for two subscriptions. The plan itself changes only when the webhook syncs the paid Stripe subscription (app.sync_subscription_from_stripe).",
       "kind": "table",
       "name": "billing_checkouts",
       "partitioned": false,

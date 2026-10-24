@@ -122,13 +122,14 @@ describe("billing portal and summary", () => {
     });
   });
 
-  it("maps the billing summary, paid or not", async () => {
+  it("maps the billing summary: paid, or paid and waiting for the subscription to sync", async () => {
     const { db } = fakeClient({
       "rpc:billing_account": [
         okResponse([
           {
             paid_through_stripe: true,
             has_stripe_customer: true,
+            awaiting_subscription: false,
             billing_interval: "Annual",
             current_period_end: "2027-10-23T12:00:00+00:00",
           },
@@ -137,6 +138,7 @@ describe("billing portal and summary", () => {
           {
             paid_through_stripe: false,
             has_stripe_customer: false,
+            awaiting_subscription: true,
             billing_interval: null,
             current_period_end: null,
           },
@@ -148,6 +150,7 @@ describe("billing portal and summary", () => {
       data: {
         paidThroughStripe: true,
         hasStripeCustomer: true,
+        awaitingSubscription: false,
         interval: "Annual",
         currentPeriodEnd: "2027-10-23T12:00:00+00:00",
       },
@@ -157,6 +160,7 @@ describe("billing portal and summary", () => {
       data: {
         paidThroughStripe: false,
         hasStripeCustomer: false,
+        awaitingSubscription: true,
         interval: null,
         currentPeriodEnd: null,
       },

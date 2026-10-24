@@ -58953,6 +58953,7 @@ export type Database = {
       billing_account: {
         Args: { p_livemode: boolean; p_org_id: string };
         Returns: {
+          awaiting_subscription: boolean;
           billing_interval: Database["app"]["Enums"]["billing_interval"];
           current_period_end: string;
           has_stripe_customer: boolean;
