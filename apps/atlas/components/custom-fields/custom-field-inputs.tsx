@@ -20,7 +20,10 @@ import {
 
 /** What a typed form reads from the inputs: run the checks, then send `inputs()` with its own input. */
 export interface CustomFieldInputsHandle {
-  /** Checks required and malformed fields, shows the problems and focuses the first; true when all can save. */
+  /**
+   * Checks required and malformed fields, shows the problems and focuses the first; true when all can save.
+   * False while the fields still load: the check runs again when they arrive.
+   */
   check(): boolean;
   /** The inputs by field key; none until the fields have loaded, so the action still holds required ones. */
   inputs(): Inputs;
@@ -49,37 +52,64 @@ export function CustomFieldInputs({
   const [form, setForm] = useState<CustomFieldForm | null>(null);
   const [inputs, setInputs] = useState<Inputs>({});
   const [problems, setProblems] = useState<Readonly<Record<string, CustomFieldProblem>>>({});
+  const [loading, setLoading] = useState(true);
+  // A submit while the fields still load is held: it goes ahead once they arrive, or their problems show.
+  const waiting = useRef(false);
   const prefix = idPrefix ?? table.replace(/^app\./, "");
+
+  /** Shows the problems of these inputs and focuses the first field that has one; true when none. */
+  const report = useCallback(
+    (loaded: CustomFieldForm, current: Inputs): boolean => {
+      const result = checkCustomFieldInputs(
+        loaded.fields,
+        effectiveInputs(loaded, current),
+        "create",
+        parseContextOf(loaded),
+      );
+      setProblems(result.problems);
+      const first = loaded.fields.find((f) => result.problems[f.key]);
+      // After the render that draws the problem, so the field exists when it takes focus.
+      if (first) setTimeout(() => document.getElementById(`${prefix}-cf-${first.key}`)?.focus(), 0);
+      return first === undefined;
+    },
+    [prefix],
+  );
 
   useEffect(() => {
     let live = true;
+    const resubmit = () => setTimeout(() => box.current?.closest("form")?.requestSubmit(), 0);
     loadCustomFieldFormAction(org, table, null).then(
       (loaded) => {
-        if (live) setForm(loaded);
+        if (!live) return;
+        setForm(loaded);
+        setLoading(false);
+        const held = waiting.current;
+        waiting.current = false;
+        // A held submit goes ahead when nothing is missing, else the problems show.
+        if (held && (!loaded || loaded.fields.length === 0 || report(loaded, {}))) resubmit();
       },
       () => {
         // The form still submits; the action reports any required field it misses.
-        if (live) setForm(null);
+        if (!live) return;
+        setForm(null);
+        setLoading(false);
+        if (waiting.current) resubmit();
+        waiting.current = false;
       },
     );
     return () => {
       live = false;
     };
-  }, [org, table]);
+  }, [org, table, report]);
 
   const check = useCallback((): boolean => {
+    if (loading) {
+      waiting.current = true;
+      return false;
+    }
     if (!form || form.fields.length === 0) return true;
-    const result = checkCustomFieldInputs(
-      form.fields,
-      effectiveInputs(form, inputs),
-      "create",
-      parseContextOf(form),
-    );
-    setProblems(result.problems);
-    const first = form.fields.find((f) => result.problems[f.key]);
-    if (first) document.getElementById(`${prefix}-cf-${first.key}`)?.focus();
-    return first === undefined;
-  }, [form, inputs, prefix]);
+    return report(form, inputs);
+  }, [loading, form, inputs, report]);
 
   useImperativeHandle(
     ref,

@@ -94,7 +94,8 @@ export function CreateRecordDialog({
           startsAt: fromLocalInput(starts, tz),
           endsAt: fromLocalInput(ends, tz),
           dueAt: fromLocalInput(due, tz),
-          customFields: custom.current?.inputs(),
+          // The sheet always shows custom fields, so the action holds it to required ones.
+          customFields: custom.current?.inputs() ?? {},
         }),
       (data) => {
         setTitle("");
