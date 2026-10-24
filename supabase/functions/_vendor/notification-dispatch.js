@@ -14,6 +14,7 @@ import {
   createSmsProvider,
   dispatchSms,
   dispatchSmsSummaries,
+  isRecordKey,
   localeOf,
   notificationKind,
   notificationText,
@@ -143,8 +144,9 @@ async function dispatchEmail(store, transport, limit = 50) {
  * The contract Compass handles (apps/compass/src/domain/notifications.ts):
  *   - `categoryId` is the kind's push category from notification-kinds.yaml (`approval_request` for
  *     approval.requested), whose Approve and Reject actions answer through notifications.act;
- *   - `data` is { notificationId, kind, subjectTable, subjectId, title, url }, where url is the deep link
- *     (Section 4.5.7: a push always carries one).
+ *   - `data` is { notificationId, kind, subjectTable, subjectId, title, recordKey, url }, where url is the deep
+ *     link (Section 4.5.7: a push always carries one) and recordKey the display key of the record a notification is
+ *     about (message_args.recordKey, 1600), which Compass opens on a tap (A101).
  */
 /** Expo push service endpoints. */
 var EXPO_PUSH_SEND_URL = "https://exp.host/--/api/v2/push/send";
@@ -162,6 +164,7 @@ function pushMessage(claim, device, recipient, url) {
   );
   const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
   const title = claim.messageArgs["title"];
+  const recordKey = claim.messageArgs["recordKey"];
   return {
     to: device.token,
     title: clip(text.title, 120),
@@ -172,6 +175,7 @@ function pushMessage(claim, device, recipient, url) {
       subjectTable: claim.subjectTable,
       subjectId: claim.subjectId,
       title: typeof title === "string" ? title : null,
+      recordKey: typeof recordKey === "string" && isRecordKey(recordKey) ? recordKey : null,
       url,
     },
     ...(pushCategory === null ? {} : { categoryId: pushCategory }),

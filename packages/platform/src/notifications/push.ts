@@ -1,3 +1,4 @@
+import { isRecordKey } from "@xos/ia/handoff";
 import { notificationKind } from "@xos/schemas/notifications";
 import { z } from "zod";
 import { clip, localeOf, notificationText } from "./copy.ts";
@@ -14,8 +15,9 @@ import type { WebPushClient, WebPushDevice, WebPushPayload } from "./web-push.ts
  * The contract Compass handles (apps/compass/src/domain/notifications.ts):
  *   - `categoryId` is the kind's push category from notification-kinds.yaml (`approval_request` for
  *     approval.requested), whose Approve and Reject actions answer through notifications.act;
- *   - `data` is { notificationId, kind, subjectTable, subjectId, title, url }, where url is the deep link
- *     (Section 4.5.7: a push always carries one).
+ *   - `data` is { notificationId, kind, subjectTable, subjectId, title, recordKey, url }, where url is the deep
+ *     link (Section 4.5.7: a push always carries one) and recordKey the display key of the record a notification is
+ *     about (message_args.recordKey, 1600), which Compass opens on a tap (A101).
  */
 
 /** Expo push service endpoints. */
@@ -145,6 +147,7 @@ export function pushMessage(
   );
   const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
   const title = claim.messageArgs["title"];
+  const recordKey = claim.messageArgs["recordKey"];
   return {
     to: device.token,
     title: clip(text.title, 120),
@@ -155,6 +158,7 @@ export function pushMessage(
       subjectTable: claim.subjectTable,
       subjectId: claim.subjectId,
       title: typeof title === "string" ? title : null,
+      recordKey: typeof recordKey === "string" && isRecordKey(recordKey) ? recordKey : null,
       url,
     },
     ...(pushCategory === null ? {} : { categoryId: pushCategory }),
