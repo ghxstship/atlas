@@ -4,6 +4,7 @@ import { Button, InlineAlert, Input, Select } from "@xos/ui";
 import { useActionState, useId, useRef } from "react";
 import { revealSupplierDiversityNumberAction, type RevealState } from "@/app/[org]/vendors/actions";
 import { useStepUpForm } from "@/components/auth/security/step-up";
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { useCopy } from "@/components/collection-kit/use-copy";
 
 const INITIAL: RevealState = {};
@@ -41,6 +42,7 @@ export function SupplierDiversityReveal({
       <form
         ref={form}
         action={dispatch}
+        onSubmit={keepInputOnSubmit(dispatch)}
         noValidate
         aria-label={t("diversity.reveal")}
         className="flex flex-col gap-8"
