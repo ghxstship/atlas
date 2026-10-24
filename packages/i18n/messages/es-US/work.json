@@ -626,6 +626,16 @@
       "approval_decided": "Una aprobación decidida es definitiva. Solicite una nueva aprobación.",
       "approval_not_eligible": "Solo quien puede editar los registros de este proyecto puede decidir sus aprobaciones.",
       "time_zone_unknown": "Elija una zona horaria de la lista."
+    },
+    "quickAdd": {
+      "capability": "No puedes crear esto aquí.",
+      "title": "Escribe un título además de los campos.",
+      "kind": "Esta página crea otros tipos de registro.",
+      "person": "No puedes asignar a esa persona aquí.",
+      "category": "Esa categoría no está en el canon.",
+      "scope": "No puedes abrir ese alcance.",
+      "scopeProject": "Ese alcance pertenece a otro proyecto.",
+      "project": "Indica el proyecto con ~ y un alcance, por ejemplo ~NWS-E01."
     }
   },
   "grammar": {
@@ -725,5 +735,18 @@
     "mitigation": "Mitigación",
     "baseline_locked_at": "Fijado en una línea base",
     "title": "Detalles de {kind}"
+  },
+  "quickAdd": {
+    "label": "Agregar un registro rápido",
+    "labelKind": "Agregar rápido: {kind}",
+    "hint": "Título, luego una fecha, @responsable, #categoría, /Task o ~alcance",
+    "types": {
+      "person": "Responsable",
+      "tag": "Categoría",
+      "kind": "Tipo",
+      "scope": "Alcance",
+      "date": "Cuándo"
+    },
+    "created": "{key} creado"
   }
 }

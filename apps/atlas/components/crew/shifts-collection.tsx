@@ -62,7 +62,7 @@ import { ScheduleGrid } from "./schedule-grid";
 import { InlineAlert } from "./ui";
 import { FilterSelect } from "./views-filter-select";
 // The table and calendar views and the drawers render only in some states (A24-009).
-import { DrawerForm, PeekCalendar, PeekTable } from "./lazy";
+import { DrawerForm, PeekCalendar, PeekTable, ShiftQuickAdd } from "./lazy";
 import { LiveRefresh } from "@/components/live/live-refresh";
 
 /**
@@ -765,6 +765,10 @@ export async function ShiftsCollection(props: {
         <InlineAlert tone="warning" title={t("crew.shifts.clashTitle", { count: clashes.length })}>
           {t("crew.shifts.clashBody")}
         </InlineAlert>
+      ) : null}
+      {/* Quick add (Section 11.7): planners plan a shift from one line, in the filtered project. */}
+      {canWrite && projects.length > 0 ? (
+        <ShiftQuickAdd org={crew.slug} timeZone={zone} projectId={projectFilter?.id ?? null} />
       ) : null}
       {body}
     </CrewFrame>
