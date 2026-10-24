@@ -2923,7 +2923,7 @@ export interface Components {
     activated_at: string | null;
     completed_at: string | null;
     application_id: string | null;
-    worker_classification: string;
+    worker_classification: string | null;
     pay_basis: string | null;
     arrangement: string | null;
     start_date: string;

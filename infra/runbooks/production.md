@@ -240,7 +240,7 @@ How the functions are bundled (A85, RRR-130):
 - All of these files are generated: `pnpm --filter @xos/platform bundle:edge`. The `@xos/platform` tests fail when a generated file is stale, missing or extra, when a function loads an npm package at boot that it did not load before, or when its boot code passes its budget (`packages/platform/test/edge-bundle.test.ts`). A new npm package must be pinned in `supabase/functions/deno.json` before the build will use it.
 - A new function (for example A79's `org-lifecycle`): add `packages/platform/edge/entries/<function>.ts` exporting exactly what its `index.ts` uses, imported module by module (never through a package's index, which pulls every module in). In `index.ts`, import those from `../_vendor/<function>.js` and the logger or database seam from `../_vendor/core.js` (or through `_shared/runtime.ts`). Load a heavy package with a dynamic `import()` where a request may not need it. Run `bundle:edge`, then add the function's boot and lazy packages and its boot budget to `packages/platform/test/edge-bundle.test.ts`. The test fails for a function directory with no entry; a function that uses nothing but the shared core goes in that test's `CORE_ONLY` list instead.
 - Deploy with the CLI's default Docker bundling. Never pass `--use-api`: server-side bundling allows 5 MB per function and `report-run` is about 9 MB compressed (69 MB as an eszip, mostly exceljs and pdfkit, which load only for .xlsx and PDF runs). Local bundling allows 20 MB.
-- Cold starts: `kiosk-punch`, `api-token`, `email-unsubscribe` and `webhook-dispatch` load no npm package; `stripe-webhook` loads only Stripe; `scim`, `integration-worker`, `integration-inbound`, `import-run` and `upload-scan` load only supabase-js (`import-run` loads exceljs when it reads a workbook); React Email and Resend load only when `notification-dispatch` or `report-run` sends. The hosted limits are 2 s of CPU and 256 MB a request. A function that answers HTTP 546 hit one of them: check whether its boot code grew (`bundle:edge`, then the budget test) before raising anything.
+- Cold starts: `kiosk-punch`, `api-token`, `email-unsubscribe` and `webhook-dispatch` load no npm package; `stripe-webhook` loads Stripe only once a request carries a signature; `scim`, `integration-worker`, `integration-inbound`, `import-run` and `upload-scan` load only supabase-js (`import-run` loads exceljs when it reads a workbook); React Email and Resend load only when `notification-dispatch` or `report-run` sends. The hosted limits are 2 s of CPU and 256 MB a request. A function that answers HTTP 546 hit one of them: check whether its boot code grew (`bundle:edge`, then the budget test) before raising anything.
 
 Kiosk re-keying: a kiosk whose device key was retired or revoked in Atlas answers every punch with `kiosk_device_unregistered`, and Compass shows "This device is no longer registered as a kiosk". Register a new kiosk in Atlas, then on the device, signed in as a supervisor, choose **Forget this kiosk** and enter the new key (Compass help, Kiosk).
 
@@ -297,6 +297,7 @@ Values live in Vercel, the Supabase project, EAS and GitHub. They are never comm
 | `COMPASS_ANDROID_CERT_SHA256` | The Play app signing certificate fingerprint, once the app exists                      |
 | `XOS_INBOUND_DOMAIN`          | `inbound.ghxstship.tech`, once Resend receives there (ADR 0040; ADR 0033, decision 60) |
 | `VAPID_PUBLIC_KEY`            | The Web Push public key ("Web push" below; public, ADR 0052)                           |
+| `STRIPE_SECRET_KEY`           | The live key once billing opens (ADR 0033, decision 59); the sandbox key on staging    |
 
 ### Gateway (Vercel project `gateway`)
 
@@ -457,22 +458,44 @@ select app.queue_subprocessor_notice('<list version>', '<what changes, in plain 
 A subprocessor notice emails real recipients, which `legal/policies/change-management.md` section 5 makes a
 stop condition: the owner approves each one before it is queued.
 
-## Stripe catalogue (OWNER, test mode)
+## Stripe catalogue and billing (OWNER, test mode first)
 
-The products, prices, founding-customer coupon and `FOUNDING30` promotion code come from `packages/schemas/plans.yaml` (pricing v4, ADR 0035). The owner creates them in the Stripe sandbox with the setup script. It runs on the owner's machine with the owner's key, which never goes in a file:
+XOS launches on the 14-day trial and the Access plan, and billing opens once Checkout is in place (ADR 0033, decision 59). Billing and Plan in Atlas opens Stripe Checkout for an org on a trial or Access and the Stripe customer portal for an org that pays; the `stripe-webhook` function keeps the subscription in step. Prices come from `packages/schemas/plans.yaml` by lookup key (pricing v4, ADR 0035); no price id is stored anywhere. Every key stays on the owner's machine or in the hosting providers' encrypted settings, never in a file.
 
-1. In the Stripe Dashboard, switch to test mode and copy the secret key (`sk_test_...`). A restricted key (`rk_test_...`) works too if it can write products, prices, coupons and promotion codes.
-2. From the repository root, see what would be created:
+### 1. Stripe sandbox
+
+1. In the Stripe Dashboard, switch to test mode.
+2. Turn on Stripe Tax with the company's origin address (Settings, Tax). Checkout computes tax and collects VAT and GST ids, and Stripe refuses to open a Checkout session until Tax is set up.
+3. Copy the test mode secret key (`sk_test_...`). A restricted key (`rk_test_...`) works for the setup script if it can write products, prices, coupons, promotion codes and customer portal configurations; Atlas needs Checkout Sessions, Prices (read), Customer portal and Subscriptions.
+
+### 2. Catalogue and customer portal
+
+The setup script creates the products, prices, founding-customer coupon, `FOUNDING30` promotion code and the customer portal configuration Atlas opens:
+
+1. From the repository root, see what would be created:
    `STRIPE_SECRET_KEY=sk_test_... pnpm --filter @xos/platform stripe:setup --dry-run`
-3. Create the catalogue:
+2. Create them:
    `STRIPE_SECRET_KEY=sk_test_... pnpm --filter @xos/platform stripe:setup`
-4. Run it again whenever you like. It creates only what is missing and prints `unchanged` for the rest.
+3. Run it again whenever you like. It creates only what is missing, brings products and the portal configuration up to date, and prints `unchanged` for the rest.
 
 How it behaves:
 
-- It refuses live mode keys. Creating the live catalogue is a separate owner decision, made when billing opens.
+- It refuses live mode keys. Creating the live catalogue is a separate owner step, made when billing opens.
+- It never prints or stores the key.
 - It exits 2 and writes nothing when Stripe already holds a price, coupon or promotion code that differs from `plans.yaml`. Stripe prices cannot be edited. To change a price, give it a new versioned lookup key in `plans.yaml` (for example `_v5`), regenerate the plan seed, and run the script again.
-- The webhook endpoint (`STRIPE_WEBHOOK_SECRET`) must send `customer.subscription.*`, `checkout.session.completed` and `checkout.session.async_payment_succeeded` to the `stripe-webhook` function. Those events carry extra seats and Aurora pack payments.
+- The portal configuration (named "XOS plans", marked `xos_portal: xos_billing_portal_v1`) lets customers update the payment method and billing details, download invoices, cancel at the end of the paid period, and switch between the Core, Pro and Team prices, prorated. Atlas finds it by that mark; until the script has run, Atlas opens the account's default portal, which Stripe test mode offers only after the portal settings are saved in the Dashboard.
+
+### 3. Webhook and secrets (staging first)
+
+1. In the Dashboard (Developers, Webhooks), add an endpoint at `https://<project-ref>.supabase.co/functions/v1/stripe-webhook` that sends `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`, `checkout.session.completed`, `checkout.session.async_payment_succeeded` and `checkout.session.expired`. Those events carry the plan, extra seats, Aurora pack payments and the state of each Checkout session.
+2. Set the Edge Function secrets `STRIPE_WEBHOOK_SECRET` (the endpoint's signing secret, `whsec_...`) and `STRIPE_SECRET_KEY` (the same key; the function reads its mode, so test events never touch live billing).
+3. Set `STRIPE_SECRET_KEY` on the `atlas` Vercel project for the staging environment, then redeploy. Without it Billing and Plan says billing is not open yet.
+4. Check on staging: sign up, create an org (it starts the Pro trial), open Settings, Billing and plan, choose Core, pass the second factor, and pay with Stripe's test card `4242 4242 4242 4242`. Back in Atlas the page says the org is on Core; "Open the billing portal" opens the portal on the org's customer. In the Dashboard, the webhook endpoint shows every event delivered with HTTP 200.
+5. If a payment went through and Billing and Plan keeps saying Stripe is confirming it, the subscription's event has not been applied yet. Find the failed `customer.subscription.*` delivery on the endpoint and resend it. Meanwhile Atlas offers that org no second Checkout, for up to three days after the payment (Stripe's retry window); after that a new checkout can open, so resolve it before then.
+
+### 4. Opening billing in production
+
+Billing opens with the live catalogue and live keys, a separate owner step: create the live catalogue (the script refuses live keys by design), add the live webhook endpoint, set the live `STRIPE_WEBHOOK_SECRET` and `STRIPE_SECRET_KEY` on the production Edge Functions and the live `STRIPE_SECRET_KEY` on the `atlas` Production environment, then redeploy.
 
 ## Machine translation (OWNER, Google Cloud Translation)
 

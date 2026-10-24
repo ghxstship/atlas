@@ -259,6 +259,19 @@ describe("Inbox item copy", () => {
     expect(inboxTarget("demo", { subjectTable: "unknown", kind: "x.y" })).toBeNull();
   });
 
+  it("opens a delivered report in Saved reports, with the report's panel open (ADR 0033 decision 77)", () => {
+    expect(
+      inboxTarget("demo", {
+        subjectTable: "app.report_definitions",
+        subjectId: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+        kind: "report.delivered",
+      }),
+    ).toBe("/demo/reports/saved-reports?peek=0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f");
+    expect(
+      inboxTarget("demo", { subjectTable: "app.report_definitions", kind: "report.delivered" }),
+    ).toBe("/demo/reports/saved-reports");
+  });
+
   it("opens a record itself when the item carries its key, and only an assignment in My Work otherwise", () => {
     const keyed = { recordKey: "NWL-42" };
     for (const kind of ["comment.created", "mention.created", "assignment.created"]) {

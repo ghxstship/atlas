@@ -23,7 +23,7 @@ import { PaymentSteps } from "./payment-steps";
 import { signDocumentAction, submitOnboardingItemAction } from "@/lib/actions/engagement";
 import { agreeSelfBillingAction, revokeSelfBillingAction } from "@/lib/actions/operations";
 import { hasArea, tabHref } from "@/lib/engagement";
-import { overviewRows, type OverviewRow } from "@/lib/engagement-state";
+import { engagementTitle, overviewRows, type OverviewRow } from "@/lib/engagement-state";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
@@ -73,26 +73,18 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
   const property: Readonly<Record<OverviewRow, () => { label: string; value: string } | null>> = {
     org: () => ({ label: t("gateway.work.engagements.org"), value: e.orgName }),
     project: () => ({ label: t("gateway.work.engagements.project"), value: e.projectName }),
-    role: () => ({ label: t("gateway.work.engagements.role"), value: e.jobTitle }),
-    engagement: () => ({ label: t("gateway.engagement.overview.engagement"), value: e.jobTitle }),
-    package: () => ({ label: t("gateway.engagement.overview.package"), value: e.jobTitle }),
+    role: () => ({
+      label: t("gateway.work.engagements.role"),
+      value: engagementTitle(e, (r) => t(enumLabelKey("externalRoleType", r))),
+    }),
     dates: () => ({
       label: t("gateway.work.engagements.dates"),
       value: formatDateRange(locale, e.startDate, e.endDate),
     }),
     rate: () => ({ label: t("gateway.engagement.overview.rate"), value: money(rate) }),
-    payBasis: () => ({ label: t("gateway.engagement.overview.payBasis"), value: e.payBasis }),
-    contractValue: () => ({
-      label: t("gateway.engagement.overview.contractValue"),
-      value: money(rate),
-    }),
-    billingBasis: () => ({
-      label: t("gateway.engagement.overview.billingBasis"),
-      value: e.payBasis,
-    }),
-    sponsorshipFee: () => ({
-      label: t("gateway.engagement.overview.sponsorshipFee"),
-      value: money(rate),
+    payBasis: () => ({
+      label: t("gateway.engagement.overview.payBasis"),
+      value: e.payBasis ?? t("gateway.common.unpaid"),
     }),
     approvalsWaiting: () =>
       approvals?.ok

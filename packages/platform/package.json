@@ -7,6 +7,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./billing": "./src/billing/index.ts",
     "./webhooks": "./src/webhooks/dispatch.ts"
   },
   "scripts": {
