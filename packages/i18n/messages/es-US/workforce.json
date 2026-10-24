@@ -836,7 +836,10 @@
     "lost_item_rejection_note": "Indica por qué se rechaza el reclamo.",
     "content_report_own": "No puedes denunciar tu propia publicación, comentario o mensaje.",
     "content_report_removed": "Esto ya se eliminó.",
-    "block_self": "No puedes bloquearte a ti mismo."
+    "block_self": "No puedes bloquearte a ti mismo.",
+    "content_moderation_own": "Otro moderador decide las denuncias sobre tu propia publicación, comentario o mensaje.",
+    "content_moderation_nothing_open": "Ya se decidieron todas las denuncias sobre esto.",
+    "content_moderation_authority": "Revisar contenido denunciado requiere permiso para gestionar la comunicación."
   },
   "settingsPanels": {
     "groupsTitle": "Espacios de grupo",
@@ -1176,5 +1179,70 @@
       "itemTitle": "{category}: {description}",
       "meta": "{number} · {place} · {count} reclamos en espera"
     }
+  },
+  "moderation": {
+    "title": "Contenido denunciado",
+    "intro": "Publicaciones, comentarios y mensajes que se denunciaron ante los moderadores de tu organización. Decide cada uno en 24 horas. Quienes lo denunciaron y, si lo eliminas, quien lo escribió reciben tu declaración de motivos; no se dice a nadie quién decidió ni quién denunció.",
+    "sections": "Mostrar",
+    "open": "Abiertas",
+    "decided": "Decididas",
+    "what": "el contenido denunciado",
+    "empty": "No hay nada pendiente. Aquí aparecen las denuncias que se hacen desde una publicación, un comentario o un mensaje.",
+    "emptyDecided": "Todavía no se ha decidido ninguna denuncia.",
+    "kinds": {
+      "feedPost": "Publicación",
+      "comment": "Comentario",
+      "chatMessage": "Mensaje"
+    },
+    "reasons": {
+      "harassment": "Acoso o intimidación",
+      "hate": "Discurso o símbolos de odio",
+      "sexualContent": "Contenido sexual",
+      "violence": "Violencia o amenazas",
+      "spam": "Spam o estafa",
+      "other": "Otro motivo"
+    },
+    "states": {
+      "overdue": "Vencida",
+      "open": "Abierta",
+      "removed": "Eliminado",
+      "noAction": "Sin medidas"
+    },
+    "content": "Contenido",
+    "kind": "Tipo",
+    "author": "Autor",
+    "reports": "Denuncias",
+    "reasonsLabel": "Motivos",
+    "due": "Vence",
+    "line": "{kind} de {author}: {reasons}",
+    "reportsCount": "{open} abiertas de {total}",
+    "where": "Dónde",
+    "firstReported": "Primera denuncia",
+    "removedNote": "Esto se eliminó. Lo que sigue es lo que se denunció.",
+    "current": "Como se lee ahora",
+    "snapshot": "Como se denunció",
+    "reportLine": "{reason}, denunciado por {name} el {date}",
+    "noDetails": "Sin detalles.",
+    "decisions": "Decisiones",
+    "decisionLine": "{action} el {date} por {name}",
+    "actions": {
+      "removed": "Eliminado",
+      "noAction": "Sin medidas"
+    },
+    "decide": "Decidir",
+    "decision": "Decisión",
+    "choices": {
+      "removeTerms": "Eliminarlo: incumple los términos o las normas de tu organización",
+      "removeIllegal": "Eliminarlo: es ilegal",
+      "noAction": "No tomar medidas: no incumple ninguna norma"
+    },
+    "ruleReference": "Norma aplicada",
+    "ruleReferenceHelp": "Por ejemplo, Política de uso aceptable 1, o una sección del código de conducta de tu organización.",
+    "facts": "Hechos",
+    "factsHelp": "Lo que el contenido dice o hace y en lo que se basa la decisión.",
+    "statement": "Declaración de motivos",
+    "statementHelp": "Se envía a quienes lo denunciaron y, si lo eliminas, a quien lo escribió.",
+    "submit": "Registrar decisión",
+    "notYours": "Tú lo escribiste, así que otro moderador lo decide."
   }
 }

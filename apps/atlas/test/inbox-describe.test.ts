@@ -137,6 +137,24 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     action: "Removed",
     statement: "The listing asks applicants for a registration fee.",
   },
+  // Reported content (owner decision 19, 1630).
+  "content_report.filed": {
+    subject: "message",
+    reason: "harassment",
+    dueAt: "2026-10-24T12:00:00Z",
+  },
+  "content_report.overdue": { subject: "post", openReports: "2", dueAt: "2026-10-24T12:00:00Z" },
+  "content_report.decided": {
+    subject: "comment",
+    action: "Removed",
+    statement: "The comment insults a crew member.",
+  },
+  "content.removed": {
+    subject: "post",
+    ground: "Terms Violation",
+    ruleReference: "Acceptable Use Policy 1",
+    statement: "The post insults crew members who arrived late.",
+  },
   "moderation_appeal.decided": {
     title: "Festival Riggers",
     outcome: "Upheld",

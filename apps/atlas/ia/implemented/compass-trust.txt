@@ -1,0 +1,2 @@
+# Owner decision 19: reported posts, comments and messages for the org's moderators.
+people.moderation
