@@ -1,3 +1,4 @@
+import type * as Notifications from "@xos/schemas/notifications";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -26,7 +27,7 @@ vi.mock("@/lib/shell/context", () => ({
   }),
 }));
 vi.mock("@xos/schemas/notifications", async (importOriginal) => {
-  const real = await importOriginal<typeof import("@xos/schemas/notifications")>();
+  const real = await importOriginal<typeof Notifications>();
   return {
     ...real,
     notificationCategoryChannels: (category: string) =>
