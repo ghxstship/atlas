@@ -364,6 +364,7 @@ describe("shifts", () => {
       recordId: null,
       scopeNodeId: null,
       createdAt: start,
+      updatedAt: start,
     });
     const a = mk("a", "2027-06-01T08:00:00Z", "2027-06-01T16:00:00Z", "p1");
     const b = mk("b", "2027-06-01T12:00:00Z", "2027-06-01T18:00:00Z", "p1");
