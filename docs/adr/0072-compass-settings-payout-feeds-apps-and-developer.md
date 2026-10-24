@@ -55,7 +55,11 @@ Where no org the person belongs to allows tokens, the screen says so instead.
 
 ### 6. Every section is accounted for
 
-With A110 and A111, all 14 sections of Settings are Compass screens. `apps/compass/test/settings-parity.test.ts` lists the 14 with the route each opens; a section that ever opens Gateway again must name its reason there.
+`apps/compass/test/settings-parity.test.ts` lists the 14 sections with the route each opens:
+
+- A section with a Compass screen must open it. With A110 and this ADR, nine do; A111 adds the preferences group and Work Details, and then all 14 do.
+- A section without one must state, in the test, why it opens Gateway instead. Until A111's screens land, its five sections carry that note.
+- Each step a screen leaves to Gateway on purpose is listed with the message key of the reason the screen shows: adding a security key, stepping up with only a security key, creating a company account, giving a tax form and creating a personal API token.
 
 ## Consequences
 
