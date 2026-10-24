@@ -16,7 +16,7 @@ import {
 import { env } from "@/lib/env";
 
 /**
- * Atlas's side of billing (owner decision 21 of 2026-10-23): the Stripe key and its mode from the
+ * Atlas's side of billing (ADR 0033 decision 59): the Stripe key and its mode from the
  * server environment, and the 1640 RPCs as the store @xos/platform's Checkout and portal run against,
  * as the signed-in person. Without STRIPE_SECRET_KEY billing is not open, and Billing and Plan says so.
  */

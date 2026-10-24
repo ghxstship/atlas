@@ -921,7 +921,7 @@ describe("webhook signatures with generated secrets", () => {
   });
 });
 
-describe("plan checkouts in the webhook (decision 21)", () => {
+describe("plan checkouts in the webhook (ADR 0033 decision 59)", () => {
   function checkoutEvent(type: string, overrides: { mode?: string; id?: string } = {}) {
     return {
       id: overrides.id ?? `evt_${type.replace(/\W/g, "_")}`,

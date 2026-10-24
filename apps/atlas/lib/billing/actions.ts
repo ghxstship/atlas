@@ -25,7 +25,7 @@ import {
 } from "@/lib/platform/state";
 
 /**
- * Billing and Plan's actions (owner decision 21 of 2026-10-23): open Stripe Checkout to move the org from a
+ * Billing and Plan's actions (ADR 0033 decision 59): open Stripe Checkout to move the org from a
  * trial or Access to a paid plan, and open the Stripe customer portal for an org that pays. The database
  * decides who may (migration 1640: the Owner, after a second factor in the last 15 minutes) before Stripe is
  * called. Each returns the Stripe URL as `value`, and the form sends the browser there. Until the owner sets

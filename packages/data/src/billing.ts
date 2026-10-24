@@ -2,7 +2,7 @@ import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Billing and Plan's billing calls (owner decision 21 of 2026-10-23, migration 1640): the checks before Atlas
+ * Billing and Plan's billing calls (ADR 0033 decision 59, migration 1640): the checks before Atlas
  * opens Stripe Checkout or the customer portal, the record of each Checkout session it opens, and the summary
  * of the org's Stripe billing. Every call runs as the signed-in person, so the database decides who may: the
  * Owner (org.billing.manage) after a second factor in the last 15 minutes. Refusals come back with their rule.

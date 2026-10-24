@@ -8,7 +8,7 @@ import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 /**
  * The trial and dunning state at the top of Billing and Plan (A79; Section 14.7 and Section 16), where the
- * org banners send the Owner to fix billing. Once billing is open (owner decision 21 of 2026-10-23), adding a
+ * org banners send the Owner to fix billing. Once billing is open (ADR 0033 decision 59), adding a
  * card opens Stripe Checkout for the trial's plan, carrying the rest of the trial so nothing is charged
  * before it ends, and updating the payment method opens the Stripe customer portal. Until then the button
  * stays disabled and the copy says how to get it done. Dates are days on the org's calendar.

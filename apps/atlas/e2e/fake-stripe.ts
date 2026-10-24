@@ -5,7 +5,7 @@ import { loadPlanRegistry } from "@xos/schemas/plans";
 import { serviceClient } from "./a79-support";
 
 /**
- * A local fake of Stripe for the billing journey (owner decision 21 of 2026-10-23). Atlas reaches it
+ * A local fake of Stripe for the billing journey (ADR 0033 decision 59). Atlas reaches it
  * through STRIPE_API_URL with the fake test key that playwright.config.ts and CI give the server; nothing
  * here reaches Stripe. It answers the API calls Checkout and the customer portal make (prices by lookup key,
  * Checkout sessions, their expiry, portal configurations and sessions) and serves a hosted Checkout page

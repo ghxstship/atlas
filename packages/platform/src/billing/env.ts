@@ -9,7 +9,7 @@ const LOOPBACK_ORIGIN = /^http:\/\/(127\.0\.0\.1|localhost):\d{2,5}$/;
  * Billing environment, validated at start-up. The Stripe keys belong to the owner's Stripe account
  * and arrive through encrypted environment variables (Section 9); without them every Stripe call
  * refuses with BillingNotConfiguredError instead of failing halfway, and Atlas says billing is not
- * open yet (owner decision 21 of 2026-10-23).
+ * open yet (ADR 0033 decision 59).
  */
 export const billingEnvSchema = z
   .object({

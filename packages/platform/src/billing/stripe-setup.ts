@@ -7,7 +7,7 @@ import { PORTAL_CONFIGURATION_KEY } from "./checkout.ts";
  * Creates the Stripe catalogue of packages/schemas/plans.yaml (ADR 0035): one product per self-serve
  * plan, the extra-seat product and one product per add-on, their prices by lookup key with every
  * priced currency as a currency option, each offer's coupon and promotion code, and the customer
- * portal configuration Atlas opens (owner decision 21 of 2026-10-23).
+ * portal configuration Atlas opens (ADR 0033 decision 59).
  *
  * Idempotent: products use their lookup key as their Stripe id, so a second run finds them; prices
  * are found by lookup key, coupons by id, promotion codes by code and the portal configuration by its

@@ -316,7 +316,7 @@ export const OFFERS: readonly OfferSummary[] = ${JSON.stringify(offers)};
 import type { PlanRegistry } from "@xos/schemas/plans";
 
 /**
- * The validated plan registry, for the billing actions only (owner decision 21 of 2026-10-23): Checkout
+ * The validated plan registry, for the billing actions only (ADR 0033 decision 59): Checkout
  * resolves each price by its Stripe lookup key at runtime, so no price id lives here (ADR 0018). Server
  * code imports it; it never reaches the browser.
  */

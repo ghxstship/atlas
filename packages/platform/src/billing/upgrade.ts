@@ -4,8 +4,8 @@ import type { StripeClient } from "./env.ts";
 import { lookupKeyFor, type BillingInterval } from "./plans.ts";
 
 /**
- * Moving an org from a trial or Access to a paid plan, and managing a paid plan (owner decision 21 of
- * 2026-10-23). The database decides who may and when (migration 1640, as the signed-in Owner); this
+ * Moving an org from a trial or Access to a paid plan, and managing a paid plan (ADR 0033
+ * decision 59). The database decides who may and when (migration 1640, as the signed-in Owner); this
  * module calls Stripe between its checks. Atlas's billing actions run it with the Stripe client and a
  * store over @xos/data.
  */

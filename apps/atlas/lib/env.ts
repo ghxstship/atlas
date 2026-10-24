@@ -89,7 +89,7 @@ const EnvSchema = z.object({
    */
   XOS_READ_REPLICA_URL: z.url({ protocol: /^https?$/ }).optional(),
   /**
-   * The owner's Stripe secret or restricted key (owner decision 21 of 2026-10-23): a test mode key on
+   * The owner's Stripe secret or restricted key (ADR 0033 decision 59): a test mode key on
    * staging, a live one once billing opens in production. Server only; Checkout and the customer portal
    * in Billing and Plan call Stripe with it. Unset, Billing and Plan says billing is not open yet.
    */

@@ -8,7 +8,7 @@ import { openBillingPortalAction, startCheckoutAction } from "@/lib/billing/acti
 import { INITIAL_PLATFORM_STATE, type PlatformActionState } from "@/lib/platform/state";
 
 /**
- * Billing and Plan's buttons (owner decision 21 of 2026-10-23): one opens Stripe Checkout for a plan, the other
+ * Billing and Plan's buttons (ADR 0033 decision 59): one opens Stripe Checkout for a plan, the other
  * the Stripe customer portal. Each posts to a server action in lib/billing/actions.ts, which answers with the
  * Stripe URL the browser then goes to. A step-up refusal opens A77's step-up dialog, and verifying submits the
  * form again; every other refusal shows its copy under `shell.settings.billing.refusals`.

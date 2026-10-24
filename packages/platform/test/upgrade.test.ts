@@ -13,7 +13,7 @@ import {
 } from "../src/billing/index.ts";
 
 /**
- * Moving an org onto a paid plan and managing it (owner decision 21 of 2026-10-23), against a fake Stripe
+ * Moving an org onto a paid plan and managing it (ADR 0033 decision 59), against a fake Stripe
  * account held in memory and a fake of the 1640 RPCs. Nothing reaches the network.
  */
 

@@ -1,5 +1,5 @@
 -- 1640_checkout.sql
--- Checkout (owner decision 21 of 2026-10-23, RRR-130; ADR 0035 gaps): XOS launches on the trial and the Access plan,
+-- Checkout (ADR 0033 decision 59, RRR-130; ADR 0035 gaps): XOS launches on the trial and the Access plan,
 -- and billing opens once Checkout is built. Atlas starts Stripe Checkout to move an org from a trial or Access to a
 -- paid plan and opens the Stripe customer portal for an org that pays; the stripe-webhook Edge Function keeps
 -- app.subscriptions in step through app.sync_subscription_from_stripe (0560, 1250). Stripe calls live in Atlas and
@@ -42,7 +42,7 @@ create index billing_checkouts_open_idx on app.billing_checkouts (org_id, expire
 create index billing_checkouts_plan_code_idx on app.billing_checkouts (plan_code);
 
 call private.install_domain_table('app.billing_checkouts');
-call private.describe('app.billing_checkouts', 'Stripe Checkout sessions Atlas opened to move an org onto a paid plan (owner decision 21 of 2026-10-23). A newer checkout of the same org expires the open ones first, so an org never pays for two subscriptions. The plan itself changes only when the webhook syncs the paid Stripe subscription (app.sync_subscription_from_stripe).', array[
+call private.describe('app.billing_checkouts', 'Stripe Checkout sessions Atlas opened to move an org onto a paid plan (ADR 0033 decision 59). A newer checkout of the same org expires the open ones first, so an org never pays for two subscriptions. The plan itself changes only when the webhook syncs the paid Stripe subscription (app.sync_subscription_from_stripe).', array[
   'plan_code', 'Plan the checkout sells.',
   'billing_interval', 'Monthly or Annual.',
   'stripe_checkout_session_id', 'Stripe Checkout session (cs_...), unique.',
@@ -160,7 +160,7 @@ begin
 end;
 $$;
 
-comment on function app.begin_billing_checkout(uuid, text, boolean) is 'Atlas, before it opens Stripe Checkout for a plan (owner decision 21 of 2026-10-23): runs the checkout checks (private.assert_billing_checkout, step-up last) and returns the org''s Stripe customer in that mode (null before its first payment), the end of its running trial (null without one), which Checkout carries over so the card is charged only when the trial would have ended, and the org''s open Checkout sessions, which Atlas expires before opening another.';
+comment on function app.begin_billing_checkout(uuid, text, boolean) is 'Atlas, before it opens Stripe Checkout for a plan (ADR 0033 decision 59): runs the checkout checks (private.assert_billing_checkout, step-up last) and returns the org''s Stripe customer in that mode (null before its first payment), the end of its running trial (null without one), which Checkout carries over so the card is charged only when the trial would have ended, and the org''s open Checkout sessions, which Atlas expires before opening another.';
 
 create or replace function app.record_billing_checkout(
   p_org_id uuid,

@@ -15,7 +15,7 @@ import { getTranslate } from "@/lib/shell/translate";
  * usage, the plans of packages/schemas/plans.yaml with their prices, seats, extra-seat prices, limits
  * and features, and the Aurora request pack (ADR 0035).
  *
- * Owner decision 21 of 2026-10-23: XOS launches on the trial and the Access plan, and billing opens once the
+ * ADR 0033 decision 59: XOS launches on the trial and the Access plan, and billing opens once the
  * owner sets the Stripe key. An org on a trial or Access chooses a self-serve plan and term and pays in
  * Stripe Checkout; an org that pays through Stripe changes its plan, card or cancellation in the Stripe
  * customer portal. Until the key is set the page says billing is not open yet, and the buttons answer the

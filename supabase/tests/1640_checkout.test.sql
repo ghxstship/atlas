@@ -1,4 +1,4 @@
--- pgTAP: migration 1640, Checkout (owner decision 21 of 2026-10-23, RRR-130). The Owner of an org on a trial or Access
+-- pgTAP: migration 1640, Checkout (ADR 0033 decision 59, RRR-130). The Owner of an org on a trial or Access
 -- opens Checkout for a self-serve plan after step-up; a newer checkout closes the open ones; the webhook records each
 -- session completed or expired; an org that pays through Stripe changes its billing in the customer portal instead.
 begin;

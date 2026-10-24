@@ -8,7 +8,7 @@ import {
 
 /**
  * Creates the pricing v4 catalogue of packages/schemas/plans.yaml in Stripe test mode (ADR 0035) and
- * the customer portal configuration Atlas opens (owner decision 21 of 2026-10-23).
+ * the customer portal configuration Atlas opens (ADR 0033 decision 59).
  *
  *   STRIPE_SECRET_KEY=sk_test_... pnpm --filter @xos/platform stripe:setup [--dry-run]
  *

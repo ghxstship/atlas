@@ -5,7 +5,7 @@ import { startFakeStripe, type FakeStripe } from "./fake-stripe";
 import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
 
 /**
- * Owner decision 21 of 2026-10-23: launch on the trial and the Access plan, with Checkout built so billing can
+ * ADR 0033 decision 59: launch on the trial and the Access plan, with Checkout built so billing can
  * open. The Owner of an org on its Pro trial chooses a plan in Billing and Plan, passes step-up, pays on Stripe
  * Checkout and comes back on the paid plan; the customer portal then manages it. Stripe is the local fake of
  * fake-stripe.ts, which Atlas reaches through STRIPE_API_URL (playwright.config.ts and CI start the server with
