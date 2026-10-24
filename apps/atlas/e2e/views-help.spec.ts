@@ -155,6 +155,8 @@ test("journey 69: a gate chip shows its canon definition on hover and on focus",
 }) => {
   await signIn(page, "producer@example.com");
   await page.goto(`/${ORG}/p/NWS/gates`);
+  // A hover that lands before the page hydrates opens nothing, and the pointer never re-enters.
+  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
   const chip = page.locator("h2 span[tabindex='0']").first();
   await chip.hover();
   const card = page.locator("[data-radix-popper-content-wrapper]").first();
