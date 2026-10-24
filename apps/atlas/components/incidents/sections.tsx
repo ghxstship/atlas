@@ -73,6 +73,7 @@ import {
   reportIncidentAction,
   transitionIncidentAction,
   updateChannelAction,
+  updateEmergencyCodeAction,
   updateIncidentAction,
   withdrawAction,
 } from "@/lib/incidents/actions";
@@ -990,7 +991,7 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
   const format = await getFormatter();
   const { views, view } = chooseView("safety.emergency-codes", param(page.search, "view"));
   const [codesResult, alertsResult] = await Promise.all([
-    listEmergencyCodes(page.ctx.viewer.db),
+    listEmergencyCodes(page.ctx.viewer.db, page.ctx.org.id),
     listCrisisAlerts(page.ctx.viewer.db, {
       orgId: page.ctx.org.id,
       ...(page.project ? { projectId: page.project.id } : {}),
@@ -1033,6 +1034,11 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
       />
       <ProjectFilter page={page} section={section} />
       <p className="m-0 text-text-13 text-text-secondary">{t("incidents.codes.explain")}</p>
+      {codes.length > 0 && codes.every((c) => c.id === undefined) ? (
+        <p className="m-0 text-text-12 text-text-secondary" data-testid="emergency-codes-canon">
+          {t("incidents.codes.notAdopted")}
+        </p>
+      ) : null}
       <AlertsPanel page={page} alerts={alerts} codes={codes} format={format} canAlert={canAlert} />
       {view === "list" ? (
         <OpsList
@@ -1210,6 +1216,48 @@ async function CodeRecord({ page, code }: { page: ModulePage; code: EmergencyCod
         <p className="m-0 text-text-12 text-text-secondary">
           {t("incidents.codes.genericAgencies")}
         </p>
+      ) : null}
+      {/* The codes are org data, edited with the org-wide capability (migration 1612). */}
+      {code.id !== undefined && page.ctx.capabilities.has("safety.emergency_code.write") ? (
+        <RecordSection id="emergency-code-edit" title={t("incidents.codes.editHeading")}>
+          <ActionForm
+            action={updateEmergencyCodeAction}
+            hidden={{ org: page.ctx.org.slug, id: code.id }}
+            submitLabel={t("credentials.common.save")}
+            successKey="credentials.common.saved"
+            layout="inline"
+          >
+            <TextField
+              id="code-label"
+              name="label"
+              label={t("incidents.codes.labelField")}
+              defaultValue={code.label}
+              required
+              maxLength={100}
+            />
+            <TextField
+              id="code-emergency"
+              name="emergency"
+              label={t("incidents.codes.emergency")}
+              defaultValue={code.emergency}
+              required
+              maxLength={200}
+              wide
+            />
+            <TextField
+              id="code-order"
+              name="sortOrder"
+              type="number"
+              label={t("incidents.codes.order")}
+              defaultValue={code.sortOrder}
+              required
+              min={1}
+            />
+          </ActionForm>
+          <p className="m-0 text-text-12 text-text-secondary">
+            {t("incidents.codes.canonWord", { code: code.code })}
+          </p>
+        </RecordSection>
       ) : null}
       {protocols.ok && protocols.data.length > 0 ? (
         <div className="flex flex-col gap-12">

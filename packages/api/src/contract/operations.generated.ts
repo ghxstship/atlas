@@ -5572,11 +5572,13 @@ export interface Components {
   PhaseCoverage: {
     phase_code: Components["PhaseCode"];
     active_element_count: number;
+    declared_gap: boolean;
     gate: number | null;
     phase: string | null;
     element_count: number | null;
     category_count: number | null;
     has_active_element: boolean | null;
+    declared_gap_reason: string | null;
   };
   PhaseCoveragePage: { data: Array<Components["PhaseCoverage"]>; next_cursor: string | null };
   PinFeedPostRequest: { pinned: boolean };

@@ -138,6 +138,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "The Standard Library" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The XOS Standard Library holds the emergency codes, SOPs, verbiage, radio plan, vendor classes and their entitlements, enumerations, Roles Library, labor rates and document library that come with XOS. Each organization gets its own copy to edit: a new organization receives it when it is created, and an organization created earlier adopts it with ",
+          },
+          { t: "strong", v: "Adopt Standard Library" },
+          {
+            t: "text",
+            v: " in Settings, Canon Extensions. Adopting copies only what your organization does not hold yet, so nothing you edited or removed changes.",
+          },
+        ],
+      },
     ],
     "contact-support": [
       { t: "h2", v: "Ask your admins" },
@@ -812,7 +827,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Emergency codes are the plain-language calls your organization uses in an emergency. Radio channels list who talks on which channel. Both are available offline in Compass.",
+            v: "Emergency codes are the plain-language calls your organization uses in an emergency. Your organization keeps its own copy of the Standard Library's codes: open a code to change its label, the emergency it announces or its place in the list. Radio channels list who talks on which channel. Compass keeps the radio channels and the Standard Library's codes offline; your organization's changes to a code show in Atlas.",
           },
         ],
       },
@@ -2265,6 +2280,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "La Biblioteca Estándar" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La Biblioteca Estándar de XOS reúne los códigos de emergencia, los SOP, la terminología, el plan de radio, las clases de proveedor y sus derechos, las enumeraciones, la Biblioteca de Roles, las tarifas laborales y la biblioteca de documentos que vienen con XOS. Cada organización recibe su propia copia para editarla: una organización nueva la recibe al crearse, y una creada antes la adopta con ",
+          },
+          { t: "strong", v: "Adoptar la Biblioteca Estándar" },
+          {
+            t: "text",
+            v: " en Configuración, Extensiones del canon. Adoptarla copia solo lo que su organización aún no tiene, así que nada de lo que editó o quitó cambia.",
+          },
+        ],
+      },
     ],
     "contact-support": [
       { t: "h2", v: "Pregunte a sus administradores" },
@@ -2959,7 +2989,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Los códigos de emergencia son los avisos en lenguaje claro que usa su organización. Los canales de radio indican quién habla en cada canal. Ambos están disponibles sin conexión en Compass.",
+            v: "Los códigos de emergencia son los avisos en lenguaje claro que usa su organización. Su organización guarda su propia copia de los códigos de la Biblioteca Estándar: abra un código para cambiar su nombre, la emergencia que anuncia o su lugar en la lista. Los canales de radio indican quién habla en cada canal. Compass guarda sin conexión los canales de radio y los códigos de la Biblioteca Estándar; los cambios de su organización a un código se ven en Atlas.",
           },
         ],
       },

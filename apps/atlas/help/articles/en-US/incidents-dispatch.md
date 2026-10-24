@@ -16,4 +16,4 @@ The dispatch board shows open incidents by state and on the map. Assign responde
 
 ## Emergency codes and radio channels
 
-Emergency codes are the plain-language calls your organization uses in an emergency. Radio channels list who talks on which channel. Both are available offline in Compass.
+Emergency codes are the plain-language calls your organization uses in an emergency. Your organization keeps its own copy of the Standard Library's codes: open a code to change its label, the emergency it announces or its place in the list. Radio channels list who talks on which channel. Compass keeps the radio channels and the Standard Library's codes offline; your organization's changes to a code show in Atlas.

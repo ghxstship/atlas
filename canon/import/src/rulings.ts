@@ -3,6 +3,8 @@ import { join } from "node:path";
 import { parse } from "yaml";
 import { loadDecision25 } from "./decision25.ts";
 import type { Decision25 } from "./decision25.ts";
+import { loadDecision39 } from "./decision39.ts";
+import type { Decision39 } from "./decision39.ts";
 
 /**
  * Owner canon rulings (canon/rulings/owner-rulings.yaml): decisions D11 to D17
@@ -47,6 +49,8 @@ export interface Rulings {
   readonly retired_enumeration_domains: readonly string[];
   /** Owner decision 25 (canon/rulings/decision-25.yaml): how Playbook to Bible differences resolve. */
   readonly decision_25: Decision25;
+  /** Owner decision 39 (canon/rulings/decision-39.yaml): the canon rulings of RRR-66. */
+  readonly decision_39: Decision39;
 }
 
 const KEYS: readonly (keyof Rulings)[] = [
@@ -68,19 +72,30 @@ const KEYS: readonly (keyof Rulings)[] = [
   "retired_enumeration_domains",
 ];
 
-export function parseRulings(text: string, decision25?: Decision25): Rulings {
+export function parseRulings(
+  text: string,
+  decision25?: Decision25,
+  decision39?: Decision39,
+): Rulings {
   const doc = parse(text) as Partial<Rulings> | null;
   if (!doc || typeof doc !== "object") throw new Error("Rulings file is empty");
   const missing = KEYS.filter((k) => doc[k] === undefined);
   if (missing.length > 0) throw new Error(`Rulings file lacks ${missing.join(", ")}`);
   if (decision25 === undefined)
     throw new Error("Rulings need owner decision 25 (decision-25.yaml)");
-  return { ...(doc as Omit<Rulings, "decision_25">), decision_25: decision25 };
+  if (decision39 === undefined)
+    throw new Error("Rulings need owner decision 39 (decision-39.yaml)");
+  return {
+    ...(doc as Omit<Rulings, "decision_25" | "decision_39">),
+    decision_25: decision25,
+    decision_39: decision39,
+  };
 }
 
 export function loadRulings(canonDir: string): Rulings {
   return parseRulings(
     readFileSync(join(canonDir, "rulings", "owner-rulings.yaml"), "utf8"),
     loadDecision25(canonDir),
+    loadDecision39(canonDir),
   );
 }

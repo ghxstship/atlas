@@ -14491,6 +14491,8 @@ class PhaseCoverage(TypedDict):
     phase_code: PhaseCode
     #: Active elements in the phase.
     active_element_count: int
+    #: Whether the phase carries a declared gap.
+    declared_gap: bool
     #: Gate ordinal.
     gate: Optional[int]
     #: Phase label.
@@ -14501,6 +14503,8 @@ class PhaseCoverage(TypedDict):
     category_count: Optional[int]
     #: True when at least one participating element is Active.
     has_active_element: Optional[bool]
+    #: Why the phase has no Active element, as its declared gap states it; null without one.
+    declared_gap_reason: Optional[str]
 
 
 class ElementEconomicsPage(TypedDict):

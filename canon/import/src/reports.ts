@@ -19,7 +19,7 @@ export function doctrineReport(
   const lines = [
     "# Doctrine findings",
     "",
-    "Canon values the importer adjusted, could not resolve, or found in conflict. None was changed silently. A kind an owner decision settles says so; every other kind waits on the owner (RRR-66, finding legal/qa/findings/A56-001.md).",
+    "Canon values the importer adjusted, could not resolve, or found in conflict. None was changed silently. A kind an owner decision settles says so (decision 25, canon/rulings/decision-25.yaml, and decision 39, canon/rulings/decision-39.yaml); every other kind waits on the owner (RRR-66, finding legal/qa/findings/A56-001.md).",
     "",
   ];
   for (const k of kinds) {
@@ -42,7 +42,7 @@ export function diffReport(diff: readonly DiffEntry[]): string {
   const lines = [
     "# Playbook to Bible diff",
     "",
-    "Every value where a Bible-mirrored Playbook sheet differs from canon, every row only one side holds, and every Standard Library conflict, with how owner decision 25 (2026-10-19, canon/rulings/decision-25.yaml) resolves it. The Bible wins on structure; values the Bible lacks are imported and marked in xpms.playbook_sourced_value; labels map to the closest existing value (xpms.label_mapping). Differences the decision does not cover are deferred to the owner question named. canon:check fails on any difference marked unexplained.",
+    "Every value where a Bible-mirrored Playbook sheet differs from canon, every row only one side holds, and every Standard Library conflict, with how owner decision 25 (2026-10-19, canon/rulings/decision-25.yaml) or owner decision 39 (2026-10-23, canon/rulings/decision-39.yaml) resolves it. The Bible wins on structure; values the Bible lacks are imported and marked in xpms.playbook_sourced_value; labels map to the closest existing value (xpms.label_mapping); a difference an owner ruling settles is marked ruled. Differences no decision covers are deferred to the owner question named. canon:check fails on any difference marked unexplained.",
     "",
   ];
   const outcomes = new Map<string, number>();

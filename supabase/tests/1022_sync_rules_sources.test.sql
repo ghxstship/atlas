@@ -51,6 +51,7 @@ insert into rule_sources values
   ('internal_org', 'app.asset_custody', '*', null),
   ('internal_org', 'app.sops', '*', null),
   ('internal_org', 'app.zones', '*', null),
+  ('internal_org', 'app.emergency_codes', 'id,org_id,code,label,emergency,sort_order', null),
   ('internal_org', 'app.geofences', 'id,org_id,venue_id,zone_id,name,boundary', null),
   ('external_engagement', 'app.shifts', 'id,engagement_id,project_id,scope_node_id,role_code,starts_at,ends_at,time_zone,shift_state', 'api_external.shifts'),
   ('external_engagement', 'app.time_entries', 'id,engagement_id,project_id,shift_id,clock_in,clock_out,break_minutes,source', 'api_external.time_entries'),

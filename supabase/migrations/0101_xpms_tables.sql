@@ -521,7 +521,7 @@ create table xpms.dim_role (
   primary key (role_code),
   check (left(role_code, 4) = dept_code)
 );
-comment on table xpms.dim_role is 'The 61 workforce roles (Bible tab 27) with function name, job title and staffing ratio. Role codes share the URID shape.';
+comment on table xpms.dim_role is 'The 61 workforce roles (Bible tab 27) with function name, job title and staffing ratio. Role codes share the URID shape. Tab 27 no longer decides which role codes exist: owner decision 39 (2026-10-23) retires it as their authority in favor of the Roles Library, xpms.role (ruling D12).';
 comment on column xpms.dim_role.role_code is 'Role code DDDD.DD.DD.';
 comment on column xpms.dim_role.role is 'Function name of the role.';
 comment on column xpms.dim_role.dept_code is 'Department the role belongs to.';
@@ -561,7 +561,7 @@ comment on column xpms.dim_gl_account.account_name is 'Account name.';
 comment on column xpms.dim_gl_account.account_type is 'Account type.';
 comment on column xpms.dim_gl_account.tax_type is 'Default tax type: Tax on Purchases, Tax on Sales, Tax Exempt or None.';
 comment on column xpms.dim_gl_account.description is 'What posts to the account.';
-comment on column xpms.dim_gl_account.class_code is 'Department class of a revenue or expense account, derived from the class digit; NULL for balance sheet accounts (decision D13: postings resolve by class).';
+comment on column xpms.dim_gl_account.class_code is 'Department class of a revenue or expense account, derived from the class digit; NULL for balance sheet accounts (decision D13: postings resolve by class, after an explicit item GL default and before a counterparty type''s, as owner decision 39 reads D13).';
 comment on column xpms.dim_gl_account.source_row is 'Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.';
 comment on column xpms.dim_gl_account.source_status is 'STATUS as recorded on the Playbook row (for example Active).';
 comment on column xpms.dim_gl_account.source_created_by is 'CREATED BY as recorded on the Playbook row.';
@@ -619,7 +619,7 @@ comment on column xpms.dim_counterparty_type.definition is 'What the counterpart
 comment on column xpms.dim_counterparty_type.classification_code is 'CLASSIFICATION CODE from the Playbook Counterparty Types sheet.';
 comment on column xpms.dim_counterparty_type.vendor_class is 'VENDOR CLASS from the Playbook Counterparty Types sheet.';
 comment on column xpms.dim_counterparty_type.clearance_tier is 'CLEARANCE TIER from the Playbook Counterparty Types sheet.';
-comment on column xpms.dim_counterparty_type.default_account_code is 'DEFAULT GL ACCOUNT from the Playbook Counterparty Types sheet.';
+comment on column xpms.dim_counterparty_type.default_account_code is 'DEFAULT GL ACCOUNT from the Playbook Counterparty Types sheet: the counterparty GL default ruling D13 allows (owner decision 39), used when the line''s class gives no account of the type.';
 comment on column xpms.dim_counterparty_type.source_row is 'Row of the Playbook sheet that mirrors this canon row; NULL when the Playbook has no such row.';
 comment on column xpms.dim_counterparty_type.source_status is 'STATUS as recorded on the Playbook row (for example Active).';
 comment on column xpms.dim_counterparty_type.source_created_by is 'CREATED BY as recorded on the Playbook row.';
@@ -677,7 +677,7 @@ comment on column xpms.dim_touchpoint.event_tier_fit is 'Event tier fit as canon
 comment on column xpms.dim_touchpoint.dept_code is 'Department class.';
 comment on column xpms.dim_touchpoint.division is 'Division label.';
 comment on column xpms.dim_touchpoint.tier_code is 'Tier of experience.';
-comment on column xpms.dim_touchpoint.lifecycle_phase_code is 'Lifecycle gate, relabeled to 4.0; NULL where canon names a value that is not a gated phase (held in xpms.intake).';
+comment on column xpms.dim_touchpoint.lifecycle_phase_code is 'Lifecycle gate, relabeled to 4.0; NULL where canon names a value that is not a gated phase (held in xpms.intake). A name an owner ruling reads as a gated phase takes that phase (decision 39: Show is OPR).';
 comment on column xpms.dim_touchpoint.xyz is 'Schema family tag.';
 create index dim_touchpoint_dept_code_idx on xpms.dim_touchpoint (dept_code);
 create index dim_touchpoint_tier_code_idx on xpms.dim_touchpoint (tier_code);
@@ -688,7 +688,7 @@ create table xpms.dim_unit_dimension (
   name xpms.canon_text not null,
   primary key (dimension_code)
 );
-comment on table xpms.dim_unit_dimension is 'Physical dimensions of units (count, length, time and so on). Canon 4.0 states none; rows arrive through intake.';
+comment on table xpms.dim_unit_dimension is 'Physical dimensions of units (count, length, time and so on). Owner decision 39 (2026-10-23) ratifies time; any other dimension arrives through intake.';
 comment on column xpms.dim_unit_dimension.dimension_code is 'Dimension code.';
 comment on column xpms.dim_unit_dimension.name is 'Dimension name.';
 
@@ -698,7 +698,7 @@ create table xpms.dim_unit_alias (
   dimension_code xpms.canon_code references xpms.dim_unit_dimension(dimension_code),
   primary key (alias)
 );
-comment on table xpms.dim_unit_alias is 'Unit bases used by canon (the Item Catalog unit_basis values). A unit without a dimension refuses arithmetic rather than guessing.';
+comment on table xpms.dim_unit_alias is 'Unit bases used by canon (the Item Catalog unit_basis values, and hour and week, which owner decision 39 adds with the time dimension). A unit without a dimension refuses arithmetic rather than guessing.';
 comment on column xpms.dim_unit_alias.alias is 'Unit basis as written in canon.';
 comment on column xpms.dim_unit_alias.unit_code is 'Canonical unit the alias resolves to.';
 comment on column xpms.dim_unit_alias.dimension_code is 'Dimension of the unit, once ratified.';
@@ -838,8 +838,8 @@ comment on column xpms.elements.tier_code is 'Tier of experience.';
 comment on column xpms.elements.lead_time_hours is 'Lead time in hours.';
 comment on column xpms.elements.crew is 'Crew needed.';
 comment on column xpms.elements.unspsc is 'UNSPSC identifier; recorded, never minted.';
-comment on column xpms.elements.purchase_account is 'Purchase account.';
-comment on column xpms.elements.sales_account is 'Sales account.';
+comment on column xpms.elements.purchase_account is 'Purchase account: the item''s explicit GL default (ruling D13 as owner decision 39 reads it), which a posting uses before its class''s account.';
+comment on column xpms.elements.sales_account is 'Sales account: the item''s explicit GL default on the revenue side (ruling D13 as owner decision 39 reads it).';
 comment on column xpms.elements.default_cost_center is 'Default dimension 1.';
 comment on column xpms.elements.price_evidence is 'Source of the price bands.';
 comment on column xpms.elements.source is 'Where the element entered canon.';
@@ -1375,7 +1375,7 @@ create table xpms.intake (
   intake_state xpms.canon_text not null references xpms.dim_state(state),
   primary key (source_file, source_sheet, source_row, source_column)
 );
-comment on table xpms.intake is 'Staging for proposed canon additions and changes. Neither source silently wins: a value that disagrees with canon or cannot be resolved waits here as Proposed until the owner decides. A Playbook value an owner decision does not adopt stays here as Canceled, so the Playbook round trip still reproduces the source; an adopted value leaves intake for canon and xpms.playbook_sourced_value.';
+comment on table xpms.intake is 'Staging for proposed canon additions and changes. Neither source silently wins: a value that disagrees with canon or cannot be resolved waits here as Proposed until the owner decides. A Playbook value an owner decision does not adopt stays here as Canceled, so the Playbook round trip still reproduces the source; an adopted Playbook value leaves intake for canon and xpms.playbook_sourced_value. A Bible or Item Catalog value an owner ruling resolves (decision 39) stays here as Complete, with the canon value it resolved to.';
 comment on column xpms.intake.source_file is 'Canon input file the value comes from.';
 comment on column xpms.intake.source_sheet is 'Sheet, tab or CSV the value comes from.';
 comment on column xpms.intake.source_row is 'Source row number.';
@@ -1384,9 +1384,9 @@ comment on column xpms.intake.target_table is 'xpms table the value would change
 comment on column xpms.intake.target_key is 'Natural key of the target row.';
 comment on column xpms.intake.target_column is 'Column the value would change.';
 comment on column xpms.intake.proposed_value is 'Value as the source states it; NULL when the source is blank.';
-comment on column xpms.intake.canon_value is 'Value canon currently holds; NULL when canon is silent.';
+comment on column xpms.intake.canon_value is 'Value canon currently holds, or for a Complete row the value the ruling resolved it to; NULL when canon is silent.';
 comment on column xpms.intake.reason is 'Why the value is held, and for a decided value the decision that settled it.';
-comment on column xpms.intake.intake_state is 'State of the proposal: Proposed until the owner decides; Canceled when a decision keeps canon''s value.';
+comment on column xpms.intake.intake_state is 'State of the proposal: Proposed until the owner decides; Canceled when a decision keeps canon''s value; Complete when an owner ruling resolves it into canon.';
 create index intake_intake_state_idx on xpms.intake (intake_state);
 
 create table xpms.playbook_sourced_value (
@@ -1429,5 +1429,20 @@ comment on column xpms.label_mapping.playbook_label is 'The label as the Playboo
 comment on column xpms.label_mapping.target_domain is 'Vocabulary the label maps into: state (canon states), unit, element_kind, counterparty_type, order_type, freight_type, record_kind, record_subtype, phase, department, category, or an app lifecycle (production_state, work_order_state, asset_state, shift_state).';
 comment on column xpms.label_mapping.canon_value is 'The existing value the label maps to (a record subtype as kind · subtype); NULL when the decision does not cover it.';
 comment on column xpms.label_mapping.basis is 'Why: casing-or-punctuation, same-label, closest-state, closest-value, not-added (a Playbook-only row) or deferred.';
-comment on column xpms.label_mapping.decision is 'Owner decision that set the mapping (D25).';
+comment on column xpms.label_mapping.decision is 'Owner decision that set the mapping: D25, or D39 for a unit its time dimension adds.';
 comment on column xpms.label_mapping.note is 'Reasoning for the mapping.';
+
+create table xpms.declared_gap (
+  phase_code xpms.canon_code not null references xpms.dim_phase(phase_code),
+  reason xpms.canon_text not null,
+  decision xpms.canon_code not null,
+  ratified_by xpms.canon_text not null,
+  ratified_on date not null,
+  primary key (phase_code)
+);
+comment on table xpms.declared_gap is 'Declared gaps (doctrine 3.4): a gated phase with no Active element carries one, ratified by the owner (owner decision 39, 2026-10-23, finding A65-019). xpms.v_phase_coverage reports it.';
+comment on column xpms.declared_gap.phase_code is 'Gated phase the gap is declared for.';
+comment on column xpms.declared_gap.reason is 'Why the phase has no Active element.';
+comment on column xpms.declared_gap.decision is 'Owner decision that declared the gap (D39).';
+comment on column xpms.declared_gap.ratified_by is 'Named human ratifier.';
+comment on column xpms.declared_gap.ratified_on is 'Date the gap was ratified.';

@@ -31,7 +31,11 @@ language sql immutable as $$
 $$;
 
 -- World: records in NWL (dave, erin and frank are members) and NWX (no members), an incident, an SOP, a document,
--- and a record in org_b.
+-- and a record in org_b. org_a's copies of the Standard Library SOPs and documents (1612) mention trusses and
+-- harnesses too, so they are removed first and the search reads only the rows made here.
+select pg_temp.as_platform();
+update app.sops set deleted_at = now() where org_id = pg_temp.id('org_a') and std_sop_id is not null;
+update app.documents set deleted_at = now() where org_id = pg_temp.id('org_a') and std_document_id is not null;
 select pg_temp.as_user('alice');
 with x as (insert into app.records (project_id, record_kind, title, xyz, xyz_basis)
   values (pg_temp.id('prj_a'), 'Task', 'Hang the main truss', 'Y', 'Declared') returning id, record_number)

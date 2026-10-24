@@ -16,6 +16,7 @@ import {
   removeIncidentParty,
   reportIncident,
   transitionIncident,
+  updateEmergencyCode,
   updateIncident,
   updateRadioChannel,
   withdrawResponder,
@@ -30,9 +31,10 @@ import { localToInstant } from "@/lib/operations/time";
 
 /**
  * Safety incident actions (Section 4.2): report, edit, dispatch, contain, close with sign-off,
- * parties, media, responders, medical encounters, crisis alerts and the radio plan. Each resolves
- * the org context again (404 when gone), validates input and calls the repository; the RPCs and
- * row level security of migrations 0353, 0363, 0470 and 0471 decide every write.
+ * parties, media, responders, medical encounters, crisis alerts, the org's emergency codes and the
+ * radio plan. Each resolves the org context again (404 when gone), validates input and calls the
+ * repository; the RPCs and row level security of migrations 0353, 0363, 0470, 0471 and 1612 decide
+ * every write.
  */
 
 async function contextFor(form: FormData) {
@@ -365,6 +367,31 @@ export async function archiveChannelAction(_: ActionState, form: FormData): Prom
   const id = z.uuid().safeParse(form.get("id"));
   if (!id.success) return { error: "notFound" };
   const result = await archiveRadioChannel(ctx.viewer.db, id.data);
+  if (!result.ok) return failed(result.error);
+  return done(ctx.org.slug);
+}
+
+/** Relabels, redescribes or reorders the org's copy of an emergency code (migration 1612). */
+export async function updateEmergencyCodeAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({
+      id: z.uuid(),
+      label: z.string().trim().min(1).max(100),
+      emergency: z.string().trim().min(1).max(200),
+      sortOrder: z.coerce.number().int().min(1).max(999),
+    })
+    .safeParse({
+      id: form.get("id"),
+      label: form.get("label"),
+      emergency: form.get("emergency"),
+      sortOrder: form.get("sortOrder"),
+    });
+  if (!parsed.success) return { error: "emergencyCodeInput" };
+  const result = await updateEmergencyCode(ctx.viewer.db, parsed.data.id, parsed.data);
   if (!result.ok) return failed(result.error);
   return done(ctx.org.slug);
 }

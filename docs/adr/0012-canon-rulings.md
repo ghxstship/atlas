@@ -25,3 +25,16 @@ The Bible and the Playbook disagree in places, and several Playbook lists bundle
 - `design/xos-design-system/export/canon/` is the reference model; A01 implements it under ADR 0002 on Postgres 17, with the importer's output checked against the reference seed.
 - Where a ruling changes a Bible count, the ruling wins and the importer's validation says so.
 - `migration-report.txt` lists every Playbook row whose stored value the rulings change; the importer regenerates it under `canon/reports/`.
+
+## Amendment (2026-10-23): owner decision 39
+
+Owner decision 39 (ADR 0033, RRR-66) settles the Bible inconsistencies decision 25 left open, recorded as data in `canon/rulings/decision-39.yaml` and applied by the importer (migrations 0101, 0150 and 1610). Two of its rulings refine this ADR:
+
+- **D12.** Bible tab 27's role codes are retired as an authority: the Roles Library alone decides which role codes exist, so 2000.50.02, 5000.50.03 and 6000.50.03 need no tab 27 row. `xpms.dim_role` keeps tab 27's rows for their staffing ratios and kit bases. The switch is partial, and that limit is deliberate: rate cards, pay rates, requisitions, engagements, opportunities, shifts, payroll lines and the org's Roles Library copy reference `xpms.role`, so the three Library-only codes can be priced, requisitioned and adopted, but role assignments (`app.role_assignments`, 0361), training courses (0804) and weather alert roles (0806) still reference `xpms.dim_role`, so none of the three can be assigned to a person on a project, set on a course or alerted. Pointing those three tables at `xpms.role` would instead invalidate the 29 codes only tab 27 holds, which role assignments and API v1 use today.
+- **D13.** An item and a counterparty type may carry an explicit GL default, and a balance-sheet item needs one because no class derives it. A posting takes the item's explicit account first, then its class's account, then the counterparty type's default (`private.gl_account_for_line`, migration 1611). Roles still post by class.
+
+The decision also ratifies the time unit dimension and declares Scope, Engage, Amplify and Close as gaps under doctrine 3.4 (`xpms.declared_gap`), which answers ADR 0014 open decision 6 and the unit dimensions of open decision 7.
+
+## Amendment (2026-10-23): org copies of the emergency codes
+
+WP18 (migration 1612, finding A65-027) narrows **D15**. The emergency code words and the protocols stay global, because crisis alerts and protocol steps name them, but each org now holds an editable copy of the codes in `app.emergency_codes`, as Section 7.2 asks of the whole Standard Library: the org sets each code's label, the emergency it announces and its place in the list, and cannot add a code word canon lacks. API v1's `emergencyCodes` still serves the global codes, and Compass's offline reference still caches them.

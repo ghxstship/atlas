@@ -15,3 +15,7 @@ Each canon page lists its entries with their definitions, grouped by their paren
 ## Extend
 
 **Org Extensions** add values your organization needs beyond the canon. Someone other than the requester approves each extension.
+
+## The Standard Library
+
+The XOS Standard Library holds the emergency codes, SOPs, verbiage, radio plan, vendor classes and their entitlements, enumerations, Roles Library, labor rates and document library that come with XOS. Each organization gets its own copy to edit: a new organization receives it when it is created, and an organization created earlier adopts it with **Adopt Standard Library** in Settings, Canon Extensions. Adopting copies only what your organization does not hold yet, so nothing you edited or removed changes.

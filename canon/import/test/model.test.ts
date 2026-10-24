@@ -110,9 +110,12 @@ describe("canon model", () => {
     expect(findings.ofKind("em-dash-substituted").length).toBeGreaterThan(0);
   });
 
-  it("holds unresolved phase names in intake", () => {
-    expect(model.intake.length).toBeGreaterThan(0);
-    for (const i of model.intake) expect(i.intake_state).toBe("Proposed");
+  it("keeps the phase names an owner ruling resolved in intake as Complete", () => {
+    expect(model.intake).toHaveLength(118);
+    for (const i of model.intake) {
+      expect(i.intake_state).toBe("Complete");
+      expect(i.canon_value).toBe(i.proposed_value === "Show" ? "OPR" : "PRC");
+    }
     expect(new Set(model.intake.map((i) => i.proposed_value))).toEqual(
       new Set(["Show", "Procurement"]),
     );

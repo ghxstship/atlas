@@ -18,7 +18,8 @@
 #      flagged in canon/reports/doctrine-findings.md.
 #   6. The CSMIA26 Production Template rows stay private: unpublished, readable only by service_role (RRR-67).
 #   7. Bible inconsistencies and unstated relationships (RRR-66) are not covered. They are listed in
-#      legal/qa/findings/A56-001.md for the owner and are not decided here.
+#      legal/qa/findings/A56-001.md for the owner and are not decided here; owner decision 39 (2026-10-23,
+#      canon/rulings/decision-39.yaml) rules on them.
 
 decision: D25
 decided_on: "2026-10-19"
@@ -152,29 +153,11 @@ library_labels:
     basis: closest-value
     note: One run or trip is counted as each.
 
-# Differences the decision does not cover. They stay as they are and canon:check accepts them only because
-# they are listed here with the owner question that holds them (finding legal/qa/findings/A56-001.md).
-deferred:
-  - sheet: Roles Library
-    key: "2000.50.02"
-    question: RRR-66
-    note: "Bible tab 27 lacks the code. Ruling D12 gives role codes to the Roles Library; whether tab 27 is retired or renumbered is RRR-66."
-  - sheet: Roles Library
-    key: "5000.50.03"
-    question: RRR-66
-    note: "Bible tab 27 lacks the code. Ruling D12 gives role codes to the Roles Library; whether tab 27 is retired or renumbered is RRR-66."
-  - sheet: Roles Library
-    key: "6000.50.03"
-    question: RRR-66
-    note: "Bible tab 27 lacks the code. Ruling D12 gives role codes to the Roles Library; whether tab 27 is retired or renumbered is RRR-66."
-  - sheet: Enumerations
-    key: ENM-071
-    question: RRR-66
-    note: "Unit of Measure Hour: canon states no time unit shorter than a day and no unit dimensions, so no canon unit is close without a quantity conversion. Unit dimensions are an RRR-66 question."
-  - sheet: Enumerations
-    key: ENM-073
-    question: RRR-66
-    note: "Unit of Measure Week: canon states day and year but no week and no unit dimensions, so no canon unit is close without a quantity conversion. Unit dimensions are an RRR-66 question."
+# Differences the decision does not cover. canon:check accepts one only while it is listed here with the
+# owner question that holds it. Owner decision 39 (2026-10-23, decision-39.yaml) answered RRR-66 (finding
+# legal/qa/findings/A56-001.md), which held the last five: the three Roles Library codes tab 27 lacks and
+# the units Hour and Week.
+deferred: []
 
 # Playbook labels in Production Template columns that land in the domain schema (finding A47-001, the 18
 # targets that waited on this decision). Each names the canon or domain value it maps to. domain is the
