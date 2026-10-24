@@ -102,4 +102,5 @@ Three facts shape the design. Production carries no demo tenant (ADR 0033 decisi
 - The sandbox purge reads the catalog and visits every org-scoped table: about 15 seconds locally, run hourly at most five at a time.
 - The Atlas org layout reads one more indexed row per page (the sandbox end instant).
 - External parties with no membership still have no push device row, as with Compass. A person-level browser subscription is a follow-up.
+  - Update (A101, RRR-147): Gateway browsers and Compass devices register for the person too (ADR 0056, migrations 1670 and 1671).
 - Explicit funnel events (Workflow Started, Step, Completed) are recorded when a workflow emits them. Instrumenting each Section 11.11 to 11.13 workflow is a follow-up for its owning module; page views give the route funnel meanwhile.

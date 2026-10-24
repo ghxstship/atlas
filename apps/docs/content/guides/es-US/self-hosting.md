@@ -102,6 +102,7 @@ Atlas y Gateway validan su entorno al iniciar y nombran cada variable faltante o
 | `XOS_TRUSTED_PROXY_HOPS`      | Opcional    | Opcional    | Proxies de confianza delante del que añade la dirección del cliente; `0` por defecto                      |
 | `XOS_INBOUND_DOMAIN`          | Opcional    |             | El dominio en el que se recibe el correo de las bandejas de proyecto, para mostrar direcciones completas  |
 | `XOS_READ_REPLICA_URL`        | Opcional    |             | El origen de la Data API de una réplica de lectura; la exportación completa lee allí y luego la principal |
+| `STRIPE_SECRET_KEY`           | Opcional    |             | Tu clave secreta de Stripe, para Checkout y el portal de clientes; sin ella, la facturación sigue cerrada |
 
 Ninguna de las dos aplicaciones recibe la clave de rol de servicio. Cada llamada a Supabase se ejecuta en el servidor con la sesión de la persona que inició sesión.
 

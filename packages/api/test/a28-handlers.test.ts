@@ -159,6 +159,29 @@ describe("Opportunities contract: engagements", () => {
     expect(missing.status).toBe(404);
   });
 
+  it("reads a sponsor engagement with every field, its work terms null (1624)", async () => {
+    const sponsor = {
+      ...engagementRow,
+      role_type: "Sponsor",
+      application_id: null,
+      worker_classification: null,
+      pay_basis: null,
+      arrangement: null,
+      application: null,
+    };
+    const { api } = app({ "from:engagements": [ok(sponsor)] });
+    const body = (await expectContract(
+      await api.request(`/engagements/${id(1)}`),
+      "engagements.get",
+    )) as Record<string, unknown>;
+    expect(body).toMatchObject({
+      role_type: "Sponsor",
+      worker_classification: null,
+      pay_basis: null,
+      arrangement: null,
+    });
+  });
+
   it("refuses an unsupported filter", async () => {
     const { api } = app({ "from:engagements": [ok([])] });
     const response = await api.request("/engagements?filter[internal_note][eq]=x");

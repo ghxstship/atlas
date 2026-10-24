@@ -178,7 +178,8 @@ jobs:
         run: |
           ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
           # XOS_API_HOST: e2e/api-host.spec.ts reaches the API host by sending Host: api.localhost (RRR-119).
-          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\nXOS_API_HOST=api.localhost\n' "$ANON" > apps/atlas/.env.local
+          # STRIPE_*: e2e/billing-checkout.spec.ts pays on its local fake of Stripe (e2e/fake-stripe.ts), never Stripe.
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\nXOS_API_HOST=api.localhost\nSTRIPE_SECRET_KEY=sk_test_abcdefghij\nSTRIPE_API_URL=http://127.0.0.1:12111\n' "$ANON" > apps/atlas/.env.local
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
           echo "E2E_ATLAS_URL=http://127.0.0.1:3006" >> "$GITHUB_ENV"
           echo "E2E_API_HOST=api.localhost" >> "$GITHUB_ENV"
