@@ -672,6 +672,7 @@ export async function ShiftsCollection(props: {
         rows={shifts.map((s) => ({
           id: s.id,
           label: t("crew.common.pair", { a: personName(s), b: when(s) }),
+          version: s.updatedAt,
           project: s.projectKey,
           person: personName(s),
           role: roleName(s.roleCode),

@@ -893,6 +893,7 @@ describe("invoices", () => {
             currency_code: "USD",
             invoice_state: "Proposed",
             created_at: "x",
+            updated_at: "2027-06-01T00:00:00Z",
           },
           {
             id: "i2",
@@ -930,6 +931,7 @@ describe("invoices", () => {
     });
     const result = await finance.listInvoices(db, { orgId: "o1", projectId: "p1" });
     expect(result.ok && result.data.map((i) => i.totalMinor)).toEqual([null, 1070]);
+    expect(result.ok && result.data[0]?.updatedAt).toBe("2027-06-01T00:00:00Z");
     expect(await finance.listInvoices(db, { orgId: "o1" })).toEqual({ ok: true, data: [] });
   });
 

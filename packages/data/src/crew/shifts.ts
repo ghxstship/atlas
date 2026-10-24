@@ -36,6 +36,8 @@ export interface Shift {
   readonly recordId: string | null;
   readonly scopeNodeId: string | null;
   readonly createdAt: string;
+  /** The version a bulk change of the shift is sent against (Section 11.7, migration 1770). */
+  readonly updatedAt: string;
 }
 
 export interface ShiftFilter {
@@ -52,7 +54,7 @@ export interface ShiftFilter {
   readonly limit?: number;
 }
 
-const SHIFT_SELECT = `id, project_id, membership_id, role_code, starts_at, ends_at, time_zone, shift_state, record_id, scope_node_id, created_at, project:projects!shifts_project_id_fkey(project_key, name), membership:memberships!shifts_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!shifts_engagement_id_fkey(${ENGAGEMENT_EMBED})`;
+const SHIFT_SELECT = `id, project_id, membership_id, role_code, starts_at, ends_at, time_zone, shift_state, record_id, scope_node_id, created_at, updated_at, project:projects!shifts_project_id_fkey(project_key, name), membership:memberships!shifts_membership_id_fkey(${MEMBERSHIP_EMBED}), engagement_id, engagement:engagements!shifts_engagement_id_fkey(${ENGAGEMENT_EMBED})`;
 
 interface ShiftRow {
   id: string;
@@ -66,6 +68,7 @@ interface ShiftRow {
   record_id: string | null;
   scope_node_id: string | null;
   created_at: string;
+  updated_at: string;
   project: { project_key: string; name: string } | null;
   membership: {
     id: string;
@@ -94,6 +97,7 @@ function toShift(row: ShiftRow): Shift {
     recordId: row.record_id,
     scopeNodeId: row.scope_node_id,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 

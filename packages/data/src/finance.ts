@@ -1691,6 +1691,8 @@ export interface Invoice {
   readonly totalMinor: number | null;
   readonly appliedMinor: number;
   readonly createdAt: string;
+  /** The version a bulk change of the invoice is sent against (Section 11.7, migration 1770). */
+  readonly updatedAt: string;
 }
 
 export interface InvoiceLine {
@@ -1711,7 +1713,7 @@ export async function listInvoices(
   let query = db
     .from("invoices")
     .select(
-      "id, project_id, direction, counterparty_id, payee_person_id, engagement_id, invoice_number, issued_on, due_on, currency_code, invoice_state, created_at, payee:people!invoices_payee_person_id_fkey(full_name)",
+      "id, project_id, direction, counterparty_id, payee_person_id, engagement_id, invoice_number, issued_on, due_on, currency_code, invoice_state, created_at, updated_at, payee:people!invoices_payee_person_id_fkey(full_name)",
     )
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
@@ -1765,6 +1767,7 @@ export async function listInvoices(
         totalMinor: subtotal === null || tax === null ? null : subtotal + tax,
         appliedMinor: num(t["applied_minor"]),
         createdAt: str(i["created_at"]),
+        updatedAt: str(i["updated_at"]),
       };
     }),
   );

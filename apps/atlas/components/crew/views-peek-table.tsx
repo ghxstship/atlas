@@ -17,13 +17,21 @@ export function PeekTable(props: {
   totalsLabel?: string;
   /** False for tables inside a record, whose rows open nothing. */
   activatable?: boolean;
-  /** Bulk edit of a selection (Section 11.7); each row names itself in its `label` field. */
+  /**
+   * Bulk edit of a selection (Section 11.7); each row names itself in its `label` field and may carry the version it
+   * was read at in `version`, which the change is sent against.
+   */
   bulk?: BulkConfig | null;
 }) {
   const router = useRouter();
   const href = useQueryHref();
   const refs = useMemo(
-    () => props.rows.map((r) => ({ id: r.id, label: String(r["label"] ?? r.id) })),
+    () =>
+      props.rows.map((r) => ({
+        id: r.id,
+        label: String(r["label"] ?? r.id),
+        ...(typeof r["version"] === "string" ? { version: r["version"] } : {}),
+      })),
     [props.rows],
   );
   const bulk = useBulk(props.bulk, refs);

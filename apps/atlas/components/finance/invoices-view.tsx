@@ -114,6 +114,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
   const rows: Row[] = shown.map((i) => ({
     id: i.id,
     label: keyOf(i),
+    version: i.updatedAt,
     number: i.number ?? "",
     direction: t(`finance.invoices.directionShort.${i.direction}`),
     party: payee(i),

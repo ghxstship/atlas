@@ -40,5 +40,5 @@ ADR 0044 gave Atlas a per-tab undo stack (`components/undo/undo-stack.ts`) with 
 ## Consequences
 
 - The four new event codes join the webhook catalog (additive).
-- Shift, invoice and asset unit rows do not carry their `updated_at` to the bulk dialog yet, so their bulk changes are still checked only by their lifecycle RPCs; the RPCs accept a version as soon as those collections pass one.
+- Every table with bulk edit (records, shifts, invoices and asset units) sends each row's `updated_at` as it was read, so a row someone changed since comes back stale with both values instead of being overwritten. A bulk dialog expects only the version, not the field's value per row, so a later change to another field of the row also asks mine or theirs.
 - Work orders and day sheets (A119, A121) and Gateway (A122) are outside this decision.
