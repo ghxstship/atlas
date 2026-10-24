@@ -297,15 +297,32 @@ export async function awardWorkOrder(
   return error ? fail(toDataError(error)) : ok(null);
 }
 
-/** Deletes a Draft work order; any other state refuses (cancel it instead). */
+/**
+ * Moves a Draft work order to Trash (a soft delete; the database keeps every other state, 0411).
+ * Restore it with restoreWorkOrder until its retention period ends.
+ */
 export async function deleteWorkOrder(db: XosClient, id: string): Promise<Result<null>> {
   const { data, error } = await untyped(db)
     .from("work_orders")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id)
+    .is("deleted_at", null)
     .select("id");
   if (error) return fail(toDataError(error));
   return (data as unknown[]).length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/**
+ * Restores a work order from Trash through app.restore_trash_item (1031, 1781), as the Trash page
+ * does: the work order's own update rule decides, and bids deleted with it come back with it.
+ */
+export async function restoreWorkOrder(db: XosClient, id: string): Promise<Result<null>> {
+  const { error } = await db.rpc("restore_trash_item", {
+    p_subject_table: "work_orders",
+    p_subject_id: id,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
 }
 
 export interface WorkOrderStateEntry {
