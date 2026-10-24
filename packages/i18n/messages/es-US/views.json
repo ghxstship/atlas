@@ -103,8 +103,7 @@
       "medical": "Los datos de atención médica nunca se exportan.",
       "expired": "Esta exportación ya no está disponible. Vuelve a exportar la vista.",
       "invalid": "No se pudo exportar esta vista. Cambia sus filtros e inténtalo de nuevo.",
-      "unexpected": "No se pudo completar la exportación. Inténtalo de nuevo.",
-      "failed": "La exportación falló: {reason}"
+      "unexpected": "No se pudo completar la exportación. Inténtalo de nuevo."
     },
     "columns": {
       "access_level_enum_id": "Nivel de acceso",

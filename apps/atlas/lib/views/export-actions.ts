@@ -140,25 +140,25 @@ export async function requestCollectionExportAction(
   return { ok: true, data: { id: requested.data } };
 }
 
-/** Where the viewer's export stands: Queued, Rendering, Ready (with its rows), Failed (with why), Expired. */
+/** Where the viewer's export stands: Queued, Rendering, Ready (with its rows), Failed or Expired. */
 export async function collectionExportStatusAction(
   orgSlug: string,
   id: string,
-): Promise<
-  ExportResult<{
-    readonly status: ExportStatus;
-    readonly rowCount: number | null;
-    readonly error: string | null;
-  }>
-> {
+): Promise<ExportResult<{ readonly status: ExportStatus; readonly rowCount: number | null }>> {
   if (!ID.safeParse(id).success) return { ok: false, error: "invalid" };
   const ctx = await getOrgContext(orgSlug);
   if (!ctx) return { ok: false, error: "denied" };
   const found = await getCollectionExport(ctx.viewer.db, id);
-  if (!found.ok) return { ok: false, error: errorOf(found.error) };
+  // An export that is gone (retention, or never the viewer's) has nothing left to follow.
+  if (!found.ok) {
+    return {
+      ok: false,
+      error: found.error.kind === "not-found" ? "expired" : errorOf(found.error),
+    };
+  }
   return {
     ok: true,
-    data: { status: found.data.status, rowCount: found.data.rowCount, error: found.data.error },
+    data: { status: found.data.status, rowCount: found.data.rowCount },
   };
 }
 

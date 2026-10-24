@@ -82,12 +82,7 @@ export function CollectionExport() {
         if (state.data.status === "Failed" || state.data.status === "Expired") {
           setFollowing(null);
           const error: ExportError = state.data.status === "Expired" ? "expired" : "unexpected";
-          setNotice({
-            kind: "error",
-            message: state.data.error
-              ? t("export.errors.failed", { reason: state.data.error })
-              : t(`export.errors.${error}`),
-          });
+          setNotice({ kind: "error", message: t(`export.errors.${error}`) });
           return;
         }
         if (attempt === SLOW_AFTER)

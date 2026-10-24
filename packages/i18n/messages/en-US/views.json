@@ -103,8 +103,7 @@
       "medical": "Medical encounter data is never exported.",
       "expired": "This export is no longer available. Export the view again.",
       "invalid": "This view could not be exported. Change its filters and try again.",
-      "unexpected": "The export could not finish. Try again.",
-      "failed": "The export failed: {reason}"
+      "unexpected": "The export could not finish. Try again."
     },
     "columns": {
       "access_level_enum_id": "Access level",
