@@ -294,7 +294,7 @@ const isKind = (e: ts.Expression): boolean =>
 /** A template literal's substitution in the text peekUse reads its URL from. */
 const HOLE = "\u0000";
 
-/** `?peek=` or `&peek=` given a value: a substitution, or a `{id}` placeholder filled in later. */
+/** `?peek=` or `&peek=` given a value: a substitution, or a `{id}` the page fills in later. */
 const PEEK_VALUE = new RegExp(`[?&]peek=(?:${HOLE}|\\{)`);
 
 /** `?peek=` or `&peek=` at the end of a literal a value is appended to (`"?peek=" + id`). */
