@@ -1,4 +1,6 @@
 import { explainAccess, type AccessPath } from "@xos/data/access";
+import type { Json } from "@xos/data/database.types";
+import { getFieldHistory } from "@xos/data/field-history";
 import {
   boardField,
   calendarField,
@@ -19,13 +21,17 @@ import type {
   KitRow,
   ViewKind,
 } from "@/components/collection-kit/types";
+import type { HistoryItem } from "@/components/history/field-history-list";
 import { CreateRecordDrawer, RecordPeek, type PeekField } from "@/components/objects/records";
 import { EmptyPanel, ErrorPanel } from "@/components/platform/kit";
 import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
 import { ButtonLink } from "@/components/ui";
+import { loadConversation, type Conversation } from "@/components/work/record-sections";
+import { historyItems } from "@/lib/history/items";
 import { collectionState } from "@/lib/collection-kit/page";
 import { getFormatters, type Formatters } from "@/lib/platform/format";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
+import { getTranslate } from "@/lib/shell/translate";
 import { PageSkeleton } from "@/components/projects/page-skeleton";
 import { Suspense } from "react";
 import { sitemap } from "@/lib/shell/sitemap";
@@ -64,9 +70,38 @@ function show(f: ObjectField, v: FieldValue | undefined, fmt: Formatters): strin
 }
 
 /**
+ * A value as the record's history stores it (1750: a choice or person as its id, money as its minor
+ * units and currency), in words.
+ */
+function historyValue(f: ObjectField | undefined, v: Json, fmt: Formatters): string {
+  if (!f) return typeof v === "string" ? v : JSON.stringify(v);
+  switch (f.dataType) {
+    case "Choice":
+      return f.choices.find((c) => c.id === v)?.label ?? String(v);
+    case "Money": {
+      const m = v as { minor: number | null; currency: string };
+      return fmt.money(m.minor, m.currency);
+    }
+    case "Date":
+      return fmt.date(String(v));
+    case "Timestamp":
+      return fmt.dateTime(String(v));
+    case "Boolean":
+      return fmt.t(v === true ? "common.yes" : "common.no");
+    case "Number":
+      return fmt.number(Number(v));
+    case "Person":
+      return fmt.t("objects.person");
+    default:
+      return String(v);
+  }
+}
+
+/**
  * Records of a custom object (Section 4.6.3): list, board (by its first Choice field), table and
  * calendar (by its first date field) views, only those the object's fields support; a create drawer
- * from the object's typed fields; and a record peek that explains why the viewer can see the record.
+ * from the object's typed fields; and a record peek with the record's activity, comments and files,
+ * that explains why the viewer can see the record.
  */
 export default async function Page({
   params,
@@ -167,9 +202,35 @@ async function ObjectRecords({
     ctx.role !== null && ["owner", "admin", "manager", "member", "collaborator"].includes(ctx.role);
   const peeked = state.peek ? (records.data.find((r) => r.id === state.peek) ?? null) : null;
   let paths: AccessPath[] | null = null;
+  let conversation: Conversation | null = null;
+  let activity: HistoryItem[] | null = null;
   if (peeked) {
-    const explained = await explainAccess(ctx.viewer.db, "custom_object_records", peeked.id);
+    const [explained, collab, history, t] = await Promise.all([
+      explainAccess(ctx.viewer.db, "custom_object_records", peeked.id),
+      loadConversation(ctx, { table: "app.custom_object_records", id: peeked.id }),
+      getFieldHistory(ctx.viewer.db, "app.custom_object_records", peeked.id),
+      getTranslate(),
+    ]);
     paths = explained.ok ? explained.data : null;
+    conversation = collab;
+    // Its fields' changes are the record's (1750): each value is keyed values.{field key}.
+    const byKey = new Map(object.fields.map((f) => [`values.${f.key}`, f]));
+    activity = history.ok
+      ? historyItems(history.data, {
+          t,
+          when: fmt.dateTime,
+          label: (field) =>
+            field === "title"
+              ? fmt.t("objects.titleColumn")
+              : field === "deleted_at"
+                ? t("collab.history.trash")
+                : (byKey.get(field)?.label ?? null),
+          value: (field, v) =>
+            field === "deleted_at"
+              ? fmt.dateTime(String(v))
+              : historyValue(byKey.get(field), v, fmt),
+        })
+      : null;
   }
   const base = `/${ctx.org.slug}/objects/${object.key}`;
   const close = state.baseQuery ? `${base}?${state.baseQuery}` : base;
@@ -231,7 +292,7 @@ async function ObjectRecords({
           closeHref={close}
         />
       ) : null}
-      {peeked ? (
+      {peeked && conversation ? (
         <RecordPeek
           org={ctx.org.slug}
           objectKey={object.key}
@@ -242,6 +303,9 @@ async function ObjectRecords({
           paths={paths}
           canWrite={canWrite}
           closeHref={close}
+          activity={activity}
+          conversation={conversation}
+          me={ctx.viewer.person?.id ?? null}
         />
       ) : null}
     </CollectionView>
