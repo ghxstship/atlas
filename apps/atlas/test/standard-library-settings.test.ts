@@ -1,3 +1,5 @@
+import type * as Incidents from "@xos/data/incidents";
+import type * as StandardLibrary from "@xos/data/standard-library";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { OrgContext } from "@/lib/shell/context";
 
@@ -20,12 +22,12 @@ vi.mock("next-intl/server", () => ({
 vi.mock("next/cache", () => ({ revalidatePath: () => undefined }));
 vi.mock("@/lib/shell/context", () => ({ getOrgContext: async () => state.ctx }));
 vi.mock("@xos/data/standard-library", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@xos/data/standard-library")>()),
+  ...(await importOriginal<typeof StandardLibrary>()),
   getStandardLibraryStatus: data.status,
   adoptStandardLibrary: data.adopt,
 }));
 vi.mock("@xos/data/incidents", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@xos/data/incidents")>()),
+  ...(await importOriginal<typeof Incidents>()),
   updateEmergencyCode: data.updateCode,
 }));
 
@@ -35,7 +37,9 @@ const { adoptStandardLibraryAction } =
 const { updateEmergencyCodeAction } = await import("@/lib/incidents/actions");
 const { ActionForm } = await import("@/components/operations/action-form");
 
-const Panel = contributions[0]!.Panel;
+const [contribution] = contributions;
+if (!contribution) throw new Error("WP18 contributes the Standard Library panel.");
+const Panel = contribution.Panel;
 const db = { rpc: vi.fn() };
 
 function contextWith(capabilities: readonly string[]): OrgContext {
