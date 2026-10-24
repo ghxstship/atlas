@@ -12,6 +12,11 @@ import { serviceClient } from "./a79-support";
  * and a portal page. Paying on the Checkout page delivers what Stripe would: `checkout.session.completed`
  * and `customer.subscription.created`, signed with a webhook secret made up for the run and applied through
  * the platform's webhook handler against the local stack, as the stripe-webhook Edge Function does.
+ *
+ * Every id it hands out carries a token made up for the run. The database keeps the sessions, events and
+ * subscriptions of earlier runs, and each Playwright worker (another engine, a retry, a rerun) starts its own fake,
+ * so ids counted from 1 again would name rows an earlier run recorded: record_billing_checkout would keep the old
+ * session, the event would count as a duplicate and the subscription would belong to another org.
  */
 
 /** The fake Stripe key the journey server runs with: allowlisted as fake in .gitleaks.toml. */
@@ -108,13 +113,16 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
   const portals = new Map<string, { customer: string; returnUrl: string }>();
   const requests: { method: string; path: string }[] = [];
   const lookupKeys = knownLookupKeys();
+  const run = randomBytes(6).toString("hex");
   let next = 1;
+  /** A Stripe-shaped id no earlier run handed out: the prefix, the run's token and a counter. */
+  const newId = (prefix: string) => `${prefix}${run}${String(next++)}`;
   const store = billingStore(supabaseDb(serviceClient()));
   const base = `http://127.0.0.1:${String(port)}`;
 
   async function deliver(type: string, object: unknown): Promise<void> {
     const body = JSON.stringify({
-      id: `evt_fake${String(next++)}`,
+      id: newId("evt_fake"),
       object: "event",
       type,
       livemode: false,
@@ -136,8 +144,8 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
   }
 
   async function pay(session: FakeSession): Promise<void> {
-    const customer = session.customer ?? `cus_fake${String(next++)}`;
-    const subscription = `sub_fake${String(next++)}`;
+    const customer = session.customer ?? newId("cus_fake");
+    const subscription = newId("sub_fake");
     session.status = "complete";
     session.customer = customer;
     await deliver("checkout.session.completed", {
@@ -160,7 +168,7 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
       items: {
         object: "list",
         data: session.lineItems.map((item, i) => ({
-          id: `si_fake${String(i)}`,
+          id: `si_fake${run}${String(i)}`,
           quantity: item.quantity,
           current_period_end: periodEnd,
           price: { id: item.price, lookup_key: lookupKeyOf(item.price) },
@@ -186,7 +194,7 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
     }
     if (route === "POST /v1/checkout/sessions") {
       const form = await readForm(request);
-      const id = `cs_test_Fake${String(next++)}`;
+      const id = newId("cs_test_Fake");
       const lineItems: FakeSession["lineItems"] = [];
       for (let i = 0; form.has(`line_items[${String(i)}][price]`); i += 1) {
         lineItems.push({
@@ -242,7 +250,7 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
     }
     if (route === "POST /v1/billing_portal/sessions") {
       const form = await readForm(request);
-      const id = `bps_fake${String(next++)}`;
+      const id = newId("bps_fake");
       portals.set(id, {
         customer: form.get("customer") ?? "",
         returnUrl: form.get("return_url") ?? "",
@@ -287,7 +295,7 @@ export async function startFakeStripe(port: number = FAKE_STRIPE_PORT): Promise<
       );
       return;
     }
-    const portal = /^\/portal\/(bps_fake[0-9]+)$/.exec(url.pathname);
+    const portal = /^\/portal\/(bps_fake[0-9a-f]+)$/.exec(url.pathname);
     if (portal) {
       const found = portals.get(portal[1] ?? "");
       if (!found) return missing(response, "portal session");
