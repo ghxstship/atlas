@@ -287,8 +287,10 @@ const SEPARATORS = /\s*(?:·|•|\u2014|\u2013|\||\/|,|:|›|>|\(|\)|\+)\s*|\s+-
 const CODE = /^[A-Z0-9]+(?:[-‐‑‒\u2013−_.][A-Z0-9]+)*$/;
 
 /**
- * One value between separators: data, a formatted value, initials or a code, or a key before its
- * data ("NWS Northwind Summer Series", an activity line naming a project).
+ * One value between separators: data, a formatted value, initials or a code, or a record or project
+ * key before its data ("NWS Northwind Summer Series", an activity line naming a project). The key
+ * has to be a database value with letters in it, so a hard-coded count or label in front of a
+ * database word ("5 Approved", "NEW Task") is still a finding.
  */
 function isValue(piece: string, data: Set<string>): boolean {
   const p = piece.trim();
@@ -297,7 +299,14 @@ function isValue(piece: string, data: Set<string>): boolean {
     return true;
   }
   const keyed = /^(\S+)\s+(.+)$/.exec(p);
-  return keyed !== null && CODE.test(keyed[1] ?? "") && data.has((keyed[2] ?? "").trim());
+  const key = keyed?.[1] ?? "";
+  return (
+    keyed !== null &&
+    CODE.test(key) &&
+    /[A-Z]/.test(key) &&
+    data.has(key) &&
+    data.has((keyed[2] ?? "").trim())
+  );
 }
 
 function isData(raw: string, data: Set<string>): boolean {
