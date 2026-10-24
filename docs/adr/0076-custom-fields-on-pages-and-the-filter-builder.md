@@ -1,0 +1,54 @@
+# ADR 0076: Custom Fields on Pages, and the Add Filter Control
+
+- Status: Accepted
+- Date: 2026-10-24
+- Decider: A117 (RRR-162), trace rows S4.5.6-16 and S11.4-02 (the FilterBuilder part)
+- Migrations: 1760
+
+## Context
+
+Orgs could define custom fields on nine built-in tables in Settings (A86, `app.custom_field_definitions`, 0540), and the API read and wrote their values, but no Atlas page showed or saved a value. `packages/ui` held a FilterBuilder that no page rendered, and collection filters were each page's own parameters, saved by views as `field eq value` only. `required` on a definition was enforced nowhere.
+
+## Decisions
+
+### 1. One data module, the typed columns, the existing write path
+
+- `@xos/data/custom-fields` reads a table's definitions, reads values for many rows (in chunks of 150 ids, so no request outgrows a URL), and writes one row's values: insert a new one, update a changed one in place with only its type's column filled, soft delete a cleared one. These are table writes under the same policies as the API's customFieldValues operations; there is no new RPC.
+- A form sends each value as the text its input holds (`CustomFieldInput`). `checkCustomFieldInputs` turns text into typed values and names missing or malformed fields. The browser and the server run the same function before anything is written.
+- Money takes the currency's minor units from `private.currencies`. A Timestamp is typed and shown in the org's time zone (`locale.time_zone`).
+
+### 2. Required is a form rule that the write path also holds
+
+- The definition's own comment says required means "forms require a value". A create form that shows custom fields refuses to create the row while a required field is blank, in the browser and again in the server action before the row exists. A create path that shows no custom fields, such as a quick-add row or an import, is not held to it. Those paths never offered the field.
+- 1760 adds the write-path check to `private.guard_custom_field_value`: a value row of a required field cannot have an empty typed column, and it cannot be soft deleted (`custom_value_required`). This holds for anything that writes values directly, the API included. A field made required later does not change rows that have no value yet. The next write to them has to give one.
+- Alternative: a deferred constraint trigger on each target table that demands every required value at commit. Rejected. A row and its values are written in separate requests, and the API creates rows with no custom fields at all.
+
+### 3. A create action checks first and saves after
+
+- A create form's inputs are named `cf.<key>` (and `cf.<key>.currency`), with a `cf:shown` marker. The action calls `customFieldsOf(ctx, table, form)`, which checks the inputs (a dry run) and refuses with field errors before the row is created. After the create it saves them on the new row. Records, whose create action takes typed input, pass the same inputs as `customFields`.
+- The checks passed before the row existed, so a later save can fail only on something unexpected. That failure is logged and the create stands: the form opens the new row, whose custom fields section shows the field unset. Answering with an error would invite a second submit and a duplicate row.
+
+### 4. Record pages and peeks show and edit the values in their own section
+
+- `CustomFieldsPanel` (server) and `CustomFieldsSection` (client, for peeks drawn in the browser) show a row's fields with their values. For a Collaborator or higher (the band `private.custom_writer_orgs` allows), Edit turns them into inputs with Save, which checks and writes through `saveCustomFieldsAction`.
+- That section is the edit form for custom fields on every target. Pages that also have an edit form for their built-in fields (venues, vendor terms, project settings, invoices) keep that form as it was. The section sits beside it, so each surface gains one line.
+- A vendor is the vendor facet of a counterparty. Counterparties have no Atlas collection of their own, so their fields show as Company fields on the vendor's page and peek.
+
+### 5. Filter conditions are query parameters in two namespaces
+
+- The Add filter control (`components/views/filter-bar.tsx`, in the view switcher every collection renders) writes conditions into the query string. `cf.<key>` is an org custom field. `f.<key>` is a field the page declares (a column of the shared collection kit). Neither namespace collides with a page's own filter parameters.
+- An operator other than eq follows the field after a dot: `cf.seats.gte=100`. Operators are the API's (`app.filter_operator`). A saved view therefore stores field `cf.seats`, operator `gte`, value `100`, and reopening it writes the same parameter back. "Is empty" and "has a value" are `is_null` with `true` and `false`. A filter the control did not write, such as an `in` saved through the API, reopens as eq, as before.
+- Each page's loader applies custom field conditions on `custom_field_values` through the field's typed column (the field's partial index, 0540). It reads matching ids a page of 1,000 at a time, so no condition is cut short by `max_rows`. "Is not" and "is empty" drop the matches of the opposite test, so rows with no value pass them. A condition on an unknown or unfilterable field is ignored. A value that cannot match, such as an unknown choice, leaves no row.
+- Declared-field conditions match on the text the page shows, in the browser. The collection kit applies them to its rows. Pages with their own collection components offer custom fields only, since their existing filter bars already cover their built-in fields.
+- Money filters compare amounts in major units of two-decimal currencies. A Timestamp filter names a day on the org's calendar.
+
+### 6. Filterable fields are table columns
+
+- A loader hands the collection its filterable fields and their values on the rows shown (`customFieldList(...).view(ids)`). Tables append them as columns through `useCustomFieldColumns`, or `customFieldColumns` in a server-rendered table (incidents). A page wraps its collection in `CustomFieldList`, or passes the view to a collection component that takes it.
+- The Add filter control appears only when a page declares fields or its table has filterable custom fields. An org without custom fields sees the pages it saw before.
+
+## Consequences
+
+- Saved views keep operators. `ViewDraft` accepts every operator the control writes, and older views reopen unchanged.
+- A list filtered by custom fields shows "Nothing here matches these filters" with Clear filters, not its empty state.
+- An import or the API can still create a row without its required custom fields. Only forms that show the fields require them, and the database refuses emptying a required value afterwards.
