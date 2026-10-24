@@ -226,6 +226,19 @@ revoke all on function private.content_moderator_ids(uuid) from public, anon, au
 
 -- Reporting ------------------------------------------------------------------------------------------------------------
 
+create or replace function private.content_subject_word(p_subject_kind app.content_subject_kind)
+returns text
+language sql
+immutable
+set search_path = ''
+as $$
+  select case p_subject_kind when 'Feed Post' then 'post' when 'Comment' then 'comment' else 'message' end;
+$$;
+
+comment on function private.content_subject_word(app.content_subject_kind) is 'The word the notification copy selects on for a reported item: post, comment or message (email.kinds.content_report and content.removed).';
+revoke all on function private.content_subject_word(app.content_subject_kind) from public, anon, authenticated;
+
+
 create or replace function app.report_content(
   p_subject_kind app.content_subject_kind,
   p_subject_id uuid,
@@ -277,7 +290,8 @@ begin
     where x <> v_person and x is distinct from v_item.author_person_id
   loop
     perform private.notify(v_item.org_id, v_moderator, 'content_report.filed', 'app.content_reports', v_id, v_item.project_id,
-      jsonb_build_object('subjectKind', p_subject_kind, 'reason', p_reason, 'dueAt', v_due, 'actorName', ''));
+      jsonb_build_object('subject', private.content_subject_word(p_subject_kind),
+        'reason', lower(replace(p_reason::text, ' ', '_')), 'dueAt', v_due, 'actorName', ''));
   end loop;
   return v_id;
 end;
@@ -493,12 +507,12 @@ begin
     select distinct r.reporter_person_id from app.content_reports r where r.content_moderation_decision_id = v_id
   loop
     perform private.notify(p_org_id, v_reporter, 'content_report.decided', 'app.content_moderation_decisions', v_id,
-      v_item.project_id, jsonb_build_object('subjectKind', p_subject_kind, 'action', p_action,
+      v_item.project_id, jsonb_build_object('subject', private.content_subject_word(p_subject_kind), 'action', p_action,
         'statement', btrim(p_statement), 'actorName', ''));
   end loop;
   if p_action = 'Removed' and v_item.author_person_id is not null then
     perform private.notify(p_org_id, v_item.author_person_id, 'content.removed', 'app.content_moderation_decisions', v_id,
-      v_item.project_id, jsonb_build_object('subjectKind', p_subject_kind, 'ground', p_ground,
+      v_item.project_id, jsonb_build_object('subject', private.content_subject_word(p_subject_kind), 'ground', p_ground,
         'ruleReference', btrim(p_rule_reference), 'statement', btrim(p_statement), 'actorName', ''));
   end if;
   return v_id;
@@ -536,8 +550,8 @@ begin
       select x from private.content_moderator_ids(v_item.org_id) x where x is distinct from v_item.author_person_id
     loop
       perform private.notify(v_item.org_id, v_moderator, 'content_report.overdue', 'app.content_reports', v_item.report_id, null,
-        jsonb_build_object('subjectKind', v_item.subject_kind, 'openReports', v_item.open_reports, 'dueAt', v_item.due_at,
-          'actorName', ''));
+        jsonb_build_object('subject', private.content_subject_word(v_item.subject_kind), 'openReports', v_item.open_reports,
+          'dueAt', v_item.due_at, 'actorName', ''));
     end loop;
     update app.content_reports set escalated_at = now()
     where org_id = v_item.org_id and deleted_at is null and content_moderation_decision_id is null and escalated_at is null

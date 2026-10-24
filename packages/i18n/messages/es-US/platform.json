@@ -655,6 +655,14 @@
       },
       "document": {
         "expiring": "Documento por vencer"
+      },
+      "content_report": {
+        "filed": "Contenido denunciado",
+        "overdue": "Denuncia en espera más de 24 horas",
+        "decided": "Tu denuncia se revisó"
+      },
+      "content": {
+        "removed": "Se eliminó tu contenido"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

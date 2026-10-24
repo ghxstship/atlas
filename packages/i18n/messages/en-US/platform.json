@@ -655,6 +655,14 @@
       },
       "document": {
         "expiring": "Document expiring"
+      },
+      "content_report": {
+        "filed": "Content reported",
+        "overdue": "Report waiting past 24 hours",
+        "decided": "Your report reviewed"
+      },
+      "content": {
+        "removed": "Your content removed"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",
