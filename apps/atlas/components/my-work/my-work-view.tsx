@@ -13,12 +13,18 @@ import {
 import type { Route } from "next";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo } from "react";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+import { useHoverCards } from "@/components/hover/use-hover-cards";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 import { CollectionViews } from "@/components/views/collection-views";
 
 type DueState = "overdue" | "today" | "upcoming" | "undated";
 
 /** One record on My Work, with every label already formatted on the server. */
 export interface MyWorkRow {
+  readonly id: string;
   readonly key: string;
   readonly title: string;
   readonly kind: string;
@@ -33,6 +39,8 @@ export interface MyWorkRow {
   /** Calendar day in the viewer's time zone, YYYY-MM-DD, or null without a date. */
   readonly date: string | null;
   readonly roles: string;
+  /** The owner's name, or Unassigned, for the hover card. */
+  readonly owner: string;
 }
 
 export interface MyWorkGroup {
@@ -51,9 +59,13 @@ const COLUMN_STATE: Readonly<Record<DueState, RecordState>> = {
 /**
  * My Work (Section 4.5.4): the viewer's open records across projects, grouped overdue, today,
  * upcoming and undated, as a list, a table, a board or a calendar. A record opens in the shell's
- * side peek (`?peek={recordKey}`), and Open full page goes to the record.
+ * side peek (`?peek={recordKey}`), and Open full page goes to the record. In every view records
+ * select for bulk edit through the records bulk RPC, open their menu on right-click or Shift+F10,
+ * and preview on their key or title after 400 ms (Section 11.7).
  */
 export function MyWorkView({
+  org,
+  bulk,
   groups,
   views,
   view,
@@ -61,6 +73,9 @@ export function MyWorkView({
   prevMonth,
   nextMonth,
 }: {
+  org: string;
+  /** Bulk edit of a selection, for people who may change records. */
+  bulk?: BulkConfig | null;
   groups: readonly MyWorkGroup[];
   views: readonly string[];
   view: string;
@@ -85,6 +100,43 @@ export function MyWorkView({
   };
   const open = (key: string) => router.push(href({ peek: key }), { scroll: false });
   const rows = groups.flatMap((g) => g.rows);
+  const refs = useMemo(
+    () => groups.flatMap((g) => g.rows.map((r) => ({ id: r.id, label: r.key }))),
+    [groups],
+  );
+  const kit = useBulk(bulk, refs);
+  const selectable = kit.selection ? { selection: kit.selection } : {};
+  const rowMenu = useRowMenu();
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const menuFor = (id: string, at: { x: number; y: number } | null, element: HTMLElement) => {
+    const r = byId.get(id);
+    if (!r) return;
+    rowMenu.open(
+      {
+        id,
+        label: r.key,
+        open: () => open(r.key),
+        href: `/${org}/r/${encodeURIComponent(r.key)}`,
+        bulk: kit,
+      },
+      at,
+      element,
+    );
+  };
+  const hover = useHoverCards((id, column) => {
+    const r = byId.get(id);
+    if (!r || (column !== "key" && column !== "title")) return null;
+    return {
+      kind: "record",
+      recordKey: r.key,
+      recordKind: r.kind as RecordKind,
+      title: r.title,
+      state: r.state,
+      stateLabel: r.stateLabel,
+      owner: r.owner,
+      next: r.when,
+    };
+  });
 
   const switcher = (
     <CollectionViews
@@ -111,7 +163,7 @@ export function MyWorkView({
           { key: "roles", label: t("columns.roles") },
         ]}
         rows={rows.map((r) => ({
-          id: r.key,
+          id: r.id,
           key: r.key,
           title: r.title,
           project: r.project,
@@ -120,7 +172,9 @@ export function MyWorkView({
           due: r.due,
           roles: r.roles,
         }))}
-        onRowActivate={(row) => open(String(row["id"]))}
+        onRowActivate={(row) => open(String(row["key"]))}
+        onRowContextMenu={(row, _index, at, cell) => menuFor(String(row["id"]), at, cell)}
+        {...selectable}
       />
     );
   } else if (view === "board") {
@@ -131,11 +185,14 @@ export function MyWorkView({
           state: COLUMN_STATE[g.state],
           label: t(`groups.${g.state}`),
           cards: g.rows.map((r) => ({
+            id: r.id,
             key: r.key,
             title: `${r.key} ${r.title}`,
             meta: `${r.project} · ${r.when}`,
           })),
         }))}
+        onItemContextMenu={menuFor}
+        {...selectable}
         onOpen={open}
       />
     );
@@ -163,14 +220,17 @@ export function MyWorkView({
         <Calendar
           month={month}
           events={dated.map((r) => ({
+            id: r.id,
             date: r.date as string,
             label: `${r.key} ${r.title}`,
             state: r.state,
           }))}
           onEventSelect={(e) => {
-            const row = dated.find((r) => `${r.key} ${r.title}` === e.label && r.date === e.date);
+            const row = e.id ? byId.get(e.id) : undefined;
             if (row) open(row.key);
           }}
+          onItemContextMenu={menuFor}
+          {...selectable}
         />
         {undated > 0 ? (
           <p className="m-0 text-text-12 text-text-secondary">
@@ -200,10 +260,15 @@ export function MyWorkView({
             {g.rows.length === 0 ? (
               <p className="m-0 text-text-13 text-text-secondary">{t(`groupEmpty.${g.state}`)}</p>
             ) : (
-              <RecordList label={t(`groups.${g.state}`)}>
+              <RecordList
+                label={t(`groups.${g.state}`)}
+                onItemContextMenu={menuFor}
+                {...selectable}
+              >
                 {g.rows.map((r) => (
                   <RecordRow
                     key={r.key}
+                    id={r.id}
                     state={r.state}
                     stateLabel={r.stateLabel}
                     recordKey={r.key}
@@ -226,7 +291,10 @@ export function MyWorkView({
   return (
     <div className="flex flex-col gap-16">
       {views.length > 1 ? switcher : null}
-      {body}
+      <div {...hover.hoverProps}>{body}</div>
+      {kit.bar}
+      {rowMenu.menu}
+      {hover.card}
     </div>
   );
 }

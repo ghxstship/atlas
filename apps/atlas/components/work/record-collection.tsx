@@ -46,6 +46,9 @@ export interface CollectionFilters {
 
 const SORTS = ["key", "next", "title", "state", "updated"] as const;
 
+/** Views whose records select, open a menu and preview the same way (Section 11.7). */
+const ITEM_VIEWS = new Set(["table", "list", "board", "calendar"]);
+
 /**
  * A record collection (Collection template, Section 11.6) over the record spine: the views the
  * sitemap lists for the page, a search, kind, state and project filters and a sort, all kept in
@@ -99,7 +102,10 @@ export function RecordCollection({
   peek?: ReactNode;
   org: string;
   hideKindFilter?: boolean;
-  /** Bulk edit of the table view's selection, for people who may change records. */
+  /**
+   * Bulk edit of a selection in the table, list, board and calendar, for people who may change
+   * records.
+   */
   bulk?: BulkConfig | null;
 }) {
   const t = useCopy("work");
@@ -115,7 +121,7 @@ export function RecordCollection({
   );
 
   const bulkRows = useMemo(() => records.map((r) => ({ id: r.id, label: r.key })), [records]);
-  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const bulkKit = useBulk(ITEM_VIEWS.has(view) ? bulk : null, bulkRows);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
   const go = (changes: Record<string, string | null>) =>
@@ -135,9 +141,26 @@ export function RecordCollection({
         : (r.dueAt ?? r.endsAt ?? r.startsAt);
     return when(at, r.timeZone ?? r.projectTimeZone);
   };
-  // Hover cards (Section 11.7): the key or title previews the record, the owner the person.
-  const hover = useHoverCards((index, column) => {
-    const r = records[index];
+  const byId = new Map(records.map((r) => [r.id, r]));
+  // A record's menu, the same in every view (Section 11.7).
+  const menuFor = (id: string, at: { x: number; y: number } | null, element: HTMLElement) => {
+    const r = byId.get(id);
+    if (!r) return;
+    rowMenu.open(
+      {
+        id: r.id,
+        label: r.key,
+        open: () => open(r.key),
+        href: `/${org}/r/${encodeURIComponent(r.key)}`,
+        bulk: bulkKit,
+      },
+      at,
+      element,
+    );
+  };
+  // Hover cards (Section 11.7): the key, title or event previews the record, the owner the person.
+  const hover = useHoverCards((id, column) => {
+    const r = byId.get(id);
     if (!r) return null;
     if (column === "owner") {
       return r.ownerId
@@ -273,51 +296,33 @@ export function RecordCollection({
     );
   } else if (view === "table") {
     body = (
-      <div {...hover.hoverProps}>
-        <DataTable
-          caption={label}
-          columns={[
-            { key: "key", label: t("columns.key"), type: "code" },
-            { key: "title", label: t("columns.title"), wrap: true },
-            { key: "kind", label: t("columns.kind") },
-            { key: "state", label: t("columns.state"), type: "state" },
-            { key: "owner", label: t("columns.owner") },
-            { key: "next", label: t("columns.next") },
-            { key: "project", label: t("columns.project") },
-          ]}
-          rows={records.map((r) => ({
-            id: r.id,
-            key: r.key,
-            title: r.title,
-            kind: r.subtype
-              ? `${kindLabel(r.kind)} · ${t(`subtypes.${r.kind}.${r.subtype}`)}`
-              : kindLabel(r.kind),
-            state: { state: stateToken(r.state), label: stateLabel(r.state) },
-            owner: r.ownerName ?? t("values.unassigned"),
-            next: nextOf(r) ?? t("values.noDate"),
-            project: r.projectName,
-          }))}
-          onRowActivate={(row) => open(String(row["key"]))}
-          onRowContextMenu={(_row, index, at, cell) => {
-            const r = records[index];
-            if (!r) return;
-            rowMenu.open(
-              {
-                id: r.id,
-                label: r.key,
-                open: () => open(r.key),
-                href: `/${org}/r/${encodeURIComponent(r.key)}`,
-                bulk: bulkKit,
-              },
-              at,
-              cell,
-            );
-          }}
-          {...(selection ? { selection } : {})}
-        />
-        {rowMenu.menu}
-        {hover.card}
-      </div>
+      <DataTable
+        caption={label}
+        columns={[
+          { key: "key", label: t("columns.key"), type: "code" },
+          { key: "title", label: t("columns.title"), wrap: true },
+          { key: "kind", label: t("columns.kind") },
+          { key: "state", label: t("columns.state"), type: "state" },
+          { key: "owner", label: t("columns.owner") },
+          { key: "next", label: t("columns.next") },
+          { key: "project", label: t("columns.project") },
+        ]}
+        rows={records.map((r) => ({
+          id: r.id,
+          key: r.key,
+          title: r.title,
+          kind: r.subtype
+            ? `${kindLabel(r.kind)} · ${t(`subtypes.${r.kind}.${r.subtype}`)}`
+            : kindLabel(r.kind),
+          state: { state: stateToken(r.state), label: stateLabel(r.state) },
+          owner: r.ownerName ?? t("values.unassigned"),
+          next: nextOf(r) ?? t("values.noDate"),
+          project: r.projectName,
+        }))}
+        onRowActivate={(row) => open(String(row["key"]))}
+        onRowContextMenu={(row, _index, at, cell) => menuFor(String(row["id"]), at, cell)}
+        {...(selection ? { selection } : {})}
+      />
     );
   } else if (view === "board") {
     const columns =
@@ -330,6 +335,7 @@ export function RecordCollection({
               cards: records
                 .filter((r) => r.kind === k)
                 .map((r) => ({
+                  id: r.id,
                   key: r.key,
                   title: r.title,
                   meta: stateLabel(r.state),
@@ -344,6 +350,7 @@ export function RecordCollection({
             cards: records
               .filter((r) => r.state === s.state)
               .map((r) => ({
+                id: r.id,
                 key: r.key,
                 title: r.title,
                 meta: kindLabel(r.kind),
@@ -362,6 +369,8 @@ export function RecordCollection({
           key={records.map((r) => `${r.key}:${r.state}`).join("|")}
           readOnly={boardBy === "kind" || !canCreate}
           columns={columns}
+          onItemContextMenu={menuFor}
+          {...(selection ? { selection } : {})}
           onOpen={open}
           onMove={(key, _from, to) => {
             const record = records.find((r) => r.key === key);
@@ -392,7 +401,6 @@ export function RecordCollection({
       </section>
     );
   } else if (view === "calendar") {
-    const byLabel = new Map<string, string>();
     const events = records.flatMap((r) => {
       // A record lands on its day in the zone its time shows in (me.time_zone_display).
       const tz =
@@ -406,9 +414,7 @@ export function RecordCollection({
       const date =
         formatWhen(at, "en-CA", tz, { year: "numeric", month: "2-digit", day: "2-digit" }) ?? "";
       if (!date.startsWith(month.slice(0, 7))) return [];
-      const labelText = `${r.key} ${r.title}`;
-      byLabel.set(labelText, r.key);
-      return [{ date, label: labelText, state: stateToken(r.state) }];
+      return [{ id: r.id, date, label: `${r.key} ${r.title}`, state: stateToken(r.state) }];
     });
     const undated = records.filter((r) => !r.startsAt && !r.dueAt && !r.endsAt).length;
     body = (
@@ -426,9 +432,11 @@ export function RecordCollection({
           today={today}
           events={events}
           onEventSelect={(e) => {
-            const key = byLabel.get(e.label);
-            if (key) open(key);
+            const r = e.id ? byId.get(e.id) : undefined;
+            if (r) open(r.key);
           }}
+          onItemContextMenu={menuFor}
+          {...(selection ? { selection } : {})}
         />
         {undated > 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">
@@ -476,10 +484,11 @@ export function RecordCollection({
       );
   } else {
     body = (
-      <RecordList label={label}>
+      <RecordList label={label} onItemContextMenu={menuFor} {...(selection ? { selection } : {})}>
         {records.map((r) => (
           <RecordRow
             key={r.id}
+            id={r.id}
             state={stateToken(r.state)}
             stateLabel={stateLabel(r.state)}
             recordKey={r.key}
@@ -499,8 +508,10 @@ export function RecordCollection({
 
   return (
     <TemplateCollection header={header} filters={filterBar} peek={peek}>
-      {body}
+      {ITEM_VIEWS.has(view) && records.length > 0 ? <div {...hover.hoverProps}>{body}</div> : body}
       {bar}
+      {rowMenu.menu}
+      {hover.card}
     </TemplateCollection>
   );
 }

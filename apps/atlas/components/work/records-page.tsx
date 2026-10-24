@@ -18,6 +18,7 @@ import {
   must,
   nodeViews,
   param,
+  recordBulkConfig,
   type SearchParams,
 } from "./load";
 import { RecordCollection } from "./record-collection";
@@ -135,40 +136,8 @@ export async function RecordsPage({
   }
 
   const canCreate = caps.has("work.record.write");
-  // Bulk edit (Section 11.7): state, owner and phase across a selection. Blocked and Deferred need
-  // a blocker or a reason per record, so they stay single edits.
-  const bulk: BulkConfig | null = canCreate
-    ? {
-        org: ctx.org.slug,
-        resource: "records",
-        fields: [
-          {
-            key: "record_state",
-            label: t("work.columns.state"),
-            reason: true,
-            options: meta.states
-              .filter((s) => s.state !== "Blocked" && s.state !== "Deferred")
-              .map((s) => ({ value: s.state, label: t(`work.states.${s.state}`) })),
-          },
-          {
-            key: "owner_party_id",
-            label: t("work.columns.owner"),
-            options: [
-              { value: null, label: t("work.values.unassigned") },
-              ...meta.people.map((p) => ({ value: p.personId, label: p.name ?? p.personId })),
-            ],
-          },
-          {
-            key: "phase_code",
-            label: t("work.fields.phase"),
-            options: [
-              { value: null, label: t("work.values.notSet") },
-              ...meta.phases.map((p) => ({ value: p.value, label: p.label })),
-            ],
-          },
-        ],
-      }
-    : null;
+  // Bulk edit (Section 11.7) for people who may change records.
+  const bulk: BulkConfig | null = canCreate ? recordBulkConfig(ctx.org.slug, meta, t) : null;
   const label = title ?? t(getNode(sitemap, node).node.label);
   const visibleKinds = fixedKinds ?? meta.kinds.map((k) => k.kind);
 

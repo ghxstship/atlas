@@ -6,7 +6,9 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { MyWorkView, type MyWorkRow } from "@/components/my-work/my-work-view";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/platform/kit";
 import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
+import { capabilitySet, loadRecordMeta, recordBulkConfig } from "@/components/work/load";
 import { requireNode } from "@/lib/shell/require-node";
+import { getTranslate } from "@/lib/shell/translate";
 import { pickView } from "@/lib/home/views";
 import { enumKey } from "@/lib/projects/format";
 import { nodeHref } from "@/lib/shell/sitemap";
@@ -39,9 +41,10 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/m
   const routeParams = await params;
   const search = await searchParams;
   const ctx = await requireNode("my-work", routeParams);
-  const [t, p, locale] = await Promise.all([
+  const [t, p, w, locale] = await Promise.all([
     getTranslations("myWork"),
     getTranslations("projects"),
+    getTranslate(),
     getLocale(),
   ]);
   const header = <PageHeader title={t("title")} />;
@@ -58,9 +61,12 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/m
     );
   }
   const db = ctx.viewer.db;
-  const [membership, settings] = await Promise.all([
+  // The record lists and capabilities feed bulk edit and the owners' names on hover cards.
+  const [membership, settings, meta, caps] = await Promise.all([
     myMembershipId(db, { orgId: ctx.org.id, personId: person.id }),
     resolveSettings(db, { orgId: ctx.org.id }),
+    loadRecordMeta(ctx),
+    capabilitySet(ctx),
   ]);
   if (!membership.ok && membership.error.kind !== "not-found") {
     return (
@@ -104,10 +110,12 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/m
     timeZone,
   });
   const state = p as unknown as (key: string) => string;
+  const names = new Map(meta.people.map((m) => [m.personId, m.name]));
   const toRow = (r: MyWorkRecord, dueState: MyWorkRow["dueState"]): MyWorkRow => {
     const due = r.dueAt ?? r.endsAt;
     const at = due ?? r.startsAt;
     return {
+      id: r.id,
       key: r.key,
       title: r.title,
       kind: r.kind,
@@ -123,6 +131,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/m
       dueState,
       date: at ? zonedDay(at, timeZone) : null,
       roles: r.roles.map((role) => t(`roles.${role}`)).join(", "),
+      owner:
+        (r.ownerId ? names.get(r.ownerId) : null) ??
+        w(r.ownerId ? "work.values.unnamed" : "work.values.unassigned"),
     };
   };
   const groups = groupByDueState(records.data, now, timeZone).map((g) => ({
@@ -138,6 +149,8 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/m
   return (
     <TemplateCollection header={<PageHeader title={t("title")} count={records.data.length} />}>
       <MyWorkView
+        org={ctx.org.slug}
+        bulk={caps.has("work.record.write") ? recordBulkConfig(ctx.org.slug, meta, w) : null}
         groups={groups}
         views={views}
         view={view}
