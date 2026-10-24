@@ -2,11 +2,21 @@
 
 import { getRecordByKey, listStateHistory } from "@xos/data/work";
 import { z } from "zod";
+import {
+  loadConversation,
+  loadRelations,
+  type Conversation,
+} from "@/components/work/record-sections";
+import type { RecordRelations } from "@/components/work/related-records";
 import { getOrgContext } from "./context";
 import { rememberView } from "./recents";
 
-/** What the shell's global peek shows for a record key (Section 4.5.3). */
+/**
+ * What the shell's global peek shows for a record key (Section 4.5.3): the sections of the record's
+ * full page (Section 11.2 item 4), read by the same loaders (components/work/record-sections.ts).
+ */
 export interface ShellPeekRecord {
+  readonly id: string;
   readonly key: string;
   readonly kind: string;
   readonly state: string;
@@ -29,6 +39,12 @@ export interface ShellPeekRecord {
     readonly at: string;
     readonly byName: string | null;
   }[];
+  /** Comments and files, which the viewer may add to unless the record is in Trash. */
+  readonly conversation: Conversation;
+  readonly inTrash: boolean;
+  /** The viewer's person id, to offer deleting their own comments and files. */
+  readonly me: string | null;
+  readonly relations: RecordRelations;
 }
 
 export type ShellPeekResult =
@@ -56,14 +72,22 @@ export async function loadShellPeekAction(
     return { ok: false, reason: "unexpected" };
   }
   const r = found.data;
-  const [history] = await Promise.all([
+  const read = await Promise.all([
     listStateHistory(ctx.viewer.db, r.id),
+    loadConversation(ctx, { table: "app.records", id: r.id }),
+    loadRelations(ctx, r.id),
     // The command menu's recent items (Section 11.7).
     rememberView(ctx, "records", r.id),
-  ]);
+  ]).catch((error: unknown) => {
+    console.error("Shell peek failed", error);
+    return null;
+  });
+  if (read === null) return { ok: false, reason: "unexpected" };
+  const [history, conversation, { relations }] = read;
   return {
     ok: true,
     record: {
+      id: r.id,
       key: r.key,
       kind: r.kind,
       state: r.state,
@@ -78,6 +102,10 @@ export async function loadShellPeekAction(
       timeZone: r.timeZone ?? r.projectTimeZone,
       blockerText: r.blockerText,
       history: history.ok ? [...history.data].reverse().slice(0, 5) : [],
+      conversation,
+      inTrash: r.deletedAt !== null,
+      me: ctx.viewer.person?.id ?? null,
+      relations,
     },
   };
 }

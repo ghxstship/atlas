@@ -463,6 +463,13 @@
     "stateChanged": "{from} a {to}",
     "window": "{before} a {after}"
   },
+  "related": {
+    "title": "Registros relacionados",
+    "none": "No hay registros relacionados. Aquí aparecen los registros principales, los subregistros, las dependencias y los objetos personalizados vinculados.",
+    "parent": "Forma parte de",
+    "children": "Subregistros",
+    "links": "Vinculado desde objetos personalizados"
+  },
   "duplicate": {
     "button": "Duplicar"
   },

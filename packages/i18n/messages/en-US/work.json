@@ -463,6 +463,13 @@
     "stateChanged": "{from} to {to}",
     "window": "{before} to {after}"
   },
+  "related": {
+    "title": "Related records",
+    "none": "No related records. Parent records, sub-records, dependencies and linked custom objects appear here.",
+    "parent": "Rolls up to",
+    "children": "Sub-records",
+    "links": "Linked from custom objects"
+  },
   "duplicate": {
     "button": "Duplicate"
   },
