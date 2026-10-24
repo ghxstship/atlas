@@ -754,7 +754,7 @@
       "locked": "Obligatorio por tu organización",
       "smsNote": "Los mensajes de texto solo van a un número de teléfono verificado en el que aceptaste recibirlos. Responde STOP a cualquier mensaje para dejar de recibirlos.",
       "quietTitle": "Horas de silencio y resumen",
-      "quietDescription": "Durante las horas de silencio, las notificaciones push esperan hasta el final y los mensajes de texto llegan juntos en un solo mensaje. Los mensajes de texto también esperan entre las 21:00 y las 08:00 en tu zona horaria si no defines tus propias horas de silencio. Las alertas de seguridad y los cambios en un turno que empieza en menos de 12 horas siempre llegan de inmediato.",
+      "quietDescription": "Durante las horas de silencio, las notificaciones push esperan hasta el final y los mensajes de texto llegan juntos en un solo mensaje. Los mensajes de texto también esperan entre las 21:00 y las 08:00 en tu zona horaria si no defines tus propias horas de silencio. Las alertas de seguridad, los cambios en el acceso a tu cuenta, el uso de uno de tus códigos de recuperación, el acceso de emergencia tomado en tu organización y los turnos nuevos o cambiados que empiezan en menos de 12 horas siempre llegan de inmediato.",
       "quietStart": "Inicio de las horas de silencio",
       "quietEnd": "Fin de las horas de silencio",
       "timeZone": "Zona horaria",
