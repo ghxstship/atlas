@@ -16,4 +16,4 @@ Muestra los incidentes abiertos por estado y en el mapa. Asigne personal de resp
 
 ## Códigos de emergencia y canales de radio
 
-Los códigos de emergencia son los avisos en lenguaje claro que usa su organización. Su organización guarda su propia copia de los códigos de la Biblioteca Estándar: abra un código para cambiar su nombre, la emergencia que anuncia o su lugar en la lista. Los canales de radio indican quién habla en cada canal. Ambos están disponibles sin conexión en Compass.
+Los códigos de emergencia son los avisos en lenguaje claro que usa su organización. Su organización guarda su propia copia de los códigos de la Biblioteca Estándar: abra un código para cambiar su nombre, la emergencia que anuncia o su lugar en la lista. Los canales de radio indican quién habla en cada canal. Compass guarda sin conexión los canales de radio y los códigos de la Biblioteca Estándar; los cambios de su organización a un código se ven en Atlas.
