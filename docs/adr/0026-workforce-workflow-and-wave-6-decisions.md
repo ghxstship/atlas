@@ -65,3 +65,25 @@ The accessibility sweep runs outside `pnpm verify`, through `pnpm test:a11y` in 
 - **Production virus scanner:** waits on the owner. Until one runs, attachments stay in Scanning, and field and onboarding files are visible only to their uploader.
 - **Message translation:** the workforce chat stores each message's language, but translation waits on a provider.
 - **Report runs:** queued runs wait on a `report.run` worker, which A35 is building.
+
+## Amendment (2026-10-23): reporting and blocking (owner decision 19)
+
+Owner decision 19 (ADR 0033, 2026-10-23) asks for a minimal report and block for user-generated content in Compass before App Store submission, as App Store Review Guideline 1.2 requires: a way to report offensive content and a timely response to reports, and a way to block abusive users. Track compass-trust (RRR-137) built it in migrations 1630 and 1631.
+
+1. **What can be reported.** A feed post of any kind (polls and recognition posts included), a comment on a feed post, and a chat message, direct or in a group: the content one member writes for others to read. In Compass that is the Feed, a conversation and Recognition, where each item by someone else carries a three-dot button; a shout-out is reported as its feed post. Compass shows no comments yet, so a comment is reportable from the database only, for Atlas to offer later. Lost and found entries and help desk requests are operational records that site staff and help desk teams already manage, and are not reportable.
+
+2. **The org's moderators decide, within 24 hours.** The moderators are the members holding `org.communication.write` across the org, Owners and Admins by default: the people who already hide any feed post (0801). A report keeps a snapshot of the text, because moderators are rarely in the conversation, and falls due 24 hours after it arrives. Each moderator is notified at once (`content_report.filed`, a safety notice, so it never waits for a digest), and again once if the report is still open after 24 hours (`content_report.overdue`, an hourly job). Atlas lists the reports at People, Reported Content (sitemap addition `people.moderation`, Owners and Admins), the one due first at the top. Nobody decides about their own content, and the author of a reported item is never told about the report or who filed it.
+
+3. **A90's statement of reasons, not a second moderation system.** A decision takes the parts A90's console uses for listings (1473): the action (Removed or No Action), the ground (`app.moderation_ground`), the rule relied on, the facts and the statement sent to the people involved. Removal hides a post as a moderator's hide does, or deletes a comment or a message. One decision decides every open report on the item; the reporters hear the outcome (`content_report.decided`) and, on removal, the author gets the statement (`content.removed`). Decisions are append-only, and their notices name the org, never the moderator.
+
+4. **Not the platform's console.** A90's console moderates public marketplace listings, which GHXSTSHIP hosts for everyone. Workspace posts and messages are the org's data, processed for it, so they go to the org's own moderators and platform operators never read them.
+
+5. **Blocking reuses A52's blocks.** A person block (1206) already hid profiles both ways. It now also hides, from the blocker only, the blocked person's posts, comments on posts, shout-outs and messages in every conversation, through restrictive read policies, so Compass, Atlas and the API agree and lifting the block shows everything again. Notifications about that content leave the blocker's Inbox and their email, text and push deliveries are recorded Suppressed. A post that requires acknowledgment stays visible: it is an instruction from the org. The blocked person is not told and still sees the blocker's content, and the block still ends no membership or work (Section 4.4.4). Compass blocks from the same three dots, through `app.block_member`, and lists and lifts blocks at Settings, Blocked People (sitemap `settings.profile-privacy`).
+
+6. **Online only.** Reporting and blocking need the server's answer, so Compass sends them at once and says when it is offline instead of queueing them.
+
+### Follow-ups
+
+- An appeal of an org moderator's decision, as A90 offers for listings, is not built; the statement names the rule and the people involved can raise it with the org.
+- Atlas has no report button on its own feed and chat pages; the App Store requirement is Compass's.
+- The notification kind seed moved to 1639 for the four new kinds; the 2026-10-23 notification decisions (1620 to 1629) may move it too, and the later seed must carry both sets of kinds.
