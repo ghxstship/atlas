@@ -13,8 +13,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "prettier --write . '!.claude/**'",
+    "format:check": "prettier --check . '!.claude/**'",
     "guard:finish": "node --experimental-strip-types --no-warnings packages/config/src/finish-guard-cli.ts",
     "verify": "pnpm format:check && pnpm guard:finish && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },

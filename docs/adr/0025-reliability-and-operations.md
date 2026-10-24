@@ -34,7 +34,7 @@ A26 built the reliability stack under `infra/`: observability, synthetic checks,
 ## Consequences
 
 - **Owner approvals:** point-in-time recovery, log drains, synthetic checks every minute from five regions, production PowerSync hosting, and Vercel Rolling Releases unless the current plan includes them.
-- **Owner inputs:** the public backup key, the `STAGING_DB_URL`, synthetic-user and alert-webhook secrets, the PowerSync image pin in ADR 0001, and EU-region backup storage.
+- **Owner inputs:** the public backup key, the `STAGING_DB_URL`, the production backup login's password and `PRODUCTION_BACKUP_DB_URL` (ADR 0033, decision 47), synthetic-user and alert-webhook secrets, the PowerSync image pin in ADR 0001, and EU-region backup storage.
 - **Wiring still to do:** Atlas and Gateway still need `@sentry/nextjs` and `@opentelemetry/api` wired in as described in `infra/observability/README.md`.
 - **CI snippets:** the snippets in `infra/ci/README.md` are applied once their secrets exist.
 

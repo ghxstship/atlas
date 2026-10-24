@@ -10,7 +10,9 @@ import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
  * Browser notifications (Section 4.10, A65-023, migration 1533). Every call uses the signed-in person's own client;
- * the database registers the browser for each org the person belongs to and keeps it one person's at a time.
+ * the database registers the browser for each org the person belongs to and, in Gateway, for the person (1670), so
+ * an external party or a marketplace user with no membership gets their pushes here too. It keeps the browser one
+ * person's at a time.
  */
 
 export type PushSync = "active" | "unknown" | "signed-out";

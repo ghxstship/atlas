@@ -680,13 +680,18 @@ export async function updateMedicalEncounter(
 
 // Crisis alerts and emergency codes --------------------------------------------------------------
 
-/** One global emergency code (decision D15), in canon order. */
+/**
+ * An emergency code as the org lists it (decision D15, migration 1612): the org's editable copy of a canon code,
+ * or the canon code itself while the org holds no copies. Listed in numeric order of sortOrder.
+ */
 export interface EmergencyCode {
   readonly code: string;
   readonly label: string;
   readonly emergency: string;
   readonly swatch: string;
   readonly sortOrder: number;
+  /** The org's copy (app.emergency_codes); absent when the canon code is shown. */
+  readonly id?: string;
 }
 
 export interface EmergencyProtocol {
@@ -697,30 +702,83 @@ export interface EmergencyProtocol {
   readonly steps: readonly string[];
 }
 
-export async function listEmergencyCodes(db: XosClient): Promise<Result<EmergencyCode[]>> {
-  const { data, error } = await db
+/**
+ * The emergency codes. With an org, the org's own copies in their numeric order (the code word and swatch stay
+ * canon's); an org that holds none, and a call without an org, read the global canon codes.
+ */
+export async function listEmergencyCodes(
+  db: XosClient,
+  orgId?: string,
+): Promise<Result<EmergencyCode[]>> {
+  const canon = await db
     .schema("xpms")
     .from("emergency_code")
     .select("code, label, emergency, swatch, sort_order")
     .order("sort_order");
-  if (error) return fail(toDataError(error));
+  if (canon.error) return fail(toDataError(canon.error));
+  const canonCodes = (
+    canon.data as {
+      code: string;
+      label: string;
+      emergency: string;
+      swatch: string;
+      sort_order: number;
+    }[]
+  ).map((r) => ({
+    code: r.code,
+    label: r.label,
+    emergency: r.emergency,
+    swatch: r.swatch,
+    sortOrder: r.sort_order,
+  }));
+  if (orgId === undefined) return ok(canonCodes);
+  const own = await db
+    .from("emergency_codes")
+    .select("id, code, label, emergency, sort_order")
+    .eq("org_id", orgId)
+    .is("deleted_at", null)
+    .order("sort_order")
+    .order("code");
+  if (own.error) return fail(toDataError(own.error));
+  if (own.data.length === 0) return ok(canonCodes);
+  const swatches = new Map(canonCodes.map((c) => [c.code, c.swatch]));
   return ok(
-    (
-      data as {
-        code: string;
-        label: string;
-        emergency: string;
-        swatch: string;
-        sort_order: number;
-      }[]
-    ).map((r) => ({
+    own.data.map((r) => ({
+      id: r.id,
       code: r.code,
       label: r.label,
       emergency: r.emergency,
-      swatch: r.swatch,
+      swatch: swatches.get(r.code) ?? "ecode-grey",
       sortOrder: r.sort_order,
     })),
   );
+}
+
+export interface EmergencyCodeInput {
+  readonly label: string;
+  readonly emergency: string;
+  readonly sortOrder: number;
+}
+
+/** Relabels, redescribes or reorders the org's copy of an emergency code (safety.emergency_code.write). */
+export async function updateEmergencyCode(
+  db: XosClient,
+  id: string,
+  input: EmergencyCodeInput,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("emergency_codes")
+    .update({
+      label: input.label.trim(),
+      emergency: input.emergency.trim(),
+      sort_order: input.sortOrder,
+    })
+    .eq("id", id)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  if (data.length === 0) return fail({ kind: "not-found" });
+  return ok(null);
 }
 
 /** The protocols of the global codes per operational domain, with their steps, in key order. */
@@ -1001,9 +1059,34 @@ export interface StandardRadioChannel {
   readonly notes: string | null;
 }
 
+/**
+ * The standard radio plan a project starts from: the org's own plan (app.radio_channel_plan, its editable copy of
+ * the Standard Library, migration 1612) when the org holds one, otherwise the Standard Library's channels.
+ */
 export async function listStandardRadioChannels(
   db: XosClient,
+  orgId?: string,
 ): Promise<Result<StandardRadioChannel[]>> {
+  if (orgId !== undefined) {
+    const own = await db
+      .from("radio_channel_plan")
+      .select("id, zone_number, channel_number, assignment")
+      .eq("org_id", orgId)
+      .is("deleted_at", null)
+      .order("zone_number")
+      .order("channel_number");
+    if (own.error) return fail(toDataError(own.error));
+    if (own.data.length > 0)
+      return ok(
+        own.data.map((r) => ({
+          recordId: r.id,
+          zone: r.zone_number,
+          channel: r.channel_number,
+          assignment: r.assignment,
+          notes: null,
+        })),
+      );
+  }
   const { data, error } = await db
     .schema("xpms")
     .from("std_radio_channel")
@@ -1031,15 +1114,16 @@ export async function listStandardRadioChannels(
 }
 
 /**
- * Starts a project's radio plan from one zone group of the Standard Library: one channel per row,
- * numbered and named as the library has them. Channels the project already uses are skipped.
+ * Starts a project's radio plan from one zone group of the org's standard radio plan (or the Standard Library's,
+ * while the org holds none): one channel per row, numbered and named as the plan has them. Channels the project
+ * already uses are skipped.
  */
 export async function importStandardRadioPlan(
   db: XosClient,
   input: { readonly orgId: string; readonly projectId: string; readonly libraryZone: number },
 ): Promise<Result<{ added: number }>> {
   const [library, existing] = await Promise.all([
-    listStandardRadioChannels(db),
+    listStandardRadioChannels(db, input.orgId),
     listRadioChannels(db, { orgId: input.orgId, projectId: input.projectId }),
   ]);
   if (!library.ok) return library;

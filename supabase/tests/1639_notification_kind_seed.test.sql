@@ -1,4 +1,4 @@
--- 1569_notification_kind_seed.test.sql
+-- 1639_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -193,9 +193,23 @@ select set_eq(
   ('moderation_appeal.decided', 'Email', 'account', 'notification'),
   ('moderation_appeal.decided', 'SMS', 'account', null::text),
   ('moderation_appeal.decided', 'Push', 'account', null::text),
+  ('content_report.filed', 'In App', 'safety', null::text),
+  ('content_report.filed', 'Email', 'safety', 'notification'),
+  ('content_report.filed', 'SMS', 'safety', null::text),
+  ('content_report.filed', 'Push', 'safety', null::text),
+  ('content_report.overdue', 'In App', 'safety', null::text),
+  ('content_report.overdue', 'Email', 'safety', 'notification'),
+  ('content_report.overdue', 'SMS', 'safety', null::text),
+  ('content_report.overdue', 'Push', 'safety', null::text),
+  ('content_report.decided', 'In App', 'account', null::text),
+  ('content_report.decided', 'Email', 'account', 'notification'),
+  ('content_report.decided', 'SMS', 'account', null::text),
+  ('content_report.decided', 'Push', 'account', null::text),
+  ('content.removed', 'In App', 'account', null::text),
+  ('content.removed', 'Email', 'account', 'notification'),
+  ('content.removed', 'SMS', 'account', null::text),
+  ('content.removed', 'Push', 'account', null::text),
   ('report.delivered', 'In App', 'reports', null::text),
-  ('report.delivered', 'Email', 'reports', 'report_delivery'),
-  ('report.delivered', 'SMS', 'reports', null::text),
   ('report.delivered', 'Push', 'reports', null::text),
   ('import.finished', 'In App', 'imports', null::text),
   ('import.finished', 'Email', 'imports', 'import_finished'),
@@ -261,10 +275,14 @@ select set_eq(
 select set_eq(
   $$select kind, starts_within from private.notification_quiet_hours_bypass$$,
   $$values
+  ('shift.assigned', interval '12 hours'),
   ('shift.changed', interval '12 hours'),
   ('incident.reported', null::interval),
   ('occupancy.threshold', null::interval),
-  ('weather.alert', null::interval)$$,
+  ('weather.alert', null::interval),
+  ('account.security_changed', null::interval),
+  ('account.recovery_code_used', null::interval),
+  ('access.break_glass_started', null::interval)$$,
   'the kinds that bypass quiet hours match notification-kinds.yaml (ADR 0033 decision 35)');
 
 select * from finish();

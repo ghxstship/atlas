@@ -56,8 +56,9 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "safety",
       "account",
     ]);
-    // 43 kinds (A79, A91, A99 among them), plus the three marketplace moderation kinds of A90 (1473).
-    expect(registry.kinds).toHaveLength(50);
+    // 43 kinds (A79, A91, A99 among them), plus the three marketplace moderation kinds of A90 (1473) and the four
+    // reported content kinds of ADR 0033 decision 57 (1630).
+    expect(registry.kinds).toHaveLength(54);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",
@@ -69,17 +70,28 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     });
     expect(notificationKind("export.ready")?.emailTemplate).toBe("export_ready");
     // ADR 0033 decision 35: a short, reviewable bypass list; mandatory or urgent categories alone never bypass.
+    // ADR 0033 decision 62 adds a new shift within 12 hours, security changes (with a recovery code used) and
+    // emergency access.
     expect(
       registry.kinds
         .filter((k) => k.quietHoursBypass !== null)
         .map((k) => [k.kind, k.quietHoursBypass?.startsWithinHours]),
     ).toEqual([
+      ["shift.assigned", 12],
       ["shift.changed", 12],
       ["incident.reported", null],
       ["occupancy.threshold", null],
       ["weather.alert", null],
+      ["account.security_changed", null],
+      ["account.recovery_code_used", null],
+      ["access.break_glass_started", null],
     ]);
-    expect(notificationKind("account.security_changed")?.quietHoursBypass).toBeNull();
+    // Billing notices wait until morning, although the account category is urgent.
+    expect(
+      registry.kinds.filter((k) => k.kind.startsWith("billing.")).map((k) => k.quietHoursBypass),
+    ).toEqual([null, null, null, null]);
+    // ADR 0033 decision 77: a delivered report reaches the Inbox and a push, never a second email.
+    expect(notificationKind("report.delivered")?.channels).toEqual(["In App", "Push"]);
     expect(notificationKind("no.such_kind")).toBeUndefined();
   });
 
@@ -110,13 +122,18 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     expect(sql).toContain(
       "('approval.requested', 'Push'::app.notification_channel, 'approvals', null)",
     );
-    // Only the bypass list, which the registry alone writes, is replaced as a set; kinds are never deleted.
-    expect(sql.match(/\bdelete\b/g)).toHaveLength(1);
+    // Only what the registry alone writes is deleted: the bypass list, replaced as a set, and the channel rows of a
+    // kind that names fewer channels. Kinds are never deleted.
+    expect(sql.match(/\bdelete\b/g)).toHaveLength(2);
+    expect(sql).toContain(
+      "delete from private.notification_templates\nwhere (kind = 'report.delivered' and channel not in ('In App', 'Push'))\n   or (kind = 'opportunity.matched' and channel not in ('In App', 'Email', 'Push'));",
+    );
     const drift = renderNotificationDriftTest(registry);
     expect(drift).toContain("select plan(5);");
     expect(drift).toContain("('shift.changed', interval '12 hours')");
     expect(sql).toContain("delete from private.notification_quiet_hours_bypass");
-    expect(drift).toContain("('report.delivered', 'SMS', 'reports', null::text)");
+    expect(drift).toContain("('report.delivered', 'Push', 'reports', null::text)");
+    expect(drift).not.toContain("('report.delivered', 'Email'");
   });
 
   it("builds the preference matrix in display order with the kinds of each category", () => {

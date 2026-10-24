@@ -1154,7 +1154,47 @@
       "current": "{org} is on the {plan} plan.",
       "perMonth": "{price} per month",
       "choose": "Choose {plan}",
-      "notAvailable": "Paid plans open when billing is connected. Until then every organization stays on Access.",
+      "chooseAnnual": "Choose {plan}, billed yearly",
+      "trialPlan": "Your trial plan",
+      "term": {
+        "label": "Billing term",
+        "monthly": "Monthly",
+        "annual": "Yearly, two months free"
+      },
+      "checkoutDone": "Payment received. {org} is on the {plan} plan.",
+      "checkoutPending": "Payment received. Stripe is confirming it, and the plan shown here updates in a moment.",
+      "checkoutCanceled": "Checkout was canceled, and nothing was charged.",
+      "redirecting": "Opening Stripe…",
+      "portal": {
+        "title": "Billing portal",
+        "body": "Change the plan or the payment method, download invoices or cancel in the Stripe billing portal. A canceled plan runs to the end of the period paid for, then the organization moves to Access.",
+        "bodyEnded": "Download past invoices and update billing details in the Stripe billing portal.",
+        "period": "Billed {term, select, Annual {yearly} other {monthly}}. The current period ends on {date}.",
+        "open": "Open the billing portal"
+      },
+      "refusedTitle": "Not done",
+      "refusals": {
+        "billing_not_open": "Billing is not open yet. Paid plans can be bought here once it opens.",
+        "step_up_required": "Confirm it is you with your second factor, then try again.",
+        "step_up_session_only": "Billing needs a signed-in session.",
+        "billing_already_subscribed": "This organization already pays through Stripe. Change the plan or the payment method in the billing portal.",
+        "billing_through_partner": "Your partner bills this organization. Ask the partner to change its plan.",
+        "sandbox_not_billable": "A sandbox is never billed.",
+        "org_read_only": "This organization is read-only. Recover or reactivate it in Settings, Danger zone, before choosing a plan.",
+        "plan_not_self_serve": "This plan cannot be bought online.",
+        "checkout_completed": "A checkout for this organization just completed. The plan shown here updates in a moment.",
+        "billing_price_missing": "This plan is not on sale in Stripe yet. Try again later, or contact support.",
+        "billing_no_customer": "This organization has not paid through Stripe yet. Choose a plan first.",
+        "other": "Billing did not go through. Try again, or contact support."
+      },
+      "errors": {
+        "input": "Choose a plan and a billing term.",
+        "notFound": "Only an Owner manages billing.",
+        "conflict": "Billing changed meanwhile. Reload the page and try again.",
+        "invalid": "Billing did not accept that. Reload the page and try again.",
+        "unexpected": "Stripe could not be reached. Try again in a moment."
+      },
+      "notAvailable": "Billing is not open yet, so paid plans cannot be bought here. A trial still ends on the Access plan, and no data is deleted.",
       "perYear": "{price} a year, two months free",
       "seats": "Seats",
       "seatUsage": "{used} of {limit} seats in use.",
