@@ -4,6 +4,8 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 
+\ir 1282_denormalization_register.psql
+
 select plan(17);
 
 -- Later ranges (A03 and on) add their own tables to app, so this checks containment, not equality.
@@ -35,43 +37,13 @@ select is(
   'every app and private column has a comment'
 );
 
--- Every tenant table carries the ADR 0002 columns.
+-- Every tenant table carries the ADR 0002 columns. The identity, person-owned and platform tables without them are the
+-- register's tenant exceptions (docs/adr/denormalization-register.yaml, ADR 0033 decision 69), each with its reason;
+-- a new one joins that list with its own and reruns `pnpm --filter @xos/schemas generate:denormalization`.
 select is(
   (select coalesce(string_agg(t.table_name, ', '), '') from information_schema.tables t
    where t.table_schema = 'app' and t.table_type = 'BASE TABLE'
-     and t.table_name not in ('capabilities', 'capability_modules', 'plans', 'subscription_state_transition_rules',
-       'organizations', 'people',
-       -- person-owned: one row per sign-in, keyed by user_id (ADR 0007 item 1, migration 0920)
-       'active_org_selections',
-       -- person-owned keyboard shortcut bindings keyed by person_id, readable only by the person (A81, migration 1370)
-       'shortcut_bindings',
-       -- person-owned profile rows keyed by person_id, read by others only through api_public (A30, migration 0860)
-       'person_profiles', 'profile_section_visibility', 'person_skills', 'person_languages', 'person_links',
-       'portfolio_items', 'person_references', 'person_certifications',
-       -- person-owned notification choices of external parties, keyed by person_id (A44, migration 1131)
-       'person_notification_preferences',
-       -- person-owned blocks keyed by person_id, readable only by the blocker (A52, migration 1206)
-       'blocks',
-       -- person-owned Work Details keyed by person_id, readable only by the person (A78, migration 1340)
-       'person_work_details', 'person_emergency_contacts', 'person_loyalty_programs',
-       -- a person's own calendar feed across their engagements, keyed by person_id (A84, migration 1410)
-       'person_calendar_feeds',
-       -- the person's Work Details access log, written only by the database; org_id names an org's act (A78, 1340)
-       'work_detail_events',
-       -- the record of an org's deletion, kept after the org and its members are gone (A79, migration 1351)
-       'deletion_certificates',
-       -- a person's own quiet hours for orgs they are not a member of, keyed by person_id (A89, migration 1461)
-       'person_notification_settings',
-       -- supplier diversity certifications owned by a person or an external account and read only by the owner, and
-       -- their access log written only by the database; org_id there names an org's read (A89, migration 1464)
-       'supplier_diversity_certifications', 'supplier_diversity_events',
-       -- platform-level rows of the operator console, owned by no tenant: the platform team, its append-only action
-       -- ledger (target_org_id names the tenant an action touched) and platform-wide banners (A90, 1470 and 1474)
-       'platform_operators', 'platform_operator_actions', 'system_banners',
-       -- feedback a person sends the platform team, keyed by person_id, read by the sender and staff (A96, 1531)
-       'feedback_submissions',
-       -- consent-gated product analytics events, which by design name no person and no org (A96, 1532)
-       'product_events')
+     and 'app.' || t.table_name not in (select table_name from register_tenant_exceptions)
      and (select count(*) from information_schema.columns c
           where c.table_schema = 'app' and c.table_name = t.table_name
             and c.column_name in ('org_id', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at')) <> 6),
