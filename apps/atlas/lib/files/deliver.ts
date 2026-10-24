@@ -11,8 +11,8 @@ import { getMessages, type Locale } from "@xos/i18n";
  * never leaves unmarked: an uploaded PDF keeps its pages and gets the viewer's email and the time
  * stamped on every one (pdf-watermark.ts), and a PNG or JPEG is rendered through the ADR 0031
  * pipeline into a tagged PDF carrying the same line. A file that cannot carry the mark (another image
- * type, or an encrypted or unreadable PDF) is refused rather than sent as stored. Every other file
- * goes out as stored. Server only.
+ * type, or an encrypted, unreadable or oversized PDF) is refused rather than sent as stored. Every
+ * other file goes out as stored. Server only.
  */
 
 /** How the watermark is applied to a type (private.watermarkable_content_type, migrations 1380 and 1690). */
@@ -34,12 +34,15 @@ export interface DeliveredFile {
   readonly contentType: string;
 }
 
-/** Why a copy that must carry the watermark cannot: the type cannot carry it, or the PDF cannot be rewritten. */
+/**
+ * Why a copy that must carry the watermark cannot: the type cannot carry it, or the PDF cannot be
+ * rewritten (encrypted, unreadable, or over the limits on reading an upload).
+ */
 export type WatermarkRefusal = "unsupported" | PdfWatermarkRefusal;
 
 export type ViewerCopy =
   | { readonly ok: true; readonly file: DeliveredFile }
-  | { readonly ok: false; readonly reason: WatermarkRefusal };
+  | { readonly ok: false; readonly reason: WatermarkRefusal; readonly detail?: string };
 
 /**
  * The copy a viewer receives: the stored bytes, or, when the copy must carry the watermark, a PDF
@@ -69,7 +72,7 @@ export async function copyForViewer(input: {
   const watermark = watermarkText(messages, input.locale, input.viewerEmail ?? "unknown", now);
   if (kind === "pdf") {
     const stamped = await stampPdfWatermark(input.bytes, watermark);
-    if (!stamped.ok) return { ok: false, reason: stamped.reason };
+    if (!stamped.ok) return stamped;
     return {
       ok: true,
       file: {

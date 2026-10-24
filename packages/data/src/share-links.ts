@@ -15,7 +15,10 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  *   {@link fetchTicketFile} trades at the file-download Edge Function for the bytes. Confidential
  *   PDFs and images are watermarked by the web shell before the visitor gets them (A103).
  * - {@link recordFileDownload} logs an in-app download of a classified file and says whether the copy
- *   needs the watermark.
+ *   needs the watermark; a copy that does comes with a ticket too, because the storage policy keeps
+ *   the viewer from reading it directly (1691).
+ * - The function hands a copy that must carry the watermark only to the web shell, which proves itself
+ *   with the handover secret (XOS_FILE_HANDOVER_SECRET); anyone else holding a ticket gets nothing.
  */
 
 export type DataClassification = Database["app"]["Enums"]["data_classification"];
@@ -215,6 +218,8 @@ export const SHARE_LINK_REFUSALS = [
   "share_link_rate_limited",
   // Answered by the web shell, not the database: the file must carry the watermark and cannot (A103).
   "share_link_watermark_unsupported",
+  // Answered by the web shell: the handover of a copy that must carry the watermark is not set up (1691).
+  "share_link_unavailable",
 ] as const;
 
 export type ShareLinkRefusal = (typeof SHARE_LINK_REFUSALS)[number];
@@ -294,20 +299,33 @@ export async function openShareLink(
   });
 }
 
+/** A file handed over by the file-download Edge Function. */
+export interface TicketFile {
+  readonly bytes: Uint8Array;
+  readonly contentType: string;
+  /** True when the copy must carry the viewer watermark, by the file's classification at handover. */
+  readonly watermark: boolean;
+}
+
 /**
  * Trades a download ticket at the file-download Edge Function for the file's bytes. The function holds
- * the service role the anonymous visitor lacks and honors a ticket once, within 2 minutes.
+ * the service role the web shell lacks and honors a ticket once, within 2 minutes. A copy that must
+ * carry the watermark is handed over only with the handover secret (XOS_FILE_HANDOVER_SECRET), sent as
+ * a bearer token; without it such a ticket answers not found and stays unused.
  */
 export async function fetchTicketFile(
   functionsUrl: string,
   ticket: string,
-  fetchImpl: typeof fetch = fetch,
-): Promise<Result<{ readonly bytes: Uint8Array; readonly contentType: string }>> {
+  options: { readonly handoverSecret?: string | undefined; readonly fetchImpl?: typeof fetch } = {},
+): Promise<Result<TicketFile>> {
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (options.handoverSecret) headers["Authorization"] = `Bearer ${options.handoverSecret}`;
   let response: Response;
   try {
     response = await fetchImpl(`${functionsUrl.replace(/\/$/, "")}/file-download`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ ticket }),
     });
   } catch (error) {
@@ -323,6 +341,7 @@ export async function fetchTicketFile(
   return ok({
     bytes: new Uint8Array(await response.arrayBuffer()),
     contentType: response.headers.get("Content-Type") ?? "application/octet-stream",
+    watermark: response.headers.get("X-XOS-Watermark") === "required",
   });
 }
 
@@ -333,9 +352,17 @@ export interface FileDownload {
   /** True when the copy must carry the viewer watermark: a Confidential or Restricted PDF, PNG or JPEG. */
   readonly watermark: boolean;
   readonly viewerEmail: string | null;
+  /**
+   * For a copy that must carry the watermark, the single-use ticket {@link fetchTicketFile} trades for
+   * the bytes: the storage policy keeps the viewer from reading that object directly (1691).
+   */
+  readonly ticket: string | null;
 }
 
-/** Logs an in-app download of a file (app.record_file_download) and answers its watermark rule. */
+/**
+ * Logs an in-app download of a file (app.record_file_download) and answers its watermark rule, and a
+ * ticket when the copy must carry the watermark.
+ */
 export async function recordFileDownload(
   db: XosClient,
   attachmentVersionId: string,
@@ -348,12 +375,14 @@ export async function recordFileDownload(
     classification: DataClassification;
     watermark: boolean;
     viewer_email: string | null;
+    ticket: string | null;
   } | null;
   if (!row) return fail({ kind: "not-found" });
   return ok({
     classification: row.classification,
     watermark: row.watermark,
     viewerEmail: row.viewer_email,
+    ticket: row.ticket ?? null,
   });
 }
 

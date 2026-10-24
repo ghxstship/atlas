@@ -88,7 +88,8 @@
       "share_link_access_code_required": "Escribe el código de acceso que llegó con el enlace.",
       "share_link_access_code": "Ese código no es correcto. Tras 5 códigos incorrectos el enlace se bloquea.",
       "share_link_rate_limited": "Demasiados intentos desde tu red. Espera 10 minutos e inténtalo de nuevo.",
-      "share_link_watermark_unsupported": "Este archivo no puede llevar tu correo y la hora, así que no se puede abrir. Pide a quien lo envió un PDF sin contraseña."
+      "share_link_watermark_unsupported": "Este archivo no puede llevar tu correo y la hora, así que no se puede abrir. Pide a quien lo envió un PDF sin contraseña.",
+      "share_link_unavailable": "Este archivo no se puede abrir en este momento. Inténtalo más tarde o pregunta a quien lo envió."
     }
   },
   "download": {
@@ -96,6 +97,7 @@
     "download_restricted": "Descargar un archivo restringido necesita la capacidad de exportación restringida.",
     "step_up_required": "Descargar un archivo restringido necesita un segundo factor de inicio de sesión. Vuelve a iniciar sesión con tu segundo factor e inténtalo de nuevo.",
     "download_watermark_unsupported": "Este archivo no puede llevar la marca de agua que necesitan los archivos confidenciales y restringidos, así que no se puede descargar. Pide a quien lo agregó un PDF sin contraseña o una imagen PNG o JPEG.",
+    "download_watermark_unavailable": "Los PDF y las imágenes confidenciales y restringidos no se pueden descargar en este momento, porque la marca de agua que necesitan no está disponible. Inténtalo más tarde.",
     "notFound": "Este archivo no está disponible."
   },
   "cookies": {
