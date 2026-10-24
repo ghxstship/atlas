@@ -115,14 +115,19 @@ does (RRR-139, migration 1651), wired two ways differently from the generic pipe
   The bearer path with `XOS_INBOUND_SECRET` stays for a provider that posts a parsed message, such as a self-hoster's.
 - **DKIM** is Resend's own verdict, `authentication.dkim`, computed by its receiving server; only `pass` verifies.
 - **Recipients** come from To, Cc, Bcc and the forwarded-for addresses, so forwarded and blind-copied mail finds its
-  inbox. Mail for no address on the inbound domain is ignored before any call to Resend.
-- **The raw message** is kept in the private `inbound-mail` bucket as `resend/<email id>.eml`, because Resend keeps a
-  received message for 30 days and inbound mail is kept two years. It is stored only once the database has taken the
-  message, or holds it from a delivery whose upload failed, so spam to an address with no inbox leaves nothing. A message over 50 MiB, the bucket's limit, records
-  `resend:<email id>` and is filed without its raw copy.
-- **Bounds.** A body over 100,000 characters is cut and a sender address over 320 characters ignored, on either path, so
-  the database never refuses a message that the provider would then retry for a day.
+  inbox. Mail for no address on the inbound domain is ignored before any call to Resend, and so is mail for an address
+  with no open inbox and no valid reply signature: `app.inbound_email_org` (migration 1651) makes the same lookups as
+  `app.receive_inbound_email` and returns the org it would file under.
+- **The raw message** is kept in the private `inbound-mail` bucket as `<org id>/resend/<email id>.eml`, because Resend
+  keeps a received message for 30 days and inbound mail is kept two years. The org prefix is how every other object is
+  named, so an org purge (`private.org_storage_objects`) finds the file by its name, with or without a row pointing to
+  it. It is stored only once the database has taken the message, or holds it from a delivery whose upload failed. A
+  message over 50 MiB, the bucket's limit, records `resend:<email id>` and is filed without its raw copy.
+- **Bounds.** On either path a body over 100,000 characters is cut, a sender address over 320 characters ignored, a
+  Message-ID over 998 bytes replaced by a digest the per-org index can hold, and NUL and unpaired surrogates removed
+  from every field, as are character references to them in an HTML-only body. So the database never refuses a message
+  that the provider would then retry for a day.
 
-Follow-ups: raw messages stay in the bucket when their row ages out after two years, because SQL cannot delete storage
-objects (a Storage API sweep, as for sandboxes, would remove them); and attachments on filed mail, which Resend's
-Attachments API serves.
+Follow-ups: when retention deletes a message's row after two years, its raw file stays in the bucket until the org is
+purged, because SQL cannot delete storage objects (a Storage API sweep by age, as for sandboxes, would remove it); and
+attachments on filed mail, which Resend's Attachments API serves.

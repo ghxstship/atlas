@@ -151,9 +151,11 @@ wired differently: the webhook carries metadata only, and it is signed instead o
   it. Only `pass` counts as verified; `gray` (unsigned, or signed by a domain other than the From domain), `fail` and
   the rest do not, and such mail is never filed.
 - **Raw message:** Resend keeps a received message for 30 days, behind a signed download URL. `inbound-email` copies it
-  into the private `inbound-mail` bucket (migration 1651) as `resend/<email id>.eml`, which `raw_object_path` records
-  and an org purge finds, once the database has taken the message: mail to an address with no inbox leaves nothing. Resend publishes no size limit; a message over 50 MiB, the bucket's limit, is filed without
-  its raw copy and records `resend:<email id>` instead.
+  into the private `inbound-mail` bucket (migration 1651) as `<org id>/resend/<email id>.eml`, which `raw_object_path`
+  records, once the database has taken the message. The org prefix lets an org purge find the file even after
+  retention has deleted its row. `inbound-email` asks the database for the org first (`app.inbound_email_org`), so mail
+  to an address with no inbox costs no call to Resend and leaves nothing. Resend publishes no size limit; a message
+  over 50 MiB, the bucket's limit, is filed without its raw copy and records `resend:<email id>` instead.
 - **Authentication:** Resend signs each webhook the Svix way (HMAC-SHA256 over the id, timestamp and raw body, with the
   endpoint's `whsec_` signing secret) instead of sending a bearer secret. `inbound-email` refuses a bad signature and
   any timestamp more than five minutes off. `XOS_INBOUND_SECRET` is only for a provider that posts parsed messages.
@@ -192,7 +194,7 @@ wired differently: the webhook carries metadata only, and it is signed instead o
    release (Deploy order).
 6. Check: create a project inbox in Atlas (Project Settings, Project inbox) and forward one message to it from an
    address that signs with DKIM, such as Gmail. In Resend, the webhook's message shows a 200 answer with an
-   `inbound_message_id`; in Supabase, Storage, `inbound-mail` holds `resend/<email id>.eml`; in Atlas, the message is on
+   `inbound_message_id`; in Supabase, Storage, `inbound-mail` holds `<org id>/resend/<email id>.eml`; in Atlas, the message is on
    the project's Documents tab, ready to file.
 
 To rotate, create the new key or roll the signing secret in Resend, set the secret, then delete the old key. Until step
