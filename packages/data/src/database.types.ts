@@ -1192,6 +1192,48 @@ export type Database = {
           },
         ];
       };
+      my_profile_certifications: {
+        Row: {
+          expires_on: string | null;
+          id: string | null;
+          is_verified: boolean | null;
+          issued_on: string | null;
+          issuing_body: string | null;
+          name: string | null;
+          person_id: string | null;
+          source: string | null;
+          time_zone: string | null;
+          verified_by_org_id: string | null;
+          verified_by_org_name: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      my_profile_documents: {
+        Row: {
+          document_kind: string | null;
+          document_state: string | null;
+          document_type: string | null;
+          expires_on: string | null;
+          file_classification: string | null;
+          file_content_type: string | null;
+          file_name: string | null;
+          file_object_name: string | null;
+          file_size_bytes: number | null;
+          file_version_id: string | null;
+          file_version_number: number | null;
+          id: string | null;
+          issuer: string | null;
+          org_id: string | null;
+          org_name: string | null;
+          person_id: string | null;
+          project_name: string | null;
+          time_zone: string | null;
+          title: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       my_profile_share_fields: {
         Row: {
           field_key: string | null;
