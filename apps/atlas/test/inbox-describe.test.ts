@@ -259,7 +259,7 @@ describe("Inbox item copy", () => {
     expect(inboxTarget("demo", { subjectTable: "unknown", kind: "x.y" })).toBeNull();
   });
 
-  it("opens a delivered report in Saved reports, with the report's panel open (decision 39)", () => {
+  it("opens a delivered report in Saved reports, with the report's panel open (ADR 0033 decision 77)", () => {
     expect(
       inboxTarget("demo", {
         subjectTable: "app.report_definitions",

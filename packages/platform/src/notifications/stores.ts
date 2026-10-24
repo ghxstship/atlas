@@ -71,7 +71,7 @@ async function recordTarget(
 
 /**
  * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, a delivered
- * report's report (decision 39), else the org's Inbox; in Gateway, Home. A path, never a full URL: the service worker
+ * report's report (ADR 0033 decision 77), else the org's Inbox; in Gateway, Home. A path, never a full URL: the service worker
  * resolves it on its own origin.
  */
 export async function webPushLink(

@@ -1,6 +1,6 @@
 -- 1621_report_delivered_notice.sql
 --
--- Notification and access decisions (ADR 0022, 1620-1629), RRR-125; owner decision 39 of 2026-10-23 (ADR 0033). A
+-- Notification and access decisions (ADR 0022, 1620-1629), RRR-125; ADR 0033 decision 77 (2026-10-23). A
 -- delivered scheduled report reaches the recipient's Inbox and a push, with no second email: the report.deliver worker
 -- (1127, packages/data report-deliveries.ts) already emails the file, and that email stays the only one.
 --   * report.delivered reaches In App and Push only (notification-kinds.yaml, seed 1620). private.notify created a
@@ -9,8 +9,10 @@
 --     email. It now creates deliveries only on the channels the kind reaches, which also keeps A89's opportunity.matched
 --     (In App, Email and Push) off SMS. Recreated from 1590, its latest definition, with nothing else changed.
 --   * app.finish_report_delivery (1127) sends the recipient report.delivered once the worker records the email sent,
---     about the report definition, so the Inbox item and the browser push open the report in Atlas (Reports, Saved
---     reports, with the report's panel open). A failed delivery sends nothing.
+--     about the report definition when the recipient may open it (its owner, or a reader of its source once it is
+--     shared), so the Inbox item and the browser push open the report in Atlas (Reports, Saved reports, with the
+--     report's panel open). A recipient who may not is told about no record, so it opens their Inbox. A failed
+--     delivery sends nothing.
 
 -- 1. private.notify (from 1590): only the channels the kind reaches -----------------------------------------------------
 
@@ -138,6 +140,8 @@ as $$
 declare
   v_delivery app.report_deliveries;
   v_report app.report_definitions;
+  v_person uuid;
+  v_opens boolean;
 begin
   select d.* into v_delivery from app.report_deliveries d where d.id = p_delivery_id and d.deleted_at is null for update;
   if v_delivery.id is null then
@@ -152,12 +156,22 @@ begin
     where id = p_delivery_id;
     perform private.emit_event(v_delivery.org_id, 'report.delivered', 'report_deliveries', v_delivery.id, null,
       jsonb_build_object('report_schedule_id', v_delivery.report_schedule_id, 'report_run_id', v_delivery.report_run_id));
-    -- The Inbox and a push tell the recipient the report is in their email (decision 39); the email is the worker's.
+    -- The Inbox and a push tell the recipient the report is in their email (decision 77); the email is the worker's.
     select def.* into v_report from app.report_runs r join app.report_definitions def on def.id = r.report_definition_id
     where r.id = v_delivery.report_run_id;
-    perform private.notify(v_delivery.org_id, m.person_id, 'report.delivered', 'app.report_definitions', v_report.id, null,
-      jsonb_build_object('title', v_report.name, 'reportRunId', v_delivery.report_run_id))
-    from app.memberships m where m.id = v_delivery.membership_id;
+    select m.person_id into v_person from app.memberships m where m.id = v_delivery.membership_id;
+    -- The notice is about the report only for a recipient who may open it, as 0550's policy reads: its owner, or anyone
+    -- who may read reports on its source once it is shared. Anyone else is told with no record, so the Inbox item and
+    -- the push open the Inbox instead of Saved reports with no panel; the file is in their email either way.
+    v_opens := v_report.deleted_at is null and (
+      exists (select 1 from app.memberships m where m.id = v_report.membership_id and m.person_id = v_person)
+      or (v_report.shared
+          and private.person_capability_reach(v_person, v_report.org_id, 'reports.report.read', true) = 'organization'
+          and private.person_capability_reach(v_person, v_report.org_id,
+                (select s.read_capability from private.report_sources s where s.code = v_report.source_code), true) = 'organization'));
+    perform private.notify(v_delivery.org_id, v_person, 'report.delivered',
+      case when v_opens then 'app.report_definitions' end, case when v_opens then v_report.id end, null,
+      jsonb_build_object('title', v_report.name, 'reportRunId', v_delivery.report_run_id));
   else
     if p_error is null or btrim(p_error) = '' then
       perform private.refuse('report_delivery_error', 'A failed delivery records why it failed.');
@@ -167,6 +181,6 @@ begin
 end;
 $$;
 
-comment on function app.finish_report_delivery(uuid, boolean, text, text) is 'Worker API (service role): records that a scheduled report email went out (with the transport''s message id) or failed (with the reason). A sent report also sends the recipient report.delivered (1621), in the Inbox and as a push only, about the report definition, so it opens the report in Atlas; the worker''s email stays the only email.';
+comment on function app.finish_report_delivery(uuid, boolean, text, text) is 'Worker API (service role): records that a scheduled report email went out (with the transport''s message id) or failed (with the reason). A sent report also sends the recipient report.delivered (1621), in the Inbox and as a push only, about the report definition when the recipient may open it (its owner, or a reader of its source once shared), so it opens the report in Atlas, and about no record otherwise; the worker''s email stays the only email.';
 revoke all on function app.finish_report_delivery(uuid, boolean, text, text) from public, anon, authenticated;
 grant execute on function app.finish_report_delivery(uuid, boolean, text, text) to service_role;

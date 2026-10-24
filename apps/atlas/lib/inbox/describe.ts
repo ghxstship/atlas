@@ -79,7 +79,7 @@ export function inboxTarget(
     readonly args?: InboxItem["args"];
   },
 ): string | null {
-  // A delivered report (owner decision 39, 1621) opens the report in Saved reports, with its panel open.
+  // A delivered report (ADR 0033 decision 77, 1621) opens the report in Saved reports, with its panel open.
   if (item.subjectTable === "app.report_definitions") {
     return item.subjectId
       ? `/${org}/reports/saved-reports?peek=${encodeURIComponent(item.subjectId)}`
