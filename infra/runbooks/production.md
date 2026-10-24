@@ -715,12 +715,12 @@ Rollback: turn "Enable Sign in with Google" off. The buttons disappear within fi
 
 Compass offers "Sign in with Apple" on iOS (ADR 0033 decision 58, App Store Review Guideline 4.8; ADR 0036, amendment of 2026-10-23). The phone signs in with Apple's own sheet and hands Apple's identity token, with a nonce Supabase Auth checks, to the Supabase project. On iOS the Google button shows only beside Apple's, so until this section is done an iOS build shows neither; Android keeps Google. Atlas and Gateway do not offer Apple, even with the provider on.
 
-**Every value in the table below is an example of the format; none is real.** The key file is a secret: keep it in the owner's secret store and never commit it, paste it in a ticket or send it in chat. Identifiers are not secrets.
+**The App ID and the callback URL in the table below are the real ones; every other value is an example of the format, not a real value.** The key file is a secret: keep it in the owner's secret store and never commit it, paste it in a ticket or send it in chat. Identifiers are not secrets.
 
-| Value                  | Where it comes from                                               | Example of the format (not real)                            |
+| Value                  | Where it comes from                                               | Value, or an example of its format                          |
 | ---------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- |
-| Team ID                | Apple Developer, Membership details                               | 10 letters and digits, such as `AB12CD34EF`                 |
-| App ID (bundle ID)     | Already registered for Compass ("Compass releases" below)         | `pro.ghxstship.compass`                                     |
+| Team ID                | Apple Developer, Membership details                               | 10 letters and digits, such as `AB12CD34EF` (an example)    |
+| App ID (bundle ID)     | Already registered for Compass ("Compass releases" below)         | `pro.ghxstship.compass` (real)                              |
 | Services ID            | Certificates, Identifiers and Profiles, Identifiers, Services IDs | A reverse-domain identifier, such as `pro.ghxstship.signin` |
 | Sign in with Apple key | Certificates, Identifiers and Profiles, Keys (downloaded once)    | A `.p8` file named `AuthKey_<key ID>.p8`                    |
 | Key ID                 | The same key's page                                               | 10 letters and digits                                       |

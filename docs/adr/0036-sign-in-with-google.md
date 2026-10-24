@@ -97,6 +97,6 @@ ADR 0033 decision 58 (2026-10-23) adds Sign in with Apple to Compass before App 
 
 ### Follow-ups
 
-- **Token revocation on account deletion.** Apple expects an app that offers Sign in with Apple to revoke the person's Apple tokens when they delete their account (App Store Review Guideline 5.1.1(v)). That needs the authorization code from the sign-in exchanged with Apple using the client secret, in an Edge Function holding the key; Compass's account deletion (1112) does not do it yet.
+- **Token revocation on account deletion.** Apple expects an app that offers Sign in with Apple to revoke the person's Apple tokens when they delete their account (App Store Review Guideline 5.1.1(v)). That needs the authorization code from the sign-in exchanged with Apple using the client secret, in an Edge Function holding the key; Compass's account deletion (1112) does not do it yet. `docs/release-checklist.md` (open question 6) tracks it before the App Store submission.
 - The web flow in Atlas and Gateway, as decision 6 of this amendment describes.
 - The Privacy Policy names Apple, as it should Google, as a source of account data (the legal track).
