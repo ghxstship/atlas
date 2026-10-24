@@ -88,7 +88,7 @@ create function pg_temp.held_twice(p_kind text) returns uuid
 language plpgsql as $$
 declare
   v_notification uuid := private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), p_kind, null, null, null,
-    '{"title": "Rigging rental", "actorName": "Bob Okafor", "change": "password"}');
+    '{"title": "Rigging rental", "actorName": "Bob Okafor", "days": 1}');
   v_delivery app.notification_deliveries;
 begin
   select d.* into v_delivery from app.notification_deliveries d where d.notification_id = v_notification and d.channel = 'SMS';
@@ -123,11 +123,11 @@ select is(pg_temp.rows(:'v_claimed_text'), 'live claimed, retired untouched',
 insert into app.suppression_list (org_id, channel, address, reason, category_code)
 values (pg_temp.id('org_a'), 'SMS', '+15555550122', 'Unsubscribe', 'approvals');
 select pg_temp.held_twice('approval.requested') as v_dropped_text \gset
-select pg_temp.held_twice('account.security_changed') as v_kept_text \gset
+select pg_temp.held_twice('billing.payment_failed') as v_kept_text \gset
 select app.claim_sms_summaries();
 -- Dave loses his verified number: the next summary is suppressed.
 update auth.users set phone_confirmed_at = null where id = pg_temp.id('dave_user');
-select pg_temp.held_twice('account.security_changed') as v_suppressed_text \gset
+select pg_temp.held_twice('billing.payment_failed') as v_suppressed_text \gset
 select app.claim_sms_summaries();
 select is(pg_temp.rows(:'v_dropped_text') || '; ' || pg_temp.rows(:'v_suppressed_text'),
   'live settled, retired untouched; live settled, retired untouched',

@@ -38,7 +38,8 @@ regexes = [
   '''^eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9\.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0$''',
   # The jwt.io sample token in the log redaction test
   '''^eyJhbGciOiJIUzI1NiJ9\.eyJzdWIiOiIxMjM0NTY3ODkwIn0\.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U$''',
-  # A fake Stripe test key in the billing unit test
+  # A fake Stripe test key in the billing unit tests, and the key the e2e server uses with its local fake of Stripe
+  # (apps/atlas/playwright.config.ts, CI's e2e job, apps/atlas/e2e/fake-stripe.ts; 2026-10-23)
   '''^sk_test_abcdefghij$''',
   # Fake Stripe keys in the setup script's test-mode guard tests (packages/platform/test/stripe-setup.test.ts, 2026-10-20)
   '''^(sk|rk)_test_abcdefgh123$''',

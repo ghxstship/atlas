@@ -118,7 +118,8 @@ export function mergeUpcoming(input: {
     items.push({
       id: `start-${e.id}`,
       kind: "start",
-      title: e.jobTitle,
+      // A client or sponsor engagement has no job title (1624): its project names it.
+      title: e.jobTitle ?? e.projectName,
       at: e.startDate,
       endsAt: e.endDate,
       timeZone: null,

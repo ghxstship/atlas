@@ -15,6 +15,14 @@ import { defineConfig, devices, type Project } from "@playwright/test";
 const port = Number(process.env["E2E_PORT"] ?? 3006);
 const baseURL = process.env["E2E_BASE_URL"] ?? `http://127.0.0.1:${port}`;
 const auroraURL = process.env["E2E_AURORA_URL"] ?? "http://127.0.0.1:3016";
+/**
+ * The billing journey (e2e/billing-checkout.spec.ts) pays on a local fake of Stripe (e2e/fake-stripe.ts), so the
+ * server runs with its fake test key and origin; STRIPE_API_URL is honored only on loopback with a test key.
+ */
+const fakeStripe = {
+  STRIPE_SECRET_KEY: "sk_test_abcdefghij",
+  STRIPE_API_URL: `http://127.0.0.1:${process.env["E2E_STRIPE_PORT"] ?? "12111"}`,
+};
 const engines = new Set(
   (process.env["E2E_ENGINES"] ?? "chromium,firefox,webkit").split(",").map((e) => e.trim()),
 );
@@ -78,6 +86,7 @@ export default defineConfig({
       url: `${baseURL}/auth/sign-in`,
       reuseExistingServer: true,
       timeout: 120_000,
+      env: fakeStripe,
     },
     // Journeys 35 and 36 (aurora-journeys.spec.ts) need Aurora's fixture model, which exists only
     // outside production (finding A24-007), so they run against their own development server. Runs

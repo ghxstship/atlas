@@ -67,6 +67,9 @@ importers:
       '@xos/integrations':
         specifier: workspace:*
         version: link:../../packages/integrations
+      '@xos/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
       '@xos/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
