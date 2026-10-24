@@ -36,9 +36,16 @@ cache="$root/node_modules/.cache/pg-clock"
 lib="$cache/libfaketime.so.1"
 image="mcr.microsoft.com/playwright:v1.64.0-noble"
 
+# Ready means Postgres accepts connections and Docker reports the container healthy again. After a
+# restart Docker reads "starting" until its next health check passes, seconds after pg_isready does,
+# and the Supabase CLI refuses the stack until then: `supabase status` fails with "container is not
+# ready", which left the core-screen job's app without an anon key.
 wait_ready() {
   for _ in $(seq 90); do
-    if docker exec "$container" pg_isready -U postgres -q; then return 0; fi
+    if docker exec "$container" pg_isready -U postgres -q &&
+      [ "$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}healthy{{end}}' "$container")" = healthy ]; then
+      return 0
+    fi
     sleep 1
   done
   echo "Postgres in $container did not come back" >&2
