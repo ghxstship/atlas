@@ -31,12 +31,13 @@ Plan limits are `seats`, `active_projects`, `field_members`, `active_external_en
 3. **The Owner chooses per limit.** `app.choose_plan_limit_keeps` is open to `org.billing.manage` (the Owner). It replaces a limit's choice as a set, with at most the limit less the seats Owners hold, among the objects the limit counts. It changes no plan and no payment, so it asks for no step-up (unlike the billing acts of 1562). The panel sits in Settings, Billing and Plan.
 4. **The database recomputes, not webhook code.** `app.over_limit_objects` holds the read-only objects. `private.recompute_over_limit(org)` rewrites an org's rows. After-triggers call it when any of these change:
    - a subscription's plan, state, extra seats, grandfathering or deletion: a trial ending, a downgrade, an upgrade, a cancellation, or Stripe, a partner or the console setting the plan;
+   - a console Plan or Limit override made or ended early (1471);
    - a project's archive, deletion or state: archive, restore, delete, complete or reopen;
    - a role assignment;
    - a membership's validity or deletion;
    - the plan limits themselves (a plan seed migration recomputes every org).
 
-   The Owner's choice recomputes at once. The hourly lifecycle job (`private.run_org_lifecycle`) refreshes orgs with read-only objects, so a membership that ends at its `valid_to` frees its seat on time. The guard lifts as soon as the org is back within the limit. An org being purged is skipped.
+   The Owner's choice recomputes at once. The hourly lifecycle job (`private.run_org_lifecycle`) refreshes orgs with read-only objects, so a membership that ends at its `valid_to` frees its seat on time. It also refreshes orgs whose memberships began, or whose overrides started or expired, in the last two hours. The guard lifts as soon as the org is back within the limit. An org being purged is skipped.
 
 5. **The guard extends the read-only row guard.** `private.refuse_read_only_org` (1063, 1353) already runs on every app table with `org_id` that is not exempt. For a person's write in an org with read-only objects, it now also refuses:
    - any write by a person whose own seat is read-only;

@@ -17,9 +17,11 @@
 --   * app.over_limit_objects holds the result. private.recompute_over_limit rewrites an org's rows from the plan in
 --     force and the objects counted. Triggers in the database call it, never webhook code: a subscription's plan,
 --     state, extra seats or grandfathering changing (a trial ending, a downgrade, an upgrade, a cancellation, Stripe or
---     a partner or the console setting the plan); a project archived, deleted, restored or changing state; a role
---     assigned or removed; a membership ending; the plan limits themselves changing. The hourly lifecycle job also
---     refreshes orgs with read-only objects, so a membership that ends at its valid_to lifts a seat on time.
+--     a partner or the console setting the plan); a console plan or limit override made or ended (1471); a project
+--     archived, deleted, restored or changing state; a role assigned or removed; a membership ending; the plan limits
+--     themselves changing. The hourly lifecycle job also refreshes orgs with read-only objects, so a membership that
+--     ends at its valid_to lifts a seat on time, and orgs whose memberships began or whose overrides started or
+--     expired in the last two hours.
 --   * The guard: the read-only row guard of 1063 (t15_refuse_read_only_org, on every app table with org_id that is
 --     not exempt) now also refuses a person's write to a read-only project or to anything of it (a row that carries
 --     the project's id, or belongs to one of its records or engagements), and every write of a person whose own seat
@@ -302,6 +304,11 @@ create trigger t93_recompute_over_limit after update of valid_from, valid_to, de
         or old.deleted_at is distinct from new.deleted_at)
   execute function private.recompute_over_limit_after_change();
 
+create trigger t93_recompute_over_limit after insert or update of ended_at, deleted_at on app.plan_overrides
+  for each row
+  when (new.override_kind in ('Plan', 'Limit'))
+  execute function private.recompute_over_limit_after_change();
+
 create or replace function private.recompute_over_limit_everywhere()
 returns trigger
 language plpgsql
@@ -336,6 +343,11 @@ begin
     union
     select m.org_id from app.memberships m
     where m.deleted_at is null and m.valid_from > p_now - interval '2 hours' and m.valid_from <= p_now
+    union
+    select po.org_id from app.plan_overrides po
+    where po.override_kind in ('Plan', 'Limit') and po.deleted_at is null
+      and ((po.starts_at > p_now - interval '2 hours' and po.starts_at <= p_now)
+           or (po.expires_at > p_now - interval '2 hours' and po.expires_at <= p_now))
   loop
     v_count := v_count + private.recompute_over_limit(v_org);
   end loop;
@@ -343,7 +355,7 @@ begin
 end;
 $$;
 
-comment on function private.refresh_over_limit(timestamptz) is 'Over-limit step of the lifecycle job (ADR 0060): recomputes every org with read-only objects, so a membership that ended at its valid_to lifts a seat on time, and every org whose memberships began in the last two hours. Returns how many objects changed.';
+comment on function private.refresh_over_limit(timestamptz) is 'Over-limit step of the lifecycle job (ADR 0060): recomputes every org with read-only objects, so a membership that ended at its valid_to lifts a seat on time, every org whose memberships began in the last two hours, and every org whose console plan or limit override (1471) started or expired in the last two hours. Returns how many objects changed.';
 revoke all on function private.refresh_over_limit(timestamptz) from public, anon, authenticated;
 
 create or replace function private.run_org_lifecycle(p_now timestamptz default now())

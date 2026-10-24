@@ -3,13 +3,14 @@
 -- Access plan (1 active project, 1 seat), the projects past the limit and the seats past it turn read-only with an
 -- explanation, and nothing is deleted. The oldest stay writable unless the Owner chose others; archiving a project or
 -- upgrading lifts the guard at once, and a later downgrade keeps the Owner's choice. Field seats are checked with the
--- Access field limit lowered to 1 inside this transaction, so the fixture stays small.
+-- Access field limit lowered to 1 inside this transaction, so the fixture stays small. A console limit override lifts
+-- the guard while it lasts.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(61);
+select plan(64);
 
 create function pg_temp.project(p_key text) returns uuid language sql stable as $$
   select p.id from app.projects p where p.org_id = pg_temp.id('lim_org') and p.project_key = p_key $$;
@@ -196,6 +197,17 @@ select pg_temp.as_platform();
 update app.memberships set valid_to = now() where id = pg_temp.id('omar@lim_org');
 select ok(not pg_temp.seat_read_only('omar') and pg_temp.seat_read_only('pia'), 'an ended membership leaves the read-only set');
 
+-- A console override --------------------------------------------------------------------------------------------------------
+insert into app.plan_overrides (org_id, override_kind, limit_code, limit_value, reason, expires_at) values
+  (pg_temp.id('lim_org'), 'Limit', 'active_projects', 3, 'Room for the spring season while the Owner decides.', now() + interval '14 days');
+select ok(not pg_temp.read_only('LRA') and not pg_temp.read_only('LRB') and not pg_temp.read_only('LRC'),
+  'a console limit override lifts the guard at once');
+update app.plan_overrides set ended_at = now(), end_reason = 'The Owner chose what to keep.'
+where org_id = pg_temp.id('lim_org') and ended_at is null;
+select ok(not pg_temp.read_only('LRC') and pg_temp.read_only('LRA') and pg_temp.read_only('LRB'),
+  'ending it early brings the read-only set back, with the Owner''s choice');
+select is(private.recompute_over_limit(pg_temp.id('lim_org')), 0, 'recomputing again changes nothing, so the set never drifts');
+
 -- Machinery ---------------------------------------------------------------------------------------------------------------
 select is((select coalesce(string_agg(t.table_name, ', '), '') from private.over_limit_personal_tables t
   where to_regclass(t.table_name) is null), '', 'every personal table exists');
@@ -207,8 +219,8 @@ select ok(exists (select 1 from pg_trigger t where t.tgrelid = 'app.scope_nodes'
   'the guard sits on project children');
 select is((select count(*)::int from pg_trigger t where t.tgname = 't93_recompute_over_limit'
   and t.tgrelid in ('app.subscriptions'::regclass, 'app.projects'::regclass, 'app.memberships'::regclass,
-                    'app.membership_roles'::regclass, 'private.plan_limits'::regclass)), 5,
-  'plan changes, archives, deletes, role and membership changes and plan limits recompute in the database');
+                    'app.membership_roles'::regclass, 'app.plan_overrides'::regclass, 'private.plan_limits'::regclass)), 6,
+  'plan changes, overrides, archives, deletes, role and membership changes and plan limits recompute in the database');
 select ok(pg_get_functiondef('private.run_org_lifecycle(timestamptz)'::regprocedure) like '%private.refresh_over_limit(p_now)%',
   'the hourly lifecycle job refreshes read-only objects');
 select ok(not has_function_privilege('authenticated', 'private.recompute_over_limit(uuid)', 'execute'),
