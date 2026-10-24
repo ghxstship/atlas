@@ -220,3 +220,7 @@ Storybook 10.6.2 was 11 days old when it was taken, short of the two-week minimu
 | ------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
 | UI      | `storybook`, `@storybook/react-vite`, `@storybook/addon-a11y`, `@storybook/addon-themes` (10.6.2 fixes GHSA-f2ph-cmg5-wxc8) | 10.6.2  |
 | Compass | `react-native-nfc-manager`                                                                                                  | 4.0.0   |
+
+## Amendment (2026-10-23): the supply-chain install runs on Vercel's Node line (RRR-139)
+
+CI's license check, its SBOM and the release SBOM install production dependencies on Node 22.x, the latest release, the line Vercel builds with (`infra/runbooks/production.md`), instead of `.nvmrc`'s 22.14.0. pnpm leaves out an optional package whose `engines` the running Node misses, so on 22.14.0 that install lacked `@napi-rs/lzma-linux-x64-gnu` 1.5.1 (MIT, an optional dependency of rollup 4.64.7 through `@sentry/nextjs`, which needs Node 22.20), a package Vercel's install holds. `pnpm licenses list` checks only os, cpu and libc, so it looked for the missing package and failed. Every other job, and contributors, keep 22.14.0 from `.nvmrc`; moving the toolchain to a newer 22 remains a separate decision.
