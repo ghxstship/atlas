@@ -193,12 +193,31 @@ export {
   type SmsStoreOptions,
 } from "./notifications/stores.ts";
 export {
+  MAX_INBOUND_BODY_CHARS,
   localPartFor,
   receiveInbound,
   stripQuotedText,
   type InboundMessage,
   type InboundStore,
 } from "./inbound/parse.ts";
+export {
+  INBOUND_MAIL_BUCKET,
+  MAX_RAW_MESSAGE_BYTES,
+  RESEND_API_URL,
+  SIGNATURE_TOLERANCE_SECONDS,
+  fetchReceivedEmail,
+  htmlToText,
+  parseResendEvent,
+  receiveResendEmail,
+  storageRawMailStore,
+  verifyResendSignature,
+  type RawMailStore,
+  type ResendInboundDeps,
+  type ResendInboundOutcome,
+  type ResendReceivedEmail,
+  type ResendReceivedEvent,
+  type ResendSignatureHeaders,
+} from "./inbound/resend.ts";
 export {
   PUNCH_KINDS,
   PlatformDbError,

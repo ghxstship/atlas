@@ -1,7 +1,7 @@
 /**
- * Inbound mail (Section 4.6.5). The mail provider verifies DKIM and posts a parsed message; this module
- * strips quoted text and hands the result to app.receive_inbound_email, which files project inbox mail
- * and accepts replies only from signed addresses.
+ * Inbound mail (Section 4.6.5). The mail provider verifies DKIM and posts a parsed message (or, for Resend, the
+ * inbound-email function reads it from Resend's API, ./resend.ts); this module strips quoted text and hands the
+ * result to app.receive_inbound_email, which files project inbox mail and accepts replies only from signed addresses.
  */
 
 const QUOTE_MARKERS: readonly RegExp[] = [
@@ -60,7 +60,19 @@ export interface InboundStore {
   }): Promise<string | null>;
 }
 
-/** Files one inbound message. Returns the inbound message id, or null when it was not for XOS or was ignored. */
+/** The longest body app.inbound_messages keeps (inbound_messages_body_length). */
+export const MAX_INBOUND_BODY_CHARS = 100_000;
+
+/** The first `max` characters, counted as Postgres's char_length does, so no surrogate pair is split. */
+function clip(text: string, max: number): string {
+  return text.length <= max ? text : Array.from(text).slice(0, max).join("");
+}
+
+/**
+ * Files one inbound message. Returns the inbound message id, or null when it was not for XOS or was ignored. A sender
+ * address no mailbox can have (under 3 or over 320 characters) is ignored, and a body over 100,000 characters is cut,
+ * so the row always fits and a provider never retries a message the database would refuse.
+ */
 export async function receiveInbound(
   store: InboundStore,
   message: InboundMessage,
@@ -69,13 +81,14 @@ export async function receiveInbound(
   const localPart = localPartFor(message.to, inboundDomain);
   if (localPart === null) return null;
   const from = (/<([^>]+)>/.exec(message.from)?.[1] ?? message.from).trim().toLowerCase();
+  if (from.length < 3 || from.length > 320) return null;
   return store.receive({
     localPart,
     from,
     subject: message.subject,
     messageId: message.messageId,
     dkimVerified: message.dkimPass,
-    bodyText: stripQuotedText(message.text),
+    bodyText: clip(stripQuotedText(message.text), MAX_INBOUND_BODY_CHARS),
     rawObjectPath: message.rawObjectPath,
   });
 }
