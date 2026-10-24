@@ -5,7 +5,7 @@
 import { OUTBOX_TABLE, type MutationInput, type Row } from "@xos/sync";
 import { useCallback, useEffect, useState } from "react";
 import { useCompass, useRows } from "../../runtime/CompassProvider";
-import { mirrorRows, writeStateOf, type WriteState } from "../../settings/writes";
+import { MIRROR_READS, mirrorRows, writeStateOf, type WriteState } from "../../settings/writes";
 
 export interface Mirror<T extends Row> {
   readonly rows: T[];
@@ -29,8 +29,12 @@ export function useMirror<T extends Row>(
   filter?: (row: T) => boolean,
 ): Mirror<T> {
   const { store, engine, network } = useCompass();
-  // Every org's screens show the person's own rows, so the active-org filter does not apply.
-  const { rows, loading } = useRows<T>(table, filter, { allOrgs: true });
+  // Every org's screens show the person's own rows, so the active-org filter does not apply. The filter is applied
+  // here, so a list the person emptied offline still counts as read (it holds their removed rows).
+  const { rows: all, loading } = useRows<T>(table, undefined, { allOrgs: true });
+  const rows = filter ? all.filter(filter) : all;
+  // Whether this device ever read the table, so an empty list opens offline as empty, not as never loaded.
+  const { rows: reads } = useRows(MIRROR_READS, (r) => r.id === table, { allOrgs: true });
   const [server, setServer] = useState<"idle" | "loading" | "loaded" | "failed">("idle");
   const [attempt, setAttempt] = useState(0);
   const online = network.isConnected;
@@ -52,6 +56,7 @@ export function useMirror<T extends Row>(
         const keep = new Set(next.map((row) => row.id));
         for (const old of tx.list(table)) if (!keep.has(old.id)) tx.remove(table, old.id);
         for (const row of next) tx.put(table, row);
+        tx.put(MIRROR_READS, { id: table, read_at: new Date().toISOString() });
       });
       if (live) setServer("loaded");
     })();
@@ -61,11 +66,11 @@ export function useMirror<T extends Row>(
   }, [table, read, store, engine, online, attempt]);
 
   const reload = useCallback(() => setAttempt((n) => n + 1), []);
-  const ready = !loading && (rows.length > 0 || server === "loaded");
+  const known = all.length > 0 || reads.length > 0 || server === "loaded";
   return {
     rows,
-    ready,
-    notLoaded: !loading && !online && rows.length === 0 && server !== "loaded",
+    ready: !loading && known,
+    notLoaded: !loading && !online && !known,
     failed: server === "failed",
     reload,
   };

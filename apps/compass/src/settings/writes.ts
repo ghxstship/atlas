@@ -24,6 +24,9 @@ export const MIRROR = {
   defaultOrg: "_me_default_org",
 } as const;
 
+/** When each device copy was last read from the server, by its table name (device-local too). */
+export const MIRROR_READS = "_me_reads";
+
 export type ProfileList = "skills" | "languages" | "links" | "certifications";
 
 /** The server table of each profile list (app.person_*, owner-only, soft delete). */

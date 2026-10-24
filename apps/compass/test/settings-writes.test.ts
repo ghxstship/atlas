@@ -9,6 +9,7 @@ import {
   listInsert,
   listRemove,
   MIRROR,
+  MIRROR_READS,
   mirrorRows,
   personUpdate,
   profileUpdate,
@@ -270,6 +271,8 @@ describe("a fresh read of the device copy", () => {
   });
 
   it("keeps every device copy local: scope changes never purge it and sign-out wipes it", () => {
-    for (const table of Object.values(MIRROR)) expect(table.startsWith("_")).toBe(true);
+    for (const table of [...Object.values(MIRROR), MIRROR_READS]) {
+      expect(table.startsWith("_"), table).toBe(true);
+    }
   });
 });
