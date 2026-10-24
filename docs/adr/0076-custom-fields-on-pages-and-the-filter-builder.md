@@ -26,6 +26,7 @@ Orgs could define custom fields on nine built-in tables in Settings (A86, `app.c
 ### 3. A create action checks first and saves after
 
 - A create form's inputs are named `cf.<key>` (and `cf.<key>.currency`), with a `cf:shown` marker. The action calls `customFieldsOf(ctx, table, form)`, which checks the inputs (a dry run) and refuses with field errors before the row is created. After the create it saves them on the new row. Records, whose create action takes typed input, pass the same inputs as `customFields`.
+- The browser runs the same checks on submit. A submit made while the form's custom fields are still loading is held until they arrive: it goes ahead when nothing is missing, otherwise the problems show.
 - The checks passed before the row existed, so a later save can fail only on something unexpected. That failure is logged and the create stands: the form opens the new row, whose custom fields section shows the field unset. Answering with an error would invite a second submit and a duplicate row.
 
 ### 4. Record pages and peeks show and edit the values in their own section
