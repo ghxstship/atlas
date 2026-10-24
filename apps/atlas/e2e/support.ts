@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Locator, type Page } from "@playwright/test";
+import pg from "pg";
 import { settle } from "./engine-test";
 
 /** Unique test identities so runs never collide on the shared local stack. */
@@ -86,6 +87,30 @@ export async function createOrganization(page: Page, input: { name: string; slug
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create organization" }).click();
   await page.waitForURL(`**/${input.slug}/home`);
+}
+
+/**
+ * Ends a new org's 14-day Pro trial the way the hourly lifecycle job does when no card was added
+ * (private.expire_trial, migration 1350): the org moves to the Access plan. For journeys about the
+ * Access plan's limits. Runs as postgres against the local stack only (E2E_DATABASE_URL).
+ */
+export async function endTrial(slug: string): Promise<void> {
+  const url =
+    process.env["E2E_DATABASE_URL"] ?? "postgresql://postgres:postgres@127.0.0.1:55422/postgres";
+  if (!/@(127\.0\.0\.1|localhost):/.test(url)) throw new Error("Only a local stack is changed.");
+  const client = new pg.Client({ connectionString: url });
+  await client.connect();
+  try {
+    const { rowCount } = await client.query(
+      `select private.expire_trial(s.id) from app.subscriptions s
+         join app.organizations o on o.id = s.org_id
+        where o.slug = $1 and s.subscription_state = 'trialing' and s.deleted_at is null`,
+      [slug],
+    );
+    expect(rowCount).toBe(1);
+  } finally {
+    await client.end();
+  }
 }
 
 /**
