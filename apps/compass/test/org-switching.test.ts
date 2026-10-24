@@ -261,7 +261,45 @@ const SERVER = {
     { id: "s-e", engagement_id: "eng-e", project_id: "p-e" },
     { id: "s-e-other", engagement_id: "eng-other", project_id: "p-e" },
   ],
-  "xpms.emergency_code": [{ code: "CODE_RED", name: "Code Red" }],
+  "app.emergency_codes": [
+    {
+      id: "ec-n",
+      org_id: "org-n",
+      code: "CODE_RED",
+      label: "Fire",
+      emergency: "Fire",
+      sort_order: 1,
+    },
+    {
+      id: "ec-s",
+      org_id: "org-s",
+      code: "CODE_RED",
+      label: "Red",
+      emergency: "Fire",
+      sort_order: 2,
+    },
+    // A code South removed: the server keeps the row so adopting again never brings it back.
+    {
+      id: "ec-s-gone",
+      org_id: "org-s",
+      code: "CODE_BLUE",
+      label: "Blue",
+      emergency: "Medical",
+      sort_order: 1,
+      deleted_at: "2026-10-20T12:00:00Z",
+    },
+    {
+      id: "ec-x",
+      org_id: "org-x",
+      code: "CODE_RED",
+      label: "Theirs",
+      emergency: "Fire",
+      sort_order: 1,
+    },
+  ],
+  "xpms.emergency_code": [
+    { code: "CODE_RED", label: "Code Red", emergency: "Fire", swatch: "ecode-red", sort_order: 1 },
+  ],
 };
 
 describe("tenancy on the device: no row crosses from one org into another", () => {
@@ -280,6 +318,9 @@ describe("tenancy on the device: no row crosses from one org into another", () =
     expect(await ids("projects")).toEqual(["p-e", "p-n", "p-s"]);
     expect(await ids("shifts")).toEqual(["s-e", "s-n", "s-s"]);
     expect(await ids("zones")).toEqual(["z-n", "z-s"]);
+    // Each org's own emergency codes; another tenant's is refused and a removed code never reaches the device.
+    expect(await ids("emergency_codes")).toEqual(["ec-n", "ec-s"]);
+    expect(await ids("canon_emergency_codes")).toEqual(["CODE_RED"]);
     expect(await ids("kiosk_roster")).toEqual(["m-n"]);
     expect(report.refused).toBeGreaterThanOrEqual(5);
     // The rows are in SQLite: a fresh open (an app restart) reads the same rows, no other tenant's.
@@ -307,6 +348,27 @@ describe("tenancy on the device: no row crosses from one org into another", () =
     expect(rowOrg({ org_id: "org-n", project_id: "p-s" }, orgs)).toBe("org-n");
   });
 
+  it("takes an emergency code off the device once the org removes it in Atlas", async () => {
+    const r = await riley();
+    const store = await PersistentStore.open(sqlite().exec);
+    const session = new SyncSession(
+      store,
+      r.contexts.map((c) => c.scope),
+    );
+    await downloadAll({ client: serverClient(SERVER), session, projectId: null });
+    expect(await store.get("emergency_codes", "ec-n")).toBeDefined();
+    const removed = {
+      ...SERVER,
+      "app.emergency_codes": SERVER["app.emergency_codes"].map((c) =>
+        c.id === "ec-n" ? { ...c, deleted_at: "2026-10-23T09:00:00Z" } : c,
+      ),
+    };
+    const report = await downloadAll({ client: serverClient(removed), session, projectId: null });
+    expect(report.failed).toEqual([]);
+    expect(await store.get("emergency_codes", "ec-n")).toBeUndefined();
+    expect((await store.list("emergency_codes")).map((x) => x.id)).toEqual(["ec-s"]);
+  });
+
   it("purges an org's rows when the membership there ends, keeping the outbox", async () => {
     const r = await riley();
     const store = await PersistentStore.open(sqlite().exec);
@@ -326,6 +388,9 @@ describe("tenancy on the device: no row crosses from one org into another", () =
     expect(await session.narrow(withoutSouth.map((c) => c.scope))).toBeGreaterThan(0);
     expect((await store.list("shifts")).map((x) => x.id).sort()).toEqual(["s-e", "s-n"]);
     expect(await store.get("zones", "z-s")).toBeUndefined();
+    // The org's emergency codes leave with the membership; the other org's stay.
+    expect(await store.get("emergency_codes", "ec-s")).toBeUndefined();
+    expect(await store.get("emergency_codes", "ec-n")).toBeDefined();
     expect(await store.list(OUTBOX_TABLE)).toHaveLength(1);
   });
 

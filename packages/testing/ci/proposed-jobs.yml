@@ -164,8 +164,8 @@ core-screen-visual:
         CLOCK="--require $GITHUB_WORKSPACE/packages/testing/clock/node-clock.cjs"
         (cd apps/${{ matrix.app }} && NODE_OPTIONS="$CLOCK" nohup pnpm exec next dev --port "$PORT" > /tmp/app.log 2>&1 &)
         for i in $(seq 90); do curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in" && break; sleep 2; done
-        # A server that never answers fails here, its last lines in the annotation; in the container,
-        # Playwright would try to start one itself and exit 127.
+        # A server that never answers fails here, its last lines in the annotation, rather than
+        # leaving Playwright in the container to start a second one on the port this one holds.
         if ! curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in"; then
           echo "::error title=next dev did not answer::$(tail -n 20 /tmp/app.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
           exit 1

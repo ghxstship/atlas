@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Page } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
 import { settle } from "./engine-test";
 
 /** Unique test identities so runs never collide on the shared local stack. */
@@ -86,4 +86,14 @@ export async function createOrganization(page: Page, input: { name: string; slug
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Create organization" }).click();
   await page.waitForURL(`**/${input.slug}/home`);
+}
+
+/**
+ * Opens a closed group of choices in a settings form (a long checkbox list, a notification category; gate 27 keeps
+ * them behind their summary), named by the title its summary shows, so its boxes can be checked.
+ */
+export async function openChoices(scope: Page | Locator, title: string): Promise<void> {
+  const summary = scope.locator("summary").filter({ hasText: title });
+  await summary.click();
+  await expect(summary.locator("xpath=..")).toHaveAttribute("open", "");
 }
