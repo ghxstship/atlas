@@ -84,7 +84,7 @@ select throws_ok($$select * from app.record_file_download((select id from k wher
   'the download log refuses the same caller');
 select pg_temp.as_user('bob');
 select is((select count(*)::int from storage.objects where bucket_id = 'attachments' and name = (select val from k where key = 'stage.png')),
-  1, 'an admin holding data.export.confidential can download it');
+  0, 'an admin holding data.export.confidential still never reads a Confidential image from Storage: it must carry the watermark, so it leaves only through the watermarking route (1691)');
 select results_eq($$select classification::text, watermark from app.record_file_download((select id from k where key = 'stage.png:version'))$$,
   $$values ('Confidential'::text, true)$$, 'a Confidential image download is logged and must carry the watermark');
 select pg_temp.as_platform();
