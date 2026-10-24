@@ -175,12 +175,14 @@ describe("redactString", () => {
     expect(redactString("from 2001:db8:85a3:0:0:8a2e:370:7334")).toBe("from [ip]");
   });
 
+  // The quadratic email rule took about 21 s on these inputs; linear rules take milliseconds. The bound leaves
+  // room for a loaded CI runner (314 ms once against the first bound of 250).
   it("stays linear on long runs that look almost like a match", () => {
     const started = performance.now();
     redactString("deadbeef".repeat(8000), 100);
     redactString(`${"a/".repeat(16000)}/share/x`, 100);
     redactString("/".repeat(64000), 100);
-    expect(performance.now() - started).toBeLessThan(250);
+    expect(performance.now() - started).toBeLessThan(3000);
   });
 
   it("truncates long strings", () => {
