@@ -11663,20 +11663,6 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "content_moderation_decisions_chat_message_id_fkey";
-            columns: ["chat_message_id"];
-            isOneToOne: false;
-            referencedRelation: "chat_messages";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_moderation_decisions_comment_id_fkey";
-            columns: ["comment_id"];
-            isOneToOne: false;
-            referencedRelation: "comments";
-            referencedColumns: ["id"];
-          },
-          {
             foreignKeyName: "content_moderation_decisions_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
@@ -11688,13 +11674,6 @@ export type Database = {
             columns: ["decided_by"];
             isOneToOne: false;
             referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "content_moderation_decisions_feed_post_id_fkey";
-            columns: ["feed_post_id"];
-            isOneToOne: false;
-            referencedRelation: "feed_posts";
             referencedColumns: ["id"];
           },
           {

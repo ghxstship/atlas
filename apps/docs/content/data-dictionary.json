@@ -16573,24 +16573,24 @@
           "type": "app.content_subject_kind"
         },
         {
-          "comment": "Post decided, when the item is a post.",
+          "comment": "Post decided, when the item is a post. No foreign key: the decision stays after the post is purged.",
           "name": "feed_post_id",
           "nullable": true,
-          "references": "app.feed_posts.id",
+          "references": null,
           "type": "uuid"
         },
         {
-          "comment": "Comment decided, when the item is a comment on a post.",
+          "comment": "Comment decided, when the item is a comment on a post. No foreign key: the decision stays after the comment is purged.",
           "name": "comment_id",
           "nullable": true,
-          "references": "app.comments.id",
+          "references": null,
           "type": "uuid"
         },
         {
-          "comment": "Message decided, when the item is a chat message.",
+          "comment": "Message decided, when the item is a chat message. No foreign key: the decision stays after the org's message retention purges the message (1324).",
           "name": "chat_message_id",
           "nullable": true,
-          "references": "app.chat_messages.id",
+          "references": null,
           "type": "uuid"
         },
         {
@@ -16685,7 +16685,7 @@
           "type": "timestamp with time zone"
         }
       ],
-      "comment": "Append-only decisions by an org's moderators on reported posts, comments and messages (ADR 0033 decision 57), with A90's statement of reasons in parts (1473). Written only through app.decide_content_report; one decision decides every open report on the item.",
+      "comment": "Append-only decisions by an org's moderators on reported posts, comments and messages (ADR 0033 decision 57), with A90's statement of reasons in parts (1473). Written only through app.decide_content_report; one decision decides every open report on the item. Read by the org's moderators only, never about their own content; the reporters and the author receive the outcome as a notice.",
       "kind": "table",
       "name": "content_moderation_decisions",
       "partitioned": false,
@@ -16717,28 +16717,28 @@
           "type": "app.content_subject_kind"
         },
         {
-          "comment": "Post reported, when the item is a post.",
+          "comment": "Post reported, when the item is a post. Deleting the post deletes its reports.",
           "name": "feed_post_id",
           "nullable": true,
           "references": "app.feed_posts.id",
           "type": "uuid"
         },
         {
-          "comment": "Comment reported, when the item is a comment on a post.",
+          "comment": "Comment reported, when the item is a comment on a post. Deleting the comment deletes its reports.",
           "name": "comment_id",
           "nullable": true,
           "references": "app.comments.id",
           "type": "uuid"
         },
         {
-          "comment": "Message reported, when the item is a chat message.",
+          "comment": "Message reported, when the item is a chat message. Deleting the message, as the org's message retention does (1324), deletes its reports and their copy of its text.",
           "name": "chat_message_id",
           "nullable": true,
           "references": "app.chat_messages.id",
           "type": "uuid"
         },
         {
-          "comment": "Person who wrote the item; never told who reported it.",
+          "comment": "Person who wrote the item; never reads a report about it, even as a moderator.",
           "name": "author_person_id",
           "nullable": true,
           "references": "app.people.id",
@@ -16836,7 +16836,7 @@
           "type": "timestamp with time zone"
         }
       ],
-      "comment": "Reports of a post, a comment on a post or a chat message to the org's moderators (ADR 0033 decision 57, App Store Review Guideline 1.2). Filed only through app.report_content; open until a moderator's decision on the item decides it, due 24 hours after it arrived.",
+      "comment": "Reports of a post, a comment on a post or a chat message to the org's moderators (ADR 0033 decision 57, App Store Review Guideline 1.2). Filed only through app.report_content; open until a moderator's decision on the item decides it, due 24 hours after it arrived. Read by the reporter and by the org's moderators other than the item's author; leaves with the item.",
       "kind": "table",
       "name": "content_reports",
       "partitioned": false,
