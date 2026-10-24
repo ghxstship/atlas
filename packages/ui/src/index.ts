@@ -257,6 +257,7 @@ export {
   type DataTableColumn,
   type DataTableSelection,
 } from "./DataTable/DataTable.tsx";
+export { useItemSelection, type ItemSelection, type ItemSelect } from "./lib/selection.ts";
 export {
   RecordRow,
   RecordList,
@@ -267,6 +268,7 @@ export {
   StatTile,
   type RecordRowProps,
   type RecordListProps,
+  type ItemContextMenu,
   type BoardProps,
   type TreeNode,
   type TreeViewProps,
