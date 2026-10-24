@@ -11,15 +11,19 @@ import { getOrgTimeZone } from "@/lib/shell/time-zone";
  * org banners send the Owner to fix billing. Once billing is open (ADR 0033 decision 59), adding a
  * card opens Stripe Checkout for the trial's plan, carrying the rest of the trial so nothing is charged
  * before it ends, and updating the payment method opens the Stripe customer portal. Until then the button
- * stays disabled and the copy says how to get it done. Dates are days on the org's calendar.
+ * stays disabled and the copy says how to get it done; while a paid checkout waits for its subscription to
+ * sync, it stays disabled and the page says Stripe is confirming. Dates are days on the org's calendar.
  */
 export async function BillingLifecycleNotice({
   ctx,
   billing,
 }: {
   ctx: OrgContext;
-  /** Whether billing is open, and whether the org has a Stripe customer whose portal can open. */
-  billing: { readonly open: boolean; readonly portal: boolean };
+  /**
+   * Whether billing is open, whether the org has a Stripe customer whose portal can open, and whether a paid
+   * checkout still waits for its subscription to sync.
+   */
+  billing: { readonly open: boolean; readonly portal: boolean; readonly awaiting: boolean };
 }) {
   const status = await getOrgBannerStatus(ctx.viewer.db, ctx.org.id);
   if (!status.ok) return null;
@@ -35,7 +39,7 @@ export async function BillingLifecycleNotice({
   const button =
     s.billingState && billing.open && billing.portal ? (
       <BillingPortalButton org={ctx.org.slug} label={action} variant="primary" />
-    ) : !s.billingState && billing.open && s.trialPlan ? (
+    ) : !s.billingState && billing.open && !billing.awaiting && s.trialPlan ? (
       <CheckoutButton
         org={ctx.org.slug}
         plan={s.trialPlan}
@@ -74,7 +78,9 @@ export async function BillingLifecycleNotice({
                 {action}
               </Button>
             </div>
-            <InlineAlert tone="info">{t("billing.notConnected")}</InlineAlert>
+            {billing.awaiting ? null : (
+              <InlineAlert tone="info">{t("billing.notConnected")}</InlineAlert>
+            )}
           </>
         )}
       </section>

@@ -18,8 +18,9 @@ import { getTranslate } from "@/lib/shell/translate";
  * ADR 0033 decision 59: XOS launches on the trial and the Access plan, and billing opens once the
  * owner sets the Stripe key. An org on a trial or Access chooses a self-serve plan and term and pays in
  * Stripe Checkout; an org that pays through Stripe changes its plan, card or cancellation in the Stripe
- * customer portal. Until the key is set the page says billing is not open yet, and the buttons answer the
- * same. Buying extra seats and packs stays disabled; Enterprise is sold by quote and never checks out.
+ * customer portal. While a paid checkout waits for its subscription to sync, the page says Stripe is confirming
+ * and offers no second Checkout. Until the key is set the page says billing is not open yet, and the buttons
+ * answer the same. Buying extra seats and packs stays disabled; Enterprise is sold by quote and never checks out.
  */
 export default async function BillingSettingsPage({
   params,
@@ -48,6 +49,8 @@ export default async function BillingSettingsPage({
   }
   const stripe: BillingAccount | null = account?.ok ? account.data : null;
   const paid = stripe?.paidThroughStripe === true;
+  const awaiting = stripe?.awaitingSubscription === true;
+  const buying = billing.open && !paid && !awaiting;
   const current = subscription.data.planCode;
   const trialing = subscription.data.state === "trialing";
   const term = search["term"] === "annual" ? "Annual" : "Monthly";
@@ -71,16 +74,16 @@ export default async function BillingSettingsPage({
       <SectionHeader node="settings.billing-and-plan" />
       <BillingLifecycleNotice
         ctx={ctx}
-        billing={{ open: billing.open, portal: stripe?.hasStripeCustomer === true }}
+        billing={{ open: billing.open, portal: stripe?.hasStripeCustomer === true, awaiting }}
       />
       <p className="m-0 text-text-14">{t("current", { org: ctx.org.name, plan: name(current) })}</p>
       {billing.open ? null : <InlineAlert tone="info">{t("notAvailable")}</InlineAlert>}
-      {checkout === "done" ? (
+      {checkout === "done" && paid ? (
         <InlineAlert tone="success">
-          {paid
-            ? t("checkoutDone", { org: ctx.org.name, plan: name(current) })
-            : t("checkoutPending")}
+          {t("checkoutDone", { org: ctx.org.name, plan: name(current) })}
         </InlineAlert>
+      ) : checkout === "done" || awaiting ? (
+        <InlineAlert tone="success">{t("checkoutPending")}</InlineAlert>
       ) : checkout === "canceled" ? (
         <InlineAlert tone="info">{t("checkoutCanceled")}</InlineAlert>
       ) : null}
@@ -136,7 +139,7 @@ export default async function BillingSettingsPage({
           ) : null}
         </div>
       </Card>
-      {billing.open && !paid ? (
+      {buying ? (
         <nav aria-label={t("term.label")} className="flex flex-wrap items-center gap-8">
           <ButtonLink href={page} variant={term === "Monthly" ? "primary" : "secondary"} size="sm">
             {t("term.monthly")}
@@ -224,7 +227,7 @@ export default async function BillingSettingsPage({
                       {trialing ? t("trialPlan") : tp("current")}
                     </span>
                   ) : null}
-                  {plan.selfServe && billing.open && !paid ? (
+                  {plan.selfServe && buying ? (
                     <CheckoutButton
                       org={org}
                       plan={plan.code}

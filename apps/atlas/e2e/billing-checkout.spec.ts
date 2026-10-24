@@ -40,10 +40,16 @@ async function trialOrg(
   await signUp(page, { name: "Bea Buyer", email });
   await createOrganization(page, { name, slug });
   await page.goto(`/${slug}/settings/billing-and-plan`);
-  test.skip(
-    await page.getByText("Billing is not open yet").isVisible(),
-    "Atlas runs without the fake Stripe: start it through playwright.config.ts, or set STRIPE_SECRET_KEY and STRIPE_API_URL as it does.",
-  );
+  const closed = page.getByText("Billing is not open yet");
+  if (process.env["CI"]) {
+    // CI starts Atlas with the fake Stripe (ci.yml), so a closed page there fails rather than skips.
+    await expect(closed).toHaveCount(0);
+  } else {
+    test.skip(
+      await closed.isVisible(),
+      "Atlas runs without the fake Stripe: start it through playwright.config.ts, or set STRIPE_SECRET_KEY and STRIPE_API_URL as it does.",
+    );
+  }
   return { slug, email, name };
 }
 
