@@ -1821,6 +1821,190 @@ export interface RecordTransitionRequest {
 }
 
 /**
+ * What a bulk change of records did, or would do in a preview.
+ */
+export interface RecordBulkEditResult {
+  /**
+   * True for a preview, which never changes anything.
+   */
+  readonly preview: boolean;
+  /**
+   * True only when every row passed and the change was applied. Any refused row means nothing changed.
+   */
+  readonly committed: boolean;
+  /**
+   * Rows the change alters, or would alter in a preview.
+   * Range: 0 to unbounded.
+   */
+  readonly changed: number;
+  /**
+   * Rows that already hold the values.
+   * Range: 0 to unbounded.
+   */
+  readonly unchanged: number;
+  /**
+   * Rows that cannot change, each with its rule; empty when every row passed.
+   */
+  readonly refused: ReadonlyArray<BulkEditRefusal>;
+  /**
+   * Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change.
+   */
+  readonly inverse: ReadonlyArray<RecordBulkRow>;
+}
+
+/**
+ * A row of a bulk change that cannot change.
+ */
+export interface BulkEditRefusal {
+  /**
+   * Row the refusal is about; null when the row named no valid id.
+   * Format: `uuid`.
+   */
+  readonly id: string | null;
+  /**
+   * Why the row cannot change: the database's refusal rule (for example bulk_stale or transition_not_allowed), not_allowed, invalid, invalid_reference or conflict.
+   * Length: 1 to unbounded.
+   */
+  readonly rule: string;
+  /**
+   * The database's sentence for the refusal.
+   */
+  readonly message: string;
+}
+
+/**
+ * One of the records in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale.
+ */
+export interface RecordBulkRow {
+  /**
+   * Row to change.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  readonly set: RecordBulkValues;
+  readonly expect?: RecordBulkValues;
+}
+
+/**
+ * Fields of one of the records in a bulk change. Only these fields change in bulk.
+ */
+export interface RecordBulkValues {
+  readonly record_state?: RecordState;
+  /**
+   * Owning person or organization.
+   * Format: `uuid`.
+   */
+  readonly owner_party_id?: string | null;
+  /**
+   * Accountable person or organization.
+   * Format: `uuid`.
+   */
+  readonly accountable_party_id?: string | null;
+  /**
+   * Due instant.
+   * Format: `date-time`.
+   */
+  readonly due_at?: string | null;
+  readonly phase_code?: PhaseCode | null;
+  /**
+   * The named blocker, for a move to Blocked.
+   * Length: 1 to 20000.
+   */
+  readonly blocker_text?: string | null;
+  /**
+   * Replan reason, for a move to Deferred.
+   * Length: 1 to 20000.
+   */
+  readonly replan_reason?: string | null;
+}
+
+/**
+ * A bulk change of records.
+ */
+export interface RecordBulkEditRequest {
+  /**
+   * The rows to change, each once; at most 500.
+   */
+  readonly rows: ReadonlyArray<RecordBulkRow>;
+  /**
+   * Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.
+   * Length: 1 to 500.
+   */
+  readonly reason?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface FieldHistoryEventPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<FieldHistoryEvent>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One change to a row from the audit ledger (Section 4.10): who made it, when, and from what to what. Actor IP addresses and user agents are never returned.
+ */
+export interface FieldHistoryEvent {
+  /**
+   * Audit event of the change.
+   * Format: `uuid`.
+   */
+  readonly event_id: string;
+  /**
+   * When the change was made.
+   * Format: `date-time`.
+   */
+  readonly changed_at: string;
+  /**
+   * Person who made the change; null for a system change.
+   * Format: `uuid`.
+   */
+  readonly actor_person_id: string | null;
+  /**
+   * Name of that person.
+   * Length: 1 to 300.
+   */
+  readonly actor_name: string | null;
+  /**
+   * Created, changed or deleted the row.
+   */
+  readonly operation: "insert" | "update" | "delete";
+  /**
+   * The fields an update changed; empty for a creation or deletion.
+   */
+  readonly changes: ReadonlyArray<FieldHistoryChange>;
+}
+
+/**
+ * One field changed by an event.
+ */
+export interface FieldHistoryChange {
+  /**
+   * Column that changed.
+   * Length: 1 to unbounded.
+   */
+  readonly field: string;
+  /**
+   * Stored value before the change, as JSON; null when masked or empty.
+   */
+  readonly old_value?: unknown;
+  /**
+   * Stored value after the change, as JSON; null when masked or emptied.
+   */
+  readonly new_value?: unknown;
+  /**
+   * True for a Restricted field the caller may not read: neither value is returned.
+   */
+  readonly masked: boolean;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface RecordStateTransitionPage {
@@ -3359,6 +3543,37 @@ export interface DocumentUpdate {
    * Format: `uuid`.
    */
   readonly project_id?: string | null;
+}
+
+/**
+ * A document's notes, edited together live in Atlas (Section 5), as plain text. Edits arrive over Realtime and are saved into the text when the editor pauses.
+ */
+export interface DocumentNotes {
+  /**
+   * Identifier of the document.
+   * Format: `uuid`.
+   */
+  readonly document_id: string;
+  /**
+   * Plain text of the notes as last saved, at most 200,000 characters; null before anyone wrote any.
+   * Length: 0 to 200000.
+   */
+  readonly text: string | null;
+  /**
+   * Raised when the notes are reloaded from scratch; 0 before anyone opened them.
+   * Range: 0 to unbounded.
+   */
+  readonly generation: number;
+  /**
+   * Last edit folded into `text`.
+   * Range: 0 to unbounded.
+   */
+  readonly saved_through: number;
+  /**
+   * Last edit made. Greater than `saved_through` while an editor's latest changes are not yet saved into `text`, a few seconds after they type.
+   * Range: 0 to unbounded.
+   */
+  readonly latest_edit: number;
 }
 
 /**
@@ -7355,6 +7570,95 @@ export interface AssetScanEvent {
 }
 
 /**
+ * What a bulk change of asset units did, or would do in a preview.
+ */
+export interface AssetUnitBulkEditResult {
+  /**
+   * True for a preview, which never changes anything.
+   */
+  readonly preview: boolean;
+  /**
+   * True only when every row passed and the change was applied. Any refused row means nothing changed.
+   */
+  readonly committed: boolean;
+  /**
+   * Rows the change alters, or would alter in a preview.
+   * Range: 0 to unbounded.
+   */
+  readonly changed: number;
+  /**
+   * Rows that already hold the values.
+   * Range: 0 to unbounded.
+   */
+  readonly unchanged: number;
+  /**
+   * Rows that cannot change, each with its rule; empty when every row passed.
+   */
+  readonly refused: ReadonlyArray<BulkEditRefusal>;
+  /**
+   * Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change.
+   */
+  readonly inverse: ReadonlyArray<AssetUnitBulkRow>;
+}
+
+/**
+ * One of the asset units in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale.
+ */
+export interface AssetUnitBulkRow {
+  /**
+   * Row to change.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  readonly set: AssetUnitBulkValues;
+  readonly expect?: AssetUnitBulkValues;
+}
+
+/**
+ * Fields of one of the asset units in a bulk change. Only these fields change in bulk.
+ */
+export interface AssetUnitBulkValues {
+  /**
+   * Asset lifecycle state.
+   */
+  readonly asset_state?:
+    | "Proposed"
+    | "Received"
+    | "Available"
+    | "Reserved"
+    | "Deployed"
+    | "In Maintenance"
+    | "Damaged"
+    | "Lost"
+    | "Retired";
+  /**
+   * Venue the unit returns to.
+   * Format: `uuid`.
+   */
+  readonly home_venue_id?: string | null;
+  /**
+   * Condition: a row of the canon Asset Condition enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly condition_enum_id?: string | null;
+}
+
+/**
+ * A bulk change of asset units.
+ */
+export interface AssetUnitBulkEditRequest {
+  /**
+   * The rows to change, each once; at most 500.
+   */
+  readonly rows: ReadonlyArray<AssetUnitBulkRow>;
+  /**
+   * Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.
+   * Length: 1 to 500.
+   */
+  readonly reason?: string;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface AssetLotPage {
@@ -9203,6 +9507,81 @@ export interface ShiftClaimResult {
      */
     readonly claim_state: "Requested";
   } | null;
+}
+
+/**
+ * What a bulk change of shifts did, or would do in a preview.
+ */
+export interface ShiftBulkEditResult {
+  /**
+   * True for a preview, which never changes anything.
+   */
+  readonly preview: boolean;
+  /**
+   * True only when every row passed and the change was applied. Any refused row means nothing changed.
+   */
+  readonly committed: boolean;
+  /**
+   * Rows the change alters, or would alter in a preview.
+   * Range: 0 to unbounded.
+   */
+  readonly changed: number;
+  /**
+   * Rows that already hold the values.
+   * Range: 0 to unbounded.
+   */
+  readonly unchanged: number;
+  /**
+   * Rows that cannot change, each with its rule; empty when every row passed.
+   */
+  readonly refused: ReadonlyArray<BulkEditRefusal>;
+  /**
+   * Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change.
+   */
+  readonly inverse: ReadonlyArray<ShiftBulkRow>;
+}
+
+/**
+ * One of the shifts in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale.
+ */
+export interface ShiftBulkRow {
+  /**
+   * Row to change.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  readonly set: ShiftBulkValues;
+  readonly expect?: ShiftBulkValues;
+}
+
+/**
+ * Fields of one of the shifts in a bulk change. Only these fields change in bulk.
+ */
+export interface ShiftBulkValues {
+  /**
+   * Shift state.
+   */
+  readonly shift_state?: "Draft" | "Published" | "Accepted" | "Canceled";
+  /**
+   * Member the shift is assigned to; null opens the shift.
+   * Format: `uuid`.
+   */
+  readonly membership_id?: string | null;
+}
+
+/**
+ * A bulk change of shifts.
+ */
+export interface ShiftBulkEditRequest {
+  /**
+   * The rows to change, each once; at most 500.
+   */
+  readonly rows: ReadonlyArray<ShiftBulkRow>;
+  /**
+   * Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.
+   * Length: 1 to 500.
+   */
+  readonly reason?: string;
 }
 
 /**
@@ -13939,6 +14318,76 @@ export interface InvoicePaymentRequest {
    * Length: 1 to 200.
    */
   readonly reference?: string;
+}
+
+/**
+ * What a bulk change of invoices did, or would do in a preview.
+ */
+export interface InvoiceBulkEditResult {
+  /**
+   * True for a preview, which never changes anything.
+   */
+  readonly preview: boolean;
+  /**
+   * True only when every row passed and the change was applied. Any refused row means nothing changed.
+   */
+  readonly committed: boolean;
+  /**
+   * Rows the change alters, or would alter in a preview.
+   * Range: 0 to unbounded.
+   */
+  readonly changed: number;
+  /**
+   * Rows that already hold the values.
+   * Range: 0 to unbounded.
+   */
+  readonly unchanged: number;
+  /**
+   * Rows that cannot change, each with its rule; empty when every row passed.
+   */
+  readonly refused: ReadonlyArray<BulkEditRefusal>;
+  /**
+   * Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change.
+   */
+  readonly inverse: ReadonlyArray<InvoiceBulkRow>;
+}
+
+/**
+ * One of the invoices in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale.
+ */
+export interface InvoiceBulkRow {
+  /**
+   * Row to change.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  readonly set: InvoiceBulkValues;
+  readonly expect?: InvoiceBulkValues;
+}
+
+/**
+ * Fields of one of the invoices in a bulk change. Only these fields change in bulk.
+ */
+export interface InvoiceBulkValues {
+  /**
+   * Invoice state.
+   */
+  readonly invoice_state?: "Proposed" | "Issued" | "Approved" | "Disputed" | "Canceled";
+}
+
+/**
+ * A bulk change of invoices.
+ */
+export interface InvoiceBulkEditRequest {
+  /**
+   * The rows to change, each once; at most 500.
+   */
+  readonly rows: ReadonlyArray<InvoiceBulkRow>;
+  /**
+   * Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.
+   * Length: 1 to 500.
+   */
+  readonly reason?: string;
 }
 
 /**

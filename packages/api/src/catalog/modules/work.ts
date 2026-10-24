@@ -8,10 +8,12 @@ import { defineAdditions } from "../additions.ts";
 import { editShape, orNull, removeActions } from "../correct.ts";
 import { workFieldHomes } from "./parts/playbook-field-homes.ts";
 import { workFieldExposure } from "./parts/playbook-field-exposure.ts";
+import { fieldHistoryAction, recordBulkActions } from "./parts/bulk-edit-and-history.ts";
 
 const when = (description: string) => ({ schema: orNull(fields.instant(description)) });
 
 export const additions = defineAdditions("Work", {
+  actions: { records: [...recordBulkActions, fieldHistoryAction("record")] },
   corrections: [
     {
       id: "record-archive-removed",
