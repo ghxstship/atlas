@@ -107,6 +107,7 @@
       "asset_custody": "entregas de equipo",
       "asset_identifiers": "códigos de equipo",
       "asset_units": "equipo",
+      "canon_emergency_codes": "códigos de emergencia estándar",
       "clock_punches": "registros de horario",
       "credentials": "credenciales",
       "cues": "pies",
@@ -586,6 +587,7 @@
   "reference": {
     "title": "Referencia",
     "emergencyEmpty": "Aún no hay códigos de emergencia guardados. Conéctate una vez para descargarlos.",
+    "emergencyStandard": "Estos son los códigos de emergencia estándar. Tu organización puede usar sus propios nombres, significados y orden; pregunta a tu supervisor cuáles usar en el sitio.",
     "radioEmpty": "Aún no hay plan de radio para este proyecto.",
     "channel": "Canal {number}",
     "mapsEmpty": "Aún no hay mapas del lugar para este proyecto.",
