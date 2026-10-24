@@ -565,7 +565,10 @@
     "title": "Bandeja",
     "needsYou": "Te necesita",
     "fyi": "Para tu información",
-    "empty": "Estás al día. Las aprobaciones y mensajes aparecen aquí."
+    "empty": "Estás al día. Las aprobaciones y mensajes aparecen aquí.",
+    "update": "Novedad",
+    "updateFrom": "Novedad de {org}",
+    "new": "Nuevo"
   },
   "more": {
     "title": "Más",
