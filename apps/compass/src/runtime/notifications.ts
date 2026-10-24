@@ -107,9 +107,12 @@ export function useActionableNotifications(): void {
   const { client, config, resolved } = useCompass();
   const membershipId = resolved?.identity.membershipId ?? null;
   const personId = resolved?.identity.personId ?? null;
-  // A tap that launched Compass opens its target once the navigator can take it.
+  // A tap that launched Compass opens its target once the navigator can take it; actions never wait.
   const navigationReady =
     (useRootNavigationState() as { readonly key?: string } | undefined)?.key !== undefined;
+  const readyRef = useRef(navigationReady);
+  readyRef.current = navigationReady;
+  const pendingRoute = useRef<string | null>(null);
   const tRef = useRef<Translate>(t as Translate);
   tRef.current = t as Translate;
 
@@ -129,7 +132,13 @@ export function useActionableNotifications(): void {
   }, [client, membershipId, personId]);
 
   useEffect(() => {
-    if (!navigationReady) return undefined;
+    if (!navigationReady || pendingRoute.current === null) return;
+    const route = pendingRoute.current;
+    pendingRoute.current = null;
+    router.push(route as never);
+  }, [navigationReady, router]);
+
+  useEffect(() => {
     const respond = async (response: ActionResponseLike): Promise<void> => {
       const key = `${response.notification.request.identifier}:${response.actionIdentifier}`;
       if (handled.has(key)) return;
@@ -138,7 +147,8 @@ export function useActionableNotifications(): void {
       const route = tapRoute(response);
       if (route !== null) {
         Notifications.clearLastNotificationResponse();
-        router.push(route as never);
+        if (readyRef.current) router.push(route as never);
+        else pendingRoute.current = route;
         return;
       }
       const request = readActionResponse(response);
@@ -181,7 +191,7 @@ export function useActionableNotifications(): void {
       void respond(response as ActionResponseLike);
     });
     return () => subscription.remove();
-  }, [client, config.atlasUrl, router, navigationReady]);
+  }, [client, config.atlasUrl, router]);
 }
 
 export type PermissionState = "unknown" | "granted" | "ask" | "denied";
