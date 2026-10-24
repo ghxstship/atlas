@@ -41,6 +41,8 @@ describe("masking every en-US string", () => {
   const protector = compileProtector(setup.terms.doNotTranslate);
   const units = setup.config.surfaces.flatMap((s) => readUnits(root, s, "en-US", "es-US"));
 
+  // About 17,800 strings, each planned and reassembled: a third of a second on a laptop, but
+  // seconds on a CI runner busy with every package's tests, hence the longer timeout.
   it("round-trips every message and article through a transport that returns its input", () => {
     const broken: string[] = [];
     for (const u of units) {
@@ -59,7 +61,7 @@ describe("masking every en-US string", () => {
     }
     expect(broken).toEqual([]);
     expect(units.length).toBeGreaterThan(12000);
-  });
+  }, 20_000);
 });
 
 describe("report helpers", () => {
