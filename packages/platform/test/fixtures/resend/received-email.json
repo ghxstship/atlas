@@ -1,0 +1,36 @@
+{
+  "object": "email",
+  "id": "4ef9a417-02e9-4d39-ad75-9611e0fcc33c",
+  "to": ["nwl-3f9a1c0d7e@inbound.ghxstship.tech"],
+  "from": "rigging@bayside-audio.test",
+  "created_at": "2026-10-23T18:41:11.894Z",
+  "subject": "Rigging plot v4",
+  "html": "<p>Updated plot attached.</p><p>Load in moves to 07:00.</p><blockquote><p>Can you send the new plot?</p></blockquote>",
+  "html_format": "data_uri",
+  "text": "Updated plot attached.\r\nLoad in moves to 07:00.\r\n\r\nOn Thu, Oct 22, 2026 Dave wrote:\r\n> Can you send the new plot?",
+  "headers": {
+    "from": "Bayside Audio Rigging <rigging@bayside-audio.test>",
+    "return-path": "rigging@bayside-audio.test",
+    "mime-version": "1.0"
+  },
+  "bcc": [],
+  "cc": ["dave@northwind.test"],
+  "reply_to": [],
+  "received_for": [],
+  "authentication": { "spf": "pass", "dkim": "pass", "dmarc": "pass" },
+  "message_id": "<plot-v4.20261023@bayside-audio.test>",
+  "raw": {
+    "download_url": "https://raw.resend.test/emails/4ef9a417-02e9-4d39-ad75-9611e0fcc33c.eml?expires=1792787472",
+    "expires_at": "2026-10-23T19:41:12.000Z"
+  },
+  "attachments": [
+    {
+      "id": "2a0c9ce0-3112-4728-976e-47ddcd16a318",
+      "filename": "rigging-plot-v4.pdf",
+      "content_type": "application/pdf",
+      "content_disposition": "attachment",
+      "content_id": null,
+      "size": 48213
+    }
+  ]
+}

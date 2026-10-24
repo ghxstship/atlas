@@ -9,7 +9,7 @@ import { useState } from "react";
 import { CollectionViews } from "@/components/views/collection-views";
 // The table is an alternative to the feed (A24-009).
 import { DataTable } from "@/components/lazy-ui";
-import { ActivityLine } from "./activity-line";
+import { ActivityLine, ActivityTarget } from "./activity-line";
 import { collapseRepeats, useDescribe } from "./describe";
 import { RestoreButton } from "./restore-button";
 
@@ -161,7 +161,9 @@ export function ActivityFeed({
               </time>
               <span className="font-medium text-text-primary">{d.actor}</span>
               <span className="text-text-secondary">{d.action}</span>
-              <span className="text-text-primary">{d.target}</span>
+              <span className="text-text-primary">
+                <ActivityTarget parts={d.targetParts} />
+              </span>
               {count > 1 ? (
                 <span className="text-text-secondary">{t("times", { count })}</span>
               ) : null}

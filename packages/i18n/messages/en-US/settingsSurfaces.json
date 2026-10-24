@@ -275,7 +275,6 @@
     "chosen": "{departments, plural, one {# department} other {# departments}} and {disciplines, plural, one {# discipline} other {# disciplines}} in use.",
     "departments": "Departments",
     "departmentsHelp": "Clearing a department also clears its disciplines.",
-    "disciplinesOf": "{name}: {count, plural, one {# discipline} other {# disciplines}}",
     "disciplines": "Disciplines in {name}",
     "option": "{name} · {code}",
     "extensionsTitle": "Your discipline extensions",
