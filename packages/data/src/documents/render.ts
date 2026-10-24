@@ -32,12 +32,61 @@ let fontCache: { regular: Buffer; semibold: Buffer } | null = null;
 async function fonts(): Promise<{ regular: Buffer; semibold: Buffer }> {
   if (!fontCache) {
     const { INTER_REGULAR_HEX, INTER_SEMIBOLD_HEX } = await import("./fonts.generated.ts");
-    fontCache = {
-      regular: Buffer.from(INTER_REGULAR_HEX, "hex"),
-      semibold: Buffer.from(INTER_SEMIBOLD_HEX, "hex"),
-    };
+    const [regular, semibold] = await Promise.all([
+      sfntFromWoff(Buffer.from(INTER_REGULAR_HEX, "hex")),
+      sfntFromWoff(Buffer.from(INTER_SEMIBOLD_HEX, "hex")),
+    ]);
+    fontCache = { regular, semibold };
   }
   return fontCache;
+}
+
+/**
+ * The TrueType font a WOFF file wraps (WOFF 1.0: the same tables, each compressed with zlib).
+ * fontkit inflates a WOFF table in JavaScript every time it reads it, once for each glyph it
+ * measures or embeds, which was most of the time a document took to render. The tables are
+ * inflated once here, natively, and the cached font is read as it is. The PDF does not change.
+ */
+export async function sfntFromWoff(woff: Uint8Array): Promise<Buffer> {
+  const view = new DataView(woff.buffer, woff.byteOffset, woff.byteLength);
+  const count = view.getUint16(12);
+  const tables = await Promise.all(
+    Array.from({ length: count }, async (_, i) => {
+      const entry = 44 + i * 20;
+      const offset = view.getUint32(entry + 4);
+      const stored = view.getUint32(entry + 8);
+      const length = view.getUint32(entry + 12);
+      const data = woff.subarray(offset, offset + stored);
+      return {
+        tag: view.getUint32(entry),
+        checksum: view.getUint32(entry + 16),
+        data: stored < length ? await inflate(data) : data,
+      };
+    }),
+  );
+  const padded = (n: number) => (n + 3) & ~3;
+  const out = Buffer.alloc(tables.reduce((n, t) => n + padded(t.data.length), 12 + 16 * count));
+  const selector = Math.floor(Math.log2(count));
+  out.writeUInt32BE(view.getUint32(4), 0);
+  out.writeUInt16BE(count, 4);
+  out.writeUInt16BE(16 * 2 ** selector, 6);
+  out.writeUInt16BE(selector, 8);
+  out.writeUInt16BE(16 * (count - 2 ** selector), 10);
+  let offset = 12 + 16 * count;
+  tables.forEach((t, i) => {
+    out.writeUInt32BE(t.tag, 12 + 16 * i);
+    out.writeUInt32BE(t.checksum, 16 + 16 * i);
+    out.writeUInt32BE(offset, 20 + 16 * i);
+    out.writeUInt32BE(t.data.length, 24 + 16 * i);
+    out.set(t.data, offset);
+    offset += padded(t.data.length);
+  });
+  return out;
+}
+
+async function inflate(data: Uint8Array): Promise<Uint8Array> {
+  const stream = new Blob([data.slice()]).stream().pipeThrough(new DecompressionStream("deflate"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
 /** Text escaped for an XML text node, for the XMP metadata packet. */

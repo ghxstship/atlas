@@ -10,6 +10,7 @@ import {
 } from "@xos/data/osha";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { usComplianceFormsOn } from "@/lib/compliance/flag";
 import { errorKey, type ActionState } from "@/lib/operations/state";
 import { getOrgContext } from "@/lib/shell/context";
 
@@ -17,6 +18,8 @@ import { getOrgContext } from "@/lib/shell/context";
  * Section 14.5 compliance records (ADR 0041): OSHA establishments, cases and annual summaries
  * (migration 1385) and the WH-347 project header (1386). Each action runs as the signed-in person in
  * the org named by the form; row level security decides every write and refusals come back by rule.
+ * While the org has the compliance.us_forms flag off (ADR 0033 decision 54), each answers notFound,
+ * as for an org the person cannot open, and the database refuses the write on its own.
  */
 
 const optional = (max: number) =>
@@ -57,8 +60,10 @@ function fields(form: FormData): Record<string, string> {
   return out;
 }
 
+/** The org the form names, or null when there is none or it has the forms off (compliance.us_forms, 1593). */
 async function context(form: FormData) {
-  return getOrgContext(String(form.get("org") ?? ""));
+  const ctx = await getOrgContext(String(form.get("org") ?? ""));
+  return ctx && (await usComplianceFormsOn(ctx)) ? ctx : null;
 }
 
 const Establishment = z.object({

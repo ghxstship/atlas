@@ -228,7 +228,7 @@
     "required": "Complete el asunto y la descripción para enviar la solicitud.",
     "errors": {
       "denied": "No puede enviar esta solicitud. Solo los administradores contactan al soporte de la plataforma; envíela a sus administradores.",
-      "noChannel": "Su plan incluye el centro de ayuda y el foro de la comunidad. Cambie de plan para contactar al soporte de la plataforma.",
+      "noChannel": "Su plan incluye el centro de ayuda. Cambie de plan para contactar al soporte de la plataforma.",
       "invalid": "Falta información en la solicitud. Revise el asunto y la descripción.",
       "unexpected": "No se pudo enviar la solicitud. Inténtelo de nuevo en un momento."
     },

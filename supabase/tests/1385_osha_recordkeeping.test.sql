@@ -8,6 +8,11 @@ set search_path = extensions, public;
 
 select plan(17);
 
+-- The forms sit behind the compliance.us_forms flag, off by default (1593, ADR 0033 decision 54); org_a has it on here.
+select pg_temp.as_platform();
+insert into app.feature_flag_overrides (org_id, flag_key, enabled, reason)
+values (pg_temp.id('org_a'), 'compliance.us_forms', true, 'Test: the forms are on for org_a.');
+
 -- Establishments ----------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');
 select throws_ok($$insert into app.osha_establishments (org_id, name) values ((select id from world where key = 'org_a'), 'Warehouse')$$,

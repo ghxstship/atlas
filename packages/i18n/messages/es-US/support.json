@@ -22,7 +22,7 @@
   "channels": {
     "In App": "En la aplicación",
     "Email": "Correo, primera respuesta en 2 días hábiles",
-    "Chat": "Correo y chat en la aplicación, primera respuesta en 1 día hábil",
+    "Chat": "Correo, primera respuesta en 1 día hábil",
     "Priority Queue": "Cola prioritaria, primera respuesta en 8 horas hábiles",
     "Dedicated Channel": "Canal dedicado, 1 hora para severidad 1"
   },
@@ -55,7 +55,7 @@
     "empty": "Todavía no hay solicitudes de soporte. Los miembros las envían desde Ayuda, Contactar a soporte.",
     "emptyFiltered": "Ninguna solicitud coincide con este filtro. Elija Todas las solicitudes para verlas todas.",
     "contactPlatform": "Contactar al soporte de la plataforma",
-    "noPlatform": "Su plan incluye el centro de ayuda y el foro de la comunidad. Cambie a Core o superior para contactar al soporte de la plataforma.",
+    "noPlatform": "Su plan incluye el centro de ayuda. Cambie a Core o superior para contactar al soporte de la plataforma.",
     "terms": "Su plan: {terms}",
     "readOnly": "Puede ver las solicitudes de soporte pero no responderlas. Pida ayuda a un administrador con acceso a Ayuda y soporte."
   },

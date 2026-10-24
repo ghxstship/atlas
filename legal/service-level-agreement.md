@@ -59,10 +59,10 @@ Downtime does not include unavailability caused by:
 
 | Plan       | Channels                                                         | First response target |
 | ---------- | ---------------------------------------------------------------- | --------------------- |
-| Access     | Help center and community forum                                  | Best effort           |
+| Access     | Help center                                                      | Best effort           |
 | Core       | Email                                                            | 2 business days       |
-| Pro        | Email and in-app chat                                            | 1 business day        |
-| Team       | Email and in-app chat, priority queue                            | 8 business hours      |
+| Pro        | Email                                                            | 1 business day        |
+| Team       | Email, priority queue                                            | 8 business hours      |
 | Enterprise | Dedicated channel, named contact, phone for severity 1 incidents | 1 hour for severity 1 |
 
 **Severity levels**
