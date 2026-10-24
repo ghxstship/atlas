@@ -323,7 +323,7 @@ kinds:
       # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
       - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#app.console_decide_appeal
         test: supabase/tests/1473_moderation_console.test.sql
-  # Reported posts, comments and messages (owner decision 19, 1630): a new report and a report still undecided after
+  # Reported posts, comments and messages (ADR 0033 decision 57, 1630): a new report and a report still undecided after
   # 24 hours reach the org's moderators as safety notices; the outcome reaches each reporter, and the statement of
   # reasons reaches the author when the content is removed.
   - kind: content_report.filed

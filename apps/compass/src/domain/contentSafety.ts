@@ -1,5 +1,5 @@
 /**
- * Reporting and blocking in Compass (owner decision 19, App Store Review Guideline 1.2). A post, message or
+ * Reporting and blocking in Compass (ADR 0033 decision 57, App Store Review Guideline 1.2). A post, message or
  * shout-out by someone else opens the content safety sheet (screens/ContentSafetySheet.tsx): report it to the org's
  * moderators, who decide within 24 hours in Atlas, or block its author, which hides their posts, comments, shout-outs
  * and messages from this person everywhere they read them (migration 1631). Both need the server's answer, so both

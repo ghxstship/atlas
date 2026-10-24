@@ -317,7 +317,7 @@ verify_enabled = true
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
-# Sign in with Apple (owner decision 20). Compass signs in natively on iOS and hands Apple's identity token and its
+# Sign in with Apple (ADR 0033 decision 58). Compass signs in natively on iOS and hands Apple's identity token and its
 # nonce to signInWithIdToken; Atlas and Gateway do not offer Apple (ADR 0036, amendment of 2026-10-23). It stays off
 # here: a native Apple sign-in needs a device build signed by the Apple team, and the token's audience is Compass's
 # bundle ID. The hosted project lists that bundle ID among its client IDs and keeps the nonce check

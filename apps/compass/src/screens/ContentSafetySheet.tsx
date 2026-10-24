@@ -1,5 +1,5 @@
 /**
- * The content safety sheet (owner decision 19, App Store Review Guideline 1.2): report someone else's post, message or
+ * The content safety sheet (ADR 0033 decision 57, App Store Review Guideline 1.2): report someone else's post, message or
  * shout-out to the org's moderators, or block its author. The Feed, a conversation and Recognition open it from the
  * button on each item by someone else. Reporting asks for a reason and optional details; blocking asks once more,
  * says what it hides and that the person is not told, and the screen behind reads its rows again without theirs.

@@ -1,7 +1,7 @@
 /**
  * Sign-in: Sign in with Apple, Continue with Google and an email link first, a password last (Section 11.10 item 12:
  * passwordless by default). Google appears when the build carries its client IDs (ADR 0036); on iOS, Apple appears
- * when the build turns it on and the device offers it, and Google only beside Apple (owner decision 20).
+ * when the build turns it on and the device offers it, and Google only beside Apple (ADR 0033 decision 58).
  */
 import type { XosClient } from "@xos/data/client";
 import {

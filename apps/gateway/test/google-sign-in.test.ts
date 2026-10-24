@@ -303,7 +303,7 @@ describe("Gateway OAuth helpers", () => {
     expect(providerQueryParams("google")).toEqual({ prompt: "select_account" });
   });
 
-  it("never offers Apple, which is on for Compass's native sign-in only (owner decision 20)", () => {
+  it("never offers Apple, which is on for Compass's native sign-in only (ADR 0033 decision 58)", () => {
     expect(parseEnabledProviders({ external: { google: true, apple: true, azure: true } })).toEqual(
       ["google", "azure"],
     );

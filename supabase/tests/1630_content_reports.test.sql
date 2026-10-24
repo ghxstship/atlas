@@ -1,4 +1,4 @@
--- pgTAP: migration 1630, reported posts, comments and messages (owner decision 19, App Store Review Guideline 1.2). A
+-- pgTAP: migration 1630, reported posts, comments and messages (ADR 0033 decision 57, App Store Review Guideline 1.2). A
 -- person reports content they can see, never their own; the org's moderators (org.communication.write: Alice the owner
 -- and Bob the admin) are notified, read the report with its snapshot and decide it with a statement of reasons. Removal
 -- hides a post, deletes a comment or deletes a message; the reporters hear the outcome and the author gets the

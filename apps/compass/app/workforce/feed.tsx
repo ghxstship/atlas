@@ -8,7 +8,7 @@ import { useContentSafety } from "../../src/workforce/safety";
 
 /**
  * Feed (Section 4.9, Atlas knowledge.feed): announcements, polls, reactions and acknowledgments; a post by someone
- * else can be reported or its author blocked (owner decision 19).
+ * else can be reported or its author blocked (ADR 0033 decision 57).
  */
 function Feed(): ReactElement {
   const t = useT();

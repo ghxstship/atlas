@@ -3,7 +3,7 @@ import type { Result } from "./result.ts";
 import { bool, num, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
 
 /**
- * Reporting and blocking (owner decision 19, App Store Review Guideline 1.2; migrations 1630 and 1631), imported as
+ * Reporting and blocking (ADR 0033 decision 57, App Store Review Guideline 1.2; migrations 1630 and 1631), imported as
  * `@xos/data/content-safety`. A person reports a feed post, a comment on a post or a chat message to the org's
  * moderators, and blocks the person behind a membership: a block hides that person's posts, comments on posts,
  * shout-outs and messages from the blocker in every read, so nothing here filters. The moderators (members holding

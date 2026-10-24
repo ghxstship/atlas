@@ -11,7 +11,7 @@ import type { NotificationKindRegistry } from "./model.ts";
  * automations category and kinds (A91, ADR 0047, never applied anywhere: its kinds moved into 1569) and 1569 the
  * account notices of recovery codes and signed-out sessions (A99, ADR 0055), with A89's marketplace match and
  * expiry reminders and A90's marketplace moderation kinds (1473); A89's and A90's own seeds never merged, so 1569
- * carries their kinds. 1639 adds the reported content kinds (owner decision 19, 1630).
+ * carries their kinds. 1639 adds the reported content kinds (ADR 0033 decision 57, 1630).
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
   "supabase/migrations/1639_notification_kind_seed.sql";

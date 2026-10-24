@@ -66,9 +66,9 @@ The accessibility sweep runs outside `pnpm verify`, through `pnpm test:a11y` in 
 - **Message translation:** the workforce chat stores each message's language, but translation waits on a provider.
 - **Report runs:** queued runs wait on a `report.run` worker, which A35 is building.
 
-## Amendment (2026-10-23): reporting and blocking (owner decision 19)
+## Amendment (2026-10-23): reporting and blocking (ADR 0033 decision 57)
 
-Owner decision 19 (ADR 0033, 2026-10-23) asks for a minimal report and block for user-generated content in Compass before App Store submission, as App Store Review Guideline 1.2 requires: a way to report offensive content and a timely response to reports, and a way to block abusive users. Track compass-trust (RRR-137) built it in migrations 1630 and 1631.
+ADR 0033 decision 57 (2026-10-23) asks for a minimal report and block for user-generated content in Compass before App Store submission, as App Store Review Guideline 1.2 requires: a way to report offensive content and a timely response to reports, and a way to block abusive users. Track compass-trust (RRR-137) built it in migrations 1630 and 1631.
 
 1. **What can be reported.** A feed post of any kind (polls and recognition posts included), a comment on a feed post, and a chat message, direct or in a group: the content one member writes for others to read. In Compass that is the Feed, a conversation and Recognition, where each item by someone else carries a three-dot button; a shout-out is reported as its feed post. Compass shows no comments yet, so a comment is reportable from the database only, for Atlas to offer later. Lost and found entries and help desk requests are operational records that site staff and help desk teams already manage, and are not reportable.
 

@@ -9,7 +9,7 @@ import { useContentSafety } from "../../../src/workforce/safety";
 
 /**
  * One conversation: messages oldest first; sending and read marks queue offline. A message from someone else can be
- * reported or its author blocked (owner decision 19).
+ * reported or its author blocked (ADR 0033 decision 57).
  */
 function Thread(): ReactElement {
   const t = useT();

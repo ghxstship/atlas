@@ -1,5 +1,5 @@
 /**
- * expo-apple-authentication behind domain/appleSignIn's AppleNative (owner decision 20), expo-crypto behind its
+ * expo-apple-authentication behind domain/appleSignIn's AppleNative (ADR 0033 decision 58), expo-crypto behind its
  * NonceSource, and the person's own client behind SaveAppleName. The Apple module is loaded only when it is used,
  * so Android and a build without Apple never touch it.
  */

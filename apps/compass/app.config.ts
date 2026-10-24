@@ -127,7 +127,7 @@ export function withGoogleSignIn(config: ExpoConfig, iosClientId: string | undef
 }
 
 /**
- * Sign in with Apple (owner decision 20). EXPO_PUBLIC_APPLE_SIGN_IN, a public build value ("1"), turns it on: the
+ * Sign in with Apple (ADR 0033 decision 58). EXPO_PUBLIC_APPLE_SIGN_IN, a public build value ("1"), turns it on: the
  * build asks for the Sign in with Apple capability (ios.usesAppleSignIn, which EAS enables on the App ID) and
  * expo-apple-authentication's config plugin adds the entitlement. Unset, the build has neither, and Compass shows no
  * Apple button, nor a Google one on iOS (src/domain/appleSignIn.ts).

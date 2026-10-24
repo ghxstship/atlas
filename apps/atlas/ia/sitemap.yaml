@@ -687,7 +687,7 @@ nodes:
             label: nav.atlas.pages.people.helpDesk
             route: "/{org}/people/help-desk"
             list: { views: [table, list, board], default: table }
-          # Reported posts, comments and messages (owner decision 19): the org's moderators, who hold
+          # Reported posts, comments and messages (ADR 0033 decision 57): the org's moderators, who hold
           # org.communication.write (Owners and Admins by default), decide each within 24 hours.
           - id: people.moderation
             kind: page

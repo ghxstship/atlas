@@ -36,7 +36,7 @@ export interface RecognitionScreenProps {
   readonly people: readonly { membershipId: string; name: string }[];
   readonly onRecognize: Action<[membershipId: string, message: string]>;
   /**
-   * Report and block on shout-outs by someone else (owner decision 19), reported as their feed post; absent, no
+   * Report and block on shout-outs by someone else (ADR 0033 decision 57), reported as their feed post; absent, no
    * shout-out shows the button.
    */
   readonly contentActions?: ContentActions;

@@ -137,7 +137,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     action: "Removed",
     statement: "The listing asks applicants for a registration fee.",
   },
-  // Reported content (owner decision 19, 1630).
+  // Reported content (ADR 0033 decision 57, 1630).
   "content_report.filed": {
     subject: "message",
     reason: "harassment",

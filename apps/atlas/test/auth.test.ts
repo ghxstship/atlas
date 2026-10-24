@@ -45,7 +45,7 @@ describe("OAuth providers", () => {
       }),
     ).toEqual(["google", "azure"]);
     expect(parseEnabledProviders(null)).toEqual([]);
-    // Apple is on for Compass's native sign-in only (owner decision 20).
+    // Apple is on for Compass's native sign-in only (ADR 0033 decision 58).
     expect(parseEnabledProviders({ external: { google: true, apple: true } })).toEqual(["google"]);
     expect(isOAuthProvider("google")).toBe(true);
     expect(isOAuthProvider("github")).toBe(false);

@@ -713,7 +713,7 @@ Rollback: turn "Enable Sign in with Google" off. The buttons disappear within fi
 
 ## Sign in with Apple (OWNER)
 
-Compass offers "Sign in with Apple" on iOS (owner decision 20, App Store Review Guideline 4.8; ADR 0036, amendment of 2026-10-23). The phone signs in with Apple's own sheet and hands Apple's identity token, with a nonce Supabase Auth checks, to the Supabase project. On iOS the Google button shows only beside Apple's, so until this section is done an iOS build shows neither; Android keeps Google. Atlas and Gateway do not offer Apple, even with the provider on.
+Compass offers "Sign in with Apple" on iOS (ADR 0033 decision 58, App Store Review Guideline 4.8; ADR 0036, amendment of 2026-10-23). The phone signs in with Apple's own sheet and hands Apple's identity token, with a nonce Supabase Auth checks, to the Supabase project. On iOS the Google button shows only beside Apple's, so until this section is done an iOS build shows neither; Android keeps Google. Atlas and Gateway do not offer Apple, even with the provider on.
 
 **Every value in the table below is an example of the format; none is real.** The key file is a secret: keep it in the owner's secret store and never commit it, paste it in a ticket or send it in chat. Identifiers are not secrets.
 

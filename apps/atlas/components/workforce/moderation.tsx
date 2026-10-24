@@ -66,7 +66,7 @@ function headline(text: string): string {
 }
 
 /**
- * People > Reported Content (owner decision 19, App Store Review Guideline 1.2): the posts, comments on posts and
+ * People > Reported Content (ADR 0033 decision 57, App Store Review Guideline 1.2): the posts, comments on posts and
  * chat messages people reported, the one due first at the top, for the org's moderators (org.communication.write).
  * Each opens with what was reported, every report and every decision; a moderator decides it with a statement of
  * reasons in parts, as A90's console does for listings. The database decides who may decide and what removal does.

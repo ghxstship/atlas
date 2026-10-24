@@ -79,7 +79,7 @@ The owner's remaining work should be creating the Google OAuth clients and enter
 
 ## Amendment (2026-10-23): Sign in with Apple in Compass
 
-Owner decision 20 (ADR 0033, 2026-10-23) adds Sign in with Apple to Compass before App Store submission, and keeps the Google button off iOS until then: App Store Review Guideline 4.8 asks an app that offers a third-party sign-in to offer an equivalent private one, and Sign in with Apple is it. Track compass-trust (RRR-137) built it.
+ADR 0033 decision 58 (2026-10-23) adds Sign in with Apple to Compass before App Store submission, and keeps the Google button off iOS until then: App Store Review Guideline 4.8 asks an app that offers a third-party sign-in to offer an equivalent private one, and Sign in with Apple is it. Track compass-trust (RRR-137) built it.
 
 1. **Compass signs in natively on iOS.** `expo-apple-authentication` 57.0.2 (MIT, Expo's module for SDK 57) shows Apple's sheet, asking for the name and email, and returns an identity token; `supabase.auth.signInWithIdToken({ provider: "apple", token, nonce })` exchanges it for a session, as Google's token is exchanged (decision 8). It is the same account: a verified email links to the existing person (decision 5), and the bootstrap is the email sign-up's (decision 6).
 
@@ -93,7 +93,7 @@ Owner decision 20 (ADR 0033, 2026-10-23) adds Sign in with Apple to Compass befo
 
 6. **Atlas and Gateway do not offer Apple.** Turning the provider on for Compass would otherwise put a "Continue with Apple" button on their sign-in pages. Their web flow needs Apple's own button style, Apple's origin in the CSP's `form-action` and a client secret that Apple accepts for at most six months, none of which they have, so `parseEnabledProviders` leaves Apple out on both until that flow is built.
 
-7. **Configuration.** `supabase/config.toml` keeps `[auth.external.apple]` off: a native Apple sign-in needs a device build signed by the Apple team, which a local stack never sees. The owner's steps (the capability on the App ID, the Services ID, the key, the Supabase provider with Compass's bundle ID first among the client IDs, the private relay email domain, and the EAS value) are in `infra/runbooks/production.md`, "Sign in with Apple (OWNER)", and `legal/OWNER_INPUTS.md`, Part D.
+7. **Configuration.** `supabase/config.toml` keeps `[auth.external.apple]` off: a native Apple sign-in needs a device build signed by the Apple team, which a local stack never sees. The owner's steps (the capability on the App ID, the Services ID, the key, the Supabase provider with Compass's bundle ID first among the client IDs, the private relay email domain, and the EAS value) are in `infra/runbooks/production.md`, "Sign in with Apple (OWNER)", and `legal/OWNER_INPUTS.md`, Part E.
 
 ### Follow-ups
 

@@ -51,7 +51,7 @@ export interface FeedScreenProps {
   readonly onOpenComments?: (postId: string) => void;
   /** The empty state's action, such as opening notification settings. */
   readonly onEmptyAction?: () => void;
-  /** Report and block on posts by someone else (owner decision 19); absent, no post shows the button. */
+  /** Report and block on posts by someone else (ADR 0033 decision 57); absent, no post shows the button. */
   readonly contentActions?: ContentActions;
   /** The viewer's memberships: their own posts offer no report or block. */
   readonly myMembershipIds?: readonly string[];

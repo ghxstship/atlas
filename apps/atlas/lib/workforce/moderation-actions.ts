@@ -16,7 +16,7 @@ import {
 } from "@/lib/collection-kit/forms";
 
 /**
- * Reported content (owner decision 19): a moderator's decision with its statement of reasons. The database decides
+ * Reported content (ADR 0033 decision 57): a moderator's decision with its statement of reasons. The database decides
  * who may decide (org.communication.write, never about one's own content) and what each decision does.
  */
 

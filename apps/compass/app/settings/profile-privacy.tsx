@@ -23,7 +23,7 @@ type Load =
 
 /**
  * Settings, Profile Privacy (sitemap settings.profile-privacy): the people, and organizations blocked from Gateway,
- * that the person blocked, each with Unblock (owner decision 19, Section 4.5.6). A block hides the person's posts,
+ * that the person blocked, each with Unblock (ADR 0033 decision 57, Section 4.5.6). A block hides the person's posts,
  * comments, shout-outs and messages from this person (migration 1631); unblocking shows them again. Online only.
  */
 export default function BlockedPeopleScreen(): ReactElement {

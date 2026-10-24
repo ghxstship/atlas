@@ -15,7 +15,7 @@ import {
 } from "../src/domain/appleSignIn";
 
 /**
- * Sign in with Apple on Compass (owner decision 20). The native module, the nonce source and Supabase Auth are fakes,
+ * Sign in with Apple on Compass (ADR 0033 decision 58). The native module, the nonce source and Supabase Auth are fakes,
  * so the tests run in node and never reach Apple. The Google client IDs are the documented example shape.
  */
 

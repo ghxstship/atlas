@@ -1,2 +1,2 @@
-# Owner decision 19: reported posts, comments and messages for the org's moderators.
+# ADR 0033 decision 57: reported posts, comments and messages for the org's moderators.
 people.moderation

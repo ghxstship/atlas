@@ -17,7 +17,7 @@ const refused = (rule: string, sentence = "Refused.") => ({
   error: { code: "XR001", message: `${rule}: ${sentence}`, hint: rule },
 });
 
-describe("reporting and blocking (owner decision 19)", () => {
+describe("reporting and blocking (ADR 0033 decision 57)", () => {
   it("reports an item with its reason and trimmed details, and drops empty details", async () => {
     const { db, calls } = moduleClient({
       "rpc:report_content": [ok("r1"), ok("r2")],

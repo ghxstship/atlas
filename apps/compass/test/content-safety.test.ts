@@ -12,7 +12,7 @@ import {
   REPORT_RESPONSE_HOURS,
 } from "../src/domain/contentSafety";
 
-/** Report and block in Compass (owner decision 19, App Store Review Guideline 1.2). */
+/** Report and block in Compass (ADR 0033 decision 57, App Store Review Guideline 1.2). */
 
 const post = {
   kind: "Feed Post" as const,

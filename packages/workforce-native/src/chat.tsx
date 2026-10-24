@@ -113,7 +113,7 @@ export interface ChatThreadScreenProps {
   readonly onSend: Action<[body: string]>;
   /** Opens a photo, file or voice note attached to a message. */
   readonly onOpenAttachment?: (messageId: string) => void;
-  /** Report and block on messages by someone else (owner decision 19); absent, no message shows the button. */
+  /** Report and block on messages by someone else (ADR 0033 decision 57); absent, no message shows the button. */
   readonly contentActions?: ContentActions;
   readonly refreshing?: boolean;
   readonly onRefresh?: () => void;

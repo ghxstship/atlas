@@ -13,7 +13,7 @@ import {
 } from "../src/index.ts";
 import { AUDIENCE, expectAccessible, labels, ok } from "./helpers.tsx";
 
-/** Owner decision 19: report and block on someone else's post, message or shout-out, never on one's own. */
+/** ADR 0033 decision 57: report and block on someone else's post, message or shout-out, never on one's own. */
 
 const actions = (onOpen = vi.fn()): ContentActions => ({
   label: (author) => `actions(${author ?? "someone"})`,

@@ -1,5 +1,5 @@
 appId: pro.ghxstship.compass
-# Owner decision 19 (App Store Review Guideline 1.2): the Demo Field Lead reports a post by the Demo Producer to the
+# ADR 0033 decision 57 (App Store Review Guideline 1.2): the Demo Field Lead reports a post by the Demo Producer to the
 # org's moderators, then blocks the Producer from the same sheet. The Producer's posts leave the feed, except the
 # pinned announcement that asks for acknowledgment (0229 seeds it). The flow lifts the block in Settings, Blocked
 # People, so the flows after it see the feed as seeded. The report stays open for the moderators in Atlas.

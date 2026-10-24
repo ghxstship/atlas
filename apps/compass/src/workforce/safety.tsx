@@ -1,5 +1,5 @@
 /**
- * Report and block on the Workforce screens (owner decision 19): the button each item by someone else carries, and
+ * Report and block on the Workforce screens (ADR 0033 decision 57): the button each item by someone else carries, and
  * the sheet it opens. Reporting and blocking go online through @xos/data/content-safety with the person's own
  * client; a block hides the person's content in every read (migration 1631), so the screen only reads again.
  */

@@ -10,7 +10,7 @@ import { useContentSafety } from "../../src/workforce/safety";
 
 /**
  * Recognition (Atlas people.recognition): shout-outs, given offline; a shout-out from someone else can be reported or
- * its author blocked (owner decision 19).
+ * its author blocked (ADR 0033 decision 57).
  */
 function Recognitions(): ReactElement {
   const t = useT();

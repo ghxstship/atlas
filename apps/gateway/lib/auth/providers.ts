@@ -36,7 +36,7 @@ export async function offersProviders(): Promise<boolean> {
 
 /**
  * Providers Supabase Auth reports enabled that Gateway does not offer. Apple is turned on for Compass's native
- * sign-in (owner decision 20); its web flow needs Apple's own button, Apple's origin in the CSP form-action and a
+ * sign-in (ADR 0033 decision 58); its web flow needs Apple's own button, Apple's origin in the CSP form-action and a
  * client secret that expires every six months, none of which Gateway has yet (ADR 0036, amendment of 2026-10-23).
  */
 const NATIVE_ONLY: readonly OAuthProvider[] = ["apple"];

@@ -1,5 +1,5 @@
 /**
- * Sign in with Apple on Compass (owner decision 20, App Store Review Guideline 4.8). On iOS the phone signs in with
+ * Sign in with Apple on Compass (ADR 0033 decision 58, App Store Review Guideline 4.8). On iOS the phone signs in with
  * Apple's own sheet (expo-apple-authentication), which returns an identity token, and hands that token to Supabase
  * Auth with signInWithIdToken, as Google does (ADR 0036). It is the same account as on Atlas and Gateway: a matching
  * verified email links to the existing person.

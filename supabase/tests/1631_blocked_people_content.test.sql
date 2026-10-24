@@ -1,4 +1,4 @@
--- pgTAP: migration 1631, what a person block hides (owner decision 19, App Store Review Guideline 1.2). Dave blocks
+-- pgTAP: migration 1631, what a person block hides (ADR 0033 decision 57, App Store Review Guideline 1.2). Dave blocks
 -- Frank and Carol through app.block_member: their posts (except one that needs acknowledgment), comments on posts,
 -- shout-outs and messages, in a direct and a group conversation, disappear for Dave and stay for everyone else; the
 -- notifications about them leave Dave's Inbox and their deliveries are Suppressed. Lifting the block shows everything

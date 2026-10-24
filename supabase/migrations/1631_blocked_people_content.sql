@@ -1,5 +1,5 @@
 -- 1631_blocked_people_content.sql
--- Owner decision 19 (2026-10-23, RRR-137; App Store Review Guideline 1.2): blocking a person hides what they write from
+-- ADR 0033 decision 57 (2026-10-23, RRR-137; App Store Review Guideline 1.2): blocking a person hides what they write from
 -- the person who blocked them. A52's app.blocks (1206) already records a person blocking another person, and hides
 -- profiles both ways; this migration widens what a person block hides:
 --   * from the blocker only, the blocked person's feed posts (polls and recognition posts included), comments on feed
@@ -108,10 +108,10 @@ create policy comments_hide_blocked_authors on app.comments as restrictive for s
   using (not (author_person_id = any (array(select private.my_blocked_person_ids())))
          or not private.is_feed_post_thread(comment_thread_id));
 
-comment on policy feed_posts_hide_blocked_authors on app.feed_posts is 'Owner decision 19 (1631): the signed-in person reads no post by someone they blocked, except a post that requires acknowledgment.';
-comment on policy chat_messages_hide_blocked_authors on app.chat_messages is 'Owner decision 19 (1631): the signed-in person reads no message by someone they blocked, in any conversation.';
-comment on policy recognitions_hide_blocked_and_hidden on app.recognitions is 'Owner decision 19 (1631): the signed-in person reads no shout-out by someone they blocked, and nobody reads a shout-out whose feed post was hidden.';
-comment on policy comments_hide_blocked_authors on app.comments is 'Owner decision 19 (1631): the signed-in person reads no comment on a feed post by someone they blocked.';
+comment on policy feed_posts_hide_blocked_authors on app.feed_posts is 'ADR 0033 decision 57 (1631): the signed-in person reads no post by someone they blocked, except a post that requires acknowledgment.';
+comment on policy chat_messages_hide_blocked_authors on app.chat_messages is 'ADR 0033 decision 57 (1631): the signed-in person reads no message by someone they blocked, in any conversation.';
+comment on policy recognitions_hide_blocked_and_hidden on app.recognitions is 'ADR 0033 decision 57 (1631): the signed-in person reads no shout-out by someone they blocked, and nobody reads a shout-out whose feed post was hidden.';
+comment on policy comments_hide_blocked_authors on app.comments is 'ADR 0033 decision 57 (1631): the signed-in person reads no comment on a feed post by someone they blocked.';
 
 -- Notifications about blocked people's content ---------------------------------------------------------------------------
 
@@ -164,7 +164,7 @@ create policy notifications_hide_blocked_authors on app.notifications as restric
          or not (select private.i_block_anyone())
          or not private.hidden_by_my_blocks(kind, subject_table, subject_id, actor_person_id));
 
-comment on policy notifications_hide_blocked_authors on app.notifications is 'Owner decision 19 (1631): the signed-in person''s Inbox shows no notification about content by someone they blocked.';
+comment on policy notifications_hide_blocked_authors on app.notifications is 'ADR 0033 decision 57 (1631): the signed-in person''s Inbox shows no notification about content by someone they blocked.';
 
 create or replace function private.blocked_author_sends_nothing()
 returns trigger
@@ -309,8 +309,8 @@ begin
 end;
 $$;
 
-comment on function app.block_member(uuid) is 'Blocks the person behind a membership in one of the signed-in person''s orgs, current or ended (owner decision 19): their posts, comments on posts, shout-outs and messages disappear for the blocker (1631). Idempotent; returns the block id. Unblocking is setting deleted_at on the block, as before (1206).';
+comment on function app.block_member(uuid) is 'Blocks the person behind a membership in one of the signed-in person''s orgs, current or ended (ADR 0033 decision 57): their posts, comments on posts, shout-outs and messages disappear for the blocker (1631). Idempotent; returns the block id. Unblocking is setting deleted_at on the block, as before (1206).';
 revoke all on function app.block_member(uuid) from public, anon;
 grant execute on function app.block_member(uuid) to authenticated, service_role;
 
-comment on table app.blocks is 'People and organizations a person has blocked (Section 4.5.6 Profile Privacy). A block hides the blocker''s profile from the blocked person and from every member of a blocked organization, and hides the blocked profile from the blocker. A person block also hides the blocked person''s feed posts (except those that require acknowledgment), comments on posts, shout-outs and chat messages, and the notifications about them, from the blocker (owner decision 19, 1631). It never ends a membership or an engagement. Read and written only by the blocker.';
+comment on table app.blocks is 'People and organizations a person has blocked (Section 4.5.6 Profile Privacy). A block hides the blocker''s profile from the blocked person and from every member of a blocked organization, and hides the blocked profile from the blocker. A person block also hides the blocked person''s feed posts (except those that require acknowledgment), comments on posts, shout-outs and chat messages, and the notifications about them, from the blocker (ADR 0033 decision 57, 1631). It never ends a membership or an engagement. Read and written only by the blocker.';

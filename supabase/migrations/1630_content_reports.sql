@@ -1,5 +1,5 @@
 -- 1630_content_reports.sql
--- Owner decision 19 (2026-10-23, RRR-137; App Store Review Guideline 1.2, user-generated content). A person reports a
+-- ADR 0033 decision 57 (2026-10-23, RRR-137; App Store Review Guideline 1.2, user-generated content). A person reports a
 -- post, a comment on a post or a chat message they can see, and the org's moderators act on it within 24 hours:
 --   * app.content_reports: one report per reporter and item while it is open, with the reason, optional details, a
 --     snapshot of the text as it was reported (moderators are rarely in the conversation) and the time it falls due,
@@ -70,7 +70,7 @@ create index content_moderation_decisions_decided_by_idx on app.content_moderati
 call private.install_domain_table('app.content_moderation_decisions', null, null,
   array['app.feed_posts', 'feed_post_id', 'app.comments', 'comment_id', 'app.chat_messages', 'chat_message_id'], true);
 
-call private.describe('app.content_moderation_decisions', 'Append-only decisions by an org''s moderators on reported posts, comments and messages (owner decision 19), with A90''s statement of reasons in parts (1473). Written only through app.decide_content_report; one decision decides every open report on the item.', array[
+call private.describe('app.content_moderation_decisions', 'Append-only decisions by an org''s moderators on reported posts, comments and messages (ADR 0033 decision 57), with A90''s statement of reasons in parts (1473). Written only through app.decide_content_report; one decision decides every open report on the item.', array[
   'subject_kind', 'Feed Post, Comment or Chat Message.',
   'feed_post_id', 'Post decided, when the item is a post.',
   'comment_id', 'Comment decided, when the item is a comment on a post.',
@@ -132,7 +132,7 @@ create unique index content_reports_one_open on app.content_reports
 create index content_reports_open_idx on app.content_reports (org_id, due_at)
   where content_moderation_decision_id is null and deleted_at is null;
 
-call private.describe('app.content_reports', 'Reports of a post, a comment on a post or a chat message to the org''s moderators (owner decision 19, App Store Review Guideline 1.2). Filed only through app.report_content; open until a moderator''s decision on the item decides it, due 24 hours after it arrived.', array[
+call private.describe('app.content_reports', 'Reports of a post, a comment on a post or a chat message to the org''s moderators (ADR 0033 decision 57, App Store Review Guideline 1.2). Filed only through app.report_content; open until a moderator''s decision on the item decides it, due 24 hours after it arrived.', array[
   'subject_kind', 'Feed Post, Comment or Chat Message.',
   'feed_post_id', 'Post reported, when the item is a post.',
   'comment_id', 'Comment reported, when the item is a comment on a post.',

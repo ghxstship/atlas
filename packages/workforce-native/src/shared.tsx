@@ -197,8 +197,8 @@ export function useActionRunner(failedLabel: string): {
 }
 
 /**
- * A post, message or shout-out by someone else that the viewer can report, or whose author they can block (owner
- * decision 19, App Store Review Guideline 1.2). A shout-out is reported as its feed post.
+ * A post, message or shout-out by someone else that the viewer can report, or whose author they can block (ADR 0033
+ * decision 57, App Store Review Guideline 1.2). A shout-out is reported as its feed post.
  */
 export interface ContentActionTarget {
   readonly kind: ContentSubjectKind;

@@ -44,7 +44,7 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "onboarding.item_expiring": ["days", "expiresOn"],
   "certification.expiring": ["days", "expiresOn"],
   "document.expiring": ["days", "expiresOn"],
-  // Reported content (owner decision 19, 1630): what was reported, and the outcome or the statement of reasons.
+  // Reported content (ADR 0033 decision 57, 1630): what was reported, and the outcome or the statement of reasons.
   "content_report.filed": ["subject"],
   "content_report.overdue": ["subject"],
   "content_report.decided": ["subject", "action", "statement"],
