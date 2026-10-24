@@ -286,6 +286,20 @@ const SEPARATORS = /\s*(?:·|•|\u2014|\u2013|\||\/|,|:|›|>|\(|\)|\+)\s*|\s+-
 /** A record key (NWS-12) or a code (US-FL-MIAMI-DADE, G2.CONTRACTS), with any hyphen glyph. */
 const CODE = /^[A-Z0-9]+(?:[-‐‑‒\u2013−_.][A-Z0-9]+)*$/;
 
+/**
+ * One value between separators: data, a formatted value, initials or a code, or a key before its
+ * data ("NWS Northwind Summer Series", an activity line naming a project).
+ */
+function isValue(piece: string, data: Set<string>): boolean {
+  const p = piece.trim();
+  if (!/[A-Za-z]{2,}/.test(p)) return true;
+  if (data.has(p) || FORMATTED.some((re) => re.test(p)) || /^[A-Z]{1,3}$/.test(p) || CODE.test(p)) {
+    return true;
+  }
+  const keyed = /^(\S+)\s+(.+)$/.exec(p);
+  return keyed !== null && CODE.test(keyed[1] ?? "") && data.has((keyed[2] ?? "").trim());
+}
+
 function isData(raw: string, data: Set<string>): boolean {
   // Punctuation code puts between values ("· NWS") belongs to neither side.
   const text = raw.replace(/^[\s·•.,:;|/()\u2013\u2014-]+|[\s·•.,:;|/()\u2013\u2014-]+$/g, "");
@@ -297,14 +311,23 @@ function isData(raw: string, data: Set<string>): boolean {
   // Emails, web addresses, paths and initials.
   if (/^\S+@\S+\.\S+$/.test(text) || /^(https?:\/\/|\/)\S*$/.test(text)) return true;
   if (/^[A-Z]{1,3}$/.test(text)) return true;
-  const pieces = text.split(SEPARATORS).filter((p) => /[A-Za-z]{2,}/.test(p));
-  return (
-    pieces.length > 1 &&
-    pieces.every(
-      (p) =>
-        data.has(p) || FORMATTED.some((re) => re.test(p)) || /^[A-Z]{1,3}$/.test(p) || CODE.test(p),
-    )
-  );
+  if (isValue(text, data)) return true;
+  // Values joined by separators, where a value may hold a separator itself (a canon job title in
+  // "Head Arena / Festival Rigger · Oct 23, 2026, 10:00 AM · NWS"): covered[i] says whether the
+  // text up to the i-th piece splits into values.
+  const parts = text.split(new RegExp(`(${SEPARATORS.source})`));
+  const values = parts.filter((_, i) => i % 2 === 0);
+  const span = (from: number, to: number) => parts.slice(2 * from, 2 * to + 1).join("");
+  const covered = [true, ...values.map(() => false)];
+  for (let to = 0; to < values.length; to += 1) {
+    for (let from = 0; from <= to && !covered[to + 1]; from += 1) {
+      // A value that holds a separator counts only when the database holds it whole.
+      const value = span(from, to);
+      covered[to + 1] =
+        covered[from] === true && (from === to ? isValue(value, data) : data.has(value.trim()));
+    }
+  }
+  return values.filter((v) => /[A-Za-z]{2,}/.test(v)).length > 1 && covered[values.length] === true;
 }
 
 /** Unwrapped text that is neither data nor formatting: hard-coded or untranslated strings. */
