@@ -361,17 +361,13 @@ describe("every notification kind is sent or says why not", () => {
       .map(([kind]) => kind)
       .sort();
     // Deferring a kind is a decision: name it here with its reason in notification-kinds.yaml.
-    expect(deferred).toEqual(["account.security_changed", "export.ready", "import.finished"]);
+    expect(deferred).toEqual(["export.ready"]);
   });
 
   it("sends every kind that bypasses quiet hours (ADR 0033 decision 35)", () => {
-    // ADR 0033 decision 62 lets security changes through quiet hours before anything sends them; their emitter is
-    // the follow-up its deferral names. Any other bypass on a kind nothing sends fails here.
-    const decidedAhead = new Set(["account.security_changed"]);
+    // A bypass on a kind nothing sends would be a promise nobody keeps.
     for (const k of registry.kinds.filter((d) => d.quietHoursBypass !== null)) {
-      expect(emission.get(k.kind)?.status, k.kind).toBe(
-        decidedAhead.has(k.kind) ? "deferred" : "emitted",
-      );
+      expect(emission.get(k.kind)?.status, k.kind).toBe("emitted");
     }
   });
 

@@ -61624,6 +61624,10 @@ export type Database = {
           starts_on: string;
         }[];
       };
+      notify_import_finished: {
+        Args: { p_import_batch_id: string; p_import_job_id: string; p_review_url: string };
+        Returns: string;
+      };
       oauth_app_client_ids: {
         Args: { p_org_id: string };
         Returns: {
