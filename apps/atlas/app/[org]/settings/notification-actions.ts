@@ -12,7 +12,7 @@ import {
   type NotificationChoice,
 } from "@xos/data/notification-settings";
 import type { DataError } from "@xos/data/result";
-import { NOTIFICATION_CATEGORIES } from "@xos/schemas/notifications";
+import { NOTIFICATION_CATEGORIES, notificationCategoryChannels } from "@xos/schemas/notifications";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { getOrgContext } from "@/lib/shell/context";
@@ -56,13 +56,15 @@ function cellName(prefix: string, category: string, channel: MatrixChannel): str
   return `${prefix}.${category}.${channel}`;
 }
 
+/** Every cell of the matrix a form shows: each category on the channels its kinds reach (A104). */
 function every<T>(fn: (category: string, channel: MatrixChannel) => T | null): T[] {
-  return NOTIFICATION_CATEGORIES.flatMap((c) =>
-    NOTIFICATION_MATRIX_CHANNELS.flatMap((ch) => {
+  return NOTIFICATION_CATEGORIES.flatMap((c) => {
+    const reached = notificationCategoryChannels(c.code);
+    return NOTIFICATION_MATRIX_CHANNELS.filter((ch) => reached.includes(ch)).flatMap((ch) => {
       const value = fn(c.code, ch);
       return value === null ? [] : [value];
-    }),
-  );
+    });
+  });
 }
 
 const TIME = /^([01][0-9]|2[0-3]):[0-5][0-9]$/;
@@ -129,7 +131,10 @@ export async function saveMyNotificationsAction(
   return { ok: true };
 }
 
-/** Saves Settings, Notifications: every cell of the org's default matrix and its mandatory categories. */
+/**
+ * Saves Settings, Notifications: every cell of the org's default matrix and its mandatory categories. A channel a
+ * category never reaches has no switch and keeps whatever it held.
+ */
 export async function saveOrgNotificationDefaultsAction(
   _: NotificationFormState,
   form: FormData,

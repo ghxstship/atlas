@@ -22,17 +22,17 @@ The Vercel projects `atlas` and `gateway` exist. The orchestrator creates `docs`
 
 Owner decision 5 (ADR 0033, amended 2026-10-20): `ghxstship.tech`, one subdomain per app.
 
-| Host                                                             | Serves                                                                 | Vercel project     | State on 2026-10-23                                                                      |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------- |
-| `atlas.ghxstship.tech`                                           | Atlas                                                                  | `atlas`            | Serving, with a certificate                                                              |
-| `gateway.ghxstship.tech`                                         | Gateway on the platform brand                                          | `gateway`          | Serving, with a certificate. `gateway-umber-omega.vercel.app` is a platform host too     |
-| `api.ghxstship.tech`                                             | The public API, served by Atlas at `/v1`                               | `atlas`            | The orchestrator attaches it                                                             |
-| `docs.ghxstship.tech`                                            | The docs site                                                          | `docs`             | The orchestrator creates the project                                                     |
-| `console.ghxstship.tech`                                         | The operator console (ADR 0046)                                        | `console`          | Project and domain created (ADR 0033, decision 79); the variables below are still to set |
-| `mail.ghxstship.tech`                                            | The sending domain for email through Resend                            | None               | DNS records to add                                                                       |
-| `inbound.ghxstship.tech`                                         | The receiving domain for project inboxes and reply by email (ADR 0040) | None               | MX records for Resend's inbound mail to add (ADR 0033, decision 60)                      |
-| `status.ghxstship.tech`                                          | The status page on GitHub Pages (ADR 0025 item 7)                      | None               | A CNAME to GitHub Pages to add (ADR 0033, decision 72)                                   |
-| `atlas-staging.ghxstship.tech`, `gateway-staging.ghxstship.tech` | Atlas and Gateway on the persistent staging branch                     | `atlas`, `gateway` | Kept (ADR 0033, decision 63)                                                             |
+| Host                                                             | Serves                                                                                               | Vercel project     | State on 2026-10-23                                                                      |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------- |
+| `atlas.ghxstship.tech`                                           | Atlas                                                                                                | `atlas`            | Serving, with a certificate                                                              |
+| `gateway.ghxstship.tech`                                         | Gateway on the platform brand                                                                        | `gateway`          | Serving, with a certificate. `gateway-umber-omega.vercel.app` is a platform host too     |
+| `api.ghxstship.tech`                                             | The public API, served by Atlas at `/v1`                                                             | `atlas`            | The orchestrator attaches it                                                             |
+| `docs.ghxstship.tech`                                            | The docs site                                                                                        | `docs`             | The orchestrator creates the project                                                     |
+| `console.ghxstship.tech`                                         | The operator console (ADR 0046)                                                                      | `console`          | Project and domain created (ADR 0033, decision 79); the variables below are still to set |
+| `mail.ghxstship.tech`                                            | The sending domain for email through Resend                                                          | None               | DNS records to add                                                                       |
+| `inbound.ghxstship.tech`                                         | The receiving domain for project inboxes and reply by email (ADR 0040)                               | None               | MX records for Resend's inbound mail to add (ADR 0033, decision 60)                      |
+| `status.ghxstship.tech`                                          | The status page, a static Vercel project `status` (ADR 0025 item 7; decision 72, amended 2026-10-24) | None               | A CNAME to GitHub Pages to add (ADR 0033, decision 72)                                   |
+| `atlas-staging.ghxstship.tech`, `gateway-staging.ghxstship.tech` | Atlas and Gateway on the persistent staging branch                                                   | `atlas`, `gateway` | Kept (ADR 0033, decision 63)                                                             |
 
 Each org's custom Gateway domain is added to the `gateway` project when the org verifies it in Atlas.
 
@@ -135,32 +135,70 @@ The operator console for the platform team. The owner created the project and at
    `v=DMARC1; p=quarantine; rua=mailto:<the DMARC report mailbox>`. Keep the reports coming; a sender that appears
    later goes back to `p=none` until it is fixed or removed.
 
-Reply by email and project inboxes (`XOS_INBOUND_DOMAIN`, ADR 0040) need their own receiving domain, with MX
-records pointing at the inbound mail provider that posts each parsed message to the `inbound-email` Edge
-Function. The domain is `inbound.ghxstship.tech`, written below as `<inbound domain>`, and the provider is
-Resend's inbound mail, already on the Subprocessor List, if it meets the requirements in step 1 (ADR 0033,
-decision 60). The operations work for this choice is in migrations 1650 to 1659 (ADR 0022); follow its notes
-when it lands. **OWNER**:
+Reply by email and project inboxes (`XOS_INBOUND_DOMAIN`, ADR 0040) receive on `inbound.ghxstship.tech`, a
+subdomain used only for receiving, through Resend's inbound mail (ADR 0033, decision 60). Resend is already on the
+Subprocessor List, and its row names inbound mail.
 
-1. In Resend, set up inbound mail for `inbound.ghxstship.tech`, used only for receiving. Confirm that it parses
-   mail, checks DKIM, keeps the raw message and can post JSON to a URL with a bearer secret. If it cannot, stop:
-   any other provider is a new subprocessor and needs 30 days' notice before it receives mail.
-2. At the DNS host, add the provider's MX records for `<inbound domain>`, exactly as the provider lists them:
+Resend meets ADR 0040's requirements (checked 2026-10-23 against Resend's documentation; RRR-139). Two things are
+wired differently: the webhook carries metadata only, and it is signed instead of sent with a bearer secret.
+`inbound-email` takes both:
 
-   | Name               | Type | Value                                                |
-   | ------------------ | ---- | ---------------------------------------------------- |
-   | `<inbound domain>` | MX   | `<priority> <provider's inbound mail host>`, per row |
+- **Parsing:** Resend parses each message. Its `email.received` webhook carries only metadata (sender, recipients,
+  subject, Message-ID, attachment names), so `inbound-email` reads the text, the HTML and the rest from Resend's
+  Receiving API (`GET /emails/receiving/{id}`). That API refuses sending-only keys, so it needs a full-access key of
+  its own.
+- **DKIM:** the received email's `authentication.dkim` is computed by Resend's own mail server, so a sender cannot forge
+  it. Only `pass` counts as verified; `gray` (unsigned, or signed by a domain other than the From domain), `fail` and
+  the rest do not, and such mail is never filed.
+- **Raw message:** Resend keeps a received message for 30 days, behind a signed download URL. `inbound-email` copies it
+  into the private `inbound-mail` bucket (migration 1651) as `<org id>/resend/<email id>.eml`, which `raw_object_path`
+  records, once the database has taken the message. The org prefix lets an org purge find the file even after
+  retention has deleted its row. `inbound-email` asks the database for the org first (`app.inbound_email_org`), so mail
+  to an address with no inbox costs no call to Resend and leaves nothing. Resend publishes no size limit; a message
+  over 50 MiB, the bucket's limit, is filed without its raw copy and records `resend:<email id>` instead.
+- **Authentication:** Resend signs each webhook the Svix way (HMAC-SHA256 over the id, timestamp and raw body, with the
+  endpoint's `whsec_` signing secret) instead of sending a bearer secret. `inbound-email` refuses a bad signature and
+  any timestamp more than five minutes off. `XOS_INBOUND_SECRET` is only for a provider that posts parsed messages.
+- **Retries:** a failed delivery is retried immediately, then after 5 seconds, 5 minutes, 30 minutes, 2, 5, 10 and 10
+  hours; then Resend disables the endpoint and emails the team. Messages can be replayed from the dashboard. Redelivered
+  mail is filed once (Message-ID per org), and its raw copy is overwritten with the same file.
+- **Attachments:** listed in the event and downloadable from Resend's Attachments API; XOS does not copy them onto the
+  filed document yet (ADR 0040).
 
-3. Point the provider's webhook at `https://<project ref>.supabase.co/functions/v1/inbound-email` with the
-   header `Authorization: Bearer <XOS_INBOUND_SECRET>`, and have it store the raw message where it can be read
-   later, sending that path as `rawObjectPath`.
-4. Set the function secrets `XOS_INBOUND_SECRET` (a new random value the provider also holds) and
-   `XOS_INBOUND_DOMAIN=<inbound domain>`, and set `XOS_INBOUND_DOMAIN=<inbound domain>` on the `atlas` Vercel
-   project too, so Project Settings shows each project's full inbox address. Redeploy Atlas.
-5. Check: create a project inbox in Atlas (Project Settings, Project inbox), forward one message to it, and
-   find it on the project's Documents tab.
+**OWNER**, in order:
 
-Until then project inbox addresses show only their local part, and no mail arrives.
+1. In Resend, Domains, add `inbound.ghxstship.tech` with receiving enabled and sending turned off. Receiving was in
+   early access when this was written; if the account does not offer it, ask Resend support before going further,
+   since any other provider is a new subprocessor and needs 30 days' notice. Resend then lists the domain's records.
+2. At the DNS host of `ghxstship.tech`, add exactly the records Resend lists for `inbound.ghxstship.tech`: its DKIM
+   TXT record, which verifies the domain, and the receiving MX record. Copy the MX host and priority from Resend's page
+   (its documentation names hosts such as `inbound-smtp.<region>.amazonaws.com`); the name has no other MX record, so
+   Resend's is the lowest priority, as Resend requires. The sending records (SPF, return path) are not needed on a
+   receive-only domain.
+
+   | Name                               | Type | Value                                             |
+   | ---------------------------------- | ---- | ------------------------------------------------- |
+   | `inbound.ghxstship.tech`           | MX   | `<priority> <Resend's receiving host>`, as listed |
+   | Resend's DKIM name under `inbound` | TXT  | As Resend lists it                                |
+
+   Click "I've added the record" in Resend and wait until receiving shows Verified.
+
+3. In Resend, Webhooks, add the endpoint `https://<project ref>.supabase.co/functions/v1/inbound-email` with the
+   event `email.received` only. Copy its signing secret.
+4. In Resend, API Keys, create a key with full access named for its use, for example `inbound-email receiving`. Keep
+   `RESEND_API_KEY` sending-only.
+5. Set the function secrets from your secret store: `RESEND_INBOUND_WEBHOOK_SECRET` (the signing secret),
+   `RESEND_RECEIVING_API_KEY` (the full-access key) and `XOS_INBOUND_DOMAIN=inbound.ghxstship.tech`. Set
+   `XOS_INBOUND_DOMAIN=inbound.ghxstship.tech` on the `atlas` Vercel project too, so Project Settings shows each
+   project's full inbox address, and redeploy Atlas. Migration 1651 and the `inbound-email` function ship with the
+   release (Deploy order).
+6. Check: create a project inbox in Atlas (Project Settings, Project inbox) and forward one message to it from an
+   address that signs with DKIM, such as Gmail. In Resend, the webhook's message shows a 200 answer with an
+   `inbound_message_id`; in Supabase, Storage, `inbound-mail` holds `<org id>/resend/<email id>.eml`; in Atlas, the message is on
+   the project's Documents tab, ready to file.
+
+To rotate, create the new key or roll the signing secret in Resend, set the secret, then delete the old key. Until step
+5, project inbox addresses show only their local part, and no mail arrives.
 
 ### Universal links to Compass
 
@@ -180,14 +218,14 @@ Until then project inbox addresses show only their local part, and no mail arriv
 
 ### DNS records still needed
 
-| Name                          | Type    | For                            | Value from                                             |
-| ----------------------------- | ------- | ------------------------------ | ------------------------------------------------------ |
-| `api`                         | CNAME   | Vercel project `atlas`         | Vercel, when the domain is added                       |
-| `docs`                        | CNAME   | Vercel project `docs`          | Vercel, when the domain is added                       |
-| Resend's records under `mail` | TXT, MX | SPF, return path, DKIM         | Resend, Domains, `mail.ghxstship.tech`                 |
-| `_dmarc.mail`                 | TXT     | DMARC                          | The owner's policy (above)                             |
-| `inbound`                     | MX      | Resend's inbound mail          | Resend, inbound domain (decision 60)                   |
-| `status`                      | CNAME   | The status page (GitHub Pages) | `infra/ci/README.md`, Repository settings; decision 72 |
+| Name                             | Type    | For                                       | Value from                                              |
+| -------------------------------- | ------- | ----------------------------------------- | ------------------------------------------------------- |
+| `api`                            | CNAME   | Vercel project `atlas`                    | Vercel, when the domain is added                        |
+| `docs`                           | CNAME   | Vercel project `docs`                     | Vercel, when the domain is added                        |
+| Resend's records under `mail`    | TXT, MX | SPF, return path, DKIM                    | Resend, Domains, `mail.ghxstship.tech`                  |
+| `_dmarc.mail`                    | TXT     | DMARC                                     | The owner's policy (above)                              |
+| Resend's records under `inbound` | MX, TXT | Receiving, DKIM                           | Resend, Domains, `inbound.ghxstship.tech` (decision 60) |
+| `status`                         | CNAME   | The status page (Vercel project `status`) | `infra/ci/README.md`, Repository settings; decision 72  |
 
 `atlas` and `gateway` resolve already, and `console`, `atlas-staging` and `gateway-staging` exist (decisions 63 and 79). Passkeys on the web need nothing at the apex `ghxstship.tech`.
 
@@ -316,27 +354,32 @@ None. The site is built from the repository and the OpenAPI document. Project se
 
 ### Edge Functions (production Supabase project secrets)
 
-| Secret                                                    | Notes                                                                                                                                                     |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`, `integration-worker` and `automation-run` (ADR 0047)                                                           |
-| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)                                                  |
-| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key                                            |
-| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, at cutover, once the domain passes its checks and `XOS_POSTAL_ADDRESS` is set (ADR 0033, decision 41) |
-| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | Reply by email and project inboxes; `XOS_INBOUND_DOMAIN=inbound.ghxstship.tech`                                                                           |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | Live Stripe keys, once billing opens after Atlas Checkout ships (ADR 0033, decision 59); test keys until then                                             |
-| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | The private address and port of clamd ("Upload scanning (ClamAV)" below); the port defaults to 3310                                                       |
-| `XOS_SLACK_SIGNING_SECRET`                                | Slack events and slash commands (`integration-inbound`), `infra/runbooks/integrations.md`                                                                 |
-| `XOS_XERO_WEBHOOK_KEY`                                    | Xero change notices (`integration-inbound`), once the Xero app exists                                                                                     |
-| `XOS_QUICKBOOKS_VERIFIER_TOKEN`                           | QuickBooks Online change notices (`integration-inbound`), once the app exists                                                                             |
-| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | The Edge Functions' Sentry DSN; `production`; `info`                                                                                                      |
-| `XOS_PUSH_TRANSPORT`, `EXPO_ACCESS_TOKEN`                 | `expo` to send push ("Push and SMS" below); the access token only if enhanced push security is on                                                         |
-| `XOS_WEB_PUSH_TRANSPORT`, `VAPID_SUBJECT`                 | `vapid` to send browser push ("Web push" below); a `mailto:` or `https:` contact for the push services                                                    |
-| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`                   | `<87 base64url characters>`, the same public key as the apps; `<43 base64url characters>`                                                                 |
-| `XOS_SMS_TRANSPORT`, `TWILIO_ACCOUNT_SID`                 | `twilio` to send SMS; the account SID, `AC<32 hex characters>`                                                                                            |
-| `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`       | `<32 hex characters>`; the 10DLC Messaging Service, `MG<32 hex characters>`                                                                               |
-| `XOS_SMS_HELP_CONTACT`                                    | The mailbox or page HELP replies name (OWNER_INPUTS item 6)                                                                                               |
-| `XOS_SMS_ALLOWLIST`, `XOS_SMS_DELIVER_TO_ANY`             | `XOS_SMS_DELIVER_TO_ANY=true` only in production, once Twilio approves the 10DLC campaign (ADR 0033, decision 65)                                         |
-| `XOS_SMS_WEBHOOK_URL`                                     | Only when Twilio calls `sms-webhook` through another host; defaults to the function's own URL                                                             |
+| Secret                                                           | Notes                                                                                                                                                     |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `XOS_API_JWT_SIGNING_KEY`                                        | The project's JWT secret, for `api-token`, `integration-worker` and `automation-run` (ADR 0047)                                                           |
+| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`           | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)                                                  |
+| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`        | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key                                            |
+| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`                | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, at cutover, once the domain passes its checks and `XOS_POSTAL_ADDRESS` is set (ADR 0033, decision 41) |
+| `RESEND_INBOUND_WEBHOOK_SECRET`                                  | The signing secret of Resend's `inbound-email` webhook (Email, above)                                                                                     |
+| `RESEND_RECEIVING_API_KEY`                                       | A full-access Resend key for the Receiving API; `RESEND_API_KEY` stays sending-only                                                                       |
+| `XOS_INBOUND_DOMAIN`                                             | `inbound.ghxstship.tech`, for reply by email and project inboxes. `XOS_INBOUND_SECRET` is not needed with Resend                                          |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`                     | Live Stripe keys, once billing opens after Atlas Checkout ships (ADR 0033, decision 59); test keys until then                                             |
+| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                             | clamd's address and port ("Upload scanning (ClamAV)" below): `xos-clamav.fly.dev` and `3311` on Fly.io; the port defaults to 3310                         |
+| `XOS_CLAMAV_TLS_CA`, `XOS_CLAMAV_TLS_CERT`, `XOS_CLAMAV_TLS_KEY` | The scanning CA and upload-scan's client certificate and key (PEM) for mutual TLS to clamd's stunnel (`infra/scanning/fly/README.md`)                     |
+| `XOS_SLACK_SIGNING_SECRET`                                       | Slack events and slash commands (`integration-inbound`), `infra/runbooks/integrations.md`                                                                 |
+| `XOS_XERO_WEBHOOK_KEY`                                           | Xero change notices (`integration-inbound`), once the Xero app exists                                                                                     |
+| `XOS_QUICKBOOKS_VERIFIER_TOKEN`                                  | QuickBooks Online change notices (`integration-inbound`), once the app exists                                                                             |
+| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`                 | The Edge Functions' Sentry DSN; `production`; `info`                                                                                                      |
+| `XOS_PUSH_TRANSPORT`, `EXPO_ACCESS_TOKEN`                        | `expo` to send push ("Push and SMS" below); the access token only if enhanced push security is on                                                         |
+| `XOS_WEB_PUSH_TRANSPORT`, `VAPID_SUBJECT`                        | `vapid` to send browser push ("Web push" below); a `mailto:` or `https:` contact for the push services                                                    |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`                          | `<87 base64url characters>`, the same public key as the apps; `<43 base64url characters>`                                                                 |
+| `XOS_SMS_TRANSPORT`, `TWILIO_ACCOUNT_SID`                        | `twilio` to send SMS; the account SID, `AC<32 hex characters>`                                                                                            |
+| `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`              | `<32 hex characters>`; the 10DLC Messaging Service, `MG<32 hex characters>`                                                                               |
+| `XOS_SMS_HELP_CONTACT`                                           | The mailbox or page HELP replies name (OWNER_INPUTS item 6)                                                                                               |
+| `XOS_SMS_ALLOWLIST`, `XOS_SMS_DELIVER_TO_ANY`                    | `XOS_SMS_DELIVER_TO_ANY=true` only in production, once Twilio approves the 10DLC campaign (ADR 0033, decision 65)                                         |
+| `XOS_SMS_WEBHOOK_URL`                                            | Only when Twilio calls `sms-webhook` through another host; defaults to the function's own URL                                                             |
+| `APPLE_SIGN_IN_KEY_ID`, `APPLE_SIGN_IN_KEY_PEM`                  | The Sign in with Apple key, for `apple-revoke`: revoking Compass's Apple tokens when a person deletes their account ("Sign in with Apple (OWNER)")        |
+| `APPLE_TEAM_ID`, `APPLE_SIGN_IN_CLIENT_IDS`                      | The team ID `wallet-pass` also uses; the bundle IDs the key serves, `pro.ghxstship.compass` first                                                         |
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase. The worker schedules read the service role key from Vault (`xos_worker_key`).
 
@@ -344,18 +387,19 @@ None. The site is built from the repository and the OpenAPI document. Project se
 
 Set in the EAS dashboard (project, Environment variables, `production`). Every value is public by design.
 
-| Variable                           | Value                                                                                                                                                               |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`         | The production Supabase API URL                                                                                                                                     |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The production anon key (public), the new one after the key rotation                                                                                                |
-| `EXPO_PUBLIC_ATLAS_URL`            | `https://atlas.ghxstship.tech`                                                                                                                                      |
-| `EXPO_PUBLIC_GATEWAY_URL`          | `https://gateway.ghxstship.tech`                                                                                                                                    |
-| `EXPO_PUBLIC_DOCS_URL`             | `https://docs.ghxstship.tech`, for the help center row in Settings                                                                                                  |
-| `XOS_UNIVERSAL_LINK_HOSTS`         | Leave unset: the build claims `atlas.ghxstship.tech` and `gateway.ghxstship.tech`. An empty value turns universal links off for that build                          |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The Google Web client ID (public), "Sign in with Google (OWNER)" below                                                                                              |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Leave unset until Sign in with Apple ships (ADR 0033, decision 58): without it iOS shows no Google button. Then the Google iOS client ID (public), the same section |
-| `XOS_APPLE_TEAM_ID`                | The Apple team id (signs the widget extension in local device builds)                                                                                               |
-| `GOOGLE_SERVICES_JSON`             | Secret file variable: the Firebase `google-services.json` for `pro.ghxstship.compass` (Android push)                                                                |
+| Variable                           | Value                                                                                                                                                                        |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`         | The production Supabase API URL                                                                                                                                              |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The production anon key (public), the new one after the key rotation                                                                                                         |
+| `EXPO_PUBLIC_ATLAS_URL`            | `https://atlas.ghxstship.tech`                                                                                                                                               |
+| `EXPO_PUBLIC_GATEWAY_URL`          | `https://gateway.ghxstship.tech`                                                                                                                                             |
+| `EXPO_PUBLIC_DOCS_URL`             | `https://docs.ghxstship.tech`, for the help center row in Settings                                                                                                           |
+| `XOS_UNIVERSAL_LINK_HOSTS`         | Leave unset: the build claims `atlas.ghxstship.tech` and `gateway.ghxstship.tech`. An empty value turns universal links off for that build                                   |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The Google Web client ID (public), "Sign in with Google (OWNER)" below                                                                                                       |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | The Google iOS client ID (public), the same section. Compass shows Google on iOS only beside Sign in with Apple, so it may be set before Apple ships (ADR 0033, decision 58) |
+| `EXPO_PUBLIC_APPLE_SIGN_IN`        | `1` once Sign in with Apple is set up, "Sign in with Apple (OWNER)" below; unset, iOS shows neither Apple nor Google                                                         |
+| `XOS_APPLE_TEAM_ID`                | The Apple team id (signs the widget extension in local device builds)                                                                                                        |
+| `GOOGLE_SERVICES_JSON`             | Secret file variable: the Firebase `google-services.json` for `pro.ghxstship.compass` (Android push)                                                                         |
 
 A preview or production build on EAS stops in `apps/compass/app.config.ts` when a server URL is missing, not https or local, or when the app icon `apps/compass/assets/icon.png` is missing.
 
@@ -367,6 +411,7 @@ A preview or production build on EAS stops in `apps/compass/app.config.ts` when 
 | PyPI trusted publisher (no secret)              | pypi.org | `publish-packages.yml`                                              |
 | `EXPO_TOKEN`                                    | Secret   | A Compass build workflow, if builds move to CI                      |
 | `STAGING_DB_URL`                                | Secret   | `backup-weekly.yml`                                                 |
+| `PRODUCTION_BACKUP_DB_URL`                      | Secret   | `backup-weekly.yml`, in the `production-backup` environment         |
 | `XOS_SYNTHETIC_EMAIL`, `XOS_SYNTHETIC_PASSWORD` | Secret   | `synthetics.yml`                                                    |
 | `XOS_ALERT_WEBHOOK_URL`                         | Secret   | `synthetics.yml`, alerts to on-call                                 |
 | `ANTHROPIC_API_KEY`                             | Secret   | `ai-evals` (gate 21)                                                |
@@ -381,6 +426,10 @@ A preview or production build on EAS stops in `apps/compass/app.config.ts` when 
 Uploads are scanned by self-hosted ClamAV (owner decision 10, ADR 0034). Until clamd answers, every upload
 stays quarantined: attachments cannot be downloaded, imports wait, and private uploads reach only their
 uploader. Files never leave XOS infrastructure, so ClamAV is not a subprocessor.
+
+**Hosting (owner approved 2026-10-24):** one always-on Fly.io machine with stunnel in front of clamd, reached by the
+Edge Functions over mutual TLS. The files and the owner's steps are in `infra/scanning/fly/README.md`. The rest of this
+section describes clamd itself, for that machine or any other host.
 
 **Run clamd**
 
@@ -694,7 +743,7 @@ For local development, create a separate Web client with the redirect URI `http:
 ### 3. The iOS client (Compass)
 
 1. Create client, application type **iOS**, name `Compass iOS`, bundle ID `pro.ghxstship.compass`. The App Store ID and Team ID are optional.
-2. Copy the client ID. Its reversed form (`com.googleusercontent.apps.<the part before .apps>`) is the URL scheme; `apps/compass/app.config.ts` adds it to the build from `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, so nothing is entered by hand. The client can be created now; its ID goes into EAS only when Sign in with Apple ships (step 6).
+2. Copy the client ID. Its reversed form (`com.googleusercontent.apps.<the part before .apps>`) is the URL scheme; `apps/compass/app.config.ts` adds it to the build from `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, so nothing is entered by hand. The client can be created and entered in EAS now (step 6): Compass shows the Google button on iOS only beside Sign in with Apple.
 
 ### 4. The Android clients (Compass)
 
@@ -718,10 +767,10 @@ The callback URL this page shows is the one entered in step 2. The redirect URLs
 
 1. In EAS (expo.dev, the project, Environment variables), add to the `production` and `preview` environments, visibility Plain text (they are public):
    - `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`: the Web client ID.
-   - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`: **not yet.** Leave it unset in both environments until Sign in with Apple ships in the same build (ADR 0033, decision 58); then add the iOS client ID.
+   - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`: the iOS client ID. Compass keeps the Google button off iOS until a build also carries `EXPO_PUBLIC_APPLE_SIGN_IN` (ADR 0033, decision 58; "Sign in with Apple (OWNER)" below).
 2. Build Compass again (`eas build --platform all --profile production`, "Compass releases" below). The values are read at build time, and the Google SDK is a native module, so an over-the-air update is not enough.
 
-Without `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` Compass shows no Google button; without the iOS client ID it shows none on iOS, which is how iOS ships until Sign in with Apple.
+Without `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` Compass shows no Google button; without the iOS client ID, or without Sign in with Apple in the same build, it shows none on iOS, which is how iOS ships until Sign in with Apple.
 
 ### 7. Verify
 
@@ -732,6 +781,86 @@ Without `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` Compass shows no Google button; witho
 5. Cancel on Google's account picker: the sign-in page says you left before it finished.
 
 Rollback: turn "Enable Sign in with Google" off. The buttons disappear within five minutes (Atlas and Gateway cache the provider list); accounts keep their google identity and can still sign in by email.
+
+## Sign in with Apple (OWNER)
+
+Compass offers "Sign in with Apple" on iOS (ADR 0033 decision 58, App Store Review Guideline 4.8; ADR 0036, amendment of 2026-10-23). The phone signs in with Apple's own sheet and hands Apple's identity token, with a nonce Supabase Auth checks, to the Supabase project. On iOS the Google button shows only beside Apple's, so until this section is done an iOS build shows neither; Android keeps Google. Atlas and Gateway do not offer Apple, even with the provider on.
+
+**The App ID and the callback URL in the table below are the real ones; every other value is an example of the format, not a real value.** The key file is a secret: keep it in the owner's secret store and never commit it, paste it in a ticket or send it in chat. Identifiers are not secrets.
+
+| Value                  | Where it comes from                                               | Value, or an example of its format                          |
+| ---------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- |
+| Team ID                | Apple Developer, Membership details                               | 10 letters and digits, such as `AB12CD34EF` (an example)    |
+| App ID (bundle ID)     | Already registered for Compass ("Compass releases" below)         | `pro.ghxstship.compass` (real)                              |
+| Services ID            | Certificates, Identifiers and Profiles, Identifiers, Services IDs | A reverse-domain identifier, such as `pro.ghxstship.signin` |
+| Sign in with Apple key | Certificates, Identifiers and Profiles, Keys (downloaded once)    | A `.p8` file named `AuthKey_<key ID>.p8`                    |
+| Key ID                 | The same key's page                                               | 10 letters and digits                                       |
+| Supabase callback URL  | Supabase, Authentication, Sign In / Providers, Apple              | `https://fquuqnzlpobaawucczgq.supabase.co/auth/v1/callback` |
+
+### 1. The App ID (Compass)
+
+1. Certificates, Identifiers and Profiles, Identifiers, `pro.ghxstship.compass`: tick **Sign in with Apple** (Enable as a primary App ID) and save. EAS also asks for the capability when it next signs a build with `EXPO_PUBLIC_APPLE_SIGN_IN` set (step 5), because the build sets `ios.usesAppleSignIn`; doing it here first avoids a failed build.
+2. Each Enterprise tenant build (`tenant-<slug>`, "Compass tenant builds") has its own bundle ID: tick the capability on each one too, in the tenant's Apple account.
+
+### 2. The Services ID
+
+The Services ID is what Apple knows the web sign-in by, and what the key in step 3 signs a client secret for when Atlas or Gateway offer Apple. Compass's native sign-in and its token revocation use the bundle ID instead, but the Services ID is set up now so the web flow (ADR 0036, amendment follow-ups) does not wait on Apple later.
+
+1. Identifiers, the plus button, **Services IDs**, description `XOS Sign in with Apple`, identifier as in the table.
+2. Tick **Sign in with Apple**, Configure: primary App ID `pro.ghxstship.compass`; Domains and Subdomains `fquuqnzlpobaawucczgq.supabase.co`; Return URLs the Supabase callback URL from the table. Save, then Continue and Register.
+
+### 3. The key
+
+1. Keys, the plus button, name `XOS Sign in with Apple`, tick **Sign in with Apple**, Configure: primary App ID `pro.ghxstship.compass`. Register.
+2. Download the `.p8` file (Apple offers it once) into the owner's secret store with its Key ID and the Team ID, and delete the downloaded copy.
+3. Give the key to the `apple-revoke` Edge Function. When a person who signs in with Apple deletes their account, Compass asks Apple's sheet once more for a fresh authorization code, and the function exchanges it and revokes Compass's Apple tokens, as App Store Review Guideline 5.1.1(v) asks (ADR 0036, amendment of 2026-10-23, decision 8). It signs a five-minute client secret for each request and stores nothing. Until these secrets are set it answers 503, and Compass tells the person to remove Compass from Sign in with Apple in their Apple Account settings:
+
+   ```sh
+   npx supabase secrets set --project-ref <project-ref> \
+     APPLE_TEAM_ID=<10 characters> APPLE_SIGN_IN_KEY_ID=<10 characters> \
+     APPLE_SIGN_IN_KEY_PEM="$(cat AuthKey_<key ID>.p8)" APPLE_SIGN_IN_CLIENT_IDS=pro.ghxstship.compass
+   npx supabase functions deploy apple-revoke --project-ref <project-ref>
+   ```
+
+   `APPLE_TEAM_ID` is the same team ID `wallet-pass` uses. `APPLE_SIGN_IN_CLIENT_IDS` lists the bundle IDs this team's key serves, comma-separated: Compass's, and a tenant build's only when that build is signed by the same team. A tenant build in the tenant's own Apple account needs its own key and is not revoked by this function, so its people get the same instruction. Read the `.p8` file from the secret store; the key never goes into this repository, a ticket or a chat.
+
+4. The same key signs the client secret Supabase's Apple provider takes for the web flow, a JWT that Apple accepts for at most six months: when Atlas or Gateway offer Apple, generate it from the Team ID, Key ID, Services ID and the key with Supabase's documented tool, enter it in step 4's Secret Key field and set a reminder to replace it within six months.
+
+### 4. Supabase (Authentication, Sign In / Providers, Apple) (OWNER CONFIRMS)
+
+| Setting                   | Value                                                                                                                                                        |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Enable Sign in with Apple | On                                                                                                                                                           |
+| Client IDs                | `pro.ghxstship.compass`, then the Services ID, then each tenant build's bundle ID, comma-separated, no spaces. The first is the audience of Compass's tokens |
+| Secret Key (for OAuth)    | Empty for now (step 3)                                                                                                                                       |
+| Skip nonce checks         | **Off.** Compass sends the nonce, and Supabase Auth refuses a token whose nonce does not match                                                               |
+| Allow users without email | Off                                                                                                                                                          |
+
+Accounts link by verified email as with Google (ADR 0036, decision 5). A person who chooses Hide My Email gets a `privaterelay.appleid.com` address and an account of its own.
+
+### 5. Email to private relay addresses
+
+Apple forwards mail sent to a `privaterelay.appleid.com` address only from domains registered with it. Without this step, sign-in links and notifications to people who hid their email bounce.
+
+1. Certificates, Identifiers and Profiles, Services, **Sign in with Apple for Email Communication**, Configure.
+2. Add the sending domain `mail.ghxstship.tech` and the From address set as `XOS_EMAIL_FROM` and in Supabase SMTP ("Email from mail.ghxstship.tech" above). Apple checks the domain's SPF record, which the Resend setup adds.
+
+### 6. Compass (EAS) and a new build
+
+1. In EAS, Environment variables, add `EXPO_PUBLIC_APPLE_SIGN_IN` with the value `1` to `production` and `preview`, visibility Plain text.
+2. Build Compass again (`eas build --platform ios --profile production`, "Compass releases" below). The capability and the native module are part of the binary, so an over-the-air update is not enough. Android builds are unchanged.
+
+### 7. Verify
+
+1. Compass on an iPhone: the sign-in page shows Sign in with Apple, then Continue with Google.
+2. Sign in with Apple with an Apple ID that has no XOS account and share the email: a new account with the name from Apple.
+3. Sign in with Apple choosing Hide My Email: a new account; a sign-in link sent to it arrives (step 5).
+4. Sign in with Apple using the email of an existing XOS account: you land in that account, its name unchanged.
+5. Close Apple's sheet: the sign-in page says you left before it finished.
+6. In the account from step 2, Settings, Account, delete the account: Compass shows Apple's sheet once more before deleting. Afterwards the Apple Account's Sign in with Apple list (Settings on the iPhone, the Apple Account, Sign in with Apple) no longer shows Compass. A 503 from `apple-revoke` in the function logs means step 3's secrets are missing.
+7. Compass on Android: Continue with Google only, as before.
+
+Rollback: build Compass without `EXPO_PUBLIC_APPLE_SIGN_IN`, which removes both buttons on iOS. Turning the provider off in Supabase alone leaves the button in place and refuses the sign-in. Accounts keep their apple identity and can still sign in by email.
 
 ## Feedback triage and sandboxes (OWNER)
 
@@ -745,12 +874,33 @@ Rollback: turn "Enable Sign in with Google" off. The buttons disappear within fi
 | Errors        | Sentry projects `xos-atlas` and `xos-gateway`, plus the Edge Functions' DSN; scrubbed of personal data (`infra/observability`)                                   | Create one alert rule per project: a new issue, or more than 10 events in 5 minutes, emails on-call                                                           |
 | Logs          | Vercel runtime logs; Supabase logs (API, Postgres, Auth, Edge Functions). One JSON line per event, with `request_id`                                             | Search by `x-request-id` from a user report. Log drains go to Better Stack (ADR 0033, decision 45): **OWNER** creates the account and a source for each drain |
 | Uptime        | `synthetics.yml` every 5 minutes from `us-east`: sign-in, Gateway, API, Realtime, sync, notifications; Better Stack every minute from five regions (decision 45) | A failed required check posts to `XOS_ALERT_WEBHOOK_URL` and turns the status page red                                                                        |
-| Status page   | `https://status.ghxstship.tech` (decision 72): GitHub Pages from `gh-pages`, history on `status-data`, incidents in `infra/status/incidents.json`                | Public; updated every synthetics run                                                                                                                          |
+| Status page   | `https://status.ghxstship.tech` (decision 72): the Vercel project `status`, history on `status-data`, incidents in `infra/status/incidents.json`                 | Public; updated every synthetics run                                                                                                                          |
 | Deploy health | The release gate's error rate and p95 per rollout stage                                                                                                          | Rolls back on its thresholds (`progressive-delivery.md`)                                                                                                      |
 | Database      | Supabase reports (CPU, connections, disk), advisors, and the weekly restore drill                                                                                | Supabase usage emails at 80 percent of plan quotas                                                                                                            |
-| Backups       | Daily backups listed in Dashboard, Backups; `backup-weekly.yml` run status                                                                                       | A failed weekly backup run emails the repository admins                                                                                                       |
+| Backups       | Daily backups listed in Dashboard, Backups; `backup-weekly.yml` run status                                                                                       | A failed scheduled run emails whoever last changed the workflow's schedule or re-enabled it, not the admins (`backup-and-restore.md`, step 4)                 |
 
 One-minute checks from five regions (Section 5.1) run on Better Stack (ADR 0033, decision 45; `infra/ci/README.md`, Frequency and regions). **OWNER** creates the account. Its monitors cover the components `infra/synthetics` checks, sign in only as the synthetic account and alert on-call; `synthetics.yml` keeps feeding the status page. Vercel and Supabase each drain their logs to a Better Stack source, which is on the Subprocessor List.
+
+**Mask bearer tokens in the log drains (OWNER, finding A69-012).** Vercel's request log records every path, and some
+paths carry a bearer token: `/share/`, `/advance/`, `/sign/`, `/auth/invite/` and `/ical/`. The app's redactor never
+sees that log, so each Better Stack source that receives a drain (Vercel's and Supabase's) masks the tokens before it
+stores anything. In Better Stack, open the source, then Transformations, and add this VRL (approved by the owner on
+2026-10-24):
+
+```
+# A69-012: a bearer token in a request path or a prefixed secret never reaches the log store.
+. = map_values(., recursive: true) -> |v| {
+  if is_string(v) {
+    s = replace(string!(v), r'(^|[\s"(=,]|//[^/\s"]+)(/(?:share|advance|sign|auth/invite|ical)/)[^/?#\s"]+', "$1$2[token]")
+    replace(s, r'(?i)(?:xadv|xagr|xcal|xdlt|xdoc|xinv|xkio|xlnk|xshr|xspn|xspu|xos_pat|xos_scim)_[0-9a-f]{16,}', "[token]")
+  } else {
+    v
+  }
+}
+```
+
+Check it with Better Stack's test event: a Vercel request line for `/share/xshr_` followed by 64 hex digits must be
+stored as `/share/[token]`.
 
 ## On-call checklist
 

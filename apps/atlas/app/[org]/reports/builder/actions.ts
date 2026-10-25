@@ -17,7 +17,8 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
-import { fromDataError, type WorkflowActionState } from "@/lib/workflow/state";
+import { type WorkflowActionState } from "@/lib/workflow/state";
+import { fromDataError } from "@/lib/workflow/data-error";
 
 /**
  * Report builder actions (A33 on A18's report definitions, 0550): preview a definition as the

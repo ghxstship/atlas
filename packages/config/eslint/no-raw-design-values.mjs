@@ -11,6 +11,8 @@
  * Module specifiers and directives are not design values and are skipped.
  */
 
+import { noServerConsole } from "./no-server-console.mjs";
+
 const HEX = /(?:^|[^&\w])(#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4}))(?![\w-])/gi;
 const COLOR_FUNCTION = /\b((?:rgba?|hsla?|hwb|lab|lch|oklab|oklch|color)\()/gi;
 const PIXELS = /(?:^|[^\w.-])(-?(?:\d+(?:\.\d*)?|\.\d+)px)\b/gi;
@@ -169,7 +171,7 @@ export const noRawDesignValues = {
 /** ESLint plugin namespace `xos`. */
 export const xosPlugin = {
   meta: { name: "@xos/eslint-plugin" },
-  rules: { "no-raw-design-values": noRawDesignValues },
+  rules: { "no-raw-design-values": noRawDesignValues, "no-server-console": noServerConsole },
 };
 
 /**
