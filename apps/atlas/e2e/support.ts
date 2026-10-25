@@ -54,6 +54,12 @@ export async function expectAccessible(page: Page): Promise<void> {
       { timeout: 5_000 },
     )
     .catch(() => undefined);
+  // Next streams the page's metadata, so on a loaded runner the title can land after the body; axe's
+  // document-title rule would then fail a page that has one (run 40123982182). A page with no title
+  // still fails once this wait gives up.
+  await page
+    .waitForFunction(() => document.title.trim() !== "", undefined, { timeout: 10_000 })
+    .catch(() => undefined);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
