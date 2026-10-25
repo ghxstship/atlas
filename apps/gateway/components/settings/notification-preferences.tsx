@@ -18,8 +18,9 @@ export interface PreferenceRow {
 }
 
 /**
- * The external party's notification choices (migration 1131): one row per category with an Email
- * and a Push checkbox. In-app notifications always show on Home.
+ * The external party's notification choices (migration 1131): one group per category with a checkbox for
+ * each channel its kinds reach, Email and Push at most (partyChannels, A104), so no switch offers a channel
+ * that cannot deliver. In-app notifications always show on Home.
  */
 export function NotificationPreferences({ rows }: { rows: readonly PreferenceRow[] }) {
   const t = useTranslations("gateway.settings.notifications") as unknown as Translate;

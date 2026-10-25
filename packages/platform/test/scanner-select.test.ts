@@ -8,6 +8,7 @@ import { connect as tcpConnect } from "node:net";
 import { describe, expect, it } from "vitest";
 import {
   CLAMAV_DEFAULT_PORT,
+  clamdTls,
   ScannerUnavailableError,
   checkContent,
   clamavScanner,
@@ -75,6 +76,44 @@ describe("scanner choice", () => {
     expect(
       scannerChoice(envOf({ XOS_CLAMAV_HOST: " 10.0.0.5 ", XOS_CLAMAV_PORT: "13310" })),
     ).toEqual({ kind: "clamav", host: "10.0.0.5", port: 13310 });
+  });
+
+  // Hosted Edge Functions cannot join a private network, so clamd is reached over mutual TLS (infra/scanning/fly).
+  it("connects over mutual TLS when the CA, certificate and key are all set, and never puts the key in the choice", async () => {
+    const pem = (label: string) => `-----BEGIN ${label}-----\\nAAAA\\n-----END ${label}-----`;
+    const env = envOf({
+      XOS_CLAMAV_HOST: "clamav-xos.fly.dev",
+      XOS_CLAMAV_PORT: "3311",
+      XOS_CLAMAV_TLS_CA: pem("CERTIFICATE"),
+      XOS_CLAMAV_TLS_CERT: pem("CERTIFICATE"),
+      XOS_CLAMAV_TLS_KEY: pem("TEST KEY"),
+    });
+    const choice = scannerChoice(env);
+    expect(choice).toEqual({ kind: "clamav", host: "clamav-xos.fly.dev", port: 3311, tls: true });
+    expect(JSON.stringify(choice)).not.toContain("TEST KEY");
+    expect(clamdTls(env)?.key).toBe("-----BEGIN TEST KEY-----\nAAAA\n-----END TEST KEY-----");
+
+    const seen: unknown[] = [];
+    const clamd = fakeClamd();
+    const selected = selectVirusScanner({
+      env,
+      connect: (host, port, tls) => {
+        seen.push([host, port, tls?.key.includes("TEST KEY")]);
+        return clamd.connect(host, port);
+      },
+      warn: () => undefined,
+    });
+    expect(await selected.scanner?.scan(encode("a,b\n1,2\n"))).toEqual({ clean: true });
+    expect(seen).toEqual([["clamav-xos.fly.dev", 3311, true]]);
+  });
+
+  it("refuses a partial mutual TLS setup", () => {
+    expect(() =>
+      scannerChoice(
+        envOf({ XOS_CLAMAV_HOST: "clamd", XOS_CLAMAV_TLS_CA: "ca", XOS_CLAMAV_TLS_CERT: "cert" }),
+      ),
+    ).toThrow(/XOS_CLAMAV_TLS_KEY/);
+    expect(clamdTls(envOf({}))).toBeNull();
   });
 
   it("refuses a port that is not a TCP port", () => {

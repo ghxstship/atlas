@@ -409,13 +409,7 @@
     "description": "Apps you allowed to act for you. Each can do only what you can, in the areas you approved.",
     "none": "You have not connected any apps.",
     "registeredBy": "Registered by {org}",
-    "granted": "Allowed {date}",
-    "revokeConfirm": {
-      "title": "Disconnect {app}?",
-      "body": "The app can no longer act for you. Connect it again to give it access.",
-      "confirm": "Disconnect"
-    },
-    "toIntegrations": "Your organization's integrations"
+    "granted": "Allowed {date}"
   },
   "payout": {
     "title": "Payout details",

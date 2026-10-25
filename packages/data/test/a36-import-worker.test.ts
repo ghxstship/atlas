@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { describe, expect, it } from "vitest";
 import {
   drainImportJobs,
+  importReviewUrl,
   ImportWriteError,
   readSheet,
   runImportJobs,
@@ -121,6 +122,8 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
   }[] = [];
   const issues: { rowId: string; issue: string }[] = [];
   const finished: { jobId: string; ok: boolean }[] = [];
+  const notices: { jobId: string; batchId: string | null; url: string }[] = [];
+  const notice = { error: null as string | null, slug: "northwind-live" as string | null };
   let batchDone = false;
   const scan = { status: "Clean" as string | null, downloads: 0 };
   const store: ImportStore = {
@@ -220,9 +223,16 @@ function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", so
       batchDone = true;
       job.status = "Committed";
     },
+    orgSlug: async (orgId) => (orgId === job.orgId ? notice.slug : null),
+    async notifyFinished(input) {
+      if (notice.error) throw new Error(notice.error);
+      notices.push(input);
+    },
   };
   return {
     store,
+    notices,
+    notice,
     scan,
     job,
     sheets,
@@ -478,6 +488,73 @@ describe("import worker", () => {
       target: "unit1",
     });
     expect(s.rows.find((r) => r.rowNumber === 3)?.written).toMatchObject({ action: "Created" });
+  });
+});
+
+describe("import.finished (A104)", () => {
+  const appUrl = "https://atlas.example";
+  const review = "https://atlas.example/northwind-live/import?import=j1";
+
+  it("links to the import in the Atlas import wizard", () => {
+    expect(importReviewUrl(appUrl, "northwind-live", "j1")).toBe(review);
+    expect(importReviewUrl("https://atlas.example/", "acme & co", "j 2")).toBe(
+      "https://atlas.example/acme%20%26%20co/import?import=j+2",
+    );
+  });
+
+  it("tells the person once when validation finishes and once when the commit finishes", async () => {
+    const s = memoryStore("Company\nBayfront Catering\n,\n");
+    await runImportJobs(s.store, "w", 10, { appUrl });
+    expect(s.notices).toEqual([]);
+    s.confirm({});
+    await runImportJobs(s.store, "w", 10, { appUrl });
+    expect(s.job.status).toBe("Validated");
+    expect(s.notices).toEqual([{ jobId: "j1", batchId: null, url: review }]);
+    s.commit();
+    const results = await drainImportJobs(s.store, "w", 5, { appUrl });
+    expect(results.map((r) => r.status)).toEqual(["Succeeded"]);
+    expect(s.notices).toEqual([
+      { jobId: "j1", batchId: null, url: review },
+      { jobId: "j1", batchId: "b1", url: review },
+    ]);
+  });
+
+  it("tells nobody when the worker has no Atlas address, or a step has nothing to do", async () => {
+    const s = memoryStore("Company\nBayfront Catering\n");
+    await runImportJobs(s.store, "w");
+    s.confirm({});
+    await runImportJobs(s.store, "w");
+    expect(s.job.status).toBe("Validated");
+    expect(s.notices).toEqual([]);
+    s.queue.push({ kind: "import.validate", jobId: "q4", subjectId: "j1", attempts: 0 });
+    await runImportJobs(s.store, "w", 10, { appUrl });
+    expect(s.notices).toEqual([]);
+  });
+
+  it("keeps a finished step when the notice cannot be sent, and says why", async () => {
+    const s = memoryStore("Company\nBayfront Catering\n");
+    await runImportJobs(s.store, "w", 10, { appUrl });
+    s.confirm({});
+    s.notice.error = "notify_import_finished: permission denied";
+    const results = await runImportJobs(s.store, "w", 10, { appUrl });
+    expect(results).toEqual([
+      expect.objectContaining({
+        kind: "import.validate",
+        status: "Succeeded",
+        noticeError: "notify_import_finished: permission denied",
+      }),
+    ]);
+    expect(s.job.status).toBe("Validated");
+    expect(s.finished.at(-1)).toEqual({ jobId: "q2", ok: true });
+    s.notice.error = null;
+    s.notice.slug = null;
+    s.commit();
+    const committed = await runImportJobs(s.store, "w", 10, { appUrl });
+    expect(committed[0]).toMatchObject({
+      status: "Succeeded",
+      noticeError: "The org of import j1 has no slug.",
+    });
+    expect(s.notices).toEqual([]);
   });
 });
 

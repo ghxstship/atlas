@@ -1,6 +1,7 @@
 import { listEnabledAiFeatures, type AiFeature } from "@xos/data/ai";
 import { cache } from "react";
 import type { OrgContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * The Aurora features the viewer may use in this org now: turned on in Settings, AI Features and
@@ -12,7 +13,9 @@ import type { OrgContext } from "@/lib/shell/context";
 export const getAiFeatures = cache(async (ctx: OrgContext): Promise<readonly AiFeature[]> => {
   const result = await listEnabledAiFeatures(ctx.viewer.db, ctx.org.id);
   if (result.ok) return result.data;
-  console.error("Cannot read the enabled AI features; hiding every AI entry point", result.error);
+  observability.logger.error("Cannot read the enabled AI features; hiding every AI entry point", {
+    error: result.error,
+  });
   return [];
 });
 
