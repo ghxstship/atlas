@@ -1,6 +1,6 @@
 /**
  * The person's certifications and documents on the Compass Profile (A109, Section 4.3 item 13). They come from
- * api_external.my_profile_certifications and api_external.my_profile_documents (1730) through the REST downloader, so the
+ * api_external.my_profile_certifications and api_external.my_profile_documents (2080) through the REST downloader, so the
  * Profile reads them from the device and shows them offline.
  *
  * Expiry follows A89's reminder job (private.send_expiry_reminders, 1463; ADR 0045 section 7). Days left count on each

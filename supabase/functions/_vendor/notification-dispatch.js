@@ -36,6 +36,7 @@ var exportReady = z.object({
 });
 var importFinished = z.object({
   importName: z.string(),
+  stage: z.enum(["validated", "committed"]).default("committed"),
   written: z.number().int().nonnegative(),
   refused: z.number().int().nonnegative(),
   skipped: z.number().int().nonnegative(),

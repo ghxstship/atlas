@@ -1,4 +1,4 @@
--- 1730_compass_profile_credentials.sql
+-- 2080_compass_profile_credentials.sql
 --
 -- A109 (RRR-154), Section 4.3 item 13 (trace S4.3-16): Compass's Profile shows the person's certifications and
 -- documents, and reads them offline. The REST downloader pulls both lists into the device's offline store, as it does

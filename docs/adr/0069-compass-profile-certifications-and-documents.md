@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-24
 - Decider: A109 (RRR-154), trace row S4.3-16
-- Migrations: 1730
+- Migrations: 2080
 
 ## Context
 
@@ -15,7 +15,7 @@ A crew member needs these lists where they work, often with no signal: at a gate
 
 ### 1. The Profile lists exactly what the expiry job reminds
 
-`api_external.my_profile_certifications` and `api_external.my_profile_documents` (1730) return the items `private.send_expiry_reminders` considers for the caller, with the same rules:
+`api_external.my_profile_certifications` and `api_external.my_profile_documents` (2080) return the items `private.send_expiry_reminders` considers for the caller, with the same rules:
 
 - **Certifications:** the org holder records the person holds, and the certifications on their own profile.
   - A renewed record or entry hides the one it replaced.

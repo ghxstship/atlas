@@ -92,7 +92,8 @@
         "groups": "Groups",
         "chat": "Chat",
         "recognition": "Recognition",
-        "helpDesk": "Help Desk"
+        "helpDesk": "Help Desk",
+        "moderation": "Reported Content"
       },
       "opportunities": {
         "requisitions": "Requisitions",

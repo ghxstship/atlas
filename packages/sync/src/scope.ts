@@ -207,7 +207,7 @@ export const TABLE_RULES: readonly TableRule[] = [
     ],
   },
   // The person's own certifications and documents on the Compass Profile (Section 4.3 item 13, A109): api_external views
-  // that return only the signed-in person's rows (1730), for every audience. PowerSync does not replicate views, so the
+  // that return only the signed-in person's rows (2080), for every audience. PowerSync does not replicate views, so the
   // REST downloader serves them.
   {
     table: "profile_certifications",

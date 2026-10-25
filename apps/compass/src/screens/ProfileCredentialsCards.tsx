@@ -25,7 +25,7 @@ import { Button, Card, InlineAlert, ListRow, Skeleton, Tag, Text } from "../ui";
 
 /**
  * The certifications and documents on the Compass Profile (Section 4.3 item 13, A109). Both lists are the person's own
- * rows (api_external.my_profile_certifications and my_profile_documents, 1730), downloaded to the device with the rest
+ * rows (api_external.my_profile_certifications and my_profile_documents, 2080), downloaded to the device with the rest
  * of their work, so they read offline. Each card calls out what expires within the reminder job's thresholds (30, 7 and
  * 1 days, 1463). A document with a file opens it through a short-lived signed URL while online. Editing stays where the
  * person keeps them: their Gateway profile, or Atlas for an internal member.

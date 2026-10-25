@@ -35,6 +35,7 @@ executionOrder:
     - supervisor-kiosk
     - supervisor-kiosk-rekey
     - field-expense-receipt
+    - field-report-block
     - crew-external-today
     - crew-external-work
     - profile-credentials

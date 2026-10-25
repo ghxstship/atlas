@@ -833,7 +833,13 @@
     "guest_credential_holder": "That credential belongs to someone else.",
     "lost_item_not_held": "Only a held item takes a claim.",
     "lost_item_claim_settled": "This claim is already settled.",
-    "lost_item_rejection_note": "Say why the claim is rejected."
+    "lost_item_rejection_note": "Say why the claim is rejected.",
+    "content_report_own": "You cannot report your own post, comment or message.",
+    "content_report_removed": "This was already removed.",
+    "block_self": "You cannot block yourself.",
+    "content_moderation_own": "Another moderator decides reports about your own post, comment or message.",
+    "content_moderation_nothing_open": "Every report about this was already decided.",
+    "content_moderation_authority": "Reviewing reported content needs permission to manage communication."
   },
   "settingsPanels": {
     "groupsTitle": "Group spaces",
@@ -1173,5 +1179,69 @@
       "itemTitle": "{category}: {description}",
       "meta": "{number} · {place} · {count} claims waiting"
     }
+  },
+  "moderation": {
+    "title": "Reported Content",
+    "intro": "Posts, comments and messages people reported to your organization's moderators. Decide each within 24 hours. The people who reported it, and on removal its author, receive your statement of reasons; nobody is told who decided or who reported.",
+    "sections": "Show",
+    "open": "Open",
+    "decided": "Decided",
+    "what": "the reported content",
+    "empty": "Nothing is waiting. Reports people file from a post, comment or message appear here.",
+    "emptyDecided": "No report has been decided yet.",
+    "kinds": {
+      "feedPost": "Post",
+      "comment": "Comment",
+      "chatMessage": "Message"
+    },
+    "reasons": {
+      "harassment": "Harassment or bullying",
+      "hate": "Hate speech or symbols",
+      "sexualContent": "Sexual content",
+      "violence": "Violence or threats",
+      "spam": "Spam or a scam",
+      "other": "Something else"
+    },
+    "states": {
+      "overdue": "Overdue",
+      "open": "Open",
+      "removed": "Removed",
+      "noAction": "No action"
+    },
+    "content": "Content",
+    "kind": "Kind",
+    "author": "Author",
+    "reports": "Reports",
+    "reasonsLabel": "Reasons",
+    "due": "Due",
+    "line": "{kind} by {author}: {reasons}",
+    "reportsCount": "{open} open of {total}",
+    "where": "Where",
+    "firstReported": "First reported",
+    "removedNote": "This was removed. What follows is what was reported.",
+    "current": "As it reads now",
+    "snapshot": "As reported",
+    "reportLine": "{reason}, reported by {name} on {date}",
+    "noDetails": "No details given.",
+    "decisions": "Decisions",
+    "decisionLine": "{action} on {date} by {name}",
+    "actions": {
+      "removed": "Removed",
+      "noAction": "No action"
+    },
+    "decide": "Decide",
+    "decision": "Decision",
+    "choices": {
+      "removeTerms": "Remove it: it breaks the terms or your organization's rules",
+      "removeIllegal": "Remove it: it is illegal",
+      "noAction": "Take no action: it breaks no rule"
+    },
+    "ruleReference": "Rule relied on",
+    "ruleReferenceHelp": "For example Acceptable Use Policy 1, or a section of your organization's code of conduct.",
+    "facts": "Facts",
+    "factsHelp": "What the content says or does that the decision rests on.",
+    "statement": "Statement of reasons",
+    "statementHelp": "Sent to the people who reported it and, when you remove it, to its author.",
+    "submit": "Record Decision"
   }
 }

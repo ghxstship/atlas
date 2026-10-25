@@ -1,4 +1,4 @@
--- pgTAP: migration 1730, the Compass Profile's certifications and documents (A109, RRR-154, Section 4.3 item 13). Each
+-- pgTAP: migration 2080, the Compass Profile's certifications and documents (A109, RRR-154, Section 4.3 item 13). Each
 -- view returns only the caller's own rows: the certifications the expiry job reminds them of (1463), with a carried
 -- profile entry shown as its org record and a renewed record hiding the old one; their signed engagement documents,
 -- the certificates of insurance of an account they answer for, and their passport's expiry without its number. Another

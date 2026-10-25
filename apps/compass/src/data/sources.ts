@@ -564,7 +564,7 @@ export const CANON_DOMAIN: Readonly<Record<string, string>> = {
 
 /**
  * The person's own certifications and documents for the Compass Profile (Section 4.3 item 13, A109). The views return
- * only the signed-in person's rows (1730), so every audience reads them there, members included.
+ * only the signed-in person's rows (2080), so every audience reads them there, members included.
  */
 const PERSON_SOURCES: readonly Source[] = [
   {

@@ -2088,6 +2088,13 @@ export const HELP_BODIES: HelpBodies = {
               v: ": ask an internal team for help. Choose the team, a category and a severity; each team shows how quickly it answers. Admins set up the teams in Settings, Help and Support.",
             },
           ],
+          [
+            { t: "strong", v: "Reported Content" },
+            {
+              t: "text",
+              v: ": posts, comments and messages people reported, for the Owners, Admins and anyone else who manages communication. Decide each within 24 hours: remove it or take no action, name the rule, the facts and your statement of reasons. The people who reported it, and on removal its author, receive the statement; nobody is told who decided. Reports about your own posts, comments and messages never reach you: another moderator decides them.",
+            },
+          ],
         ],
       },
     ],
@@ -4191,6 +4198,13 @@ export const HELP_BODIES: HelpBodies = {
             {
               t: "text",
               v: ": pida ayuda a un equipo interno. Elija el equipo, una categoría y una gravedad; cada equipo indica en cuánto tiempo responde. Los administradores configuran los equipos en Configuración, Ayuda y soporte.",
+            },
+          ],
+          [
+            { t: "strong", v: "Contenido denunciado" },
+            {
+              t: "text",
+              v: ": publicaciones, comentarios y mensajes que se denunciaron, para los propietarios, los administradores y cualquier otra persona que gestione la comunicación. Decida cada uno en 24 horas: elimínelo o no tome medidas, e indique la norma, los hechos y su declaración de motivos. Quienes lo denunciaron y, si lo elimina, quien lo escribió reciben la declaración; no se dice a nadie quién decidió. Las denuncias sobre sus propias publicaciones, comentarios y mensajes nunca le llegan: las decide otro moderador.",
             },
           ],
         ],

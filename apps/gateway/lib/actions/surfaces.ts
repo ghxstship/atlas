@@ -12,7 +12,7 @@ import { revokeConnectedApp } from "@xos/data/connected-apps";
 import { createPersonalToken, revokePersonalToken } from "@xos/data/developer";
 import { removeAccountRole } from "@xos/data/account-roles";
 import { addAccountMember } from "@xos/data/gateway";
-import { PARTY_CATEGORIES, PARTY_CHANNELS } from "@xos/data/party-notifications";
+import { PARTY_CATEGORIES, partyChannels } from "@xos/data/party-notifications";
 import { z } from "zod";
 import type { SimpleFormState } from "@/components/forms/simple-form";
 import { outcomeFor, toAction, type ActionResult } from "@/lib/action-result";
@@ -163,19 +163,23 @@ export async function stepDownAction(membershipId: string): Promise<ActionResult
 
 // Company: notification defaults -----------------------------------------------------------------------------
 
+/**
+ * Saves the company's defaults for the one category its form shows, on the channels that category reaches (A104).
+ * Each category has its own form, so the others keep what they hold.
+ */
 export async function saveCompanyDefaultsAction(
   _: SecretFormState,
   form: FormData,
 ): Promise<SecretFormState> {
   const ctx = await ctxOr();
   if (!ctx.acting) return { outcome: "notFound" };
-  const defaults = PARTY_CATEGORIES.flatMap((category) =>
-    PARTY_CHANNELS.map((channel) => ({
-      category,
-      channel,
-      enabled: form.get(`${category}.${channel}`) === "on",
-    })),
-  );
+  const category = PARTY_CATEGORIES.find((c) => c === form.get("category"));
+  if (!category) return { outcome: "invalid" };
+  const defaults = partyChannels(category).map((channel) => ({
+    category,
+    channel,
+    enabled: form.get(`${category}.${channel}`) === "on",
+  }));
   const result = await saveAccountNotificationDefaults(ctx.db, ctx.acting.id, defaults);
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
