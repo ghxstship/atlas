@@ -1,4 +1,4 @@
--- 1661_supplier_certificate_number_encryption.sql
+-- 2011_supplier_certificate_number_encryption.sql
 -- A100 (RRR-145), trace row S9-12. 1464 classified a supplier diversity certificate number as a Restricted government
 -- identifier (data.restricted.read.government_id) but stored it in plain text, and handed it whole to every org reader
 -- holding that capability. It now follows the passport number of 1340, the government identifier rule of decision 38
@@ -13,7 +13,7 @@
 --     for every reader. The whole number leaves only through app.reveal_shared_supplier_diversity_number: a live share
 --     with an org running its program, vendors.vendor.read and data.restricted.read.government_id in that org, step-up
 --     (aal2) and a written reason, logged with the reason in the owner's access log and the org's audit ledger
---   * existing numbers are encrypted in place (private.encrypt_column_in_place, 1660) as stored; their last four is
+--   * existing numbers are encrypted in place (private.encrypt_column_in_place, 2010) as stored; their last four is
 --     derived from their letters and digits, and a number with none (only punctuation) identifies nothing and is
 --     cleared. Neither counts as the owner's edit, so the access log gains no rows
 

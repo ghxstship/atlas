@@ -1,4 +1,4 @@
--- pgTAP: migration 1661, supplier diversity certificate numbers encrypted at rest (A100, RRR-145, S9-12) under the
+-- pgTAP: migration 2011, supplier diversity certificate numbers encrypted at rest (A100, RRR-145, S9-12) under the
 -- government identifier rule of decision 38. The table holds only ciphertext under xos_supplier_certificate_number_key
 -- and the last four; the owner sets the number only through app.set_supplier_diversity_certificate_number; an org sees
 -- the last four, and the whole number only through app.reveal_shared_supplier_diversity_number with

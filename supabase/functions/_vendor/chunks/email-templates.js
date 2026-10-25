@@ -399,8 +399,11 @@ var templates = {
   },
   import_finished: {
     transactional: true,
-    compose: ({ importName, written, refused, skipped, url }, ctx) => {
-      const subject = ctx.t("import_finished.subject", { importName });
+    compose: ({ importName, stage = "committed", written, refused, skipped, url }, ctx) => {
+      const subject = ctx.t("import_finished.subject", {
+        importName,
+        stage,
+      });
       return {
         subject,
         element: /* @__PURE__ */ jsxs(Layout, {
@@ -408,7 +411,7 @@ var templates = {
           t: ctx.t,
           sender: ctx.sender,
           preview: subject,
-          heading: ctx.t("import_finished.heading"),
+          heading: ctx.t("import_finished.heading", { stage }),
           transactional: true,
           action: {
             label: ctx.t("import_finished.review"),
@@ -418,6 +421,7 @@ var templates = {
             /* @__PURE__ */ jsx(Greeting, { ctx }),
             /* @__PURE__ */ jsx(Paragraph, {
               children: ctx.t("import_finished.body", {
+                stage,
                 written,
                 refused,
                 skipped,

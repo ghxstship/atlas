@@ -6,7 +6,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * Supplier diversity certifications (Section 4.4.1, migration 1464, A65-031): self-declared by a
  * person or an external account, read and written only by the owner, shared one org at a time under
  * a separate supplier_diversity consent and only with an org that runs a supplier diversity program.
- * The certificate number is a Restricted government identifier, encrypted at rest (migration 1661):
+ * The certificate number is a Restricted government identifier, encrypted at rest (migration 2011):
  * write-only to the owner, who sees its last four characters; an org sees the last four too, and the
  * whole number only through an audited reveal that needs data.restricted.read.government_id, step-up
  * and a reason (decision 38). Org reads are audited.

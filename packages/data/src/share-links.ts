@@ -229,6 +229,11 @@ export interface OpenedShareLink {
   readonly watermark: boolean;
   readonly recipientEmail: string | null;
   readonly expiresAt: string | null;
+  /**
+   * The opened file version. A watermarked copy links to /files/{version}, which opens only for a
+   * member who may see the file, never to the share link itself (A69-013). Null until migration 2000.
+   */
+  readonly versionId: string | null;
 }
 
 export type ShareLinkOpen =
@@ -271,6 +276,7 @@ export async function openShareLink(
     watermark: boolean | null;
     recipient_email: string | null;
     expires_at: string | null;
+    attachment_version_id?: string | null;
   } | null;
   if (!row || row.refusal !== null || !row.ticket) {
     const reason = (SHARE_LINK_REFUSALS as readonly string[]).includes(row?.reason ?? "")
@@ -289,6 +295,7 @@ export async function openShareLink(
     watermark: row.watermark ?? false,
     recipientEmail: row.recipient_email,
     expiresAt: row.expires_at,
+    versionId: row.attachment_version_id ?? null,
   });
 }
 

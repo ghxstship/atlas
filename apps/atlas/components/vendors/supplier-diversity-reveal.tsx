@@ -11,7 +11,7 @@ const INITIAL: RevealState = {};
 const stepUpRefused = (state: RevealState) => state.rule === "step_up_required";
 
 /**
- * The audited reveal of a shared certificate number (decision 38, migration 1661), for members holding
+ * The audited reveal of a shared certificate number (decision 38, migration 2011), for members holding
  * data.restricted.read.government_id: they pick the certification and write why, the database asks for step-up
  * (the step-up dialog, then a retry) and logs the reason in the owner's access log and the org's audit ledger.
  * The number shows once in the form's state and is never kept.

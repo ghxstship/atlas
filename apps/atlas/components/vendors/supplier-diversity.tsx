@@ -14,7 +14,7 @@ import { SupplierDiversityReveal } from "./supplier-diversity-reveal";
  * 1464), under Vendors, Directory. Only while the org runs a program (gateway.supplier_diversity_program),
  * only for members holding vendors.vendor.read, and every read is logged in each owner's access log and the
  * org's audit ledger. The certificate number is a Restricted government identifier (Section 8.3), encrypted at
- * rest (1661): every reader sees its last four characters, and a member holding
+ * rest (2011): every reader sees its last four characters, and a member holding
  * data.restricted.read.government_id reveals the whole number with a reason and step-up (decision 38).
  */
 export async function SharedSupplierDiversity({ ctx }: { ctx: OrgContext }) {

@@ -221,7 +221,7 @@ export const incidentCorrections: readonly CorrectionInput[] = [
     change:
       "Emergency codes are read-only global canon keyed by `code`, served from xpms.emergency_code with `label`, `emergency`, `swatch` and `sort_order`; removes create, update and delete, the tenant base fields, `name` and `response`. Listed in canon order.",
     reason:
-      "Decision D15 and migration 0353: emergency codes are one global Standard Library shared by every organization and project, never copied per org; there is no app.emergency_codes table. Protocols per operational domain are xpms.emergency_protocol.",
+      "Decision D15 and migration 0353: the emergency code words are one global Standard Library shared by every organization and project, and this resource serves them as canon states them. An org's editable copy of the codes (its labels, emergencies and order) is app.emergency_codes (migration 1612, finding A65-027), which this resource does not serve. Protocols per operational domain are xpms.emergency_protocol.",
     apply: all(
       editShape({
         remove: [

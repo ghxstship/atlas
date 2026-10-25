@@ -62,6 +62,19 @@ function secretCopy(f: Formatters, kind: "key" | "token" | "webhook"): SecretCop
   };
 }
 
+/** A capability group in plain words, as the consent screen names it (Section 11.10 item 2). */
+function scopeLabel(f: Formatters, group: string): string {
+  return f.t(`authSecurity.scopes.${group}`);
+}
+
+function scopeOptions(f: Formatters, groups: readonly string[]) {
+  return groups.map((g) => ({ value: g, label: scopeLabel(f, g) }));
+}
+
+function scopeList(f: Formatters, groups: readonly string[]): string {
+  return f.t(`${P}.scopesList`, { scopes: groups.map((g) => scopeLabel(f, g)).join(", ") });
+}
+
 function confirm(f: Formatters, key: string, values: Record<string, string> = {}) {
   return {
     title: f.t(`${P}.${key}.title`, values),
@@ -226,7 +239,7 @@ export async function ApiKeysPanel({ ctx }: SettingsPanelProps) {
             meta: [
               <Code key="p">{shownPrefix(k.prefix)}</Code>,
               f.t(`${P}.apiKeys.actsAs`, { account: accountName(k.serviceAccountId) }),
-              f.t(`${P}.scopesList`, { scopes: k.scopes.join(", ") }),
+              scopeList(f, k.scopes),
               f.t(`${P}.expiry.until`, { date: f.day(k.expiresAt) }),
               k.lastUsedAt
                 ? f.t(`${P}.lastUsed`, { date: f.when(k.lastUsedAt) })
@@ -276,7 +289,7 @@ export async function ApiKeysPanel({ ctx }: SettingsPanelProps) {
                   name: "scopes",
                   label: f.t(`${P}.fields.scopes`),
                   help: f.t(`${P}.apiKeys.scopesHelp`),
-                  options: groups.data.map((g) => ({ value: g, label: g })),
+                  options: scopeOptions(f, groups.data),
                 },
                 {
                   kind: "select",
@@ -320,7 +333,7 @@ function tokenRows(
     meta: [
       <Code key="p">{shownPrefix(tok.prefix)}</Code>,
       showOwner ? showOwner(tok) : null,
-      f.t(`${P}.scopesList`, { scopes: tok.scopes.join(", ") }),
+      scopeList(f, tok.scopes),
       f.t(`${P}.expiry.until`, { date: f.day(tok.expiresAt) }),
       tok.lastUsedAt
         ? f.t(`${P}.lastUsed`, { date: f.when(tok.lastUsedAt) })
@@ -422,7 +435,7 @@ export async function MyTokensPanel({ ctx }: SettingsPanelProps) {
                 name: "scopes",
                 label: f.t(`${P}.fields.scopes`),
                 help: f.t(`${P}.tokens.scopesHelp`),
-                options: groups.map((g) => ({ value: g, label: g })),
+                options: scopeOptions(f, groups),
               },
               {
                 kind: "select",

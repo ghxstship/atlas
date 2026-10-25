@@ -52,7 +52,7 @@ select pg_temp.as_platform();
 -- Bank details: Restricted and masked (Section 8.3) ------------------------------------------------------
 select pg_temp.as_user('carol');
 select lives_ok($$select app.set_vendor_bank_account((select id from world where key = 'ven'), 'Gulf Coast Bank', 'Harborline Staging', '0001-2345-6789', '063100277')$$,
-  'a Manager records bank details through the encrypting RPC (1660)');
+  'a Manager records bank details through the encrypting RPC (2010)');
 select throws_ok($$insert into app.vendor_bank_accounts (vendor_id, bank_name, account_holder, account_last4) values ((select id from world where key = 'ven'), 'B', 'H', '1111')$$,
   '42501', null, 'bank details are never inserted directly');
 select pg_temp.as_user('dave');

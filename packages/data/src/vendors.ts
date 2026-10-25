@@ -807,7 +807,7 @@ function bankDigits(value: string | null): string {
 }
 
 /**
- * Adds a bank account through app.set_vendor_bank_account (migration 1660), which encrypts the
+ * Adds a bank account through app.set_vendor_bank_account (migration 2010), which encrypts the
  * numbers and derives the last four; the database logs the editor for sod_vendor_payment.
  */
 export async function addVendorBankAccount(

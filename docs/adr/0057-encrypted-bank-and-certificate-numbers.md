@@ -1,4 +1,4 @@
-# ADR 0056: Encrypted Bank and Certificate Numbers
+# ADR 0057: Encrypted Bank and Certificate Numbers
 
 - Status: Accepted
 - Date: 2026-10-23
@@ -15,7 +15,7 @@ Decision 38 sets the rule for a government identifier: encrypted under its own V
 
 ## Decision
 
-1. **The org tax identifier pattern of 1200, for both tables.** Each value is encrypted with `pgp_sym_encrypt` under its own Vault key, created by its migration the way decision 49 describes: `xos_vendor_bank_account_key` (1660) and `xos_supplier_certificate_number_key` (1661). The key functions are never granted to signed-in callers. The ciphertext is never selectable or writable by them, and a guard trigger refuses any write of it, or of its last four, outside the encrypting RPC.
+1. **The org tax identifier pattern of 1200, for both tables.** Each value is encrypted with `pgp_sym_encrypt` under its own Vault key, created by its migration the way decision 49 describes: `xos_vendor_bank_account_key` (2010) and `xos_supplier_certificate_number_key` (2011). The key functions are never granted to signed-in callers. The ciphertext is never selectable or writable by them, and a guard trigger refuses any write of it, or of its last four, outside the encrypting RPC.
 2. **Column names stay.** The bytea columns keep their names, so the classification rows, the AI never-send list, the export classification checks and the audit trail's exclusions apply unchanged, and `app.vendor_bank_accounts_masked` keeps its shape. The v1 API reads only `account_last4` through that view, so the frozen contract does not change.
 3. **Writers.**
    - `app.set_vendor_bank_account` adds a vendor's bank account, or replaces one's details, with `vendors.bank_details.write`. It derives `account_last4` from the account number: the check 0330's constraint used to make, which a constraint cannot make on ciphertext. The last four keeps its format check.
@@ -33,7 +33,7 @@ Decision 38 sets the rule for a government identifier: encrypted under its own V
 
 ## Consequences
 
-- No Restricted banking or government identifier column stores plain text. The pgTAP suite of 1661 checks this across the column registry, so a new plain-text column under either capability fails the build.
+- No Restricted banking or government identifier column stores plain text. The pgTAP suite of 2011 checks this across the column registry, so a new plain-text column under either capability fails the build.
 - An org member with government identifier access no longer sees certificate numbers in the shared list. They reveal one at a time, with a reason and their second factor, and the owner sees each reveal.
 - A routing number given only as punctuation is stored as none, and a bank number longer than 34 letters and digits is refused.
-- Production gets the two keys when 1660 and 1661 are pushed. `promote-to-production.md`, step 10, lists them with the keys decision 49 keeps. Rotating them, like the other field keys, is the annual re-encryption `legal/policies/encryption.md` describes; no tooling for it exists yet.
+- Production gets the two keys when 2010 and 2011 are pushed. `promote-to-production.md`, step 10, lists them with the keys decision 49 keeps. Rotating them, like the other field keys, is the annual re-encryption `legal/policies/encryption.md` describes; no tooling for it exists yet.

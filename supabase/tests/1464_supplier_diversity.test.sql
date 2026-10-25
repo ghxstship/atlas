@@ -1,8 +1,8 @@
 -- pgTAP: migration 1464, supplier diversity certifications (A89, RRR-134, A65-031). Self-declared by a person or a
 -- company, read and written only by the owner, shared one org at a time under separate supplier_diversity consent and
 -- only with an org that runs a program (gateway.supplier_diversity_program), read by that org only through the audited
--- RPC, with the Restricted certificate number masked to its last four for every reader (1661; the reveal is tested
--- in 1661_supplier_certificate_number_encryption.test.sql).
+-- RPC, with the Restricted certificate number masked to its last four for every reader (2011; the reveal is tested
+-- in 2011_supplier_certificate_number_encryption.test.sql).
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;

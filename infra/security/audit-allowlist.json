@@ -18,6 +18,52 @@
       "reason": "The fix, 0.5.0, is ESM only, and query-string 7 under expo-router requires it from CommonJS, so it cannot be applied as an override. The worst case is a stalled Compass screen on the device that opens a malformed link (denial of service, no data exposure). Review when expo-router moves to a query-string that accepts 0.5.0. Accepted 2026-10-19 (A54, gate 11).",
       "recorded": "2026-10-19",
       "review_by": "2027-01-19"
+    },
+    {
+      "id": "GHSA-w74x-v6f9-j3xg",
+      "package": "fast-uri",
+      "severity": "moderate",
+      "path": "packages/config > stylelint > table > ajv > fast-uri",
+      "reason": "Reached only through stylelint (packages/config > stylelint > table > ajv > fast-uri), which lints the repository's own stylesheets at build time; no app, Edge Function or Compass bundle includes it, and it parses only the URIs in the repository's own JSON schemas. The patched 3.1.9 was published 2026-10-19 and becomes eligible under ADR 0001's two-week rule on 2026-11-02; move to it then and remove this entry. Accepted 2026-10-24.",
+      "recorded": "2026-10-24",
+      "review_by": "2026-11-02"
+    },
+    {
+      "id": "GHSA-wjr9-j795-jxcr",
+      "package": "fast-uri",
+      "severity": "moderate",
+      "path": "packages/config > stylelint > table > ajv > fast-uri",
+      "reason": "Reached only through stylelint (packages/config > stylelint > table > ajv > fast-uri), which lints the repository's own stylesheets at build time; no app, Edge Function or Compass bundle includes it, and it parses only the URIs in the repository's own JSON schemas. The patched 3.1.9 was published 2026-10-19 and becomes eligible under ADR 0001's two-week rule on 2026-11-02; move to it then and remove this entry. Accepted 2026-10-24.",
+      "recorded": "2026-10-24",
+      "review_by": "2026-11-02"
+    },
+    {
+      "id": "GHSA-333x-w4r6-6crp",
+      "package": "fast-uri",
+      "severity": "low",
+      "path": "packages/config > stylelint > table > ajv > fast-uri",
+      "reason": "Reached only through stylelint (packages/config > stylelint > table > ajv > fast-uri), which lints the repository's own stylesheets at build time; no app, Edge Function or Compass bundle includes it, and it parses only the URIs in the repository's own JSON schemas. The patched 3.1.9 was published 2026-10-19 and becomes eligible under ADR 0001's two-week rule on 2026-11-02; move to it then and remove this entry. Accepted 2026-10-24.",
+      "recorded": "2026-10-24",
+      "review_by": "2026-11-02"
+    },
+    {
+      "id": "GHSA-xhq7-xmqj-769h",
+      "package": "fast-uri",
+      "severity": "low",
+      "path": "packages/config > stylelint > table > ajv > fast-uri",
+      "reason": "Reached only through stylelint (packages/config > stylelint > table > ajv > fast-uri), which lints the repository's own stylesheets at build time; no app, Edge Function or Compass bundle includes it, and it parses only the URIs in the repository's own JSON schemas. The patched 3.1.9 was published 2026-10-19 and becomes eligible under ADR 0001's two-week rule on 2026-11-02; move to it then and remove this entry. Accepted 2026-10-24.",
+      "recorded": "2026-10-24",
+      "review_by": "2026-11-02"
+    },
+    {
+      "id": "GHSA-mrhx-c7xc-m3w5",
+      "package": "zod",
+      "severity": "high",
+      "path": "apps/compass > expo > @expo/cli > zod",
+      "versions": ["3.25.76"],
+      "reason": "zod 3.25.76 comes only with the Expo command line tool that builds and serves Compass; the Compass app bundle does not include @expo/cli, and 3.x has no patched release. Every shipped package pins zod 4.6.6, the fixed release; the versions field keeps this entry from covering any 4.x. Review when expo moves @expo/cli to zod 4. Accepted 2026-10-24.",
+      "recorded": "2026-10-24",
+      "review_by": "2027-01-24"
     }
   ]
 }

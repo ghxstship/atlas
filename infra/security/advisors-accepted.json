@@ -1,4 +1,35 @@
 {
   "$comment": "Supabase advisor lints accepted on the hosted staging project (infra/security/src/advisors.ts). Each entry names the lint, optionally narrows it with text from its cache_key (one table or function), and says why it is accepted. Leave the list empty rather than accept a lint without a reason; INFO lints never fail and need no entry.",
-  "accepted": []
+  "accepted": [
+    {
+      "name": "security_definer_view",
+      "match": "api_external",
+      "reason": "api_external is the external-party API (migrations 0750 and 0760): each view runs as its owner by design and returns only rows the caller's engagement grants allow, through private helpers; the base tables stay closed to external callers. pgTAP 0750 and the 9900 security catalog cover it.",
+      "recorded": "2026-10-25"
+    },
+    {
+      "name": "security_definer_view",
+      "match": "_app_",
+      "reason": "These app views read private reference catalogs (settings, templates, providers, units) or mask Restricted columns (the *_masked views, ADR 0016 decision 10), so they run as their owner by design; each filters by the reader's memberships or exposes only non-personal reference rows. The 9900 security catalog covers them.",
+      "recorded": "2026-10-25"
+    },
+    {
+      "name": "anon_security_definer_function_executable",
+      "match": "api_public",
+      "reason": "api_public holds the anonymous token and lookup calls (share links, advance and signing links, calendar feeds, invitations, public profiles, brands): each checks its own token or handle, refuses a read-only GET and counts failures per address (finding A69-001), so it must run as its owner.",
+      "recorded": "2026-10-25"
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "match": "api_public",
+      "reason": "The same api_public token and lookup calls are open to signed-in callers too, with the same token checks, read-only refusal and per-address limits (finding A69-001).",
+      "recorded": "2026-10-25"
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "match": "_app_",
+      "reason": "app holds the write and workflow API: each SECURITY DEFINER function checks the caller's capability (private.has_capability) or membership before it acts, as the 9900 to 9909 security catalog and each migration's pgTAP suite assert, so it runs as its owner by design.",
+      "recorded": "2026-10-25"
+    }
+  ]
 }

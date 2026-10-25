@@ -135,7 +135,7 @@ export async function addBankAccountAction(_: ActionState, form: FormData): Prom
   const accountHolder = errors.need("accountHolder", requiredText(form, "accountHolder", 200));
   const accountNumber = errors.need("accountNumber", requiredText(form, "accountNumber", 64));
   const routingNumber = text(form, "routingNumber");
-  // The database keeps the letters and digits (1660): 4 to 34 for the account, up to 34 for routing.
+  // The database keeps the letters and digits (2010): 4 to 34 for the account, up to 34 for routing.
   const digits = (value: string) => value.replace(/[^0-9A-Za-z]/g, "").length;
   if (accountNumber !== null && (digits(accountNumber) < 4 || digits(accountNumber) > 34)) {
     errors.add("accountNumber", "accountNumber");
@@ -525,7 +525,7 @@ export async function recordDeliveryAction(_: ActionState, form: FormData): Prom
   );
 }
 
-// Supplier diversity (1661) ---------------------------------------------------------------------------------------
+// Supplier diversity (2011) ---------------------------------------------------------------------------------------
 
 /** What the reveal form gets back: the number once, never stored, or why it was refused. */
 export interface RevealState extends ActionState {

@@ -1,4 +1,4 @@
--- pgTAP: migration 1660, vendor bank account and routing numbers encrypted at rest (A100, RRR-145, S9-12). The table
+-- pgTAP: migration 2010, vendor bank account and routing numbers encrypted at rest (A100, RRR-145, S9-12). The table
 -- holds only ciphertext under the Vault key xos_vendor_bank_account_key; holders of data.restricted.read.banking read
 -- the numbers through app.vendor_bank_accounts_masked and everyone else sees the mask; app.set_vendor_bank_account is
 -- the only writer and refuses callers without vendors.bank_details.write; the last four is derived and still checked.

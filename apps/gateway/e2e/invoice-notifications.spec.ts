@@ -59,7 +59,9 @@ test("journey 56: the vendor is notified at each invoice step, honoring their ch
   // The vendor keeps Email and Push on for invoices and payments, saved in Gateway settings.
   await signIn(page, "vendor@example.com", "/settings/notifications");
   const prefs = page.getByRole("form", { name: "Notification preferences" });
-  await prefs.getByLabel("Email").uncheck();
+  // Opportunities and expiry reminders have their own rows of channels (1461, 1463).
+  const finance = prefs.getByRole("group", { name: "Invoices and payments" });
+  await finance.getByLabel("Email").uncheck();
   await prefs.getByRole("button", { name: "Save preferences" }).click();
   await expect(prefs.getByText("Saved. New notifications follow these choices.")).toBeVisible();
   const choice = async () =>
@@ -71,8 +73,8 @@ test("journey 56: the vendor is notified at each invoice step, honoring their ch
       )
     )[0]?.enabled;
   await expect.poll(choice).toBe(false);
-  await prefs.getByLabel("Email").check();
-  await prefs.getByLabel("Push to Compass").check();
+  await finance.getByLabel("Email").check();
+  await finance.getByLabel("Push to Compass").check();
   await prefs.getByRole("button", { name: "Save preferences" }).click();
   await expect.poll(choice).toBe(true);
   await expectAccessible(page);

@@ -14,6 +14,7 @@ import {
   createSmsProvider,
   dispatchSms,
   dispatchSmsSummaries,
+  isRecordKey,
   localeOf,
   notificationKind,
   notificationText,
@@ -35,6 +36,7 @@ var exportReady = z.object({
 });
 var importFinished = z.object({
   importName: z.string(),
+  stage: z.enum(["validated", "committed"]).default("committed"),
   written: z.number().int().nonnegative(),
   refused: z.number().int().nonnegative(),
   skipped: z.number().int().nonnegative(),
@@ -143,8 +145,9 @@ async function dispatchEmail(store, transport, limit = 50) {
  * The contract Compass handles (apps/compass/src/domain/notifications.ts):
  *   - `categoryId` is the kind's push category from notification-kinds.yaml (`approval_request` for
  *     approval.requested), whose Approve and Reject actions answer through notifications.act;
- *   - `data` is { notificationId, kind, subjectTable, subjectId, title, url }, where url is the deep link
- *     (Section 4.5.7: a push always carries one).
+ *   - `data` is { notificationId, kind, subjectTable, subjectId, title, recordKey, url }, where url is the deep
+ *     link (Section 4.5.7: a push always carries one) and recordKey the display key of the record a notification is
+ *     about (message_args.recordKey, 1600), which Compass opens on a tap (A101).
  */
 /** Expo push service endpoints. */
 var EXPO_PUSH_SEND_URL = "https://exp.host/--/api/v2/push/send";
@@ -162,6 +165,7 @@ function pushMessage(claim, device, recipient, url) {
   );
   const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
   const title = claim.messageArgs["title"];
+  const recordKey = claim.messageArgs["recordKey"];
   return {
     to: device.token,
     title: clip(text.title, 120),
@@ -172,6 +176,7 @@ function pushMessage(claim, device, recipient, url) {
       subjectTable: claim.subjectTable,
       subjectId: claim.subjectId,
       title: typeof title === "string" ? title : null,
+      recordKey: typeof recordKey === "string" && isRecordKey(recordKey) ? recordKey : null,
       url,
     },
     ...(pushCategory === null ? {} : { categoryId: pushCategory }),
@@ -522,17 +527,20 @@ function expoPushClient(options = {}) {
 }
 /**
  * Records pushes instead of sending them: tests, local development and every environment without
- * XOS_PUSH_TRANSPORT=expo. Every message gets an accepted ticket and every receipt is ok.
+ * XOS_PUSH_TRANSPORT=expo. Every message gets an accepted ticket and every receipt is ok. Ticket ids carry a
+ * random prefix per client, since each run of the sender makes a new client and app.push_tickets keeps every
+ * ticket id unique.
  */
 var RecordingPushClient = class {
   name = "record";
   sent = [];
+  run = crypto.randomUUID().slice(0, 8);
   async send(messages) {
     return messages.map((m) => {
       this.sent.push(m);
       return {
         status: "ok",
-        id: `recorded-push-${this.sent.length}`,
+        id: `recorded-push-${this.run}-${this.sent.length}`,
       };
     });
   }

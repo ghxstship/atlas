@@ -12,7 +12,7 @@ import {
 } from "../src/supplier-diversity.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
-describe("supplier diversity (A89, migrations 1464 and 1661)", () => {
+describe("supplier diversity (A89, migrations 1464 and 2011)", () => {
   it("lists the owner's certifications with their shares, the number reduced to four characters", async () => {
     const { db, calls } = fakeClient({
       "rpc:my_supplier_diversity": [

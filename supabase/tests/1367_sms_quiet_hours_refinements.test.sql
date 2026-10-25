@@ -38,10 +38,12 @@ select ok(not private.bypasses_quiet_hours('shift.changed', jsonb_build_object('
 select ok(not private.bypasses_quiet_hours('shift.changed', '{}'::jsonb, now())
   and not private.bypasses_quiet_hours('shift.changed', '{"startsAt": "soon"}'::jsonb, now()),
   'a shift change without a readable start waits');
-select ok(not private.bypasses_quiet_hours('account.security_changed', '{}'::jsonb, now())
+select ok(not private.bypasses_quiet_hours('account.session_signed_out', '{}'::jsonb, now())
   and not private.bypasses_quiet_hours('billing.payment_failed', '{}'::jsonb, now()),
   'an urgent category alone does not bypass quiet hours');
-select is((select count(*)::integer from private.notification_quiet_hours_bypass), 4, 'the list is short: four kinds');
+-- ADR 0033 decision 62 (1620) added a new shift within 12 hours, security changes (with a recovery code used) and
+-- emergency access.
+select is((select count(*)::integer from private.notification_quiet_hours_bypass), 8, 'the list is short: eight kinds');
 
 -- 2. The recipient's time zone, never UTC -----------------------------------------------------------------------------
 select is(private.recipient_time_zone(pg_temp.id('org_p'), pg_temp.id('paul'), null), null::text,
@@ -87,7 +89,7 @@ select pg_temp.as_platform();
 
 insert into n values ('approval_1', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'approval.requested', null, null, null, '{"title": "Rigging rental"}'));
 insert into n values ('approval_2', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'approval.requested', null, null, null, '{"title": "Catering"}'));
-insert into n values ('security', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'account.security_changed', null, null, null, '{"change": "password"}'));
+insert into n values ('security', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'billing.payment_failed', null, null, null, '{"days": 1}'));
 insert into n values ('shift_far', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'shift.changed', null, null, null,
   jsonb_build_object('title', 'Load out', 'startsAt', now() + interval '30 hours')));
 insert into n values ('shift_soon', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'shift.changed', null, null, null,
@@ -116,7 +118,7 @@ update app.sms_summary_queue set due_at = now() - interval '1 minute' where memb
 create temporary table summary as select * from app.claim_sms_summaries();
 select is((select concat_ws('|', address, held_count, cardinality(delivery_ids)) from summary), '+15555550122|4|4',
   'one summary per member and org carries all four held texts');
-select is((select kind from summary), 'account.security_changed', 'its line is the most important text: an urgent category first');
+select is((select kind from summary), 'billing.payment_failed', 'its line is the most important text: an urgent category first');
 select is((select count(*)::integer from app.claim_sms_summaries()), 0, 'a claimed summary is not claimed twice');
 select app.record_sms_summary((select delivery_ids from summary), 'Sent', 'SM-summary-1', null);
 select ok((select bool_and(d.message_status = 'Sent' and d.provider_message_id = 'SM-summary-1') from app.notification_deliveries d

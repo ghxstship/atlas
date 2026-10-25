@@ -300,7 +300,8 @@ prints names and digests, never values.
 `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`, `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`,
 `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY` (true only at cutover, once `mail.ghxstship.tech` passes its
 SPF, DKIM and DMARC checks and `XOS_POSTAL_ADDRESS` holds the postal address; ADR 0033, decision 41),
-`XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN` (`inbound.ghxstship.tech`, decision 60), `STRIPE_SECRET_KEY`,
+`RESEND_INBOUND_WEBHOOK_SECRET`, `RESEND_RECEIVING_API_KEY` and `XOS_INBOUND_DOMAIN` (`inbound.ghxstship.tech`,
+decision 60; `production.md`, Email), `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET` (test keys until Atlas Checkout ships and billing opens with live keys, decision 59), `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`, `SENTRY_DSN`, `XOS_ENVIRONMENT` (`production`),
 `XOS_LOG_LEVEL` (`info`). Unset `XOS_REPORT_MAILPIT_URL`, which only a local stack uses.
 
@@ -312,8 +313,8 @@ value again.
 `select name from vault.secrets order by 1;` (names only). Expected after step 4:
 
 - created by migrations: `xos_medical_notes_key`, `xos_tax_form_key`, `xos_org_tax_identifier_key`,
-  `xos_passport_number_key`, `xos_inbound_reply_secret`, and, once 1660 and 1661 are pushed,
-  `xos_vendor_bank_account_key` and `xos_supplier_certificate_number_key` (ADR 0056);
+  `xos_passport_number_key`, `xos_inbound_reply_secret`, and, once 2010 and 2011 are pushed,
+  `xos_vendor_bank_account_key` and `xos_supplier_certificate_number_key` (ADR 0057);
 - set by the operator: `xos_worker_key`, the service role key the cron worker schedules use. It must be replaced
   in step 12.
 
@@ -330,7 +331,8 @@ and Edge Functions use the HTTPS API and are not affected. What is affected: the
 `supabase db push`, and any GitHub Actions job that connects to Postgres (runner addresses change on every run).
 The owner decided to leave them off for now (ADR 0033, decision 47): the weekly production backup is a CI job with
 its own read-only login, and GitHub runners connect from changing addresses. Revisit when that job moves to a fixed
-address.
+address. Once migration 1650 is on production, set that login up: `backup-and-restore.md`, Set up the production
+backup login.
 
 Verify: a connection from an unlisted address is refused; the API still works. Rollback: allow all again.
 
@@ -395,8 +397,9 @@ Rollback: Vercel Instant Rollback to the previous deployment, with the previous 
 
 The plan is in "Staging branch plan" below. When the staging branch exists:
 
-- GitHub secret `STAGING_DB_URL` = the staging branch's direct connection string (it feeds `backup-weekly.yml`
-  and the load-test instructions). It must no longer point at this project.
+- GitHub secret `STAGING_DB_URL` = the staging branch's Session pooler connection string, port 5432 (it feeds
+  `backup-weekly.yml` and the load-test instructions). GitHub's hosted runners have no IPv6, and a direct host is IPv6
+  without the IPv4 add-on. It must no longer point at this project.
 - GitHub variables `XOS_STAGING_*` (synthetics) = the branch's API URL and anon key; the synthetic account is
   created on the branch.
 - Vercel `atlas`, `gateway` and `console`, Preview environment: `SUPABASE_URL` and `SUPABASE_ANON_KEY` of the branch,
@@ -414,6 +417,13 @@ the branch. Rollback: point the secret and variables back.
 - Supabase advisors (`infra/security/supabase-advisors.sh`) report nothing new.
 - Synthetic checks green against production and staging.
 - The hosted Data API's exposed schemas still match `[api] schemas` in `supabase/config.toml` (step 5).
+- The account security notice triggers (migration 2050, ADR 0064) exist on staging and production. They sit on
+  Supabase Auth's tables, outside the `app` and `private` schemas (the weekly backup's `platform.sql` carries them,
+  as it does 0206's `xos_create_person`). This query lists
+  `xos_notify_security_change` on `auth.users`, `xos_notify_factor_change` on `auth.mfa_factors` and
+  `xos_notify_passkey_change` on `auth.webauthn_credentials`; a missing one means a password, second factor or
+  passkey change there tells nobody:
+  `select tgrelid::regclass, tgname from pg_trigger where tgname like 'xos_notify_%';`
 - `https://api.ghxstship.tech/` answers the JSON pointer, `https://api.ghxstship.tech/v1/openapi.json` the
   document, and `https://api.ghxstship.tech/auth/sign-in` a 404 problem with no `Set-Cookie`.
 

@@ -34,16 +34,24 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "event.invited": ["startsAt"],
   "occupancy.threshold": ["percent", "count", "permitted_load"],
   "weather.alert": ["level", "hazard", "reading"],
+  // 2050: which sign-in setting changed (password, email, phone, a second factor, a passkey or the recovery codes).
   "account.security_changed": ["change"],
   // A99: a recovery code used (the codes left) and sessions signed out (how many).
   "account.recovery_code_used": ["remaining"],
   "account.session_signed_out": ["count"],
   "billing.payment_failed": ["days"],
+  // 2051: the rows of a validated or committed import.
+  "import.finished": ["written", "refused", "skipped"],
   // Marketplace matches and expiry reminders (A89, migrations 1462 and 1463).
   "opportunity.matched": ["count", "searchName"],
   "onboarding.item_expiring": ["days", "expiresOn"],
   "certification.expiring": ["days", "expiresOn"],
   "document.expiring": ["days", "expiresOn"],
+  // Reported content (ADR 0033 decision 57, 1630): what was reported, and the outcome or the statement of reasons.
+  "content_report.filed": ["subject"],
+  "content_report.overdue": ["subject"],
+  "content_report.decided": ["subject", "action", "statement"],
+  "content.removed": ["subject", "ruleReference", "statement"],
 };
 
 /** Where a notification's subject opens, by the table it names (paths under /{org}). */
@@ -59,6 +67,8 @@ const TARGETS: Readonly<Record<string, string>> = {
   "app.recognitions": "people/recognition",
   "app.support_tickets": "people/help-desk",
   "app.chat_messages": "people/chat",
+  // A new or overdue report opens the moderators' queue; a decision opens nothing (its notice carries the statement).
+  "app.content_reports": "people/moderation",
   "app.weather_alerts": "site-ops/weather",
   "app.occupancy_counters": "site-ops/occupancy",
   invoices: "finance/invoices",
@@ -74,8 +84,17 @@ const RECORD_TABLES: ReadonlySet<string> = new Set(["app.records", "records"]);
 
 export function inboxTarget(
   org: string,
-  item: Pick<InboxItem, "subjectTable" | "kind"> & { readonly args?: InboxItem["args"] },
+  item: Pick<InboxItem, "subjectTable" | "kind"> & {
+    readonly subjectId?: InboxItem["subjectId"];
+    readonly args?: InboxItem["args"];
+  },
 ): string | null {
+  // A delivered report (ADR 0033 decision 77, 1621) opens the report in Saved reports, with its panel open.
+  if (item.subjectTable === "app.report_definitions") {
+    return item.subjectId
+      ? `/${org}/reports/saved-reports?peek=${encodeURIComponent(item.subjectId)}`
+      : `/${org}/reports/saved-reports`;
+  }
   // A record opens itself by the key its notification carries (1600). Without one (a notification sent before 1600)
   // only an assignment has somewhere to go: My Work lists the records a person is assigned to, not those they comment
   // on or are mentioned in.
@@ -83,6 +102,12 @@ export function inboxTarget(
     const key = item.args?.["recordKey"];
     if (key) return `/${org}/r/${encodeURIComponent(key)}`;
     return item.kind === "assignment.created" ? `/${org}/my-work` : null;
+  }
+  // An import (2051) opens in the import wizard at the step it reached.
+  if (item.subjectTable === "app.import_jobs") {
+    return item.subjectId
+      ? `/${org}/import?import=${encodeURIComponent(item.subjectId)}`
+      : `/${org}/import`;
   }
   const path = item.subjectTable ? TARGETS[item.subjectTable] : undefined;
   if (path) return `/${org}/${path}`;
@@ -119,8 +144,9 @@ function values(
   const startsAt = date(a["startsAt"]);
   if (startsAt) out["startsAt"] = startsAt;
   else delete out["startsAt"];
-  if (a["days"] !== undefined) out["days"] = Number(a["days"]);
-  if (a["count"] !== undefined) out["count"] = Number(a["count"]);
+  for (const key of ["days", "count", "written", "refused", "skipped"]) {
+    if (a[key] !== undefined) out[key] = Number(a[key]);
+  }
   return out;
 }
 

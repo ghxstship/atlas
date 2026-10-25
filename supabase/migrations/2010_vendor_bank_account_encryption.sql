@@ -1,4 +1,4 @@
--- 1660_vendor_bank_account_encryption.sql
+-- 2010_vendor_bank_account_encryption.sql
 -- A100 (RRR-145), trace row S9-12. Section 9 asks for field-level pgcrypto encryption of bank details, and Section 8.3
 -- classifies a vendor's account and routing numbers as Restricted (data.restricted.read.banking). 0330 masked them in
 -- app.vendor_bank_accounts_masked but stored them in plain text. They now follow the org tax identifier pattern of

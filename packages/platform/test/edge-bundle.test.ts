@@ -39,11 +39,14 @@ const CORE_ONLY: readonly string[] = [
 
 /**
  * The npm packages each function loads when it boots, and the ones it loads only when a request needs
- * them (A85, RRR-130). Stripe only where billing happens; Resend and React Email only where email is
- * sent, and lazily there. kiosk-punch and the other small functions load no package at all.
+ * them (A85, RRR-130). Stripe only where billing happens, and there only once a request carries a
+ * signature to check; Resend and React Email only where email is sent, and lazily there. kiosk-punch
+ * and the other small functions load no package at all.
  */
 const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "api-token": { boot: [], lazy: [] },
+  // ADR 0033 decision 58: the client secret is Web Crypto, Apple and Supabase Auth are plain fetch.
+  "apple-revoke": { boot: [], lazy: [] },
   "automation-run": { boot: ["@supabase/supabase-js", "zod"], lazy: [] },
   "email-unsubscribe": { boot: [], lazy: [] },
   "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
@@ -66,7 +69,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   // A87: plain fetch to PostgREST and Supabase's built-in gte-small model, no package.
   "search-embed": { boot: [], lazy: [] },
   "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
-  "stripe-webhook": { boot: ["stripe"], lazy: [] },
+  "stripe-webhook": { boot: [], lazy: ["stripe"] },
   "subprocessor-notices": {
     boot: ["intl-messageformat", "zod"],
     lazy: ["@react-email/components", "react/jsx-runtime", "resend"],
@@ -86,12 +89,16 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
  */
 const BOOT_BUDGET_KB: Record<string, number> = {
   "api-token": 70,
+  // ADR 0033 decision 58: the shared core and the revocation module (about 10 KB).
+  "apple-revoke": 75,
   "automation-run": 100,
   "email-unsubscribe": 64,
   "file-download": 64,
   "fx-rates-ecb": 64,
   "import-run": 120,
-  "inbound-email": 64,
+  // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
+  // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
+  "inbound-email": 80,
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,
