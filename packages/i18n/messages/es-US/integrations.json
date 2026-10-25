@@ -110,8 +110,8 @@
     "reasonDisconnect": "Desconectada desde la configuración de Atlas."
   },
   "clientCredentialHelp": {
-    "ups": "Crea una app en developer.ups.com con la Tracking API y copia aquí su Client ID y su Client Secret. Atlas los usa para obtener un token de acceso nuevo cada vez que actualiza el rastreo.",
-    "fedex": "Crea un proyecto en developer.fedex.com con la Track API y copia su API key en ID de cliente y su secret key en Secreto de cliente. Atlas los usa para obtener un token de acceso nuevo cada vez que actualiza el rastreo."
+    "ups": "Crea una app en developer.ups.com con la Tracking API y copia aquí su Client ID y su Client Secret. Atlas los usa para obtener un token de acceso nuevo cuando el actual está por vencer.",
+    "fedex": "Crea un proyecto en developer.fedex.com con la Track API y copia su API key en ID de cliente y su secret key en Secreto de cliente. Atlas los usa para obtener un token de acceso nuevo cuando el actual está por vencer."
   },
   "errors": {
     "integration_plan_feature": "Tu plan no incluye este servicio. Mejora el plan en Facturación para conectarlo.",

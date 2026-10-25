@@ -19,22 +19,27 @@ permanent API key and was not affected.
 1. **The connection stores the app's client ID and secret.** The credential stays in Vault through
    `app.store_integration_credential`, as JSON `{"client_id": ..., "client_secret": ...}` with kind API Key; no
    migration and no API change (the v1 operation already takes any secret). `parseCredential` accepts the pair with
-   an empty `token`. Atlas's credential form asks UPS and FedEx connections for Client ID and Client secret (a
-   password field) with each carrier's help text, and the server action builds the JSON. Other providers keep the
-   pasted secret.
+   an empty `token` only for a provider that `usesClientCredentials` (UPS, FedEx); any other provider given a pair
+   fails as `credential_malformed`, not later with an empty bearer token. Atlas's credential form asks UPS and FedEx
+   connections for Client ID and Client secret (a password field) with each carrier's help text. The server action
+   reads the connection's provider under row level security to pick the form, and builds the JSON with
+   `clientCredentialSecret`, the one writer of the format. Other providers keep the pasted secret.
 2. **The connector mints on demand and caches per connection.** UPS: `POST /security/v1/oauth/token` with HTTP
    Basic; FedEx: `POST /oauth/token` with the pair in the form body. The token is kept in a `CarrierTokenCache`
    keyed by connection until five minutes before its stated expiry (half its life when it lives under ten
-   minutes), so a run mints at most once and a warm worker isolate reuses it across runs. The entry carries a
-   SHA-256 fingerprint of the pair, so a rotated secret or a different account never reuses an old token. The
-   cache is memory only: a cold isolate mints again, which costs one request.
+   minutes), so a run mints once at most, or twice when a 401 forces a refresh (decision 3), and a warm worker
+   isolate reuses the token across runs. The entry carries a SHA-256 fingerprint of the pair, so a rotated secret
+   or a different account never reuses an old token. The cache is memory only: a cold isolate mints again, which
+   costs one request.
 3. **A 401 is retried exactly once.** A carrier may drop a token before its stated expiry. On a 401 from a tracking
    call the token is forgotten, a new one minted and the call repeated once; a second 401 is `credential_refused`
    as before. A refused token request (wrong pair, sandbox keys against production) is `credential_refused` too.
-4. **Credentials never reach an error or a log.** Provider error bodies can echo a request. Every error the token
-   path raises has the client ID, the secret (raw, form-encoded and as the Basic value) and the access tokens cut
-   from its message, keeping its code and retry and connection flags, before it becomes the run's
-   `error_message` and the connection's last error. Nothing in the path logs.
+4. **Credentials never reach an error or a log.** Provider error bodies can echo a request. The token path's HTTP
+   client cuts the client ID, the secret, the Basic value and the access tokens from a refusal's body before the
+   status check quotes its first 500 characters, so the cut never leaves part of a secret. Each value is matched
+   raw, form- and URI-encoded and JSON-escaped (with and without `\/`). Every error the path raises is scrubbed the
+   same way, keeping its code and retry and connection flags, before it becomes the run's `error_message` and the
+   connection's last error. Nothing in the path logs.
 5. **No fallback to a stored token.** A UPS or FedEx connection without the pair fails with
    `credential_incomplete`, naming what to store. A token stored earlier would have expired anyway.
 

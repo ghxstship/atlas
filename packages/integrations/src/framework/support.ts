@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { usesClientCredentials } from "./catalog.ts";
 import { IntegrationError } from "./errors.ts";
 
 /**
@@ -12,7 +13,20 @@ export interface Credential {
   readonly fields: Readonly<Record<string, string>>;
 }
 
-export function parseCredential(secret: string | null): Credential {
+/**
+ * The stored form of a client-credentials pair, as Atlas's credential form saves it and `parseCredential` and the
+ * UPS and FedEx connectors read it back.
+ */
+export function clientCredentialSecret(clientId: string, clientSecret: string): string {
+  return JSON.stringify({ client_id: clientId, client_secret: clientSecret });
+}
+
+/**
+ * Reads a stored credential. `providerCode` names the connection's provider: only a provider that mints its own
+ * tokens (`usesClientCredentials`) may store a client ID and secret without a token, so an OAuth or key-based
+ * provider given such a pair fails here as malformed, not later with an empty bearer token.
+ */
+export function parseCredential(secret: string | null, providerCode?: string): Credential {
   if (secret === null || secret.length === 0) {
     throw new IntegrationError("credential_required", "The connection has no stored credential.", {
       connectionError: true,
@@ -36,13 +50,19 @@ export function parseCredential(secret: string | null): Credential {
   for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
     if (typeof value === "string") fields[key] = value;
   }
+  const mintsTokens = providerCode !== undefined && usesClientCredentials(providerCode);
   const clientPair = fields["client_id"] !== undefined && fields["client_secret"] !== undefined;
   const token =
-    fields["access_token"] ?? fields["api_key"] ?? fields["token"] ?? (clientPair ? "" : undefined);
+    fields["access_token"] ??
+    fields["api_key"] ??
+    fields["token"] ??
+    (mintsTokens && clientPair ? "" : undefined);
   if (token === undefined) {
     throw new IntegrationError(
       "credential_malformed",
-      "The stored credential has no access token or key, and no client ID and secret.",
+      mintsTokens
+        ? "The stored credential has no client ID and secret."
+        : "The stored credential has no access token or key.",
       {
         connectionError: true,
       },

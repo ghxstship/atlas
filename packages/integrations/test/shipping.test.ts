@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { usesClientCredentials } from "../src/framework/catalog.ts";
 import { httpFromFetch, type FetchLike } from "../src/framework/http.ts";
-import type { Credential } from "../src/framework/support.ts";
+import {
+  clientCredentialSecret,
+  parseCredential,
+  type Credential,
+} from "../src/framework/support.ts";
 import {
   CarrierTokenCache,
   dhlCarrier,
@@ -14,7 +19,6 @@ import {
   trackingScans,
   TOKEN_SAFETY_MARGIN_MS,
   upsCarrier,
-  usesClientCredentials,
   type TrackingSource,
   type TrackingUpdate,
 } from "../src/connectors/shipping/index.ts";
@@ -30,15 +34,12 @@ import {
 
 const run = { scope: "Tracking Refresh" as const, direction: "Inbound" as const };
 
-// Fixture values only, shorter than any real carrier credential.
-const upsPair: Credential = {
-  token: "",
-  fields: { client_id: "ups-cid", client_secret: "ups-sec1" },
-};
-const fedexPair: Credential = {
-  token: "",
-  fields: { client_id: "fdx-cid", client_secret: "fx+s/c=1" },
-};
+// Fixture values only, shorter than any real carrier credential, read back from the form Atlas stores.
+const upsPair: Credential = parseCredential(clientCredentialSecret("ups-cid", "ups-sec1"), "ups");
+const fedexPair: Credential = parseCredential(
+  clientCredentialSecret("fdx-cid", "fx+s/c=1"),
+  "fedex",
+);
 const UPS_TOKEN_URL = "https://onlinetools.ups.com/security/v1/oauth/token";
 const FEDEX_TOKEN_URL = "https://apis.fedex.com/oauth/token";
 const upsToken = {
@@ -630,6 +631,66 @@ describe("UPS and FedEx access tokens", () => {
     expect(networkError.message).not.toContain("fx%2Bs%2Fc%3D1");
     expect(networkError.message).toContain("client_secret=[redacted]");
     for (const spy of logs) expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("redacts an echo the 500-character excerpt would cut, and JSON-escaped echoes", async () => {
+    const fedexFailure = (respond: (body: string) => { status: number; body: string }) =>
+      rejection(
+        trackingConnector(fedexCarrier(new CarrierTokenCache()), source().value).sync(
+          contextFor("fedex", {
+            http: scriptedHttp([
+              { match: `POST ${FEDEX_TOKEN_URL}`, respond: (r) => respond(String(r.body)) },
+            ]).http,
+            store: memoryStore().store,
+            run,
+            credential: fedexPair,
+          }),
+        ),
+      );
+    // The form-encoded secret starts six characters before the excerpt ends.
+    const cut = await fedexFailure((body) => ({
+      status: 401,
+      body: ".".repeat(494 - body.indexOf("fx%2B")) + body,
+    }));
+    expect(cut).toMatchObject({ code: "credential_refused", connectionError: true });
+    expect(cut.message).not.toContain("fx%2B");
+    expect(cut.message).not.toContain("fdx-cid");
+    expect(cut.message).toContain("client_id=[redacted]");
+
+    // A carrier that answers in JSON with escaped slashes, as PHP's json_encode does.
+    const escaped = await fedexFailure((body) => ({
+      status: 400,
+      body: JSON.stringify({ received: Object.fromEntries(new URLSearchParams(body)) }).replaceAll(
+        "/",
+        "\\/",
+      ),
+    }));
+    expect(escaped).toMatchObject({ code: "provider_rejected" });
+    expect(escaped.message).not.toContain("fx+s");
+    expect(escaped.message).not.toContain("fdx-cid");
+    expect(escaped.message).toContain('"client_secret":"[redacted]"');
+
+    const quoted = parseCredential(clientCredentialSecret("ups-cid", 'up"s\\1'), "ups");
+    const upsEcho = scriptedHttp([
+      {
+        match: `POST ${UPS_TOKEN_URL}`,
+        respond: (r) => {
+          const basic = atob(String(r.headers?.["authorization"]).slice("Basic ".length));
+          return { status: 403, body: JSON.stringify({ sent: basic.split(":") }) };
+        },
+      },
+    ]);
+    const upsError = await rejection(
+      trackingConnector(upsCarrier(new CarrierTokenCache()), source().value).sync(
+        contextFor("ups", {
+          http: upsEcho.http,
+          store: memoryStore().store,
+          run,
+          credential: quoted,
+        }),
+      ),
+    );
+    expect(upsError.message).toBe('UPS returned 403: {"sent":["[redacted]","[redacted]"]}');
   });
 
   it("asks for the client ID and secret, and refuses a token answer it cannot use", async () => {

@@ -4,15 +4,19 @@ import "./chunks/data-result.js";
 import { StoreError, asDbClient, unwrap } from "./chunks/integrations-framework-db.js";
 import {
   ItemTally,
+  SYNC_SCOPES,
   chatConnectors,
   connectorRegistry,
   contentHash,
   credentialField,
   decimalToMinor,
   integrationsTranslator,
+  isProviderCode,
   minorToDecimal,
   mintChatSession,
   parseCredential,
+  providerEntry,
+  scopesFor,
   sha256Hex,
   slackFailure,
   supabaseCommunicationSource,
@@ -29,175 +33,6 @@ import {
 import { csvField } from "./chunks/data-client.js";
 import { isPublicAddress } from "./chunks/platform-webhooks-dispatch.js";
 import { createHash, createHmac } from "node:crypto";
-//#region ../integrations/src/framework/catalog.ts
-var PROVIDERS = [
-  {
-    code: "xero",
-    category: "Accounting",
-    sortOrder: 10,
-    requiredFeature: "upl_export",
-    needsCredential: true,
-  },
-  {
-    code: "quickbooks_online",
-    category: "Accounting",
-    sortOrder: 11,
-    requiredFeature: "upl_export",
-    needsCredential: true,
-  },
-  {
-    code: "netsuite",
-    category: "Accounting",
-    sortOrder: 12,
-    requiredFeature: "upl_export",
-    needsCredential: true,
-  },
-  {
-    code: "ramp",
-    category: "Accounting",
-    sortOrder: 13,
-    requiredFeature: "upl_export",
-    needsCredential: true,
-  },
-  {
-    code: "google_calendar",
-    category: "Calendar",
-    sortOrder: 20,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "microsoft_365",
-    category: "Calendar",
-    sortOrder: 21,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "google_drive",
-    category: "Storage",
-    sortOrder: 30,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "onedrive_sharepoint",
-    category: "Storage",
-    sortOrder: 31,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "dropbox",
-    category: "Storage",
-    sortOrder: 32,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "slack",
-    category: "Communication",
-    sortOrder: 40,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "microsoft_teams",
-    category: "Communication",
-    sortOrder: 41,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "gusto",
-    category: "Payroll",
-    sortOrder: 50,
-    requiredFeature: "payroll_export",
-    needsCredential: true,
-  },
-  {
-    code: "adp",
-    category: "Payroll",
-    sortOrder: 51,
-    requiredFeature: "payroll_export",
-    needsCredential: true,
-  },
-  {
-    code: "rippling",
-    category: "Payroll",
-    sortOrder: 52,
-    requiredFeature: "payroll_export",
-    needsCredential: true,
-  },
-  {
-    code: "ups",
-    category: "Shipping",
-    sortOrder: 60,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "fedex",
-    category: "Shipping",
-    sortOrder: 61,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "dhl",
-    category: "Shipping",
-    sortOrder: 62,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "ticketing_csv",
-    category: "Ticketing",
-    sortOrder: 70,
-    requiredFeature: null,
-    needsCredential: false,
-  },
-  {
-    code: "ticketing_api",
-    category: "Ticketing",
-    sortOrder: 71,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-];
-var SYNC_SCOPES = [
-  "Ledger Export",
-  "Payment Sync",
-  "Calendar Sync",
-  "File Import",
-  "Notification Delivery",
-  "Payroll Export",
-  "Tracking Refresh",
-  "Attendance Import",
-];
-/** The category a sync scope belongs to (mirrors `private.integration_scope_category`). */
-var SCOPE_CATEGORY = {
-  "Ledger Export": "Accounting",
-  "Payment Sync": "Accounting",
-  "Calendar Sync": "Calendar",
-  "File Import": "Storage",
-  "Notification Delivery": "Communication",
-  "Payroll Export": "Payroll",
-  "Tracking Refresh": "Shipping",
-  "Attendance Import": "Ticketing",
-};
-function providerEntry(code) {
-  return PROVIDERS.find((p) => p.code === code);
-}
-function isProviderCode(code) {
-  return providerEntry(code) !== void 0;
-}
-/** Scopes a provider can run, by its category. */
-function scopesFor(code) {
-  const entry = providerEntry(code);
-  return SYNC_SCOPES.filter((scope) => SCOPE_CATEGORY[scope] === entry?.category);
-}
-//#endregion
 //#region ../integrations/src/framework/runner.ts
 /** The job kind migration 0600 registers on the A18 job queue. */
 var INTEGRATION_SYNC_JOB = "integration.sync";
@@ -286,7 +121,7 @@ async function runOne$1(options, job) {
       );
     const credential =
       (providerEntry(connection.providerCode)?.needsCredential ?? true)
-        ? parseCredential(await options.store.credential(connection.id))
+        ? parseCredential(await options.store.credential(connection.id), connection.providerCode)
         : null;
     outcome = await connector.sync({
       run,
@@ -3333,15 +3168,51 @@ function clientPair(context, label) {
     clientSecret,
   };
 }
-/** Every form a credential could take in a provider's error body: raw, form-encoded and Basic. */
-function secretsOf(pair, ...tokens) {
+/** Every way a provider could echo a value: raw, form- and URI-encoded, and JSON-escaped (with or without `\/`). */
+function encodingsOf(value) {
+  const json = JSON.stringify(value).slice(1, -1);
   return [
+    value,
+    form({ s: value }).slice(2),
+    encodeURIComponent(value),
+    json,
+    json.replaceAll("/", "\\/"),
+  ];
+}
+/** The client ID, the secret, the Basic value and the access tokens, in every encoding, longest first. */
+function secretsOf(pair, ...tokens) {
+  const values = [
     pair.clientSecret,
-    form({ s: pair.clientSecret }).slice(2),
     base64(`${pair.clientId}:${pair.clientSecret}`),
     pair.clientId,
     ...tokens,
   ];
+  return [...new Set(values.flatMap(encodingsOf))]
+    .filter((s) => s.length > 0)
+    .sort((a, b) => b.length - a.length);
+}
+function redact(text, secrets) {
+  let result = text;
+  for (const secret of secrets) result = result.split(secret).join("[redacted]");
+  return result;
+}
+/**
+ * The connection's HTTP client with every credential and token cut from a refusal's body before the status
+ * check quotes it in an error. The error keeps only the body's first 500 characters, so redacting afterwards
+ * would miss a secret that the cut splits. A successful answer is passed through untouched.
+ */
+function redacting(http, secrets) {
+  return async (request) => {
+    const response = await http(request);
+    if (response.status >= 200 && response.status < 300) return response;
+    const body = redact(response.body, secrets);
+    return body === response.body
+      ? response
+      : {
+          ...response,
+          body,
+        };
+  };
 }
 /**
  * The error with every credential and token cut from its message, so none reaches the run's last error,
@@ -3349,9 +3220,7 @@ function secretsOf(pair, ...tokens) {
  */
 function scrubbed(error, secrets) {
   if (!(error instanceof Error)) return error;
-  let message = error.message;
-  for (const secret of [...secrets].sort((a, b) => b.length - a.length))
-    if (secret.length > 0) message = message.split(secret).join("[redacted]");
+  const message = redact(error.message, secrets);
   if (message === error.message) return error;
   if (error instanceof IntegrationError)
     return new IntegrationError(error.code, message, {
@@ -3364,11 +3233,14 @@ function scrubbed(error, secrets) {
   return copy;
 }
 async function mint(context, endpoint, pair, fingerprint) {
-  const response = await callRaw(context.http, endpoint.label, endpoint.request(pair)).catch(
-    (error) => {
-      throw scrubbed(error, secretsOf(pair));
-    },
-  );
+  const secrets = secretsOf(pair);
+  const response = await callRaw(
+    redacting(context.http, secrets),
+    endpoint.label,
+    endpoint.request(pair),
+  ).catch((error) => {
+    throw scrubbed(error, secrets);
+  });
   let body = {};
   try {
     body = JSON.parse(response.body) ?? {};
@@ -3391,7 +3263,8 @@ async function mint(context, endpoint, pair, fingerprint) {
 /**
  * Runs a carrier call with the connection's access token, minting one from the stored client ID and
  * secret when the cache has none that is still good. A 401 means the carrier dropped the token before its
- * stated expiry: the token is forgotten, a new one minted and the call retried exactly once.
+ * stated expiry: the token is forgotten, a new one minted and the call retried exactly once. The call gets
+ * an HTTP client that redacts the pair and the token from refusal bodies.
  */
 async function withAccessToken(context, tokens, endpoint, call) {
   const pair = clientPair(context, endpoint.label);
@@ -3405,18 +3278,20 @@ async function withAccessToken(context, tokens, endpoint, call) {
     return minted.accessToken;
   };
   const first = await current();
+  const firstSecrets = secretsOf(pair, first);
   try {
-    return await call(first);
+    return await call(first, redacting(context.http, firstSecrets));
   } catch (error) {
     if (!(error instanceof IntegrationError && error.status === 401))
-      throw scrubbed(error, secretsOf(pair, first));
+      throw scrubbed(error, firstSecrets);
     tokens.forget(connectionId);
   }
   const second = await current();
+  const bothSecrets = secretsOf(pair, first, second);
   try {
-    return await call(second);
+    return await call(second, redacting(context.http, bothSecrets));
   } catch (error) {
-    throw scrubbed(error, secretsOf(pair, first, second));
+    throw scrubbed(error, bothSecrets);
   }
 }
 var place = (...parts) => {
@@ -3450,8 +3325,8 @@ function upsCarrier(tokens = workerTokens) {
     async track(context, trackingNumber) {
       let body;
       try {
-        body = await withAccessToken(context, tokens, UPS_TOKEN, (token) =>
-          callJson(context.http, "UPS", {
+        body = await withAccessToken(context, tokens, UPS_TOKEN, (token, http) =>
+          callJson(http, "UPS", {
             method: "GET",
             url: `https://onlinetools.ups.com/api/track/v1/details/${encodeURIComponent(trackingNumber)}?locale=en_US`,
             token,
@@ -3522,8 +3397,8 @@ function fedexCarrier(tokens = workerTokens) {
     label: "FedEx",
     async track(context, trackingNumber) {
       const result = (
-        await withAccessToken(context, tokens, FEDEX_TOKEN, (token) =>
-          callJson(context.http, "FedEx", {
+        await withAccessToken(context, tokens, FEDEX_TOKEN, (token, http) =>
+          callJson(http, "FedEx", {
             method: "POST",
             url: "https://apis.fedex.com/track/v1/trackingnumbers",
             token,

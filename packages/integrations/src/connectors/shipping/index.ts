@@ -3,7 +3,7 @@ import type { ProviderCode } from "../../framework/catalog.ts";
 import { ItemTally, type Connector, type SyncContext } from "../../framework/connector.ts";
 import { unwrap, type DbClient } from "../../framework/db.ts";
 import { IntegrationError } from "../../framework/errors.ts";
-import { callJson, callRaw, type HttpRequest } from "../../framework/http.ts";
+import { callJson, callRaw, type HttpClient, type HttpRequest } from "../../framework/http.ts";
 import { sha256Hex } from "../../framework/support.ts";
 
 export const TRACKING_STATUSES = [
@@ -67,13 +67,6 @@ function key(context: SyncContext): string {
 }
 
 // Access tokens (UPS and FedEx) ------------------------------------------------------------------------------------------
-
-const CLIENT_CREDENTIAL_PROVIDERS: readonly string[] = ["ups", "fedex"] satisfies ProviderCode[];
-
-/** Whether the provider's connection stores a developer app's client ID and secret instead of a token. */
-export function usesClientCredentials(code: string): boolean {
-  return CLIENT_CREDENTIAL_PROVIDERS.includes(code);
-}
 
 /** A minted token stops being reused this long before the expiry the carrier stated. */
 export const TOKEN_SAFETY_MARGIN_MS = 5 * 60_000;
@@ -177,15 +170,49 @@ function clientPair(context: SyncContext, label: string): ClientPair {
   return { clientId, clientSecret };
 }
 
-/** Every form a credential could take in a provider's error body: raw, form-encoded and Basic. */
-function secretsOf(pair: ClientPair, ...tokens: string[]): string[] {
+/** Every way a provider could echo a value: raw, form- and URI-encoded, and JSON-escaped (with or without `\/`). */
+function encodingsOf(value: string): string[] {
+  const json = JSON.stringify(value).slice(1, -1);
   return [
+    value,
+    form({ s: value }).slice(2),
+    encodeURIComponent(value),
+    json,
+    json.replaceAll("/", "\\/"),
+  ];
+}
+
+/** The client ID, the secret, the Basic value and the access tokens, in every encoding, longest first. */
+function secretsOf(pair: ClientPair, ...tokens: string[]): string[] {
+  const values = [
     pair.clientSecret,
-    form({ s: pair.clientSecret }).slice(2),
     base64(`${pair.clientId}:${pair.clientSecret}`),
     pair.clientId,
     ...tokens,
   ];
+  return [...new Set(values.flatMap(encodingsOf))]
+    .filter((s) => s.length > 0)
+    .sort((a, b) => b.length - a.length);
+}
+
+function redact(text: string, secrets: readonly string[]): string {
+  let result = text;
+  for (const secret of secrets) result = result.split(secret).join("[redacted]");
+  return result;
+}
+
+/**
+ * The connection's HTTP client with every credential and token cut from a refusal's body before the status
+ * check quotes it in an error. The error keeps only the body's first 500 characters, so redacting afterwards
+ * would miss a secret that the cut splits. A successful answer is passed through untouched.
+ */
+function redacting(http: HttpClient, secrets: readonly string[]): HttpClient {
+  return async (request) => {
+    const response = await http(request);
+    if (response.status >= 200 && response.status < 300) return response;
+    const body = redact(response.body, secrets);
+    return body === response.body ? response : { ...response, body };
+  };
 }
 
 /**
@@ -194,10 +221,7 @@ function secretsOf(pair: ClientPair, ...tokens: string[]): string[] {
  */
 function scrubbed(error: unknown, secrets: readonly string[]): unknown {
   if (!(error instanceof Error)) return error;
-  let message = error.message;
-  for (const secret of [...secrets].sort((a, b) => b.length - a.length)) {
-    if (secret.length > 0) message = message.split(secret).join("[redacted]");
-  }
+  const message = redact(error.message, secrets);
   if (message === error.message) return error;
   if (error instanceof IntegrationError) {
     return new IntegrationError(error.code, message, {
@@ -217,11 +241,14 @@ async function mint(
   pair: ClientPair,
   fingerprint: string,
 ): Promise<MintedToken> {
-  const response = await callRaw(context.http, endpoint.label, endpoint.request(pair)).catch(
-    (error: unknown) => {
-      throw scrubbed(error, secretsOf(pair));
-    },
-  );
+  const secrets = secretsOf(pair);
+  const response = await callRaw(
+    redacting(context.http, secrets),
+    endpoint.label,
+    endpoint.request(pair),
+  ).catch((error: unknown) => {
+    throw scrubbed(error, secrets);
+  });
   let body: { access_token?: unknown; expires_in?: unknown } = {};
   try {
     body = (JSON.parse(response.body) ?? {}) as typeof body;
@@ -250,13 +277,14 @@ async function mint(
 /**
  * Runs a carrier call with the connection's access token, minting one from the stored client ID and
  * secret when the cache has none that is still good. A 401 means the carrier dropped the token before its
- * stated expiry: the token is forgotten, a new one minted and the call retried exactly once.
+ * stated expiry: the token is forgotten, a new one minted and the call retried exactly once. The call gets
+ * an HTTP client that redacts the pair and the token from refusal bodies.
  */
 async function withAccessToken<T>(
   context: SyncContext,
   tokens: CarrierTokenCache,
   endpoint: TokenEndpoint,
-  call: (accessToken: string) => Promise<T>,
+  call: (accessToken: string, http: HttpClient) => Promise<T>,
 ): Promise<T> {
   const pair = clientPair(context, endpoint.label);
   const fingerprint = sha256Hex(`${pair.clientId}\n${pair.clientSecret}`);
@@ -269,19 +297,21 @@ async function withAccessToken<T>(
     return minted.accessToken;
   };
   const first = await current();
+  const firstSecrets = secretsOf(pair, first);
   try {
-    return await call(first);
+    return await call(first, redacting(context.http, firstSecrets));
   } catch (error) {
     if (!(error instanceof IntegrationError && error.status === 401)) {
-      throw scrubbed(error, secretsOf(pair, first));
+      throw scrubbed(error, firstSecrets);
     }
     tokens.forget(connectionId);
   }
   const second = await current();
+  const bothSecrets = secretsOf(pair, first, second);
   try {
-    return await call(second);
+    return await call(second, redacting(context.http, bothSecrets));
   } catch (error) {
-    throw scrubbed(error, secretsOf(pair, first, second));
+    throw scrubbed(error, bothSecrets);
   }
 }
 
@@ -339,8 +369,8 @@ export function upsCarrier(tokens: CarrierTokenCache = workerTokens): Carrier {
         };
       };
       try {
-        body = await withAccessToken(context, tokens, UPS_TOKEN, (token) =>
-          callJson(context.http, "UPS", {
+        body = await withAccessToken(context, tokens, UPS_TOKEN, (token, http) =>
+          callJson(http, "UPS", {
             method: "GET",
             url: `https://onlinetools.ups.com/api/track/v1/details/${encodeURIComponent(trackingNumber)}?locale=en_US`,
             token,
@@ -425,10 +455,10 @@ export function fedexCarrier(tokens: CarrierTokenCache = workerTokens): Carrier 
     provider: "fedex",
     label: "FedEx",
     async track(context, trackingNumber) {
-      const body = await withAccessToken(context, tokens, FEDEX_TOKEN, (token) =>
+      const body = await withAccessToken(context, tokens, FEDEX_TOKEN, (token, http) =>
         callJson<{
           output?: { completeTrackResults?: { trackResults?: FedexResult[] }[] };
-        }>(context.http, "FedEx", {
+        }>(http, "FedEx", {
           method: "POST",
           url: "https://apis.fedex.com/track/v1/trackingnumbers",
           token,

@@ -110,8 +110,8 @@
     "reasonDisconnect": "Disconnected from Atlas settings."
   },
   "clientCredentialHelp": {
-    "ups": "Create an app at developer.ups.com with the Tracking API, then copy its Client ID and Client Secret here. Atlas uses them to get a new access token each time it refreshes tracking.",
-    "fedex": "Create a project at developer.fedex.com with the Track API, then copy its API key into Client ID and its secret key into Client secret. Atlas uses them to get a new access token each time it refreshes tracking."
+    "ups": "Create an app at developer.ups.com with the Tracking API, then copy its Client ID and Client Secret here. Atlas uses them to get a new access token whenever the current one is about to expire.",
+    "fedex": "Create a project at developer.fedex.com with the Track API, then copy its API key into Client ID and its secret key into Client secret. Atlas uses them to get a new access token whenever the current one is about to expire."
   },
   "errors": {
     "integration_plan_feature": "Your plan does not include this service. Upgrade the plan in Billing to connect it.",

@@ -14,18 +14,19 @@ provider; the `integration-worker` Edge Function passes `httpFromFetch(fetch)`. 
 A connection's credential is stored in Vault through `app.store_integration_credential` and read only by the
 service role. It is either the token or key alone, or JSON with named string fields
 (`src/framework/support.ts`, `parseCredential`). It is never logged: connectors raise `IntegrationError`s, and the
-UPS and FedEx connectors cut the client ID, client secret and access tokens from any provider message before it
-becomes the run's error.
+UPS and FedEx connectors cut the client ID, client secret and access tokens (raw, form- and URI-encoded and
+JSON-escaped) from any provider message before it becomes the run's error.
 
 ## Carrier tracking: UPS and FedEx client credentials (owner step)
 
 UPS and FedEx issue access tokens that expire within hours (UPS after 4 hours, FedEx after 1), so a stored token
 stops working the same day. Their connections store the carrier developer app's **client ID and client secret**
-instead (`{"client_id": "...", "client_secret": "..."}`, kind API Key). On each run the connector mints an access
-token with the OAuth 2.0 client-credentials grant (UPS `POST /security/v1/oauth/token` with HTTP Basic, FedEx
-`POST /oauth/token` with the pair in the form body), keeps it per connection until five minutes before it
-expires, and on a 401 mints a new one and retries the call once (`src/connectors/shipping/index.ts`). DHL keeps
-its API key (`dhl-api-key`).
+instead (`{"client_id": "...", "client_secret": "..."}`, kind API Key, written by `clientCredentialSecret`; only
+providers that `usesClientCredentials` may store a pair without a token). When a run finds no token still good,
+the connector mints one with the OAuth 2.0 client-credentials grant (UPS `POST /security/v1/oauth/token` with HTTP
+Basic, FedEx `POST /oauth/token` with the pair in the form body). It keeps the token per connection until five
+minutes before it expires, and on a 401 mints a new one and retries the call once
+(`src/connectors/shipping/index.ts`). DHL keeps its API key (`dhl-api-key`).
 
 The connector calls the carriers' production hosts (`onlinetools.ups.com`, `apis.fedex.com`), so it needs
 production credentials. Sandbox credentials (UPS CIE, FedEx test keys) are refused with 401 and move the

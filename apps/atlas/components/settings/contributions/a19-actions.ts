@@ -2,13 +2,16 @@
 
 import {
   asDbClient,
+  clientCredentialSecret,
   createConnection,
   enqueueSync,
+  getConnection,
   isProviderCode,
   SYNC_SCOPES,
   scopesFor,
   storeCredential,
   transitionConnection,
+  usesClientCredentials,
 } from "@xos/integrations";
 import type { IntegrationActionState } from "@xos/integrations/settings";
 import type { DataError } from "@xos/data";
@@ -92,32 +95,35 @@ export async function createIntegrationAction(
  * as one JSON credential (an API key kind) that the connector mints short-lived access tokens from.
  */
 const clientPair = z.object({
-  connectionId: z.uuid(),
   clientId: z.string().trim().max(1024),
   clientSecret: z.string().trim().max(1024),
 });
 
 const pastedSecret = z.object({
-  connectionId: z.uuid(),
   secret: z.string().max(16384),
   kind: z.enum(["OAuth Token", "API Key", "Service Account"]),
 });
 
+/**
+ * Stores a connection's credential in Vault. The connection's provider, read under row level security, picks the
+ * form: a client ID and secret for providers that mint their own tokens (`usesClientCredentials`), the pasted
+ * secret and its kind for every other provider. A post with the other form's fields is refused.
+ */
 export async function storeIntegrationCredentialAction(
   _: IntegrationActionState,
   form: FormData,
 ): Promise<IntegrationActionState> {
   const ctx = await contextFor(form);
-  let credential: {
-    connectionId: string;
-    secret: string;
-    kind: z.infer<typeof pastedSecret>["kind"];
-  };
-  if (form.has("clientId")) {
+  const connectionId = z.uuid().safeParse(form.get("connectionId"));
+  if (!connectionId.success) return invalid();
+  const db = asDbClient(ctx.viewer.db);
+  const connection = await getConnection(db, connectionId.data);
+  if (!connection.ok) return failure(connection.error);
+  let credential: { secret: string; kind: z.infer<typeof pastedSecret>["kind"] };
+  if (usesClientCredentials(connection.data.provider_code)) {
     const parsed = clientPair.safeParse({
-      connectionId: form.get("connectionId"),
       clientId: form.get("clientId"),
-      clientSecret: form.get("clientSecret") ?? "",
+      clientSecret: form.get("clientSecret"),
     });
     if (!parsed.success) return invalid();
     if (parsed.data.clientId.length === 0 || parsed.data.clientSecret.length === 0) {
@@ -125,28 +131,18 @@ export async function storeIntegrationCredentialAction(
       return { error: t("integrations.errors.clientCredentialsIncomplete") };
     }
     credential = {
-      connectionId: parsed.data.connectionId,
-      secret: JSON.stringify({
-        client_id: parsed.data.clientId,
-        client_secret: parsed.data.clientSecret,
-      }),
+      secret: clientCredentialSecret(parsed.data.clientId, parsed.data.clientSecret),
       kind: "API Key",
     };
   } else {
     const parsed = pastedSecret.safeParse({
-      connectionId: form.get("connectionId"),
       secret: form.get("secret") ?? "",
       kind: form.get("kind"),
     });
     if (!parsed.success) return invalid();
     credential = { ...parsed.data, secret: parsed.data.secret.trim() };
   }
-  const result = await storeCredential(
-    asDbClient(ctx.viewer.db),
-    credential.connectionId,
-    credential.secret,
-    credential.kind,
-  );
+  const result = await storeCredential(db, connectionId.data, credential.secret, credential.kind);
   return result.ok ? done(ctx.org.slug) : failure(result.error);
 }
 
