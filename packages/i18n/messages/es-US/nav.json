@@ -92,7 +92,8 @@
         "groups": "Grupos",
         "chat": "Chat",
         "recognition": "Reconocimientos",
-        "helpDesk": "Mesa de ayuda"
+        "helpDesk": "Mesa de ayuda",
+        "moderation": "Contenido denunciado"
       },
       "opportunities": {
         "requisitions": "Requisiciones",

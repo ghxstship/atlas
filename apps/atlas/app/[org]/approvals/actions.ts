@@ -10,7 +10,8 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
-import { fromDataError, type WorkflowActionState } from "@/lib/workflow/state";
+import { type WorkflowActionState } from "@/lib/workflow/state";
+import { fromDataError } from "@/lib/workflow/data-error";
 
 /**
  * Approvals actions (A33): submit a spend document for approval, decide the step an approval waits

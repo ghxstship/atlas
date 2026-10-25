@@ -58,6 +58,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0054](0054-project-measurement.md)                                 | Project Measurement Against Gate 1 Objectives                                    | Proposed |
 | [0055](0055-recovery-codes-sessions-step-up-and-oauth.md)           | Recovery Codes, Signed-In Sessions, More Step-Up and OAuth 2.1                   | Proposed |
 | [0056](0056-push-to-a-persons-own-devices-and-tap-targets.md)       | Push to a Person's Own Devices, and Tap Targets                                  | Accepted |
+| [0064](0064-account-security-and-import-notices.md)                 | Account Security and Import Notices, and Only the Channels a Category Reaches    | Proposed |
 | [0070](0070-compass-native-identity-settings.md)                    | Compass Native Identity Settings                                                 | Proposed |
 | [0071](0071-compass-personal-settings-part-2.md)                    | Compass Preferences, Notifications, Out of Office and Work Details               | Accepted |
 

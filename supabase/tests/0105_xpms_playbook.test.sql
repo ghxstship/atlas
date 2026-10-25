@@ -40,7 +40,7 @@ select throws_ok($$select count(*) from xpms.v_playbook_projects$$, '42501', nul
 select lives_ok($$select count(*) from xpms.intake$$, 'authenticated can read intake proposals');
 reset role;
 
-select is(xpms.playbook_checksum('Projects'), (select checksum_sha256::text from xpms.playbook_sheet where sheet_name = 'Projects'), 'an unruled sheet exports to its source checksum');
+select is(xpms.playbook_checksum('Activity Log'), (select checksum_sha256::text from xpms.playbook_sheet where sheet_name = 'Activity Log'), 'an unruled sheet exports to its source checksum');
 
 select * from finish();
 rollback;

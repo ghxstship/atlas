@@ -76,7 +76,7 @@
     "account": {
       "security_changed": {
         "subject": "Cambió la seguridad de tu cuenta",
-        "body": "Cambió un ajuste de seguridad de tu cuenta: {change}. Si no fuiste tú, restablece tu contraseña ahora."
+        "body": "{change, select, password {Se cambió tu contraseña.} password_set {Se agregó una contraseña a tu cuenta.} password_removed {Se quitó la contraseña de tu cuenta.} email {Se cambió el correo electrónico con el que inicias sesión.} phone {Se cambió el número de teléfono de tu cuenta.} factor_added {Se agregó {factorType, select, totp {una app de autenticación} webauthn {una llave de seguridad o llave de acceso} phone {un teléfono} other {un segundo factor}} a tu verificación en dos pasos.} factor_removed {Se quitó {factorType, select, totp {una app de autenticación} webauthn {una llave de seguridad o llave de acceso} phone {un teléfono} other {un segundo factor}} de tu verificación en dos pasos.} passkey_added {Se agregó una llave de acceso a tu cuenta.} passkey_removed {Se quitó una llave de acceso de tu cuenta.} recovery_codes {Se creó un juego nuevo de códigos de recuperación y tus códigos anteriores ya no sirven.} other {Cambió un ajuste de seguridad de tu cuenta.}} Si no fuiste tú, restablece tu contraseña ahora."
       },
       "recovery_code_used": {
         "subject": "Se usó un código de recuperación en tu cuenta",
@@ -95,8 +95,8 @@
     },
     "import": {
       "finished": {
-        "subject": "Importación terminada: {title}",
-        "body": "La importación {title} terminó."
+        "subject": "{stage, select, validated {Importación lista para revisar: {title}} other {Importación terminada: {title}}}",
+        "body": "{stage, select, validated {{title} está revisada: {written, plural, one {# fila está lista} other {# filas están listas}} para escribir, {refused, plural, one {# necesita} other {# necesitan}} corrección y {skipped, plural, one {# se omitió} other {# se omitieron}}. Revísala y luego confirma la importación.} other {{title} terminó: {written, plural, one {# fila escrita} other {# filas escritas}}, {refused, plural, one {# rechazada} other {# rechazadas}} y {skipped, plural, one {# omitida} other {# omitidas}}.}}"
       }
     },
     "export": {
@@ -274,6 +274,26 @@
         "subject": "{outcome, select, Reversed {Revertimos nuestra decisión sobre {title}} other {Mantuvimos nuestra decisión sobre {title}}}",
         "body": "{outcome, select, Reversed {Otra persona revisó tu apelación, estuvo de acuerdo y revirtió la decisión.} other {Otra persona revisó tu apelación y mantuvo la decisión.}} {statement}"
       }
+    },
+    "content_report": {
+      "filed": {
+        "subject": "{subject, select, comment {Se denunció un comentario} message {Se denunció un mensaje} other {Se denunció una publicación}}",
+        "body": "Alguien denunció {subject, select, comment {un comentario} message {un mensaje} other {una publicación}} por {reason, select, harassment {acoso o intimidación} hate {discurso o símbolos de odio} sexual_content {contenido sexual} violence {violencia o amenazas} spam {spam o estafa} other {otro motivo}}. Revísalo en 24 horas en Atlas, Personas, Contenido denunciado."
+      },
+      "overdue": {
+        "subject": "{subject, select, comment {Un comentario denunciado} message {Un mensaje denunciado} other {Una publicación denunciada}} lleva más de 24 horas en espera",
+        "body": "{subject, select, comment {Un comentario denunciado} message {Un mensaje denunciado} other {Una publicación denunciada}} hace más de 24 horas sigue esperando una decisión. Revísalo en Atlas, Personas, Contenido denunciado."
+      },
+      "decided": {
+        "subject": "{action, select, Removed {{subject, select, comment {Se eliminó el comentario que denunciaste} message {Se eliminó el mensaje que denunciaste} other {Se eliminó la publicación que denunciaste}}} other {Se revisó tu denuncia}}",
+        "body": "Los moderadores de tu organización revisaron {subject, select, comment {el comentario} message {el mensaje} other {la publicación}} que denunciaste. {statement}"
+      }
+    },
+    "content": {
+      "removed": {
+        "subject": "{subject, select, comment {Se eliminó tu comentario} message {Se eliminó tu mensaje} other {Se eliminó tu publicación}}",
+        "body": "Los moderadores de tu organización eliminaron tu {subject, select, comment {comentario} message {mensaje} other {publicación}} según {ruleReference}. {statement}"
+      }
     }
   },
   "notification": {
@@ -304,9 +324,9 @@
     "download": "Descargar exportación"
   },
   "import_finished": {
-    "subject": "La importación {importName} terminó",
-    "heading": "Importación terminada",
-    "body": "{written, plural, one {# fila escrita} other {# filas escritas}}, {refused, plural, one {# rechazada} other {# rechazadas}} y {skipped, plural, one {# omitida} other {# omitidas}}.",
+    "subject": "{stage, select, validated {La importación {importName} está lista para revisar} other {La importación {importName} terminó}}",
+    "heading": "{stage, select, validated {Importación lista para revisar} other {Importación terminada}}",
+    "body": "{stage, select, validated {{written, plural, one {# fila está lista} other {# filas están listas}} para escribir, {refused, plural, one {# necesita} other {# necesitan}} corrección y {skipped, plural, one {# se omitió} other {# se omitieron}}. Revisa las filas y luego confirma la importación.} other {{written, plural, one {# fila escrita} other {# filas escritas}}, {refused, plural, one {# rechazada} other {# rechazadas}} y {skipped, plural, one {# omitida} other {# omitidas}}.}}",
     "review": "Revisar importación"
   },
   "dsar_received": {

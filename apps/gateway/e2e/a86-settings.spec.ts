@@ -45,14 +45,17 @@ test("company regions, notification defaults and danger zone hold content", asyn
   await expect(page.getByText("No service regions yet.")).toBeVisible();
 
   await page.goto("/settings/company/notifications");
-  const defaults = page
-    .getByRole("form")
-    .filter({ has: page.getByRole("checkbox", { name: "Email" }) });
+  // One form per category: invoices and payments, opportunities and expiry reminders (1461, 1463).
+  const defaults = page.getByRole("form", { name: "Invoices and payments" });
   await defaults.getByRole("checkbox", { name: "Email" }).uncheck();
   await defaults.getByRole("button", { name: "Save defaults" }).click();
   await expect(page.getByText("Defaults saved.")).toBeVisible();
   await page.reload();
-  await expect(page.getByRole("checkbox", { name: "Email" })).not.toBeChecked();
+  await expect(
+    page
+      .getByRole("form", { name: "Invoices and payments" })
+      .getByRole("checkbox", { name: "Email" }),
+  ).not.toBeChecked();
   await expectAccessible(page);
 
   await page.goto("/settings/company/danger-zone");

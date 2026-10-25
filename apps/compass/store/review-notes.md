@@ -23,7 +23,7 @@ DEMO ACCOUNT
 The user name and password are in the Sign-In Information fields. The account is a field crew member of a demo organization, with a shift today on a project that has no geofence, so you can clock in from anywhere.
 
 SIGN IN
-On the sign-in screen tap "Use Password", enter the demo email and password, and tap "Sign In".
+On the sign-in screen tap "Use Password", enter the demo email and password, and tap "Sign In". Sign in with Apple is offered above Continue with Google.
 
 WHAT TO TRY
 1. Today: tap "Clock In" and allow location. Compass records where the punch happened; it never tracks location in the background. Then try "Start Break", "End Break" and "Clock Out". While you are clocked in, a Live Activity shows the shift on the Lock Screen.
@@ -34,6 +34,9 @@ WHAT TO TRY
 
 PERMISSIONS
 Camera: scanning and incident photos. Microphone: voice notes, only while the button is held. Location while using the app: on-site clock in and the incident location. Face ID: optional app lock (More, Settings, Biometric Unlock). Notifications: approvals and announcements. Compass does not track users and has no third-party analytics or advertising.
+
+REPORT AND BLOCK (guideline 1.2)
+More, Feed (also a conversation in Chat, and Recognition): tap the three dots on a post, message or shout-out by someone else. "Report This Post" asks for a reason and sends it to the organization's moderators, who review every report within 24 hours in the XOS web app. "Block" hides that person's posts, comments, shout-outs and messages at once. More, Settings, Blocked People lists blocks with Unblock.
 
 ACCOUNT DELETION (guideline 5.1.1(v))
 More, Settings, Delete Account. Compass lists the records organizations must keep by law (for example time and pay records), asks for the account email, confirms with Face ID or the passcode, and deletes the account after a two-second hold on "Delete Account". Deletion is refused while the person is clocked in, so clock out first. Signing in with an email link to an address that has no invitation creates an empty account; Compass then shows a screen that explains this and offers Delete Account. Please test deletion with the second account, OWNER_DELETION_TEST_USERNAME, which has the same password as the demo account, so the demo account stays available.
@@ -50,7 +53,7 @@ The production database must not carry the local demo seed (ADR 0033, decision 1
 2. Invite two people with the Field role and set a password for each through the normal invitation: the demo account (`OWNER_DEMO_USERNAME`) and the deletion test account (`OWNER_DELETION_TEST_USERNAME`). Use the same password for both. Store it in the owner's password manager, never in a file.
 3. Publish a shift today to the demo account, covering the review window (or a long recurring shift), and accept it once in Compass so Today shows Clock In.
 4. Issue a crew badge to the demo account valid for the review window and including the zone; put its code into `OWNER_REVIEW_CREDENTIAL_CODE`.
-5. Optionally post an announcement and send one approval request, so Inbox is not empty.
+5. Post a feed update from another account of the organization (an Admin), so the reviewer has someone else's post to report and whose author to block (guideline 1.2), and optionally send one approval request, so Inbox is not empty.
 6. Before each submission, sign in with both accounts on a TestFlight build, then clock out, so neither is left on shift (an open shift refuses deletion).
 
 ## Google Play: App access
