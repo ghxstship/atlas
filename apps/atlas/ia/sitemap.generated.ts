@@ -938,6 +938,22 @@ export const sitemap: Sitemap = {
               route: "/{org}/people/help-desk",
               list: { views: ["table", "list", "board"], default: "table" },
             },
+            {
+              id: "people.moderation",
+              kind: "page",
+              label: "nav.atlas.pages.people.moderation",
+              route: "/{org}/people/moderation",
+              visibility: {
+                owner: "full",
+                admin: "full",
+                manager: "hidden",
+                member: "hidden",
+                collaborator: "hidden",
+                field: "hidden",
+                viewer: "hidden",
+              },
+              list: { views: ["table", "list"], default: "table" },
+            },
           ],
         },
         {

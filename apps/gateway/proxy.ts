@@ -34,6 +34,7 @@ import {
 } from "@/lib/shell/standing";
 import { doesPaidWork } from "@/lib/engagement-state";
 import { createProxySupabase } from "@/lib/supabase/proxy";
+import { observability } from "@/lib/observability";
 
 /**
  * Gateway proxy, run before every page and server action:
@@ -141,7 +142,10 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
   const user = data.user;
   if (gpcConsent) {
     const recorded = await recordCookieConsent(db, gpcConsent);
-    if (!recorded.ok) console.error("Global Privacy Control was not recorded", recorded.error);
+    if (!recorded.ok)
+      observability.logger.error("Global Privacy Control was not recorded", {
+        error: recorded.error,
+      });
   }
   const path = request.nextUrl.pathname;
   const match = findRoute(sitemap, path);
@@ -204,7 +208,8 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
         XOS_TRUSTED_PROXY_HOPS: process.env["XOS_TRUSTED_PROXY_HOPS"],
       }),
     }).then((outcome) => {
-      if (!outcome.ok) console.error("session device not recorded", outcome.error);
+      if (!outcome.ok)
+        observability.logger.error("session device not recorded", { error: outcome.error });
     });
     if (event) event.waitUntil(touched);
     else await touched;

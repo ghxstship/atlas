@@ -10,6 +10,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * Enterprise single sign-on and SCIM on Settings, Security (A77, Section 9). Each action resolves the viewer's org
@@ -44,7 +45,7 @@ function errorKey(error: DataError): string {
   if (error.kind === "not-found") return "denied";
   if (error.kind === "conflict") return "conflict";
   if (error.kind === "invalid") return "invalid";
-  console.error("identity provider action failed", error);
+  observability.logger.error("identity provider action failed", { error: error });
   return "unexpected";
 }
 

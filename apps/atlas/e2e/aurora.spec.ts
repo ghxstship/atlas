@@ -1,11 +1,21 @@
 import { expect, test } from "./engine-test";
-import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
+import {
+  createOrganization,
+  endTrial,
+  expectAccessible,
+  signUp,
+  testEmail,
+  uniqueId,
+} from "./support";
 
 /**
  * Aurora AI (A25, Section 4.7): Cmd or Ctrl+J and the Ask Aurora button open the assistant panel,
- * which is keyboard-complete and axe clean in both themes with reduced motion; a new org on the
- * free Access plan sees the plan refusal, never a prompt box; and Settings, AI Features shows the
- * six switches off and locked until the plan includes Aurora AI. No model is called.
+ * which is keyboard-complete and axe clean in both themes with reduced motion; an org on the free
+ * Access plan sees the plan refusal, never a prompt box; and Settings, AI Features shows the six
+ * switches off and locked until the plan includes Aurora AI. No model is called.
+ *
+ * A new org starts a 14-day Pro trial, which includes Aurora AI (A79, migration 1350), so the journey
+ * ends the trial first, as the hourly lifecycle job does.
  */
 test.use({ reducedMotion: "reduce" });
 
@@ -17,6 +27,7 @@ test("the Aurora panel and AI Features settings refuse cleanly on a plan without
   const slug = `aurora-${id}`;
   await signUp(page, { name: "Avery Aurora", email: testEmail("aurora", id) });
   await createOrganization(page, { name: `Aurora ${id}`, slug });
+  await endTrial(slug);
 
   for (const scheme of ["dark", "light"] as const) {
     await page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" });

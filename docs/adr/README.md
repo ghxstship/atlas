@@ -58,6 +58,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0054](0054-project-measurement.md)                                 | Project Measurement Against Gate 1 Objectives                                    | Proposed |
 | [0055](0055-recovery-codes-sessions-step-up-and-oauth.md)           | Recovery Codes, Signed-In Sessions, More Step-Up and OAuth 2.1                   | Proposed |
 | [0056](0056-push-to-a-persons-own-devices-and-tap-targets.md)       | Push to a Person's Own Devices, and Tap Targets                                  | Accepted |
+| [0064](0064-account-security-and-import-notices.md)                 | Account Security and Import Notices, and Only the Channels a Category Reaches    | Proposed |
 | [0074](0074-record-sections-and-custom-object-history.md)           | Record Sections in Every Peek, and Custom Object Record History                  | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.

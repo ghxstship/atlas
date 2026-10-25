@@ -19,6 +19,7 @@ export const DataTable = dynamic(() => import("./data-table").then((m) => m.Data
 export const Dialog = dynamic(() => import("./dialog").then((m) => m.Dialog));
 export const Drawer = dynamic(() => import("./drawer").then((m) => m.Drawer));
 export const Gallery = dynamic(() => import("./gallery").then((m) => m.Gallery));
+export const PropertyList = dynamic(() => import("./property-list").then((m) => m.PropertyList));
 export const RecordList = dynamic(() => import("./record-list").then((m) => m.RecordList));
 export const RecordRow = dynamic(() => import("./record-list").then((m) => m.RecordRow));
 export const Timeline = dynamic(() => import("./timeline").then((m) => m.Timeline));

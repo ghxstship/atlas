@@ -1,6 +1,6 @@
--- 1750_custom_object_record_activity.sql
+-- 2100_custom_object_record_activity.sql
 --
--- A114 (RRR-159, ADR 0022 block 1750-1759). Section 4.6.3: every custom object gets "the record side peek, comments,
+-- A114 (RRR-159, ADR 0022 block 2100-2109). Section 4.6.3: every custom object gets "the record side peek, comments,
 -- attachments, activity, ... webhooks". A custom object record could carry comments and files, but nothing recorded
 -- what happened to it: no audit trail, no field history and no domain event, so its peek had no activity to show and
 -- webhooks and automations (1480) never heard of it. This migration:

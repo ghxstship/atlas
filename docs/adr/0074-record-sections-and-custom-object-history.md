@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-24
 - Decider: A114 (RRR-159), trace rows S11.2-08 and S4.6.3-02
-- Migration: 1750
+- Migration: 2100
 
 ## Context
 
@@ -29,7 +29,7 @@ Each record links to its full page (`/{org}/r/{key}`), not to its peek. A full-p
 
 ### 3. A custom object record's values are its fields
 
-A value lives in its own `custom_object_values` row, but it is a field of the record. 1750:
+A value lives in its own `custom_object_values` row, but it is a field of the record. 2100:
 
 - installs the audit trail on `app.custom_object_records` (t85);
 - writes each change of a record's values to that same trail, as `custom_object_records.update` with each field keyed `values.{field_key}` (a choice or person as its id, money as its minor units and currency). A statement trigger groups the change: one entry per write and record, so values set together are one entry. Values get no trail of their own;

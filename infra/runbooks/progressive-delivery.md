@@ -52,7 +52,11 @@ The gate (`decideStage`) compares the canary deployment with current production 
 
 ### Vercel settings
 
-The team's plan includes Rolling Releases for one project, and the owner gave it to `atlas` (ADR 0033, decision 50). They are enabled there with these settings:
+The team's plan includes Rolling Releases for one project, and the owner gave it to `atlas` (ADR 0033, decision 50).
+
+**Paused since 2026-10-25.** At the owner's request, Rolling Releases are off on `atlas` until production has its first customer org: with no traffic to split, a canary only costs credits. The 4.0.0 release was completed straight to 100 percent. Until they are back on, `atlas` promotes directly and rolls back with Instant Rollback, like `gateway`. Turn them on again with the settings below before the first customer signs in.
+
+When enabled, they use these settings:
 
 | Setting                              | Value                                           |
 | ------------------------------------ | ----------------------------------------------- |

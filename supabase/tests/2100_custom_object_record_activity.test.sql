@@ -1,4 +1,4 @@
--- pgTAP: 1750, custom object record activity (A114, RRR-159, Section 4.6.3). A custom object record is a comment and
+-- pgTAP: 2100, custom object record activity (A114, RRR-159, Section 4.6.3). A custom object record is a comment and
 -- attachment subject whose files the attachments bucket serves to its readers only; it has an audit trail that also
 -- carries its value changes, a field history, and created, updated and deleted events that webhooks and automations
 -- see.

@@ -10,6 +10,7 @@ import {
 import type { RecordRelations } from "@/components/work/related-records";
 import { getOrgContext } from "./context";
 import { rememberView } from "./recents";
+import { observability } from "@/lib/observability";
 
 /**
  * What the shell's global peek shows for a record key (Section 4.5.3): the sections of the record's
@@ -68,7 +69,7 @@ export async function loadShellPeekAction(
   const found = await getRecordByKey(ctx.viewer.db, ctx.org.id, key.data);
   if (!found.ok) {
     if (found.error.kind === "not-found") return { ok: false, reason: "notFound" };
-    console.error("Shell peek failed", found.error);
+    observability.logger.error("Shell peek failed", { error: found.error });
     return { ok: false, reason: "unexpected" };
   }
   const r = found.data;

@@ -160,7 +160,7 @@ export function CreateRecordDrawer({
 
 /**
  * A record in the side peek: its values, moving it to another board column, its activity (the field
- * history 1750 records), its comments and files through the same panels as every record's (Section
+ * history 2100 records), its comments and files through the same panels as every record's (Section
  * 4.6.3), and Why can I see this.
  */
 export function RecordPeek({

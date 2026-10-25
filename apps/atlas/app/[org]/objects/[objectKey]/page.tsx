@@ -70,7 +70,7 @@ function show(f: ObjectField, v: FieldValue | undefined, fmt: Formatters): strin
 }
 
 /**
- * A value as the record's history stores it (1750: a choice or person as its id, money as its minor
+ * A value as the record's history stores it (2100: a choice or person as its id, money as its minor
  * units and currency), in words.
  */
 function historyValue(f: ObjectField | undefined, v: Json, fmt: Formatters): string {
@@ -213,7 +213,7 @@ async function ObjectRecords({
     ]);
     paths = explained.ok ? explained.data : null;
     conversation = collab;
-    // Its fields' changes are the record's (1750): each value is keyed values.{field key}.
+    // Its fields' changes are the record's (2100): each value is keyed values.{field key}.
     const byKey = new Map(object.fields.map((f) => [`values.${f.key}`, f]));
     activity = history.ok
       ? historyItems(history.data, {

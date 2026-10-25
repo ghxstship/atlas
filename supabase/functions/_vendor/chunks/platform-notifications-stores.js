@@ -23,6 +23,22 @@ function compassSchemeUrl(target) {
   return `${COMPASS_SCHEME}:/${compassRoute(target)}`;
 }
 //#endregion
+//#region ../schemas/src/notifications/model.ts
+/**
+ * The notification kind registry model (Section 3.15). `notification-kinds.yaml` declares every channel
+ * default, email template, preference category and notification kind once; the database reference rows,
+ * the preference matrix and the templates index are generated from it.
+ */
+/** Channels a notification can reach a person on (app.notification_channel), in matrix order. */
+var NOTIFICATION_CHANNELS = ["In App", "Email", "SMS", "Push"];
+/** Catalog keys (in the `email` namespace) of a kind's subject and body. */
+function copyKeys(kind) {
+  return {
+    subject: `kinds.${kind}.subject`,
+    body: `kinds.${kind}.body`,
+  };
+}
+//#endregion
 //#region ../schemas/src/notifications/registry.generated.ts
 /** The templates index: every notification kind. */
 var NOTIFICATION_KINDS = [
@@ -435,6 +451,54 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "content_report.filed",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content_report.filed.subject",
+      body: "kinds.content_report.filed.body",
+    },
+  },
+  {
+    kind: "content_report.overdue",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content_report.overdue.subject",
+      body: "kinds.content_report.overdue.body",
+    },
+  },
+  {
+    kind: "content_report.decided",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content_report.decided.subject",
+      body: "kinds.content_report.decided.body",
+    },
+  },
+  {
+    kind: "content.removed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content.removed.subject",
+      body: "kinds.content.removed.body",
+    },
+  },
+  {
     kind: "report.delivered",
     category: "reports",
     emailTemplate: "notification",
@@ -628,22 +692,6 @@ var NOTIFICATION_KINDS = [
   },
 ];
 //#endregion
-//#region ../schemas/src/notifications/model.ts
-/**
- * The notification kind registry model (Section 3.15). `notification-kinds.yaml` declares every channel
- * default, email template, preference category and notification kind once; the database reference rows,
- * the preference matrix and the templates index are generated from it.
- */
-/** Channels a notification can reach a person on (app.notification_channel), in matrix order. */
-var NOTIFICATION_CHANNELS = ["In App", "Email", "SMS", "Push"];
-/** Catalog keys (in the `email` namespace) of a kind's subject and body. */
-function copyKeys(kind) {
-  return {
-    subject: `kinds.${kind}.subject`,
-    body: `kinds.${kind}.body`,
-  };
-}
-//#endregion
 //#region ../schemas/src/notifications/parse.ts
 var CODE = /^[a-z][a-z_]*$/;
 var KIND = /^[a-z][a-z_]*\.[a-z][a-z_]*$/;
@@ -696,7 +744,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1620_notification_kind_seed.sql"
+"supabase/migrations/1639_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
