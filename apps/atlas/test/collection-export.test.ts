@@ -9,6 +9,7 @@ import {
   exportSourceFor,
   planExport,
   EXPORT_SOURCES,
+  NOT_EXPORTED,
 } from "../lib/views/export-sources";
 import { collectionKeyFor } from "../lib/views/query";
 
@@ -88,9 +89,10 @@ describe("export sources (Section 4.6.4)", () => {
   });
 
   it("gives every one of them an export source", () => {
-    const missing = collections.filter(
-      (route) => exportEntryFor(collectionKeyFor(sampleUrl(route))) === null,
-    );
+    const missing = collections.filter((route) => {
+      const key = collectionKeyFor(sampleUrl(route));
+      return exportEntryFor(key) === null && !(key !== null && key in NOT_EXPORTED);
+    });
     expect(missing).toEqual([]);
   });
 

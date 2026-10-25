@@ -1053,6 +1053,17 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
 };
 
 /** The entry of a collection key; custom object pages share one. Null for a collection without one. */
+/**
+ * Collections that render the view switcher but offer no export, each with its reason. The catalog test reads
+ * this list instead of asking these pages for a source.
+ */
+export const NOT_EXPORTED: Readonly<Record<string, string>> = {
+  // ADR 0033 decision 57: nobody is told who reported, and the queue reads through content_moderation_queue,
+  // which shows a moderator what they need to decide and nothing to carry away.
+  "people/moderation":
+    "Reported content stays in the moderation queue; an export would carry it out.",
+};
+
 export function exportEntryFor(collectionKey: string | null): ExportEntry | null {
   if (collectionKey === null) return null;
   if (collectionKey.startsWith("objects/")) return EXPORT_SOURCES["objects/*"] ?? null;
