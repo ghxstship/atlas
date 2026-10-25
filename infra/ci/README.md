@@ -148,6 +148,7 @@ Publishes `@xos/sdk` and `@xos/cli` to npm and `xos-sdk` to PyPI when a release 
 - **npm:** trusted publishing over OIDC. `npm` 11.5 or later exchanges the job's OIDC token for a one-time publish token once the owner adds this repository and workflow as a trusted publisher of both packages on npmjs.com. Until then, the `NPM_TOKEN` secret (an automation token scoped to the `@xos` packages) is the fallback. No provenance: npm signs it only for a public repository, and this one is private (owner decision, 2026-10-24). A public mirror of the SDK packages can bring it back later.
 - **PyPI:** trusted publishing through `pypa/gh-action-pypi-publish`, so no PyPI secret exists. The owner registers a pending publisher for `xos-sdk` on pypi.org (owner `ghxstship`, repository `atlas`, workflow `publish-packages.yml`, environment `pypi`). Attestations are off (`attestations: false`): PEP 740 attestations need a public repository.
 - **Environments:** `npm` and `pypi` are GitHub environments with the owner as required reviewer, so a pushed tag waits for one approval before anything leaves the repository.
+- **Publishing an existing tag:** Actions, Publish packages, Run workflow, with the tag (for example `v4.0.0`). The run uses the workflow from `main` and checks out the tag, so a fix to the workflow reaches a tag that has already been pushed. v4.0.0 needs this: its own copy passed npm a path that npm read as a GitHub repository, and nothing was published.
 
 ```yaml
 name: Publish packages
