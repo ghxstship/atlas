@@ -313,11 +313,13 @@ value again.
 `select name from vault.secrets order by 1;` (names only). Expected after step 4:
 
 - created by migrations: `xos_medical_notes_key`, `xos_tax_form_key`, `xos_org_tax_identifier_key`,
-  `xos_passport_number_key`, `xos_inbound_reply_secret`;
+  `xos_passport_number_key`, `xos_inbound_reply_secret`, and, once 2010 and 2011 are pushed,
+  `xos_vendor_bank_account_key` and `xos_supplier_certificate_number_key` (ADR 0057);
 - set by the operator: `xos_worker_key`, the service role key the cron worker schedules use. It must be replaced
   in step 12.
 
-The five keys were generated in this project and never left Vault, so the demo period did not expose them. After
+The five keys were generated in this project and never left Vault, so the demo period did not expose them. The two
+A100 keys are generated the same way when their migrations run. After
 step 4 no row they encrypt remains (the demo encounters, tax forms and entities are gone), so regenerating them
 now would cost nothing, but the owner decided to keep them (ADR 0033, decision 49). No `xos_integration_*` secret
 may remain: the removal deletes the demo connections' credentials.
