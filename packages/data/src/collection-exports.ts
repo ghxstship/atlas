@@ -2,7 +2,7 @@ import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Exports of a collection's current view (A102, RRR-146; migration 1680; Section 4.6.4, 8.6). Atlas's export menu
+ * Exports of a collection's current view (A102, RRR-146; migration 2030; Section 4.6.4, 8.6). Atlas's export menu
  * asks for one through {@link requestCollectionExport}: the columns of one table or view, their headers in the
  * viewer's language and the view's filters. The database classifies the columns (Confidential needs the export
  * capability, Restricted the restricted capability and step-up), refuses medical data and queues the export.render

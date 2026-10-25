@@ -225,7 +225,9 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "schedule",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: {
+      startsWithinHours: 12,
+    },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.shift.assigned.subject",
@@ -353,7 +355,9 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.account.security_changed.subject",
@@ -365,7 +369,9 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.account.recovery_code_used.subject",
@@ -413,7 +419,9 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
-    quietHoursBypass: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.access.break_glass_started.subject",
@@ -577,12 +585,60 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
-    kind: "report.delivered",
-    category: "reports",
-    emailTemplate: "report_delivery",
+    kind: "content_report.filed",
+    category: "safety",
+    emailTemplate: "notification",
     pushCategory: null,
     quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content_report.filed.subject",
+      body: "kinds.content_report.filed.body",
+    },
+  },
+  {
+    kind: "content_report.overdue",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content_report.overdue.subject",
+      body: "kinds.content_report.overdue.body",
+    },
+  },
+  {
+    kind: "content_report.decided",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content_report.decided.subject",
+      body: "kinds.content_report.decided.body",
+    },
+  },
+  {
+    kind: "content.removed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.content.removed.subject",
+      body: "kinds.content.removed.body",
+    },
+  },
+  {
+    kind: "report.delivered",
+    category: "reports",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Push"],
     copy: {
       subject: "kinds.report.delivered.subject",
       body: "kinds.report.delivered.body",

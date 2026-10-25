@@ -10,7 +10,7 @@ import {
 } from "./chunks/data-report-files.js";
 //#region ../data/src/export-renders.ts
 /**
- * The export.render worker (A102, RRR-146; migration 1680; Section 4.6.4, 8.6). Atlas asks for an
+ * The export.render worker (A102, RRR-146; migration 2030; Section 4.6.4, 8.6). Atlas asks for an
  * export of a collection's current view through app.request_export, which records its columns,
  * headers, filters, classification and watermark and queues an export.render job. This worker, the
  * same loop as report-runs.ts, claims those jobs (app.claim_export_renders), reads each export's
@@ -220,7 +220,7 @@ function text(row, key) {
 }
 var FORMATS = ["CSV", "XLSX", "PDF"];
 var CLASSES = ["Public", "Internal", "Confidential", "Restricted"];
-/** ExportRenderStore over the service-role client: the 1680 worker RPCs and export_job_columns. */
+/** ExportRenderStore over the service-role client: the 2030 worker RPCs and export_job_columns. */
 function supabaseExportRenderStore(client, options = {}) {
   const app = client.schema("app");
   const call = async (fn, args) => {
@@ -356,7 +356,7 @@ function supabaseExportFiles(client) {
 //#endregion
 //#region edge/exports.ts
 /**
- * The export.render worker for the Edge bundle (A102, RRR-146; migration 1680). The worker lives with
+ * The export.render worker for the Edge bundle (A102, RRR-146; migration 2030). The worker lives with
  * the report renderers in @xos/data (export-renders.ts, report-files.ts), so an export's PDF prints as a
  * report's does; this file re-exports it and adds the file copy from @xos/i18n. Only the reporting
  * namespace is read, and each locale's copy loads the first time a file asks for that locale (A85).

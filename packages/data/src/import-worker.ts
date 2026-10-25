@@ -40,6 +40,8 @@ import {
  * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed.
  * A spreadsheet is parsed only once its virus scan is Clean (owner decision 10, migration 1240): the
  * database queues detection on the Clean verdict, and every step checks again before reading.
+ * When validation or a commit finishes, the person who started or committed the import is sent import.finished
+ * (A104, migration 2051) with a link to review it in Atlas; the database counts the rows.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 
@@ -153,6 +155,13 @@ export interface ImportStore {
   }): Promise<void>;
   refuseRow(rowId: string, reason: string): Promise<void>;
   finishBatch(batchId: string): Promise<void>;
+  /** The org's slug, the first segment of its Atlas paths. */
+  orgSlug(orgId: string): Promise<string | null>;
+  /**
+   * Sends import.finished (2051) for a validated import (no batch) or a committed batch, with the absolute link that
+   * reviews it; the database counts the rows and picks the person.
+   */
+  notifyFinished(input: { jobId: string; batchId: string | null; url: string }): Promise<void>;
   /** Target lookups and writes. */
   lookups: TargetLookups;
 }
@@ -179,6 +188,8 @@ export interface ImportJobResult {
   readonly subjectId: string;
   readonly status: "Succeeded" | "Queued" | "Failed" | "Skipped";
   readonly error?: string;
+  /** Why import.finished was not sent for a step that succeeded. */
+  readonly noticeError?: string;
 }
 
 // Reading the spreadsheet ---------------------------------------------------------------------------------
@@ -428,7 +439,7 @@ async function readUpload(store: ImportStore, job: ImportJobRecord): Promise<She
   return sheet;
 }
 
-async function detect(store: ImportStore, jobId: string): Promise<void> {
+async function detect(store: ImportStore, jobId: string): Promise<StepNote> {
   const job = await store.job(jobId);
   if (!job || job.status !== "Uploaded") return;
   let sheets: Sheet[];
@@ -483,9 +494,46 @@ async function detect(store: ImportStore, jobId: string): Promise<void> {
   await store.setStatus(job.id, "Mapped");
 }
 
-/** What the worker entry points pass: fetch for the Google Sheets reader. */
+/** What the worker entry points pass: fetch for the Google Sheets reader, and Atlas's address for review links. */
 export interface ImportWorkerOptions {
   readonly sheetsFetch?: SheetsFetch;
+  /** Atlas's origin (XOS_APP_URL), such as https://atlas.example. Without it nobody is told an import finished. */
+  readonly appUrl?: string;
+}
+
+/** Where an import is reviewed in Atlas: the import wizard opened at that import (`/{org}/import?import={id}`). */
+export function importReviewUrl(appUrl: string, orgSlug: string, jobId: string): string {
+  const url = new URL(`/${encodeURIComponent(orgSlug)}/import`, appUrl);
+  url.searchParams.set("import", jobId);
+  return url.toString();
+}
+
+/** What a step reports beyond succeeding: why the person was not told the import finished. */
+type StepNote = { readonly noticeError: string } | undefined;
+
+/**
+ * Tells the person an import finished validating (no batch) or committing (import.finished). The step's own work is
+ * done by then, so a notice that cannot be sent never fails or repeats it: the error comes back with the result.
+ */
+async function notifyFinished(
+  store: ImportStore,
+  job: ImportJobRecord,
+  batchId: string | null,
+  options: ImportWorkerOptions,
+): Promise<StepNote> {
+  if (!options.appUrl) return undefined;
+  try {
+    const slug = await store.orgSlug(job.orgId);
+    if (slug === null) return { noticeError: `The org of import ${job.id} has no slug.` };
+    await store.notifyFinished({
+      jobId: job.id,
+      batchId,
+      url: importReviewUrl(options.appUrl, slug, job.id),
+    });
+    return undefined;
+  } catch (error) {
+    return { noticeError: error instanceof Error ? error.message : String(error) };
+  }
 }
 
 /** import.fetch: reads a Google Sheets link through the org's Drive connection and saves it for scanning. */
@@ -493,7 +541,7 @@ async function fetchSheet(
   store: ImportStore,
   jobId: string,
   options: ImportWorkerOptions,
-): Promise<void> {
+): Promise<StepNote> {
   const job = await store.job(jobId);
   if (!job || job.status !== "Uploaded" || job.source !== "Google Sheets" || !job.sourceUrl) return;
   // Already saved (a retried job): the scan verdict queues detection.
@@ -525,7 +573,11 @@ async function fetchSheet(
   await store.saveUpload(job.path, await writeWorkbook(workbook));
 }
 
-async function validate(store: ImportStore, jobId: string): Promise<void> {
+async function validate(
+  store: ImportStore,
+  jobId: string,
+  options: ImportWorkerOptions,
+): Promise<StepNote> {
   const job = await store.job(jobId);
   if (!job || job.status !== "Mapped") return;
   const sheet = await readUpload(store, job);
@@ -560,9 +612,14 @@ async function validate(store: ImportStore, jobId: string): Promise<void> {
     }
   }
   await store.setStatus(job.id, "Validated");
+  return notifyFinished(store, job, null, options);
 }
 
-async function commit(store: ImportStore, batchId: string): Promise<void> {
+async function commit(
+  store: ImportStore,
+  batchId: string,
+  options: ImportWorkerOptions,
+): Promise<StepNote> {
   const jobId = await store.batchJob(batchId);
   const job = jobId ? await store.job(jobId) : null;
   if (!job || job.status !== "Committing") return;
@@ -617,6 +674,7 @@ async function commit(store: ImportStore, batchId: string): Promise<void> {
     }
   }
   await store.finishBatch(batchId);
+  return notifyFinished(store, job, batchId, options);
 }
 
 /** A row the database refused to write; the row is marked Refused with the reason and the batch goes on. */
@@ -627,7 +685,11 @@ export class ImportWriteError extends Error {
   }
 }
 
-type Step = (store: ImportStore, subjectId: string, options: ImportWorkerOptions) => Promise<void>;
+type Step = (
+  store: ImportStore,
+  subjectId: string,
+  options: ImportWorkerOptions,
+) => Promise<StepNote>;
 
 const STEPS: Record<ImportJobKind, Step> = {
   "import.fetch": fetchSheet,
@@ -647,13 +709,14 @@ export async function runImportJobs(
   for (const kind of IMPORT_JOB_KINDS) {
     for (const claimed of await store.claim(kind, worker, limit)) {
       try {
-        await STEPS[kind](store, claimed.subjectId, options);
+        const note = await STEPS[kind](store, claimed.subjectId, options);
         await store.finishJob(claimed.jobId, true, null);
         results.push({
           kind,
           jobId: claimed.jobId,
           subjectId: claimed.subjectId,
           status: "Succeeded",
+          ...(note ? { noticeError: note.noticeError } : {}),
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -1166,6 +1229,20 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
     },
     async finishBatch(batchId) {
       await call("finish_import_batch", { p_import_batch_id: batchId });
+    },
+    async orgSlug(orgId) {
+      const row = await one(
+        app.from("organizations").select("slug").eq("id", orgId),
+        "organizations",
+      );
+      return typeof row?.["slug"] === "string" ? row["slug"] : null;
+    },
+    async notifyFinished(input) {
+      await call("notify_import_finished", {
+        p_import_job_id: input.jobId,
+        p_import_batch_id: input.batchId,
+        p_review_url: input.url,
+      });
     },
   };
 }

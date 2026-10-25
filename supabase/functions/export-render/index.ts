@@ -1,4 +1,4 @@
-// Export worker (A102, RRR-146; migration 1680): claims export.render jobs, reads each export's rows as the
+// Export worker (A102, RRR-146; migration 2030): claims export.render jobs, reads each export's rows as the
 // person who asked for it (app.export_job_rows), writes the CSV, .xlsx or PDF to the private export-files bucket
 // with a 7-day download, watermarks every page of a Confidential or Restricted PDF with the requester's email
 // and the time (Section 8.6), records the outcome, and removes the files whose download expired. pg_cron calls

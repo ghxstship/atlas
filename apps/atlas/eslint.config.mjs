@@ -1,5 +1,5 @@
 import nextVitals from "eslint-config-next/core-web-vitals";
-import base from "@xos/config/eslint";
+import base, { serverConsole } from "@xos/config/eslint";
 
 /**
  * Atlas lint. On top of the shared preset (raw design values, silent catches), JSX may not hold
@@ -9,6 +9,7 @@ import base from "@xos/config/eslint";
 const config = [
   ...nextVitals,
   ...base,
+  ...serverConsole,
   {
     files: ["**/*.tsx"],
     ignores: ["**/test/**", "**/e2e/**", "**/*.test.tsx"],

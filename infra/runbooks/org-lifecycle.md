@@ -67,7 +67,10 @@ org's time zone, and its PDF and email date the deletion on that calendar.
 - Adding a card runs through Stripe Checkout with `trialEnd` (`@xos/platform` `createCheckoutSession`): Stripe
   holds the charge to the trial end, and the webhook moves the subscription to active, which converts the trial.
   Nothing charges a card before then, and the expiry job never calls Stripe.
-- Atlas does not reach Checkout yet (ADR 0035, gaps), so "Add a card" stays disabled in Billing and Plan.
+- In Billing and Plan, "Add a card" opens Checkout for the trial's plan, and each self-serve plan opens Checkout
+  for that plan, monthly or yearly (ADR 0033 decision 59, migration 1640). The Owner passes step-up first. Until
+  `STRIPE_SECRET_KEY` is set on the Atlas deployment, the page says billing is not open yet and the buttons answer
+  the same.
 
 ## Deletion and certificates
 
@@ -109,8 +112,9 @@ seam A77's step-up check plugs into.
 ## Dunning
 
 From day 21 of dunning the org is read-only for people (billing still writes), and every page shows why. Owners
-and Admins see the failed payment from day 0. "Update the payment method" links to Billing and Plan, where the
-customer portal will open once Atlas reaches Stripe (ADR 0035, gaps).
+and Admins see the failed payment from day 0. "Update the payment method" links to Billing and Plan, where it opens
+the Stripe customer portal after step-up (ADR 0033 decision 59). A payment that succeeds there syncs through the
+webhook and restores writes at once.
 
 ## Partners
 

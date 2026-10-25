@@ -104,6 +104,47 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "blocked-people",
+        title: "Blocked people",
+        summary: "Who you blocked, what a block hides, and how to unblock someone.",
+        kind: "page",
+        nodes: ["settings.profile-privacy"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Blocked People lists everyone you blocked. You block someone from the three dots on their post, message or shout-out.",
+              },
+            ],
+          },
+          { t: "h2", v: "What a block hides" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Their posts, comments on posts, shout-outs and messages, in every conversation, and the notifications about them. A post that asks you to acknowledge it still shows. In the directory you each see the other by name only, without a preferred name or headline. They are not told, and their work with you carries on as before.",
+              },
+            ],
+          },
+          { t: "h2", v: "Unblock" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Choose " },
+              { t: "strong", v: "Unblock" },
+              {
+                t: "text",
+                v: " next to the name. Their posts and messages show again. Unblocking needs a connection.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "client-reports",
         title: "Reports",
         summary: "The reports an organization shared with its client, listed in Compass.",
@@ -418,6 +459,15 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: " for 2 seconds." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "If you sign in with Apple, Compass shows Apple's sheet once more, so it can stop using your Apple Account. If it cannot, your account is still deleted, and Compass tells you to remove it from Sign in with Apple in your Apple Account settings.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -678,6 +728,22 @@ export const COMPASS_HELP: HelpContent = {
           },
           {
             t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Your notifications join them: approvals, mentions and assignments under ",
+              },
+              { t: "strong", v: "Needs You" },
+              { t: "text", v: ", everything else under " },
+              { t: "strong", v: "For Your Information" },
+              {
+                t: "text",
+                v: ". A notification about a record opens the record. One about something Compass has no screen for, such as a new match for a saved search, opens the page in Gateway.",
+              },
+            ],
+          },
+          {
+            t: "p",
             c: [{ t: "text", v: "When nothing needs you, Inbox says you are all caught up." }],
           },
           { t: "h2", v: "Approve from notifications" },
@@ -686,7 +752,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Inbox offers to turn on notifications. With them on, you can approve or reject timesheets and other requests right from the alert, with a reason when you reject.",
+                v: "Inbox offers to turn on notifications. With them on, you can approve or reject timesheets and other requests right from the alert, with a reason when you reject. Tapping any other alert opens what it is about, even when Compass was closed.",
               },
             ],
           },
@@ -1138,7 +1204,10 @@ export const COMPASS_HELP: HelpContent = {
             items: [
               [
                 { t: "strong", v: "Emergency codes" },
-                { t: "text", v: ": the project's codes. Connect once to download them." },
+                {
+                  t: "text",
+                  v: ": your organization's codes, with the names, meanings and order your safety team set in Atlas, each with its code word and color. If your organization keeps no codes of its own, or you work for it without being a member, you see the standard codes, and the screen says so. Connect once to download them.",
+                },
               ],
               [
                 { t: "strong", v: "Radio channels" },
@@ -1630,6 +1699,15 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: ". Messages you write offline send when you reconnect." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tap the three dots on a message from someone else to report it to your organization's moderators, who review it within 24 hours, or to block its author. A block hides their messages in every conversation. Reporting and blocking need a connection.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -1764,6 +1842,18 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "Acknowledgments and votes work offline and upload when you reconnect.",
               },
+            ],
+          },
+          { t: "h2", v: "Report or block" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tap the three dots on someone else's post to report it to your organization's moderators, who review it within 24 hours, or to block its author. Nobody is told who reported. See ",
+              },
+              { t: "link", v: "Blocked people", href: "help:blocked-people" },
+              { t: "text", v: "." },
             ],
           },
         ],
@@ -1951,6 +2041,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Send" },
               { t: "text", v: ". Recognitions also appear in the feed." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tap the three dots on a shout-out from someone else to report it to your organization's moderators or to block its author.",
+              },
             ],
           },
         ],
@@ -2182,6 +2281,47 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Nueva conversación" },
               { t: "text", v: " empieza de nuevo." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "blocked-people",
+        title: "Personas bloqueadas",
+        summary: "A quién bloqueaste, qué oculta un bloqueo y cómo desbloquear a alguien.",
+        kind: "page",
+        nodes: ["settings.profile-privacy"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Personas bloqueadas muestra a todas las personas que bloqueaste. Bloqueas a alguien desde los tres puntos de su publicación, mensaje o reconocimiento.",
+              },
+            ],
+          },
+          { t: "h2", v: "Lo que oculta un bloqueo" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Sus publicaciones, sus comentarios en publicaciones, sus reconocimientos y sus mensajes, en todas las conversaciones, y las notificaciones sobre ellos. Una publicación que te pide confirmar la lectura se sigue mostrando. En el directorio cada uno ve al otro solo por su nombre, sin nombre preferido ni titular. No se le avisa, y su trabajo contigo sigue como antes.",
+              },
+            ],
+          },
+          { t: "h2", v: "Desbloquear" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Elige " },
+              { t: "strong", v: "Desbloquear" },
+              {
+                t: "text",
+                v: " junto al nombre. Sus publicaciones y mensajes vuelven a mostrarse. Desbloquear necesita conexión.",
+              },
             ],
           },
         ],
@@ -2518,6 +2658,15 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: " durante 2 segundos." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Si inicias sesión con Apple, Compass muestra otra vez la hoja de Apple para dejar de usar tu Cuenta de Apple. Si no puede, tu cuenta se elimina de todos modos, y Compass te indica que la quites de Iniciar sesión con Apple en la configuración de tu Cuenta de Apple.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -2789,6 +2938,22 @@ export const COMPASS_HELP: HelpContent = {
           },
           {
             t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tus notificaciones se suman: aprobaciones, menciones y asignaciones en ",
+              },
+              { t: "strong", v: "Te necesita" },
+              { t: "text", v: ", y todo lo demás en " },
+              { t: "strong", v: "Para tu información" },
+              {
+                t: "text",
+                v: ". Una notificación sobre un registro abre el registro. Una sobre algo que Compass no tiene en pantalla, como una nueva coincidencia de una búsqueda guardada, abre la página en Gateway.",
+              },
+            ],
+          },
+          {
+            t: "p",
             c: [{ t: "text", v: "Cuando nada te necesita, la Bandeja dice que estás al día." }],
           },
           { t: "h2", v: "Aprobar desde las notificaciones" },
@@ -2797,7 +2962,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "La Bandeja te ofrece activar las notificaciones. Con ellas activadas, puedes aprobar o rechazar hojas de horas y otras solicitudes desde la misma alerta, con un motivo cuando rechazas.",
+                v: "La Bandeja te ofrece activar las notificaciones. Con ellas activadas, puedes aprobar o rechazar hojas de horas y otras solicitudes desde la misma alerta, con un motivo cuando rechazas. Al tocar cualquier otra alerta se abre aquello de lo que trata, aunque Compass estuviera cerrado.",
               },
             ],
           },
@@ -3256,7 +3421,7 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "Códigos de emergencia" },
                 {
                   t: "text",
-                  v: ": los códigos del proyecto. Conéctate una vez para descargarlos.",
+                  v: ": los códigos de tu organización, con los nombres, significados y orden que definió tu equipo de seguridad en Atlas, cada uno con su palabra clave y su color. Si tu organización no tiene códigos propios, o trabajas para ella sin ser miembro, ves los códigos estándar y la pantalla lo indica. Conéctate una vez para descargarlos.",
                 },
               ],
               [
@@ -3782,6 +3947,15 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: ". Los mensajes que escribes sin conexión se envían al reconectar." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Toca los tres puntos en un mensaje de otra persona para denunciarlo ante los moderadores de tu organización, que lo revisan en 24 horas, o para bloquear a quien lo escribió. Un bloqueo oculta sus mensajes en todas las conversaciones. Denunciar y bloquear necesitan conexión.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -3923,6 +4097,18 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "Las confirmaciones y los votos funcionan sin conexión y se suben al reconectar.",
               },
+            ],
+          },
+          { t: "h2", v: "Denunciar o bloquear" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Toca los tres puntos en la publicación de otra persona para denunciarla ante los moderadores de tu organización, que la revisan en 24 horas, o para bloquear a quien la escribió. No se avisa a nadie de quién denunció. Consulta ",
+              },
+              { t: "link", v: "Personas bloqueadas", href: "help:blocked-people" },
+              { t: "text", v: "." },
             ],
           },
         ],
@@ -4142,6 +4328,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Enviar" },
               { t: "text", v: ". Los reconocimientos también aparecen en el muro." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Toca los tres puntos en un reconocimiento de otra persona para denunciarlo ante los moderadores de tu organización o para bloquear a quien lo escribió.",
+              },
             ],
           },
         ],

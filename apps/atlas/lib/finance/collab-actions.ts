@@ -12,6 +12,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import type { ActionState } from "@/app/[org]/finance/actions";
 import { getOrgContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * Comments and attachments on finance documents (Section 19.6), through A18's unified comment system
@@ -51,7 +52,8 @@ function done(slug: string, result: { ok: boolean; error?: unknown }): ActionSta
         error: { kind: "refusal", rule: error.rule ?? "refused", message: error.message ?? "" },
         at: Date.now(),
       };
-    if (error.kind === "unexpected") console.error("finance collaboration action failed", error);
+    if (error.kind === "unexpected")
+      observability.logger.error("finance collaboration action failed", { error: error });
     return {
       error: { kind: error.kind === "not-found" ? "not-found" : "unexpected" },
       at: Date.now(),

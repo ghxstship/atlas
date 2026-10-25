@@ -20453,10 +20453,10 @@ export interface Engagement {
    */
   readonly application_id: string | null;
   /**
-   * Worker classification, from xpms.worker_classification.
+   * Worker classification, from xpms.worker_classification; null for Client and Sponsor engagements.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly worker_classification: string;
+  readonly worker_classification: string | null;
   /**
    * Pay basis; with the arrangement a permitted canon pair.
    * Length: 1 to 300.
@@ -25371,6 +25371,10 @@ export interface PhaseCoverage {
    */
   readonly active_element_count: number;
   /**
+   * Whether the phase carries a declared gap.
+   */
+  readonly declared_gap: boolean;
+  /**
    * Gate ordinal.
    * Range: 0 to unbounded.
    */
@@ -25394,6 +25398,11 @@ export interface PhaseCoverage {
    * True when at least one participating element is Active.
    */
   readonly has_active_element: boolean | null;
+  /**
+   * Why the phase has no Active element, as its declared gap states it; null without one.
+   * Length: 1 to 300.
+   */
+  readonly declared_gap_reason: string | null;
 }
 
 /**

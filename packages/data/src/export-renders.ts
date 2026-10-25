@@ -4,7 +4,7 @@ import { preferReplica } from "./read-replica.ts";
 import { defaultWatermark, renderTablePdf, type DataClassification } from "./report-files.ts";
 
 /**
- * The export.render worker (A102, RRR-146; migration 1680; Section 4.6.4, 8.6). Atlas asks for an
+ * The export.render worker (A102, RRR-146; migration 2030; Section 4.6.4, 8.6). Atlas asks for an
  * export of a collection's current view through app.request_export, which records its columns,
  * headers, filters, classification and watermark and queues an export.render job. This worker, the
  * same loop as report-runs.ts, claims those jobs (app.claim_export_renders), reads each export's
@@ -315,7 +315,7 @@ export interface ExportRenderStoreOptions {
   readonly onReplicaFallback?: (label: string, reason: unknown) => void;
 }
 
-/** ExportRenderStore over the service-role client: the 1680 worker RPCs and export_job_columns. */
+/** ExportRenderStore over the service-role client: the 2030 worker RPCs and export_job_columns. */
 export function supabaseExportRenderStore(
   client: SupabaseClient,
   options: ExportRenderStoreOptions = {},

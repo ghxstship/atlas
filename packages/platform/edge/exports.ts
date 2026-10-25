@@ -1,5 +1,5 @@
 /**
- * The export.render worker for the Edge bundle (A102, RRR-146; migration 1680). The worker lives with
+ * The export.render worker for the Edge bundle (A102, RRR-146; migration 2030). The worker lives with
  * the report renderers in @xos/data (export-renders.ts, report-files.ts), so an export's PDF prints as a
  * report's does; this file re-exports it and adds the file copy from @xos/i18n. Only the reporting
  * namespace is read, and each locale's copy loads the first time a file asks for that locale (A85).

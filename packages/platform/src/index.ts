@@ -1,9 +1,12 @@
 export {
   BillingNotConfiguredError,
+  billingConfigured,
   billingEnvSchema,
+  billingLivemode,
   createStripeClient,
   isTestKey,
   readBillingEnv,
+  stripeHost,
   type BillingEnv,
   type StripeClient,
 } from "./billing/env.ts";
@@ -20,17 +23,28 @@ export {
 export {
   MAX_ADDON_QUANTITY,
   MAX_EXTRA_SEATS,
+  PORTAL_CONFIGURATION_KEY,
   PriceNotFoundError,
   createAddonCheckoutSession,
   createCheckoutSession,
   createPortalSession,
+  findPortalConfiguration,
   stripeTrialEnd,
   MIN_STRIPE_TRIAL_MS,
   resolvePriceId,
   setExtraSeats,
   type AddonCheckoutRequest,
   type CheckoutRequest,
+  type OpenedCheckout,
 } from "./billing/checkout.ts";
+export {
+  CheckoutCompletedError,
+  expireCheckoutSession,
+  openBillingPortal,
+  startPlanCheckout,
+  type CheckoutAccountStore,
+  type PlanCheckoutRequest,
+} from "./billing/upgrade.ts";
 export {
   StripeSignatureError,
   handleStripeWebhook,
@@ -193,12 +207,36 @@ export {
   type SmsStoreOptions,
 } from "./notifications/stores.ts";
 export {
+  MAX_INBOUND_BODY_CHARS,
+  MAX_MESSAGE_ID_BYTES,
+  inboundMessageId,
   localPartFor,
+  postgresText,
   receiveInbound,
   stripQuotedText,
   type InboundMessage,
   type InboundStore,
 } from "./inbound/parse.ts";
+export {
+  INBOUND_MAIL_BUCKET,
+  MAX_RAW_MESSAGE_BYTES,
+  RESEND_API_URL,
+  SIGNATURE_TOLERANCE_SECONDS,
+  fetchReceivedEmail,
+  htmlToText,
+  inboundOrgs,
+  parseResendEvent,
+  receiveResendEmail,
+  storageRawMailStore,
+  verifyResendSignature,
+  type InboundOrgs,
+  type RawMailStore,
+  type ResendInboundDeps,
+  type ResendInboundOutcome,
+  type ResendReceivedEmail,
+  type ResendReceivedEvent,
+  type ResendSignatureHeaders,
+} from "./inbound/resend.ts";
 export {
   PUNCH_KINDS,
   PlatformDbError,
@@ -289,6 +327,24 @@ export {
   type JwtSigner,
 } from "./wallet/google.ts";
 export {
+  APPLE_ID_ORIGIN,
+  CLIENT_SECRET_SECONDS,
+  appleClientSecret,
+  appleRevokeResponse,
+  callerAppleSubjectLoader,
+  identityTokenSubject,
+  parseAppleRevokeRequest,
+  readAppleRevokeEnv,
+  unconfiguredAppleSigner,
+  webCryptoEs256Signer,
+  type AppleRevokeConfig,
+  type AppleRevokeDeps,
+  type AppleRevokeEnv,
+  type AppleRevokeRequest,
+  type AppleRevokeResponse,
+  type AppleSecretSigner,
+} from "./apple-sign-in/revoke.ts";
+export {
   PKPASS_TYPE,
   callerPassLoader,
   parseWalletRequest,
@@ -300,10 +356,12 @@ export {
 } from "./wallet/handler.ts";
 export {
   CLAMAV_DEFAULT_PORT,
+  clamdTls,
   isLocalDevelopment,
   passThroughScanner,
   scannerChoice,
   selectVirusScanner,
+  type ClamdTls,
   type ScannerChoice,
   type ScannerEnv,
   type SelectedScanner,

@@ -25,7 +25,7 @@ select ok(
 select is((select count(*)::int from xpms.std_verbiage), 213, 'Verbiage Library rows are in the Standard Library');
 select is((select count(*)::int from xpms.std_enumeration), 91, 'Enumerations keep every row the rulings do not retire');
 select is((select is_published from xpms.production_template where template_code = 'XOS-4.0'), false, 'the Production Template is unpublished at import');
-select is((select count(*)::int from xpms.intake where intake_state = 'Proposed') > 0, true, 'Playbook differences wait in intake');
+select is((select count(*)::int from xpms.intake where source_file = 'XOS-4.0_Production-Playbook_2026.xlsx') > 0, true, 'Playbook differences are kept in intake');
 select throws_ok(
   format($$insert into xpms.std_verbiage (source_row, record_id, verbiage) values (999, 'VRB-999', %L)$$, 'A' || chr(8212) || 'B'),
   '23514', null, 'verbiage text refuses an em dash'
@@ -40,7 +40,7 @@ select throws_ok($$select count(*) from xpms.v_playbook_projects$$, '42501', nul
 select lives_ok($$select count(*) from xpms.intake$$, 'authenticated can read intake proposals');
 reset role;
 
-select is(xpms.playbook_checksum('Projects'), (select checksum_sha256::text from xpms.playbook_sheet where sheet_name = 'Projects'), 'an unruled sheet exports to its source checksum');
+select is(xpms.playbook_checksum('Activity Log'), (select checksum_sha256::text from xpms.playbook_sheet where sheet_name = 'Activity Log'), 'an unruled sheet exports to its source checksum');
 
 select * from finish();
 rollback;

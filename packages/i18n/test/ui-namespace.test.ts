@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import enXA from "../messages/pseudo/en-XA.json" with { type: "json" };
 import arXB from "../messages/pseudo/ar-XB.json" with { type: "json" };
 import { getMessages, isLocale, locales } from "../src/index.ts";
+import { loadMessages } from "../src/load.ts";
 import { flatten, icuArguments, type Catalog } from "./icu.ts";
 
 const source = flatten(getMessages("en-US"));
@@ -31,10 +32,19 @@ describe("ICU messages", () => {
     );
   });
 
-  it.each(locales)("%s: every message parses as ICU", (locale) => {
-    for (const [key, message] of flatten(getMessages(locale))) {
-      expect(() => icuArguments(message), `${locale} ${key}`).not.toThrow();
+  // One assertion per locale, over the list of messages that fail to parse: an expect per message
+  // cost ten times the parsing itself on the 16,000 messages of a catalog. A Beta locale reads plain
+  // en-US until its catalog is loaded (ADR 0053), so it is loaded to parse its own translations.
+  it.each(locales)("%s: every message parses as ICU", async (locale) => {
+    const unparsable: string[] = [];
+    for (const [key, message] of flatten(await loadMessages(locale))) {
+      try {
+        icuArguments(message);
+      } catch (error) {
+        unparsable.push(`${key}: ${error instanceof Error ? error.message : String(error)}`);
+      }
     }
+    expect(unparsable, locale).toEqual([]);
   });
 
   it("es-US uses the same ICU arguments as en-US for every key", () => {

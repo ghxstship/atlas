@@ -21,7 +21,7 @@ import {
 import { pdfPageCount, pdfPageTexts } from "./pdf-text.ts";
 
 /**
- * The export.render worker (A102, migration 1680): the CSV and .xlsx carry the recorded columns in order under
+ * The export.render worker (A102, migration 2030): the CSV and .xlsx carry the recorded columns in order under
  * their headers, a Confidential or Restricted PDF carries the requester and the time on every page (S8.6-03), and
  * each attempt is recorded so a failure retries and an expired file is removed.
  */
@@ -345,7 +345,7 @@ function rpcClient(
 }
 
 describe("supabaseExportRenderStore", () => {
-  it("maps a claim and finishes through the 1680 RPCs", async () => {
+  it("maps a claim and finishes through the 2030 RPCs", async () => {
     const calls: unknown[][] = [];
     const store = supabaseExportRenderStore(
       rpcClient(

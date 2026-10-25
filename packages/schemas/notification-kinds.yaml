@@ -33,10 +33,12 @@
 #
 # Quiet hours (ADR 0033 decision 35): texts and pushes wait out the person's quiet hours, and texts also wait
 # out 21:00 to 08:00 in their time zone when they set none; held texts go out as one summary. Only the kinds
-# flagged bypasses_quiet_hours below go at once, and the list stays short: safety alerts, and a change to a
-# shift starting within 12 hours (`starts_within_hours`, read from the startsAt argument). A mandatory or
-# urgent category alone never bypasses. Sign-in and verification codes are sent by Supabase Auth itself, never
-# through this queue, so they are never held.
+# flagged bypasses_quiet_hours below go at once, and the list stays short: safety alerts, a change to the
+# person's sign-in security or a recovery code used on their account, emergency access taken in their org, and
+# a shift assigned or changed that starts within 12 hours (`starts_within_hours`, read from the startsAt
+# argument; ADR 0033 decision 62). Billing notices wait until morning. A mandatory or urgent category alone
+# never bypasses. Sign-in and verification codes are sent by Supabase Auth itself, never through this queue,
+# so they are never held.
 
 version: 1
 
@@ -162,6 +164,8 @@ kinds:
   # Schedule (0520, 0800)
   - kind: shift.assigned
     category: schedule
+    bypasses_quiet_hours:
+      starts_within_hours: 12
     emitted_by:
       - emitter: supabase/migrations/1394_notification_kind_emitters.sql#private.notify_shift_change
         test: supabase/tests/1394_notification_kind_emitters.test.sql
@@ -220,11 +224,23 @@ kinds:
   # Account (0520, 0560, 1203, 1560, 1561)
   - kind: account.security_changed
     category: account
-    deferred:
-      reason: "Security changes (password, email, phone, second factors, passkeys) happen in Supabase Auth and in the sign-in and step-up work, and none of those paths calls private.notify yet. A99's recovery codes and sessions send their own kinds."
-      decision: "A follow-up to A77 and A99 (RRR-122, RRR-144) emits it from the password, email, phone and factor change paths; no owner decision pending"
+    # A change to the person's sign-in security reaches them during quiet hours (ADR 0033 decision 62).
+    bypasses_quiet_hours: true
+    emitted_by:
+      # 2050 (A104): Supabase Auth's password, email and phone changes, second factors verified or removed, passkeys
+      # added or removed, and each new set of recovery codes; the change argument names which.
+      - emitter: supabase/migrations/2050_account_security_notices.sql#private.after_auth_user_security_change
+        test: supabase/tests/2050_account_security_notices.test.sql
+      - emitter: supabase/migrations/2050_account_security_notices.sql#private.after_mfa_factor_change
+        test: supabase/tests/2050_account_security_notices.test.sql
+      - emitter: supabase/migrations/2050_account_security_notices.sql#private.after_passkey_change
+        test: supabase/tests/2050_account_security_notices.test.sql
+      - emitter: supabase/migrations/2050_account_security_notices.sql#app.generate_recovery_codes
+        test: supabase/tests/2050_account_security_notices.test.sql
   - kind: account.recovery_code_used
     category: account
+    # Someone got past the second factor with a code: the security notice that is sent today (ADR 0033 decision 62).
+    bypasses_quiet_hours: true
     emitted_by:
       - emitter: supabase/migrations/1560_recovery_codes.sql#app.redeem_recovery_code
         test: supabase/tests/1560_recovery_codes.test.sql
@@ -247,6 +263,7 @@ kinds:
         test: supabase/tests/0560_billing.test.sql
   - kind: access.break_glass_started
     category: account
+    bypasses_quiet_hours: true
     emitted_by:
       - emitter: supabase/migrations/1203_break_glass_sessions.sql#app.start_break_glass
         test: supabase/tests/1203_break_glass_sessions.test.sql
@@ -323,19 +340,45 @@ kinds:
       # 1590 redefines 1473's emitter so the notice names the platform, not the operator who decided.
       - emitter: supabase/migrations/1590_notification_and_settings_integration.sql#app.console_decide_appeal
         test: supabase/tests/1473_moderation_console.test.sql
-  # Reports and imports (0520)
+  # Reported posts, comments and messages (ADR 0033 decision 57, 1630): a new report and a report still undecided after
+  # 24 hours reach the org's moderators as safety notices; the outcome reaches each reporter, and the statement of
+  # reasons reaches the author when the content is removed.
+  - kind: content_report.filed
+    category: safety
+    emitted_by:
+      - emitter: supabase/migrations/1630_content_reports.sql#app.report_content
+        test: supabase/tests/1630_content_reports.test.sql
+  - kind: content_report.overdue
+    category: safety
+    emitted_by:
+      - emitter: supabase/migrations/1630_content_reports.sql#private.escalate_overdue_content_reports
+        test: supabase/tests/1630_content_reports.test.sql
+  - kind: content_report.decided
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1630_content_reports.sql#app.decide_content_report
+        test: supabase/tests/1630_content_reports.test.sql
+  - kind: content.removed
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/1630_content_reports.sql#app.decide_content_report
+        test: supabase/tests/1630_content_reports.test.sql
+  # Reports and imports (0520). A delivered report reaches the Inbox and a push only (ADR 0033 decision 77): the
+  # report.deliver worker's own email (1127, packages/data report-deliveries.ts) stays the only email.
   - kind: report.delivered
     category: reports
-    email_template: report_delivery
-    deferred:
-      reason: "The report.deliver worker (1127, packages/data report-deliveries.ts) emails each scheduled report itself; its report_delivery template needs an absolute download link the database cannot build, and a second email would repeat the first."
-      decision: "Owner decision pending: whether a delivered report also reaches the recipient's Inbox"
+    channels: [In App, Push]
+    emitted_by:
+      - emitter: supabase/migrations/1621_report_delivered_notice.sql#app.finish_report_delivery
+        test: supabase/tests/1621_report_delivered_notice.test.sql
   - kind: import.finished
     category: imports
     email_template: import_finished
-    deferred:
-      reason: "The import_finished template needs the import's counts and an absolute review link (packages/platform dispatch.ts) that only the app's import worker (packages/data import-worker.ts) can build; the import pipeline (1061) notifies nobody yet."
-      decision: "The import worker emits it with the link (A83 import wizard, RRR-128); no owner decision pending"
+    emitted_by:
+      # A104: the import worker (packages/data import-worker.ts) calls 2051 with the absolute review link when it finishes
+      # validating or committing; 2051 counts the rows and notifies the person who started or committed the import.
+      - emitter: supabase/migrations/2051_import_finished_notice.sql#app.notify_import_finished
+        test: supabase/tests/2051_import_finished_notice.test.sql
   - kind: export.ready
     category: imports
     email_template: export_ready

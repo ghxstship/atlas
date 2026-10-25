@@ -4,13 +4,8 @@ import { fileModerationAppeal, grantPlatformSupportSession } from "@xos/data/pla
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { contextFor } from "@/lib/platform/action-context";
-import {
-  done,
-  field,
-  fromDataError,
-  inputError,
-  type PlatformActionState,
-} from "@/lib/platform/state";
+import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
+import { fromDataError } from "@/lib/platform/data-error";
 
 /**
  * A90's settings actions: the Owner grants the platform team a support session (Settings, Security), and the

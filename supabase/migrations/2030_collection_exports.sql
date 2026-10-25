@@ -1,6 +1,6 @@
--- 1680_collection_exports.sql
+-- 2030_collection_exports.sql
 --
--- Export from every collection, with the export.render worker (ADR 0022, 1680-1689), A102, RRR-146. Section 4.6.4
+-- Export from every collection, with the export.render worker (ADR 0022, 2030-2039), A102, RRR-146. Section 4.6.4
 -- says every list and report exports to CSV, .xlsx and PDF, subject to Section 8.6. A18's app.request_export (0530,
 -- fixed in 1380) recorded the classification, the watermark and the columns of an export and queued an export.render
 -- job, but no worker ever ran one, so every export stayed Queued and no Atlas collection offered one. This migration:
