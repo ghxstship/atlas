@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en-US">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Live availability of Atlas, Gateway, the API, Realtime, Compass sync and notifications, checked every few minutes.">
+<title>XOS status</title>
+<style>/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+:root {
+  --space-2: 2px; /** Hairline gaps: icon to badge, chip inner offsets. */
+  --space-4: 4px; /** Gap inside chips; tight icon and label pairs. */
+  --space-6: 6px; /** Chip horizontal padding; icon to label in buttons. */
+  --space-8: 8px; /** Control horizontal padding; gaps between chips. */
+  --space-12: 12px; /** Row horizontal padding; gaps in toolbars. */
+  --space-16: 16px; /** Card padding; grid gutter below lg. */
+  --space-20: 20px; /** Side peek padding. */
+  --space-24: 24px; /** Page gutters; grid gutter from lg up. */
+  --space-32: 32px; /** Section spacing on pages. */
+  --space-40: 40px; /** Empty and system state padding. */
+  --space-48: 48px; /** Large section breaks; Compass minimum touch target. */
+  --space-64: 64px; /** Page top spacing on Auth and System templates. */
+  --radius-chip: 4px; /** Chips, tags, Kbd, checkboxes. */
+  --radius-control: 6px; /** Inputs, buttons, segmented controls. */
+  --radius-card: 8px; /** Cards, menus, popovers, toasts. */
+  --radius-dialog: 12px; /** Dialogs and the command menu. */
+  --radius-mark: 2px; /** Marks under 12 px: pips, legend swatches, milestone diamonds, small close buttons. */
+  --radius-pill: 9999px; /** Fully rounded ends: badges, filter chips, progress tracks, sliders, grabbers. */
+  --radius-widget: 22px; /** iOS Live Activity and widget surfaces in Compass; matches the platform corner. */
+  --radius-device: 24px; /** Phone frame for Compass previews in documentation only; never in product UI. */
+  --stroke-width-hairline: 1px; /** Every border and divider. Elevation is border-first. */
+  --stroke-width-focus: 2px; /** Focus rings, selected matrix cells and Sunlight control borders. */
+  --stroke-width-accent: 3px; /** Accent edges: Banner severity edge, live Run of Show cue, Payment Tracker steps. */
+  --stroke-width-swatch: 4px; /** Emergency code edge and the camera shutter ring. */
+  --stroke-width-stripe: 12px; /** Credential category stripe, readable at arm length. */
+  --opacity-disabled: 0.48; /** Disabled controls. */
+  --opacity-scrim-dark: 0.64; /** Scrim behind dialogs in dark. */
+  --opacity-scrim-light: 0.4; /** Scrim behind dialogs in light. */
+  --opacity-hover: 0.06; /** Hover overlay on colored fills. */
+  --opacity-pressed: 0.1; /** Pressed overlay on colored fills. */
+  --z-base: 0; /** Page content. */
+  --z-sticky: 100; /** Sticky headers and totals rows. */
+  --z-sidebar: 200; /** Sidebar. */
+  --z-header: 300; /** App header. */
+  --z-dropdown: 1000; /** Dropdown menus. */
+  --z-popover: 1100; /** Popovers and hover cards. */
+  --z-peek: 1200; /** Side peek and drawers. */
+  --z-dialog: 1300; /** Dialogs. */
+  --z-command: 1400; /** Command menu. */
+  --z-toast: 1500; /** Toasts. */
+  --z-tooltip: 1600; /** Tooltips. */
+  --breakpoint-sm: 640px; /** Large phones. */
+  --breakpoint-md: 768px; /** Below md: Atlas bottom bar and full-screen side peek. */
+  --breakpoint-lg: 1024px; /** Below lg: sidebar becomes a drawer. */
+  --breakpoint-xl: 1280px; /** Laptop. */
+  --breakpoint-2xl: 1536px; /** Desktop. */
+  --breakpoint-3xl: 1920px; /** Wide desktop. */
+  --layout-sidebar: 240px; /** Sidebar expanded; resizable from 200 px to 360 px. */
+  --layout-sidebar-collapsed: 56px; /** Sidebar collapsed to icons. */
+  --layout-sidebar-min: 200px; /** Sidebar minimum width. */
+  --layout-sidebar-max: 360px; /** Sidebar maximum width. */
+  --layout-peek: 560px; /** Side peek default; resizable from 440 px to 960 px. */
+  --layout-peek-min: 440px; /** Side peek minimum width. */
+  --layout-peek-max: 960px; /** Side peek maximum width. */
+  --layout-property-column: 320px; /** Property column in the Record template. */
+  --layout-auth: 400px; /** Auth card width. */
+  --layout-form: 640px; /** Settings and form column. */
+  --layout-reading: 720px; /** Document reading column. */
+  --layout-wide: 1200px; /** Wide content. */
+  --layout-columns: 12; /** Dashboard and page grid columns. */
+  --layout-gutter: 16px; /** Grid gutter below lg. */
+  --layout-gutter-lg: 24px; /** Grid gutter from lg up. */
+  --icon-size-12: 12px; /** Inline with text-11. */
+  --icon-size-14: 14px; /** Inside chips. */
+  --icon-size-16: 16px; /** Web default. Lucide at 1.5 stroke. */
+  --icon-size-20: 20px; /** Web large; Compass small. */
+  --icon-size-24: 24px; /** Web extra large; Compass default. */
+  --icon-size-28: 28px; /** Compass large: tab bar and ClockButton. */
+  --density-row-compact: 32px; /** Table row, compact density. */
+  --density-row-default: 36px; /** Table row, default density. */
+  --density-row-comfortable: 44px; /** Table row, comfortable density (Gateway default). */
+  --density-control-sm: 24px; /** Web control height, small. */
+  --density-control-md: 28px; /** Web control height, default. */
+  --density-control-lg: 32px; /** Web control height, large. */
+  --density-touch-min: 48px; /** Compass minimum touch target (48 pt). */
+  --density-target-fine: 24px; /** Minimum target on a fine pointer (WCAG 2.2 SC 2.5.8 AA). Every web control meets it at control-sm and up. */
+  --density-target-coarse: 44px; /** Minimum target on a coarse pointer (touch) for Atlas and Gateway on phones and tablets (WCAG 2.2 SC 2.5.5 AAA). Compass uses touch-min. */
+  --motion-duration-instant: 0ms; /** State changes with no movement. */
+  --motion-duration-fast: 120ms; /** Hover, press, chip and toggle changes. */
+  --motion-duration-base: 160ms; /** Menus, popovers, tooltips. */
+  --motion-duration-slow: 200ms; /** Side peek, drawers, toasts. */
+  --motion-duration-deliberate: 280ms; /** Dialogs and route transitions. */
+  --motion-duration-reduced: 80ms; /** Opacity fade that replaces movement under prefers-reduced-motion. */
+  --motion-easing-standard: cubic-bezier(0.2, 0, 0, 1); /** Moving within the screen. */
+  --motion-easing-enter: cubic-bezier(0, 0, 0.2, 1); /** Elements appearing. */
+  --motion-easing-exit: cubic-bezier(0.4, 0, 1, 1); /** Elements leaving. */
+  --motion-spring-default: damping 20 stiffness 220 mass 1; /** Sheets and cards. */
+  --motion-spring-snappy: damping 26 stiffness 320 mass 1; /** Buttons, toggles, scan confirmation. */
+  --motion-spring-gentle: damping 18 stiffness 140 mass 1; /** Shared-element transitions. */
+  --font-weight-regular: 400; /** Body text, inputs, table cells. */
+  --font-weight-medium: 500; /** Labels, buttons, tabs, selected navigation. */
+  --font-weight-semibold: 600; /** Headings, totals, emphasized figures. */
+  --font-weight-bold: 700; /** Monogram tiles and map pin numerals only; never running text. */
+  --font-family-sans: Inter, "Inter Variable", system-ui, -apple-system, "Segoe UI", sans-serif; /** Inter (variable, SIL OFL) for all UI text. */
+  --font-family-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; /** JetBrains Mono (SIL OFL) for URIDs, codes, keys and URNs. */
+  --typography-text-11: var(--font-weight-regular) 11px/1.45 var(--font-family-sans); /** Captions, table footnotes, keyboard hints. */
+  --typography-text-12: var(--font-weight-regular) 12px/1.45 var(--font-family-sans); /** Metadata, chips, property labels. */
+  --typography-text-13: var(--font-weight-regular) 13px/1.45 var(--font-family-sans); /** Base UI text in Atlas: body, rows, inputs, buttons. */
+  --typography-text-14: var(--font-weight-regular) 14px/1.45 var(--font-family-sans); /** Base text in Gateway (comfortable density) and long-form reading. */
+  --typography-text-16: var(--font-weight-regular) 16px/1.45 var(--font-family-sans); /** Compass body text and lead paragraphs. */
+  --typography-label-13: var(--font-weight-medium) 13px/1.45 var(--font-family-sans); /** Emphasized inline labels, button labels, selected nav items. */
+  --typography-heading-16: var(--font-weight-semibold) 16px/1.2 var(--font-family-sans); /** Section and panel titles. */
+  --typography-heading-20: var(--font-weight-semibold) 20px/1.2 var(--font-family-sans); /** Record titles in the side peek; dialog titles. */
+  --typography-heading-24: var(--font-weight-semibold) 24px/1.2 var(--font-family-sans); /** Page titles. */
+  --typography-heading-32: var(--font-weight-semibold) 32px/1.2 var(--font-family-sans); /** Dashboard figures, show mode cues, auth headings. */
+  --typography-mono-12: var(--font-weight-regular) 12px/1.45 var(--font-family-mono); /** URIDs, codes, item IDs and URNs inside chips. */
+  --typography-mono-13: var(--font-weight-regular) 13px/1.45 var(--font-family-mono); /** Record keys and codes in body text and tables. */
+}
+
+/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+:root, [data-theme="dark"] {
+  --color-bg-canvas: #0e0f11; /** Page background behind every shell. Spec token color.bg.canvas. */
+  --color-bg-surface: #16171a; /** Sidebar, page header and grouped regions on canvas. Spec token color.bg.surface. */
+  --color-bg-raised: #1c1d21; /** Cards, menus, popovers, side peek and dialogs. Spec token color.bg.raised. */
+  --color-bg-hover: #222328; /** Hover and selected row fill. Every text token passes 4.5:1 on it in every theme (text-tertiary 4.55:1 dark, 4.51:1 light). Spec token color.bg.hover. */
+  --color-border-subtle: #26272c; /** Default 1 px hairline: dividers, card edges, table rules and the ring paired with menu and dialog shadows. Spec token color.border.subtle. */
+  --color-border-strong: #34353b; /** Emphasis dividers, table header rules and selected outlines; decorative only. Control boundaries use border-control. Spec token color.border.strong. */
+  --color-border-control: #67686f; /** Boundary of every input, select, checkbox, radio, switch and segmented control; meets the 3:1 non-text minimum on canvas, surface and raised (3.04:1 dark, 3.02:1 light). Added to resolve WCAG 2.2 SC 1.4.11. */
+  --color-text-primary: #edeef0; /** Titles, body text, values and labels on any background. Spec token color.text.primary. */
+  --color-text-secondary: #a0a3ab; /** Secondary labels, property names, metadata on any background. Spec token color.text.secondary. */
+  --color-text-tertiary: #878a94; /** Input hint text, timestamps and helper text on every background, including bg-hover (4.55:1 dark, 4.51:1 light minimum). Adjusted from the spec's #858892 and #6B6E76, which measured 4.43:1 and 4.44:1 on bg-hover. Spec token color.text.tertiary. */
+  --color-accent-default: #5b63e8; /** Fill role: primary button, active marker, selection, progress. As text use accent-text. Icons on any background pass 3:1. Spec token color.accent.default. */
+  --color-accent-text-on: #ffffff; /** Label and icon on an accent-default fill (4.78:1 dark, 5.68:1 light). Spec token color.accent.text-on. */
+  --color-accent-text: #8b92f5; /** Text role of the accent: links, selected text, accent labels; 4.5:1 or higher on every background in every theme. */
+  --color-focus-ring: #8b92f5; /** 2 px keyboard focus ring with 2 px offset on every interactive element (6.87:1 dark, 5.68:1 light against canvas). Spec token color.focus.ring. */
+  --color-danger: #ef5a5a; /** Fill and icon role for destructive actions, errors, Blocked and critical severity. As text use danger-text. Spec token color.danger. */
+  --color-warning: #e5a23b; /** Fill and icon role for warnings, Deferred and staleness; icons pass 3:1 on every background. As text use warning-text. Spec token color.warning. */
+  --color-success: #3fb97a; /** Fill and icon role for success, Complete and Met; icons pass 3:1 on every background. As text use success-text. Spec token color.success. */
+  --color-danger-text: #ef5a5a; /** Text role of danger: error messages, destructive menu items, removed values; 4.5:1 or higher on every background. */
+  --color-warning-text: #e5a23b; /** Text role of warning: countdowns near zero, staleness labels; 4.5:1 or higher on every background. */
+  --color-success-text: #3fb97a; /** Text role of success: added values, confirmations; 4.5:1 or higher on every background. */
+  --color-state-scheduled: #56b4e9; /** Scheduled state icon (clock circle). Hue Blue, from the Okabe-Ito set; 8.31:1 dark and 5.19:1 light on canvas. */
+  --color-state-in-review: #b58cf0; /** In Review state icon (eye circle). Hue Violet; 7.28:1 dark and 5.45:1 light on canvas. */
+  --color-viz-ink: #17181c; /** Text and marks on light data-viz fills (viz-seq-1 to 5, viz-cat-1, 2, 4) in every theme. */
+  --color-viz-cat-1: #c98300; /** Categorical series 1 of 7: Okabe-Ito Orange, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-2: #3e9ed2; /** Categorical series 2 of 7: Okabe-Ito Sky Blue, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-3: #008f68; /** Categorical series 3 of 7: Okabe-Ito Bluish Green, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-4: #a59700; /** Categorical series 4 of 7: Okabe-Ito Yellow, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-5: #0072b2; /** Categorical series 5 of 7: Okabe-Ito Blue, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-6: #d55e00; /** Categorical series 6 of 7: Okabe-Ito Vermillion, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-7: #c775a3; /** Categorical series 7 of 7: Okabe-Ito Reddish Purple, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-other: #999999; /** The Other bucket: series past the seventh fold here, always last and always labeled. Not a series color; it never sits next to a hue it must be told apart from. */
+  --color-viz-seq-1: #e8edff; /** Sequential step 1 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-2: #cad4ff; /** Sequential step 2 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-3: #aab8ff; /** Sequential step 3 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-4: #8b9aff; /** Sequential step 4 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-5: #707df7; /** Sequential step 5 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-6: #5b63e8; /** Sequential step 6 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-7: #474dbb; /** Sequential step 7 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-8: #363d8c; /** Sequential step 8 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-9: #272c60; /** Sequential step 9 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-div-1: #0072b2; /** Diverging step 1 of 7 (strongest under), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-2: #4b80ab; /** Diverging step 2 of 7 (under), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-3: #748da3; /** Diverging step 3 of 7 (slightly under), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-4: #999999; /** Diverging step 4 of 7 (neutral midpoint), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-5: #b18975; /** Diverging step 5 of 7 (slightly over), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-6: #c4764d; /** Diverging step 6 of 7 (over), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-7: #d55e00; /** Diverging step 7 of 7 (strongest over), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-paper: #ffffff; /** Printed page surface in document previews; always white, like the printed PDF. */
+  --color-paper-ink: #17181c; /** Text on paper. */
+  --color-camera-bg: #0e0f11; /** Camera viewfinder ground in Compass scan and photo screens, in every theme. */
+  --color-camera-ink: #ffffff; /** Reticle and hint text over the camera feed. */
+  --color-ecode-red: #d32f2f; /** Swatch for Code Red, Fire Emergency. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-orange: #ef6c00; /** Swatch for Code Orange, Acts of Aggression. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-yellow: #f9a825; /** Swatch for Code Yellow, Power or Structural Failure or Damage. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-green: #2e7d32; /** Swatch for Code Green, Theft & Loss Prevention. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-blue: #1565c0; /** Swatch for Code Blue, Medical Emergency. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-purple: #6a1b9a; /** Swatch for Code Purple, Political or Civil Unrest. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-white: #ffffff; /** Swatch for Code White, Government Agency Inspection or Encounter. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-black: #000000; /** Swatch for Code Black, Acts of Terror. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-pink: #d81b60; /** Swatch for Code Pink, Illegal Substance. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-indigo: #283593; /** Swatch for Code Indigo, Absent or Missing Talent. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-silver: #a7aab0; /** Swatch for Code Silver, Active Shooter. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-grey: #616161; /** Swatch for Code Grey, Bomb Threat. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-amber: #ffb300; /** Swatch for Code Amber, Security Breach. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-scrim: #000000; /** Overlay behind drawers, dialogs and the mobile sidebar; shown at opacity-scrim-dark in Dark and opacity-scrim-light in Light and Sunlight. */
+  --shadow-menu: 0 0 0 1px #26272C, 0 8px 24px rgba(0,0,0,0.48); /** Menus, popovers, hover cards, tooltips, toasts. */
+  --shadow-dialog: 0 0 0 1px #26272C, 0 24px 48px rgba(0,0,0,0.56); /** Dialogs, command menu, side peek. */
+  --color-danger-text-on: var(--color-bg-canvas); /** Label and icon on a danger fill, such as a hold-to-send button: the canvas color in every theme (5.73:1 dark, 5.17:1 light, 7.00:1 sunlight). Spec token color.danger-text-on. */
+  --color-state-proposed: var(--color-text-secondary); /** Proposed state icon (dashed circle). Hue Neutral. */
+  --color-state-ready: var(--color-text-primary); /** Ready state icon (empty circle). Hue Neutral strong. */
+  --color-state-active: var(--color-accent-default); /** Active state icon (half circle). Hue Accent; icon use only in dark (3:1 icon threshold met). */
+  --color-state-blocked: var(--color-danger); /** Blocked state icon (octagon). Hue Danger. */
+  --color-state-complete: var(--color-success); /** Complete state icon (check circle). Hue Success. */
+  --color-state-deferred: var(--color-warning); /** Deferred state icon (pause circle). Hue Warning. */
+  --color-state-canceled: var(--color-text-tertiary); /** Canceled state icon (slashed circle). Hue Tertiary. */
+  --color-ecode-adam: var(--color-text-tertiary); /** Swatch for Code Adam, Missing Person(s). Code Adam names no color, so it reads neutral; the code name carries the meaning. */
+}
+
+@media (prefers-color-scheme: light){/**
+ * Do not edit directly, this file was auto-generated.
+ */
+
+:root {
+  --color-bg-canvas: #ffffff; /** Page background behind every shell. Spec token color.bg.canvas. */
+  --color-bg-surface: #f7f7f8; /** Sidebar, page header and grouped regions on canvas. Spec token color.bg.surface. */
+  --color-bg-raised: #ffffff; /** Cards, menus, popovers, side peek and dialogs. Spec token color.bg.raised. */
+  --color-bg-hover: #efeff1; /** Hover and selected row fill. Every text token passes 4.5:1 on it in every theme (text-tertiary 4.55:1 dark, 4.51:1 light). Spec token color.bg.hover. */
+  --color-border-subtle: #e6e6e9; /** Default 1 px hairline: dividers, card edges, table rules and the ring paired with menu and dialog shadows. Spec token color.border.subtle. */
+  --color-border-strong: #d1d2d6; /** Emphasis dividers, table header rules and selected outlines; decorative only. Control boundaries use border-control. Spec token color.border.strong. */
+  --color-border-control: #8e8f93; /** Boundary of every input, select, checkbox, radio, switch and segmented control; meets the 3:1 non-text minimum on canvas, surface and raised (3.04:1 dark, 3.02:1 light). Added to resolve WCAG 2.2 SC 1.4.11. */
+  --color-text-primary: #17181c; /** Titles, body text, values and labels on any background. Spec token color.text.primary. */
+  --color-text-secondary: #5b5e66; /** Secondary labels, property names, metadata on any background. Spec token color.text.secondary. */
+  --color-text-tertiary: #6a6d75; /** Input hint text, timestamps and helper text on every background, including bg-hover (4.55:1 dark, 4.51:1 light minimum). Adjusted from the spec's #858892 and #6B6E76, which measured 4.43:1 and 4.44:1 on bg-hover. Spec token color.text.tertiary. */
+  --color-accent-default: #4f57d9; /** Fill role: primary button, active marker, selection, progress. As text use accent-text. Icons on any background pass 3:1. Spec token color.accent.default. */
+  --color-accent-text-on: #ffffff; /** Label and icon on an accent-default fill (4.78:1 dark, 5.68:1 light). Spec token color.accent.text-on. */
+  --color-accent-text: #4f57d9; /** Text role of the accent: links, selected text, accent labels; 4.5:1 or higher on every background in every theme. */
+  --color-focus-ring: #4f57d9; /** 2 px keyboard focus ring with 2 px offset on every interactive element (6.87:1 dark, 5.68:1 light against canvas). Spec token color.focus.ring. */
+  --color-danger: #c93636; /** Fill and icon role for destructive actions, errors, Blocked and critical severity. As text use danger-text. Spec token color.danger. */
+  --color-warning: #a86a06; /** Fill and icon role for warnings, Deferred and staleness; icons pass 3:1 on every background. As text use warning-text. Spec token color.warning. */
+  --color-success: #1f8a4f; /** Fill and icon role for success, Complete and Met; icons pass 3:1 on every background. As text use success-text. Spec token color.success. */
+  --color-danger-text: #c83535; /** Text role of danger: error messages, destructive menu items, removed values; 4.5:1 or higher on every background. */
+  --color-warning-text: #9c5f00; /** Text role of warning: countdowns near zero, staleness labels; 4.5:1 or higher on every background. */
+  --color-success-text: #037d43; /** Text role of success: added values, confirmations; 4.5:1 or higher on every background. */
+  --color-state-scheduled: #0072b2; /** Scheduled state icon (clock circle). Hue Blue, from the Okabe-Ito set; 8.31:1 dark and 5.19:1 light on canvas. */
+  --color-state-in-review: #7a4fd0; /** In Review state icon (eye circle). Hue Violet; 7.28:1 dark and 5.45:1 light on canvas. */
+  --color-viz-ink: #17181c; /** Text and marks on light data-viz fills (viz-seq-1 to 5, viz-cat-1, 2, 4) in every theme. */
+  --color-viz-cat-1: #e69f00; /** Categorical series 1 of 7: Okabe-Ito Orange, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-2: #56b4e9; /** Categorical series 2 of 7: Okabe-Ito Sky Blue, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-3: #009e73; /** Categorical series 3 of 7: Okabe-Ito Bluish Green, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-4: #c2b000; /** Categorical series 4 of 7: Okabe-Ito Yellow, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-5: #0072b2; /** Categorical series 5 of 7: Okabe-Ito Blue, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-6: #d55e00; /** Categorical series 6 of 7: Okabe-Ito Vermillion, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-cat-7: #cc79a7; /** Categorical series 7 of 7: Okabe-Ito Reddish Purple, stepped per theme so every adjacent pair passes the CVD, normal-vision and lightness-band checks against its chart surface. Assign in order, never cycled; every series also differs by marker or line style, and every chart has a table view. */
+  --color-viz-other: #999999; /** The Other bucket: series past the seventh fold here, always last and always labeled. Not a series color; it never sits next to a hue it must be told apart from. */
+  --color-viz-seq-1: #e8edff; /** Sequential step 1 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-2: #cad4ff; /** Sequential step 2 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-3: #aab8ff; /** Sequential step 3 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-4: #8b9aff; /** Sequential step 4 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-5: #707df7; /** Sequential step 5 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-6: #5b63e8; /** Sequential step 6 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-7: #474dbb; /** Sequential step 7 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-8: #363d8c; /** Sequential step 8 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-seq-9: #272c60; /** Sequential step 9 of 9, generated in OKLCH from accent-default (step 6 equals the dark accent). Low to high magnitude. */
+  --color-viz-div-1: #0072b2; /** Diverging step 1 of 7 (strongest under), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-2: #4b80ab; /** Diverging step 2 of 7 (under), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-3: #748da3; /** Diverging step 3 of 7 (slightly under), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-4: #999999; /** Diverging step 4 of 7 (neutral midpoint), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-5: #b18975; /** Diverging step 5 of 7 (slightly over), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-6: #c4764d; /** Diverging step 6 of 7 (over), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-viz-div-7: #d55e00; /** Diverging step 7 of 7 (strongest over), blue to orange through neutral in OKLab. Variance and budget versus actual. */
+  --color-paper: #ffffff; /** Printed page surface in document previews; always white, like the printed PDF. */
+  --color-paper-ink: #17181c; /** Text on paper. */
+  --color-camera-bg: #0e0f11; /** Camera viewfinder ground in Compass scan and photo screens, in every theme. */
+  --color-camera-ink: #ffffff; /** Reticle and hint text over the camera feed. */
+  --color-ecode-red: #d32f2f; /** Swatch for Code Red, Fire Emergency. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-orange: #ef6c00; /** Swatch for Code Orange, Acts of Aggression. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-yellow: #f9a825; /** Swatch for Code Yellow, Power or Structural Failure or Damage. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-green: #2e7d32; /** Swatch for Code Green, Theft & Loss Prevention. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-blue: #1565c0; /** Swatch for Code Blue, Medical Emergency. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-purple: #6a1b9a; /** Swatch for Code Purple, Political or Civil Unrest. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-white: #ffffff; /** Swatch for Code White, Government Agency Inspection or Encounter. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-black: #000000; /** Swatch for Code Black, Acts of Terror. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-pink: #d81b60; /** Swatch for Code Pink, Illegal Substance. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-indigo: #283593; /** Swatch for Code Indigo, Absent or Missing Talent. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-silver: #a7aab0; /** Swatch for Code Silver, Active Shooter. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-grey: #616161; /** Swatch for Code Grey, Bomb Threat. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-ecode-amber: #ffb300; /** Swatch for Code Amber, Security Breach. Identification only, always beside the code name in text; ringed with border-control so light and dark swatches hold their edge. Same in every theme. */
+  --color-scrim: #000000; /** Overlay behind drawers, dialogs and the mobile sidebar; shown at opacity-scrim-dark in Dark and opacity-scrim-light in Light and Sunlight. */
+  --shadow-menu: 0 0 0 1px #E6E6E9, 0 8px 24px rgba(16,24,40,0.12); /** Menus, popovers, hover cards, tooltips, toasts. */
+  --shadow-dialog: 0 0 0 1px #E6E6E9, 0 24px 48px rgba(16,24,40,0.18); /** Dialogs, command menu, side peek. */
+  --color-danger-text-on: var(--color-bg-canvas); /** Label and icon on a danger fill, such as a hold-to-send button: the canvas color in every theme (5.73:1 dark, 5.17:1 light, 7.00:1 sunlight). Spec token color.danger-text-on. */
+  --color-state-proposed: var(--color-text-secondary); /** Proposed state icon (dashed circle). Hue Neutral. */
+  --color-state-ready: var(--color-text-primary); /** Ready state icon (empty circle). Hue Neutral strong. */
+  --color-state-active: var(--color-accent-default); /** Active state icon (half circle). Hue Accent; icon use only in dark (3:1 icon threshold met). */
+  --color-state-blocked: var(--color-danger); /** Blocked state icon (octagon). Hue Danger. */
+  --color-state-complete: var(--color-success); /** Complete state icon (check circle). Hue Success. */
+  --color-state-deferred: var(--color-warning); /** Deferred state icon (pause circle). Hue Warning. */
+  --color-state-canceled: var(--color-text-tertiary); /** Canceled state icon (slashed circle). Hue Tertiary. */
+  --color-ecode-adam: var(--color-text-tertiary); /** Swatch for Code Adam, Missing Person(s). Code Adam names no color, so it reads neutral; the code name carries the meaning. */
+}
+}
+
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--color-bg-canvas);color:var(--color-text-primary);font:var(--typography-text-14);font-family:var(--font-family-sans)}
+a{color:var(--color-accent-text)}
+a:focus-visible{outline:var(--stroke-width-focus) solid var(--color-focus-ring);outline-offset:var(--space-2)}
+.skip{position:absolute;inset-inline-start:var(--space-16);inset-block-start:calc(-1 * var(--space-64))}
+.skip:focus{inset-block-start:var(--space-16)}
+main{max-inline-size:var(--layout-reading);margin-inline:auto;padding:var(--space-32) var(--space-16)}
+h1{font:var(--typography-heading-24);margin:0 0 var(--space-8)}
+h2{font:var(--typography-heading-16);margin:var(--space-32) 0 var(--space-12)}
+.lede{color:var(--color-text-secondary);margin:0 0 var(--space-24)}
+.banner{border:var(--stroke-width-hairline) solid var(--color-border-subtle);border-radius:var(--radius-card);background:var(--color-bg-surface);padding:var(--space-16);font:var(--typography-heading-16)}
+.banner[data-state=outage]{border-color:var(--color-danger)}
+.banner[data-state=degraded]{border-color:var(--color-warning)}
+.banner[data-state=operational]{border-color:var(--color-success)}
+ul.components{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-8)}
+.component{border:var(--stroke-width-hairline) solid var(--color-border-subtle);border-radius:var(--radius-card);background:var(--color-bg-surface);padding:var(--space-12) var(--space-16)}
+.row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--space-8);align-items:baseline}
+.name{font-weight:var(--font-weight-semibold)}
+.state{display:inline-flex;gap:var(--space-6);align-items:center;font:var(--typography-label-13)}
+.mark{inline-size:var(--icon-size-12);block-size:var(--icon-size-12);border-radius:var(--radius-pill);background:var(--color-text-tertiary);flex:none}
+[data-state=operational]>.mark,.day[data-state=operational]{background:var(--color-success)}
+[data-state=degraded]>.mark,.day[data-state=degraded]{background:var(--color-warning)}
+[data-state=outage]>.mark,.day[data-state=outage]{background:var(--color-danger)}
+.meta{color:var(--color-text-secondary);font:var(--typography-text-12);margin-block-start:var(--space-4)}
+ol.days{list-style:none;margin:var(--space-8) 0 0;padding:0;display:flex;gap:var(--space-2)}
+.day{flex:1 1 0;min-inline-size:var(--space-2);block-size:var(--space-24);border-radius:var(--radius-mark);background:var(--color-border-strong)}
+.sr{position:absolute;inline-size:var(--stroke-width-hairline);block-size:var(--stroke-width-hairline);overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ul.incidents{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-12)}
+.incident{border-inline-start:var(--stroke-width-accent) solid var(--color-border-strong);padding-inline-start:var(--space-12)}
+footer{color:var(--color-text-tertiary);font:var(--typography-text-12);margin-block-start:var(--space-40)}
+@media (prefers-reduced-motion:no-preference){a{transition:color var(--motion-duration-fast) var(--motion-easing-standard)}}
+</style>
+</head>
+<body>
+<a class="skip" href="#components">Skip to components</a>
+<main>
+<h1>XOS status</h1>
+<p class="lede">Live availability of Atlas, Gateway, the API, Realtime, Compass sync and notifications, checked every few minutes.</p>
+<p class="banner" role="status" data-state="operational">All systems operational</p>
+<div id="components"><section aria-labelledby="region-us-east"><h2 id="region-us-east">US East</h2><ul class="components"><li class="component"><div class="row"><span class="name">Atlas</span><span class="state" data-state="operational"><span class="mark" aria-hidden="true"></span>Operational</span></div><div class="meta">100.00% uptime over the last 30 days. Last checked Oct 25, 2026, 2:12 PM UTC</div><ol class="days" aria-label="Daily history for Atlas in US East, oldest first"><li class="day" data-state="unknown" title="Sep 26, 2026: No data"><span class="sr">Sep 26, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 27, 2026: No data"><span class="sr">Sep 27, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 28, 2026: No data"><span class="sr">Sep 28, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 29, 2026: No data"><span class="sr">Sep 29, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 30, 2026: No data"><span class="sr">Sep 30, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 1, 2026: No data"><span class="sr">Oct 1, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 2, 2026: No data"><span class="sr">Oct 2, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 3, 2026: No data"><span class="sr">Oct 3, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 4, 2026: No data"><span class="sr">Oct 4, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 5, 2026: No data"><span class="sr">Oct 5, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 6, 2026: No data"><span class="sr">Oct 6, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 7, 2026: No data"><span class="sr">Oct 7, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 8, 2026: No data"><span class="sr">Oct 8, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 9, 2026: No data"><span class="sr">Oct 9, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 10, 2026: No data"><span class="sr">Oct 10, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 11, 2026: No data"><span class="sr">Oct 11, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 12, 2026: No data"><span class="sr">Oct 12, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 13, 2026: No data"><span class="sr">Oct 13, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 14, 2026: No data"><span class="sr">Oct 14, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 15, 2026: No data"><span class="sr">Oct 15, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 16, 2026: No data"><span class="sr">Oct 16, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 17, 2026: No data"><span class="sr">Oct 17, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 18, 2026: No data"><span class="sr">Oct 18, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 19, 2026: No data"><span class="sr">Oct 19, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 20, 2026: No data"><span class="sr">Oct 20, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 21, 2026: No data"><span class="sr">Oct 21, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 22, 2026: No data"><span class="sr">Oct 22, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 23, 2026: No data"><span class="sr">Oct 23, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 24, 2026: No data"><span class="sr">Oct 24, 2026: No data</span></li><li class="day" data-state="operational" title="Oct 25, 2026: Operational"><span class="sr">Oct 25, 2026: Operational</span></li></ol></li><li class="component"><div class="row"><span class="name">Gateway</span><span class="state" data-state="operational"><span class="mark" aria-hidden="true"></span>Operational</span></div><div class="meta">100.00% uptime over the last 30 days. Last checked Oct 25, 2026, 2:12 PM UTC</div><ol class="days" aria-label="Daily history for Gateway in US East, oldest first"><li class="day" data-state="unknown" title="Sep 26, 2026: No data"><span class="sr">Sep 26, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 27, 2026: No data"><span class="sr">Sep 27, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 28, 2026: No data"><span class="sr">Sep 28, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 29, 2026: No data"><span class="sr">Sep 29, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 30, 2026: No data"><span class="sr">Sep 30, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 1, 2026: No data"><span class="sr">Oct 1, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 2, 2026: No data"><span class="sr">Oct 2, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 3, 2026: No data"><span class="sr">Oct 3, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 4, 2026: No data"><span class="sr">Oct 4, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 5, 2026: No data"><span class="sr">Oct 5, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 6, 2026: No data"><span class="sr">Oct 6, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 7, 2026: No data"><span class="sr">Oct 7, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 8, 2026: No data"><span class="sr">Oct 8, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 9, 2026: No data"><span class="sr">Oct 9, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 10, 2026: No data"><span class="sr">Oct 10, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 11, 2026: No data"><span class="sr">Oct 11, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 12, 2026: No data"><span class="sr">Oct 12, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 13, 2026: No data"><span class="sr">Oct 13, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 14, 2026: No data"><span class="sr">Oct 14, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 15, 2026: No data"><span class="sr">Oct 15, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 16, 2026: No data"><span class="sr">Oct 16, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 17, 2026: No data"><span class="sr">Oct 17, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 18, 2026: No data"><span class="sr">Oct 18, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 19, 2026: No data"><span class="sr">Oct 19, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 20, 2026: No data"><span class="sr">Oct 20, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 21, 2026: No data"><span class="sr">Oct 21, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 22, 2026: No data"><span class="sr">Oct 22, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 23, 2026: No data"><span class="sr">Oct 23, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 24, 2026: No data"><span class="sr">Oct 24, 2026: No data</span></li><li class="day" data-state="operational" title="Oct 25, 2026: Operational"><span class="sr">Oct 25, 2026: Operational</span></li></ol></li><li class="component"><div class="row"><span class="name">API</span><span class="state" data-state="operational"><span class="mark" aria-hidden="true"></span>Operational</span></div><div class="meta">100.00% uptime over the last 30 days. Last checked Oct 25, 2026, 2:12 PM UTC</div><ol class="days" aria-label="Daily history for API in US East, oldest first"><li class="day" data-state="unknown" title="Sep 26, 2026: No data"><span class="sr">Sep 26, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 27, 2026: No data"><span class="sr">Sep 27, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 28, 2026: No data"><span class="sr">Sep 28, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 29, 2026: No data"><span class="sr">Sep 29, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 30, 2026: No data"><span class="sr">Sep 30, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 1, 2026: No data"><span class="sr">Oct 1, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 2, 2026: No data"><span class="sr">Oct 2, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 3, 2026: No data"><span class="sr">Oct 3, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 4, 2026: No data"><span class="sr">Oct 4, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 5, 2026: No data"><span class="sr">Oct 5, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 6, 2026: No data"><span class="sr">Oct 6, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 7, 2026: No data"><span class="sr">Oct 7, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 8, 2026: No data"><span class="sr">Oct 8, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 9, 2026: No data"><span class="sr">Oct 9, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 10, 2026: No data"><span class="sr">Oct 10, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 11, 2026: No data"><span class="sr">Oct 11, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 12, 2026: No data"><span class="sr">Oct 12, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 13, 2026: No data"><span class="sr">Oct 13, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 14, 2026: No data"><span class="sr">Oct 14, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 15, 2026: No data"><span class="sr">Oct 15, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 16, 2026: No data"><span class="sr">Oct 16, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 17, 2026: No data"><span class="sr">Oct 17, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 18, 2026: No data"><span class="sr">Oct 18, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 19, 2026: No data"><span class="sr">Oct 19, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 20, 2026: No data"><span class="sr">Oct 20, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 21, 2026: No data"><span class="sr">Oct 21, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 22, 2026: No data"><span class="sr">Oct 22, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 23, 2026: No data"><span class="sr">Oct 23, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 24, 2026: No data"><span class="sr">Oct 24, 2026: No data</span></li><li class="day" data-state="operational" title="Oct 25, 2026: Operational"><span class="sr">Oct 25, 2026: Operational</span></li></ol></li><li class="component"><div class="row"><span class="name">Realtime</span><span class="state" data-state="operational"><span class="mark" aria-hidden="true"></span>Operational</span></div><div class="meta">100.00% uptime over the last 30 days. Last checked Oct 25, 2026, 2:12 PM UTC</div><ol class="days" aria-label="Daily history for Realtime in US East, oldest first"><li class="day" data-state="unknown" title="Sep 26, 2026: No data"><span class="sr">Sep 26, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 27, 2026: No data"><span class="sr">Sep 27, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 28, 2026: No data"><span class="sr">Sep 28, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 29, 2026: No data"><span class="sr">Sep 29, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 30, 2026: No data"><span class="sr">Sep 30, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 1, 2026: No data"><span class="sr">Oct 1, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 2, 2026: No data"><span class="sr">Oct 2, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 3, 2026: No data"><span class="sr">Oct 3, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 4, 2026: No data"><span class="sr">Oct 4, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 5, 2026: No data"><span class="sr">Oct 5, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 6, 2026: No data"><span class="sr">Oct 6, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 7, 2026: No data"><span class="sr">Oct 7, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 8, 2026: No data"><span class="sr">Oct 8, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 9, 2026: No data"><span class="sr">Oct 9, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 10, 2026: No data"><span class="sr">Oct 10, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 11, 2026: No data"><span class="sr">Oct 11, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 12, 2026: No data"><span class="sr">Oct 12, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 13, 2026: No data"><span class="sr">Oct 13, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 14, 2026: No data"><span class="sr">Oct 14, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 15, 2026: No data"><span class="sr">Oct 15, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 16, 2026: No data"><span class="sr">Oct 16, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 17, 2026: No data"><span class="sr">Oct 17, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 18, 2026: No data"><span class="sr">Oct 18, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 19, 2026: No data"><span class="sr">Oct 19, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 20, 2026: No data"><span class="sr">Oct 20, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 21, 2026: No data"><span class="sr">Oct 21, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 22, 2026: No data"><span class="sr">Oct 22, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 23, 2026: No data"><span class="sr">Oct 23, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 24, 2026: No data"><span class="sr">Oct 24, 2026: No data</span></li><li class="day" data-state="operational" title="Oct 25, 2026: Operational"><span class="sr">Oct 25, 2026: Operational</span></li></ol></li><li class="component"><div class="row"><span class="name">Compass sync</span><span class="state" data-state="unknown"><span class="mark" aria-hidden="true"></span>No data</span></div><div class="meta">No checks recorded in the last 30 days. Last checked Oct 25, 2026, 2:12 PM UTC</div><ol class="days" aria-label="Daily history for Compass sync in US East, oldest first"><li class="day" data-state="unknown" title="Sep 26, 2026: No data"><span class="sr">Sep 26, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 27, 2026: No data"><span class="sr">Sep 27, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 28, 2026: No data"><span class="sr">Sep 28, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 29, 2026: No data"><span class="sr">Sep 29, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 30, 2026: No data"><span class="sr">Sep 30, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 1, 2026: No data"><span class="sr">Oct 1, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 2, 2026: No data"><span class="sr">Oct 2, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 3, 2026: No data"><span class="sr">Oct 3, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 4, 2026: No data"><span class="sr">Oct 4, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 5, 2026: No data"><span class="sr">Oct 5, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 6, 2026: No data"><span class="sr">Oct 6, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 7, 2026: No data"><span class="sr">Oct 7, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 8, 2026: No data"><span class="sr">Oct 8, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 9, 2026: No data"><span class="sr">Oct 9, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 10, 2026: No data"><span class="sr">Oct 10, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 11, 2026: No data"><span class="sr">Oct 11, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 12, 2026: No data"><span class="sr">Oct 12, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 13, 2026: No data"><span class="sr">Oct 13, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 14, 2026: No data"><span class="sr">Oct 14, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 15, 2026: No data"><span class="sr">Oct 15, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 16, 2026: No data"><span class="sr">Oct 16, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 17, 2026: No data"><span class="sr">Oct 17, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 18, 2026: No data"><span class="sr">Oct 18, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 19, 2026: No data"><span class="sr">Oct 19, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 20, 2026: No data"><span class="sr">Oct 20, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 21, 2026: No data"><span class="sr">Oct 21, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 22, 2026: No data"><span class="sr">Oct 22, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 23, 2026: No data"><span class="sr">Oct 23, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 24, 2026: No data"><span class="sr">Oct 24, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 25, 2026: No data"><span class="sr">Oct 25, 2026: No data</span></li></ol></li><li class="component"><div class="row"><span class="name">Notifications</span><span class="state" data-state="operational"><span class="mark" aria-hidden="true"></span>Operational</span></div><div class="meta">100.00% uptime over the last 30 days. Last checked Oct 25, 2026, 2:12 PM UTC</div><ol class="days" aria-label="Daily history for Notifications in US East, oldest first"><li class="day" data-state="unknown" title="Sep 26, 2026: No data"><span class="sr">Sep 26, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 27, 2026: No data"><span class="sr">Sep 27, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 28, 2026: No data"><span class="sr">Sep 28, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 29, 2026: No data"><span class="sr">Sep 29, 2026: No data</span></li><li class="day" data-state="unknown" title="Sep 30, 2026: No data"><span class="sr">Sep 30, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 1, 2026: No data"><span class="sr">Oct 1, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 2, 2026: No data"><span class="sr">Oct 2, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 3, 2026: No data"><span class="sr">Oct 3, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 4, 2026: No data"><span class="sr">Oct 4, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 5, 2026: No data"><span class="sr">Oct 5, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 6, 2026: No data"><span class="sr">Oct 6, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 7, 2026: No data"><span class="sr">Oct 7, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 8, 2026: No data"><span class="sr">Oct 8, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 9, 2026: No data"><span class="sr">Oct 9, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 10, 2026: No data"><span class="sr">Oct 10, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 11, 2026: No data"><span class="sr">Oct 11, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 12, 2026: No data"><span class="sr">Oct 12, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 13, 2026: No data"><span class="sr">Oct 13, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 14, 2026: No data"><span class="sr">Oct 14, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 15, 2026: No data"><span class="sr">Oct 15, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 16, 2026: No data"><span class="sr">Oct 16, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 17, 2026: No data"><span class="sr">Oct 17, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 18, 2026: No data"><span class="sr">Oct 18, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 19, 2026: No data"><span class="sr">Oct 19, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 20, 2026: No data"><span class="sr">Oct 20, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 21, 2026: No data"><span class="sr">Oct 21, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 22, 2026: No data"><span class="sr">Oct 22, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 23, 2026: No data"><span class="sr">Oct 23, 2026: No data</span></li><li class="day" data-state="unknown" title="Oct 24, 2026: No data"><span class="sr">Oct 24, 2026: No data</span></li><li class="day" data-state="operational" title="Oct 25, 2026: Operational"><span class="sr">Oct 25, 2026: Operational</span></li></ol></li></ul></section></div>
+<section aria-labelledby="incidents"><h2 id="incidents">Incidents in the last 14 days</h2><p class="lede">No incidents in the last 14 days. If something is not working for you, report it from Help in Atlas or Gateway.</p></section>
+<footer>Measured by synthetic checks against the live service. Targets: 99.9 percent monthly availability for Atlas and the API.</footer>
+</main>
+</body>
+</html>
