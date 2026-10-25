@@ -34,13 +34,13 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "event.invited": ["startsAt"],
   "occupancy.threshold": ["percent", "count", "permitted_load"],
   "weather.alert": ["level", "hazard", "reading"],
-  // 1700: which sign-in setting changed (password, email, phone, a second factor, a passkey or the recovery codes).
+  // 2050: which sign-in setting changed (password, email, phone, a second factor, a passkey or the recovery codes).
   "account.security_changed": ["change"],
   // A99: a recovery code used (the codes left) and sessions signed out (how many).
   "account.recovery_code_used": ["remaining"],
   "account.session_signed_out": ["count"],
   "billing.payment_failed": ["days"],
-  // 1701: the rows of a validated or committed import.
+  // 2051: the rows of a validated or committed import.
   "import.finished": ["written", "refused", "skipped"],
   // Marketplace matches and expiry reminders (A89, migrations 1462 and 1463).
   "opportunity.matched": ["count", "searchName"],
@@ -103,7 +103,7 @@ export function inboxTarget(
     if (key) return `/${org}/r/${encodeURIComponent(key)}`;
     return item.kind === "assignment.created" ? `/${org}/my-work` : null;
   }
-  // An import (1701) opens in the import wizard at the step it reached.
+  // An import (2051) opens in the import wizard at the step it reached.
   if (item.subjectTable === "app.import_jobs") {
     return item.subjectId
       ? `/${org}/import?import=${encodeURIComponent(item.subjectId)}`

@@ -389,7 +389,7 @@ begin
       execute format('drop trigger %I on %s', v.tgname, v.rel);
     exception when insufficient_privilege then
       -- postgres may drop triggers only on the tables supautils.drop_trigger_grants lists, which leaves out
-      -- auth.webauthn_credentials (1700's passkey notice). Such a trigger is put out of shape by name instead, so
+      -- auth.webauthn_credentials (2050's passkey notice). Such a trigger is put out of shape by name instead, so
       -- platform.sql must still give it back exactly.
       execute format('create or replace trigger %I after truncate on %s for each statement execute function %s()',
         v.tgname, v.rel, v.fn);

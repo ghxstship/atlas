@@ -227,16 +227,16 @@ kinds:
     # A change to the person's sign-in security reaches them during quiet hours (ADR 0033 decision 62).
     bypasses_quiet_hours: true
     emitted_by:
-      # 1700 (A104): Supabase Auth's password, email and phone changes, second factors verified or removed, passkeys
+      # 2050 (A104): Supabase Auth's password, email and phone changes, second factors verified or removed, passkeys
       # added or removed, and each new set of recovery codes; the change argument names which.
-      - emitter: supabase/migrations/1700_account_security_notices.sql#private.after_auth_user_security_change
-        test: supabase/tests/1700_account_security_notices.test.sql
-      - emitter: supabase/migrations/1700_account_security_notices.sql#private.after_mfa_factor_change
-        test: supabase/tests/1700_account_security_notices.test.sql
-      - emitter: supabase/migrations/1700_account_security_notices.sql#private.after_passkey_change
-        test: supabase/tests/1700_account_security_notices.test.sql
-      - emitter: supabase/migrations/1700_account_security_notices.sql#app.generate_recovery_codes
-        test: supabase/tests/1700_account_security_notices.test.sql
+      - emitter: supabase/migrations/2050_account_security_notices.sql#private.after_auth_user_security_change
+        test: supabase/tests/2050_account_security_notices.test.sql
+      - emitter: supabase/migrations/2050_account_security_notices.sql#private.after_mfa_factor_change
+        test: supabase/tests/2050_account_security_notices.test.sql
+      - emitter: supabase/migrations/2050_account_security_notices.sql#private.after_passkey_change
+        test: supabase/tests/2050_account_security_notices.test.sql
+      - emitter: supabase/migrations/2050_account_security_notices.sql#app.generate_recovery_codes
+        test: supabase/tests/2050_account_security_notices.test.sql
   - kind: account.recovery_code_used
     category: account
     # Someone got past the second factor with a code: the security notice that is sent today (ADR 0033 decision 62).
@@ -375,10 +375,10 @@ kinds:
     category: imports
     email_template: import_finished
     emitted_by:
-      # A104: the import worker (packages/data import-worker.ts) calls 1701 with the absolute review link when it finishes
-      # validating or committing; 1701 counts the rows and notifies the person who started or committed the import.
-      - emitter: supabase/migrations/1701_import_finished_notice.sql#app.notify_import_finished
-        test: supabase/tests/1701_import_finished_notice.test.sql
+      # A104: the import worker (packages/data import-worker.ts) calls 2051 with the absolute review link when it finishes
+      # validating or committing; 2051 counts the rows and notifies the person who started or committed the import.
+      - emitter: supabase/migrations/2051_import_finished_notice.sql#app.notify_import_finished
+        test: supabase/tests/2051_import_finished_notice.test.sql
   - kind: export.ready
     category: imports
     email_template: export_ready

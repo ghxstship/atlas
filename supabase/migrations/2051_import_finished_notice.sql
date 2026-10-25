@@ -1,6 +1,6 @@
--- 1701_import_finished_notice.sql
+-- 2051_import_finished_notice.sql
 --
--- Import finished notices (ADR 0022, 1700-1709), A104, RRR-149; a follow-up of A83 (RRR-128). import.finished was
+-- Import finished notices (ADR 0022, 2050-2059), A104, RRR-149; a follow-up of A83 (RRR-128). import.finished was
 -- registered with its own email template (import_finished: the import's name, its counts and a review link) but the
 -- import pipeline (0530, 1061) notified nobody, because only the import worker (packages/data import-worker.ts) knows
 -- Atlas's address and can build an absolute link. The worker now calls app.notify_import_finished when it finishes

@@ -1,6 +1,6 @@
--- 1700_account_security_notices.sql
+-- 2050_account_security_notices.sql
 --
--- Account security notices (ADR 0022, 1700-1709), A104, RRR-149; follow-ups of A77 and A99 (RRR-122, RRR-144).
+-- Account security notices (ADR 0022, 2050-2059), A104, RRR-149; follow-ups of A77 and A99 (RRR-122, RRR-144).
 -- account.security_changed was registered with copy and an Inbox description but nothing sent it: password, email and
 -- phone changes happen in Supabase Auth, second factors are enrolled and removed through it, and A99's recovery codes
 -- sent only account.recovery_code_used. Every change to how a person signs in now tells them once, through

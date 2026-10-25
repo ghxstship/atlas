@@ -82,7 +82,7 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "event.invited": { title: "Show Day Safety Briefing", startsAt: "2026-10-21T09:00:00+00:00" },
   "export.ready": { title: "Records export" },
   "help_request.assigned": { title: "Dock tablet will not sign in", team: "Site IT Desk" },
-  // 1701: a committed import's rows, as private.notify stores the numbers (the Inbox reads them as text).
+  // 2051: a committed import's rows, as private.notify stores the numbers (the Inbox reads them as text).
   "import.finished": {
     title: "Crew import",
     stage: "committed",
@@ -259,7 +259,7 @@ describe("Inbox item copy", () => {
     expect(out).toMatchObject({ summary: "Shift assigned", detail: "Stagehand" });
   });
 
-  it("says which sign-in setting changed, in every locale (1700)", () => {
+  it("says which sign-in setting changed, in every locale (2050)", () => {
     const changes = [
       "password",
       "password_set",
@@ -300,7 +300,7 @@ describe("Inbox item copy", () => {
     });
   });
 
-  it("tells a validated import from a committed one, and opens it in the wizard (1701)", () => {
+  it("tells a validated import from a committed one, and opens it in the wizard (2051)", () => {
     const validated = describeInboxItem(
       {
         ...item("import.finished", {

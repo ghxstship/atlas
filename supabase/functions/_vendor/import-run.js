@@ -381,7 +381,7 @@ async function readGoogleSheet(fetchImpl, token, link) {
  * A spreadsheet is parsed only once its virus scan is Clean (owner decision 10, migration 1240): the
  * database queues detection on the Clean verdict, and every step checks again before reading.
  * When validation or a commit finishes, the person who started or committed the import is sent import.finished
- * (A104, migration 1701) with a link to review it in Atlas; the database counts the rows.
+ * (A104, migration 2051) with a link to review it in Atlas; the database counts the rows.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 var IMPORT_JOB_KINDS = ["import.fetch", "import.detect", "import.validate", "import.commit"];

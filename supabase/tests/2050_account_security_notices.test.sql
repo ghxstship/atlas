@@ -1,4 +1,4 @@
--- pgTAP: migration 1700, account security notices (A104, RRR-149; follow-ups of A77 and A99). Every change to how a
+-- pgTAP: migration 2050, account security notices (A104, RRR-149; follow-ups of A77 and A99). Every change to how a
 -- person signs in creates exactly one account.security_changed notification for them, through the org they chose last:
 -- a password set, changed or removed, the sign-in email or phone changed (auth.users), a second factor verified or a verified one
 -- removed (auth.mfa_factors), and a new set of recovery codes (app.generate_recovery_codes). Nothing else on the sign-in

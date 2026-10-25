@@ -50,7 +50,7 @@ export interface TemplateProps {
     readonly importName: string;
     /**
      * validated: the rows are checked and wait for review (written counts the rows ready to write, refused those to
-     * fix); committed, the default: the batch is written (A104, migration 1701).
+     * fix); committed, the default: the batch is written (A104, migration 2051).
      */
     readonly stage?: "validated" | "committed";
     readonly written: number;

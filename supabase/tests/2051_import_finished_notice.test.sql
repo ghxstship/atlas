@@ -1,4 +1,4 @@
--- pgTAP: migration 1701, import finished notices (A104, RRR-149; a follow-up of A83). The import worker calls
+-- pgTAP: migration 2051, import finished notices (A104, RRR-149; a follow-up of A83). The import worker calls
 -- app.notify_import_finished when it finishes validating an import and when it finishes committing a batch: each call
 -- creates exactly one import.finished notification, for the person who started the import and then for the person who
 -- committed it, with the counts read from the import's rows (as numbers) and the absolute review link the worker built,
