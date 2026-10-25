@@ -2,6 +2,7 @@ import { embedTexts, vectorLiteral, type EmbeddingProvider } from "@xos/ai/embed
 import { fillRoute, getNode, isNodeVisible, type NavContext, type Sitemap } from "@xos/ia";
 import { normalizeState } from "@xos/data/search-query";
 import type { SettingDefinition } from "@xos/schemas/settings";
+import { observability } from "@/lib/observability";
 
 /**
  * The command menu's server-side index (Section 11.10 item 1, Section 11.11 Settings "any setting reached
@@ -192,7 +193,9 @@ export async function queryVector(input: {
       minSimilarity: provider.minSimilarity,
     };
   } catch (error) {
-    console.error("Search embedding failed; searching by words only", error);
+    observability.logger.error("Search embedding failed; searching by words only", {
+      error: error,
+    });
     return null;
   } finally {
     clearTimeout(timer);

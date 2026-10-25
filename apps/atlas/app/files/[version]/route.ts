@@ -3,7 +3,7 @@ import { getMessages, isLocale } from "@xos/i18n";
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import { env } from "@/lib/env";
-import { copyForViewer, fileResponse } from "@/lib/files/deliver";
+import { copyForViewer, copyRecordUrl, fileResponse } from "@/lib/files/deliver";
 import { getViewer } from "@/lib/shell/context";
 
 /**
@@ -57,7 +57,7 @@ export async function GET(
     viewerEmail: logged.data.viewerEmail ?? viewer.email,
     orgName: org?.name ?? "",
     locale,
-    sourceUrl: new URL(`/files/${version.id}`, env().ATLAS_SITE_URL).toString(),
+    sourceUrl: copyRecordUrl(version.id, env().ATLAS_SITE_URL),
   });
   return fileResponse(copy);
 }

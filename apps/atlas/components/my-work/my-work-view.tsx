@@ -7,6 +7,7 @@ import {
   DataTable,
   RecordList,
   RecordRow,
+  rememberOverlayOpener,
   type RecordKind,
   type RecordState,
 } from "@xos/ui";
@@ -83,7 +84,12 @@ export function MyWorkView({
     const qs = next.toString();
     return (qs ? `${pathname}?${qs}` : pathname) as Route;
   };
-  const open = (key: string) => router.push(href({ peek: key }), { scroll: false });
+  // The shell's peek mounts after My Work's loading state, which can take focus from the row; the
+  // peek hands it back to the control remembered here.
+  const open = (key: string) => {
+    rememberOverlayOpener();
+    router.push(href({ peek: key }), { scroll: false });
+  };
   const rows = groups.flatMap((g) => g.rows);
 
   const switcher = (

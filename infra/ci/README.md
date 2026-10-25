@@ -30,7 +30,7 @@ Also raise `timeout-minutes` of the `database` job from 20 to 30. The drill adds
 
 ## 2. New workflow `.github/workflows/synthetics.yml`
 
-On a public repository, GitHub Actions minutes are free. Scheduled runs fire at most every 5 minutes, and GitHub may delay them under load. The page is served from the `gh-pages` branch, and the history lives on the `status-data` branch, so neither touches `main`.
+The repository is private (owner decision, 2026-10-24), so GitHub Actions minutes count against the plan's allowance: a 5-minute schedule is about 8,600 runs a month. Better Stack runs the one-minute checks from five regions (decision 45), so a longer interval here costs no coverage. Scheduled runs fire at most every 5 minutes, and GitHub may delay them under load. The page deploys to the Vercel project `status`, and the history lives on the `status-data` branch, so neither touches `main`.
 
 ```yaml
 name: Synthetics
@@ -97,12 +97,20 @@ jobs:
             git -C "$work" push -q --force "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$branch"
           }
           publish status-data "$RUNNER_TEMP/status-data"
-          publish gh-pages "$RUNNER_TEMP/status-site"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # The page is a static Vercel project, status.ghxstship.tech: GitHub Pages needs a paid plan for a private
+      # repository (owner decision, 2026-10-24). The CLI version is pinned like every other tool here.
+      - name: Deploy the page
+        if: always() && steps.run.outcome != 'skipped'
+        run: npx --yes vercel@63.1.2 deploy "$RUNNER_TEMP/status-site" --prod --yes --token "$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_STATUS_TOKEN }}
+          VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ vars.VERCEL_STATUS_PROJECT_ID }}
 ```
 
-The branches are force-pushed as single commits, so the repository does not grow with every run. The history file is the only state, and it keeps 90 days.
+The history branch is force-pushed as a single commit, so the repository does not grow with every run. The history file is the only state, and it keeps 90 days. The page itself deploys to the Vercel project `status`.
 
 ## 3. Workflow `.github/workflows/backup-weekly.yml`
 
@@ -137,9 +145,10 @@ api-breaking-changes:
 
 Publishes `@xos/sdk` and `@xos/cli` to npm and `xos-sdk` to PyPI when a release tag `vX.Y.Z` is pushed. Nothing publishes from a branch or a pull request. The `verify` job checks that the tag equals the version in all three packages (`packages/sdk-ts/test/release.test.ts` keeps them equal on every push), runs their tests, builds them once and hands the exact archives to the publish jobs.
 
-- **npm:** trusted publishing over OIDC, with provenance. `npm` 11.5 or later exchanges the job's OIDC token for a one-time publish token once the owner adds this repository and workflow as a trusted publisher of both packages on npmjs.com. Until then, the `NPM_TOKEN` secret (an automation token scoped to the `@xos` packages) is the fallback. Provenance is signed either way.
-- **PyPI:** trusted publishing through `pypa/gh-action-pypi-publish`, so no PyPI secret exists. The owner registers a pending publisher for `xos-sdk` on pypi.org (owner `ghxstship`, repository `atlas`, workflow `publish-packages.yml`, environment `pypi`). The action also uploads PEP 740 attestations.
+- **npm:** trusted publishing over OIDC. `npm` 11.5 or later exchanges the job's OIDC token for a one-time publish token once the owner adds this repository and workflow as a trusted publisher of both packages on npmjs.com. Until then, the `NPM_TOKEN` secret (an automation token scoped to the `@xos` packages) is the fallback. No provenance: npm signs it only for a public repository, and this one is private (owner decision, 2026-10-24). A public mirror of the SDK packages can bring it back later.
+- **PyPI:** trusted publishing through `pypa/gh-action-pypi-publish`, so no PyPI secret exists. The owner registers a pending publisher for `xos-sdk` on pypi.org (owner `ghxstship`, repository `atlas`, workflow `publish-packages.yml`, environment `pypi`). Attestations are off (`attestations: false`): PEP 740 attestations need a public repository.
 - **Environments:** `npm` and `pypi` are GitHub environments with the owner as required reviewer, so a pushed tag waits for one approval before anything leaves the repository.
+- **Publishing an existing tag:** Actions, Publish packages, Run workflow, with the tag (for example `v4.0.0`). The run uses the workflow from `main` and checks out the tag, so a fix to the workflow reaches a tag that has already been pushed. v4.0.0 needs this: its own copy passed npm a path that npm read as a GitHub repository, and nothing was published.
 
 ```yaml
 name: Publish packages
@@ -237,7 +246,7 @@ jobs:
             if npm view "$1@${VERSION}" version >/dev/null 2>&1; then
               echo "$1@${VERSION} is already published; skipping."
             else
-              npm publish "$2" --access public --provenance
+              npm publish "$2" --access public
             fi
           }
           publish @xos/sdk "npm/xos-sdk-${VERSION}.tgz"
@@ -270,14 +279,14 @@ Before the first tag, the owner confirms the names are theirs. Publishing under 
 
 ## 6. Repository settings (orchestrator)
 
-| Setting                        | Value                                                                                                                                                                          |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Settings, Pages, Source        | Deploy from a branch: `gh-pages`, root                                                                                                                                         |
-| Settings, Pages, Custom domain | `status.ghxstship.tech` with a CNAME record (ADR 0033, decision 72); no purchase needed for a subdomain of an owned domain                                                     |
-| Settings, Variables (Actions)  | `XOS_STAGING_ATLAS_URL`, `XOS_STAGING_GATEWAY_URL`, `XOS_STAGING_SUPABASE_URL`, `XOS_STAGING_SUPABASE_ANON_KEY` (public by design), `XOS_STAGING_POWERSYNC_URL` once it exists |
-| Settings, Secrets (Actions)    | `XOS_SYNTHETIC_EMAIL`, `XOS_SYNTHETIC_PASSWORD`, `XOS_ALERT_WEBHOOK_URL`, `STAGING_DB_URL`                                                                                     |
-| Settings, Environments         | `production-backup`, deployment branches `main` only, with the secret `PRODUCTION_BACKUP_DB_URL` (the owner sets it; `infra/runbooks/backup-and-restore.md`)                   |
-| Branch protection              | Leave `status-data` and `gh-pages` unprotected so the workflow can force-push them; `main` is untouched                                                                        |
+| Setting                                       | Value                                                                                                                                                                          |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Vercel project `status`                       | A static project on the existing Vercel team, domain `status.ghxstship.tech` (ADR 0033, decision 72; hosted on Vercel by owner decision, 2026-10-24)                           |
+| Settings, Variables and Secrets (status page) | `VERCEL_ORG_ID`, `VERCEL_STATUS_PROJECT_ID` (variables) and `VERCEL_STATUS_TOKEN` (secret, a token the owner creates in Vercel, limited to the team)                           |
+| Settings, Variables (Actions)                 | `XOS_STAGING_ATLAS_URL`, `XOS_STAGING_GATEWAY_URL`, `XOS_STAGING_SUPABASE_URL`, `XOS_STAGING_SUPABASE_ANON_KEY` (public by design), `XOS_STAGING_POWERSYNC_URL` once it exists |
+| Settings, Secrets (Actions)                   | `XOS_SYNTHETIC_EMAIL`, `XOS_SYNTHETIC_PASSWORD`, `XOS_ALERT_WEBHOOK_URL`, `STAGING_DB_URL`                                                                                     |
+| Settings, Environments                        | `production-backup`, deployment branches `main` only, with the secret `PRODUCTION_BACKUP_DB_URL` (the owner sets it; `infra/runbooks/backup-and-restore.md`)                   |
+| Branch protection                             | Leave `status-data` unprotected so the workflow can force-push it; `main` is untouched                                                                                         |
 
 ## 7. Supabase stack images: GHCR first
 
