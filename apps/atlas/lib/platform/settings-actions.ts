@@ -8,13 +8,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { env } from "@/lib/env";
-import {
-  done,
-  field,
-  fromDataError,
-  inputError,
-  type PlatformActionState,
-} from "@/lib/platform/state";
+import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
+import { fromDataError } from "@/lib/platform/data-error";
 import { contextFor } from "@/lib/platform/action-context";
 
 /**

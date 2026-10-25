@@ -27,7 +27,7 @@
     "@xos/data": "workspace:*",
     "@xos/schemas": "workspace:*",
     "hono": "4.13.13",
-    "zod": "4.6.5"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@seriousme/openapi-schema-validator": "2.11.0",

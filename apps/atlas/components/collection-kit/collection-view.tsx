@@ -15,6 +15,7 @@ import {
   StateChip,
   TemplateCollection,
   TreeView,
+  rememberOverlayOpener,
   type TreeNode,
   type RecordState,
   type LiveTopic,
@@ -109,7 +110,12 @@ export function CollectionView({
     const qs = next.toString();
     return (qs ? `${pathname}?${qs}` : pathname) as Route;
   };
-  const open = (id: string) => router.push(href({ peek: id, full: null, create: null }));
+  // The page renders the peek after the section's loading state, which can take focus from the row;
+  // the peek hands it back to the control remembered here.
+  const open = (id: string) => {
+    rememberOverlayOpener();
+    router.push(href({ peek: id, full: null, create: null }));
+  };
   const byId = new Map(rows.map((r) => [r.id, r]));
   // A row's menu and hover card, the same in every view (Section 11.7).
   const menuFor = (id: string, at: { x: number; y: number } | null, element: HTMLElement) =>

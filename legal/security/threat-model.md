@@ -53,6 +53,9 @@ than the database allows.
 | A69-009 | Medium   | Tenant member to app            | Fixed        |
 | A69-010 | Low      | Tenant member to app            | Partly fixed |
 | A69-011 | Low      | Tenant member to app            | Fixed        |
+| A69-012 | Medium   | Exports and logs                | Partly fixed |
+| A69-013 | Low      | Anonymous visitor to api_public | Fixed        |
+| A69-014 | Low      | Exports and logs                | Fixed        |
 
 ## Trust boundaries
 
@@ -197,13 +200,13 @@ can still reach an internal address; the Edge runtime's `fetch` cannot connect t
 
 These Edge Functions run with `verify_jwt = false` and authenticate another way.
 
-| Function            | Authentication                                                                                   | Replay and abuse control                                                                 |
-| ------------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| `stripe-webhook`    | Stripe signature over the raw body with `STRIPE_WEBHOOK_SECRET`; invalid signatures answer 400   | Each event id is stored once in `app.stripe_events`; livemode is checked against the key |
-| `inbound-email`     | Bearer `XOS_INBOUND_SECRET`, constant-time compare; replies only from signed addresses with DKIM | Message id deduplication; quoted text stripped                                           |
-| `email-unsubscribe` | HMAC signature per org, person and category, checked in `app.unsubscribe_by_token`               | Idempotent suppression insert                                                            |
-| `kiosk-punch`       | Device key (hashed) plus member PIN, checked in `app.kiosk_punch`                                | 20 PIN failures per device key per 15 minutes; punch id idempotency                      |
-| `api-token`         | The API key itself                                                                               | See boundary 4                                                                           |
+| Function            | Authentication                                                                                                                                                                                                                                                           | Replay and abuse control                                                                                      |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `stripe-webhook`    | Stripe signature over the raw body with `STRIPE_WEBHOOK_SECRET`; invalid signatures answer 400                                                                                                                                                                           | Each event id is stored once in `app.stripe_events`; livemode is checked against the key                      |
+| `inbound-email`     | Resend's Svix signature over the raw body with `RESEND_INBOUND_WEBHOOK_SECRET`, refused more than five minutes off; for another provider, bearer `XOS_INBOUND_SECRET`, constant-time compare. DKIM from Resend's own check; replies only from signed addresses with DKIM | Message id deduplication; quoted text stripped; mail for no inbound address ignored before any call to Resend |
+| `email-unsubscribe` | HMAC signature per org, person and category, checked in `app.unsubscribe_by_token`                                                                                                                                                                                       | Idempotent suppression insert                                                                                 |
+| `kiosk-punch`       | Device key (hashed) plus member PIN, checked in `app.kiosk_punch`                                                                                                                                                                                                        | 20 PIN failures per device key per 15 minutes; punch id idempotency                                           |
+| `api-token`         | The API key itself                                                                                                                                                                                                                                                       | See boundary 4                                                                                                |
 
 STRIDE notes: spoofing is answered by the signatures and secrets above. Tampering and replay are
 answered by event and punch id deduplication. Repudiation is answered by stored Stripe events and
@@ -294,11 +297,14 @@ public (ADR 0034 amendment, `1265_public_upload_staging` suite).
 
 ## 11. Exports and logs
 
-| STRIDE | Threat                                                  | Control                                                                                                   | Evidence                                                   |
-| ------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| T      | A cell in a CSV export running as a formula (A69-005)   | `csvField()` neutralizes a leading `=`, `+`, `-`, `@`, tab or carriage return; plain numbers stay numbers | `csv.test.ts`; Semgrep `xos-csv-quoting-outside-csv-field` |
-| I      | Link tokens in request logs and error reports (A69-008) | The redactor replaces `xadv_`, `xagr_`, `xcal_`, `xdoc_`, `xinv_`, `xlnk_` and `xos_scim_` tokens         | `redact.test.ts`                                           |
-| I      | Personal data in error reports                          | One redactor for logs, traces and Sentry; `sendDefaultPii` off; `beforeSend` scrubs                       | `infra/observability` suites                               |
+| STRIDE | Threat                                                    | Control                                                                                                                                                                                                                                                                                          | Evidence                                                   |
+| ------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| T      | A cell in a CSV export running as a formula (A69-005)     | `csvField()` neutralizes a leading `=`, `+`, `-`, `@`, tab or carriage return; plain numbers stay numbers                                                                                                                                                                                        | `csv.test.ts`; Semgrep `xos-csv-quoting-outside-csv-field` |
+| I      | Link tokens in request logs and error reports (A69-008)   | The redactor replaces `xadv_`, `xagr_`, `xcal_`, `xdoc_`, `xinv_`, `xlnk_` and `xos_scim_` tokens                                                                                                                                                                                                | `redact.test.ts`                                           |
+| I      | Share link tokens and download tickets in logs (A69-012)  | The redactor also replaces `xshr_`, `xdlt_`, `xkio_`, `xspn_`, `xspu_` and `xos_pat_` tokens, whatever follows a leading `/share/`, tokens after a percent escape, and `ticket` and `access_code` keys; span header attributes are dropped. Residual: the platform request log keeps token paths | `redact.test.ts`                                           |
+| I      | Personal data in error reports                            | One redactor for logs, traces and Sentry; Sentry `dataCollection` off except kept headers; `beforeSend` scrubs                                                                                                                                                                                   | `infra/observability` suites                               |
+| I      | A share link printed on a watermarked copy (A69-013)      | The copy links to /files/{version}, which opens only for a member who may see the file                                                                                                                                                                                                           | `2000_share_link_record_url`, `share-link-file.test.ts`    |
+| I      | Raw errors logged to the console by server code (A69-014) | Server code logs through the redacting logger; lint rule `xos/no-server-console`                                                                                                                                                                                                                 | `no-server-console.test.ts`; app lint                      |
 
 XLSX files write strings as strings (exceljs) and PDFs draw text (pdfkit), so neither runs content.
 

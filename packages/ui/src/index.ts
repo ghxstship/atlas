@@ -151,7 +151,13 @@ export {
 } from "./Feedback/Feedback.tsx";
 
 /* Overlays and navigation */
-export { useControllable, useHotkey, rovingIndex, type HotkeyOptions } from "./lib/hooks.ts";
+export {
+  useControllable,
+  useHotkey,
+  rovingIndex,
+  rememberOverlayOpener,
+  type HotkeyOptions,
+} from "./lib/hooks.ts";
 export { BrandMark, monogram, type BrandMarkProps } from "./BrandMark/BrandMark.tsx";
 export {
   Dialog,

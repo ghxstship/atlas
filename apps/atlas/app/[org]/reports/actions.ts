@@ -7,6 +7,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import type { ActionError, ActionState } from "@/app/[org]/finance/actions";
 import { getOrgContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * Reports actions (A15): run a saved report through A18's app.run_report, share a finished run with
@@ -16,7 +17,8 @@ import { getOrgContext } from "@/lib/shell/context";
 
 function toError(error: DataError): ActionError {
   if (error.kind === "refusal") return error;
-  if (error.kind === "unexpected") console.error("reports action failed", error);
+  if (error.kind === "unexpected")
+    observability.logger.error("reports action failed", { error: error });
   return { kind: error.kind === "unexpected" ? "unexpected" : error.kind };
 }
 

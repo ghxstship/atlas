@@ -211,7 +211,11 @@ export default async function ProfilePage() {
               {strength.missing.map((step) => (
                 <li key={step} className="flex items-center gap-8 text-text-13">
                   <Icon name="Circle" size={14} />
-                  <Link href={STRENGTH_LINKS[step] as Route} className="text-accent-text underline">
+                  {/* Stacked links four pixels apart, so each needs the minimum target itself (WCAG 2.5.8). */}
+                  <Link
+                    href={STRENGTH_LINKS[step] as Route}
+                    className="inline-flex min-h-target-fine items-center text-accent-text underline pointer-coarse:min-h-target-coarse"
+                  >
                     {t(`gateway.profile.strength.missing.${step}`)}
                   </Link>
                 </li>

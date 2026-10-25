@@ -242,6 +242,33 @@ describe("rendering rules", () => {
     expect(email.html).toContain("https://atlas.xos.test/r/1");
   });
 
+  it("says a validated import waits for review, and a committed one what it wrote (A104)", async () => {
+    const validated = { ...samples.import_finished, stage: "validated" as const };
+    const en = await renderEmail("import_finished", validated, {
+      locale: "en-US",
+      sender,
+      recipientName: "Dave",
+    });
+    expect(en.subject).toBe("Import Crew roster is ready to review");
+    expect(en.text).toContain(
+      "120 rows are ready to write, 1 needs fixing and 3 were skipped. Review the rows, then commit the import.",
+    );
+    const es = await renderEmail("import_finished", validated, {
+      locale: "es-US",
+      sender,
+      recipientName: "Dave",
+    });
+    expect(es.subject).toBe("La importación Crew roster está lista para revisar");
+    expect(es.text).toContain("1 necesita corrección");
+    const committed = await renderEmail("import_finished", samples.import_finished, {
+      locale: "en-US",
+      sender,
+      recipientName: "Dave",
+    });
+    expect(committed.subject).toBe("Import Crew roster finished");
+    expect(committed.text).toContain("120 rows written, 1 refused and 3 skipped.");
+  });
+
   it("refuses non-transactional email without an unsubscribe link", async () => {
     const { unsubscribeUrl: _dropped, ...noUnsubscribe } = sender;
     expect(_dropped).toBeDefined();
