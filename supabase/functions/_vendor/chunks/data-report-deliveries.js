@@ -449,7 +449,7 @@ function previewCsv(preview, headers, groupHeader) {
  * records the outcome. A failed attempt goes back to Queued while
  * the job has attempts left, then the run is marked Failed with its error. A PDF whose columns
  * classify above Internal carries the viewer's email and the time on every page (A102, migration
- * 1680, Section 8.6).
+ * 2030, Section 8.6).
  */
 var REPORT_RUN_JOB = "report.run";
 var REPORT_RESULTS_BUCKET = "report-results";

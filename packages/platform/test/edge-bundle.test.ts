@@ -106,7 +106,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "integration-worker": 290,
   "kiosk-punch": 64,
   "notification-dispatch": 180,
-  "org-lifecycle": 210,
+  // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
+  // which the org export reaches at boot; 211.5 KB on 2026-10-25.
+  "org-lifecycle": 215,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
