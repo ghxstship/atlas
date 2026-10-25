@@ -242,3 +242,6 @@ call private.describe('app.vendor_bank_accounts_masked', 'Vendor bank accounts w
 ]);
 revoke all on app.vendor_bank_accounts_masked from public, anon;
 grant select on app.vendor_bank_accounts_masked to authenticated, service_role;
+-- 1650's default privileges grant the backup login SELECT on every new relation, views included; pg_dump never reads
+-- a view's rows, and this one decrypts Restricted numbers, so it takes the grant back (pgTAP 1650, test 8).
+revoke select on app.vendor_bank_accounts_masked from xos_backup;
