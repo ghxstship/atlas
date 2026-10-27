@@ -3932,6 +3932,13 @@ export type Database = {
             foreignKeyName: "advance_promotions_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "advance_promotions_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -11029,6 +11036,13 @@ export type Database = {
             foreignKeyName: "client_approval_requests_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -13705,6 +13719,13 @@ export type Database = {
             foreignKeyName: "custom_object_relations_to_record_id_fkey";
             columns: ["to_record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "custom_object_relations_to_record_id_fkey";
+            columns: ["to_record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -15875,6 +15896,13 @@ export type Database = {
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagement_deliverables_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
             referencedColumns: ["id"];
           },
           {
@@ -18338,6 +18366,13 @@ export type Database = {
             foreignKeyName: "form_submissions_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "form_submissions_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -19074,6 +19109,13 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gate_evidence_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
             referencedColumns: ["id"];
           },
           {
@@ -21453,6 +21495,13 @@ export type Database = {
             foreignKeyName: "inbound_messages_filed_record_id_fkey";
             columns: ["filed_record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inbound_messages_filed_record_id_fkey";
+            columns: ["filed_record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -22330,6 +22379,13 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inspections_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
             referencedColumns: ["id"];
           },
           {
@@ -24179,6 +24235,13 @@ export type Database = {
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_goods_receipt_id_fkey";
+            columns: ["goods_receipt_id"];
+            isOneToOne: false;
+            referencedRelation: "goods_receipt_export";
             referencedColumns: ["id"];
           },
           {
@@ -32164,6 +32227,13 @@ export type Database = {
             foreignKeyName: "permit_requirements_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "permit_requirements_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -36078,6 +36148,13 @@ export type Database = {
             foreignKeyName: "punch_items_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "punch_items_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -36093,6 +36170,13 @@ export type Database = {
             columns: ["site_plan_pin_id"];
             isOneToOne: false;
             referencedRelation: "site_plan_pins";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "punch_items_source_record_id_fkey";
+            columns: ["source_record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
             referencedColumns: ["id"];
           },
           {
@@ -37094,6 +37178,13 @@ export type Database = {
             foreignKeyName: "receipt_lines_goods_receipt_id_fkey";
             columns: ["goods_receipt_id"];
             isOneToOne: false;
+            referencedRelation: "goods_receipt_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "receipt_lines_goods_receipt_id_fkey";
+            columns: ["goods_receipt_id"];
+            isOneToOne: false;
             referencedRelation: "goods_receipts";
             referencedColumns: ["id"];
           },
@@ -37596,6 +37687,13 @@ export type Database = {
             foreignKeyName: "record_approval_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_approval_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -37611,6 +37709,13 @@ export type Database = {
             columns: ["requester_person_id"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_approval_subject_record_id_fkey";
+            columns: ["subject_record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
             referencedColumns: ["id"];
           },
           {
@@ -37691,6 +37796,13 @@ export type Database = {
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_assignments_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
             referencedColumns: ["id"];
           },
           {
@@ -37783,6 +37895,13 @@ export type Database = {
             foreignKeyName: "record_booking_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_booking_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -37857,6 +37976,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_build_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_build_record_kind_fkey";
@@ -37951,6 +38077,13 @@ export type Database = {
             foreignKeyName: "record_checklist_items_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_checklist_items_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -38025,6 +38158,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_compliance_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_compliance_record_kind_fkey";
@@ -38132,6 +38272,13 @@ export type Database = {
             foreignKeyName: "record_contract_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_contract_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -38200,6 +38347,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_deadline_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_deadline_record_kind_fkey";
@@ -38294,6 +38448,13 @@ export type Database = {
             foreignKeyName: "record_decision_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_decision_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -38373,6 +38534,13 @@ export type Database = {
             foreignKeyName: "record_dependencies_predecessor_record_id_fkey";
             columns: ["predecessor_record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_dependencies_predecessor_record_id_fkey";
+            columns: ["predecessor_record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -38381,6 +38549,13 @@ export type Database = {
             columns: ["predecessor_record_id"];
             isOneToOne: false;
             referencedRelation: "records";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_dependencies_successor_record_id_fkey";
+            columns: ["successor_record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
             referencedColumns: ["id"];
           },
           {
@@ -38466,6 +38641,13 @@ export type Database = {
             foreignKeyName: "record_distribution_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_distribution_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -38537,6 +38719,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_document_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_document_record_kind_fkey";
@@ -38616,6 +38805,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_event_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_event_record_kind_fkey";
@@ -38721,6 +38917,13 @@ export type Database = {
             foreignKeyName: "record_external_visibility_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_external_visibility_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -38798,6 +39001,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_goal_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_goal_record_kind_fkey";
@@ -38997,6 +39207,13 @@ export type Database = {
             foreignKeyName: "record_inspection_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_inspection_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -39073,6 +39290,13 @@ export type Database = {
             foreignKeyName: "record_meeting_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_meeting_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -39141,6 +39365,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_milestone_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_milestone_record_kind_fkey";
@@ -39242,6 +39473,13 @@ export type Database = {
             foreignKeyName: "record_payment_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_payment_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -39319,6 +39557,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_permit_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_permit_record_kind_fkey";
@@ -39403,6 +39648,13 @@ export type Database = {
             foreignKeyName: "record_recruitment_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_recruitment_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -39482,6 +39734,13 @@ export type Database = {
             foreignKeyName: "record_recurrences_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_recurrences_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -39553,6 +39812,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_rehearsal_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_rehearsal_record_kind_fkey";
@@ -39662,6 +39928,13 @@ export type Database = {
             foreignKeyName: "record_replans_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_replans_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -39743,6 +40016,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_report_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_report_record_kind_fkey";
@@ -39830,6 +40110,13 @@ export type Database = {
             foreignKeyName: "record_risk_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_risk_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -39901,6 +40188,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_shift_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_shift_record_kind_fkey";
@@ -39992,6 +40286,13 @@ export type Database = {
             foreignKeyName: "record_state_transitions_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_state_transitions_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -40073,6 +40374,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_strike_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_strike_record_kind_fkey";
@@ -40167,6 +40475,13 @@ export type Database = {
             foreignKeyName: "record_supply_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_supply_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -40243,6 +40558,13 @@ export type Database = {
             foreignKeyName: "record_task_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_task_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -40311,6 +40633,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_timeline_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
           },
           {
             foreignKeyName: "record_timeline_record_kind_fkey";
@@ -40399,6 +40728,13 @@ export type Database = {
             foreignKeyName: "record_training_record_kind_fkey";
             columns: ["record_id", "record_kind"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id", "record_kind"];
+          },
+          {
+            foreignKeyName: "record_training_record_kind_fkey";
+            columns: ["record_id", "record_kind"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id", "record_kind"];
           },
@@ -40473,6 +40809,13 @@ export type Database = {
             columns: ["person_id"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "record_watchers_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
             referencedColumns: ["id"];
           },
           {
@@ -40628,6 +40971,13 @@ export type Database = {
             columns: ["owner_party_id"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_parent_record_id_fkey";
+            columns: ["parent_record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
             referencedColumns: ["id"];
           },
           {
@@ -42986,6 +43336,13 @@ export type Database = {
             foreignKeyName: "run_of_show_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "run_of_show_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -43847,6 +44204,13 @@ export type Database = {
             foreignKeyName: "schedule_actuals_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_actuals_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -43920,6 +44284,13 @@ export type Database = {
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_baseline_items_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
             referencedColumns: ["id"];
           },
           {
@@ -45853,6 +46224,13 @@ export type Database = {
             foreignKeyName: "shifts_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shifts_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -46580,6 +46958,13 @@ export type Database = {
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "site_plan_pins_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "my_work_export";
             referencedColumns: ["id"];
           },
           {
@@ -55615,6 +56000,13 @@ export type Database = {
             foreignKeyName: "work_orders_record_id_fkey";
             columns: ["record_id"];
             isOneToOne: false;
+            referencedRelation: "my_work_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "work_orders_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
             referencedRelation: "offboarding_open_records";
             referencedColumns: ["record_id"];
           },
@@ -56035,6 +56427,63 @@ export type Database = {
       };
     };
     Views: {
+      activity_export: {
+        Row: {
+          actor_person_id: string | null;
+          created_at: string | null;
+          domain_event_id: string | null;
+          id: string | null;
+          org_id: string | null;
+          project_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          actor_person_id?: string | null;
+          created_at?: string | null;
+          domain_event_id?: string | null;
+          id?: string | null;
+          org_id?: string | null;
+          project_id?: never;
+        };
+        Update: {
+          actor_person_id?: string | null;
+          created_at?: string | null;
+          domain_event_id?: string | null;
+          id?: string | null;
+          org_id?: string | null;
+          project_id?: never;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "activity_events_actor_person_id_fkey";
+            columns: ["actor_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "activity_events_domain_event_id_fkey";
+            columns: ["domain_event_id"];
+            isOneToOne: false;
+            referencedRelation: "domain_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "activity_events_domain_event_id_fkey";
+            columns: ["domain_event_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_route_events";
+            referencedColumns: ["domain_event_id"];
+          },
+          {
+            foreignKeyName: "activity_events_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       ai_never_send: {
         Row: {
           column_name: string | null;
@@ -57258,6 +57707,76 @@ export type Database = {
           },
         ];
       };
+      goods_receipt_export: {
+        Row: {
+          id: string | null;
+          note: string | null;
+          org_id: string | null;
+          project_id: string | null;
+          purchase_order_id: string | null;
+          received_at: string | null;
+          received_by: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "goods_receipts_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "goods_receipts_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_order_totals";
+            referencedColumns: ["purchase_order_id"];
+          },
+          {
+            foreignKeyName: "goods_receipts_purchase_order_id_fkey";
+            columns: ["purchase_order_id"];
+            isOneToOne: false;
+            referencedRelation: "purchase_orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "goods_receipts_received_by_fkey";
+            columns: ["received_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       import_target_fields: {
         Row: {
           field_name: string | null;
@@ -57684,6 +58203,13 @@ export type Database = {
             foreignKeyName: "invoice_matches_goods_receipt_id_fkey";
             columns: ["goods_receipt_id"];
             isOneToOne: false;
+            referencedRelation: "goods_receipt_export";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_matches_goods_receipt_id_fkey";
+            columns: ["goods_receipt_id"];
+            isOneToOne: false;
             referencedRelation: "goods_receipts";
             referencedColumns: ["id"];
           },
@@ -57886,6 +58412,92 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+        ];
+      };
+      my_work_export: {
+        Row: {
+          due_at: string | null;
+          ends_at: string | null;
+          id: string | null;
+          org_id: string | null;
+          project_id: string | null;
+          record_kind: string | null;
+          record_number: number | null;
+          record_state: string | null;
+          starts_at: string | null;
+          title: string | null;
+          updated_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          due_at?: string | null;
+          ends_at?: string | null;
+          id?: string | null;
+          org_id?: string | null;
+          project_id?: string | null;
+          record_kind?: string | null;
+          record_number?: number | null;
+          record_state?: string | null;
+          starts_at?: string | null;
+          title?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          due_at?: string | null;
+          ends_at?: string | null;
+          id?: string | null;
+          org_id?: string | null;
+          project_id?: string | null;
+          record_kind?: string | null;
+          record_number?: number | null;
+          record_state?: string | null;
+          starts_at?: string | null;
+          title?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "records_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "records_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_record_state_fkey";
+            columns: ["record_state"];
+            isOneToOne: false;
+            referencedRelation: "record_state_display";
+            referencedColumns: ["record_state"];
           },
         ];
       };
