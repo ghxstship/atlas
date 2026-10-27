@@ -20,6 +20,7 @@ import {
   type RecordKind,
 } from "@xos/ui";
 import type { Route } from "next";
+import dynamic from "next/dynamic";
 import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
@@ -34,6 +35,12 @@ import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { useRowMenu } from "@/components/menus/use-row-menu";
+import type { RecordQuickAddProps } from "@/components/quick-add/record-quick-add";
+
+// Shown only to people who may create records; its date parser loads with it (ADR 0027).
+const RecordQuickAdd = dynamic(() =>
+  import("@/components/quick-add/record-quick-add").then((m) => m.RecordQuickAdd),
+);
 
 export type RecordView = "list" | "table" | "board" | "calendar" | "timeline";
 
@@ -79,6 +86,7 @@ export function RecordCollection({
   org,
   hideKindFilter = false,
   bulk,
+  quickAdd,
 }: {
   title: string;
   label: string;
@@ -108,6 +116,8 @@ export function RecordCollection({
    * records.
    */
   bulk?: BulkConfig | null;
+  /** The inline quick add row (Section 11.7), for people who may create records here. */
+  quickAdd?: RecordQuickAddProps | null;
 }) {
   const t = useCopy("work");
   const format = useFormatter();
@@ -513,6 +523,7 @@ export function RecordCollection({
 
   return (
     <TemplateCollection header={header} filters={filterBar} peek={peek}>
+      {canCreate && quickAdd ? <RecordQuickAdd {...quickAdd} /> : null}
       {ITEM_VIEWS.has(view) && records.length > 0 ? <div {...hover.hoverProps}>{body}</div> : body}
       {bar}
       {rowMenu.menu}

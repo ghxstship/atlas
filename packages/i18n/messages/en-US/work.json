@@ -633,6 +633,16 @@
       "approval_decided": "A decided approval is final. Raise a new approval instead.",
       "approval_not_eligible": "Only someone who may edit this project's records can decide its approvals.",
       "time_zone_unknown": "Choose a time zone from the list."
+    },
+    "quickAdd": {
+      "capability": "You cannot create this here.",
+      "title": "Type a title as well as the fields.",
+      "kind": "This page creates other kinds of record.",
+      "person": "That person is not someone you can assign here.",
+      "category": "That category is not in canon.",
+      "scope": "That scope is not one you can open.",
+      "scopeProject": "That scope belongs to another project.",
+      "project": "Name the project with ~ and a scope, for example ~NWS-E01."
     }
   },
   "grammar": {
@@ -732,5 +742,23 @@
     "mitigation": "Mitigation",
     "baseline_locked_at": "Locked into a baseline",
     "title": "{kind} details"
+  },
+  "quickAdd": {
+    "label": "Quick add a record",
+    "labelKind": "Quick add: {kind}",
+    "hint": "Title, then a date, @owner, #category, /Task or ~scope",
+    "types": {
+      "person": "Owner",
+      "tag": "Category",
+      "kind": "Kind",
+      "scope": "Scope",
+      "date": "When"
+    },
+    "created": "{key} created",
+    "field": "{name}: {value}",
+    "announce": "{title}, with {fields}",
+    "choose": "Choose a match for {token}",
+    "matches": "Matches: {count}",
+    "untitled": "Untitled"
   }
 }

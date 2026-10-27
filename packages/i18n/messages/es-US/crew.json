@@ -358,7 +358,24 @@
     "tableCaption": "Turnos",
     "listLabel": "Turnos",
     "clashTitle": "{count, plural, one {# turno duplicado} other {# turnos duplicados}}",
-    "clashBody": "Alguien tiene turnos que se superponen. Reasigne uno antes de publicar; su segunda entrada será rechazada."
+    "clashBody": "Alguien tiene turnos que se superponen. Reasigne uno antes de publicar; su segunda entrada será rechazada.",
+    "quickAdd": {
+      "label": "Agregar un turno rápido",
+      "hint": "#rol @persona ~alcance viernes 8am-4pm",
+      "types": {
+        "person": "Persona",
+        "tag": "Rol",
+        "kind": "Tipo",
+        "scope": "Alcance",
+        "date": "Cuándo"
+      },
+      "created": "Turno creado",
+      "errors": {
+        "text": "Un turno no tiene título. Indica su rol con #, por ejemplo #tramoyista.",
+        "when": "Indica cuándo empieza el turno, por ejemplo viernes 8am-4pm.",
+        "role": "Ese rol no está en la biblioteca de roles."
+      }
+    }
   },
   "swapsPage": {
     "title": "{from} a {to}",
