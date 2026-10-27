@@ -148,7 +148,7 @@ export function ShellFrame(props: ShellFrameProps) {
   );
 
   // The pinned entries, with the recent projects under Projects kept current as projects open.
-  const pinned = useRecentProjects(org.slug, nav.pinned);
+  const pinned = useRecentProjects(nav.pinned);
 
   const active = useMemo(() => {
     const all = [
@@ -333,6 +333,7 @@ export function ShellFrame(props: ShellFrameProps) {
         favorites={props.favorites}
         {...(active ? { active } : {})}
         go={go}
+        toItem={toItem}
       />
       <Sidebar
         label={t("shell.chrome.mainNav")}

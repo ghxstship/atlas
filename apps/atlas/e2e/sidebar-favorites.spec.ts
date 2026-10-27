@@ -85,6 +85,12 @@ test("a person reorders favorites by keyboard, hears each step, and the order su
 
   await page.reload();
   await expect(favorites.getByRole("link")).toHaveText(["My Work", "Home", "Inbox"]);
+
+  // After a load the list is plain until focus reaches it; then the move buttons appear and the favorite keeps focus.
+  const first = favorites.getByRole("link", { name: "My Work" });
+  await first.focus();
+  await expect(favorites.getByRole("button", { name: "Move My Work" })).toBeVisible();
+  await expect(first).toBeFocused();
 });
 
 test("the projects a person opens appear under Projects, newest first, then All Projects", async ({

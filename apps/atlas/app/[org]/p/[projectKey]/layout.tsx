@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
 import { ProjectTabs, type ProjectTabGroup } from "@/components/projects/project-tabs";
 import { ScopePicker } from "@/components/projects/scope-picker";
-import { ProjectOpened } from "@/components/shell/recent-projects";
+import { ProjectOpened } from "@/components/shell/project-opened";
 import { PhaseChip, StateChip, Tag } from "@/components/projects/ui";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { phaseCode, stateIcon } from "@/lib/projects/format";
@@ -95,7 +95,7 @@ export default async function ProjectLayout({
         />
       </Suspense>
       <div className="min-w-0">{children}</div>
-      <ProjectOpened href={nodeHref("project", routeParams) ?? ""} />
+      <ProjectOpened org={ctx.org.org.slug} href={nodeHref("project", routeParams) ?? ""} />
     </div>
   );
 }
