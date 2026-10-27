@@ -1,4 +1,4 @@
--- pgTAP: a required custom field is required on the write path (A117, RRR-162, 1760). A value row of a required
+-- pgTAP: a required custom field is required on the write path (A117, RRR-162, 2110). A value row of a required
 -- field needs its typed column filled and cannot be soft deleted; optional fields clear as before, and a field made
 -- optional again clears freely.
 begin;

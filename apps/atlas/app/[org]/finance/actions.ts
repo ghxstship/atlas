@@ -11,6 +11,7 @@ import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
 import { exponentOf, getExponents } from "@/lib/finance/money";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { customFieldsOf } from "@/lib/custom-fields/form";
+import { observability } from "@/lib/observability";
 
 /**
  * Finance mutations (A15). Every action resolves the viewer's org context again (404 when it is
@@ -47,7 +48,7 @@ export interface ActionState {
 function toActionError(error: DataError): ActionError {
   if (error.kind === "refusal") return error;
   if (error.kind === "unexpected") {
-    console.error("finance action failed", error);
+    observability.logger.error("finance action failed", { error: error });
     return { kind: "unexpected" };
   }
   return { kind: error.kind };
@@ -172,7 +173,7 @@ export async function addBudgetLinesAction(_: ActionState, form: FormData): Prom
   try {
     raw = JSON.parse(String(form.get("lines") ?? "[]"));
   } catch (error) {
-    console.error("budget lines payload is not JSON", error);
+    observability.logger.error("budget lines payload is not JSON", { error: error });
     return inputError("lines");
   }
   const lines = z.array(LineSchema).min(1).max(1000).safeParse(raw);
@@ -191,7 +192,7 @@ export async function updateBudgetLineAction(_: ActionState, form: FormData): Pr
   try {
     raw = JSON.parse(String(form.get("line") ?? "{}"));
   } catch (error) {
-    console.error("budget line payload is not JSON", error);
+    observability.logger.error("budget line payload is not JSON", { error: error });
     return inputError("line");
   }
   const line = LineSchema.safeParse(raw);
@@ -578,7 +579,7 @@ export async function createJournalEntryAction(
   try {
     raw = JSON.parse(f["lines"] ?? "[]");
   } catch (error) {
-    console.error("journal lines payload is not JSON", error);
+    observability.logger.error("journal lines payload is not JSON", { error: error });
     return inputError("lines");
   }
   const parsed = z.array(JournalLineSchema).min(2).max(200).safeParse(raw);

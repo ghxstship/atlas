@@ -2,12 +2,13 @@
 
 import {
   PARTY_CATEGORIES,
-  PARTY_CHANNELS,
+  partyChannels,
   setMyNotificationPreference,
   setMyQuietHours,
 } from "@xos/data/party-notifications";
 import { revalidatePath } from "next/cache";
 import { requireNode } from "@/lib/shell/sitemap";
+import { observability } from "@/lib/observability";
 
 /** What the notification preferences form shows after a save. */
 export interface PreferencesState {
@@ -17,8 +18,8 @@ export interface PreferencesState {
 }
 
 /**
- * Saves the signed-in person's Email and Push choice for every party category (migration 1131).
- * A checkbox left unchecked turns the channel off. Each person writes only their own rows.
+ * Saves the signed-in person's Email and Push choice for every party category (migration 1131), on the channels
+ * the category reaches (A104). A checkbox left unchecked turns the channel off. Each person writes only their own rows.
  */
 export async function saveNotificationPreferencesAction(
   prev: PreferencesState,
@@ -26,7 +27,7 @@ export async function saveNotificationPreferencesAction(
 ): Promise<PreferencesState> {
   const ctx = await requireNode("settings.notifications");
   for (const category of PARTY_CATEGORIES) {
-    for (const channel of PARTY_CHANNELS) {
+    for (const channel of partyChannels(category)) {
       const result = await setMyNotificationPreference(ctx.db, {
         personId: ctx.personId,
         category,
@@ -35,7 +36,7 @@ export async function saveNotificationPreferencesAction(
       });
       if (!result.ok) {
         if (result.error.kind === "unexpected")
-          console.error("notification preference", result.error);
+          observability.logger.error("notification preference", { error: result.error });
         return { error: result.error.kind === "unexpected" ? "unexpected" : "denied" };
       }
     }
@@ -78,7 +79,8 @@ export async function saveQuietHoursAction(
   if (!result.ok) {
     if (result.error.kind === "refusal" && result.error.rule === "time_zone_unknown")
       return { error: "zone" };
-    if (result.error.kind === "unexpected") console.error("quiet hours", result.error);
+    if (result.error.kind === "unexpected")
+      observability.logger.error("quiet hours", { error: result.error });
     return { error: result.error.kind === "unexpected" ? "unexpected" : "denied" };
   }
   revalidatePath("/settings/notifications");

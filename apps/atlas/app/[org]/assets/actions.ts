@@ -30,6 +30,7 @@ import { z } from "zod";
 import { getOrgContext, getViewer } from "@/lib/shell/context";
 import { customFieldsOf } from "@/lib/custom-fields/form";
 import { minorUnits } from "@/lib/assets/money";
+import { observability } from "@/lib/observability";
 
 /**
  * Assets actions (Section 4.2 Assets). Each resolves the viewer's org context again (404 when it is
@@ -71,7 +72,7 @@ function errorKey(error: DataError): AssetActionState {
     case "invalid":
       return { error: "invalid", field: error.message };
     default:
-      console.error("assets action failed", error);
+      observability.logger.error("assets action failed", { error: error });
       return { error: "unexpected" };
   }
 }
@@ -116,7 +117,7 @@ export async function searchElementsAction(query: string): Promise<ElementOption
   if (!viewer) return [];
   const result = await searchAssetElements(viewer.db, parsed.data);
   if (!result.ok) {
-    console.error("element search failed", result.error);
+    observability.logger.error("element search failed", { error: result.error });
     return [];
   }
   return result.data;

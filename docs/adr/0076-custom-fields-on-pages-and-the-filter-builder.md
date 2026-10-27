@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-24
 - Decider: A117 (RRR-162), trace rows S4.5.6-16 and S11.4-02 (the FilterBuilder part)
-- Migrations: 1760
+- Migrations: 2110
 
 ## Context
 
@@ -20,7 +20,7 @@ Orgs could define custom fields on nine built-in tables in Settings (A86, `app.c
 ### 2. Required is a form rule that the write path also holds
 
 - The definition's own comment says required means "forms require a value". A create form that shows custom fields refuses to create the row while a required field is blank, in the browser and again in the server action before the row exists. A create path that shows no custom fields, such as a quick-add row or an import, is not held to it. Those paths never offered the field.
-- 1760 adds the write-path check to `private.guard_custom_field_value`: a value row of a required field cannot have an empty typed column, and it cannot be soft deleted (`custom_value_required`). This holds for anything that writes values directly, the API included. A field made required later does not change rows that have no value yet. The next write to them has to give one.
+- 2110 adds the write-path check to `private.guard_custom_field_value`: a value row of a required field cannot have an empty typed column, and it cannot be soft deleted (`custom_value_required`). This holds for anything that writes values directly, the API included. A field made required later does not change rows that have no value yet. The next write to them has to give one.
 - Alternative: a deferred constraint trigger on each target table that demands every required value at commit. Rejected. A row and its values are written in separate requests, and the API creates rows with no custom fields at all.
 
 ### 3. A create action checks first and saves after

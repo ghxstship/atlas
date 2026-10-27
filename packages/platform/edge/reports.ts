@@ -91,6 +91,20 @@ export async function reportRunLabels(locale: string): Promise<RunLabels> {
         unpriced,
         date: new Intl.DateTimeFormat(known, { dateStyle: "medium", timeZone: "UTC" }).format(at),
       }),
+    // A102: a report PDF whose columns classify above Internal names its viewer and the time (Section 8.6).
+    watermark: ({ email, at }) =>
+      fill(file("watermark"), {
+        email,
+        time: new Intl.DateTimeFormat(known, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: "UTC",
+          timeZoneName: "short",
+        }).format(at),
+      }),
     column(source, key, aggregate) {
       const template = lookup(messages, ["workflow", "builder", "columnAggregate"]);
       const name = lookup(messages, ["workflow", "builder", "aggregates", aggregate]) ?? aggregate;

@@ -6,7 +6,7 @@
       "license": "FSL-1.1-Apache-2.0",
       "status": "Pending counsel",
       "reason": "The Sentry command line tool, pulled in by @sentry/nextjs through @sentry/bundler-plugins, uploads source maps at build time; it is not served to users. Waiting on counsel to confirm that the Functional Source License (Apache-2.0 two years after each release) permits this use.",
-      "decision": "Owner decisions in legal/qa/gate-status.md: counsel review of FSL-1.1-Apache-2.0.",
+      "decision": "Owner decisions in legal/qa/gate-status.md: counsel review of FSL-1.1-Apache-2.0. The owner approved the use on 2026-10-24; counsel confirms.",
       "recorded": "2026-10-21"
     },
     {
@@ -14,7 +14,7 @@
       "license": "LGPL-3.0-or-later",
       "status": "Pending counsel",
       "reason": "Prebuilt libvips for sharp, which Next.js uses to optimize images on the server. It is loaded as an unmodified shared library; waiting on counsel to confirm the notice and relinking obligations. One package per platform (darwin-arm64 locally, linux-x64 in CI and on Vercel).",
-      "decision": "Owner decisions in legal/qa/gate-status.md: counsel review of LGPL-3.0-or-later.",
+      "decision": "Owner decisions in legal/qa/gate-status.md: counsel review of LGPL-3.0-or-later. The owner approved the use on 2026-10-24; counsel confirms.",
       "recorded": "2026-10-21"
     }
   ]

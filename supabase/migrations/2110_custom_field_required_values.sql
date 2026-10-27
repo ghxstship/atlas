@@ -1,4 +1,4 @@
--- 1760_custom_field_required_values.sql
+-- 2110_custom_field_required_values.sql
 -- A117 Custom fields on forms, pages, peeks and tables (RRR-162, Section 4.5.6 org settings item 16). A field
 -- marked required is required on the write path too, not only in the forms: private.guard_custom_field_value
 -- (0540) now refuses a value row of a required field whose typed column is empty, and soft deleting one, with
@@ -49,6 +49,6 @@ begin
 end;
 $$;
 
-comment on function private.guard_custom_field_value() is 'Custom field values: the target row exists in the same org and the value stays on it, only the field type''s column is filled, choices belong to the field, people belong to the org, and a required field''s value is neither empty nor removed (1760).';
+comment on function private.guard_custom_field_value() is 'Custom field values: the target row exists in the same org and the value stays on it, only the field type''s column is filled, choices belong to the field, people belong to the org, and a required field''s value is neither empty nor removed (2110).';
 
 revoke all on function private.guard_custom_field_value() from public, anon, authenticated;

@@ -10,7 +10,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * value_money_minor with value_currency, value_date, value_timestamp, value_boolean, value_choice_id,
  * value_person_id), and finds the rows whose values match view filters. Writes are table writes under row level
  * security, the same path as the customFieldValues operations of the API: a Collaborator or higher writes the
- * values of a row they can read, and the 0540 guard with its 1760 required check refuses the rest.
+ * values of a row they can read, and the 0540 guard with its 2110 required check refuses the rest.
  *
  * Forms send values as the text an input holds (`CustomFieldInput`); `checkCustomFieldInputs` turns that text
  * into typed values and says which fields are missing or malformed, so the browser and the server apply the same
@@ -345,7 +345,7 @@ export interface CustomFieldCheck {
 /**
  * Checks a form's inputs, keyed by field key, against the table's fields. Creating a row needs a value for every
  * required field; an update judges only the fields the form sent, and a required field it sends blank is refused,
- * as the database refuses clearing one (1760). Inputs naming no live field are ignored.
+ * as the database refuses clearing one (2110). Inputs naming no live field are ignored.
  */
 export function checkCustomFieldInputs(
   fields: readonly CustomField[],

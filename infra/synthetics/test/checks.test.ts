@@ -51,7 +51,7 @@ function healthyRoutes(): Record<string, Route> {
   return {
     "https://atlas.test/auth/sign-in": () => html("<html><form method=post></form></html>"),
     "https://ref.supabase.test/auth/v1/token": () => json({ access_token: "jwt-token" }),
-    "https://gateway.test/": () => html("<!doctype html><html lang=en></html>"),
+    "https://gateway.test/auth/sign-in": () => html("<!doctype html><html lang=en></html>"),
     "https://atlas.test/api/v1/openapi.json": () => json({ openapi: "3.1.1" }),
     "https://atlas.test/api/v1/projects": () => json({ data: [] }),
     "https://sync.test/probes/liveness": () => new Response("ok"),
@@ -157,7 +157,7 @@ describe("runChecks", () => {
     const routes = healthyRoutes();
     routes["https://atlas.test/auth/sign-in"] = () => html("<html>no form</html>");
     routes["https://ref.supabase.test/auth/v1/token"] = () => json({ error: "invalid_grant" }, 400);
-    routes["https://gateway.test/"] = () => json({});
+    routes["https://gateway.test/auth/sign-in"] = () => json({});
     routes["https://atlas.test/api/v1/openapi.json"] = () => json({ openapi: "3.0.0" });
     routes["https://sync.test/probes/readiness"] = () => new Response("no", { status: 503 });
     routes["https://ref.supabase.test/functions/v1/notification-dispatch"] = () => json({}, 500);
@@ -191,7 +191,7 @@ describe("runChecks", () => {
     const routes = healthyRoutes();
     routes["https://atlas.test/auth/sign-in"] = () => html("", 503);
     routes["https://ref.supabase.test/auth/v1/token"] = () => json({ access_token: "" });
-    routes["https://gateway.test/"] = () => html("", 500);
+    routes["https://gateway.test/auth/sign-in"] = () => html("", 500);
     routes["https://atlas.test/api/v1/openapi.json"] = () => json({}, 404);
     routes["https://sync.test/probes/liveness"] = () => new Response("", { status: 500 });
     const f = fakeFetch(routes);

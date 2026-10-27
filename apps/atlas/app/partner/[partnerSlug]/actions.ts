@@ -13,13 +13,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { checkAccent } from "@/lib/brand/contrast";
 import { env } from "@/lib/env";
-import {
-  done,
-  field,
-  fromDataError,
-  inputError,
-  type PlatformActionState,
-} from "@/lib/platform/state";
+import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
+import { fromDataError } from "@/lib/platform/data-error";
 import { contextFor } from "@/lib/platform/action-context";
 
 /**

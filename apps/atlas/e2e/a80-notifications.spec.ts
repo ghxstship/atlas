@@ -13,7 +13,8 @@ import {
  * Safety mandatory on Settings, Notifications (Section 4.5.6 item 29); on Personal settings,
  * Notifications the member sees those defaults, cannot turn a locked channel off, and saves their own
  * choices, quiet hours and digest (item 8). Both pages render axe clean. Each category is a closed group
- * naming its channels (gate 27), opened to change them.
+ * naming its channels (gate 27), opened to change them, and offers only the channels its kinds reach (A104):
+ * Opportunities has no SMS box.
  */
 test("org notification defaults and the personal preference matrix", async ({ page }) => {
   test.setTimeout(5 * 60_000);
@@ -31,6 +32,11 @@ test("org notification defaults and the personal preference matrix", async ({ pa
   await expect(org.locator("summary").filter({ hasText: "Feed" })).toContainText("In app, Email");
   await openChoices(org, "Feed");
   await openChoices(org, "Safety");
+  await openChoices(org, "Opportunities");
+  await expect(
+    org.getByRole("checkbox", { name: "Opportunities by Email", exact: true }),
+  ).toBeVisible();
+  await expect(org.getByRole("checkbox", { name: "Opportunities by Text (SMS)" })).toHaveCount(0);
   const feedEmail = org.getByRole("checkbox", { name: "Feed by Email", exact: true });
   await expect(feedEmail).toBeChecked();
   await feedEmail.uncheck();
@@ -69,6 +75,7 @@ test("org notification defaults and the personal preference matrix", async ({ pa
   await expect(
     mine.getByRole("checkbox", { name: "Feed by Email", exact: true }),
   ).not.toBeChecked();
+  await expect(mine.getByRole("checkbox", { name: "Opportunities by Text (SMS)" })).toHaveCount(0);
   const lockedPush = mine.getByRole("checkbox", {
     name: "Safety by Push. Required by your organization",
   });

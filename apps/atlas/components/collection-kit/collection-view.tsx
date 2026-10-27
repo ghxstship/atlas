@@ -15,6 +15,7 @@ import {
   StateChip,
   TemplateCollection,
   TreeView,
+  rememberOverlayOpener,
   type TreeNode,
   type RecordState,
   type LiveTopic,
@@ -113,7 +114,12 @@ export function CollectionView({
     const qs = next.toString();
     return (qs ? `${pathname}?${qs}` : pathname) as Route;
   };
-  const open = (id: string) => router.push(href({ peek: id, full: null, create: null }));
+  // The page renders the peek after the section's loading state, which can take focus from the row;
+  // the peek hands it back to the control remembered here.
+  const open = (id: string) => {
+    rememberOverlayOpener();
+    router.push(href({ peek: id, full: null, create: null }));
+  };
   // The page renders the peek for `?peek` as children. With none (a stale link, a key from elsewhere)
   // the key goes to the shell's peek, which opens the record it names or says it cannot.
   const peek = collectionPeek(params.get("peek"), children);

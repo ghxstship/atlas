@@ -28,6 +28,7 @@ import {
 } from "@/lib/shell/search-index";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import { observability } from "@/lib/observability";
 
 /**
  * The command menu's server half (Section 11.10 item 1, Section 11.7; findings A59-015 and A65-005). Before
@@ -110,7 +111,7 @@ function embeddingProvider(ctx: OrgContext): EmbeddingProvider | null {
       },
     });
   } catch (error) {
-    console.error("Semantic search is unavailable", error);
+    observability.logger.error("Semantic search is unavailable", { error: error });
     return null;
   }
 }
@@ -228,7 +229,7 @@ export async function searchCommandMenu(input: {
       ...(vector ? { minSimilarity: vector.minSimilarity } : {}),
     });
     if (!result.ok && result.error.kind !== "refusal") {
-      console.error("Command menu search failed", result.error);
+      observability.logger.error("Command menu search failed", { error: result.error });
     }
     const hits = result.ok ? result.data : [];
     const pick = (types: readonly SearchHit["type"][]) =>

@@ -26,6 +26,7 @@ import {
 } from "@/lib/views/query";
 import { DeferredDropdownMenu } from "@/components/shell/deferred-menus";
 import type { ViewDialogState } from "./view-dialogs";
+import { CollectionExport } from "./collection-export";
 import { onDemand, useOnDemand } from "@/components/shell/on-demand";
 import { CollectionFilters } from "./filter-bar";
 import type { FilterField } from "./filter-model";
@@ -311,6 +312,7 @@ export function CollectionViews({
           onOpen={retryLoad}
         />
       ) : null}
+      <CollectionExport />
       <p role="status" className="sr-only">
         {status}
       </p>
