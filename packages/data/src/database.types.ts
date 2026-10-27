@@ -61082,7 +61082,7 @@ export type Database = {
           verified_domain: string;
         }[];
       };
-      export_job_rows: { Args: { p_export_job_id: string; p_limit: number }; Returns: Json[] };
+      export_job_rows: { Args: { p_export_job_id: string; p_limit: number }; Returns: Json };
       fail_integration_inbound_event: {
         Args: {
           p_error_code: string;
