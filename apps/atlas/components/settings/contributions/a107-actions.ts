@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
+import { observability } from "@/lib/observability";
 import { getOrgContext } from "@/lib/shell/context";
 
 /**
@@ -30,7 +31,7 @@ const KNOWN = new Set([
 function errorKey(error: DataError): string {
   if (error.kind === "refusal") return KNOWN.has(error.rule) ? error.rule : "unexpected";
   if (error.kind === "not-found") return "denied";
-  console.error("plan limit choice failed", error);
+  observability.logger.error("plan limit choice failed", { error: error });
   return "unexpected";
 }
 
