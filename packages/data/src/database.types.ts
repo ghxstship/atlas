@@ -59637,6 +59637,18 @@ export type Database = {
         Args: { p_entry: string; p_project_id: string; p_shipment_id?: string; p_zone_id?: string };
         Returns: string;
       };
+      add_supplier_diversity_certification: {
+        Args: {
+          p_account_id?: string;
+          p_certificate_number?: string;
+          p_certifying_body: string;
+          p_expires_on?: string;
+          p_issued_on?: string;
+          p_kind: Database["app"]["Enums"]["supplier_diversity_kind"];
+          p_person_id?: string;
+        };
+        Returns: string;
+      };
       adopt_standard_library: { Args: { p_org_id: string }; Returns: Json };
       agree_self_billing: { Args: { p_engagement_id: string }; Returns: string };
       ai_allowance: {

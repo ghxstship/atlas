@@ -1,6 +1,7 @@
 -- pgTAP: migration 2011, supplier diversity certificate numbers encrypted at rest (A100, RRR-145, S9-12) under the
 -- government identifier rule of decision 38. The table holds only ciphertext under xos_supplier_certificate_number_key
--- and the last four; the owner sets the number only through app.set_supplier_diversity_certificate_number; an org sees
+-- and the last four; the owner writes the number only through app.add_supplier_diversity_certification (2350) or
+-- app.set_supplier_diversity_certificate_number; an org sees
 -- the last four, and the whole number only through app.reveal_shared_supplier_diversity_number with
 -- data.restricted.read.government_id, step-up and a reason, logged for the owner and the org. Also the release check:
 -- no Restricted banking or government identifier column anywhere stores plain text.
@@ -39,13 +40,13 @@ select ok(not has_column_privilege('authenticated', 'app.supplier_diversity_cert
 
 -- The owner sets the number -------------------------------------------------------------------------------------------------
 select pg_temp.as_user('ivy');
-insert into app.supplier_diversity_certifications (person_id, diversity_kind, certifying_body, issued_on, expires_on)
-  values (pg_temp.id('ivy'), 'Women-Owned', 'Florida Office of Supplier Diversity', '2026-01-15', '2028-01-15');
+select lives_ok($$select app.add_supplier_diversity_certification('Women-Owned', 'Florida Office of Supplier Diversity',
+  p_person_id => pg_temp.id('ivy'), p_certificate_number => 'fl-wbe-2026-118842', p_issued_on => '2026-01-15',
+  p_expires_on => '2028-01-15')$$,
+  'the owner declares the certification with its number through the encrypting RPC (2350)');
 select id as v_cert from app.supplier_diversity_certifications where person_id = pg_temp.id('ivy') \gset
 select throws_ok(format($$update app.supplier_diversity_certifications set certificate_number = 'x'::bytea where id = %L$$, :'v_cert'),
   '42501', null, 'the owner cannot write the ciphertext directly');
-select lives_ok(format($$select app.set_supplier_diversity_certificate_number(%L, 'fl-wbe-2026-118842')$$, :'v_cert'),
-  'the owner sets the number through the encrypting RPC');
 select is((select certificate_number_last4 from app.my_supplier_diversity()), '8842', 'and sees its last four');
 select throws_ok(format($$select app.set_supplier_diversity_certificate_number(%L, '---')$$, :'v_cert'),
   'XR001', 'certificate_number_format: A certificate number has 1 to 100 letters and digits.', 'a number needs a letter or digit');
@@ -65,8 +66,8 @@ select is((select extensions.pgp_sym_decrypt(certificate_number, private.supplie
            from app.supplier_diversity_certifications where id = :'v_cert'), 'FLWBE2026118842',
   'the ciphertext decrypts under the Vault key to the number''s letters and digits, upper-cased');
 select results_eq(format($$select action from app.supplier_diversity_events where supplier_diversity_certification_id = %L order by created_at, action$$, :'v_cert'),
-  $$values ('supplier_diversity.created'::text), ('supplier_diversity.updated')$$,
-  'setting the number lands in the owner''s access log as an update, never the value');
+  $$values ('supplier_diversity.created'::text)$$,
+  'declaring it with the number lands in the owner''s access log once, as created, never the value');
 select throws_ok(format($$update app.supplier_diversity_certifications set certificate_number_last4 = '0000' where id = %L$$, :'v_cert'),
   'XR001', 'certificate_number_rpc_only: A certificate number is written only through app.set_supplier_diversity_certificate_number, which encrypts it.',
   'outside the RPC even the table owner cannot change the last four');
