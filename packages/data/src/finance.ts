@@ -1691,7 +1691,7 @@ export interface Invoice {
   readonly totalMinor: number | null;
   readonly appliedMinor: number;
   readonly createdAt: string;
-  /** The version a bulk change of the invoice is sent against (Section 11.7, migration 1770). */
+  /** The version a bulk change of the invoice is sent against (Section 11.7, migration 2120). */
   readonly updatedAt: string;
 }
 
@@ -1896,7 +1896,7 @@ export async function deleteInvoiceLine(db: XosClient, lineId: string): Promise<
 /**
  * Restores a deleted invoice line through the Trash RPC (migration 1031), for its Undo and for Activity: the
  * line's own rules decide (the invoice must still be Proposed), and a number a newer line took moves it to the end
- * (migration 1771).
+ * (migration 2121).
  */
 export async function restoreInvoiceLine(db: XosClient, lineId: string): Promise<Result<null>> {
   const r = await rpcValue(

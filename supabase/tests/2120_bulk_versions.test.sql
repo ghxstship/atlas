@@ -1,4 +1,4 @@
--- pgTAP: 1770, versions in the bulk property RPCs (A118, RRR-163, Section 11.7). A save carries the updated_at the
+-- pgTAP: 2120, versions in the bulk property RPCs (A118, RRR-163, Section 11.7). A save carries the updated_at the
 -- caller loaded: a matching version commits, a version that moved on merges a change to another field and refuses a
 -- change to the same field with the row's current values, which a "keep mine" resend uses. Times compare by meaning,
 -- set never carries the version, and a refusal never shows a row the caller cannot read.

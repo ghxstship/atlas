@@ -1,4 +1,4 @@
--- 1770_bulk_versions.sql
+-- 2120_bulk_versions.sql
 -- A118 (RRR-163, A65-006, ADR 0077). Inline edits send the version they edited (Section 11.7): the bulk property RPCs
 -- of 1451, which every table's row menu and undo use, take the row's updated_at in expect, and a stale save answers
 -- the values the row holds now, so the person sees theirs beside their own and chooses.

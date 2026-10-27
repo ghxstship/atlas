@@ -1,4 +1,4 @@
--- 1772_trash_restore_children.sql
+-- 2122_trash_restore_children.sql
 -- A118 (RRR-163, A65-006, ADR 0077). app.restore_trash_item (1031, its only earlier definition) restores rows that
 -- reference the restored row and were deleted with it. It ran that update on every soft-deletable child table, and a
 -- table the caller may not update at all (app.self_billed_timesheets and app.self_billed_deliverables, written only

@@ -255,7 +255,7 @@ export async function addSettlementLine(
 
 /**
  * Restores a deleted settlement line through the Trash RPC (migration 1031), for its Undo and for Activity, while
- * the settlement is Proposed; a number a newer line took moves it to the end (migration 1771).
+ * the settlement is Proposed; a number a newer line took moves it to the end (migration 2121).
  */
 export async function restoreSettlementLine(db: XosClient, lineId: string): Promise<Result<null>> {
   const { error } = await db.rpc("restore_trash_item", {

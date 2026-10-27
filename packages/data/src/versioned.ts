@@ -5,7 +5,7 @@ import { untyped } from "./untyped.ts";
 /**
  * Saves of one row against the version the person edited (Section 11.7, ADR 0077), for edits that write a table
  * directly under its row level security: a record's properties and its kind's attributes. The rule is the bulk
- * RPCs' (migration 1770): a save carrying the row's updated_at commits; when someone saved since, only a field both
+ * RPCs' (migration 2120): a save carrying the row's updated_at commits; when someone saved since, only a field both
  * people changed is a conflict, and the conflict answers the row's values now, so the page shows theirs beside
  * mine. Every write is compare-and-set on updated_at, so nothing saved in between is ever overwritten silently.
  */

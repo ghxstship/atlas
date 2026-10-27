@@ -36,7 +36,7 @@ export interface Shift {
   readonly recordId: string | null;
   readonly scopeNodeId: string | null;
   readonly createdAt: string;
-  /** The version a bulk change of the shift is sent against (Section 11.7, migration 1770). */
+  /** The version a bulk change of the shift is sent against (Section 11.7, migration 2120). */
   readonly updatedAt: string;
 }
 

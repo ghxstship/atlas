@@ -1,4 +1,4 @@
--- pgTAP: 1771, deletes that undo (A118, RRR-163, Section 11.7). Invoice, settlement and budget lines are soft
+-- pgTAP: 2121, deletes that undo (A118, RRR-163, Section 11.7). Invoice, settlement and budget lines are soft
 -- deleted into Trash and restore through app.restore_trash_item; a restored line keeps its number when it is free
 -- and moves to the end when a later line took it. Moving a record or a line to Trash emits its .trashed event with
 -- the project, which the Activity feed shows to the people who may read the project, and only the move to Trash

@@ -16,7 +16,7 @@ export type BulkValue = string | number | boolean | null;
 /**
  * One row of a bulk change: the values to set and, optionally, the values it must still hold. `expect` may carry
  * `updated_at`, the version the caller loaded: a row saved since is refused as stale only over a field both people
- * changed (migration 1770).
+ * changed (migration 2120).
  */
 export interface BulkRow {
   readonly id: string;
@@ -30,7 +30,7 @@ export interface BulkRefusal {
   readonly rule: string;
   readonly message: string;
   /**
-   * For a stale row (bulk_stale, migration 1770): the values the row holds now for every field the row set or
+   * For a stale row (bulk_stale, migration 2120): the values the row holds now for every field the row set or
    * expected, and its updated_at, so the person sees theirs beside their own and a resend can expect that version.
    */
   readonly current?: Readonly<Record<string, BulkValue>>;

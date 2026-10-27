@@ -1,4 +1,4 @@
--- 1771_line_restore_and_trash_activity.sql
+-- 2121_line_restore_and_trash_activity.sql
 -- A118 (RRR-163, A65-006, ADR 0077). Deletes that undo (Section 11.7): invoice, settlement and budget lines restore
 -- without colliding, and a record or a line moved to Trash shows in Activity, which offers Restore on it.
 --

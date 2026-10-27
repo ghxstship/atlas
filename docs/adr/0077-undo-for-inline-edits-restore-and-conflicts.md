@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-24
 - Decider: A118 (RRR-163), trace rows S11.7-01, S11.7-02 and S11.7-10
-- Migrations: 1770 to 1772
+- Migrations: 2120 to 2122
 
 ## Context
 
@@ -20,7 +20,7 @@ ADR 0044 gave Atlas a per-tab undo stack (`components/undo/undo-stack.ts`) with 
 
 ### 2. Saves carry the version they edited, and a conflict carries both values
 
-- The rule is one for the bulk RPCs (1770) and for direct saves (`packages/data/src/versioned.ts`): a save carries the row's `updated_at` as the person loaded it and the values they started from. A matching version commits. A version that moved on is a conflict only for a field both people changed; someone else's change to another field merges. A version with nothing else expected refuses any later change.
+- The rule is one for the bulk RPCs (2120) and for direct saves (`packages/data/src/versioned.ts`): a save carries the row's `updated_at` as the person loaded it and the values they started from. A matching version commits. A version that moved on is a conflict only for a field both people changed; someone else's change to another field merges. A version with nothing else expected refuses any later change.
 - A bulk row may put `updated_at` in `expect`, never in `set`. A stale row's refusal (`bulk_stale`) carries `current`: the row's values now for the fields it set or expected, and its version, read only after the row function's own capability checks passed.
 - Times compare by meaning (`private.bulk_same_value`, `sameFieldValue`), so a time read through the API never conflicts with the same instant in the row.
 - Record properties and kind attributes keep their direct writes under row level security; the version check is compare-and-set on `updated_at`, retried when other saves land between the check and the write. Alternative: route the record form through `app.bulk_update_records`. Rejected, because the bulk row function invents a replan reason ("Changed in bulk.") for date changes and writes a bulk audit event for one edit.
@@ -33,8 +33,8 @@ ADR 0044 gave Atlas a per-tab undo stack (`components/undo/undo-stack.ts`) with 
 
 ### 4. Line deletes restore through Trash, and moving to Trash reaches Activity
 
-- Invoice, settlement and budget lines were already soft deleted. A restored line keeps its number when it is free and otherwise moves to the end of its parent (1771), so a line added after the delete never blocks the restore.
-- `app.restore_trash_item` (1031) failed every invoice line restore with permission denied, because its cascade updated child tables the caller may not update at all (the self-billing link tables). The cascade now skips tables without the update privilege (1772).
+- Invoice, settlement and budget lines were already soft deleted. A restored line keeps its number when it is free and otherwise moves to the end of its parent (2121), so a line added after the delete never blocks the restore.
+- `app.restore_trash_item` (1031) failed every invoice line restore with permission denied, because its cascade updated child tables the caller may not update at all (the self-billing link tables). The cascade now skips tables without the update privilege (2122).
 - `record.trashed`, `invoice_line.trashed`, `settlement_line.trashed` and `budget_line.trashed` are emitted when a row moves to Trash, with its project, so the Activity feed shows the deletion to the people who may read the project. Activity offers Restore on the newest such entry of a row still listed in `app.trash_items`, until its `purge_after`, through `app.restore_trash_item`, as the Trash page does.
 
 ## Consequences

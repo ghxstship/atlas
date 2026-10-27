@@ -253,7 +253,7 @@ export async function labelActivity(
     if (record) return { ...e, recordKey: record.key, recordTitle: record.title };
     const role = shift ? shiftLabels.get(shift) : undefined;
     if (role) return { ...e, subjectLabel: role.label, subjectAt: role.at };
-    // A line moved to Trash (1771) names itself by the description its event carries.
+    // A line moved to Trash (2121) names itself by the description its event carries.
     const label =
       labels.get(e.subjectId) ??
       (table(e) === "org_domains" ? text(e.data["hostname"]) : null) ??
@@ -270,7 +270,7 @@ export interface RestoreTarget {
 }
 
 /**
- * The entries that offer Restore (Section 11.7, migration 1771): each `.trashed` entry whose row is still in Trash
+ * The entries that offer Restore (Section 11.7, migration 2121): each `.trashed` entry whose row is still in Trash
  * (app.trash_items, read under the reader's row level security, so a row they cannot see offers nothing), keyed by
  * the entry's id. When a row went to Trash more than once, only its newest entry offers it. A failed lookup offers
  * nothing and never fails the feed.
