@@ -9,7 +9,7 @@ import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
 
 /**
- * The Owner's choice of what stays writable (A107, ADR 0060). The action resolves the viewer's org context again (404
+ * The Owner's choice of what stays writable (A107, ADR 0081). The action resolves the viewer's org context again (404
  * when gone); app.choose_plan_limit_keeps decides who may choose and how many, and recomputes the read-only objects at
  * once. Refusals come back as `planLimits.errors.*` copy, and success says how many objects stay read-only.
  */

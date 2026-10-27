@@ -14,7 +14,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
- * A107's banners (Section 16, ADR 0060): what a plan limit made read-only, the limit and how to lift it. The database
+ * A107's banners (Section 16, ADR 0081): what a plan limit made read-only, the limit and how to lift it. The database
  * refuses the writes (plan_limit_read_only); these explain the refusal before anyone meets it. Above every page, billing
  * readers see what is read-only and a person whose own seat is read-only learns it; a read-only project says so on each
  * of its pages; Projects and Members count theirs. The Owner's link goes to the choice in Settings, Billing and Plan;

@@ -1,4 +1,4 @@
--- pgTAP: objects over the plan's limits become read-only (1720 and 1721, A107, S16-07, ADR 0060). Lantern Rigging
+-- pgTAP: objects over the plan's limits become read-only (2070 and 2071, A107, S16-07, ADR 0081). Lantern Rigging
 -- starts the 14-day Pro trial with three projects and three members besides its Owner; when the trial ends on the
 -- Access plan (1 active project, 1 seat), the projects past the limit and the seats past it turn read-only with an
 -- explanation, and nothing is deleted. The oldest stay writable unless the Owner chose others; archiving a project or

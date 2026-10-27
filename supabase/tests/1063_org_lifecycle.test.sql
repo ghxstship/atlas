@@ -89,7 +89,7 @@ select lives_ok($$insert into app.venues (org_id, name, jurisdiction_id, time_zo
   'writes work again');
 select pg_temp.as_user('carol');
 select throws_like($$update app.projects set name = 'Renamed' where id = (select id from world where key = 'prj_a')$$,
-  'plan_limit_read_only:%', 'the org restarts on Access, where the seats past its limit are read-only (1720)');
+  'plan_limit_read_only:%', 'the org restarts on Access, where the seats past its limit are read-only (2070)');
 select pg_temp.as_user('alice');
 select throws_ok($$select app.reactivate_organization((select id from world where key = 'org_a'))$$,
   'XR001', 'org_not_canceled: This organization is not canceled.', 'a live org is not reactivated');

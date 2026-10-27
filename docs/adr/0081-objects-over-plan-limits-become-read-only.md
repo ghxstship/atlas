@@ -1,10 +1,10 @@
-# ADR 0060: Objects Over the Plan's Limits Become Read-Only
+# ADR 0081: Objects Over the Plan's Limits Become Read-Only
 
 - Status: Proposed
-- Date: 2026-10-23
+- Date: 2026-10-27
 - Decider: A107 (RRR-152), for the orchestrator's review
 - Addresses: requirement S16-07; finding A65-015 (downgrades); Section 16; Terms of Service 5.2 and 5.8
-- Migrations: 1720 and 1721 (range 1720 to 1729)
+- Migrations: 2070 and 2071 (range 2070 to 2079)
 
 ## Context
 
@@ -57,6 +57,6 @@ Plan limits are `seats`, `active_projects`, `field_members`, `active_external_en
 ## Consequences
 
 - `app.over_limit_objects` is a stored derived value and is listed in the denormalization register. It is rewritten on every change it depends on, so it cannot drift from the counts.
-- A downgrade can make most of an org read-only at once, Owners excepted. Nothing is deleted, and upgrading, archiving or ending memberships restores writes at once (pgTAP 1720).
-- Personal tables and the guard both sit in the database. Adding a personal app table later means adding it to the list in a migration, and pgTAP 1720 checks that every listed table exists and carries the guard.
+- A downgrade can make most of an org read-only at once, Owners excepted. Nothing is deleted, and upgrading, archiving or ending memberships restores writes at once (pgTAP 2070).
+- Personal tables and the guard both sit in the database. Adding a personal app table later means adding it to the list in a migration, and pgTAP 2070 checks that every listed table exists and carries the guard.
 - Public API v1 is unchanged. API writes meet the same refusal through the row guard, and the refusal shape is the existing one.

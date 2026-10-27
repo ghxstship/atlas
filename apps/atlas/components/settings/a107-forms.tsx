@@ -8,7 +8,7 @@ import {
 } from "./contributions/a107-actions";
 
 /**
- * The Owner's choice of what stays writable for one plan limit (A107, ADR 0060): one checkbox per project or member the
+ * The Owner's choice of what stays writable for one plan limit (A107, ADR 0081): one checkbox per project or member the
  * limit counts, checked for those writable now. Owners' seats are always writable and cannot be unchecked. The
  * database caps the choice and recomputes the read-only objects; the outcome shows under the button.
  */

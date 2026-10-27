@@ -4,7 +4,7 @@ import { expect as baseExpect, test } from "./engine-test";
 import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
 
 /**
- * A107 (RRR-152, S16-07, ADR 0060): after a trial ends on the Access plan, the projects past its limit of one active
+ * A107 (RRR-152, S16-07, ADR 0081): after a trial ends on the Access plan, the projects past its limit of one active
  * project are read-only, with an explanation on Projects, on every page of a read-only project and in the Owner's
  * org banner; an edit is refused with the same explanation; the Owner keeps another project writable in Settings,
  * Billing and Plan; and upgrading restores them all. The trial ends and the upgrade lands through the database

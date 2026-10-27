@@ -1,7 +1,7 @@
--- 1720_over_limit_objects.sql
+-- 2070_over_limit_objects.sql
 -- A107 (RRR-152), S16-07, finding A65-015, Section 16: "Downgrades never delete data. They make over-limit objects
 -- read-only with a clear explanation." Terms of Service 5.2: at the end of a trial, "Objects over the Access limits
--- become read-only." ADR 0060 records the rules.
+-- become read-only." ADR 0081 records the rules.
 --
 -- Nothing is deleted when a trial ends (1350 moves it to Access) or a plan goes down, and
 -- private.assert_within_plan_limit refuses new objects over a limit. Until now the objects already over a limit stayed
@@ -9,10 +9,10 @@
 --   * Which limits: the three that count standing objects. active_projects counts projects that are not archived,
 --     deleted, completed or canceled; seats counts memberships whose best role is above Field; field_members counts
 --     memberships whose best role is Field. The two monthly limits (external engagements and Aurora requests) count
---     what happens in a month, so they keep refusing new acts and never make an object read-only (ADR 0060).
+--     what happens in a month, so they keep refusing new acts and never make an object read-only (ADR 0081).
 --   * Which objects: within each limit the objects are ranked, and those past the limit are read-only. Owners rank
 --     first among seats and are never read-only, so an Owner can always reach Billing and Plan. Then come the objects
---     the Owner chose to keep writable (app.plan_limit_choices, set through app.choose_plan_limit_keeps in 1721), then
+--     the Owner chose to keep writable (app.plan_limit_choices, set through app.choose_plan_limit_keeps in 2071), then
 --     the oldest. Without a choice, the oldest stay writable.
 --   * app.over_limit_objects holds the result. private.recompute_over_limit rewrites an org's rows from the plan in
 --     force and the objects counted. Triggers in the database call it, never webhook code: a subscription's plan,
@@ -52,7 +52,7 @@ create unique index plan_limit_choices_project_key on app.plan_limit_choices (pr
 create index plan_limit_choices_project_id_idx on app.plan_limit_choices (project_id);
 create unique index plan_limit_choices_membership_key on app.plan_limit_choices (membership_id, limit_code) where deleted_at is null;
 create index plan_limit_choices_membership_id_idx on app.plan_limit_choices (membership_id);
-call private.describe('app.plan_limit_choices', 'What the Owner chose to keep writable when the org is over a plan limit (Section 16, ADR 0060): projects for active_projects, members for seats and field_members. Chosen objects rank before the oldest; past the limit the rest are read-only. Written only by app.choose_plan_limit_keeps, which replaces a limit''s choice as a set.', array[
+call private.describe('app.plan_limit_choices', 'What the Owner chose to keep writable when the org is over a plan limit (Section 16, ADR 0081): projects for active_projects, members for seats and field_members. Chosen objects rank before the oldest; past the limit the rest are read-only. Written only by app.choose_plan_limit_keeps, which replaces a limit''s choice as a set.', array[
   'limit_code', 'Limit the choice is for: active_projects, seats or field_members.',
   'project_id', 'Project kept writable, for active_projects.',
   'membership_id', 'Member kept writable, for seats or field_members.'
@@ -84,7 +84,7 @@ create unique index over_limit_objects_membership_key on app.over_limit_objects 
 create index over_limit_objects_plan_code_idx on app.over_limit_objects (plan_code);
 
 call private.install_domain_table('app.over_limit_objects');
-call private.describe('app.over_limit_objects', 'Objects that are read-only because the org is over a plan limit (Section 16, ADR 0060): projects past active_projects, members past seats or field_members. Rewritten by private.recompute_over_limit whenever the plan or what it counts changes; a row is deleted the moment its object is writable again. Downgrades never delete data.', array[
+call private.describe('app.over_limit_objects', 'Objects that are read-only because the org is over a plan limit (Section 16, ADR 0081): projects past active_projects, members past seats or field_members. Rewritten by private.recompute_over_limit whenever the plan or what it counts changes; a row is deleted the moment its object is writable again. Downgrades never delete data.', array[
   'limit_code', 'Limit the object is over: active_projects, seats or field_members.',
   'plan_code', 'Plan in force whose limit the org exceeds.',
   'project_id', 'Read-only project, for active_projects.',
@@ -112,7 +112,7 @@ create table private.over_limit_personal_tables (
   constraint over_limit_personal_tables_rationale check (char_length(btrim(rationale)) between 1 and 300)
 );
 
-comment on table private.over_limit_personal_tables is 'App tables that stay writable while plan limits make objects read-only (ADR 0060): a person''s membership, preferences, consents, follows and reading marks, which are about the person rather than the work. A person whose own seat is read-only still writes them, and so does anyone reading a read-only project.';
+comment on table private.over_limit_personal_tables is 'App tables that stay writable while plan limits make objects read-only (ADR 0081): a person''s membership, preferences, consents, follows and reading marks, which are about the person rather than the work. A person whose own seat is read-only still writes them, and so does anyone reading a read-only project.';
 comment on column private.over_limit_personal_tables.table_name is 'Schema-qualified app table.';
 comment on column private.over_limit_personal_tables.rationale is 'Why the table stays writable.';
 
@@ -187,7 +187,7 @@ as $$
   where b.limit_code is not null;
 $$;
 
-comment on function private.over_limit_candidates(uuid) is 'Every object an org''s object limits count (ADR 0060): projects that are not archived, deleted, completed or canceled (active_projects), and active members by their best role, above Field for seats and Field for field_members, as private.membership_band_counts counts them. Says whether the Owner chose to keep each writable and whether it is locked writable (an Owner''s seat).';
+comment on function private.over_limit_candidates(uuid) is 'Every object an org''s object limits count (ADR 0081): projects that are not archived, deleted, completed or canceled (active_projects), and active members by their best role, above Field for seats and Field for field_members, as private.membership_band_counts counts them. Says whether the Owner chose to keep each writable and whether it is locked writable (an Owner''s seat).';
 revoke all on function private.over_limit_candidates(uuid) from public, anon, authenticated;
 
 create or replace function private.over_limit_ranking(p_org_id uuid)
@@ -218,7 +218,7 @@ as $$
   left join private.org_plan_limits l on l.org_id = p_org_id and l.limit_code = c.limit_code;
 $$;
 
-comment on function private.over_limit_ranking(uuid) is 'The selection rule of ADR 0060: within each object limit, Owners'' seats first, then what the Owner chose, then the oldest (created first), with the id as the tiebreak. Objects ranked past the limit in force are read-only, except an Owner''s seat, which never is. An unlimited limit makes nothing read-only.';
+comment on function private.over_limit_ranking(uuid) is 'The selection rule of ADR 0081: within each object limit, Owners'' seats first, then what the Owner chose, then the oldest (created first), with the id as the tiebreak. Objects ranked past the limit in force are read-only, except an Owner''s seat, which never is. An unlimited limit makes nothing read-only.';
 revoke all on function private.over_limit_ranking(uuid) from public, anon, authenticated;
 
 -- Recompute ----------------------------------------------------------------------------------------------------------
@@ -266,7 +266,7 @@ begin
 end;
 $$;
 
-comment on function private.recompute_over_limit(uuid) is 'Rewrites an org''s read-only objects (app.over_limit_objects) from the plan in force and the objects its limits count, by the selection rule of private.over_limit_ranking (ADR 0060). An object back within its limit is writable at once. Serialized per org; skips an org being purged. Returns how many objects changed.';
+comment on function private.recompute_over_limit(uuid) is 'Rewrites an org''s read-only objects (app.over_limit_objects) from the plan in force and the objects its limits count, by the selection rule of private.over_limit_ranking (ADR 0081). An object back within its limit is writable at once. Serialized per org; skips an org being purged. Returns how many objects changed.';
 revoke all on function private.recompute_over_limit(uuid) from public, anon, authenticated;
 
 create or replace function private.recompute_over_limit_after_change()
@@ -282,7 +282,7 @@ begin
 end;
 $$;
 
-comment on function private.recompute_over_limit_after_change() is 'After trigger: recomputes the read-only objects of the row''s org when something an object limit depends on changed (ADR 0060).';
+comment on function private.recompute_over_limit_after_change() is 'After trigger: recomputes the read-only objects of the row''s org when something an object limit depends on changed (ADR 0081).';
 revoke all on function private.recompute_over_limit_after_change() from public, anon, authenticated;
 
 create trigger t93_recompute_over_limit
@@ -321,7 +321,7 @@ begin
 end;
 $$;
 
-comment on function private.recompute_over_limit_everywhere() is 'After a statement changes the plan limits (a plan seed migration): recomputes the read-only objects of every org (ADR 0060).';
+comment on function private.recompute_over_limit_everywhere() is 'After a statement changes the plan limits (a plan seed migration): recomputes the read-only objects of every org (ADR 0081).';
 revoke all on function private.recompute_over_limit_everywhere() from public, anon, authenticated;
 
 create trigger t93_recompute_over_limit after insert or update or delete on private.plan_limits
@@ -355,7 +355,7 @@ begin
 end;
 $$;
 
-comment on function private.refresh_over_limit(timestamptz) is 'Over-limit step of the lifecycle job (ADR 0060): recomputes every org with read-only objects, so a membership that ended at its valid_to lifts a seat on time, every org whose memberships began in the last two hours, and every org whose console plan or limit override (1471) started or expired in the last two hours. Returns how many objects changed.';
+comment on function private.refresh_over_limit(timestamptz) is 'Over-limit step of the lifecycle job (ADR 0081): recomputes every org with read-only objects, so a membership that ended at its valid_to lifts a seat on time, every org whose memberships began in the last two hours, and every org whose console plan or limit override (1471) started or expired in the last two hours. Returns how many objects changed.';
 revoke all on function private.refresh_over_limit(timestamptz) from public, anon, authenticated;
 
 create or replace function private.run_org_lifecycle(p_now timestamptz default now())
@@ -371,7 +371,7 @@ begin
 end;
 $$;
 
-comment on function private.run_org_lifecycle(timestamptz) is 'Hourly org lifecycle job (Section 12, Section 14.7, Section 16): trials, lapsed ownership offers, white label kept past a downgrade, certificates for orgs due for deletion, the purge of orgs whose storage objects the worker deleted, then read-only objects over plan limits (1720). Returns the actions taken.';
+comment on function private.run_org_lifecycle(timestamptz) is 'Hourly org lifecycle job (Section 12, Section 14.7, Section 16): trials, lapsed ownership offers, white label kept past a downgrade, certificates for orgs due for deletion, the purge of orgs whose storage objects the worker deleted, then read-only objects over plan limits (2070). Returns the actions taken.';
 revoke all on function private.run_org_lifecycle(timestamptz) from public, anon, authenticated;
 
 -- The guard ----------------------------------------------------------------------------------------------------------
@@ -418,7 +418,7 @@ begin
 end;
 $$;
 
-comment on function private.row_project_id(text, jsonb) is 'The project a row belongs to, for the over-limit guard (ADR 0060): the project itself, the row''s project_id, the project of the record or engagement it names (record_id, engagement_id), or of the record it extends (a table keyed by the record''s id). Null for org-level rows.';
+comment on function private.row_project_id(text, jsonb) is 'The project a row belongs to, for the over-limit guard (ADR 0081): the project itself, the row''s project_id, the project of the record or engagement it names (record_id, engagement_id), or of the record it extends (a table keyed by the record''s id). Null for org-level rows.';
 revoke all on function private.row_project_id(text, jsonb) from public, anon, authenticated;
 
 create or replace function private.over_limit_refusal(p_org_id uuid, p_limit app.plan_limit_code)
@@ -450,7 +450,7 @@ begin
 end;
 $$;
 
-comment on function private.over_limit_refusal(uuid, app.plan_limit_code) is 'The explanation of a plan_limit_read_only refusal: the plan, the limit, how many the org has and how to lift it (ADR 0060).';
+comment on function private.over_limit_refusal(uuid, app.plan_limit_code) is 'The explanation of a plan_limit_read_only refusal: the plan, the limit, how many the org has and how to lift it (ADR 0081).';
 revoke all on function private.over_limit_refusal(uuid, app.plan_limit_code) from public, anon, authenticated;
 
 create or replace function private.refuse_over_limit_write(p_org_id uuid, p_table text, p_old jsonb, p_new jsonb)
@@ -493,7 +493,7 @@ begin
 end;
 $$;
 
-comment on function private.refuse_over_limit_write(uuid, text, jsonb, jsonb) is 'Refuses a person''s write that touches what a plan limit made read-only (ADR 0060): any write of a person whose own seat is read-only, and any write to a read-only project or anything of it, except archiving or deleting that project. The personal tables (private.over_limit_personal_tables) stay writable. The refusal plan_limit_read_only names the limit and how to lift it.';
+comment on function private.refuse_over_limit_write(uuid, text, jsonb, jsonb) is 'Refuses a person''s write that touches what a plan limit made read-only (ADR 0081): any write of a person whose own seat is read-only, and any write to a read-only project or anything of it, except archiving or deleting that project. The personal tables (private.over_limit_personal_tables) stay writable. The refusal plan_limit_read_only names the limit and how to lift it.';
 revoke all on function private.refuse_over_limit_write(uuid, text, jsonb, jsonb) from public, anon, authenticated;
 
 create or replace function private.refuse_read_only_org()
@@ -526,7 +526,7 @@ begin
 end;
 $$;
 
-comment on function private.refuse_read_only_org() is 'Refuses a person''s write to a row of a read-only org: canceled, waiting for deletion (Section 14.7) or past day 21 of dunning (Section 16), each with its fix; and a write to what a plan limit made read-only (Section 16, 1720). Workers, billing and retention (no person) still write.';
+comment on function private.refuse_read_only_org() is 'Refuses a person''s write to a row of a read-only org: canceled, waiting for deletion (Section 14.7) or past day 21 of dunning (Section 16), each with its fix; and a write to what a plan limit made read-only (Section 16, 2070). Workers, billing and retention (no person) still write.';
 revoke all on function private.refuse_read_only_org() from public, anon, authenticated;
 
 -- Restoring a project counts against the limit ------------------------------------------------------------------------
@@ -570,7 +570,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_project() is 'Projects: IANA time zone, the active_projects plan limit when a project is created, restored from the archive or the trash, or reopened (Section 16; restoring counts since 1720, so it never turns another project read-only), projects.settings.write to change the key and projects.project.archive to archive.';
+comment on function private.guard_project() is 'Projects: IANA time zone, the active_projects plan limit when a project is created, restored from the archive or the trash, or reopened (Section 16; restoring counts since 2070, so it never turns another project read-only), projects.settings.write to change the key and projects.project.archive to archive.';
 revoke all on function private.guard_project() from public, anon, authenticated;
 
 -- Every org as it stands ---------------------------------------------------------------------------------------------

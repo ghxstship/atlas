@@ -3,7 +3,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 import { bool, num, numOrNull, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
 
 /**
- * Objects over the plan's limits (A107, migrations 1720 and 1721; Section 16, ADR 0060). A downgrade or the end of a
+ * Objects over the plan's limits (A107, migrations 2070 and 2071; Section 16, ADR 0081). A downgrade or the end of a
  * trial deletes nothing: the projects past active_projects and the seats past seats or field_members turn read-only,
  * and the database refuses a person's writes to them with plan_limit_read_only. Owners' seats rank first and are never
  * read-only; then come the objects the Owner chose to keep writable, then the oldest. Archiving, ending a membership

@@ -11,7 +11,7 @@ import { getTranslate } from "@/lib/shell/translate";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
 
 /**
- * A107's panel on Settings, Billing and Plan (RRR-152, ADR 0060; Section 16): what stays writable when the org is over
+ * A107's panel on Settings, Billing and Plan (RRR-152, ADR 0081; Section 16): what stays writable when the org is over
  * its plan's limits. For each limit that counts standing objects (active projects, seats, field seats) it shows the
  * count against the limit and, past the limit, the projects or members it counts in the order of the selection rule,
  * each writable or read-only. The Owner (org.billing.manage) chooses which stay writable; other billing readers see the

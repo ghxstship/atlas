@@ -47,7 +47,7 @@ export interface OrgBannerStatus {
     readonly offeredBy: string;
     readonly expiresAt: string;
   } | null;
-  /** What plan limits made read-only (A107, 1721): the plan and how many projects, seats and field seats. */
+  /** What plan limits made read-only (A107, 2071): the plan and how many projects, seats and field seats. */
   readonly overLimit: {
     readonly planCode: string;
     readonly projects: number;
@@ -104,7 +104,7 @@ export function toBannerStatus(r: Raw | undefined): OrgBannerStatus {
   };
 }
 
-/** Everything the org banners show, in one call (app.org_banner_status, 1353, 1355 and 1721). Members only. */
+/** Everything the org banners show, in one call (app.org_banner_status, 1353, 1355 and 2071). Members only. */
 export function getOrgBannerStatus(db: XosClient, orgId: string): Promise<Result<OrgBannerStatus>> {
   return rpc(db, "org_banner_status", { p_org_id: orgId }, (data) =>
     toBannerStatus(((data as Raw[] | null) ?? [])[0]),

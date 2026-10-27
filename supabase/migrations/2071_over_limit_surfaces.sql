@@ -1,6 +1,6 @@
--- 1721_over_limit_surfaces.sql
--- A107 (RRR-152), S16-07, Section 16: what Atlas shows of the read-only objects of 1720, and the Owner's choice of what
--- stays writable (ADR 0060).
+-- 2071_over_limit_surfaces.sql
+-- A107 (RRR-152), S16-07, Section 16: what Atlas shows of the read-only objects of 2070, and the Owner's choice of what
+-- stays writable (ADR 0081).
 --   * app.plan_limit_usage: for each object limit, the plan in force, the limit, how many objects it counts and how
 --     many are read-only. Members; Atlas explains the limit on the pages it affects from it.
 --   * app.plan_limit_candidates: the objects one limit counts, in the order of the selection rule, with their names
@@ -38,7 +38,7 @@ begin
 end;
 $$;
 
-comment on function app.plan_limit_usage(uuid) is 'For each limit that counts standing objects (active_projects, seats, field_members): the plan in force, the limit (null when unlimited), how many objects the org has and how many are read-only because they are past the limit (Section 16, ADR 0060). Members only.';
+comment on function app.plan_limit_usage(uuid) is 'For each limit that counts standing objects (active_projects, seats, field_members): the plan in force, the limit (null when unlimited), how many objects the org has and how many are read-only because they are past the limit (Section 16, ADR 0081). Members only.';
 revoke all on function app.plan_limit_usage(uuid) from public, anon;
 grant execute on function app.plan_limit_usage(uuid) to authenticated, service_role;
 
@@ -83,7 +83,7 @@ begin
 end;
 $$;
 
-comment on function app.plan_limit_candidates(uuid, app.plan_limit_code) is 'The objects one object limit counts, in the order of the selection rule of ADR 0060 (Owners'' seats, then the Owner''s choice, then the oldest): the project''s name and key, or the member''s name and best role (a system role''s code, or a custom role''s name), with whether each is chosen, locked writable (an Owner''s seat) or read-only. Billing readers (org.billing.read).';
+comment on function app.plan_limit_candidates(uuid, app.plan_limit_code) is 'The objects one object limit counts, in the order of the selection rule of ADR 0081 (Owners'' seats, then the Owner''s choice, then the oldest): the project''s name and key, or the member''s name and best role (a system role''s code, or a custom role''s name), with whether each is chosen, locked writable (an Owner''s seat) or read-only. Billing readers (org.billing.read).';
 revoke all on function app.plan_limit_candidates(uuid, app.plan_limit_code) from public, anon;
 grant execute on function app.plan_limit_candidates(uuid, app.plan_limit_code) to authenticated, service_role;
 
@@ -143,7 +143,7 @@ begin
 end;
 $$;
 
-comment on function app.choose_plan_limit_keeps(uuid, app.plan_limit_code, uuid[]) is 'The Owner (org.billing.manage) chooses what stays writable for one object limit (ADR 0060): projects for active_projects, members for seats or field_members, replacing the earlier choice for that limit. At most the limit less the seats Owners hold, among the objects the limit counts; Owners'' seats are always writable and are not chosen. The read-only objects are recomputed at once. Returns how many objects of the limit are read-only afterwards. Refusals: plan_limit_choice_limit, plan_limit_choice_unknown, plan_limit_choice_too_many.';
+comment on function app.choose_plan_limit_keeps(uuid, app.plan_limit_code, uuid[]) is 'The Owner (org.billing.manage) chooses what stays writable for one object limit (ADR 0081): projects for active_projects, members for seats or field_members, replacing the earlier choice for that limit. At most the limit less the seats Owners hold, among the objects the limit counts; Owners'' seats are always writable and are not chosen. The read-only objects are recomputed at once. Returns how many objects of the limit are read-only afterwards. Refusals: plan_limit_choice_limit, plan_limit_choice_unknown, plan_limit_choice_too_many.';
 revoke all on function app.choose_plan_limit_keeps(uuid, app.plan_limit_code, uuid[]) from public, anon;
 grant execute on function app.choose_plan_limit_keeps(uuid, app.plan_limit_code, uuid[]) to authenticated, service_role;
 
@@ -228,6 +228,6 @@ begin
 end;
 $$;
 
-comment on function app.org_banner_status(uuid) is 'Everything the org banners show, in one call, for an active member: why the org is read-only with its dates (cancellation, deletion request, dunning), the running trial and its end, the dunning state and when the payment first failed (Owners and Admins from day 0, everyone once the org is read-only), until when a downgraded org keeps its white label (1355), an ownership offer made to the caller (1352), and what plan limits made read-only (1721): the plan, how many projects, seats and field seats, and whether the caller''s own seat is read-only (seats or field_members).';
+comment on function app.org_banner_status(uuid) is 'Everything the org banners show, in one call, for an active member: why the org is read-only with its dates (cancellation, deletion request, dunning), the running trial and its end, the dunning state and when the payment first failed (Owners and Admins from day 0, everyone once the org is read-only), until when a downgraded org keeps its white label (1355), an ownership offer made to the caller (1352), and what plan limits made read-only (2071): the plan, how many projects, seats and field seats, and whether the caller''s own seat is read-only (seats or field_members).';
 revoke all on function app.org_banner_status(uuid) from public, anon;
 grant execute on function app.org_banner_status(uuid) to authenticated, service_role;
