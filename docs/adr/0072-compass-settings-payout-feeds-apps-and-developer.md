@@ -7,7 +7,7 @@
 
 ## Context
 
-ADR 0006 item 11 has Compass show the person's own settings natively. A110 (ADR 0070) built the section list in `apps/compass/src/settings/sections.ts`, the identity group and the offline rules: lists read online with the person's session are kept in device-local tables (`_me_*`) and shown offline, a change queues in the outbox where the call gives the same result however often it runs, and a change that needs the server's answer at once is disabled offline. A111 built the preferences group. Four sections of the work group still opened Gateway: Payout and Tax, Calendar Feeds, Connected Apps and Developer.
+ADR 0006 item 11 has Compass show the person's own settings natively. A110 (ADR 0070) built the section list in `apps/compass/src/settings/sections.ts`, the identity group and the offline rules: lists read online with the person's session are kept in device-local tables (`_me_*`) and shown offline, a change queues in the outbox where the call gives the same result however often it runs, and a change that needs the server's answer at once is disabled offline. A111 (ADR 0071) built the preferences group and Work Details. Four sections of the work group still opened Gateway: Payout and Tax, Calendar Feeds, Connected Apps and Developer.
 
 Each of them holds something that must not reach the phone in full: a bank account, a taxpayer identification number, a feed token, an OAuth refresh token or an API secret. The backends already return only what may be shown: the last four characters of an account or identifier through `api_external` (0730, 0750, 1124), a four-character hint of a feed token (1410), and a token's prefix (1432).
 
@@ -57,9 +57,9 @@ Where no org the person belongs to allows tokens, the screen says so instead.
 
 `apps/compass/test/settings-parity.test.ts` lists the 14 sections with the route each opens:
 
-- A section with a Compass screen must open it. With A110 and this ADR, nine do; A111 adds the preferences group and Work Details, and then all 14 do.
-- A section without one must state, in the test, why it opens Gateway instead. Until A111's screens land, its five sections carry that note.
-- Each step a screen leaves to Gateway on purpose is listed with the message key of the reason the screen shows: adding a security key, stepping up with only a security key, creating a company account, giving a tax form and creating a personal API token.
+- A section with a Compass screen must open it. With A110, A111 (ADR 0071) and this ADR, all 14 do.
+- A section without one must state, in the test, why it opens Gateway instead. None does now; the rule stays for a section the sitemap adds.
+- Each step a screen leaves to Gateway on purpose is listed with the message key of the reason the screen shows: adding a security key, stepping up with only a security key, creating a company account, the passport and what Work Details shares, giving a tax form and creating a personal API token.
 
 ## Consequences
 

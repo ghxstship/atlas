@@ -23,10 +23,6 @@ interface Parity {
   readonly inGateway?: readonly { readonly step: string; readonly reason: string }[];
 }
 
-/** A111 (RRR-156) draws the preferences group and Work Details; Gateway serves them until its screens land. */
-const A111 =
-  "A111 (RRR-156) draws this section; until its screen lands, the same section opens in Gateway.";
-
 const PARITY: readonly Parity[] = [
   { id: "settings.profile", route: "/settings/profile" },
   { id: "settings.profile-privacy", route: "/settings/profile-privacy" },
@@ -53,11 +49,21 @@ const PARITY: readonly Parity[] = [
       },
     ],
   },
-  { id: "settings.preferences", route: "/settings/preferences", untilScreen: A111 },
-  { id: "settings.accessibility", route: "/settings/accessibility", untilScreen: A111 },
-  { id: "settings.notifications", route: "/settings/notifications", untilScreen: A111 },
-  { id: "settings.out-of-office", route: "/settings/out-of-office", untilScreen: A111 },
-  { id: "settings.work-details", route: "/settings/work-details", untilScreen: A111 },
+  { id: "settings.preferences", route: "/settings/preferences" },
+  { id: "settings.accessibility", route: "/settings/accessibility" },
+  { id: "settings.notifications", route: "/settings/notifications" },
+  { id: "settings.out-of-office", route: "/settings/out-of-office" },
+  {
+    id: "settings.work-details",
+    route: "/settings/work-details",
+    inGateway: [
+      // The passport number needs a step-up and an audited reveal; the rest follow it (A111, ADR 0071 item 6).
+      {
+        step: "passport, loyalty programs, sharing and the access log",
+        reason: "compassPersonal.workDetails.webHelp",
+      },
+    ],
+  },
   {
     id: "settings.payout-and-tax",
     route: "/settings/payout-and-tax",
@@ -131,8 +137,8 @@ describe("Compass settings parity", () => {
 
   it("draws every section that states no reason in its own screen", () => {
     const own = PARITY.filter((p) => p.untilScreen === undefined);
-    // A110's identity group and A112's four work sections, and A111's five once their screens land.
-    expect(own.length).toBeGreaterThanOrEqual(9);
+    // A110's identity group, A111's preferences group and Work Details, and A112's four work sections.
+    expect(own).toHaveLength(14);
     for (const { route } of own) {
       expect(readFileSync(screenFile(route), "utf8"), route).toContain("export default function");
     }
