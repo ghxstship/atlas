@@ -1,7 +1,7 @@
 "use client";
 
 import { chordOf } from "@xos/schemas/shortcuts/keys";
-import { BulkActionBar, Button, Dialog, Kbd, Textarea } from "@xos/ui";
+import { Button, Dialog, Kbd, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
@@ -18,6 +18,8 @@ import {
 } from "react";
 import { quickInboxAction, rejectInboxAction } from "@/app/[org]/inbox/actions";
 import { ActionForm, EmptyPanel, Feedback, usePlatformT } from "@/components/platform/kit";
+// The bulk bar shows only with a selection, so it loads then (A24-009).
+import { BulkActionBar } from "@/components/lazy-ui";
 import { useShellKeys } from "@/components/shell/shell-keys-context";
 import { neighbourOf, neighbourOutside, selectItems } from "@/lib/inbox/focus";
 import type { PlatformActionState } from "@/lib/platform/state";

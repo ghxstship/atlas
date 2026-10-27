@@ -4,7 +4,8 @@ import dynamic from "next/dynamic";
 
 /**
  * @xos/ui components a page renders only in some states: the collection views a person switches to
- * (board, calendar, gallery, list, table, timeline, tree, chart), and overlays that open on an
+ * (board, calendar, gallery, list, table, timeline, tree, chart), the bulk bar a selection shows,
+ * and overlays that open on an
  * action or a query parameter (Drawer, Dialog; deferred.tsx keeps an overlay's trigger with the
  * page). Through next/dynamic their code loads when they first render,
  * not with every route that might show them (ADR 0027, A24-009). A component a route renders in its
@@ -12,6 +13,9 @@ import dynamic from "next/dynamic";
  *
  * Each target module re-exports one component from @xos/ui, so a chunk holds only that component.
  */
+export const BulkActionBar = dynamic(() =>
+  import("./bulk-action-bar").then((m) => m.BulkActionBar),
+);
 export const Board = dynamic(() => import("./board").then((m) => m.Board));
 export const Calendar = dynamic(() => import("./calendar").then((m) => m.Calendar));
 export const Chart = dynamic(() => import("./chart").then((m) => m.Chart));
