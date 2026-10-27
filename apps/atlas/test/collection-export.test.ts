@@ -187,4 +187,36 @@ describe("the plan of an export", () => {
       "guest-list",
     );
   });
+
+  it("scopes a project's Activity, Overview and receipts to the project, as the page shows them", () => {
+    const plan = (key: string, path: string, query: Record<string, string> = {}) => {
+      const search = new URLSearchParams(query);
+      const source = exportSourceFor(key, search);
+      if (!source) throw new Error(`no source for ${key}`);
+      return { source, plan: planExport(source, path, search) };
+    };
+    for (const [key, path, query] of [
+      ["project/activity", "/x/p/NWL/activity", {}],
+      ["project/overview", "/x/p/NWL/overview", {}],
+      ["project/procurement", "/x/p/NWL/procurement", { section: "receipts" }],
+    ] as const) {
+      const { source, plan: scoped } = plan(key, path, query);
+      expect(source.columns, key).toContain("project_id");
+      expect(scoped?.projectKey, key).toBe("NWL");
+    }
+    // The org-wide pages keep every row, and honor ?project= like any source with the project column.
+    expect(plan("activity/feed", "/x/activity/feed").plan?.projectKey).toBeNull();
+    expect(
+      plan("procurement/receipts", "/x/procurement/receipts", { project: "NWL" }).plan?.filters,
+    ).toEqual([{ operator: "eq", column: "project_id", value: "NWL", resolve: "project" }]);
+  });
+
+  it("exports the reader's own open records from My Work, not the org's assignments", () => {
+    const myWork = exportSourceFor("my_work", new URLSearchParams());
+    expect(myWork?.relation).toBe("app.my_work_export");
+    expect(myWork?.columns).toEqual(
+      expect.arrayContaining(["record_number", "title", "record_state", "due_at"]),
+    );
+    expect(myWork?.columns).not.toContain("membership_id");
+  });
 });

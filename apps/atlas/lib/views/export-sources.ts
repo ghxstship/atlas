@@ -128,10 +128,12 @@ function inProject(of: ExportSource): ExportSource {
 
 // Shared sources ------------------------------------------------------------------------------------------------------
 
-const activity = source("app.activity_events", [
+// The feed with each entry's project (2370): org-wide on the Activity page, the project's on a project tab.
+const activity = source("app.activity_export", [
   "created_at",
   "actor_person_id",
   "domain_event_id",
+  "project_id",
 ]);
 
 const records = source(
@@ -338,11 +340,13 @@ const purchaseOrders = source("app.purchase_orders", [
   "tax_minor",
   "shipping_minor",
 ]);
-const receipts = source("app.goods_receipts", [
+// Goods receipts with their purchase order's project (2370), so a project tab exports its own.
+const receipts = source("app.goods_receipt_export", [
   "purchase_order_id",
   "received_at",
   "received_by",
   "note",
+  "project_id",
 ]);
 const rfqs = source("app.rfqs", [
   "rfq_number",
@@ -699,14 +703,25 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "logistics/marshalling_yard_log": yard,
   "logistics/shipments": shipments,
 
-  my_work: source("app.record_assignments", ["record_id", "membership_id", "created_at"]),
+  // The reader's own open records (2370), as the page lists them; never the org's assignments.
+  my_work: source("app.my_work_export", [
+    "record_number",
+    "title",
+    "record_kind",
+    "record_state",
+    "due_at",
+    "starts_at",
+    "ends_at",
+    "updated_at",
+    "project_id",
+  ]),
 
   // Custom objects: every page under /objects/<key> shares this source (exportSourceFor).
   "objects/*": source("app.custom_object_records", ["title", "created_at", "updated_at"], {
     objectType: true,
   }),
 
-  "project/activity": activity,
+  "project/activity": inProject(activity),
   "project/advancing": sections("section", "packets", {
     packets: inProject(packets),
     riders: inProject(riders),
@@ -735,10 +750,10 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     dock: inProject(dockSlots),
     yard: inProject(yard),
   }),
-  "project/overview": activity,
+  "project/overview": inProject(activity),
   "project/procurement": sections("section", "purchase-orders", {
     "purchase-orders": inProject(purchaseOrders),
-    receipts,
+    receipts: inProject(receipts),
     rfqs: inProject(rfqs),
     submittals: inProject(submittals),
   }),
