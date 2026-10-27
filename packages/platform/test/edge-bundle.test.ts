@@ -45,8 +45,12 @@ const CORE_ONLY: readonly string[] = [
  */
 const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "api-token": { boot: [], lazy: [] },
+  // ADR 0033 decision 58: the client secret is Web Crypto, Apple and Supabase Auth are plain fetch.
+  "apple-revoke": { boot: [], lazy: [] },
   "automation-run": { boot: ["@supabase/supabase-js", "zod"], lazy: [] },
   "email-unsubscribe": { boot: [], lazy: [] },
+  // A102: the export worker, which loads exceljs and pdfkit only for .xlsx and PDF exports (about 79 KB at boot).
+  "export-render": { boot: ["@supabase/supabase-js"], lazy: ["exceljs", "pdfkit"] },
   "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
   "fx-rates-ecb": { boot: [], lazy: [] },
   "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs"] },
@@ -87,17 +91,24 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
  */
 const BOOT_BUDGET_KB: Record<string, number> = {
   "api-token": 70,
+  // ADR 0033 decision 58: the shared core and the revocation module (about 10 KB).
+  "apple-revoke": 75,
   "automation-run": 100,
   "email-unsubscribe": 64,
+  "export-render": 100,
   "file-download": 64,
   "fx-rates-ecb": 64,
   "import-run": 120,
-  "inbound-email": 64,
+  // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
+  // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
+  "inbound-email": 80,
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,
   "notification-dispatch": 180,
-  "org-lifecycle": 210,
+  // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
+  // which the org export reaches at boot; 211.5 KB on 2026-10-25.
+  "org-lifecycle": 215,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,

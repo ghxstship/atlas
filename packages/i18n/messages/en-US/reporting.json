@@ -2,7 +2,13 @@
   "file": {
     "unpriced": "Unpriced rows",
     "subtitle": "Run {date}. Rows: {rows}. Rows with an unpriced amount, left out of their total: {unpriced}.",
-    "truncated": "This file stops at the row limit. Narrow the report's filters to see every row."
+    "truncated": "This file stops at the row limit. Narrow the report's filters to see every row.",
+    "watermark": "Prepared for {email} on {time}"
+  },
+  "exportFile": {
+    "subtitle": "Exported {date}. Rows: {rows}.",
+    "truncated": "This file holds the first {limit} rows. Narrow the filters of the collection to export every row.",
+    "watermark": "Exported by {email} on {time}"
   },
   "email": {
     "subject": "{report} from {org}",

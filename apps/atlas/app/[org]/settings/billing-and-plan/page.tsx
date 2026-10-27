@@ -1,12 +1,14 @@
 import { getSeatUsage, getSubscription } from "@xos/data";
 import { getBillingAccount, type BillingAccount } from "@xos/data/billing";
+import type { Route } from "next";
+import Link from "next/link";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { BillingLifecycleNotice } from "@/components/lifecycle/billing-notice";
 import { ContributedPanels } from "@/components/settings/contributed-panels";
 import { SectionHeader } from "@/components/settings/section-header";
 import { BillingPortalButton, CheckoutButton } from "@/components/settings/billing-forms";
 import { requireNode } from "@/lib/shell/require-node";
-import { Button, ButtonLink, Card, InlineAlert } from "@/components/ui";
+import { Button, Card, InlineAlert } from "@/components/ui";
 import { billingStatus } from "@/lib/billing/stripe";
 import { ADDONS, OFFERS, PLANS } from "@/lib/plans.generated";
 import { getTranslate } from "@/lib/shell/translate";
@@ -143,19 +145,24 @@ export default async function BillingSettingsPage({
         </div>
       </Card>
       {buying ? (
+        // The term is a filter on the plans, so its links read as chips with the current one marked, never as a second
+        // primary action beside the plan's Choose button (gate 27).
         <nav aria-label={t("term.label")} className="flex flex-wrap items-center gap-8">
-          <ButtonLink href={page} variant={term === "Monthly" ? "primary" : "secondary"} size="sm">
-            {t("term.monthly")}
-            {term === "Monthly" ? <span className="sr-only">{t("term.selected")}</span> : null}
-          </ButtonLink>
-          <ButtonLink
-            href={`${page}?term=annual`}
-            variant={term === "Annual" ? "primary" : "secondary"}
-            size="sm"
-          >
-            {t("term.annual")}
-            {term === "Annual" ? <span className="sr-only">{t("term.selected")}</span> : null}
-          </ButtonLink>
+          {(
+            [
+              ["Monthly", page, t("term.monthly")],
+              ["Annual", `${page}?term=annual`, t("term.annual")],
+            ] as const
+          ).map(([value, href, label]) => (
+            <Link
+              key={value}
+              href={href as Route}
+              aria-current={term === value ? "true" : undefined}
+              className="inline-flex min-h-target-fine items-center rounded-chip border border-border-subtle px-8 text-text-12 text-text-secondary hover:bg-bg-hover aria-[current=true]:bg-bg-hover aria-[current=true]:font-medium aria-[current=true]:text-text-primary pointer-coarse:min-h-target-coarse"
+            >
+              {label}
+            </Link>
+          ))}
         </nav>
       ) : null}
       <ul className="m-0 grid list-none grid-cols-1 gap-12 p-0">

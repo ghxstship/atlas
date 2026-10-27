@@ -4,6 +4,7 @@ import { preferReplica } from "@xos/data/read-replica";
 import { getOrgContext } from "@/lib/shell/context";
 import { replicaClientFor } from "@/lib/supabase/replica";
 import { orgToday } from "@/lib/shell/time-zone";
+import { observability } from "@/lib/observability";
 
 /**
  * The full org export (A36, Section 14.7 and 14.8): one ZIP archive with JSON and CSV of every tenant
@@ -40,16 +41,17 @@ export async function GET(
     {
       label: "org export",
       usable: (r) => r.ok && r.data.manifest.unreadableTables.length === 0,
-      onFallback: (label, reason) => console.warn(`${label} read from the primary`, reason),
+      onFallback: (label, reason) =>
+        observability.logger.warn("org export read from the primary", { label, reason }),
     },
   );
   if (!built.ok) {
-    console.error("org export failed", built.error);
+    observability.logger.error("org export failed", { error: built.error });
     return new Response(null, { status: 500 });
   }
   const logged = await recordOrgExport(ctx.viewer.db, ctx.org.id, built.data);
   if (!logged.ok) {
-    console.error("org export could not be logged", logged.error);
+    observability.logger.error("org export could not be logged", { error: logged.error });
     return new Response(null, { status: 500 });
   }
   // The archive is named for the org's date, not the UTC date.

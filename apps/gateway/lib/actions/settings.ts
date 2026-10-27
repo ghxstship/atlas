@@ -4,6 +4,7 @@ import { clearPersonalSetting, setPersonalSetting } from "@xos/data/settings";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { parseSettingValue, settingByKey } from "@/lib/settings";
 import { setLocale } from "@/lib/shell/actions";
+import { observability } from "@/lib/observability";
 
 /** Saves or clears one personal setting (A30 app.set_personal_setting, for every org). */
 export interface SettingState {
@@ -37,7 +38,7 @@ export async function savePersonalSettingAction(
   const result = await setPersonalSetting(db, { key: def.key, value: parsed.value });
   if (!result.ok) {
     if (result.error.kind === "unexpected")
-      console.error("set_personal_setting failed", result.error);
+      observability.logger.error("set_personal_setting failed", { error: result.error });
     return { error: errorKey(result.error) };
   }
   // A language saved here applies on this device at once, as the account menu's picker does (A65-001).
