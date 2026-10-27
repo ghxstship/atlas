@@ -148,7 +148,7 @@ _Amended 2026-10-23._
   migrations as `supabase_admin`. Migration 1453 created the `doc:<doc id>` policies only where the table already
   existed. A local stack has it, because the CLI runs Realtime's migrations before ours. A hosted project whose
   Realtime has not started yet does not, and a Realtime upgrade that recreates the table drops its policies.
-  - Migration 1710 lists the channel policies in `private.realtime_channel_policies`.
+  - Migration 2060 lists the channel policies in `private.realtime_channel_policies`.
   - `private.ensure_realtime_channel_policies()` creates any listed policy the table lacks. It never drops or changes
     one that exists, and it does nothing until the table exists.
   - It runs in the migration, in the deploy path after `supabase db push` (`infra/runbooks/production.md`), and

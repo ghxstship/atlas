@@ -1,4 +1,4 @@
--- 1710_realtime_channel_rules.sql
+-- 2060_realtime_channel_rules.sql
 --
 -- A106 (RRR-151, ADR 0044; follow-up of A88). The co-editing channels doc:<doc id> are authorized by two policies on
 -- realtime.messages (1453). That table belongs to Supabase Realtime, which creates it in its own tenant migrations, as
@@ -34,7 +34,7 @@ create table private.realtime_channel_policies (
     or (command = 'insert' and check_expression is not null and using_expression is null))
 );
 
-comment on table private.realtime_channel_policies is 'Row level security policies on realtime.messages that authorize XOS''s private Realtime channels (1453, 1710), for the authenticated role. private.ensure_realtime_channel_policies creates any that the table lacks.';
+comment on table private.realtime_channel_policies is 'Row level security policies on realtime.messages that authorize XOS''s private Realtime channels (1453, 2060), for the authenticated role. private.ensure_realtime_channel_policies creates any that the table lacks.';
 comment on column private.realtime_channel_policies.policy_name is 'Policy name on realtime.messages.';
 comment on column private.realtime_channel_policies.command is 'select authorizes receiving broadcasts and presence on a channel; insert authorizes sending them.';
 comment on column private.realtime_channel_policies.using_expression is 'USING expression of a select policy.';
@@ -99,7 +99,7 @@ begin
 end;
 $$;
 
-comment on function private.ensure_realtime_channel_policies() is 'Creates each policy in private.realtime_channel_policies that realtime.messages lacks, for the authenticated role, and returns their names; does nothing while Realtime has not created the table or realtime.topic(). Never drops or changes an existing policy. Run by migration 1710, by the deploy path after each migration push, and every minute by pg_cron (xos_ensure_realtime_channel_policies).';
+comment on function private.ensure_realtime_channel_policies() is 'Creates each policy in private.realtime_channel_policies that realtime.messages lacks, for the authenticated role, and returns their names; does nothing while Realtime has not created the table or realtime.topic(). Never drops or changes an existing policy. Run by migration 2060, by the deploy path after each migration push, and every minute by pg_cron (xos_ensure_realtime_channel_policies).';
 
 revoke all on function private.ensure_realtime_channel_policies() from public, anon, authenticated;
 

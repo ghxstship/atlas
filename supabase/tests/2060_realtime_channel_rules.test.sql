@@ -1,4 +1,4 @@
--- pgTAP: 1710, the co-editing channel rules are present on every environment (A106, RRR-151, ADR 0044). The policies
+-- pgTAP: 2060, the co-editing channel rules are present on every environment (A106, RRR-151, ADR 0044). The policies
 -- on realtime.messages exist, private.ensure_realtime_channel_policies puts back any that a recreated table lost, and
 -- the rules work as Realtime applies them: Realtime authorizes a private channel by setting realtime.topic and the
 -- caller's role, then reading (to receive) and inserting (to send) channel messages, so a non-reader of the document
