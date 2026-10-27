@@ -23637,23 +23637,23 @@
           "type": "uuid"
         },
         {
-          "comment": "Column of the export's source an eq or in filter compares; null for search.",
+          "comment": "Column of the export's source an eq, in, is_null or not_null filter compares; null for search.",
           "name": "column_name",
           "nullable": true,
           "references": null,
           "type": "text"
         },
         {
-          "comment": "eq, in or search.",
+          "comment": "eq, in, search, is_null or not_null.",
           "name": "filter_operator",
           "nullable": false,
           "references": null,
           "type": "app.export_filter_operator"
         },
         {
-          "comment": "Value compared as text, the comma-separated values of an in filter, or the text searched for.",
+          "comment": "Value compared as text, the comma-separated values of an in filter, or the text searched for; null for is_null and not_null, which compare none.",
           "name": "value_text",
-          "nullable": false,
+          "nullable": true,
           "references": null,
           "type": "text"
         },

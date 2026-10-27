@@ -17284,7 +17284,7 @@ export type Database = {
           org_id: string;
           updated_at: string;
           updated_by: string | null;
-          value_text: string;
+          value_text: string | null;
         };
         ComputedFields: never;
         Insert: {
@@ -17298,7 +17298,7 @@ export type Database = {
           org_id: string;
           updated_at?: string;
           updated_by?: string | null;
-          value_text: string;
+          value_text?: string | null;
         };
         Update: {
           column_name?: string | null;
@@ -17311,7 +17311,7 @@ export type Database = {
           org_id?: string;
           updated_at?: string;
           updated_by?: string | null;
-          value_text?: string;
+          value_text?: string | null;
         };
         Relationships: [
           {
@@ -64159,7 +64159,7 @@ export type Database = {
         "Proposed" | "Sent" | "Signed" | "Executed" | "Expired" | "Superseded" | "Canceled";
       engagement_state: "Onboarding" | "Blocked" | "Active" | "Closing" | "Complete" | "Canceled";
       expense_state: "Proposed" | "Approved" | "Rejected" | "Paid" | "Canceled";
-      export_filter_operator: "eq" | "in" | "search";
+      export_filter_operator: "eq" | "in" | "search" | "is_null" | "not_null";
       export_format: "CSV" | "XLSX" | "PDF";
       export_status: "Queued" | "Rendering" | "Ready" | "Failed" | "Expired";
       external_role_type:
@@ -70753,7 +70753,7 @@ export const Constants = {
       ],
       engagement_state: ["Onboarding", "Blocked", "Active", "Closing", "Complete", "Canceled"],
       expense_state: ["Proposed", "Approved", "Rejected", "Paid", "Canceled"],
-      export_filter_operator: ["eq", "in", "search"],
+      export_filter_operator: ["eq", "in", "search", "is_null", "not_null"],
       export_format: ["CSV", "XLSX", "PDF"],
       export_status: ["Queued", "Rendering", "Ready", "Failed", "Expired"],
       external_role_type: [

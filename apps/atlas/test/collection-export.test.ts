@@ -187,4 +187,28 @@ describe("the plan of an export", () => {
       "guest-list",
     );
   });
+
+  it("hides the archived projects the Projects page hides, unless it shows them (?archived=1)", () => {
+    for (const key of [
+      "projects",
+      "projects/all",
+      "projects/by_phase",
+      "projects/portfolio_timeline",
+    ]) {
+      const projects = exportSourceFor(key, new URLSearchParams());
+      if (!projects) throw new Error(`no ${key} source`);
+      const filters = (query: Record<string, string>) =>
+        planExport(projects, "/acme/projects", new URLSearchParams(query))?.filters;
+      expect(filters({})).toEqual([{ operator: "is_null", column: "archived_at" }]);
+      expect(filters({ archived: "1" })).toEqual([]);
+      // A value the page does not know keeps its default, as listProjects does.
+      expect(filters({ archived: "0" })).toEqual([{ operator: "is_null", column: "archived_at" }]);
+      expect(filters({ archived: "constructor" })).toEqual([
+        { operator: "is_null", column: "archived_at" },
+      ]);
+      expect(filters({ archived: "1", q: "gala" })).toEqual([
+        { operator: "search", value: "gala" },
+      ]);
+    }
+  });
 });
