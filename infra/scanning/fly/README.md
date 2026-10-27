@@ -20,6 +20,10 @@ Until this runs and the function's secrets are set, uploads stay quarantined (fa
 
    A different app name works; pass it to `make-certs.sh` and change `app` in `fly.toml`.
 
+   stunnel's port 3311 is a raw TCP service, which Fly routes only over a dedicated IPv4 (or IPv6) address; the
+   shared IPv4 carries HTTP alone. Allocate one with `fly ips allocate-v4 --app xos-clamav` (billed monthly). A
+   trial organization cannot allocate addresses until a card is on file, so add one first.
+
 2. **Certificates.** On your own machine, with the output outside the repository:
 
    ```sh

@@ -22,17 +22,17 @@ The Vercel projects `atlas` and `gateway` exist. The orchestrator creates `docs`
 
 Owner decision 5 (ADR 0033, amended 2026-10-20): `ghxstship.tech`, one subdomain per app.
 
-| Host                                                             | Serves                                                                                               | Vercel project     | State on 2026-10-23                                                                      |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------- |
-| `atlas.ghxstship.tech`                                           | Atlas                                                                                                | `atlas`            | Serving, with a certificate                                                              |
-| `gateway.ghxstship.tech`                                         | Gateway on the platform brand                                                                        | `gateway`          | Serving, with a certificate. `gateway-umber-omega.vercel.app` is a platform host too     |
-| `api.ghxstship.tech`                                             | The public API, served by Atlas at `/v1`                                                             | `atlas`            | The orchestrator attaches it                                                             |
-| `docs.ghxstship.tech`                                            | The docs site                                                                                        | `docs`             | The orchestrator creates the project                                                     |
-| `console.ghxstship.tech`                                         | The operator console (ADR 0046)                                                                      | `console`          | Project and domain created (ADR 0033, decision 79); the variables below are still to set |
-| `mail.ghxstship.tech`                                            | The sending domain for email through Resend                                                          | None               | DNS records to add                                                                       |
-| `inbound.ghxstship.tech`                                         | The receiving domain for project inboxes and reply by email (ADR 0040)                               | None               | MX records for Resend's inbound mail to add (ADR 0033, decision 60)                      |
-| `status.ghxstship.tech`                                          | The status page, a static Vercel project `status` (ADR 0025 item 7; decision 72, amended 2026-10-24) | None               | A CNAME to GitHub Pages to add (ADR 0033, decision 72)                                   |
-| `atlas-staging.ghxstship.tech`, `gateway-staging.ghxstship.tech` | Atlas and Gateway on the persistent staging branch                                                   | `atlas`, `gateway` | Kept (ADR 0033, decision 63)                                                             |
+| Host                                                             | Serves                                                                                               | Vercel project     | State on 2026-10-23                                                                  |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------ |
+| `atlas.ghxstship.tech`                                           | Atlas                                                                                                | `atlas`            | Serving, with a certificate                                                          |
+| `gateway.ghxstship.tech`                                         | Gateway on the platform brand                                                                        | `gateway`          | Serving, with a certificate. `gateway-umber-omega.vercel.app` is a platform host too |
+| `api.ghxstship.tech`                                             | The public API, served by Atlas at `/v1`                                                             | `atlas`            | Attached to Production with `XOS_API_HOST` set (2026-10-25)                          |
+| `docs.ghxstship.tech`                                            | The docs site                                                                                        | `docs`             | Project `docs` created and serving (2026-10-25)                                      |
+| `console.ghxstship.tech`                                         | The operator console (ADR 0046)                                                                      | `console`          | Project, domain and variables set; serving (2026-10-25)                              |
+| `mail.ghxstship.tech`                                            | The sending domain for email through Resend                                                          | None               | DNS records added in the Vercel zone; verified in Resend (2026-10-25)                |
+| `inbound.ghxstship.tech`                                         | The receiving domain for project inboxes and reply by email (ADR 0040)                               | None               | Waiting: Resend refused the domain at the plan's domain limit (2026-10-25)           |
+| `status.ghxstship.tech`                                          | The status page, a static Vercel project `status` (ADR 0025 item 7; decision 72, amended 2026-10-24) | None               | Project `status` serving the page from the `status-site` branch (2026-10-25)         |
+| `atlas-staging.ghxstship.tech`, `gateway-staging.ghxstship.tech` | Atlas and Gateway on the persistent staging branch                                                   | `atlas`, `gateway` | Kept (ADR 0033, decision 63)                                                         |
 
 Each org's custom Gateway domain is added to the `gateway` project when the org verifies it in Atlas.
 
@@ -265,7 +265,7 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, `search-embed`, each every minute; `infra/runbooks/integrations.md`; and `xos_fx_rates_ecb`, which a migration creates, section Exchange rates) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, `automation-run`, `search-embed`, each every minute; `infra/runbooks/integrations.md`; and `xos_fx_rates_ecb` and `xos_export_render`, which migrations create, sections Exchange rates and Exports) still exist: `select jobname, schedule from cron.job order by 1;`.
 
 How the functions are bundled (A85, RRR-130):
 
@@ -660,6 +660,28 @@ it.
    scheduled run records a failure saying the feed is not configured, and Finance, Cost centers says so.
 4. A failing feed: `select ran_at, error from private.fx_feed_runs where outcome = 'Failed' order by ran_at desc
 limit 5;`. Conversions keep using the newest rate recorded, show its date, and say when it is stale.
+
+## Exports (OWNER, A102)
+
+Every Atlas collection exports its current view to CSV, .xlsx or PDF (ADR 0060, migration 2030). The Edge Function
+`export-render` writes the files: it claims `export.render` jobs, reads each export's rows as the person who asked
+(from the read replica when `XOS_READ_REPLICA_URL` is set), stores the file in the private `export-files` bucket for
+7 days, watermarks every page of a Confidential or Restricted PDF with the requester's email and the time, and removes
+expired files. pg_cron job `xos_export_render` calls it every minute, but only while an export is queued or a file has
+expired.
+
+1. Deploy it with the others: `supabase functions deploy export-render --project-ref <ref>`. It keeps the default
+   `verify_jwt = true` and checks the service key, as the other workers do. It loads exceljs and pdfkit only for
+   .xlsx and PDF exports.
+2. The schedule reads the same Vault secrets as the exchange rates, `xos_functions_url` and `xos_worker_key`
+   (section Exchange rates, step 2). Without them it does nothing and exports stay at "Preparing your export".
+3. Check: export a list from Atlas (the Export menu beside Saved views); within a minute it downloads. These show no
+   growing Queued count, and why an export failed:
+
+   ```sql
+   select export_status, count(*) from app.export_jobs group by 1;
+   select job_status, last_error from app.job_queue where job_kind = 'export.render' order by created_at desc limit 5;
+   ```
 
 ## Push and SMS (OWNER)
 
