@@ -17200,10 +17200,12 @@ export type Database = {
       export_job_columns: {
         Row: {
           column_name: string;
+          column_position: number | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
           export_job_id: string;
+          header_label: string | null;
           id: string;
           org_id: string;
           table_name: string;
@@ -17213,10 +17215,12 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           column_name: string;
+          column_position?: number | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
           export_job_id: string;
+          header_label?: string | null;
           id?: string;
           org_id: string;
           table_name: string;
@@ -17225,10 +17229,12 @@ export type Database = {
         };
         Update: {
           column_name?: string;
+          column_position?: number | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
           export_job_id?: string;
+          header_label?: string | null;
           id?: string;
           org_id?: string;
           table_name?: string;
@@ -17266,6 +17272,78 @@ export type Database = {
           },
         ];
       };
+      export_job_filters: {
+        Row: {
+          column_name: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          export_job_id: string;
+          filter_operator: Database["app"]["Enums"]["export_filter_operator"];
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          value_text: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          column_name?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          export_job_id: string;
+          filter_operator: Database["app"]["Enums"]["export_filter_operator"];
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          value_text: string;
+        };
+        Update: {
+          column_name?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          export_job_id?: string;
+          filter_operator?: Database["app"]["Enums"]["export_filter_operator"];
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          value_text?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "export_job_filters_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "export_job_filters_export_job_id_fkey";
+            columns: ["export_job_id"];
+            isOneToOne: false;
+            referencedRelation: "export_jobs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "export_job_filters_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "export_job_filters_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       export_jobs: {
         Row: {
           classification: Database["app"]["Enums"]["data_classification"];
@@ -17276,6 +17354,7 @@ export type Database = {
           export_format: Database["app"]["Enums"]["export_format"];
           export_status: Database["app"]["Enums"]["export_status"];
           id: string;
+          last_error: string | null;
           org_id: string;
           row_count: number | null;
           source_label: string;
@@ -17294,6 +17373,7 @@ export type Database = {
           export_format: Database["app"]["Enums"]["export_format"];
           export_status?: Database["app"]["Enums"]["export_status"];
           id?: string;
+          last_error?: string | null;
           org_id: string;
           row_count?: number | null;
           source_label: string;
@@ -17311,6 +17391,7 @@ export type Database = {
           export_format?: Database["app"]["Enums"]["export_format"];
           export_status?: Database["app"]["Enums"]["export_status"];
           id?: string;
+          last_error?: string | null;
           org_id?: string;
           row_count?: number | null;
           source_label?: string;
@@ -59965,6 +60046,22 @@ export type Database = {
           isSetofReturn: true;
         };
       };
+      claim_export_renders: {
+        Args: { p_limit?: number; p_worker: string };
+        Returns: {
+          classification: Database["app"]["Enums"]["data_classification"];
+          export_format: Database["app"]["Enums"]["export_format"];
+          export_job_id: string;
+          job_id: string;
+          locale: string;
+          org_id: string;
+          requested_at: string;
+          requester_email: string;
+          source_label: string;
+          time_zone: string;
+          watermark: boolean;
+        }[];
+      };
       claim_integration_inbound_event: {
         Args: { p_event_id: string };
         Returns: {
@@ -60955,6 +61052,13 @@ export type Database = {
         }[];
       };
       expire_offers: { Args: Record<PropertyKey, never>; Returns: number };
+      expired_export_files: {
+        Args: { p_limit?: number };
+        Returns: {
+          export_job_id: string;
+          storage_object_path: string;
+        }[];
+      };
       explain_access: {
         Args: { p_subject_id: string; p_subject_table: string };
         Returns: {
@@ -60978,6 +61082,7 @@ export type Database = {
           verified_domain: string;
         }[];
       };
+      export_job_rows: { Args: { p_export_job_id: string; p_limit: number }; Returns: Json[] };
       fail_integration_inbound_event: {
         Args: {
           p_error_code: string;
@@ -61082,6 +61187,16 @@ export type Database = {
           p_stripe_checkout_session_id: string;
         };
         Returns: boolean;
+      };
+      finish_export_render: {
+        Args: {
+          p_error?: string;
+          p_job_id: string;
+          p_row_count?: number;
+          p_storage_object_path?: string;
+          p_succeeded: boolean;
+        };
+        Returns: Database["app"]["Enums"]["export_status"];
       };
       finish_file_import: {
         Args: { p_checksum_sha256: string; p_imported_version: string; p_link_id: string };
@@ -61311,6 +61426,7 @@ export type Database = {
         Returns: string;
       };
       mark_dispatch_arrived: { Args: { p_dispatch_assignment_id: string }; Returns: string };
+      mark_export_expired: { Args: { p_export_job_id: string }; Returns: undefined };
       mark_notifications_read: { Args: { p_before?: string; p_org_id: string }; Returns: number };
       mark_thread_read: {
         Args: { p_engagement_thread_id: string; p_party_thread_id: string };
@@ -62121,6 +62237,14 @@ export type Database = {
         };
         Returns: undefined;
       };
+      record_export_download: {
+        Args: { p_export_job_id: string };
+        Returns: {
+          export_format: Database["app"]["Enums"]["export_format"];
+          source_label: string;
+          storage_object_path: string;
+        }[];
+      };
       record_file_download: {
         Args: { p_attachment_version_id: string };
         Returns: {
@@ -62557,6 +62681,13 @@ export type Database = {
           replayed: boolean;
         }[];
       };
+      report_run_classification: {
+        Args: { p_columns: string[]; p_run_id: string };
+        Returns: {
+          classification: Database["app"]["Enums"]["data_classification"];
+          viewer_email: string;
+        }[];
+      };
       report_run_rows: {
         Args: { p_columns: string[]; p_limit: number; p_run_id: string };
         Returns: Json[];
@@ -62588,15 +62719,27 @@ export type Database = {
         };
         Returns: string;
       };
-      request_export: {
-        Args: {
-          p_columns: string[];
-          p_format: Database["app"]["Enums"]["export_format"];
-          p_org_id: string;
-          p_source_label: string;
-        };
-        Returns: string;
-      };
+      request_export:
+        | {
+            Args: {
+              p_columns: string[];
+              p_format: Database["app"]["Enums"]["export_format"];
+              p_org_id: string;
+              p_source_label: string;
+            };
+            Returns: string;
+          }
+        | {
+            Args: {
+              p_columns: string[];
+              p_filters: Json;
+              p_format: Database["app"]["Enums"]["export_format"];
+              p_headers: string[];
+              p_org_id: string;
+              p_source_label: string;
+            };
+            Returns: string;
+          };
       request_import_commit: { Args: { p_import_job_id: string }; Returns: string };
       request_org_deletion: {
         Args: { p_confirm_name: string; p_org_id: string; p_reason: string };
@@ -64016,6 +64159,7 @@ export type Database = {
         "Proposed" | "Sent" | "Signed" | "Executed" | "Expired" | "Superseded" | "Canceled";
       engagement_state: "Onboarding" | "Blocked" | "Active" | "Closing" | "Complete" | "Canceled";
       expense_state: "Proposed" | "Approved" | "Rejected" | "Paid" | "Canceled";
+      export_filter_operator: "eq" | "in" | "search";
       export_format: "CSV" | "XLSX" | "PDF";
       export_status: "Queued" | "Rendering" | "Ready" | "Failed" | "Expired";
       external_role_type:
@@ -70609,6 +70753,7 @@ export const Constants = {
       ],
       engagement_state: ["Onboarding", "Blocked", "Active", "Closing", "Complete", "Canceled"],
       expense_state: ["Proposed", "Approved", "Rejected", "Paid", "Canceled"],
+      export_filter_operator: ["eq", "in", "search"],
       export_format: ["CSV", "XLSX", "PDF"],
       export_status: ["Queued", "Rendering", "Ready", "Failed", "Expired"],
       external_role_type: [
