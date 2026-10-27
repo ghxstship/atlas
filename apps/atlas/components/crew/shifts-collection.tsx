@@ -152,6 +152,17 @@ export async function ShiftsCollection(props: {
       }),
     });
 
+  // A shift's hover card (Section 11.7): role and person, its project, state and time.
+  const preview = (s: Shift) => ({
+    recordKey: s.projectKey,
+    recordKind: "Shift" as const,
+    title: t("crew.common.pair", { a: roleName(s.roleCode), b: personName(s) }),
+    state: stateIcon("shift", s.state),
+    stateLabel: t(`crew.states.shift.${s.state}`),
+    owner: personName(s),
+    next: when(s),
+  });
+
   // Peek and full record page.
   let peek = null;
   const peekId = search["peek"];
@@ -654,6 +665,7 @@ export async function ShiftsCollection(props: {
           date: dayIn(s.startsAt, shown(s)),
           label: `${format.dateTime(new Date(s.startsAt), { timeZone: shown(s), hour: "numeric", minute: "2-digit", timeZoneName: "short" })} ${personName(s)}`,
           state: stateIcon("shift", s.state),
+          preview: preview(s),
         }))}
       />
     );
@@ -678,6 +690,7 @@ export async function ShiftsCollection(props: {
           when: when(s),
           hours: hoursFromMinutes(shiftMinutes(s)),
           state: { state: stateIcon("shift", s.state), label: t(`crew.states.shift.${s.state}`) },
+          preview: preview(s),
         }))}
         bulk={
           canWrite

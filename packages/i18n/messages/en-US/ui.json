@@ -84,7 +84,8 @@
   "bulk": {
     "clear": "Clear selection",
     "label": "Bulk actions",
-    "selected": "{n} selected"
+    "selected": "{n} selected",
+    "itemSelected": "Selected"
   },
   "calendar": {
     "agenda": "Agenda",
@@ -532,6 +533,7 @@
   },
   "recordList": {
     "columns": {
+      "select": "Select",
       "state": "State",
       "key": "Key",
       "title": "Record",
