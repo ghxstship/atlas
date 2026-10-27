@@ -138,7 +138,12 @@
   },
   "connections": {
     "gone": "That's no longer there. The list is up to date.",
-    "disconnected": "{app} can no longer act for you."
+    "disconnected": "{app} can no longer act for you.",
+    "revokeConfirm": {
+      "title": "Disconnect {app}?",
+      "body": "The app can no longer act for you. Connect it again to give it access.",
+      "confirm": "Disconnect"
+    }
   },
   "developer": {
     "description": "Tokens let your own scripts call the XOS API as you, each in one organization and limited to the areas you chose. Revoke one as soon as you stop using it or think someone else has it.",

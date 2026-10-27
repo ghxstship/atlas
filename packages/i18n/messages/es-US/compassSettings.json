@@ -138,7 +138,12 @@
   },
   "connections": {
     "gone": "Eso ya no está. La lista está al día.",
-    "disconnected": "{app} ya no puede actuar en tu nombre."
+    "disconnected": "{app} ya no puede actuar en tu nombre.",
+    "revokeConfirm": {
+      "title": "¿Desconectar {app}?",
+      "body": "La aplicación ya no podrá actuar en tu nombre. Vuelve a conectarla para darle acceso.",
+      "confirm": "Desconectar"
+    }
   },
   "developer": {
     "description": "Los tokens permiten que tus propios scripts llamen a la API de XOS en tu nombre, cada uno en una organización y limitado a las áreas que elegiste. Revoca uno en cuanto dejes de usarlo o creas que otra persona lo tiene.",

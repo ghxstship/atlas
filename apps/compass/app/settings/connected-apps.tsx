@@ -99,9 +99,11 @@ export default function ConnectedAppsScreen(): ReactElement {
       <ConfirmSheet
         testID="settings-app-confirm"
         open={revoke.target !== null}
-        title={t(`${S}.connectedApps.revokeConfirm.title`, { app: revoke.target?.appName ?? "" })}
-        sentence={t(`${S}.connectedApps.revokeConfirm.body`)}
-        confirmLabel={t(`${S}.connectedApps.revokeConfirm.confirm`)}
+        title={t("compassSettings.connections.revokeConfirm.title", {
+          app: revoke.target?.appName ?? "",
+        })}
+        sentence={t("compassSettings.connections.revokeConfirm.body")}
+        confirmLabel={t("compassSettings.connections.revokeConfirm.confirm")}
         danger
         busy={revoke.busy}
         error={revoke.error}
