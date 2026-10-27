@@ -4,6 +4,7 @@ import {
   type RecentProject,
   type RecentViewTable,
 } from "@xos/data/search";
+import { observability } from "@/lib/observability";
 import type { OrgContext } from "./context";
 import { RECENT_PROJECT_COUNT } from "./nav-model";
 
@@ -32,6 +33,8 @@ export async function recentProjects(ctx: OrgContext): Promise<readonly RecentPr
   if (!ctx.viewer.person) return [];
   const result = await listRecentProjects(ctx.viewer.db, ctx.org.id, RECENT_PROJECT_COUNT);
   if (result.ok) return result.data;
-  console.error("Cannot read the recent projects; listing none", result.error);
+  observability.logger.error("Cannot read the recent projects; listing none", {
+    error: result.error,
+  });
   return [];
 }
