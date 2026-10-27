@@ -14,7 +14,8 @@ import { type Row } from "./kit.types";
  * The table view: Enter or a double click on a row opens its peek. With `bulk`, rows can be
  * selected and changed together (Section 11.7); each row names itself in its `label` field. On a
  * page with no record panel (`activatable={false}`) rows open nothing: no `?peek`, no Open or Open
- * full page in the row menu, and no hint that Enter opens one.
+ * full page in the row menu, and no hint that Enter opens one. Rows whose record has a peek but no
+ * full page (`fullPage={false}`, saved reports) offer Open without Open full page.
  */
 export function CollectionTable({
   label,
@@ -23,6 +24,7 @@ export function CollectionTable({
   totals,
   bulk,
   activatable = true,
+  fullPage = true,
 }: {
   label: string;
   columns: DataTableColumn[];
@@ -31,6 +33,8 @@ export function CollectionTable({
   bulk?: BulkConfig | null;
   /** False on a page with no record panel for its rows, such as the chart of accounts. */
   activatable?: boolean;
+  /** False where the record panel is a peek with no full page (`&full=1`), such as saved reports. */
+  fullPage?: boolean;
 }) {
   const go = useQueryNav();
   const t = useFinanceT();
@@ -66,7 +70,8 @@ export function CollectionTable({
                   {
                     id,
                     label: String(row["label"] ?? id),
-                    ...(activatable ? { open: () => go({ peek: id }), href: fullHref(id) } : {}),
+                    ...(activatable ? { open: () => go({ peek: id }) } : {}),
+                    ...(activatable && fullPage ? { href: fullHref(id) } : {}),
                     bulk: bulkKit,
                   },
                   at,

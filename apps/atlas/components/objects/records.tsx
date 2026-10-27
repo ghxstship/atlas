@@ -6,9 +6,13 @@ import { Checkbox, Drawer, Input, PropertyList, Select, Textarea } from "@xos/ui
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { createRecordAction, setChoiceAction } from "@/app/[org]/objects/actions";
 import { WhyCanISeeThis } from "@/components/access/why-can-i-see-this";
+import { FieldHistoryList, type HistoryItem } from "@/components/history/field-history-list";
 import { ActionForm, usePlatformT } from "@/components/platform/kit";
+import { CollabPanels } from "@/components/work/collab";
+import type { Conversation } from "@/components/work/record-sections";
 
 /** Money fields are entered in US dollars, shown beside the amount. */
 const MONEY_CURRENCY = "USD";
@@ -154,7 +158,11 @@ export function CreateRecordDrawer({
   );
 }
 
-/** A record in the side peek: its values, moving it to another board column, and Why can I see this. */
+/**
+ * A record in the side peek: its values, moving it to another board column, its activity (the field
+ * history 2100 records), its comments and files through the same panels as every record's (Section
+ * 4.6.3), and Why can I see this.
+ */
 export function RecordPeek({
   org,
   objectKey,
@@ -165,6 +173,9 @@ export function RecordPeek({
   paths,
   canWrite,
   closeHref,
+  activity,
+  conversation,
+  me,
 }: {
   org: string;
   objectKey: string;
@@ -175,8 +186,14 @@ export function RecordPeek({
   paths: readonly AccessPath[] | null;
   canWrite: boolean;
   closeHref: string;
+  /** The record's field history, worded; null when it could not be read. */
+  activity: readonly HistoryItem[] | null;
+  conversation: Conversation;
+  /** The viewer's person id, to offer deleting their own comments and files. */
+  me: string | null;
 }) {
   const t = usePlatformT();
+  const c = useTranslations("collab");
   const router = useRouter();
   const board = fields.find((f) => f.choices !== null);
   const [choice, setChoice] = useState(board?.current ?? board?.choices?.[0]?.value ?? "");
@@ -207,6 +224,25 @@ export function RecordPeek({
           />
         </ActionForm>
       ) : null}
+      {activity ? (
+        <FieldHistoryList
+          id={recordId}
+          title={c("history.title")}
+          empty={c("history.empty")}
+          items={activity}
+        />
+      ) : (
+        <p className="m-0 text-text-13 text-text-secondary">{c("history.unavailable")}</p>
+      )}
+      <CollabPanels
+        org={org}
+        subject={{ table: "app.custom_object_records", id: recordId }}
+        threads={conversation.threads}
+        attachments={conversation.attachments}
+        names={conversation.names}
+        me={me}
+        canPost
+      />
       <WhyCanISeeThis paths={paths} />
     </Drawer>
   );
