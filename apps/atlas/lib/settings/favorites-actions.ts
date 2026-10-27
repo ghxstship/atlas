@@ -52,7 +52,7 @@ export async function toggleFavoriteAction(
 
 /**
  * Puts the person's favorites in this org in the order given, after a move by drag or keyboard in the sidebar
- * (Section 4.5.2). Only ids of the person's own favorites are sent, and app.reorder_favorites (migration 1740) runs
+ * (Section 4.5.2). Only ids of the person's own favorites are sent, and app.reorder_favorites (migration 2090) runs
  * as them under the owner policies, so nobody else's favorites change. Favorites not listed keep their order after
  * the listed ones. Returns a `settings.errors.*` key on refusal, and the sidebar puts the previous order back.
  */

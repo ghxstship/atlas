@@ -9,7 +9,7 @@ import { untyped } from "./untyped.ts";
  *   * `globalSearch`: app.global_search, SECURITY INVOKER, so the reader's row level security decides every
  *     row; it takes the structured request `@xos/data/search-query` builds and an optional query vector;
  *   * `recentItems` and `recordRecentView`: what the person opened, newest first, at most 50;
- *   * `recentProjects`: the projects the person opened most recently, for the sidebar (migration 1740);
+ *   * `recentProjects`: the projects the person opened most recently, for the sidebar (migration 2090);
  *   * `searchContext`: the person, the org's calendar and whether the org has semantic search on.
  */
 
@@ -54,7 +54,7 @@ export interface SearchContext {
   readonly semanticEnabled: boolean;
 }
 
-/** Tables a recent view may name (app.recent_views.subject_table; projects since migration 1740). */
+/** Tables a recent view may name (app.recent_views.subject_table; projects since migration 2090). */
 export type RecentViewTable =
   "records" | "incidents" | "documents" | "sops" | "handbook_articles" | "projects";
 

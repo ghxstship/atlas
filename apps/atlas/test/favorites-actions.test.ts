@@ -5,7 +5,7 @@ import type { OrgContext } from "@/lib/shell/context";
 /**
  * A113 (RRR-158, finding A65-024, Section 4.5.2): a move by drag or keyboard in the sidebar saves the order of the
  * person's favorites. The action sends only the caller's own favorites in this org, so even a table without row level
- * security would change nothing else; app.reorder_favorites (migration 1740, pgTAP 1740) runs as the caller besides.
+ * security would change nothing else; app.reorder_favorites (migration 2090, pgTAP 2090) runs as the caller besides.
  */
 interface Row {
   readonly id: string;

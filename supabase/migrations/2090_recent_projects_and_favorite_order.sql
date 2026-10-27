@@ -1,4 +1,4 @@
--- 1740_recent_projects_and_favorite_order.sql
+-- 2090_recent_projects_and_favorite_order.sql
 -- A113 (RRR-158), finding A65-024, Section 4.5.2 ("Favorites ... reorderable by drag and keyboard"; "Projects (five
 -- most recent plus All projects)") and Section 11.7 (drag and drop with a keyboard path).
 --

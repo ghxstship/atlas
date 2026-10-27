@@ -26,7 +26,7 @@ export async function rememberView(
 
 /**
  * The projects the viewer opened most recently in the org, newest first, read with their own row level security
- * (app.recent_projects, migration 1740). The sidebar can do without them: a failed read lists none and is logged.
+ * (app.recent_projects, migration 2090). The sidebar can do without them: a failed read lists none and is logged.
  */
 export async function recentProjects(ctx: OrgContext): Promise<readonly RecentProject[]> {
   if (!ctx.viewer.person) return [];
