@@ -65,11 +65,20 @@ export const getRequestFacts = cache(async (): Promise<RequestFacts> => {
   };
 });
 
-/** The context of a signed-in person, or null when nobody is signed in. */
-export const getGatewayContext = cache(async (): Promise<GatewayContext | null> => {
+/**
+ * The request's Supabase client and signed-in user, read once per request, with no second-factor check: locale
+ * negotiation reads the person's language through it on every page, the second-factor page among them, where
+ * getGatewayContext's redirect would send the page to itself.
+ */
+export const getSignedInSession = cache(async () => {
   const db = await createServerSupabase();
   const { data } = await db.auth.getUser();
-  const user = data.user;
+  return { db, user: data.user };
+});
+
+/** The context of a signed-in person, or null when nobody is signed in. */
+export const getGatewayContext = cache(async (): Promise<GatewayContext | null> => {
+  const { db, user } = await getSignedInSession();
   if (!user) return null;
   // A server action that signs in and redirects renders its target in the same request, past the proxy, so a
   // second factor the person holds is asked for here too (A77).

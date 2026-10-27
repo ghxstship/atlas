@@ -26,6 +26,16 @@ export interface DeliveredFile {
 }
 
 /**
+ * The record link a watermarked copy prints and draws as a QR code (ADR 0031): /files/{version},
+ * which opens only for a signed-in member who may see the file. Never a share link, whose token
+ * would let anyone holding a forwarded copy open it again (A69-013); without a version it is the
+ * Atlas home page.
+ */
+export function copyRecordUrl(versionId: string | null, siteUrl: string): string {
+  return new URL(versionId ? `/files/${encodeURIComponent(versionId)}` : "/", siteUrl).toString();
+}
+
+/**
  * The copy a viewer receives: the stored bytes, or for a watermarked image a PDF that shows who
  * received it and when.
  */

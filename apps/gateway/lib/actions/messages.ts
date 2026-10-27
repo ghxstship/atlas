@@ -5,6 +5,7 @@ import { z } from "zod";
 import { outcomeFor } from "@/lib/action-result";
 import { getGatewayContext } from "@/lib/shell/context";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { observability } from "@/lib/observability";
 
 /** Messages actions (A28b 0773): start a conversation with an org, and mark a thread read. */
 
@@ -46,5 +47,6 @@ export async function markReadAction(
     await createServerSupabase(),
     kind === "engagement" ? { engagementThreadId: id } : { partyThreadId: id },
   );
-  if (!result.ok) console.error("mark_thread_read did not record the read", result.error);
+  if (!result.ok)
+    observability.logger.error("mark_thread_read did not record the read", { error: result.error });
 }
