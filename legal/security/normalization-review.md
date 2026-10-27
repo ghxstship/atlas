@@ -9,21 +9,24 @@ owner: A22 Security Review (RRR-41); A108 (RRR-153) for batch-c
 
 Section 18 gate 29 asks an independent agent to review every migration for Third Normal Form and to
 file a finding for any violation not listed in the denormalization register. A22 reviewed main
-d36918a (170 migrations). A108 reviewed the 199 migrations added after it on batch-c 32f29903 and
+d36918a (170 migrations). A108 reviewed the 214 migrations added after it on batch-c 39c1088a and
 turned the method into catalog lints, so a migration added after the review fails `supabase test
 db` until its exceptions are registered (ADR 0068).
 
-## Review of batch-c 32f29903 (A108)
+## Review of batch-c 39c1088a (A108)
 
 ### Scope
 
-- Every migration added after d36918a, 199 files from `0808_workforce_form_media` to
-  `1671_person_push_delivery`:
-  `git diff --name-only --diff-filter=A d36918a..batch-c -- supabase/migrations`. Two earlier
-  migrations were edited in that range, `0101_xpms_tables` and `0150_xpms_canon_seed` (owner
-  decisions 25 and 39, and A47-001); the catalog checks cover their result because they read the whole
-  schema.
-- The schema after `supabase db reset` of batch-c 32f29903: 592 `app`, 93 `private` and 97 `xpms`
+- Every migration added after d36918a, 214 files from `0808_workforce_form_media` to
+  `2051_import_finished_notice`:
+  `git diff --name-only --diff-filter=A d36918a..batch-c -- supabase/migrations`. The first 199 were
+  reviewed on batch-c 32f29903; the 15 that batch-c 39c1088a added (1613, 1630 to 1632, 1639, 1650,
+  1651, 2000 to 2002, 2010, 2011, 2030, 2050 and 2051, among them the 4.0 release migrations) were
+  reviewed on it. Two earlier migrations were edited in that range, `0101_xpms_tables` and
+  `0150_xpms_canon_seed` (owner decisions 25 and 39, A47-001, and the RRR-67 anonymization), and
+  `1612_org_standard_library` was edited after its review (comments only); the catalog checks cover
+  their result because they read the whole schema.
+- The schema after `supabase db reset` of batch-c 39c1088a: 595 `app`, 94 `private` and 97 `xpms`
   tables, no materialized views.
 - The register is `docs/adr/denormalization-register.yaml`, with its generated view
   `docs/adr/denormalization-register.md`. Each column the method finds is listed there with a kind
@@ -45,7 +48,7 @@ The A22 method below, run as catalog queries over the migrated schema and kept a
    a column outside the key with the same name and type as a column of the parent, outside the
    parent's primary key, restates it. Names that describe the row itself (`org_id`, the row stamps,
    `name`, `description` and the like) are left out, and so are keys made only of them. Each of the
-   270 pairs was read against the column comments and the guards on the table: a copy through a
+   276 pairs was read against the column comments and the guards on the table: a copy through a
    required (`not null`) key that is not registered is a finding; a value the row needs without an
    optional link, or one that can differ from the parent's, is the row's own.
 5. **Closed lists.** Check constraints that hold a list of values over a text column, against
@@ -56,14 +59,15 @@ The A22 method below, run as catalog queries over the migrated schema and kept a
 
 ### Results
 
-| Area                        | In the 199 migrations                                                                                                                                          |
+| Area                        | In the 214 migrations                                                                                                                                          |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | JSON columns (9)            | All within the ADR 0002 exceptions: 6 provider payloads (automation runs, inbound integration events, DNS records, platform email arguments) and 3 audit diffs |
 | Array columns (5)           | Work Details enum sets and the person's access log (1340), reviewed in pgTAP 1280 before the register existed                                                  |
 | Stored values (18)          | 10 facts and 4 inputs; the 4 wholesale statement totals of 1060 are stored beside their lines: [A108-002](../qa/findings/A108-002.md)                          |
-| Restated columns (58 pairs) | 26 own, 17 facts; 15 copies through a required key are not registered: [A108-003](../qa/findings/A108-003.md)                                                  |
+| Restated columns (64 pairs) | 31 own, 18 facts; 15 copies through a required key are not registered: [A108-003](../qa/findings/A108-003.md)                                                  |
 | Tenant exceptions (18)      | 13 person-owned and 5 platform tables, each with its reason (decision 69)                                                                                      |
-| Closed lists (45)           | Held as text with a check constraint in 31 migrations: [A108-001](../qa/findings/A108-001.md)                                                                  |
+| Closed lists (45)           | Held as text with a check constraint in 31 migrations: [A108-001](../qa/findings/A108-001.md); 2011 restates one of them with a new value                      |
+| Derived values (4)          | The last four characters of a number encrypted in the same row (1200, 1340, 2010, 2011), registered with ADR 0057 as the reason                                |
 | Materialized views          | None                                                                                                                                                           |
 
 The lints run over the whole schema, so they also listed older columns the d36918a review did not
@@ -72,7 +76,11 @@ lists (listed in A108-001), and two stored values whose derived entries already 
 (`app.form_submissions.score` beside `max_score`, `app.occupancy_counters.alert_level_percent`
 beside `current_count`), which joined those entries.
 
-140 of the 199 migrations add nothing the method looks at. 36 have a finding.
+152 of the 214 migrations add nothing the method looks at. 37 have a finding. Of the 15 reviewed on
+batch-c 39c1088a, 1630 adds 5 own pairs and 1 fact, 2010 and 2011 make a last four a derived value
+of ciphertext, and 2011 restates a closed list already in A108-001; none adds a new finding. 2030
+keeps an export's filters in rows of `app.export_job_filters` rather than a JSON column (ADR 0002,
+ADR 0060).
 
 ### Observations below the finding threshold
 
@@ -86,6 +94,18 @@ beside `current_count`), which joined those entries.
   so the 13 own-name pairs in the 199 migrations were read by hand. Each is the row's own value,
   except `app.automation_run_steps.position`, which keeps the action's position as the run found it:
   a fact of the run, not a violation.
+- `app.content_moderation_decisions` (1630) names the post, comment or message it decided by id with
+  no foreign key, so the decision, append-only and the org's record, outlives the retention purge of
+  the item. The lint cannot compare those columns with the item; they are fixed when the decision is
+  written and are the decision's own record, not copies. `app.content_reports.author_person_id` is
+  registered as a `fact`: a report about a comment names the comment's author, which never changes,
+  and the column is the one place the author of a post, a comment or a message is named alike for
+  the moderators' policies.
+- A last-four column (`tax_identifier_last4`, `passport_number_last4`, `certificate_number_last4`,
+  `account_last4`) depends on the number in its own row, but that number is encrypted under a Vault
+  key no signed-in caller holds (ADR 0057), so it cannot be computed when read. The four are now one
+  derived entry; each is written only with its ciphertext by the encrypting RPC. The lint's names do
+  not match them, so a new one is found by review, as here.
 
 ### Per-migration results
 
@@ -276,6 +296,7 @@ beside `current_count`), which joined those entries.
 | 1610_canon_decision_39                                | 1 table, 1 view                                      | Clean                                                                                                                                                                                                                                                                                                                              |
 | 1611_gl_explicit_defaults                             | 2 views, 3 functions                                 | Clean                                                                                                                                                                                                                                                                                                                              |
 | 1612_org_standard_library                             | 5 tables, 3 columns, 7 functions                     | restated: 1 own                                                                                                                                                                                                                                                                                                                    |
+| 1613_gl_account_for_line_as_member                    | 1 function                                           | Clean                                                                                                                                                                                                                                                                                                                              |
 | 1562_step_up_roles_keys_billing                       | 4 functions, 4 policies                              | Clean                                                                                                                                                                                                                                                                                                                              |
 | 1563_oauth_server                                     | 2 tables, 18 functions                               | Clean                                                                                                                                                                                                                                                                                                                              |
 | 1569_notification_kind_seed                           | seed rows                                            | Clean                                                                                                                                                                                                                                                                                                                              |
@@ -293,6 +314,20 @@ beside `current_count`), which joined those entries.
 | 1640_checkout                                         | 1 table, 1 enum, 9 functions                         | Clean                                                                                                                                                                                                                                                                                                                              |
 | 1670_person_push_devices                              | 1 table, 1 column, 7 functions                       | tenant exceptions: 1 person-owned; 1 closed list in text: `app.person_push_devices.platform` ([A108-001](../qa/findings/A108-001.md))                                                                                                                                                                                              |
 | 1671_person_push_delivery                             | 6 functions                                          | Clean                                                                                                                                                                                                                                                                                                                              |
+| 1630_content_reports                                  | 2 tables, 3 enums, 10 functions                      | restated: 5 own, `app.content_reports.author_person_id` (fact)                                                                                                                                                                                                                                                                     |
+| 1631_blocked_people_content                           | 11 functions, 5 policies                             | Clean                                                                                                                                                                                                                                                                                                                              |
+| 1632_blocked_people_directory                         | 1 function                                           | Clean                                                                                                                                                                                                                                                                                                                              |
+| 1639_notification_kind_seed                           | seed rows                                            | Clean                                                                                                                                                                                                                                                                                                                              |
+| 1650_backup_reader_login                              | 1 role, 4 functions                                  | Clean                                                                                                                                                                                                                                                                                                                              |
+| 1651_inbound_mail_bucket                              | 1 bucket, 1 function                                 | Clean                                                                                                                                                                                                                                                                                                                              |
+| 2000_share_link_record_url                            | 1 function                                           | Clean                                                                                                                                                                                                                                                                                                                              |
+| 2001_anonymize_csmia26_client                         | 2 functions, canon rows rewritten                    | Clean                                                                                                                                                                                                                                                                                                                              |
+| 2002_standard_library_released                        | 1 function                                           | Clean                                                                                                                                                                                                                                                                                                                              |
+| 2010_vendor_bank_account_encryption                   | 2 columns encrypted, 1 view, 5 functions             | derived: `app.vendor_bank_accounts.account_last4`, now derived by `app.set_vendor_bank_account` from the number it encrypts                                                                                                                                                                                                        |
+| 2011_supplier_certificate_number_encryption           | 2 columns, 7 functions                               | derived: `app.supplier_diversity_certifications.certificate_number_last4`; 1 closed list in text restated with a new value: `app.supplier_diversity_events.action` ([A108-001](../qa/findings/A108-001.md))                                                                                                                        |
+| 2030_collection_exports                               | 2 tables, 1 enum, 3 columns, 15 functions            | Clean                                                                                                                                                                                                                                                                                                                              |
+| 2050_account_security_notices                         | 4 functions, 2 triggers                              | Clean                                                                                                                                                                                                                                                                                                                              |
+| 2051_import_finished_notice                           | 1 function                                           | Clean                                                                                                                                                                                                                                                                                                                              |
 
 ## Review of main d36918a (A22)
 
