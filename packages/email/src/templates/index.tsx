@@ -48,6 +48,11 @@ export interface TemplateProps {
   };
   readonly import_finished: {
     readonly importName: string;
+    /**
+     * validated: the rows are checked and wait for review (written counts the rows ready to write, refused those to
+     * fix); committed, the default: the batch is written (A104, migration 2051).
+     */
+    readonly stage?: "validated" | "committed";
     readonly written: number;
     readonly refused: number;
     readonly skipped: number;
@@ -236,8 +241,8 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
   },
   import_finished: {
     transactional: true,
-    compose: ({ importName, written, refused, skipped, url }, ctx) => {
-      const subject = ctx.t("import_finished.subject", { importName });
+    compose: ({ importName, stage = "committed", written, refused, skipped, url }, ctx) => {
+      const subject = ctx.t("import_finished.subject", { importName, stage });
       return {
         subject,
         element: (
@@ -246,12 +251,14 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
             t={ctx.t}
             sender={ctx.sender}
             preview={subject}
-            heading={ctx.t("import_finished.heading")}
+            heading={ctx.t("import_finished.heading", { stage })}
             transactional
             action={{ label: ctx.t("import_finished.review"), url }}
           >
             <Greeting ctx={ctx} />
-            <Paragraph>{ctx.t("import_finished.body", { written, refused, skipped })}</Paragraph>
+            <Paragraph>
+              {ctx.t("import_finished.body", { stage, written, refused, skipped })}
+            </Paragraph>
           </Layout>
         ),
       };

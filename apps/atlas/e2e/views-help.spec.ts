@@ -155,10 +155,16 @@ test("journey 69: a gate chip shows its canon definition on hover and on focus",
 }) => {
   await signIn(page, "producer@example.com");
   await page.goto(`/${ORG}/p/NWS/gates`);
+  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
   const chip = page.locator("h2 span[tabindex='0']").first();
-  await chip.hover();
   const card = page.locator("[data-radix-popper-content-wrapper]").first();
-  await expect(card).toBeVisible();
+  // The gate list can hydrate after the shell's ready mark, and a hover that lands before it opens
+  // nothing while the pointer never enters again: hover anew until the card opens.
+  await expect(async () => {
+    await page.mouse.move(0, 0);
+    await chip.hover();
+    await expect(card).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 20_000 });
   await expect(card.locator("p").nth(1)).not.toBeEmpty();
   await settled(page);
   await page.mouse.move(0, 0);

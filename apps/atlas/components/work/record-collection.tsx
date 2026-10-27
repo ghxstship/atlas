@@ -16,6 +16,7 @@ import {
   Select,
   TemplateCollection,
   Timeline,
+  rememberOverlayOpener,
   type RecordKind,
 } from "@xos/ui";
 import type { Route } from "next";
@@ -124,8 +125,12 @@ export function RecordCollection({
   const rowMenu = useRowMenu();
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
-  const open = (key: string) =>
+  // The page renders the peek for `?peek` after the section's loading state, which can take focus
+  // from the row; the peek hands it back to the control remembered here.
+  const open = (key: string) => {
+    rememberOverlayOpener();
     router.push(withQuery(pathname, params, { peek: key }) as Route, { scroll: false });
+  };
   const kindLabel = (kind: string) => t(`kinds.${kind}`);
   const stateLabel = (state: string) => t(`states.${state}`);
   // Schedule times follow me.time_zone_display and carry their zone abbreviation (Section 15).

@@ -14,13 +14,8 @@ import {
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { contextFor } from "@/lib/platform/action-context";
-import {
-  done,
-  field,
-  fromDataError,
-  inputError,
-  type PlatformActionState,
-} from "@/lib/platform/state";
+import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
+import { fromDataError } from "@/lib/platform/data-error";
 
 /**
  * Server actions of A83's panels on Settings, Integrations: warehouse delivery (Enterprise) and provider webhooks.

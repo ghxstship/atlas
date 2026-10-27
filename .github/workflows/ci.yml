@@ -142,8 +142,9 @@ jobs:
   e2e:
     name: Playwright ${{ matrix.suite }} (${{ matrix.app }}) (gates 6, 8)
     runs-on: ubuntu-24.04
-    # Atlas runs about 150 journeys and page checks, about 40 minutes on a laptop.
-    timeout-minutes: 90
+    # Atlas runs about 240 journeys, 40 minutes on a laptop and 80 to 95 on a hosted runner (run
+    # 40106184653 was cut off at 90 with 206 passed and none failed).
+    timeout-minutes: 150
     strategy:
       fail-fast: false
       # Journeys (gate 6) and axe on every signed-in page per role (gate 8) run on separate runners;
@@ -178,8 +179,9 @@ jobs:
         run: |
           ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
           # XOS_API_HOST: e2e/api-host.spec.ts reaches the API host by sending Host: api.localhost (RRR-119).
+          # XOS_INBOUND_DOMAIN: the project inbox journey (a84) reads the full address Project Settings shows.
           # STRIPE_*: e2e/billing-checkout.spec.ts pays on its local fake of Stripe (e2e/fake-stripe.ts), never Stripe.
-          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\nXOS_API_HOST=api.localhost\nSTRIPE_SECRET_KEY=sk_test_abcdefghij\nSTRIPE_API_URL=http://127.0.0.1:12111\n' "$ANON" > apps/atlas/.env.local
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\nXOS_API_HOST=api.localhost\nXOS_INBOUND_DOMAIN=inbound.xos.localhost\nSTRIPE_SECRET_KEY=sk_test_abcdefghij\nSTRIPE_API_URL=http://127.0.0.1:12111\n' "$ANON" > apps/atlas/.env.local
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
           echo "E2E_ATLAS_URL=http://127.0.0.1:3006" >> "$GITHUB_ENV"
           echo "E2E_API_HOST=api.localhost" >> "$GITHUB_ENV"
@@ -187,9 +189,12 @@ jobs:
           echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
           echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
           echo "E2E_INBUCKET_URL=http://127.0.0.1:55424" >> "$GITHUB_ENV"
-          # The local stack's well-known development service key; the import and report journeys
-          # run their workers against it.
+          # The local stack's well-known development keys: the import and report journeys run their
+          # workers with the service key, A79's step-up signs in with the anon key (a79-support.ts), and
+          # the automation journey signs the worker's API calls with the JWT secret (a91-automations).
+          echo "E2E_SUPABASE_ANON_KEY=$ANON" >> "$GITHUB_ENV"
           echo "E2E_SUPABASE_SERVICE_KEY=$(supabase status -o env | sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p')" >> "$GITHUB_ENV"
+          echo "E2E_SUPABASE_JWT_SECRET=$(supabase status -o env | sed -n 's/^JWT_SECRET="\(.*\)"$/\1/p')" >> "$GITHUB_ENV"
       - run: pnpm turbo run build --filter=@xos/${{ matrix.app }} ${{ matrix.app == 'gateway' && '--filter=@xos/atlas' || '' }}
       - name: Start the production server
         if: matrix.app != 'docs'

@@ -134,7 +134,10 @@ test("records: create, refuse a bad title, move through states and see every vie
     label: "What blocks it",
     value: "Truss steel is not delivered.",
   });
-  await expect(page.getByText("Truss steel is not delivered.")).toBeVisible();
+  // The record's blocked notice names the blocker (its field history repeats the change).
+  await expect(page.getByRole("status").filter({ hasText: "Blocked by" })).toContainText(
+    "Truss steel is not delivered.",
+  );
 
   // Every view of the collection shows the record.
   for (const view of ["table", "board", "calendar", "timeline", "list"]) {
@@ -143,7 +146,10 @@ test("records: create, refuse a bad title, move through states and see every vie
     await expectAccessibleView(page);
   }
   await page.goto(`/${slug}/work/all-records?view=table&state=Blocked`);
-  await expect(page.getByRole("gridcell", { name: "Install the truss" })).toBeVisible();
+  // The title cell; the row's select box is named "Select Install the truss" (bulk edit, A88).
+  await expect(
+    page.getByRole("gridcell", { name: "Install the truss", exact: true }),
+  ).toBeVisible();
   await page.goto(`/${slug}/work/by-kind`);
   await expect(page.getByRole("region", { name: "Records by kind" })).toContainText(
     "Install the truss",
@@ -189,8 +195,10 @@ test("journey 14: dependencies, a baseline, a slip and the logged replan", async
     .getByRole("form", { name: "Edit record" })
     .getByRole("button", { name: "Save" })
     .click();
-  await expect(page.getByText("Slipped 2 days")).toBeVisible();
-  await expect(page.getByText("Lift delivery moved to Monday.")).toBeVisible();
+  // The replan log's entry carries the slip and its reason (the field history repeats the reason).
+  const replan = page.getByRole("listitem").filter({ hasText: "Slipped 2 days" });
+  await expect(replan).toBeVisible();
+  await expect(replan).toContainText("Lift delivery moved to Monday.");
 
   // The timeline shows both records; the baseline shows the slip.
   await page.goto(`/${slug}/schedule/timeline`);

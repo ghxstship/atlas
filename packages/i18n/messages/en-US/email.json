@@ -76,7 +76,7 @@
     "account": {
       "security_changed": {
         "subject": "Your account security changed",
-        "body": "A security setting on your account changed: {change}. If this was not you, reset your password now."
+        "body": "{change, select, password {Your password was changed.} password_set {A password was added to your account.} password_removed {The password was removed from your account.} email {The email address you sign in with was changed.} phone {The phone number on your account was changed.} factor_added {{factorType, select, totp {An authenticator app} webauthn {A security key or passkey} phone {A phone} other {A second factor}} was added to your two-step verification.} factor_removed {{factorType, select, totp {An authenticator app} webauthn {A security key or passkey} phone {A phone} other {A second factor}} was removed from your two-step verification.} passkey_added {A passkey was added to your account.} passkey_removed {A passkey was removed from your account.} recovery_codes {A new set of recovery codes was made, and your old codes no longer work.} other {A security setting on your account changed.}} If this was not you, reset your password now."
       },
       "recovery_code_used": {
         "subject": "A recovery code was used on your account",
@@ -95,8 +95,8 @@
     },
     "import": {
       "finished": {
-        "subject": "Import finished: {title}",
-        "body": "The import {title} finished."
+        "subject": "{stage, select, validated {Import ready to review: {title}} other {Import finished: {title}}}",
+        "body": "{stage, select, validated {{title} is checked: {written, plural, one {# row is} other {# rows are}} ready to write, {refused, plural, one {# needs} other {# need}} fixing and {skipped, plural, one {# was} other {# were}} skipped. Review it, then commit the import.} other {{title} finished: {written, plural, one {# row written} other {# rows written}}, {refused, plural, one {# refused} other {# refused}} and {skipped, plural, one {# skipped} other {# skipped}}.}}"
       }
     },
     "export": {
@@ -324,9 +324,9 @@
     "download": "Download export"
   },
   "import_finished": {
-    "subject": "Import {importName} finished",
-    "heading": "Import finished",
-    "body": "{written, plural, one {# row written} other {# rows written}}, {refused, plural, one {# refused} other {# refused}} and {skipped, plural, one {# skipped} other {# skipped}}.",
+    "subject": "{stage, select, validated {Import {importName} is ready to review} other {Import {importName} finished}}",
+    "heading": "{stage, select, validated {Import ready to review} other {Import finished}}",
+    "body": "{stage, select, validated {{written, plural, one {# row is} other {# rows are}} ready to write, {refused, plural, one {# needs} other {# need}} fixing and {skipped, plural, one {# was} other {# were}} skipped. Review the rows, then commit the import.} other {{written, plural, one {# row written} other {# rows written}}, {refused, plural, one {# refused} other {# refused}} and {skipped, plural, one {# skipped} other {# skipped}}.}}",
     "review": "Review import"
   },
   "dsar_received": {
