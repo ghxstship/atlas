@@ -41,5 +41,15 @@ executionOrder:
     - profile-credentials
     - vendor-external-scan
     - multi-org-today
+    - settings-identity-profile
+    - settings-identity-privacy
+    - settings-identity-account
+    - settings-identity-security
+    - settings-identity-organizations
+    - settings-preferences
+    - settings-accessibility
+    - settings-notifications
+    - settings-out-of-office
+    - settings-work-details
     - account-delete
     - settings-sunlight-sign-out

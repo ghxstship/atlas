@@ -213,7 +213,20 @@
       "gate_queue": "Llegada a la puerta",
       "marshalling_log": "Entrada de maniobras",
       "fulfillments": "Entrega",
-      "expenses": "Gasto"
+      "expenses": "Gasto",
+      "_me_profile": "Perfil",
+      "_me_person": "Tu nombre",
+      "_me_person_skills": "Habilidad del perfil",
+      "_me_person_languages": "Idioma del perfil",
+      "_me_person_links": "Enlace del perfil",
+      "_me_person_certifications": "Certificación del perfil",
+      "_me_profile_section_visibility": "Privacidad de una sección del perfil",
+      "_me_default_org": "Organización predeterminada",
+      "_me_personal_settings": "Ajuste",
+      "_me_notification_matrix": "Opción de notificación",
+      "_me_notification_settings": "Horas de silencio y resumen",
+      "_me_party_preferences": "Opción de notificación",
+      "_me_quiet_hours": "Horas de silencio"
     },
     "punchActions": {
       "in": "Registrar entrada",

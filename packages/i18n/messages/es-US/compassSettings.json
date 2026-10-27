@@ -1,0 +1,119 @@
+{
+  "index": {
+    "device": "Este dispositivo",
+    "personal": "Tus ajustes",
+    "inGateway": "{lead} Se abre en Gateway."
+  },
+  "groups": {
+    "identity": "Tú",
+    "preferences": "Preferencias",
+    "work": "Trabajo"
+  },
+  "leads": {
+    "organizations": "Las organizaciones a las que perteneces o con las que trabajas, tu predeterminada y las cuentas de empresa."
+  },
+  "common": {
+    "offlineQueues": "Estás sin conexión. Los cambios se guardan en este teléfono y se suben cuando vuelvas a tener conexión.",
+    "offlineNeeds": "Esto necesita conexión. Conéctate y vuelve a intentarlo.",
+    "offlineFirst": "Conéctate una vez para cargar esta sección. Después también se abre sin conexión.",
+    "saved": "Guardado.",
+    "queued": "Guardado en este teléfono. Se sube cuando vuelvas a tener conexión.",
+    "loadFailed": "No se pudo cargar. Revisa tu conexión y vuelve a intentarlo.",
+    "failed": "No funcionó. Vuelve a intentarlo."
+  },
+  "profile": {
+    "facts": "Sobre ti",
+    "publicProfile": "Tu perfil de Gateway",
+    "currencyHelp": "Código de tres letras, por ejemplo USD.",
+    "searchSkills": "Buscar habilidades",
+    "noSkillMatch": "Ninguna habilidad coincide con {query}.",
+    "skillsOffline": "Para elegir una habilidad necesitas conexión.",
+    "dateHelp": "Año, mes y día, por ejemplo 2026-05-01.",
+    "expiresHelp": "Opcional. Año, mes y día."
+  },
+  "privacy": {
+    "revokeTitle": "¿Revocar lo que compartiste con {org}?",
+    "blockedTitle": "Personas y organizaciones bloqueadas",
+    "blockedIntro": "No ves publicaciones, comentarios, reconocimientos ni mensajes de quien bloqueas. Desbloquea para volver a verlos.",
+    "blockedEmpty": "No has bloqueado a nadie.",
+    "unblock": "Desbloquear",
+    "unblocked": "{name} está desbloqueado.",
+    "unblockFailed": "No se pudo desbloquear a {name}. Vuelve a intentarlo.",
+    "someone": "Alguien",
+    "organization": "Organización"
+  },
+  "account": {
+    "nameTitle": "Tu nombre",
+    "fullNameHelp": "Como lo escribes. Lo ven tus equipos y las organizaciones con las que trabajas.",
+    "saveName": "Guardar nombre",
+    "signInTitle": "Cómo inicias sesión",
+    "email": "Correo de inicio de sesión",
+    "linked": "Vinculado",
+    "providers": {
+      "email": "Correo y contraseña o enlace por correo",
+      "google": "Google",
+      "apple": "Apple",
+      "phone": "Teléfono",
+      "other": "{provider}"
+    },
+    "errors": {
+      "namePart": "Usa menos de 100 caracteres en cada nombre."
+    }
+  },
+  "security": {
+    "passwordTitle": "Contraseña",
+    "passwordBody": "Cambia la contraseña con la que inicias sesión, o crea una si inicias sesión con Google o con un enlace por correo. Te avisamos por correo y en tu Bandeja.",
+    "newPassword": "Contraseña nueva",
+    "confirmPassword": "Escríbela otra vez",
+    "passwordHelp": "Al menos 12 caracteres, con letras y números.",
+    "changePassword": "Cambiar contraseña",
+    "passwordChanged": "Tu contraseña cambió. Tus otros dispositivos siguen con la sesión iniciada; ciérrala abajo si lo necesitas.",
+    "emailCode": "Código del correo",
+    "emailCodeHelp": "Lo enviamos a {email}.",
+    "codeSent": "Iniciaste sesión hace más de un día, así que enviamos un código a {email}. Escríbelo y luego cambia tu contraseña.",
+    "resendCode": "Enviar un código nuevo",
+    "enrollSentence": "Abre tu app de autenticación con el botón de abajo, o agrégale la clave de configuración, y escribe el código de 6 dígitos que muestra.",
+    "openAuthenticator": "Abrir app de autenticación",
+    "setupKeyHelp": "Selecciónala para copiarla en tu app de autenticación.",
+    "sixDigitCode": "Código de 6 dígitos",
+    "keysInGateway": "Agrega una llave de seguridad en Gateway",
+    "keysInGatewayHelp": "Las llaves de seguridad y las llaves de acceso pertenecen a una dirección web, así que se agregan en Gateway, Ajustes, Seguridad.",
+    "passkeysInGateway": "Abre Gateway, Ajustes, Seguridad.",
+    "shareCodes": "Compartir códigos",
+    "recoveryLowOne": "Solo te queda {count} código. Crea un juego nuevo pronto.",
+    "recoveryLowOther": "Solo te quedan {count} códigos. Crea un juego nuevo pronto.",
+    "signedOutOthersNone": "No había otra sesión iniciada.",
+    "signedOutOthersOne": "Se cerró {count} sesión más.",
+    "signedOutOthersOther": "Se cerraron {count} sesiones más.",
+    "errors": {
+      "passwordLength": "Usa de 12 a 256 caracteres.",
+      "passwordRule": "Usa letras y números.",
+      "passwordContext": "No incluyas tu nombre, tu correo ni nombres de productos.",
+      "passwordMismatch": "Las dos contraseñas no coinciden.",
+      "emailCode": "Escribe el código del correo que acabamos de enviar.",
+      "samePassword": "Esa es tu contraseña actual. Elige una nueva.",
+      "weakPassword": "Esa contraseña es muy fácil de adivinar o apareció en una filtración de datos. Elige otra."
+    }
+  },
+  "stepUp": {
+    "recoverySentence": "Escribe uno de tus códigos de recuperación guardados. Cada código funciona una sola vez.",
+    "elsewhere": "Tu segundo factor es una llave de seguridad, que Compass no puede usar. Confirma que eres tú en Gateway, Ajustes, Seguridad, y haz este cambio allí."
+  },
+  "organizations": {
+    "membersTitle": "Organizaciones a las que perteneces",
+    "engagedTitle": "Organizaciones con las que trabajas",
+    "member": "Miembro",
+    "engagementsOne": "{count} contratación",
+    "engagementsOther": "{count} contrataciones",
+    "openNow": "Abierta ahora",
+    "open": "Abrir",
+    "default": "Predeterminada",
+    "makeDefault": "Hacer predeterminada",
+    "defaultHelp": "Tu organización predeterminada es en la que actúan Atlas y la API, y la que Compass abre en un teléfono que no ha abierto otra.",
+    "engagedHelp": "Estas organizaciones te contrataron. Abre una para ver su trabajo; una contratación termina con su contrato, no aquí.",
+    "left": "Saliste de {org}.",
+    "leaveAccountBody": "Pierdes el acceso a la cuenta de empresa de {org} de inmediato. Tu perfil y tus documentos siguen siendo tuyos.",
+    "accountsNone": "No perteneces a ninguna cuenta de empresa.",
+    "createInGateway": "Abre Gateway, Ajustes, Organizaciones."
+  }
+}

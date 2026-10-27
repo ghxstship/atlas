@@ -63,5 +63,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0064](0064-account-security-and-import-notices.md)                 | Account Security and Import Notices, and Only the Channels a Category Reaches    | Proposed |
 | [0065](0065-carrier-client-credentials.md)                          | UPS and FedEx Mint Their Access Tokens with the Client-Credentials Grant         | Proposed |
 | [0069](0069-compass-profile-certifications-and-documents.md)        | Compass Profile Certifications and Documents                                     | Accepted |
+| [0070](0070-compass-native-identity-settings.md)                    | Compass Native Identity Settings                                                 | Proposed |
+| [0071](0071-compass-personal-settings-part-2.md)                    | Compass Preferences, Notifications, Out of Office and Work Details               | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.

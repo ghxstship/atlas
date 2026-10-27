@@ -1,0 +1,77 @@
+appId: pro.ghxstship.compass
+# Settings, Accessibility in Compass (A111, S4.5.6-44): a member turns sounds off and chooses large text. Compass
+# applies the text size at once, the server holds both for every shell, and a fresh sign-in shows them again.
+# Named after its file: config.yaml orders flows by name.
+name: settings-accessibility
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/accessibility
+- extendedWaitUntil:
+    visible:
+      id: "setting-me.sounds"
+    timeout: 30000
+- tapOn:
+    id: "setting-me.sounds"
+- extendedWaitUntil:
+    visible:
+      id: "setting-me.sounds-write-saved"
+    timeout: 30000
+- tapOn:
+    id: "setting-me.text_size-large"
+- extendedWaitUntil:
+    visible:
+      id: "setting-me.text_size-write-saved"
+    timeout: 30000
+- runScript:
+    file: ../scripts/personal-setting-saved.js
+    env:
+      EMAIL: field@example.com
+      KEY: me.sounds
+      EXPECT: "false"
+- assertTrue: ${output.setting.status == 200 && output.setting.value == "false"}
+- runScript:
+    file: ../scripts/personal-setting-saved.js
+    env:
+      EMAIL: field@example.com
+      KEY: me.text_size
+      EXPECT: large
+- assertTrue: ${output.setting.status == 200 && output.setting.value == "large"}
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/accessibility
+- extendedWaitUntil:
+    visible:
+      id: "setting-me.text_size-source"
+    timeout: 30000
+- assertVisible:
+    id: "setting-me.text_size-source"
+    text: "Your own setting."
+# Back to the inherited values, so the seed stays as it was.
+- tapOn:
+    id: "setting-me.text_size-inherit"
+- extendedWaitUntil:
+    visible:
+      id: "setting-me.text_size-write-saved"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "setting-me.sounds-inherit"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: "setting-me.sounds-inherit"
+- extendedWaitUntil:
+    visible:
+      id: "setting-me.sounds-write-saved"
+    timeout: 30000
