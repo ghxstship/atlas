@@ -1111,7 +1111,7 @@ export const COMPASS_HELP: HelpContent = {
         slug: "profile",
         title: "Profile",
         summary:
-          "Your name, your role in Compass and, if you are engaged by organizations, your engagements.",
+          "Your name, your role, your engagements, your certifications and documents, and your Work Details.",
         kind: "page",
         nodes: ["profile"],
         order: 1,
@@ -1137,10 +1137,48 @@ export const COMPASS_HELP: HelpContent = {
           {
             t: "p",
             c: [
+              { t: "strong", v: "Certifications" },
               {
                 t: "text",
-                v: "Your certifications and the rest of your profile are in Gateway. Edit them there, under Profile.",
+                v: " lists the certifications an organization recorded for you and the ones you added to your profile, each with its issuer, whether an organization verified it, and when it expires. ",
               },
+              { t: "strong", v: "Documents" },
+              {
+                t: "text",
+                v: " lists the agreements you signed, the insurance certificates organizations keep on file for your company, and when your passport expires. Your passport number never shows.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Both read from your phone, so they work offline; they refresh whenever you are online. When something expires within 30 days, a note at the top of the card says so. The note turns amber within 7 days and red when the item expires today or tomorrow: the same points, 30, 7 and 1 days before, at which expiry reminders reach you. Each date counts on the calendar of the organization that keeps the item, or on your own for your profile entries and passport.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Tap a document with a file to open it. That needs a connection." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "To add or change a certification, tap " },
+              { t: "strong", v: "Edit in Gateway" },
+              { t: "text", v: " (or " },
+              { t: "strong", v: "Edit in Atlas" },
+              {
+                t: "text",
+                v: " if you are a member of an organization). To sign or renew documents, tap ",
+              },
+              { t: "strong", v: "Manage in Gateway" },
+              { t: "text", v: " or " },
+              { t: "strong", v: "Manage in Atlas" },
+              { t: "text", v: "." },
             ],
           },
         ],
@@ -3324,7 +3362,7 @@ export const COMPASS_HELP: HelpContent = {
         slug: "profile",
         title: "Perfil",
         summary:
-          "Tu nombre, tu rol en Compass y, si te contratan organizaciones, tus contrataciones.",
+          "Tu nombre, tu rol, tus contrataciones, tus certificaciones y documentos, y tus datos de trabajo.",
         kind: "page",
         nodes: ["profile"],
         order: 1,
@@ -3350,10 +3388,51 @@ export const COMPASS_HELP: HelpContent = {
           {
             t: "p",
             c: [
+              { t: "strong", v: "Certificaciones" },
               {
                 t: "text",
-                v: "Tus certificaciones y el resto de tu perfil están en Gateway. Edítalos allí, en Perfil.",
+                v: " muestra las certificaciones que una organización registró para ti y las que agregaste a tu perfil, cada una con quién la emite, si una organización la verificó y cuándo vence. ",
               },
+              { t: "strong", v: "Documentos" },
+              {
+                t: "text",
+                v: " muestra los acuerdos que firmaste, los certificados de seguro que las organizaciones tienen en archivo para tu empresa y cuándo vence tu pasaporte. El número de tu pasaporte nunca aparece.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Ambas se leen desde tu teléfono, así que funcionan sin conexión; se actualizan cada vez que estás en línea. Cuando algo vence en 30 días o menos, una nota arriba de la tarjeta lo indica. La nota se vuelve ámbar a 7 días o menos y roja cuando el elemento vence hoy o mañana: los mismos momentos, 30, 7 y 1 día antes, en que te llegan los recordatorios de vencimiento. Cada fecha se cuenta en el calendario de la organización que guarda el elemento, o en el tuyo para las entradas de tu perfil y tu pasaporte.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Toca un documento con archivo para abrirlo. Para eso necesitas conexión.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Para agregar o cambiar una certificación, toca " },
+              { t: "strong", v: "Editar en Gateway" },
+              { t: "text", v: " (o " },
+              { t: "strong", v: "Editar en Atlas" },
+              {
+                t: "text",
+                v: " si eres miembro de una organización). Para firmar o renovar documentos, toca ",
+              },
+              { t: "strong", v: "Administrar en Gateway" },
+              { t: "text", v: " o " },
+              { t: "strong", v: "Administrar en Atlas" },
+              { t: "text", v: "." },
             ],
           },
         ],

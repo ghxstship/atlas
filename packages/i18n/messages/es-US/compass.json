@@ -155,7 +155,9 @@
       "settlement_lines": "líneas de liquidación",
       "shared_reports": "informes compartidos",
       "sponsor_entitlements": "beneficios del patrocinador",
-      "engagement_documents": "documentos de la contratación"
+      "engagement_documents": "documentos de la contratación",
+      "profile_certifications": "tus certificaciones",
+      "profile_documents": "tus documentos"
     }
   },
   "queue": {
@@ -606,8 +608,34 @@
     "role": "Rol",
     "engagements": "Contrataciones",
     "certificationsTitle": "Certificaciones",
-    "certificationsAtlas": "Tus certificaciones se guardan en tu perfil de Atlas, donde tu organización las revisa.",
-    "certificationsGateway": "Tus certificaciones se guardan en tu perfil de Gateway, donde las organizaciones las revisan."
+    "certificationsEmpty": "Aún no hay certificaciones. Agrega las que tienes a tu perfil; las que una organización registre para ti también aparecen aquí.",
+    "documentsTitle": "Documentos",
+    "documentsEmpty": "Aún no hay documentos. Aquí aparecen los acuerdos que firmes, los certificados de seguro en archivo y el vencimiento de tu pasaporte.",
+    "verified": "Verificada",
+    "verifiedBy": "Verificada por {org}",
+    "selfReported": "Declarada por ti",
+    "expiresOn": "Vence el {date}",
+    "noExpiry": "No vence",
+    "expiresToday": "Vence hoy",
+    "expiresTomorrow": "Vence mañana",
+    "expiresInDays": "Vence en {count} días",
+    "expired": "Venció",
+    "expiring30": "Vence en 30 días o menos",
+    "expiring7": "Vence en 7 días o menos",
+    "expiring1": "Vence hoy o mañana",
+    "expiringItem": "{title} vence {when}.",
+    "whenToday": "hoy",
+    "whenTomorrow": "mañana",
+    "whenInDays": "en {count} días",
+    "passport": "Pasaporte",
+    "issuedBy": "Emitido por {country}",
+    "insuranceTitle": "Certificado de seguro: {coverage}",
+    "openOffline": "Conéctate a internet para abrir este documento.",
+    "openFailed": "Este documento no se abrió. Inténtalo de nuevo en un momento.",
+    "editInAtlas": "Editar en Atlas",
+    "editInGateway": "Editar en Gateway",
+    "manageInAtlas": "Administrar en Atlas",
+    "manageInGateway": "Administrar en Gateway"
   },
   "settings": {
     "title": "Ajustes",

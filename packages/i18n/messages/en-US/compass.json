@@ -155,7 +155,9 @@
       "settlement_lines": "settlement lines",
       "shared_reports": "shared reports",
       "sponsor_entitlements": "sponsor entitlements",
-      "engagement_documents": "engagement documents"
+      "engagement_documents": "engagement documents",
+      "profile_certifications": "your certifications",
+      "profile_documents": "your documents"
     }
   },
   "queue": {
@@ -606,8 +608,34 @@
     "role": "Role",
     "engagements": "Engagements",
     "certificationsTitle": "Certifications",
-    "certificationsAtlas": "Your certifications are kept on your profile in Atlas, where your organization checks them.",
-    "certificationsGateway": "Your certifications are kept on your Gateway profile, where organizations check them."
+    "certificationsEmpty": "No certifications yet. Add the ones you hold to your profile; certifications an organization records for you show here too.",
+    "documentsTitle": "Documents",
+    "documentsEmpty": "No documents yet. Agreements you sign, insurance certificates on file and your passport's expiry show here.",
+    "verified": "Verified",
+    "verifiedBy": "Verified by {org}",
+    "selfReported": "Self-reported",
+    "expiresOn": "Expires {date}",
+    "noExpiry": "Does not expire",
+    "expiresToday": "Expires today",
+    "expiresTomorrow": "Expires tomorrow",
+    "expiresInDays": "Expires in {count} days",
+    "expired": "Expired",
+    "expiring30": "Expiring within 30 days",
+    "expiring7": "Expiring within 7 days",
+    "expiring1": "Expiring today or tomorrow",
+    "expiringItem": "{title} expires {when}.",
+    "whenToday": "today",
+    "whenTomorrow": "tomorrow",
+    "whenInDays": "in {count} days",
+    "passport": "Passport",
+    "issuedBy": "Issued by {country}",
+    "insuranceTitle": "Insurance certificate: {coverage}",
+    "openOffline": "Connect to the internet to open this document.",
+    "openFailed": "This document did not open. Try again in a moment.",
+    "editInAtlas": "Edit in Atlas",
+    "editInGateway": "Edit in Gateway",
+    "manageInAtlas": "Manage in Atlas",
+    "manageInGateway": "Manage in Gateway"
   },
   "settings": {
     "title": "Settings",
