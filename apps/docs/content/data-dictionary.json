@@ -62550,7 +62550,7 @@
           "type": "text"
         },
         {
-          "comment": "Certificate number encrypted with pgp_sym_encrypt under the Vault key xos_supplier_certificate_number_key. Restricted (data.restricted.read.government_id): never selectable or writable by signed-in callers; set by the owner through app.set_supplier_diversity_certificate_number and read whole only through the audited app.reveal_shared_supplier_diversity_number.",
+          "comment": "Certificate number encrypted with pgp_sym_encrypt under the Vault key xos_supplier_certificate_number_key. Restricted (data.restricted.read.government_id): never selectable or writable by signed-in callers; set by the owner through app.add_supplier_diversity_certification (with the declaration) or app.set_supplier_diversity_certificate_number, and read whole only through the audited app.reveal_shared_supplier_diversity_number.",
           "name": "certificate_number",
           "nullable": true,
           "references": null,
