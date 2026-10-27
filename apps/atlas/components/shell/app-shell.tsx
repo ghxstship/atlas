@@ -7,6 +7,7 @@ import { cookies, headers } from "next/headers";
 import { negotiatedLocale } from "@/i18n/request";
 import { lockedLocale, selectableLocales } from "@/i18n/negotiate";
 import { getAiFeatures } from "@/lib/aurora/features";
+import { observability } from "@/lib/observability";
 import { getOrgWorkspaces } from "@/lib/shell/active-workspace";
 import { getMyOrganizations, type OrgContext } from "@/lib/shell/context";
 import { createItems } from "@/lib/shell/create-menu";
@@ -30,7 +31,10 @@ function orDefault<T>(
 ): T {
   if (result === null) return fallback;
   if (result.ok) return result.data;
-  console.error(`Cannot read ${what}; using the default`, result.error);
+  observability.logger.error("Cannot read a shell preference; using the default", {
+    preference: what,
+    error: result.error,
+  });
   return fallback;
 }
 

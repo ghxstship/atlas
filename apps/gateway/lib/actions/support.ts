@@ -5,6 +5,7 @@ import { ACCOUNT_SUPPORT_CATEGORIES, openAccountSupportRequest } from "@xos/data
 import { uploadSupportScreenshot } from "@xos/data/workflow";
 import { z } from "zod";
 import { getGatewayContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * Contact Support in the Gateway help panel (Section 11.16): a request to platform support about the
@@ -24,7 +25,8 @@ function errorOf(error: DataError): SupportError {
   }
   if (error.kind === "invalid") return "invalid";
   if (error.kind === "unexpected" && error.code === "42501") return "denied";
-  if (error.kind === "unexpected") console.error("Account support request failed", error);
+  if (error.kind === "unexpected")
+    observability.logger.error("Account support request failed", { error: error });
   return error.kind === "not-found" ? "denied" : "unexpected";
 }
 

@@ -1169,8 +1169,7 @@
       "term": {
         "label": "Periodo de facturación",
         "monthly": "Mensual",
-        "annual": "Anual, dos meses gratis",
-        "selected": "(seleccionado)"
+        "annual": "Anual, dos meses gratis"
       },
       "checkoutDone": "Pago recibido. {org} está en el plan {plan}.",
       "checkoutPending": "Pago recibido. Stripe lo está confirmando, y el plan que se muestra aquí se actualiza en un momento.",

@@ -275,7 +275,6 @@
     "chosen": "{departments, plural, one {# department} other {# departments}} and {disciplines, plural, one {# discipline} other {# disciplines}} in use.",
     "departments": "Departments",
     "departmentsHelp": "Clearing a department also clears its disciplines.",
-    "disciplinesOf": "{name}: {count, plural, one {# discipline} other {# disciplines}}",
     "disciplines": "Disciplines in {name}",
     "option": "{name} · {code}",
     "extensionsTitle": "Your discipline extensions",
@@ -410,13 +409,7 @@
     "description": "Apps you allowed to act for you. Each can do only what you can, in the areas you approved.",
     "none": "You have not connected any apps.",
     "registeredBy": "Registered by {org}",
-    "granted": "Allowed {date}",
-    "revokeConfirm": {
-      "title": "Disconnect {app}?",
-      "body": "The app can no longer act for you. Connect it again to give it access.",
-      "confirm": "Disconnect"
-    },
-    "toIntegrations": "Your organization's integrations"
+    "granted": "Allowed {date}"
   },
   "payout": {
     "title": "Payout details",

@@ -93,7 +93,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `pnpm exec next dev --port ${port}`,
+    // Next's own entry point through node, not `pnpm exec`: the pinned image has Node and no pnpm,
+    // and this command runs there when visual-in-container.sh finds no app at E2E_BASE_URL.
+    command: `node node_modules/next/dist/bin/next dev --port ${port}`,
     url: `${baseURL}/auth/sign-in`,
     reuseExistingServer: true,
     timeout: 180_000,

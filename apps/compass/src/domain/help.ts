@@ -53,6 +53,7 @@ export const HELP_SCREENS: Readonly<Record<string, string>> = {
   "/kiosk": "kiosk",
   "/settings": "settings",
   "/settings/account": "settings.account",
+  "/settings/profile-privacy": "settings.profile-privacy",
   "/incidents": "incidents",
   "/incidents/new": "incidents",
   "/inspections": "inspections",

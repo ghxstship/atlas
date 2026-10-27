@@ -10,7 +10,14 @@ import {
   type ReportDefinition,
 } from "./report-builder.ts";
 import { preferReplica } from "./read-replica.ts";
-import { renderReportPdf, renderReportXlsx, type ReportFileInput } from "./report-files.ts";
+import {
+  defaultWatermark,
+  renderReportPdf,
+  renderReportXlsx,
+  watermarked,
+  type DataClassification,
+  type ReportFileInput,
+} from "./report-files.ts";
 
 /**
  * The report.run worker (A35, RRR-79; migration 1050). A18 queues a report.run job for every run
@@ -19,7 +26,9 @@ import { renderReportPdf, renderReportXlsx, type ReportFileInput } from "./repor
  * level security applies), aggregates them exactly as the builder preview does, stores the file in
  * the run's format (CSV, .xlsx or PDF, migration 1126) in the private report-results bucket and
  * records the outcome. A failed attempt goes back to Queued while
- * the job has attempts left, then the run is marked Failed with its error.
+ * the job has attempts left, then the run is marked Failed with its error. A PDF whose columns
+ * classify above Internal carries the viewer's email and the time on every page (A102, migration
+ * 2030, Section 8.6).
  */
 export const REPORT_RUN_JOB = "report.run";
 export const REPORT_RESULTS_BUCKET = "report-results";
@@ -62,6 +71,14 @@ export interface ReportRunStore {
   finish(runId: string, outcome: RunOutcome): Promise<void>;
   /** Records the job attempt; answers the job's status after it (Queued means it will retry). */
   finishJob(jobId: string, succeeded: boolean, error: string | null): Promise<string>;
+  /**
+   * The highest classification among the source columns a run reads and the email of the person it runs for
+   * (app.report_run_classification), for the Section 8.6 watermark of PDF runs.
+   */
+  classification(
+    runId: string,
+    columns: readonly string[],
+  ): Promise<{ readonly classification: DataClassification; readonly viewerEmail: string | null }>;
 }
 
 export interface ResultStorage {
@@ -83,6 +100,8 @@ export interface RunLabels {
   subtitle?(input: { readonly rows: number; readonly unpriced: number; readonly at: Date }): string;
   /** The note under a table cut at the row limit. */
   readonly truncated?: string;
+  /** The Section 8.6 watermark line of a Confidential or Restricted PDF: who it is for and when. */
+  watermark?(input: { readonly email: string; readonly at: Date }): string;
 }
 
 export interface ReportRunResult {
@@ -147,9 +166,17 @@ async function renderRun(
     unpricedHeader: labels.unpriced ?? "Unpriced",
     truncatedNote: truncated ? (labels.truncated ?? null) : null,
   };
-  const body =
-    run.exportFormat === "XLSX" ? await renderReportXlsx(file) : await renderReportPdf(file);
-  return { body, rowCount, unpricedCount };
+  if (run.exportFormat === "XLSX")
+    return { body: await renderReportXlsx(file), rowCount, unpricedCount };
+  // A report PDF whose columns classify above Internal names its viewer and the time on every page.
+  const marking = await store.classification(runId, plan.select);
+  const viewer =
+    watermarked(marking.classification) && marking.viewerEmail
+      ? { email: marking.viewerEmail, at: new Date() }
+      : null;
+  const watermark =
+    viewer === null ? null : (labels.watermark?.(viewer) ?? defaultWatermark(viewer));
+  return { body: await renderReportPdf({ ...file, watermark }), rowCount, unpricedCount };
 }
 
 /** One pass of the worker: claims ready report.run jobs and runs one attempt of each. */
@@ -309,6 +336,22 @@ export function supabaseReportRunStore(
       return String(
         await call("finish_job", { p_job_id: jobId, p_succeeded: succeeded, p_error: error }),
       );
+    },
+    async classification(runId, columns) {
+      const rows = (await call("report_run_classification", {
+        p_run_id: runId,
+        p_columns: columns,
+      })) as Record<string, unknown>[] | null;
+      const row = rows?.[0];
+      const level = row?.["classification"];
+      const email = row?.["viewer_email"];
+      return {
+        classification:
+          level === "Public" || level === "Confidential" || level === "Restricted"
+            ? level
+            : "Internal",
+        viewerEmail: typeof email === "string" ? email : null,
+      };
     },
   };
 }
