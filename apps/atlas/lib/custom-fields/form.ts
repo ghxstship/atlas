@@ -1,4 +1,5 @@
 import type { CustomFieldInput, CustomFieldTable } from "@xos/data/custom-fields";
+import { observability } from "@/lib/observability";
 import type { OrgContext } from "@/lib/shell/context";
 import { saveCustomFields } from "./server";
 import type { CustomFieldProblem, CustomFieldSaveResult } from "./types";
@@ -71,7 +72,8 @@ export async function customFieldsOf(
     save: async (targetId) => {
       const saved = await saveCustomFields(ctx, { table, targetId, inputs, mode: "create" });
       // The row exists by now, so the form still opens it; its custom fields section shows what is unset.
-      if (!saved.ok) console.error(`Custom fields of a new ${table} row were not saved`, saved);
+      if (!saved.ok)
+        observability.logger.error("custom fields of a new row were not saved", { table, saved });
       return saved;
     },
   };

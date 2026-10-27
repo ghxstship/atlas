@@ -16,6 +16,7 @@ import { getOrgSettingValue } from "@xos/data/settings";
 import { listPeopleRefs } from "@xos/data/work";
 import { cache } from "react";
 import { customConditionsOf } from "@/lib/views/conditions";
+import { observability } from "@/lib/observability";
 import type { OrgContext } from "@/lib/shell/context";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import type {
@@ -41,7 +42,7 @@ const definitions = cache(
     const result = await listCustomFieldDefinitions(ctx.viewer.db, ctx.org.id, table);
     if (!result.ok) {
       // A page still works without its custom fields; the failure is logged, not shown.
-      console.error(`Custom fields of ${table} could not be read`, result.error);
+      observability.logger.error("custom fields could not be read", { table, error: result.error });
       return [];
     }
     return result.data;
@@ -160,7 +161,7 @@ export async function saveCustomFields(
   const error = written.error;
   if (error.kind === "refusal") return { ok: false, error: error.rule };
   if (error.kind === "not-found") return { ok: false, error: "denied" };
-  console.error(`Custom fields of ${input.table} could not be saved`, error);
+  observability.logger.error("custom fields could not be saved", { table: input.table, error });
   return { ok: false, error: "unexpected" };
 }
 
@@ -209,7 +210,10 @@ export async function customFieldList(
         fields.some((f) => f.dataType === "Person") ? people(ctx) : Promise.resolve([]),
       ]);
       if (!values.ok)
-        console.error(`Custom field values of ${table} could not be read`, values.error);
+        observability.logger.error("custom field values could not be read", {
+          table,
+          error: values.error,
+        });
       return {
         table,
         fields,
