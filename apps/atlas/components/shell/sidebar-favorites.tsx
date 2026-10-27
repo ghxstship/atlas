@@ -2,9 +2,11 @@
 
 import { Button, cx, Icon, iconButtonClass, sidebarClass, sidebarItemClass } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useRef, useState, type DragEvent, type KeyboardEvent, type MouseEvent } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import type { NavLinkModel } from "@/lib/shell/nav-model";
-import { reorderFavoritesAction, toggleFavoriteAction } from "@/lib/settings/favorites-actions";
+import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
+import type * as Reorder from "./favorites-reorder";
+import { onDemand } from "./on-demand";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -20,24 +22,29 @@ interface Held {
   readonly order: readonly FavoriteLink[];
 }
 
-function moveWithin(list: readonly FavoriteLink[], id: string, to: number) {
-  const from = list.findIndex((f) => f.id === id);
-  if (from < 0 || to < 0 || to >= list.length || from === to) return list;
-  const next = [...list];
-  const [moved] = next.splice(from, 1);
-  next.splice(to, 0, moved as FavoriteLink);
-  return next;
+/** What the reorder module (favorites-reorder.ts) reads and sets, current as of the last render. */
+export interface FavoritesReorderState {
+  readonly org: string;
+  readonly t: Translate;
+  readonly items: readonly FavoriteLink[];
+  readonly held: Held | null;
+  readonly setItems: (items: readonly FavoriteLink[]) => void;
+  readonly setHeld: (held: Held | null) => void;
+  readonly setAnnouncement: (text: string) => void;
+  readonly setError: (error: string | null) => void;
+  readonly handles: { readonly current: Map<string, HTMLButtonElement> };
+  readonly saves: { current: number };
 }
 
-const sameOrder = (a: readonly FavoriteLink[], b: readonly FavoriteLink[]) =>
-  a.length === b.length && a.every((f, i) => f.id === b[i]?.id);
+/** How favorites move loads the first time someone reaches for a move button or starts a drag (A24-009). */
+const reorder = onDemand(() => import("./favorites-reorder"));
 
 /**
  * The Favorites group of the Atlas sidebar (Section 4.5.2): Pin page and Unpin page for the page the person is on,
  * then their pinned pages and records in their own order. Every favorite moves by drag and by keyboard (Section
  * 11.7): its move button takes Space to pick up, the arrow keys to move, Space to drop and Esc to put back, and a
  * screen reader hears each step. A drop saves the new order at once (app.reorder_favorites) and puts the previous
- * order back if the save fails.
+ * order back if the save fails. The moving itself is favorites-reorder.ts, fetched when first needed.
  */
 export function SidebarFavorites({
   org,
@@ -67,99 +74,29 @@ export function SidebarFavorites({
   const [announcement, setAnnouncement] = useState("");
   const [error, setError] = useState<string | null>(null);
   const handles = useRef(new Map<string, HTMLButtonElement>());
-  const dragged = useRef<string | null>(null);
-  // Only the latest save may put an order back; an older one that fails was already replaced.
   const saves = useRef(0);
-
-  const announce = (step: string, list: readonly FavoriteLink[], index: number) =>
-    setAnnouncement(
-      t(`shell.chrome.favoriteOrder.${step}`, {
-        item: list[index]?.label ?? "",
-        position: index + 1,
-        count: list.length,
-      }),
+  const dragged = useRef<string | null>(null);
+  const state: FavoritesReorderState = {
+    org,
+    t,
+    items,
+    held,
+    setItems,
+    setHeld,
+    setAnnouncement,
+    setError,
+    handles,
+    saves,
+  };
+  /** Runs a step of the reorder module on this render's state, at once when the module has loaded. */
+  const run = (step: (m: typeof Reorder, s: FavoritesReorderState) => void) => {
+    const loaded = reorder.current();
+    if (loaded) return step(loaded, state);
+    reorder.load().then(
+      (m) => step(m, state),
+      (failure: unknown) => console.error("Could not load the favorites reorder", failure),
     );
-
-  const place = (next: readonly FavoriteLink[], id: string) => {
-    setItems(next);
-    requestAnimationFrame(() => handles.current.get(id)?.focus());
   };
-
-  const save = async (next: readonly FavoriteLink[], previous: readonly FavoriteLink[]) => {
-    if (sameOrder(next, previous)) return;
-    const attempt = ++saves.current;
-    setError(null);
-    const result = await reorderFavoritesAction(
-      org,
-      next.map((f) => f.favoriteId),
-    ).catch(() => ({ error: "unexpected" }));
-    if (!result.error || attempt !== saves.current) return;
-    setItems(previous);
-    const message = t("shell.chrome.favoriteOrder.failed");
-    setError(message);
-    setAnnouncement(message);
-  };
-
-  const drop = (hold: Held) => {
-    const index = items.findIndex((f) => f.id === hold.id);
-    setHeld(null);
-    announce("dropped", items, index);
-    void save(items, hold.order);
-  };
-
-  const onHandleKey = (event: KeyboardEvent<HTMLButtonElement>, id: string) => {
-    const index = items.findIndex((f) => f.id === id);
-    if (event.key === " ") {
-      event.preventDefault();
-      if (held === null) {
-        setHeld({ id, origin: index, order: items });
-        announce("picked", items, index);
-      } else {
-        drop(held);
-      }
-    } else if (held?.id === id && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
-      event.preventDefault();
-      const to = Math.max(
-        0,
-        Math.min(items.length - 1, index + (event.key === "ArrowUp" ? -1 : 1)),
-      );
-      const next = moveWithin(items, id, to);
-      place(next, id);
-      announce("moved", next, to);
-    } else if (held?.id === id && event.key === "Escape") {
-      event.preventDefault();
-      event.stopPropagation();
-      place(held.order, id);
-      setHeld(null);
-      announce("returned", held.order, held.origin);
-    }
-  };
-
-  const dragProps = (id: string, index: number) => ({
-    draggable: true,
-    onDragStart: (event: DragEvent<HTMLLIElement>) => {
-      dragged.current = id;
-      event.dataTransfer.effectAllowed = "move";
-    },
-    onDragOver: (event: DragEvent<HTMLLIElement>) => {
-      if (dragged.current === null) return;
-      event.preventDefault();
-      event.dataTransfer.dropEffect = "move";
-    },
-    onDrop: (event: DragEvent<HTMLLIElement>) => {
-      const from = dragged.current;
-      if (from === null) return;
-      event.preventDefault();
-      dragged.current = null;
-      const next = moveWithin(items, from, index);
-      setItems(next);
-      announce("dropped", next, index);
-      void save(next, items);
-    },
-    onDragEnd: () => {
-      dragged.current = null;
-    },
-  });
 
   const pinned = items.some((f) => f.href.split("?")[0] === pathname);
 
@@ -200,7 +137,31 @@ export function SidebarFavorites({
           </p>
           <ol className="m-0 p-0 list-none">
             {items.map((f, index) => (
-              <li key={f.id} {...dragProps(f.id, index)} className="flex items-center gap-2">
+              <li
+                key={f.id}
+                draggable
+                onDragStart={(event) => {
+                  dragged.current = f.id;
+                  event.dataTransfer.effectAllowed = "move";
+                  void reorder.load();
+                }}
+                onDragOver={(event) => {
+                  if (dragged.current === null) return;
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "move";
+                }}
+                onDrop={(event) => {
+                  const from = dragged.current;
+                  if (from === null) return;
+                  event.preventDefault();
+                  dragged.current = null;
+                  run((m, s) => m.dropDragged(s, from, index));
+                }}
+                onDragEnd={() => {
+                  dragged.current = null;
+                }}
+                className="flex items-center gap-2"
+              >
                 <a
                   href={f.href}
                   aria-current={f.label === active ? "page" : undefined}
@@ -226,11 +187,25 @@ export function SidebarFavorites({
                   title={t("shell.chrome.favoriteOrder.move", { item: f.label })}
                   aria-describedby="favorites-move-help"
                   aria-pressed={held?.id === f.id}
-                  onKeyDown={(event) => onHandleKey(event, f.id)}
+                  onFocus={() => void reorder.load()}
+                  onPointerEnter={() => void reorder.load()}
+                  onKeyDown={(event) => {
+                    const key = event.key;
+                    if (
+                      key !== " " &&
+                      (held?.id !== f.id || !/^(ArrowUp|ArrowDown|Escape)$/.test(key))
+                    ) {
+                      return;
+                    }
+                    event.preventDefault();
+                    // Esc puts the favorite back without closing anything around the sidebar.
+                    if (key === "Escape") event.stopPropagation();
+                    run((m, s) => m.onKey(s, key, f.id));
+                  }}
                   onBlur={(event) => {
                     // Moving the list can drop focus for a moment (no related target); leaving for another
                     // control drops the favorite where it is.
-                    if (held?.id === f.id && event.relatedTarget !== null) drop(held);
+                    if (held?.id === f.id && event.relatedTarget !== null) run((m, s) => m.drop(s));
                   }}
                   className={cx(
                     iconButtonClass("ghost"),
