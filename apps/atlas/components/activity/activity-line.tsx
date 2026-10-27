@@ -5,8 +5,23 @@ import type { Route } from "next";
 import NextLink from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Fragment } from "react";
 import type { ActivityDescription } from "./describe";
 import { peekHref as shellPeekHref } from "@/lib/shell/peek";
+
+/**
+ * What an entry acted on, each value its own text node (a key, a name, a role, a start), never one string built from
+ * them: the en-XA check (gate 16) then reads each value as the data it is, even one holding a separator itself.
+ */
+export function ActivityTarget({ parts }: { parts: readonly string[] }) {
+  return (
+    <>
+      {parts.map((part, i) => (
+        <Fragment key={i}>{part}</Fragment>
+      ))}
+    </>
+  );
+}
 
 /**
  * One activity line (A59-030): who, the verb, and the thing acted on, named in the body font (a record
@@ -41,10 +56,12 @@ export function ActivityLine({
               scroll={false}
               className="font-medium text-accent-text no-underline hover:underline"
             >
-              {description.target}
+              <ActivityTarget parts={description.targetParts} />
             </NextLink>
           ) : (
-            <span className="font-medium">{description.target}</span>
+            <span className="font-medium">
+              <ActivityTarget parts={description.targetParts} />
+            </span>
           )}
           {count > 1 ? <span className="text-text-secondary"> {t("times", { count })}</span> : null}{" "}
           <time className="text-text-secondary">{time}</time>

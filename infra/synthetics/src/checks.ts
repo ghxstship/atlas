@@ -99,7 +99,8 @@ export const gatewayHome: CheckDefinition = {
   required: true,
   runbook: `${RUNBOOK}#atlas-or-gateway-unavailable`,
   async probe(context) {
-    const response = await request(context, `${base(context.env["XOS_GATEWAY_URL"])}/`);
+    // The root redirects: signed in to /home, everyone else to sign-in. The sign-in page is what a visitor reaches.
+    const response = await request(context, `${base(context.env["XOS_GATEWAY_URL"])}/auth/sign-in`);
     const bad = expectStatus(response, 200);
     if (bad) return bad;
     const html = await response.text();

@@ -13,7 +13,8 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
-import { fromDataError, type WorkflowActionState } from "./state";
+import { fromDataError } from "./data-error";
+import type { WorkflowActionState } from "./state";
 
 /**
  * A33's settings panel actions (ADR 0021 item 7): approval policies and their steps on Settings,

@@ -13,7 +13,6 @@ import {
   type SpendDocumentType,
 } from "@xos/data/governance";
 import { requireSecondFactor } from "@xos/data/auth-assurance";
-import { revokeConnectedApp } from "@xos/data/connected-apps";
 import {
   DATA_REQUEST_MOVES,
   moveDataRequest,
@@ -486,14 +485,4 @@ export async function revokePersonalTokenAction(
   const result = await revokePersonalToken(ctx.viewer.db, id);
   revalidatePath(org(ctx, "api-keys-and-service-accounts"));
   return finish(me(ctx, "developer"), result);
-}
-
-export async function revokeConnectedAppAction(
-  _: SurfaceState,
-  form: FormData,
-): Promise<SurfaceState> {
-  const ctx = await contextFor(form);
-  const id = text(form, "id");
-  if (id === null || !UUID.test(id)) return invalid([]);
-  return finish(me(ctx, "connected-apps"), await revokeConnectedApp(ctx.viewer.db, id));
 }

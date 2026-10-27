@@ -20,8 +20,8 @@ import {
 
 /**
  * Compass settings: theme with the Sunlight outdoor theme, haptics, battery saver and low-data mode, kiosk
- * mode, sign-out and account deletion. The theme also saves to the person's me.theme setting (A30) when it
- * is one the platform knows; Sunlight is a device preference only.
+ * mode, blocked people, sign-out and account deletion. The theme also saves to the person's me.theme setting
+ * (A30) when it is one the platform knows; Sunlight is a device preference only.
  */
 export default function SettingsScreen(): ReactElement {
   const { t } = useTranslation();
@@ -123,6 +123,13 @@ export default function SettingsScreen(): ReactElement {
           title={t("compass.help.entry")}
           subtitle={t("compass.help.entryHelp")}
           onPress={() => router.push("/help")}
+        />
+        <ListRow
+          testID="settings-blocked-people"
+          icon="user-minus"
+          title={t("compass.settings.blockedPeople")}
+          subtitle={t("compass.settings.blockedPeopleHelp")}
+          onPress={() => router.push("/settings/profile-privacy")}
         />
         <ListRow
           icon="ban"

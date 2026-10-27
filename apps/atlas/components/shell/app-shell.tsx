@@ -19,6 +19,7 @@ import { PREFERENCES_COOKIE } from "@xos/ui/preferences";
 import { THEME_COOKIE, themeFromCookie } from "@/lib/theme";
 import { ReporterUser } from "./reporter-user";
 import { ShellFrame } from "./shell-frame";
+import { observability } from "@/lib/observability";
 
 /** A preference the shell can do without: read failures fall back to the default and are logged. */
 function orDefault<T>(
@@ -28,7 +29,10 @@ function orDefault<T>(
 ): T {
   if (result === null) return fallback;
   if (result.ok) return result.data;
-  console.error(`Cannot read ${what}; using the default`, result.error);
+  observability.logger.error("Cannot read a shell preference; using the default", {
+    preference: what,
+    error: result.error,
+  });
   return fallback;
 }
 

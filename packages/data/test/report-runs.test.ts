@@ -11,6 +11,7 @@ import {
   type RunLabels,
   type RunOutcome,
 } from "../src/report-runs.ts";
+import { pdfPageCount, pdfPageTexts } from "./pdf-text.ts";
 
 const definition: ReportDefinition = {
   id: "def-1",
@@ -44,12 +45,14 @@ function fakeStore(options: {
   run?: ReportRunRecord | null;
   rows?: Record<string, unknown>[] | Error;
   jobStatusOnFailure?: string;
+  classification?: "Public" | "Internal" | "Confidential" | "Restricted";
 }) {
   const calls = {
     started: [] as string[],
     finished: [] as { runId: string; outcome: RunOutcome }[],
     jobs: [] as { jobId: string; succeeded: boolean; error: string | null }[],
     rowsAsked: [] as { columns: readonly string[]; limit: number }[],
+    classified: [] as { runId: string; columns: readonly string[] }[],
   };
   const store: ReportRunStore = {
     claim: async () => [{ jobId: "job-1", runId: "run-1" }],
@@ -69,6 +72,13 @@ function fakeStore(options: {
     finishJob: async (jobId, succeeded, error) => {
       calls.jobs.push({ jobId, succeeded, error });
       return succeeded ? "Succeeded" : (options.jobStatusOnFailure ?? "Queued");
+    },
+    classification: async (runId, columns) => {
+      calls.classified.push({ runId, columns });
+      return {
+        classification: options.classification ?? "Internal",
+        viewerEmail: "carol@northwind.test",
+      };
     },
   };
   return { store, calls };
@@ -208,6 +218,55 @@ describe("the report.run worker", () => {
     expect(body.length).toBeGreaterThan(1000);
     expect(calls.finished[0]?.outcome).toMatchObject({ status: "Succeeded", unpricedCount: 1 });
     expect(resultPath("org-1", "run-1", "PDF")).toBe("org-1/run-1.pdf");
+  });
+
+  it("watermarks every page of a PDF whose columns classify above Internal (S8.6-03)", async () => {
+    const many = Array.from({ length: 160 }, (_, i) => ({
+      account_code: String(4000 + i),
+      extended_minor: 100 * i,
+      currency_code: "USD",
+    }));
+    const { store, calls } = fakeStore({
+      run: { ...run, exportFormat: "PDF" },
+      rows: many,
+      classification: "Restricted",
+    });
+    const { storage, files } = fakeStorage();
+    const mark = "Exported by carol@northwind.test on Oct 23, 2026";
+    await runReportJobs({
+      store,
+      storage,
+      labels: { ...fileLabels, watermark: ({ email }) => `Exported by ${email} on Oct 23, 2026` },
+      worker: "test",
+    });
+    expect(calls.classified).toEqual([
+      { runId: "run-1", columns: ["extended_minor", "account_code", "currency_code"] },
+    ]);
+    const body = files[0]?.body as Uint8Array;
+    const pages = pdfPageTexts(body);
+    expect(pdfPageCount(body)).toBeGreaterThan(1);
+    expect(pages).toHaveLength(pdfPageCount(body));
+    // Twice on each page: across it, and in the bottom margin.
+    for (const page of pages) expect(page.split(mark).length - 1).toBe(2);
+    // And once in the document's Keywords.
+    expect(Buffer.from(body).toString("latin1")).toMatch(/\/Keywords \d+ 0 R/);
+    expect(Buffer.from(body).toString("latin1")).toContain(`(${mark})`);
+  });
+
+  it("leaves an Internal report PDF unmarked, and never asks for .xlsx or CSV", async () => {
+    const internal = fakeStore({ run: { ...run, exportFormat: "PDF" }, rows });
+    const { storage, files } = fakeStorage();
+    await runReportJobs({ store: internal.store, storage, labels: fileLabels, worker: "test" });
+    const text = pdfPageTexts(files[0]?.body as Uint8Array).join("\n");
+    expect(text).toContain("Spend by Account");
+    expect(text).not.toContain("carol@northwind.test");
+    const xlsx = fakeStore({
+      run: { ...run, exportFormat: "XLSX" },
+      rows,
+      classification: "Restricted",
+    });
+    await runReportJobs({ store: xlsx.store, storage, labels: fileLabels, worker: "test" });
+    expect(xlsx.calls.classified).toEqual([]);
   });
 
   it("skips a job whose run is gone or already finished", async () => {

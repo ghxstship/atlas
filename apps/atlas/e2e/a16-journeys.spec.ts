@@ -192,30 +192,36 @@ test("prequalification and canon extensions are decided by someone other than th
     admin.getByRole("dialog").getByText("Approved", { exact: true }).first(),
   ).toBeVisible();
 
-  // Canon: the Admin proposes; the Admin cannot approve their own proposal; the Owner does.
-  const code = `5000.${String(50 + (Number.parseInt(id.slice(-2), 36) % 40)).padStart(2, "0")}`;
-  await admin.goto(`/${ORG}/canon/org-extensions?create=1`);
-  const propose = await peekOf(admin);
-  await propose.getByLabel("Parent").selectOption({ value: "5000" });
-  await propose.getByLabel("Code").fill(code);
-  await propose.getByLabel("Label").fill(`Pyro Effects ${id}`);
-  await propose
-    .getByLabel("Why the org needs it")
-    .fill("Pyrotechnics need their own permits and crew.");
-  await propose.getByRole("button", { name: "Propose extension" }).click();
+  // Canon: the Admin proposes; the Admin cannot approve their own proposal; the Owner does. A code
+  // canon already holds (5000.50 is one) or an earlier run proposed is refused, so the next code is
+  // tried on a fresh form.
+  const first = Number.parseInt(id.slice(-2), 36) % 40;
   const proposal = admin.getByRole("dialog", { name: new RegExp(`Pyro Effects ${id}`) });
-  const refusedOrMade = await Promise.race([
-    proposal.waitFor().then(() => "made"),
-    admin
-      .getByText("That code is already canon")
-      .waitFor()
-      .then(() => "exists"),
-    admin
-      .getByText("That value is already in use")
-      .waitFor()
-      .then(() => "taken"),
-  ]);
-  test.skip(refusedOrMade !== "made", "the generated canon code was already taken");
+  let refusedOrMade = "";
+  for (let attempt = 0; attempt < 40 && refusedOrMade !== "made"; attempt += 1) {
+    const code = `5000.${String(50 + ((first + attempt) % 40)).padStart(2, "0")}`;
+    await admin.goto(`/${ORG}/canon/org-extensions?create=1`);
+    const propose = await peekOf(admin);
+    await propose.getByLabel("Parent").selectOption({ value: "5000" });
+    await propose.getByLabel("Code").fill(code);
+    await propose.getByLabel("Label").fill(`Pyro Effects ${id}`);
+    await propose
+      .getByLabel("Why the org needs it")
+      .fill("Pyrotechnics need their own permits and crew.");
+    await propose.getByRole("button", { name: "Propose extension" }).click();
+    refusedOrMade = await Promise.race([
+      proposal.waitFor().then(() => "made"),
+      admin
+        .getByText("That code is already canon")
+        .waitFor()
+        .then(() => "exists"),
+      admin
+        .getByText("That value is already in use")
+        .waitFor()
+        .then(() => "taken"),
+    ]);
+  }
+  expect(refusedOrMade, "every code from 5000.50 to 5000.89 was refused").toBe("made");
   await expect(
     proposal.getByText("You proposed this, so someone else has to approve or reject it."),
   ).toBeVisible();
