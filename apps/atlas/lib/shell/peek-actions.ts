@@ -80,7 +80,7 @@ export async function loadShellPeekAction(
     // The command menu's recent items (Section 11.7).
     rememberView(ctx, "records", r.id),
   ]).catch((error: unknown) => {
-    console.error("Shell peek failed", error);
+    observability.logger.error("Shell peek failed", { error });
     return null;
   });
   if (read === null) return { ok: false, reason: "unexpected" };
