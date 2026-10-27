@@ -1,4 +1,4 @@
--- pgTAP: migration 1691, A103 (RRR-148), finding A65-016 part 2. No Confidential or Restricted PDF or image reaches
+-- pgTAP: migration 2041, A103 (RRR-148), finding A65-016 part 2. No Confidential or Restricted PDF or image reaches
 -- anyone unmarked: nobody reads one straight from Storage (except the org export holder with step-up, Section 14.7),
 -- an in-app download of one comes with a single-use ticket, and the file-download function's ticket consumption hands
 -- one over only to a caller that marks it (the Atlas web shell, proven by the handover secret). Files that carry no

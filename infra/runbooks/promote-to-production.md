@@ -314,11 +314,13 @@ value again.
 `select name from vault.secrets order by 1;` (names only). Expected after step 4:
 
 - created by migrations: `xos_medical_notes_key`, `xos_tax_form_key`, `xos_org_tax_identifier_key`,
-  `xos_passport_number_key`, `xos_inbound_reply_secret`;
+  `xos_passport_number_key`, `xos_inbound_reply_secret`, and, once 2010 and 2011 are pushed,
+  `xos_vendor_bank_account_key` and `xos_supplier_certificate_number_key` (ADR 0057);
 - set by the operator: `xos_worker_key`, the service role key the cron worker schedules use. It must be replaced
   in step 12.
 
-The five keys were generated in this project and never left Vault, so the demo period did not expose them. After
+The five keys were generated in this project and never left Vault, so the demo period did not expose them. The two
+A100 keys are generated the same way when their migrations run. After
 step 4 no row they encrypt remains (the demo encounters, tax forms and entities are gone), so regenerating them
 now would cost nothing, but the owner decided to keep them (ADR 0033, decision 49). No `xos_integration_*` secret
 may remain: the removal deletes the demo connections' credentials.
@@ -416,6 +418,13 @@ the branch. Rollback: point the secret and variables back.
 - Supabase advisors (`infra/security/supabase-advisors.sh`) report nothing new.
 - Synthetic checks green against production and staging.
 - The hosted Data API's exposed schemas still match `[api] schemas` in `supabase/config.toml` (step 5).
+- The account security notice triggers (migration 2050, ADR 0064) exist on staging and production. They sit on
+  Supabase Auth's tables, outside the `app` and `private` schemas (the weekly backup's `platform.sql` carries them,
+  as it does 0206's `xos_create_person`). This query lists
+  `xos_notify_security_change` on `auth.users`, `xos_notify_factor_change` on `auth.mfa_factors` and
+  `xos_notify_passkey_change` on `auth.webauthn_credentials`; a missing one means a password, second factor or
+  passkey change there tells nobody:
+  `select tgrelid::regclass, tgname from pg_trigger where tgname like 'xos_notify_%';`
 - `https://api.ghxstship.tech/` answers the JSON pointer, `https://api.ghxstship.tech/v1/openapi.json` the
   document, and `https://api.ghxstship.tech/auth/sign-in` a 404 problem with no `Set-Cookie`.
 

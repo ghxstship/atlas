@@ -1,4 +1,4 @@
--- pgTAP: migration 1690, A103 (RRR-148), finding A65-016 part 2. Uploaded PDFs carry the Section 8.6 watermark: a
+-- pgTAP: migration 2040, A103 (RRR-148), finding A65-016 part 2. Uploaded PDFs carry the Section 8.6 watermark: a
 -- Confidential PDF may be shared by link and opens with the watermark naming the recipient, an in-app download of a
 -- Confidential or Restricted PDF must carry it, an image the watermark cannot carry is refused (never sent unmarked)
 -- for links and downloads alike, and Restricted files still never get a link.
@@ -66,7 +66,7 @@ select pg_temp.clean_file('dave', 'payroll.pdf', 'application/pdf');
 insert into k select 'bob_email', null, u.email::text from auth.users u where u.id = pg_temp.id('bob_user');
 
 -- Types the watermark can carry ------------------------------------------------------------------------------------
-select ok(private.watermarkable_content_type('application/pdf'), 'a PDF can carry the watermark (1690)');
+select ok(private.watermarkable_content_type('application/pdf'), 'a PDF can carry the watermark (2040)');
 select ok(private.watermarkable_content_type('IMAGE/PNG') and private.watermarkable_content_type('image/jpeg'),
   'PNG and JPEG images still can');
 select ok(not private.watermarkable_content_type('image/webp') and not private.watermarkable_content_type('image/heic')

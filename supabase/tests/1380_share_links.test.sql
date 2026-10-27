@@ -84,7 +84,7 @@ select throws_ok($$select * from app.record_file_download((select id from k wher
   'the download log refuses the same caller');
 select pg_temp.as_user('bob');
 select is((select count(*)::int from storage.objects where bucket_id = 'attachments' and name = (select val from k where key = 'stage.png')),
-  0, 'an admin holding data.export.confidential still never reads a Confidential image from Storage: it must carry the watermark, so it leaves only through the watermarking route (1691)');
+  0, 'an admin holding data.export.confidential still never reads a Confidential image from Storage: it must carry the watermark, so it leaves only through the watermarking route (2041)');
 select results_eq($$select classification::text, watermark from app.record_file_download((select id from k where key = 'stage.png:version'))$$,
   $$values ('Confidential'::text, true)$$, 'a Confidential image download is logged and must carry the watermark');
 select pg_temp.as_platform();
@@ -164,7 +164,7 @@ select throws_ok($$select * from app.create_share_link((select id from k where k
 select throws_ok($$select * from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '45 days', false, 'ana@venue.test')$$,
   'XR001', null, 'a Confidential link expires within 30 days');
 select lives_ok($$select * from app.create_share_link((select id from k where key = 'rider.pdf'), now() + interval '7 days', true, 'ana@venue.test')$$,
-  'a Confidential PDF carries the watermark on every page since 1690, so it may be shared by link');
+  'a Confidential PDF carries the watermark on every page since 2040, so it may be shared by link');
 insert into k select 'conf', l.share_link_id, l.token || ' ' || l.access_code
 from app.create_share_link((select id from k where key = 'stage.png'), now() + interval '7 days', false, 'Ana@Venue.test') l;
 select matches((select split_part(val, ' ', 2) from k where key = 'conf'), '^[0-9]{6}$',

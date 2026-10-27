@@ -1,12 +1,12 @@
--- 1691_file_handover.sql
+-- 2041_file_handover.sql
 --
--- The file handover (ADR 0022, 1690-1699), A103 (RRR-148): finding A65-016 part 2, trace row S8.6-03. 1690 let a
+-- The file handover (ADR 0022, 2040-2049), A103 (RRR-148): finding A65-016 part 2, trace row S8.6-03. 2040 let a
 -- Confidential PDF have a share link and marked every Confidential or Restricted PDF downloaded in Atlas, but two calls
 -- outside Atlas still reached the stored bytes unmarked: a link's recipient who calls api_public.open_share_link and
 -- the file-download Edge Function directly (the ticket was the only credential), and a member holding the export
 -- capability who reads the object straight from Storage with their own session. This migration closes both:
 --   * a download ticket also serves in-app downloads now (private.file_download_tickets.person_id), and
---     app.record_file_download (latest 1690) issues one for every copy that must carry the watermark, so the web shell
+--     app.record_file_download (latest 2040) issues one for every copy that must carry the watermark, so the web shell
 --     receives those bytes only through the file-download function, never from Storage as the viewer;
 --   * app.consume_file_download_ticket (latest 1380) hands over a copy that must carry the watermark only to a caller
 --     that marks it (p_watermarks). The file-download function sets it only for the Atlas web shell, which proves itself
@@ -27,9 +27,9 @@ alter table private.file_download_tickets
 
 create index file_download_tickets_person_idx on private.file_download_tickets (person_id);
 
-comment on table private.file_download_tickets is 'Single-use handovers to the file-download Edge Function (Section 8.6): one stored object, valid 2 minutes, consumed once by app.consume_file_download_ticket. Issued by api_public.open_share_link for a share link, and by app.record_file_download for an in-app download that must carry the watermark (1691). Only the SHA-256 of the ticket is stored.';
+comment on table private.file_download_tickets is 'Single-use handovers to the file-download Edge Function (Section 8.6): one stored object, valid 2 minutes, consumed once by app.consume_file_download_ticket. Issued by api_public.open_share_link for a share link, and by app.record_file_download for an in-app download that must carry the watermark (2041). Only the SHA-256 of the ticket is stored.';
 comment on column private.file_download_tickets.share_link_id is 'Share link whose open issued the ticket; null for an in-app download.';
-comment on column private.file_download_tickets.person_id is 'Member whose in-app download issued the ticket (app.record_file_download, 1691); null for a share link.';
+comment on column private.file_download_tickets.person_id is 'Member whose in-app download issued the ticket (app.record_file_download, 2041); null for a share link.';
 comment on column private.file_download_tickets.ticket_hash is 'SHA-256 of the ticket; the ticket itself is returned once to the web shell.';
 
 -- 2. In-app downloads: a copy that must carry the watermark is handed over by ticket ----------------------------------
@@ -71,7 +71,7 @@ begin
   if v_watermark and not private.watermarkable_content_type(v_version.content_type) then
     perform private.refuse('download_watermark_unsupported', 'A Confidential or Restricted image other than a PNG or JPEG cannot carry the viewer watermark, so it cannot be downloaded.');
   end if;
-  -- The storage policy keeps the viewer from reading this object (1691), so the web shell receives it by ticket.
+  -- The storage policy keeps the viewer from reading this object (2041), so the web shell receives it by ticket.
   if v_watermark then
     delete from private.file_download_tickets t where t.expires_at < now() - interval '1 day';
     v_ticket := 'xdlt_' || encode(extensions.gen_random_bytes(32), 'hex');
@@ -86,7 +86,7 @@ begin
 end;
 $$;
 
-comment on function app.record_file_download(uuid) is 'Logs one in-app download of a file in app.file_access_log (Section 8.4, 8.6) and answers its classification, whether the copy must carry the watermark (a Confidential or Restricted PDF, PNG or JPEG), the viewer''s email for it and, for such a copy, a single-use download ticket (2 minutes) the web shell trades at the file-download Edge Function, since the storage policy keeps the viewer from reading that object directly (1691). Confidential files need data.export.confidential; Restricted files need data.export.restricted and step-up (aal2). A Confidential or Restricted image the watermark cannot carry (HEIC, WebP, GIF) is refused rather than downloaded unmarked (1690). Every other file the viewer reads from Storage, under the same capability rules.';
+comment on function app.record_file_download(uuid) is 'Logs one in-app download of a file in app.file_access_log (Section 8.4, 8.6) and answers its classification, whether the copy must carry the watermark (a Confidential or Restricted PDF, PNG or JPEG), the viewer''s email for it and, for such a copy, a single-use download ticket (2 minutes) the web shell trades at the file-download Edge Function, since the storage policy keeps the viewer from reading that object directly (2041). Confidential files need data.export.confidential; Restricted files need data.export.restricted and step-up (aal2). A Confidential or Restricted image the watermark cannot carry (HEIC, WebP, GIF) is refused rather than downloaded unmarked (2040). Every other file the viewer reads from Storage, under the same capability rules.';
 revoke all on function app.record_file_download(uuid) from public, anon;
 grant execute on function app.record_file_download(uuid) to authenticated, service_role;
 
@@ -137,7 +137,7 @@ begin
 end;
 $$;
 
-comment on function app.consume_file_download_ticket(text, boolean) is 'Service role only (the file-download Edge Function): consumes a download ticket once, within its 2 minutes, and answers the stored object to send and whether the copy must carry the watermark, by the file''s classification now. A copy that must carry it is answered only when p_watermarks says the caller marks it, which the function says only for the Atlas web shell proven by the handover secret (1691); otherwise nothing is answered and the ticket stays unused. An unknown, used or expired ticket, a deleted file, or a share link revoked since or whose file was raised to Restricted answers nothing.';
+comment on function app.consume_file_download_ticket(text, boolean) is 'Service role only (the file-download Edge Function): consumes a download ticket once, within its 2 minutes, and answers the stored object to send and whether the copy must carry the watermark, by the file''s classification now. A copy that must carry it is answered only when p_watermarks says the caller marks it, which the function says only for the Atlas web shell proven by the handover secret (2041); otherwise nothing is answered and the ticket stays unused. An unknown, used or expired ticket, a deleted file, or a share link revoked since or whose file was raised to Restricted answers nothing.';
 revoke all on function app.consume_file_download_ticket(text, boolean) from public, anon, authenticated;
 grant execute on function app.consume_file_download_ticket(text, boolean) to service_role;
 
@@ -162,6 +162,6 @@ as $$
     where v.object_name = p_object_name), false);
 $$;
 
-comment on function private.attachment_download_allowed(text) is 'True when the caller''s capabilities allow downloading the file an object belongs to straight from Storage (Section 8.6): any Public or Internal file, a Confidential file with data.export.confidential, a Restricted file with data.export.restricted and step-up (aal2). A Confidential or Restricted PDF or image, which must carry the viewer watermark, is never read directly (1691): the web shell receives it by ticket and marks it; only the org export holder (org.organization.delete) with step-up reads the original, for the full export of Section 14.7. Visibility of the file itself is private.attachment_object_readable''s job.';
+comment on function private.attachment_download_allowed(text) is 'True when the caller''s capabilities allow downloading the file an object belongs to straight from Storage (Section 8.6): any Public or Internal file, a Confidential file with data.export.confidential, a Restricted file with data.export.restricted and step-up (aal2). A Confidential or Restricted PDF or image, which must carry the viewer watermark, is never read directly (2041): the web shell receives it by ticket and marks it; only the org export holder (org.organization.delete) with step-up reads the original, for the full export of Section 14.7. Visibility of the file itself is private.attachment_object_readable''s job.';
 revoke all on function private.attachment_download_allowed(text) from public, anon;
 grant execute on function private.attachment_download_allowed(text) to authenticated, service_role;

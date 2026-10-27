@@ -2,7 +2,8 @@ import { fetchTicketFile, openShareLink, SHARE_TOKEN } from "@xos/data/share-lin
 import { isLocale } from "@xos/i18n";
 import { getLocale } from "next-intl/server";
 import { env } from "@/lib/env";
-import { copyForViewer, fileResponse } from "@/lib/files/deliver";
+import { copyForViewer, copyRecordUrl, fileResponse } from "@/lib/files/deliver";
+import { observability } from "@/lib/observability";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
@@ -12,8 +13,10 @@ import { createServerSupabase } from "@/lib/supabase/server";
  * Function trades for the bytes. A Confidential PDF goes out with the recipient's email and the time
  * on every page, and a PNG or JPEG as a PDF carrying them (A103); a file that cannot carry them is
  * refused, never sent unmarked. The function hands such a file only to this shell, which sends the
- * handover secret (1691), so a recipient who calls it directly gets nothing. Anything else goes out
- * as stored. A refusal returns to the page with its reason.
+ * handover secret (2041), so a recipient who calls it directly gets nothing. Anything else goes out
+ * as stored. A refusal returns to the page with its reason. Failures go to the redacting logger,
+ * never the console, so neither the token nor the ticket reaches a log (A69-012), and a watermarked
+ * copy links to the file in Atlas, never to this link (A69-013).
  */
 export async function POST(
   request: Request,
@@ -37,14 +40,19 @@ export async function POST(
     accessCode: code === "" ? null : code,
   });
   if (!opened.ok) {
-    console.error("share link open failed", opened.error);
+    observability.logger.error("share link open failed", {
+      route: "/share/[token]/file",
+      error: opened.error,
+    });
     return new Response(null, { status: 500 });
   }
   if (opened.data.refused) return back(opened.data.reason);
 
   const config = env();
   if (opened.data.watermark && config.XOS_FILE_HANDOVER_SECRET === undefined) {
-    console.error("file handover is not set up: XOS_FILE_HANDOVER_SECRET is unset");
+    observability.logger.error("file handover is not set up: XOS_FILE_HANDOVER_SECRET is unset", {
+      route: "/share/[token]/file",
+    });
     return back("share_link_unavailable");
   }
   const file = await fetchTicketFile(`${config.SUPABASE_URL}/functions/v1`, opened.data.ticket, {
@@ -52,10 +60,18 @@ export async function POST(
   });
   if (!file.ok) {
     if (opened.data.watermark) {
-      console.error("share link file handover failed", file.error);
+      observability.logger.error("share link file handover failed", {
+        route: "/share/[token]/file",
+        error: file.error,
+      });
       return back("share_link_unavailable");
     }
-    if (file.error.kind !== "not-found") console.error("share link file failed", file.error);
+    if (file.error.kind !== "not-found") {
+      observability.logger.error("share link file failed", {
+        route: "/share/[token]/file",
+        error: file.error,
+      });
+    }
     return back("share_link_invalid");
   }
   const negotiated = await getLocale();
@@ -67,11 +83,15 @@ export async function POST(
     viewerEmail: opened.data.recipientEmail,
     orgName: opened.data.orgName,
     locale: isLocale(negotiated) ? negotiated : "en-US",
-    sourceUrl: new URL(`/share/${token}`, config.ATLAS_SITE_URL).toString(),
+    sourceUrl: copyRecordUrl(opened.data.versionId, config.ATLAS_SITE_URL),
   });
   if (!copy.ok) {
     if (copy.reason !== "unsupported") {
-      console.error("share link watermark failed", copy.reason, copy.detail ?? "");
+      observability.logger.error("share link watermark failed", {
+        route: "/share/[token]/file",
+        reason: copy.reason,
+        detail: copy.detail ?? "",
+      });
     }
     return back("share_link_watermark_unsupported");
   }

@@ -1,4 +1,4 @@
-// File handover (Section 8.6, finding A65-016; migrations 1380 and 1691). A visitor who opens a share link has no
+// File handover (Section 8.6, finding A65-016; migrations 1380 and 2041). A visitor who opens a share link has no
 // session, so api_public.open_share_link answers a single-use download ticket instead of the file; an in-app download
 // of a copy that must carry the watermark gets one from app.record_file_download, since the storage policy keeps the
 // viewer from reading that object. The web shell POSTs the ticket here; this function consumes it with the service

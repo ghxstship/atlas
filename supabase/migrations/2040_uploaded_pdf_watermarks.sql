@@ -1,6 +1,6 @@
--- 1690_uploaded_pdf_watermarks.sql
+-- 2040_uploaded_pdf_watermarks.sql
 --
--- Watermarked uploaded PDFs (ADR 0022, 1690-1699), A103 (RRR-148): finding A65-016 part 2, trace row S8.6-03. Section 8.6
+-- Watermarked uploaded PDFs (ADR 0022, 2040-2049), A103 (RRR-148): finding A65-016 part 2, trace row S8.6-03. Section 8.6
 -- puts the viewer's email and the time on every Confidential and Restricted PDF and image. 1380 could mark only PNG and
 -- JPEG images, which the web shell renders through the ADR 0031 pipeline, so an uploaded Confidential or Restricted PDF
 -- downloaded in Atlas went out as stored (app.record_file_download answered watermark false) and a Confidential PDF could
@@ -27,7 +27,7 @@ as $$
   select lower(coalesce(p_content_type, '')) in ('application/pdf', 'image/png', 'image/jpeg');
 $$;
 
-comment on function private.watermarkable_content_type(text) is 'True for the types a watermark can be applied to: a PDF, stamped page by page with the viewer email and time (1690), and PNG and JPEG images, delivered as a tagged PDF carrying them (1380).';
+comment on function private.watermarkable_content_type(text) is 'True for the types a watermark can be applied to: a PDF, stamped page by page with the viewer email and time (2040), and PNG and JPEG images, delivered as a tagged PDF carrying them (1380).';
 revoke all on function private.watermarkable_content_type(text) from public, anon, authenticated;
 
 -- 2. Share links: a Confidential PDF may have one ----------------------------------------------------------------------
@@ -124,7 +124,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_share_link() is 'Share links: the database copies the file''s org, classification and current Clean version, applies the Section 8.6 rules (no Restricted file; Internal needs an expiry; Confidential needs data.export.confidential, an expiry within 30 days, an access code, the recipient''s email and a type the watermark can carry: a PDF, PNG or JPEG since 1690), draws the token and the code, stores only their hashes and logs Share Link Created. Afterwards a link changes only inside the open and revoke RPCs.';
+comment on function private.guard_share_link() is 'Share links: the database copies the file''s org, classification and current Clean version, applies the Section 8.6 rules (no Restricted file; Internal needs an expiry; Confidential needs data.export.confidential, an expiry within 30 days, an access code, the recipient''s email and a type the watermark can carry: a PDF, PNG or JPEG since 2040), draws the token and the code, stores only their hashes and logs Share Link Created. Afterwards a link changes only inside the open and revoke RPCs.';
 revoke all on function private.guard_share_link() from public, anon, authenticated;
 
 -- 3. In-app downloads: never answered without a watermark they need ---------------------------------------------------
@@ -170,6 +170,6 @@ begin
 end;
 $$;
 
-comment on function app.record_file_download(uuid) is 'Logs one in-app download of a file in app.file_access_log (Section 8.4, 8.6) and answers its classification, whether the copy must carry the watermark (a Confidential or Restricted PDF, PNG or JPEG) and the viewer''s email for it. Confidential files need data.export.confidential; Restricted files need data.export.restricted and step-up (aal2). A Confidential or Restricted image the watermark cannot carry (HEIC, WebP, GIF) is refused rather than downloaded unmarked (1690). The storage policy holds the download itself to the same capability rules.';
+comment on function app.record_file_download(uuid) is 'Logs one in-app download of a file in app.file_access_log (Section 8.4, 8.6) and answers its classification, whether the copy must carry the watermark (a Confidential or Restricted PDF, PNG or JPEG) and the viewer''s email for it. Confidential files need data.export.confidential; Restricted files need data.export.restricted and step-up (aal2). A Confidential or Restricted image the watermark cannot carry (HEIC, WebP, GIF) is refused rather than downloaded unmarked (2040). The storage policy holds the download itself to the same capability rules.';
 revoke all on function app.record_file_download(uuid) from public, anon;
 grant execute on function app.record_file_download(uuid) to authenticated, service_role;

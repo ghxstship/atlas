@@ -5,7 +5,7 @@ import { twoPagePdf, watermarks } from "./fixtures/pdf";
 /**
  * The two routes that deliver classified files (Section 8.6, finding A65-016; A103). A copy that
  * must carry the watermark comes from the file-download function only with the handover secret
- * (1691); without it, or when the copy cannot carry the mark, the route refuses in the reader's
+ * (2041); without it, or when the copy cannot carry the mark, the route refuses in the reader's
  * language and never sends the stored bytes.
  */
 const SECRET = "h".repeat(64);

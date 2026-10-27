@@ -16,7 +16,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  *   PDFs and images are watermarked by the web shell before the visitor gets them (A103).
  * - {@link recordFileDownload} logs an in-app download of a classified file and says whether the copy
  *   needs the watermark; a copy that does comes with a ticket too, because the storage policy keeps
- *   the viewer from reading it directly (1691).
+ *   the viewer from reading it directly (2041).
  * - The function hands a copy that must carry the watermark only to the web shell, which proves itself
  *   with the handover secret (XOS_FILE_HANDOVER_SECRET); anyone else holding a ticket gets nothing.
  */
@@ -218,7 +218,7 @@ export const SHARE_LINK_REFUSALS = [
   "share_link_rate_limited",
   // Answered by the web shell, not the database: the file must carry the watermark and cannot (A103).
   "share_link_watermark_unsupported",
-  // Answered by the web shell: the handover of a copy that must carry the watermark is not set up (1691).
+  // Answered by the web shell: the handover of a copy that must carry the watermark is not set up (2041).
   "share_link_unavailable",
 ] as const;
 
@@ -236,6 +236,11 @@ export interface OpenedShareLink {
   readonly watermark: boolean;
   readonly recipientEmail: string | null;
   readonly expiresAt: string | null;
+  /**
+   * The opened file version. A watermarked copy links to /files/{version}, which opens only for a
+   * member who may see the file, never to the share link itself (A69-013). Null until migration 2000.
+   */
+  readonly versionId: string | null;
 }
 
 export type ShareLinkOpen =
@@ -278,6 +283,7 @@ export async function openShareLink(
     watermark: boolean | null;
     recipient_email: string | null;
     expires_at: string | null;
+    attachment_version_id?: string | null;
   } | null;
   if (!row || row.refusal !== null || !row.ticket) {
     const reason = (SHARE_LINK_REFUSALS as readonly string[]).includes(row?.reason ?? "")
@@ -296,6 +302,7 @@ export async function openShareLink(
     watermark: row.watermark ?? false,
     recipientEmail: row.recipient_email,
     expiresAt: row.expires_at,
+    versionId: row.attachment_version_id ?? null,
   });
 }
 
@@ -354,7 +361,7 @@ export interface FileDownload {
   readonly viewerEmail: string | null;
   /**
    * For a copy that must carry the watermark, the single-use ticket {@link fetchTicketFile} trades for
-   * the bytes: the storage policy keeps the viewer from reading that object directly (1691).
+   * the bytes: the storage policy keeps the viewer from reading that object directly (2041).
    */
   readonly ticket: string | null;
 }

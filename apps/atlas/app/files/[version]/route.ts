@@ -3,7 +3,8 @@ import { getMessages, isLocale } from "@xos/i18n";
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import { env } from "@/lib/env";
-import { copyForViewer, fileResponse } from "@/lib/files/deliver";
+import { copyForViewer, copyRecordUrl, fileResponse } from "@/lib/files/deliver";
+import { observability } from "@/lib/observability";
 import { getViewer } from "@/lib/shell/context";
 
 /**
@@ -12,7 +13,7 @@ import { getViewer } from "@/lib/shell/context";
  * Restricted) by app.record_file_download and by the attachments storage policy itself. A PDF goes
  * out with the viewer's email and the time on every page, and a PNG or JPEG as a PDF carrying them
  * (A103); a file that cannot carry them is refused, never sent unmarked. The viewer cannot read such
- * a file from Storage (1691): the download comes with a ticket, which the file-download Edge Function
+ * a file from Storage (2041): the download comes with a ticket, which the file-download Edge Function
  * honors only for this shell, holding the handover secret. Anyone who cannot see the file gets 404
  * (ADR 0003); a member who sees it without the capability is told why.
  */
@@ -53,14 +54,20 @@ export async function GET(
   let watermark = logged.data.watermark;
   if (logged.data.ticket !== null) {
     if (config.XOS_FILE_HANDOVER_SECRET === undefined) {
-      console.error("file handover is not set up: XOS_FILE_HANDOVER_SECRET is unset");
+      observability.logger.error("file handover is not set up: XOS_FILE_HANDOVER_SECRET is unset", {
+        route: "/files/[version]",
+      });
       return refuse("download_watermark_unavailable");
     }
     const file = await fetchTicketFile(`${config.SUPABASE_URL}/functions/v1`, logged.data.ticket, {
       handoverSecret: config.XOS_FILE_HANDOVER_SECRET,
     });
     if (!file.ok) {
-      console.error("file handover failed", version.id, file.error);
+      observability.logger.error("file handover failed", {
+        route: "/files/[version]",
+        versionId: version.id,
+        error: file.error,
+      });
       return refuse("download_watermark_unavailable");
     }
     bytes = file.data.bytes;
@@ -83,11 +90,16 @@ export async function GET(
     viewerEmail: logged.data.viewerEmail ?? viewer.email,
     orgName: org?.name ?? "",
     locale,
-    sourceUrl: new URL(`/files/${version.id}`, config.ATLAS_SITE_URL).toString(),
+    sourceUrl: copyRecordUrl(version.id, config.ATLAS_SITE_URL),
   });
   if (!copy.ok) {
     if (copy.reason !== "unsupported") {
-      console.error("watermark failed", version.id, copy.reason, copy.detail ?? "");
+      observability.logger.error("watermark failed", {
+        route: "/files/[version]",
+        versionId: version.id,
+        reason: copy.reason,
+        detail: copy.detail ?? "",
+      });
     }
     return refuse("download_watermark_unsupported");
   }
