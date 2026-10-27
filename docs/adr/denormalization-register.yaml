@@ -117,6 +117,15 @@ derived:
     refresh: Replaced whole on every SCIM sync by `app.scim_provision`; roles and teams are re-derived from `app.scim_group_mappings` on each sync, so the array is a payload snapshot, never edited (A22-009)
     reason: The provider owns group membership; storing its last answer lets support see what the provider sent without a junction table that would only mirror it
     adr: "0002"
+  - objects:
+      - app.org_legal_entities.tax_identifier_last4
+      - app.person_work_details.passport_number_last4
+      - app.supplier_diversity_certifications.certificate_number_last4
+      - app.vendor_bank_accounts.account_last4
+    source: The last four letters or digits of the number encrypted in the same row (`tax_identifier`, `passport_number`, `certificate_number`, `account_number`)
+    refresh: Written only with the ciphertext, by the encrypting RPC (`app.set_org_legal_entity_tax_identifier`, `app.set_my_passport_number`, `app.set_supplier_diversity_certificate_number`, `app.set_vendor_bank_account`); each table's guard trigger refuses a write of either outside it (1200, 1340, 2010, 2011)
+    reason: The number is Restricted and encrypted under a Vault key no signed-in caller holds, so the last four cannot be computed when a row is read; readers tell records apart by it, as the v1 API's `account_last4` does (ADR 0057)
+    adr: "0057"
 
 # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
 # never follows a foreign key made only of them.
@@ -474,6 +483,30 @@ restated:
     parent: app.time_entries.shift_id
     kind: own
     note: Shift worked, when there is one; the time entry is linked later.
+  - column: app.content_reports.author_person_id
+    parent: app.comments.author_person_id
+    kind: fact
+    note: "Author of the item as reported, the one column naming the author of a post (through its membership), a comment or a message alike; `app.report_content` sets it from the item, the comment's author never changes (`private.guard_comment`), and the report goes with the item. The policies and `content_reports_not_own` read it so an author never sees a report about their own content (1630)."
+  - column: app.content_reports.author_person_id
+    parent: app.content_moderation_decisions.author_person_id
+    kind: own
+    note: The report names the author when it is filed; the decision link is optional and set only once a moderator decides.
+  - column: app.content_reports.chat_message_id
+    parent: app.content_moderation_decisions.chat_message_id
+    kind: own
+    note: The message reported, needed before any decision; the decision names it by id without a foreign key, so it outlives the message.
+  - column: app.content_reports.comment_id
+    parent: app.content_moderation_decisions.comment_id
+    kind: own
+    note: The comment reported, needed before any decision; the decision names it by id without a foreign key.
+  - column: app.content_reports.feed_post_id
+    parent: app.content_moderation_decisions.feed_post_id
+    kind: own
+    note: The post reported, needed before any decision; the decision names it by id without a foreign key.
+  - column: app.content_reports.subject_kind
+    parent: app.content_moderation_decisions.subject_kind
+    kind: own
+    note: What was reported, needed before any decision; the decision link is optional.
   - column: app.correction_state_transitions.reason
     parent: app.time_entry_corrections.reason
     kind: own
