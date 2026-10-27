@@ -34,6 +34,48 @@ const entry = {
 };
 
 describe("evaluateAudit", () => {
+  it("accepts a version-scoped entry only while every vulnerable version is one it names", () => {
+    const zod = (...versions: string[]): PnpmAdvisory => ({
+      ...advisory("GHSA-mrhx-c7xc-m3w5", "zod", "high"),
+      findings: versions.map((version) => ({
+        version,
+        paths: ["apps__compass>expo>@expo/cli>zod"],
+      })),
+    });
+    const scoped: Allowlist = {
+      advisories: [{ ...entry, id: "GHSA-mrhx-c7xc-m3w5", package: "zod", versions: ["3.25.76"] }],
+    };
+    const onlyTheTool = evaluateAudit(
+      { production: reportOf(zod("3.25.76")), tree: {} },
+      scoped,
+      "2026-10-24",
+    );
+    expect(onlyTheTool.accepted.map((f) => f.versions)).toEqual([["3.25.76"]]);
+    expect(auditPasses(onlyTheTool)).toBe(true);
+    // A shipped dependency back at a vulnerable 4.x is not covered by the entry for the build tool's 3.x.
+    const regressed = evaluateAudit(
+      { production: reportOf(zod("3.25.76", "4.6.5")), tree: {} },
+      scoped,
+      "2026-10-24",
+    );
+    expect(regressed.failures.map((f) => [f.package, f.versions])).toEqual([
+      ["zod", ["3.25.76", "4.6.5"]],
+    ]);
+    expect(regressed.stale).toEqual([]);
+    expect(auditPasses(regressed)).toBe(false);
+  });
+
+  it("refuses an entry whose versions list is empty", () => {
+    const result = evaluateAudit(
+      { production: {}, tree: {} },
+      { advisories: [{ ...entry, versions: [] }] },
+      "2026-10-24",
+    );
+    expect(result.invalid).toEqual([
+      "GHSA-86w9-cpqp-85rv: versions, when given, lists at least one version",
+    ]);
+  });
+
   it("fails on a production advisory of any severity", () => {
     const result = evaluateAudit(
       { production: reportOf(advisory("GHSA-2222-3333-4444", "left-pad", "low")), tree: {} },

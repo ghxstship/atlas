@@ -45,6 +45,8 @@ const CORE_ONLY: readonly string[] = [
  */
 const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "api-token": { boot: [], lazy: [] },
+  // ADR 0033 decision 58: the client secret is Web Crypto, Apple and Supabase Auth are plain fetch.
+  "apple-revoke": { boot: [], lazy: [] },
   "automation-run": { boot: ["@supabase/supabase-js", "zod"], lazy: [] },
   "email-unsubscribe": { boot: [], lazy: [] },
   "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
@@ -87,12 +89,16 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
  */
 const BOOT_BUDGET_KB: Record<string, number> = {
   "api-token": 70,
+  // ADR 0033 decision 58: the shared core and the revocation module (about 10 KB).
+  "apple-revoke": 75,
   "automation-run": 100,
   "email-unsubscribe": 64,
   "file-download": 64,
   "fx-rates-ecb": 64,
   "import-run": 120,
-  "inbound-email": 64,
+  // RRR-139: Resend's inbound mail (signature check, Receiving API, HTML to text, the raw copy) is about 16 KB of
+  // the 64 it reached on 2026-10-24, once the shared stores chunk gained Checkout's RPC.
+  "inbound-email": 80,
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,

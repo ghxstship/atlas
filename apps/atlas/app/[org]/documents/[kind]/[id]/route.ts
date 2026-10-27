@@ -11,6 +11,7 @@ import { getLocale } from "next-intl/server";
 import { atlasRecordPath } from "@/lib/documents/links";
 import { env } from "@/lib/env";
 import { getOrgContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * A generated document as tagged PDF/UA-1 (Section 11.9, ADR 0031): the record is read with the
@@ -50,7 +51,7 @@ export async function GET(
   });
   if (!result.ok) {
     if (result.error.kind === "not-found") return new Response(null, { status: 404 });
-    console.error("document generation failed", kind, result.error);
+    observability.logger.error("document generation failed", { kind, error: result.error });
     return new Response(null, { status: 500 });
   }
   return new Response(result.data.bytes as unknown as BodyInit, {

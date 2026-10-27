@@ -102,31 +102,27 @@ export async function DepartmentsPanel({ ctx }: SettingsPanelProps) {
               (x) => x.departmentCode === d.code && !x.isExtension,
             );
             if (own.length === 0) return null;
+            // One closed group per department, so the page shows summaries rather than every discipline (gate 27).
             return (
-              <details key={d.code} className="rounded-card border border-border-subtle px-12 py-8">
-                <summary className="cursor-pointer text-text-13 font-medium">
-                  {f.t(`${P}.departments.disciplinesOf`, { name: d.name, count: own.length })}
-                </summary>
-                <div className="pt-12">
-                  <SaveBarFields
-                    formId={`disciplines-${d.code}`}
-                    fields={[
-                      {
-                        kind: "checkboxes",
-                        name: "disciplines",
-                        label: f.t(`${P}.departments.disciplines`, { name: d.name }),
-                        options: own.map((x) => ({
-                          value: x.code,
-                          label: f.t(`${P}.departments.option`, { name: x.name, code: x.code }),
-                        })),
-                        defaultValues: inUse.data.disciplines.filter((c) =>
-                          own.some((x) => x.code === c),
-                        ),
-                      },
-                    ]}
-                  />
-                </div>
-              </details>
+              <SaveBarFields
+                key={d.code}
+                formId={`disciplines-${d.code}`}
+                fields={[
+                  {
+                    kind: "checkboxes",
+                    name: "disciplines",
+                    label: f.t(`${P}.departments.disciplines`, { name: d.name }),
+                    options: own.map((x) => ({
+                      value: x.code,
+                      label: f.t(`${P}.departments.option`, { name: x.name, code: x.code }),
+                    })),
+                    defaultValues: inUse.data.disciplines.filter((c) =>
+                      own.some((x) => x.code === c),
+                    ),
+                    closed: true,
+                  },
+                ]}
+              />
             );
           })}
         </SaveBarForm>

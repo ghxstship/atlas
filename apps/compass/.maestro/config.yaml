@@ -34,6 +34,7 @@ executionOrder:
     - supervisor-kiosk
     - supervisor-kiosk-rekey
     - field-expense-receipt
+    - field-report-block
     - crew-external-today
     - crew-external-work
     - vendor-external-scan
@@ -43,6 +44,11 @@ executionOrder:
     - settings-identity-account
     - settings-identity-security
     - settings-identity-organizations
+    - settings-preferences
+    - settings-accessibility
+    - settings-notifications
+    - settings-out-of-office
+    - settings-work-details
     - settings-payout-and-tax
     - settings-calendar-feeds
     - settings-connected-apps

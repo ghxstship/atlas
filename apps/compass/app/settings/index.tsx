@@ -48,7 +48,7 @@ function usePersonalTokens(): boolean {
  * mode, biometric unlock and kiosk mode. The theme also saves to the person's me.theme setting (A30) when it is
  * one the platform knows; Sunlight is a device preference only. Then the person's own settings (Section 4.5.6,
  * src/settings/sections.ts): the sitemap's 14 sections by group, each opening its Compass screen or, until
- * Compass draws it, the same section in Gateway. Then help, account deletion and sign-out.
+ * Compass draws it, the same section in Gateway. Then help, blocked people, account deletion and sign-out.
  */
 export default function SettingsScreen(): ReactElement {
   const { t } = useTranslation();
@@ -188,6 +188,13 @@ export default function SettingsScreen(): ReactElement {
           title={t("compass.help.entry")}
           subtitle={t("compass.help.entryHelp")}
           onPress={() => router.push("/help")}
+        />
+        <ListRow
+          testID="settings-blocked-people"
+          icon="user-minus"
+          title={t("compass.settings.blockedPeople")}
+          subtitle={t("compass.settings.blockedPeopleHelp")}
+          onPress={() => router.push("/settings/profile-privacy")}
         />
         <ListRow
           icon="ban"

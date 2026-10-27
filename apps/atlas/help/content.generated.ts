@@ -431,7 +431,13 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Spaces for crews and departments, direct messages, shout-outs and internal help requests.",
         kind: "page",
-        nodes: ["people.groups", "people.chat", "people.recognition", "people.help-desk"],
+        nodes: [
+          "people.groups",
+          "people.chat",
+          "people.recognition",
+          "people.help-desk",
+          "people.moderation",
+        ],
         order: 36,
       },
       {
@@ -875,7 +881,13 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Espacios para equipos y departamentos, mensajes directos, reconocimientos y solicitudes de ayuda internas.",
         kind: "page",
-        nodes: ["people.groups", "people.chat", "people.recognition", "people.help-desk"],
+        nodes: [
+          "people.groups",
+          "people.chat",
+          "people.recognition",
+          "people.help-desk",
+          "people.moderation",
+        ],
         order: 36,
       },
       {

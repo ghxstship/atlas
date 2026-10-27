@@ -104,6 +104,47 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "blocked-people",
+        title: "Blocked people",
+        summary: "Who you blocked, what a block hides, and how to unblock someone.",
+        kind: "page",
+        nodes: ["settings.profile-privacy"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Blocked People lists everyone you blocked. You block someone from the three dots on their post, message or shout-out.",
+              },
+            ],
+          },
+          { t: "h2", v: "What a block hides" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Their posts, comments on posts, shout-outs and messages, in every conversation, and the notifications about them. A post that asks you to acknowledge it still shows. In the directory you each see the other by name only, without a preferred name or headline. They are not told, and their work with you carries on as before.",
+              },
+            ],
+          },
+          { t: "h2", v: "Unblock" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Choose " },
+              { t: "strong", v: "Unblock" },
+              {
+                t: "text",
+                v: " next to the name. Their posts and messages show again. Unblocking needs a connection.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "client-reports",
         title: "Reports",
         summary: "The reports an organization shared with its client, listed in Compass.",
@@ -416,6 +457,15 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: "Type your sign-in email, confirm it is you, then hold " },
               { t: "strong", v: "Delete My Account" },
               { t: "text", v: " for 2 seconds." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "If you sign in with Apple, Compass shows Apple's sheet once more, so it can stop using your Apple Account. If it cannot, your account is still deleted, and Compass tells you to remove it from Sign in with Apple in your Apple Account settings.",
+              },
             ],
           },
         ],
@@ -1340,6 +1390,64 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "settings-accessibility",
+        title: "Accessibility",
+        summary:
+          "Text size, high contrast, motion, haptics, sounds and captions, the same in Atlas, Gateway and Compass.",
+        kind: "page",
+        nodes: ["settings.accessibility"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Settings, Accessibility holds the accessibility settings Atlas, Gateway and Compass share.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Text size" },
+                { t: "text", v: ": Default, Large or Larger. Compass changes its text at once." },
+              ],
+              [
+                { t: "strong", v: "High contrast" },
+                { t: "text", v: " and " },
+                { t: "strong", v: "Motion" },
+                { t: "text", v: ": Compass applies both at once." },
+              ],
+              [
+                { t: "strong", v: "Haptics" },
+                { t: "text", v: ": a tap you can feel when an action lands." },
+              ],
+              [
+                { t: "strong", v: "Sounds" },
+                { t: "text", v: ": the camera's shutter sound and other sounds." },
+              ],
+              [
+                { t: "strong", v: "Captions" },
+                { t: "text", v: " is saved, but not in effect yet." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Once you have opened Accessibility online, it opens without a connection too. Changes save on this phone and upload when you're back online; the Offline Queue lists them. ",
+              },
+              { t: "strong", v: "Use the inherited value" },
+              { t: "text", v: " drops your own choice." },
+            ],
+          },
+        ],
+      },
+      {
         slug: "settings-account",
         title: "Your account",
         summary:
@@ -1537,6 +1645,97 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "settings-notifications",
+        title: "Notifications",
+        summary:
+          "How each kind of notification reaches you in each organization, quiet hours, the email digest, texts, and your own quiet hours.",
+        kind: "page",
+        nodes: ["settings.notifications"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Settings, Notifications holds the same choices as Atlas and Gateway.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "In your organizations" },
+              {
+                t: "text",
+                v: " appears when you are a member. Pick the organization when you belong to more than one.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                {
+                  t: "text",
+                  v: "Each kind of notification lists only the channels it can reach you on: In app, Email, Text (SMS) and Push. Until you choose, your organization's defaults apply. A channel marked ",
+                },
+                { t: "strong", v: "Required by your organization" },
+                { t: "text", v: " stays on." },
+              ],
+              [
+                { t: "strong", v: "Quiet hours and digest" },
+                {
+                  t: "text",
+                  v: ": during quiet hours, push notifications wait until the end and texts arrive together. Enter 24-hour times, such as 22:00, and choose the time zone they are read in. The ",
+                },
+                { t: "strong", v: "Email digest" },
+                { t: "text", v: " gathers email that is not urgent into one message. Tap " },
+                { t: "strong", v: "Save" },
+                { t: "text", v: "." },
+              ],
+              [
+                { t: "strong", v: "Texts" },
+                {
+                  t: "text",
+                  v: ": agree to texts from the organization at your verified phone. This needs a connection.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "From other organizations" },
+              {
+                t: "text",
+                v: " covers organizations you work with without being a member, and marketplace alerts: Email and Push for each kind, and ",
+              },
+              { t: "strong", v: "Your own quiet hours" },
+              { t: "text", v: " for their pushes." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Safety alerts, changes to your sign-in security and a new or changed shift starting within 12 hours always arrive at once.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Once you have opened Notifications online, it opens without a connection too. Changes save on this phone and upload when you're back online; the Offline Queue lists them.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "settings-organizations",
         title: "Organizations",
         summary:
@@ -1579,6 +1778,56 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "strong", v: "Leave" },
                 { t: "text", v: " ends your access to one. Create a company account in Gateway." },
               ],
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-out-of-office",
+        title: "Out of office",
+        summary:
+          "Tell people you are away, from and until when, with the reply they see, and send your approvals to your delegate.",
+        kind: "page",
+        nodes: ["settings.out-of-office"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Settings, Out of Office tells people you are away. While you are, your approvals go to your delegate.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Out of office" },
+                { t: "text", v: ": turn it on while you are away." },
+              ],
+              [
+                { t: "strong", v: "Away from" },
+                { t: "text", v: " and " },
+                { t: "strong", v: "Back on" },
+                { t: "text", v: ": write each as year-month-day, such as 2026-12-21, and tap " },
+                { t: "strong", v: "Save" },
+                { t: "text", v: ". Back on comes on or after Away from." },
+              ],
+              [
+                { t: "strong", v: "Automatic reply" },
+                { t: "text", v: ": sent once to each person who messages you while you are away." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Once you have opened Out of Office online, it opens without a connection too. Changes save on this phone and upload when you're back online; the Offline Queue lists them.",
+              },
             ],
           },
         ],
@@ -1638,6 +1887,90 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "Both lists open offline once you've opened them online on this phone.",
               },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-preferences",
+        title: "Preferences",
+        summary:
+          "Your language, time zone, date and number formats, start page and the other preferences Atlas and Gateway share.",
+        kind: "page",
+        nodes: ["settings.preferences"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Settings, Preferences holds the preferences Atlas, Gateway and Compass share. A change here applies in all three.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Language" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Time zone" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Date format" },
+                { t: "text", v: " and " },
+                { t: "strong", v: "Units" },
+                { t: "text", v: ": units also set how distances and measurements read." },
+              ],
+              [
+                { t: "strong", v: "Show schedule times in" },
+                { t: "text", v: ": the event's time zone, or yours." },
+              ],
+              [
+                { t: "strong", v: "Translate messages" },
+                { t: "text", v: " is saved, but not in effect yet." },
+              ],
+              [
+                { t: "strong", v: "Week starts on" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Start page" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Density" },
+                { t: "text", v: " and " },
+                { t: "strong", v: "Persona" },
+                { t: "text", v: " shape Atlas on a computer." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Under each setting, Compass says where its value comes from: your own choice, your organization, or the platform default. A value your organization locked cannot be changed. ",
+              },
+              { t: "strong", v: "Use the inherited value" },
+              { t: "text", v: " drops your own choice." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Until you choose a time zone, Compass uses this phone's. Until you or your organization choose a language, Compass follows this phone's.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Once you have opened Preferences online, it opens without a connection too. Changes save on this phone and upload when you're back online; the Offline Queue lists them. The theme stays on ",
+              },
+              { t: "link", v: "Settings", href: "help:settings" },
+              { t: "text", v: ", beside Sunlight." },
             ],
           },
         ],
@@ -1823,6 +2156,74 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "settings-work-details",
+        title: "Work details",
+        summary:
+          "Your work phone, uniform sizes, dietary and accessibility needs, travel profile and emergency contacts.",
+        kind: "page",
+        nodes: ["settings.work-details"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Settings, Work Details holds what organizations need to equip, feed, book and look after you.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Work phone" },
+                { t: "text", v: ": saves on this phone offline, like your other settings." },
+              ],
+              [
+                { t: "strong", v: "Uniform sizes" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Dietary needs" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Accessibility needs" },
+                { t: "text", v: " and " },
+                { t: "strong", v: "Travel profile" },
+                { t: "text", v: ": change what applies and tap " },
+                { t: "strong", v: "Save" },
+                { t: "text", v: " on that card." },
+              ],
+              [
+                { t: "strong", v: "Emergency contacts" },
+                {
+                  t: "text",
+                  v: ": up to five, in the order to call them. Add one with its form; remove one with its button.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Your passport, loyalty programs, what you share with each engagement and your access log open in Gateway. Your ",
+              },
+              { t: "link", v: "profile", href: "help:profile" },
+              { t: "text", v: " shows your contacts and sizes." },
+            ],
+          },
+        ],
+      },
+      {
         slug: "settings",
         title: "Settings",
         summary:
@@ -1873,19 +2274,24 @@ export const COMPASS_HELP: HelpContent = {
             t: "p",
             c: [
               { t: "strong", v: "Your Settings" },
-              { t: "text", v: " are the same in Atlas, Gateway and Compass. Under " },
+              {
+                t: "text",
+                v: " are the same in Atlas, Gateway and Compass, and every section opens here: under ",
+              },
               { t: "strong", v: "You" },
               {
                 t: "text",
-                v: ", Profile, Profile Privacy, Account, Security and Organizations open here, and under ",
+                v: ", Profile, Profile Privacy, Account, Security and Organizations; every section under ",
               },
+              { t: "strong", v: "Preferences" },
+              { t: "text", v: "; and under " },
               { t: "strong", v: "Work" },
+              { t: "text", v: ", " },
+              { t: "link", v: "Work Details", href: "help:settings-work-details" },
               {
                 t: "text",
-                v: ", Payout and Tax, Calendar Feeds, Connected Apps and Developer do too. A section marked ",
+                v: ", Payout and Tax, Calendar Feeds, Connected Apps and Developer. A step Compass leaves to Gateway, such as giving a tax form or creating an API token, says why and opens in your browser.",
               },
-              { t: "strong", v: "Opens in Gateway" },
-              { t: "text", v: " opens in your browser." },
             ],
           },
           {
@@ -2159,6 +2565,15 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: ". Messages you write offline send when you reconnect." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tap the three dots on a message from someone else to report it to your organization's moderators, who review it within 24 hours, or to block its author. A block hides their messages in every conversation. Reporting and blocking need a connection.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -2293,6 +2708,18 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "Acknowledgments and votes work offline and upload when you reconnect.",
               },
+            ],
+          },
+          { t: "h2", v: "Report or block" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tap the three dots on someone else's post to report it to your organization's moderators, who review it within 24 hours, or to block its author. Nobody is told who reported. See ",
+              },
+              { t: "link", v: "Blocked people", href: "help:blocked-people" },
+              { t: "text", v: "." },
             ],
           },
         ],
@@ -2480,6 +2907,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Send" },
               { t: "text", v: ". Recognitions also appear in the feed." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tap the three dots on a shout-out from someone else to report it to your organization's moderators or to block its author.",
+              },
             ],
           },
         ],
@@ -2711,6 +3147,47 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Nueva conversación" },
               { t: "text", v: " empieza de nuevo." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "blocked-people",
+        title: "Personas bloqueadas",
+        summary: "A quién bloqueaste, qué oculta un bloqueo y cómo desbloquear a alguien.",
+        kind: "page",
+        nodes: ["settings.profile-privacy"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Personas bloqueadas muestra a todas las personas que bloqueaste. Bloqueas a alguien desde los tres puntos de su publicación, mensaje o reconocimiento.",
+              },
+            ],
+          },
+          { t: "h2", v: "Lo que oculta un bloqueo" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Sus publicaciones, sus comentarios en publicaciones, sus reconocimientos y sus mensajes, en todas las conversaciones, y las notificaciones sobre ellos. Una publicación que te pide confirmar la lectura se sigue mostrando. En el directorio cada uno ve al otro solo por su nombre, sin nombre preferido ni titular. No se le avisa, y su trabajo contigo sigue como antes.",
+              },
+            ],
+          },
+          { t: "h2", v: "Desbloquear" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Elige " },
+              { t: "strong", v: "Desbloquear" },
+              {
+                t: "text",
+                v: " junto al nombre. Sus publicaciones y mensajes vuelven a mostrarse. Desbloquear necesita conexión.",
+              },
             ],
           },
         ],
@@ -3045,6 +3522,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Eliminar mi cuenta" },
               { t: "text", v: " durante 2 segundos." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Si inicias sesión con Apple, Compass muestra otra vez la hoja de Apple para dejar de usar tu Cuenta de Apple. Si no puede, tu cuenta se elimina de todos modos, y Compass te indica que la quites de Iniciar sesión con Apple en la configuración de tu Cuenta de Apple.",
+              },
             ],
           },
         ],
@@ -4004,6 +4490,67 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "settings-accessibility",
+        title: "Accesibilidad",
+        summary:
+          "Tamaño del texto, alto contraste, movimiento, vibración, sonidos y subtítulos, iguales en Atlas, Gateway y Compass.",
+        kind: "page",
+        nodes: ["settings.accessibility"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Ajustes, Accesibilidad reúne los ajustes de accesibilidad que comparten Atlas, Gateway y Compass.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Tamaño del texto" },
+                {
+                  t: "text",
+                  v: ": Predeterminado, Grande o Más grande. Compass cambia su texto de inmediato.",
+                },
+              ],
+              [
+                { t: "strong", v: "Alto contraste" },
+                { t: "text", v: " y " },
+                { t: "strong", v: "Movimiento" },
+                { t: "text", v: ": Compass aplica ambos de inmediato." },
+              ],
+              [
+                { t: "strong", v: "Respuesta háptica" },
+                { t: "text", v: ": un toque que sientes cuando una acción se completa." },
+              ],
+              [
+                { t: "strong", v: "Sonidos" },
+                { t: "text", v: ": el sonido del obturador de la cámara y otros sonidos." },
+              ],
+              [
+                { t: "strong", v: "Subtítulos" },
+                { t: "text", v: " se guarda, pero todavía no se aplica." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Una vez que abriste Accesibilidad con conexión, también se abre sin conexión. Los cambios se guardan en este teléfono y se suben cuando vuelves a tener conexión; la Cola sin conexión los muestra. ",
+              },
+              { t: "strong", v: "Usar el valor heredado" },
+              { t: "text", v: " quita tu propia elección." },
+            ],
+          },
+        ],
+      },
+      {
         slug: "settings-account",
         title: "Tu cuenta",
         summary:
@@ -4209,6 +4756,97 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "settings-notifications",
+        title: "Notificaciones",
+        summary:
+          "Cómo te llega cada tipo de notificación en cada organización, las horas de silencio, el resumen por correo, los mensajes de texto y tus propias horas de silencio.",
+        kind: "page",
+        nodes: ["settings.notifications"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Ajustes, Notificaciones reúne las mismas opciones que Atlas y Gateway.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "En tus organizaciones" },
+              {
+                t: "text",
+                v: " aparece cuando eres miembro. Elige la organización si perteneces a más de una.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                {
+                  t: "text",
+                  v: "Cada tipo de notificación muestra solo los canales por los que te puede llegar: En la app, Correo electrónico, Mensaje de texto (SMS) y Push. Mientras no elijas, se aplican los valores predeterminados de tu organización. Un canal marcado ",
+                },
+                { t: "strong", v: "Obligatorio por tu organización" },
+                { t: "text", v: " sigue activado." },
+              ],
+              [
+                { t: "strong", v: "Horas de silencio y resumen" },
+                {
+                  t: "text",
+                  v: ": durante las horas de silencio, las notificaciones push esperan hasta el final y los mensajes de texto llegan juntos. Escribe las horas en formato de 24 horas, como 22:00, y elige la zona horaria en que se leen. El ",
+                },
+                { t: "strong", v: "Resumen por correo electrónico" },
+                { t: "text", v: " reúne en un solo mensaje el correo que no es urgente. Toca " },
+                { t: "strong", v: "Guardar" },
+                { t: "text", v: "." },
+              ],
+              [
+                { t: "strong", v: "Mensajes de texto" },
+                {
+                  t: "text",
+                  v: ": acepta recibir mensajes de texto de la organización en tu teléfono verificado. Necesita conexión.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "De otras organizaciones" },
+              {
+                t: "text",
+                v: " cubre las organizaciones con las que trabajas sin ser miembro y las alertas del marketplace: Correo electrónico y Push para cada tipo, y ",
+              },
+              { t: "strong", v: "Tus propias horas de silencio" },
+              { t: "text", v: " para sus notificaciones push." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Las alertas de seguridad, los cambios en el acceso a tu cuenta y los turnos nuevos o cambiados que empiezan en menos de 12 horas siempre llegan de inmediato.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Una vez que abriste Notificaciones con conexión, también se abre sin conexión. Los cambios se guardan en este teléfono y se suben cuando vuelves a tener conexión; la Cola sin conexión los muestra.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "settings-organizations",
         title: "Organizaciones",
         summary:
@@ -4254,6 +4892,62 @@ export const COMPASS_HELP: HelpContent = {
                   v: " termina tu acceso a una. Crea una cuenta de empresa en Gateway.",
                 },
               ],
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-out-of-office",
+        title: "Fuera de la oficina",
+        summary:
+          "Avisa que no estás, desde y hasta cuándo, con la respuesta que verán los demás, y envía tus aprobaciones a tu delegado.",
+        kind: "page",
+        nodes: ["settings.out-of-office"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Ajustes, Fuera de la oficina avisa que no estás. Mientras tanto, tus aprobaciones van a tu delegado.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Fuera de la oficina" },
+                { t: "text", v: ": actívalo mientras no estés." },
+              ],
+              [
+                { t: "strong", v: "Ausente desde" },
+                { t: "text", v: " y " },
+                { t: "strong", v: "De vuelta el" },
+                {
+                  t: "text",
+                  v: ": escribe cada fecha como año-mes-día, por ejemplo 2026-12-21, y toca ",
+                },
+                { t: "strong", v: "Guardar" },
+                { t: "text", v: ". De vuelta el es igual o posterior a Ausente desde." },
+              ],
+              [
+                { t: "strong", v: "Respuesta automática" },
+                {
+                  t: "text",
+                  v: ": se envía una vez a cada persona que te escriba mientras no estás.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Una vez que abriste Fuera de la oficina con conexión, también se abre sin conexión. Los cambios se guardan en este teléfono y se suben cuando vuelves a tener conexión; la Cola sin conexión los muestra.",
+              },
             ],
           },
         ],
@@ -4313,6 +5007,93 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "Ambas listas se abren sin conexión después de abrirlas una vez con conexión en este teléfono.",
               },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-preferences",
+        title: "Preferencias",
+        summary:
+          "Tu idioma, zona horaria, formatos de fecha y números, página de inicio y las demás preferencias que comparten Atlas y Gateway.",
+        kind: "page",
+        nodes: ["settings.preferences"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Ajustes, Preferencias reúne las preferencias que comparten Atlas, Gateway y Compass. Un cambio aquí se aplica en los tres.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Idioma" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Zona horaria" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Formato de fecha" },
+                { t: "text", v: " y " },
+                { t: "strong", v: "Unidades" },
+                {
+                  t: "text",
+                  v: ": las unidades también definen cómo se leen las distancias y las medidas.",
+                },
+              ],
+              [
+                { t: "strong", v: "Mostrar los horarios en" },
+                { t: "text", v: ": la zona horaria del evento o la tuya." },
+              ],
+              [
+                { t: "strong", v: "Traducir mensajes" },
+                { t: "text", v: " se guarda, pero todavía no se aplica." },
+              ],
+              [
+                { t: "strong", v: "La semana empieza el" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Página de inicio" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Densidad" },
+                { t: "text", v: " y " },
+                { t: "strong", v: "Perfil de trabajo" },
+                { t: "text", v: " ajustan Atlas en una computadora." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Debajo de cada ajuste, Compass indica de dónde viene su valor: tu propia elección, tu organización o el valor de la plataforma. Un valor que tu organización bloqueó no se puede cambiar. ",
+              },
+              { t: "strong", v: "Usar el valor heredado" },
+              { t: "text", v: " quita tu propia elección." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Mientras no elijas una zona horaria, Compass usa la de este teléfono. Mientras ni tú ni tu organización elijan un idioma, Compass sigue el de este teléfono.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Una vez que abriste Preferencias con conexión, también se abre sin conexión. Los cambios se guardan en este teléfono y se suben cuando vuelves a tener conexión; la Cola sin conexión los muestra. El tema sigue en ",
+              },
+              { t: "link", v: "Ajustes", href: "help:settings" },
+              { t: "text", v: ", junto a Sol." },
             ],
           },
         ],
@@ -4501,6 +5282,77 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "settings-work-details",
+        title: "Datos de trabajo",
+        summary:
+          "Tu teléfono de trabajo, tallas de uniforme, necesidades alimentarias y de accesibilidad, perfil de viaje y contactos de emergencia.",
+        kind: "page",
+        nodes: ["settings.work-details"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Ajustes, Datos de trabajo reúne lo que las organizaciones necesitan para equiparte, alimentarte, reservar tus viajes y cuidarte.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Teléfono de trabajo" },
+                {
+                  t: "text",
+                  v: ": se guarda en este teléfono sin conexión, como tus demás ajustes.",
+                },
+              ],
+              [
+                { t: "strong", v: "Tallas de uniforme" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Necesidades alimentarias" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Necesidades de accesibilidad" },
+                { t: "text", v: " y " },
+                { t: "strong", v: "Perfil de viaje" },
+                { t: "text", v: ": cambia lo que corresponda y toca " },
+                { t: "strong", v: "Guardar" },
+                { t: "text", v: " en esa tarjeta." },
+              ],
+              [
+                { t: "strong", v: "Contactos de emergencia" },
+                {
+                  t: "text",
+                  v: ": hasta cinco, en el orden en que deben llamarse. Agrega uno con su formulario; quita uno con su botón.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Tu pasaporte, tus programas de lealtad, lo que compartes con cada contratación y tu registro de acceso se abren en Gateway. Tu ",
+              },
+              { t: "link", v: "perfil", href: "help:profile" },
+              { t: "text", v: " muestra tus contactos y tallas." },
+            ],
+          },
+        ],
+      },
+      {
         slug: "settings",
         title: "Ajustes",
         summary:
@@ -4551,19 +5403,24 @@ export const COMPASS_HELP: HelpContent = {
             t: "p",
             c: [
               { t: "strong", v: "Tus ajustes" },
-              { t: "text", v: " son los mismos en Atlas, Gateway y Compass. En " },
+              {
+                t: "text",
+                v: " son los mismos en Atlas, Gateway y Compass, y todas las secciones se abren aquí: en ",
+              },
               { t: "strong", v: "Tú" },
               {
                 t: "text",
-                v: ", Perfil, Privacidad del perfil, Cuenta, Seguridad y Organizaciones se abren aquí, y en ",
+                v: ", Perfil, Privacidad del perfil, Cuenta, Seguridad y Organizaciones; todas las secciones de ",
               },
+              { t: "strong", v: "Preferencias" },
+              { t: "text", v: "; y en " },
               { t: "strong", v: "Trabajo" },
+              { t: "text", v: ", " },
+              { t: "link", v: "Datos de trabajo", href: "help:settings-work-details" },
               {
                 t: "text",
-                v: ", también Pagos e impuestos, Suscripciones de calendario, Aplicaciones conectadas y Desarrollador. Una sección marcada ",
+                v: ", Pagos e impuestos, Suscripciones de calendario, Aplicaciones conectadas y Desarrollador. Un paso que Compass deja a Gateway, como entregar un formulario de impuestos o crear un token de API, explica por qué y se abre en tu navegador.",
               },
-              { t: "strong", v: "Se abre en Gateway" },
-              { t: "text", v: " se abre en tu navegador." },
             ],
           },
           {
@@ -4851,6 +5708,15 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: ". Los mensajes que escribes sin conexión se envían al reconectar." },
             ],
           },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Toca los tres puntos en un mensaje de otra persona para denunciarlo ante los moderadores de tu organización, que lo revisan en 24 horas, o para bloquear a quien lo escribió. Un bloqueo oculta sus mensajes en todas las conversaciones. Denunciar y bloquear necesitan conexión.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -4992,6 +5858,18 @@ export const COMPASS_HELP: HelpContent = {
                 t: "text",
                 v: "Las confirmaciones y los votos funcionan sin conexión y se suben al reconectar.",
               },
+            ],
+          },
+          { t: "h2", v: "Denunciar o bloquear" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Toca los tres puntos en la publicación de otra persona para denunciarla ante los moderadores de tu organización, que la revisan en 24 horas, o para bloquear a quien la escribió. No se avisa a nadie de quién denunció. Consulta ",
+              },
+              { t: "link", v: "Personas bloqueadas", href: "help:blocked-people" },
+              { t: "text", v: "." },
             ],
           },
         ],
@@ -5211,6 +6089,15 @@ export const COMPASS_HELP: HelpContent = {
               },
               { t: "strong", v: "Enviar" },
               { t: "text", v: ". Los reconocimientos también aparecen en el muro." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Toca los tres puntos en un reconocimiento de otra persona para denunciarlo ante los moderadores de tu organización o para bloquear a quien lo escribió.",
+              },
             ],
           },
         ],

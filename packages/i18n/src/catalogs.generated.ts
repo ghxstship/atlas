@@ -13,6 +13,7 @@ import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
 import enUS_compassExpenses from "../messages/en-US/compassExpenses.json" with { type: "json" };
 import enUS_compassExternal from "../messages/en-US/compassExternal.json" with { type: "json" };
 import enUS_compassNfc from "../messages/en-US/compassNfc.json" with { type: "json" };
+import enUS_compassPersonal from "../messages/en-US/compassPersonal.json" with { type: "json" };
 import enUS_compassSettings from "../messages/en-US/compassSettings.json" with { type: "json" };
 import enUS_compliance from "../messages/en-US/compliance.json" with { type: "json" };
 import enUS_console from "../messages/en-US/console.json" with { type: "json" };
@@ -78,6 +79,7 @@ import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
 import esUS_compassExpenses from "../messages/es-US/compassExpenses.json" with { type: "json" };
 import esUS_compassExternal from "../messages/es-US/compassExternal.json" with { type: "json" };
 import esUS_compassNfc from "../messages/es-US/compassNfc.json" with { type: "json" };
+import esUS_compassPersonal from "../messages/es-US/compassPersonal.json" with { type: "json" };
 import esUS_compassSettings from "../messages/es-US/compassSettings.json" with { type: "json" };
 import esUS_compliance from "../messages/es-US/compliance.json" with { type: "json" };
 import esUS_console from "../messages/es-US/console.json" with { type: "json" };
@@ -145,6 +147,7 @@ export const enUS = {
   compassExpenses: enUS_compassExpenses,
   compassExternal: enUS_compassExternal,
   compassNfc: enUS_compassNfc,
+  compassPersonal: enUS_compassPersonal,
   compassSettings: enUS_compassSettings,
   compliance: enUS_compliance,
   console: enUS_console,
@@ -213,6 +216,7 @@ export const esUS = {
   compassExpenses: esUS_compassExpenses,
   compassExternal: esUS_compassExternal,
   compassNfc: esUS_compassNfc,
+  compassPersonal: esUS_compassPersonal,
   compassSettings: esUS_compassSettings,
   compliance: esUS_compliance,
   console: esUS_console,
