@@ -25820,6 +25820,10 @@ export interface PhaseCoverage {
    */
   readonly active_element_count: number;
   /**
+   * Whether the phase carries a declared gap.
+   */
+  readonly declared_gap: boolean;
+  /**
    * Gate ordinal.
    * Range: 0 to unbounded.
    */
@@ -25843,6 +25847,11 @@ export interface PhaseCoverage {
    * True when at least one participating element is Active.
    */
   readonly has_active_element: boolean | null;
+  /**
+   * Why the phase has no Active element, as its declared gap states it; null without one.
+   * Length: 1 to 300.
+   */
+  readonly declared_gap_reason: string | null;
 }
 
 /**

@@ -11,7 +11,12 @@
  * it from the vendored platform bundle.
  */
 
-import { scrubEvent, type ErrorSink, type SentryEventLike } from "./errors.ts";
+import {
+  KEPT_REQUEST_HEADERS,
+  scrubEvent,
+  type ErrorSink,
+  type SentryEventLike,
+} from "./errors.ts";
 import { identityFromEnv } from "./logger.ts";
 import { redact, redactString } from "./redact.ts";
 
@@ -37,12 +42,46 @@ export function tracesSampleRate(env: Env): number {
   return Number.isFinite(rate) && rate >= 0 && rate <= 1 ? rate : DEFAULT_TRACES_SAMPLE_RATE;
 }
 
+/**
+ * What the Sentry SDK may collect on its own (`dataCollection`, Sentry 11). Sentry 11 dropped
+ * `sendDefaultPii` and collects headers, cookies, bodies, query strings and user fields unless told
+ * otherwise, so each is switched off here and only the request headers `scrubEvent` keeps are
+ * allowed (A69-012). `scrubEvent` still runs on whatever arrives.
+ */
+export interface SentryDataCollection {
+  readonly userInfo: boolean;
+  readonly cookies: boolean;
+  readonly httpHeaders: { request: { allow: string[] }; response: boolean };
+  readonly httpBodies: (
+    "incomingRequest" | "outgoingRequest" | "incomingResponse" | "outgoingResponse"
+  )[];
+  readonly urlQueryParams: boolean;
+  readonly graphQL: { document: boolean; variables: boolean };
+  readonly genAI: { inputs: boolean; outputs: boolean };
+  readonly databaseQueryData: boolean;
+  readonly queues: boolean;
+  readonly stackFrameVariables: boolean;
+}
+
+export const SENTRY_DATA_COLLECTION: SentryDataCollection = {
+  userInfo: false,
+  cookies: false,
+  httpHeaders: { request: { allow: [...KEPT_REQUEST_HEADERS] }, response: false },
+  httpBodies: [],
+  urlQueryParams: false,
+  graphQL: { document: false, variables: false },
+  genAI: { inputs: false, outputs: false },
+  databaseQueryData: false,
+  queues: false,
+  stackFrameVariables: false,
+};
+
 export interface SentryInitOptions {
   readonly dsn: string;
   readonly environment: string;
   readonly release?: string;
   readonly tracesSampleRate: number;
-  readonly sendDefaultPii: false;
+  readonly dataCollection: SentryDataCollection;
   readonly beforeSend: typeof scrubEvent;
   readonly beforeSendTransaction: typeof scrubEvent;
 }
@@ -57,7 +96,7 @@ export function sentryInitOptions(service: string, env: Env): SentryInitOptions 
     environment: identity.environment,
     ...(identity.release ? { release: identity.release } : {}),
     tracesSampleRate: tracesSampleRate(env),
-    sendDefaultPii: false,
+    dataCollection: SENTRY_DATA_COLLECTION,
     beforeSend: scrubEvent,
     beforeSendTransaction: scrubEvent,
   };

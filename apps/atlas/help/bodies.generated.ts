@@ -138,6 +138,21 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "The Standard Library" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The XOS Standard Library holds the emergency codes, SOPs, verbiage, radio plan, vendor classes and their entitlements, enumerations, Roles Library, labor rates and document library that come with XOS. Each organization gets its own copy to edit: a new organization receives it when it is created, and an organization created earlier adopts it with ",
+          },
+          { t: "strong", v: "Adopt Standard Library" },
+          {
+            t: "text",
+            v: " in Settings, Canon Extensions. Adopting copies only what your organization does not hold yet, so nothing you edited or removed changes.",
+          },
+        ],
+      },
     ],
     "contact-support": [
       { t: "h2", v: "Ask your admins" },
@@ -812,7 +827,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Emergency codes are the plain-language calls your organization uses in an emergency. Radio channels list who talks on which channel. Both are available offline in Compass.",
+            v: "Emergency codes are the plain-language calls your organization uses in an emergency. Your organization keeps its own copy of the Standard Library's codes: open a code to change its label, the emergency it announces or its place in the list. Radio channels list who talks on which channel. Compass keeps the radio channels and the Standard Library's codes offline; your organization's changes to a code show in Atlas.",
           },
         ],
       },
@@ -2073,6 +2088,13 @@ export const HELP_BODIES: HelpBodies = {
               v: ": ask an internal team for help. Choose the team, a category and a severity; each team shows how quickly it answers. Admins set up the teams in Settings, Help and Support.",
             },
           ],
+          [
+            { t: "strong", v: "Reported Content" },
+            {
+              t: "text",
+              v: ": posts, comments and messages people reported, for the Owners, Admins and anyone else who manages communication. Decide each within 24 hours: remove it or take no action, name the rule, the facts and your statement of reasons. The people who reported it, and on removal its author, receive the statement; nobody is told who decided. Reports about your own posts, comments and messages never reach you: another moderator decides them.",
+            },
+          ],
         ],
       },
     ],
@@ -2262,6 +2284,21 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: " agregan valores que su organización necesita más allá del canon. Alguien distinto de quien lo solicita aprueba cada extensión.",
+          },
+        ],
+      },
+      { t: "h2", v: "La Biblioteca Estándar" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La Biblioteca Estándar de XOS reúne los códigos de emergencia, los SOP, la terminología, el plan de radio, las clases de proveedor y sus derechos, las enumeraciones, la Biblioteca de Roles, las tarifas laborales y la biblioteca de documentos que vienen con XOS. Cada organización recibe su propia copia para editarla: una organización nueva la recibe al crearse, y una creada antes la adopta con ",
+          },
+          { t: "strong", v: "Adoptar la Biblioteca Estándar" },
+          {
+            t: "text",
+            v: " en Configuración, Extensiones del canon. Adoptarla copia solo lo que su organización aún no tiene, así que nada de lo que editó o quitó cambia.",
           },
         ],
       },
@@ -2959,7 +2996,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Los códigos de emergencia son los avisos en lenguaje claro que usa su organización. Los canales de radio indican quién habla en cada canal. Ambos están disponibles sin conexión en Compass.",
+            v: "Los códigos de emergencia son los avisos en lenguaje claro que usa su organización. Su organización guarda su propia copia de los códigos de la Biblioteca Estándar: abra un código para cambiar su nombre, la emergencia que anuncia o su lugar en la lista. Los canales de radio indican quién habla en cada canal. Compass guarda sin conexión los canales de radio y los códigos de la Biblioteca Estándar; los cambios de su organización a un código se ven en Atlas.",
           },
         ],
       },
@@ -4161,6 +4198,13 @@ export const HELP_BODIES: HelpBodies = {
             {
               t: "text",
               v: ": pida ayuda a un equipo interno. Elija el equipo, una categoría y una gravedad; cada equipo indica en cuánto tiempo responde. Los administradores configuran los equipos en Configuración, Ayuda y soporte.",
+            },
+          ],
+          [
+            { t: "strong", v: "Contenido denunciado" },
+            {
+              t: "text",
+              v: ": publicaciones, comentarios y mensajes que se denunciaron, para los propietarios, los administradores y cualquier otra persona que gestione la comunicación. Decida cada uno en 24 horas: elimínelo o no tome medidas, e indique la norma, los hechos y su declaración de motivos. Quienes lo denunciaron y, si lo elimina, quien lo escribió reciben la declaración; no se dice a nadie quién decidió. Las denuncias sobre sus propias publicaciones, comentarios y mensajes nunca le llegan: las decide otro moderador.",
             },
           ],
         ],

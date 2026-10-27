@@ -275,7 +275,6 @@
     "chosen": "{departments, plural, one {# departamento} other {# departamentos}} y {disciplines, plural, one {# disciplina} other {# disciplinas}} en uso.",
     "departments": "Departamentos",
     "departmentsHelp": "Al desmarcar un departamento también se desmarcan sus disciplinas.",
-    "disciplinesOf": "{name}: {count, plural, one {# disciplina} other {# disciplinas}}",
     "disciplines": "Disciplinas de {name}",
     "option": "{name} · {code}",
     "extensionsTitle": "Sus extensiones de disciplina",
@@ -410,13 +409,7 @@
     "description": "Aplicaciones a las que permitió actuar en su nombre. Cada una solo puede hacer lo que usted puede, en las áreas que aprobó.",
     "none": "No ha conectado ninguna aplicación.",
     "registeredBy": "Registrada por {org}",
-    "granted": "Permitida el {date}",
-    "revokeConfirm": {
-      "title": "¿Desconectar {app}?",
-      "body": "La aplicación ya no podrá actuar en su nombre. Vuelva a conectarla para darle acceso.",
-      "confirm": "Desconectar"
-    },
-    "toIntegrations": "Integraciones de su organización"
+    "granted": "Permitida el {date}"
   },
   "payout": {
     "title": "Datos de pago",

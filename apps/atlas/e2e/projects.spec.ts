@@ -1,5 +1,12 @@
 import { expect, test, type Page } from "./engine-test";
-import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
+import {
+  createOrganization,
+  endTrial,
+  expectAccessible,
+  signUp,
+  testEmail,
+  uniqueId,
+} from "./support";
 
 /**
  * A07 journeys (Section 20.2): 1 (create a project with its jurisdiction, then generate its permit
@@ -115,8 +122,10 @@ test("journey 1: create a project with jurisdiction US-FL-MIAMI-DADE", async ({ 
   await page.goto(`/${slug}/projects/portfolio-timeline`);
   await expect(page.getByRole("figure", { name: "Portfolio timeline" })).toBeVisible();
   await expectAccessible(page);
-  // A new org's plan includes one active project (ADR 0018): a second is refused with words that
-  // name the next step, and the typed input stays (the refusal state).
+  // The Access plan includes one active project (ADR 0018): once the new org's Pro trial ends (A79),
+  // a second is refused with words that name the next step, and the typed input stays (the refusal
+  // state).
+  await endTrial(slug);
   await page.goto(`/${slug}/projects/all?create=1`);
   const dialog = page.getByRole("dialog", { name: "New project" });
   await dialog.getByLabel("Project key").fill("NWM");

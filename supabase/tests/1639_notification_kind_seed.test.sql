@@ -1,4 +1,4 @@
--- 1620_notification_kind_seed.test.sql
+-- 1639_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -193,6 +193,22 @@ select set_eq(
   ('moderation_appeal.decided', 'Email', 'account', 'notification'),
   ('moderation_appeal.decided', 'SMS', 'account', null::text),
   ('moderation_appeal.decided', 'Push', 'account', null::text),
+  ('content_report.filed', 'In App', 'safety', null::text),
+  ('content_report.filed', 'Email', 'safety', 'notification'),
+  ('content_report.filed', 'SMS', 'safety', null::text),
+  ('content_report.filed', 'Push', 'safety', null::text),
+  ('content_report.overdue', 'In App', 'safety', null::text),
+  ('content_report.overdue', 'Email', 'safety', 'notification'),
+  ('content_report.overdue', 'SMS', 'safety', null::text),
+  ('content_report.overdue', 'Push', 'safety', null::text),
+  ('content_report.decided', 'In App', 'account', null::text),
+  ('content_report.decided', 'Email', 'account', 'notification'),
+  ('content_report.decided', 'SMS', 'account', null::text),
+  ('content_report.decided', 'Push', 'account', null::text),
+  ('content.removed', 'In App', 'account', null::text),
+  ('content.removed', 'Email', 'account', 'notification'),
+  ('content.removed', 'SMS', 'account', null::text),
+  ('content.removed', 'Push', 'account', null::text),
   ('report.delivered', 'In App', 'reports', null::text),
   ('report.delivered', 'Push', 'reports', null::text),
   ('import.finished', 'In App', 'imports', null::text),

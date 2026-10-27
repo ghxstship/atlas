@@ -1,0 +1,130 @@
+# Owner decision 39 (2026-10-23, approved; Linear RRR-66; ADR 0033 decision 39): the seven canon rulings
+# finding legal/qa/findings/A56-001.md asked for, given as proposed, and the declared gaps of finding A65-019.
+# Decision 25 left Bible inconsistencies and unstated relationships to the owner; this decision settles them.
+# The importer applies it (canon/import/src/decision39.ts) and canon:check fails on an entry below that no
+# longer matches the canon files, so a ruling cannot outlive the inconsistency it settles.
+#
+# What each ruling does to the data:
+#   1. Phase names. Rows that name "Show" or "Procurement" as a phase get the gated phase the ruling names.
+#      Their intake rows stay as Complete, with the ruling as the reason, so the change is traceable.
+#   2. Tab 27 labels department 4000 "Build" on five roles. The code is kept and the label is tab 01's.
+#   3. 33 items labeled "4000 Environment" carry 6000 URIDs. The codes are kept (the Bible wins on codes) and
+#      the label is the one the code gives.
+#   4. Statement columns that hold only headings or empty formulas are removed: nothing of them is loaded.
+#   5. Role codes belong to the Roles Library (ruling D12). Tab 27 no longer decides whether a role code
+#      exists, which settles the three Roles Library codes it lacks.
+#   6. Ruling D13 (GL accounts derived by class) allows an explicit GL default on an item and on a
+#      counterparty type. Postings use the item's account first, then the class's, then the counterparty
+#      type's (private.gl_account_for_line, migration 1611).
+#   7. The time unit dimension is ratified, so the Standard Library units Hour and Week resolve to canon units.
+#   8. Scope, Engage, Amplify and Close have no Active element and are declared gaps (doctrine 3.4).
+
+decision: D39
+decided_on: "2026-10-23"
+linear: RRR-66
+
+# Findings in canon/reports/doctrine-findings.md this decision settles, by kind.
+accepted_findings:
+  ruling: "Settled by an owner ruling: D11 for grades, decision 39 (RRR-66) for the rest."
+
+# 1. Phase names that are not gated phases, and the phase each means.
+phase_labels:
+  - label: Show
+    phase_code: OPR
+    note: The show runs in Operate (gate 7).
+  - label: Procurement
+    phase_code: PRC
+    note: Procurement is Procure (gate 4).
+
+# 2. Department labels Bible tab 27 states for a code that tab 01 names otherwise.
+role_department_labels:
+  - dept_code: "4000"
+    stated: Build
+    label: Environment
+    roles: ["4000.50.01", "4000.51.01", "4000.51.02", "4000.51.03", "4000.51.04"]
+
+# 3. Item Catalog department labels that disagree with the item's URID. The URID is kept.
+item_department_labels:
+  - stated: 4000 Environment
+    label: 6000 Operations
+    items:
+      - 6000.01.01-XOS-001
+      - 6000.01.01-XOS-002
+      - 6000.01.01-XOS-003
+      - 6000.01.01-XOS-007
+      - 6000.01.01-XOS-008
+      - 6000.01.01-XOS-009
+      - 6000.01.01-XOS-010
+      - 6000.01.01-XOS-011
+      - 6000.01.01-XOS-012
+      - 6000.01.01-XOS-013
+      - 6000.01.01-XOS-014
+      - 6000.01.01-XOS-015
+      - 6000.01.01-XOS-019
+      - 6000.01.01-XOS-020
+      - 6000.01.01-XOS-021
+      - 6000.01.01-XOS-022
+      - 6000.01.01-XOS-023
+      - 6000.01.01-XOS-024
+      - 6000.01.01-XOS-028
+      - 6000.01.01-XOS-029
+      - 6000.01.01-XOS-030
+      - 6000.01.01-XOS-031
+      - 6000.01.01-XOS-032
+      - 6000.01.01-XOS-033
+      - 6000.01.01-XOS-040
+      - 6000.01.01-XOS-041
+      - 6000.01.01-XOS-042
+      - 6000.01.01-XOS-043
+      - 6000.01.01-XOS-044
+      - 6000.01.01-XOS-045
+      - 6000.01.01-XOS-046
+      - 6000.01.01-XOS-047
+      - 6000.01.01-XOS-048
+
+# 4. Statement columns removed. Tab 23 holds headings with no statement text; tab 24's record_kind#6 and
+#    record_subtype columns repeat tab 25's headers; tab 25's gate, phase_code and phase columns repeat tab 05
+#    on its first nine rows; five tab 34 rules are formulas saved with no value. For tab 34 the removed
+#    statements are the rule cells of the fields named.
+removed_statements:
+  - tab: "23"
+    columns: [INSTANCES]
+  - tab: "24"
+    columns: ["record_kind#6", record_subtype]
+  - tab: "25"
+    columns: [gate, phase_code, phase]
+  - tab: "34"
+    fields: [Estimate, Budget, Forecast, Variance, Rate]
+
+# 5. Role codes (ruling D12). The Roles Library owns them; Bible tab 27's are retired as the authority.
+#    These are the Roles Library codes tab 27 lacks, which the retirement settles.
+role_codes:
+  owner: Roles Library
+  retired: Bible tab 27
+  library_only: ["2000.50.02", "5000.50.03", "6000.50.03"]
+
+# 6. GL defaults (ruling D13). An item may carry an explicit account its class does not give (purchase_account or
+#    sales_account), and so may a counterparty type (default_account_code). An item posting to a balance-sheet
+#    account always carries its own, because no class derives one. The importer reports each such item.
+gl_defaults:
+  balance_sheet_types: [Asset, Liability, Equity]
+
+# 7. Unit dimensions ratified. A unit no canon file states is added as a canon unit of its dimension.
+unit_dimensions:
+  - dimension_code: time
+    name: Time
+    units: [hour, day, week, year]
+
+# 8. Declared gaps (doctrine 3.4, finding A65-019): gated phases with no Active element, ratified by the owner.
+#    Their catalog items keep the Proposed state the Item Catalog gives them.
+declared_gaps:
+  ratified_by: Julian Clarkson
+  phases:
+    - phase_code: SCP
+      reason: No Scope item is Active yet; the Item Catalog proposes every one.
+    - phase_code: ENG
+      reason: No Engage item is Active yet; the Item Catalog proposes every one.
+    - phase_code: AMP
+      reason: No Amplify item is Active yet; the Item Catalog proposes every one.
+    - phase_code: CLS
+      reason: No Close item is Active yet; the Item Catalog proposes every one.

@@ -9,6 +9,9 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
  */
 
 test.use({ reducedMotion: "reduce" });
+// Journey 17 checks five pages with axe, two of them in both themes: 60 s ran out on a loaded runner
+// (run 40123982182), as the other long journey specs allow for.
+test.setTimeout(180_000);
 
 const ORG = "demo-productions";
 const DEMO_PASSWORD = `xos-demo-${"2026"}`;
