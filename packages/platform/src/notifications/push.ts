@@ -21,7 +21,7 @@ import type { WebPushClient, WebPushDevice, WebPushPayload } from "./web-push.ts
  *     about (message_args.recordKey, 1600), which Compass opens on a tap (A101).
  */
 
-/** Push categories Compass registers in offer-actions.ts (A127, ADR 0086); approval_request is the registry's. */
+/** Push categories Compass registers in offer-actions.ts (A127, ADR 0089); approval_request is the registry's. */
 export const SHIFT_OFFER_CATEGORY = "shift_offer";
 export const ENGAGEMENT_OFFER_CATEGORY = "engagement_offer";
 export const MESSAGE_REPLY_CATEGORY = "message_reply";

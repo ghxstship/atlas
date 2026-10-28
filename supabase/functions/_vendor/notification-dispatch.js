@@ -153,7 +153,7 @@ async function dispatchEmail(store, transport, limit = 50) {
  *     link (Section 4.5.7: a push always carries one) and recordKey the display key of the record a notification is
  *     about (message_args.recordKey, 1600), which Compass opens on a tap (A101).
  */
-/** Push categories Compass registers in offer-actions.ts (A127, ADR 0086); approval_request is the registry's. */
+/** Push categories Compass registers in offer-actions.ts (A127, ADR 0089); approval_request is the registry's. */
 var SHIFT_OFFER_CATEGORY = "shift_offer";
 var ENGAGEMENT_OFFER_CATEGORY = "engagement_offer";
 var MESSAGE_REPLY_CATEGORY = "message_reply";

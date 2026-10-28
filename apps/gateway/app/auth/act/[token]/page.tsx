@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * The confirm page of a one-tap email link in Gateway (A127, ADR 0086; Section 11.10 rule 5): an engaged worker's
+ * The confirm page of a one-tap email link in Gateway (A127, ADR 0089; Section 11.10 rule 5): an engaged worker's
  * shift or an applicant's offer, accepted with one more press after the email's button. Opening it only reads what
  * the link does; someone else's link says nothing about itself. Signed out, the person signs in and comes back here.
  */

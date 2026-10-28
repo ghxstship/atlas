@@ -26,7 +26,7 @@ function errorSentence(t: SecurityCopy, state: ActionLinkState): string | null {
 }
 
 /**
- * The confirm step of a one-tap email link (A127, ADR 0086): one button for Approve or Accept, the reason and Reject
+ * The confirm step of a one-tap email link (A127, ADR 0089): one button for Approve or Accept, the reason and Reject
  * for a rejection. A step-up refusal opens the step-up dialog and verifying confirms again. Works before hydration.
  */
 export function ActionLinkForm({

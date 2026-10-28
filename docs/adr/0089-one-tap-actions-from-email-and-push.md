@@ -1,4 +1,4 @@
-# ADR 0086: One-Tap Actions from Email and Push, and Gateway's For Your Information
+# ADR 0089: One-Tap Actions from Email and Push, and Gateway's For Your Information
 
 - Status: Proposed
 - Date: 2026-10-27

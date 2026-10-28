@@ -5,7 +5,7 @@ import { rows, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
 
 /**
- * One-tap action links from notification emails (A127, migration 2200, ADR 0086) and the For Your Information list
+ * One-tap action links from notification emails (A127, migration 2200, ADR 0089) and the For Your Information list
  * Gateway Home shows beside Needs You.
  *
  * A link opens the confirm page in Atlas or Gateway at /auth/act/{token}. Opening it reads what it does

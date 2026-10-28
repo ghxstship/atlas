@@ -26,7 +26,7 @@ export interface KindItem {
   readonly args: MessageArgs;
   readonly url: string;
   /**
-   * One-tap actions (A127, ADR 0086): signed, single-use links to the confirm page of each action the item's Inbox
+   * One-tap actions (A127, ADR 0089): signed, single-use links to the confirm page of each action the item's Inbox
    * entry offers. A link never acts by itself; the confirm page asks, and a rejection asks for the reason.
    */
   readonly actions?: readonly EmailAction[];

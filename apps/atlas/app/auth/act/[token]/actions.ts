@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
- * The confirm button of a one-tap email link (A127, ADR 0086). Only this acts, never opening the page: the database
+ * The confirm button of a one-tap email link (A127, ADR 0089). Only this acts, never opening the page: the database
  * checks the link is the signed-in recipient's, unused and unexpired, then acts through app.act_on_notification, so a
  * refusal (step-up included) names its rule and the link stays unused.
  */

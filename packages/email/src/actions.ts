@@ -1,5 +1,5 @@
 /**
- * One-tap email actions (A127, ADR 0086): the actions a notification email links to, in the order its buttons show.
+ * One-tap email actions (A127, ADR 0089): the actions a notification email links to, in the order its buttons show.
  * Kept apart from the templates so a sender that only builds the links never loads React Email.
  */
 export const EMAIL_ACTIONS = ["approve", "accept", "reject"] as const;

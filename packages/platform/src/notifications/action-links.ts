@@ -3,7 +3,7 @@ import { isEmailActionName, type EmailAction } from "@xos/email/actions";
 import { ACTION_PATH, ACTION_TOKEN, isActionToken } from "@xos/schemas/notifications/action-token";
 
 /**
- * One-tap action links in notification emails (A127, ADR 0086). The database mints each token at dispatch
+ * One-tap action links in notification emails (A127, ADR 0089). The database mints each token at dispatch
  * (app.mint_notification_action_tokens): `xact_` and a 48 hex digit nonce, a dot, and the first 32 hex digits of the
  * HMAC-SHA256 of the nonce and the action under the Vault key xos_notification_action_key. Only its SHA-256 is stored.
  * This module turns minted tokens into the links an email carries and checks a token's shape before a page sends it on;

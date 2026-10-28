@@ -1,4 +1,4 @@
--- pgTAP: migration 2200, one-tap actions (A127, ADR 0086; Section 11.10 rule 5). An email's action link works once,
+-- pgTAP: migration 2200, one-tap actions (A127, ADR 0089; Section 11.10 rule 5). An email's action link works once,
 -- for its recipient only, until it expires, and acts through app.act_on_notification so every rule still decides; a
 -- forged or replaced link does nothing. A shift and an offer are accepted or declined and a message answered where the
 -- notification arrives; an offer reaches its applicant; an external party clears and snoozes their own notifications.

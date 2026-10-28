@@ -1,4 +1,4 @@
-/** A one-tap email action token (ADR 0086): a nonce and its signature, minted and verified only in the database. */
+/** A one-tap email action token (ADR 0089): a nonce and its signature, minted and verified only in the database. */
 export const ACTION_TOKEN = /^xact_[0-9a-f]{48}\.[0-9a-f]{32}$/;
 
 /** The confirm page, in Atlas and Gateway. */

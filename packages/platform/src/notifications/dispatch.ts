@@ -47,7 +47,7 @@ export interface NotificationStore {
   linkFor(claim: ClaimedEmail): Promise<string>;
   /** Signed reply address for reply by email, or null when the email takes no replies. */
   replyAddressFor(claim: ClaimedEmail): Promise<string | null>;
-  /** One-tap action links minted for the delivery (A127, ADR 0086); without it an email has no action buttons. */
+  /** One-tap action links minted for the delivery (A127, ADR 0089); without it an email has no action buttons. */
   actionLinksFor?(claim: ClaimedEmail): Promise<readonly EmailAction[]>;
   record(
     deliveryId: string,

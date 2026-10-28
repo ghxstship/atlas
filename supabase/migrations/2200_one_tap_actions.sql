@@ -1,5 +1,5 @@
 -- 2200_one_tap_actions.sql
--- A127 (RRR-172), Section 11.10 rule 5 ("act where notifications arrive"), trace row S11.10-06, ADR 0086.
+-- A127 (RRR-172), Section 11.10 rule 5 ("act where notifications arrive"), trace row S11.10-06, ADR 0089.
 --   * private.notification_action_tokens and the Vault key xos_notification_action_key: signed, single-use links an
 --     email carries for the actions its Inbox item offers (approve, reject with a reason, accept). Only a SHA-256 hash
 --     of each token is stored; the token is signed with the key, so a forged one is refused before any lookup
@@ -23,7 +23,7 @@ do $$
 begin
   if not exists (select 1 from vault.secrets s where s.name = 'xos_notification_action_key') then
     perform vault.create_secret(encode(extensions.gen_random_bytes(32), 'hex'), 'xos_notification_action_key',
-      'Signs one-tap action links in notification emails (Section 11.10 rule 5, ADR 0086). Generated per environment; rotating it invalidates every open link.');
+      'Signs one-tap action links in notification emails (Section 11.10 rule 5, ADR 0089). Generated per environment; rotating it invalidates every open link.');
   end if;
 end $$;
 
@@ -37,7 +37,7 @@ as $$
   select s.decrypted_secret from vault.decrypted_secrets s where s.name = 'xos_notification_action_key';
 $$;
 
-comment on function private.notification_action_key() is 'The Vault key that signs one-tap action links in notification emails (ADR 0086). Never granted to signed-in callers.';
+comment on function private.notification_action_key() is 'The Vault key that signs one-tap action links in notification emails (ADR 0089). Never granted to signed-in callers.';
 revoke all on function private.notification_action_key() from public, anon, authenticated;
 
 create or replace function private.notification_action_signature(p_nonce text, p_action text)
@@ -51,7 +51,7 @@ as $$
     convert_to(private.notification_action_key(), 'UTF8'), 'sha256'), 'hex'), 32);
 $$;
 
-comment on function private.notification_action_signature(text, text) is 'HMAC-SHA256 of a link''s nonce and action under xos_notification_action_key, the first 32 hex digits: the signature half of an action token (ADR 0086).';
+comment on function private.notification_action_signature(text, text) is 'HMAC-SHA256 of a link''s nonce and action under xos_notification_action_key, the first 32 hex digits: the signature half of an action token (ADR 0089).';
 revoke all on function private.notification_action_signature(text, text) from public, anon, authenticated;
 
 -- 2. Tokens ------------------------------------------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ alter table private.notification_action_tokens enable row level security;
 revoke all on private.notification_action_tokens from public, anon, authenticated;
 grant select, insert, update, delete on private.notification_action_tokens to service_role;
 
-comment on table private.notification_action_tokens is 'One-tap action links in notification emails (Section 11.10 rule 5, ADR 0086): one row per action an email offers. Only the SHA-256 of the token is stored; the token itself is signed with xos_notification_action_key. Single use: acting through any link of a notification uses them all. Read and written only by the action token functions.';
+comment on table private.notification_action_tokens is 'One-tap action links in notification emails (Section 11.10 rule 5, ADR 0089): one row per action an email offers. Only the SHA-256 of the token is stored; the token itself is signed with xos_notification_action_key. Single use: acting through any link of a notification uses them all. Read and written only by the action token functions.';
 comment on column private.notification_action_tokens.id is 'Token row id, UUID v7.';
 comment on column private.notification_action_tokens.org_id is 'Org of the notification.';
 comment on column private.notification_action_tokens.notification_id is 'Notification the link acts on.';
@@ -144,7 +144,7 @@ begin
 end;
 $$;
 
-comment on function private.find_notification_action_token(text) is 'The token row of an action link, or null for a malformed token, an unknown one or one whose signature does not match its action (ADR 0086).';
+comment on function private.find_notification_action_token(text) is 'The token row of an action link, or null for a malformed token, an unknown one or one whose signature does not match its action (ADR 0089).';
 revoke all on function private.find_notification_action_token(text) from public, anon, authenticated;
 
 -- 3. What an email may offer ----------------------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ begin
 end;
 $$;
 
-comment on function app.mint_notification_action_tokens(uuid) is 'Email dispatch API (service role): mints the signed, single-use links an email delivery carries for the actions its notification offers now (private.notification_link_actions), each valid 7 days, and revokes the links of an earlier attempt of the same delivery. Returns each action, its token (shown here only), the app whose confirm page opens it, and the expiry. None for an email that offers no action (ADR 0086).';
+comment on function app.mint_notification_action_tokens(uuid) is 'Email dispatch API (service role): mints the signed, single-use links an email delivery carries for the actions its notification offers now (private.notification_link_actions), each valid 7 days, and revokes the links of an earlier attempt of the same delivery. Returns each action, its token (shown here only), the app whose confirm page opens it, and the expiry. None for an email that offers no action (ADR 0089).';
 revoke all on function app.mint_notification_action_tokens(uuid) from public, anon, authenticated;
 grant execute on function app.mint_notification_action_tokens(uuid) to service_role;
 
@@ -277,7 +277,7 @@ begin
 end;
 $$;
 
-comment on function app.read_notification_action(text) is 'The confirm page of a one-tap email link (ADR 0086): what the link does, for the signed-in recipient only, without acting. link_state is ready, used (acted on through this or another link, or Done in the Inbox), expired, not_yours (signed in as someone else; nothing else is said) or invalid (unknown, forged or replaced).';
+comment on function app.read_notification_action(text) is 'The confirm page of a one-tap email link (ADR 0089): what the link does, for the signed-in recipient only, without acting. link_state is ready, used (acted on through this or another link, or Done in the Inbox), expired, not_yours (signed in as someone else; nothing else is said) or invalid (unknown, forged or replaced).';
 revoke all on function app.read_notification_action(text) from public, anon;
 grant execute on function app.read_notification_action(text) to authenticated, service_role;
 
@@ -319,7 +319,7 @@ begin
 end;
 $$;
 
-comment on function app.use_notification_action(text, text) is 'Acts through a one-tap email link (ADR 0086), on the confirm page''s press, never on opening it: only the signed-in recipient, once, before it expires; a rejection needs a reason. Runs app.act_on_notification as the person, so every rule and step-up still decides, and a refusal leaves the link unused. Using it uses every link of the notification. Returns the notification id.';
+comment on function app.use_notification_action(text, text) is 'Acts through a one-tap email link (ADR 0089), on the confirm page''s press, never on opening it: only the signed-in recipient, once, before it expires; a rejection needs a reason. Runs app.act_on_notification as the person, so every rule and step-up still decides, and a refusal leaves the link unused. Using it uses every link of the notification. Returns the notification id.';
 revoke all on function app.use_notification_action(text, text) from public, anon;
 grant execute on function app.use_notification_action(text, text) to authenticated, service_role;
 
