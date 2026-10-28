@@ -39,7 +39,7 @@ language sql as $$
   select count(*)::int from app.work_detail_events e where e.person_id = pg_temp.id(p_who) and e.action = p_action
 $$;
 
--- A member of org_a whose only role is a custom role holding one capability.
+-- A member of org_a on prj_a whose only role is a custom role holding one capability.
 create function pg_temp.producer(p_key text, p_capability text) returns void
 language plpgsql as $$
 declare
@@ -56,6 +56,15 @@ begin
   perform pg_temp.as_user(p_key);
   perform app.accept_invite(v_token);
   perform pg_temp.as_platform();
+  -- The custom role is the member's only role.
+  insert into app.membership_roles (membership_id, role_id)
+  select m.id, v_role from app.memberships m
+  where m.org_id = pg_temp.id('org_a') and m.person_id = pg_temp.id(p_key) and m.deleted_at is null
+    and not exists (select 1 from app.membership_roles x where x.membership_id = m.id and x.role_id = v_role);
+  -- Assigned to prj_a in the Field project role, which adds no capability of its own.
+  insert into app.project_members (project_id, membership_id, project_role)
+  select pg_temp.id('prj_a'), m.id, 'Field' from app.memberships m
+  where m.org_id = pg_temp.id('org_a') and m.person_id = pg_temp.id(p_key) and m.deleted_at is null;
 end $$;
 
 select pg_temp.new_user('kai', 'kai@bayside-audio.test', 'Kai Morgan');
