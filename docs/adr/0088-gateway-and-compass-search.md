@@ -1,4 +1,4 @@
-# ADR 0086: Search in Gateway and on Compass Today
+# ADR 0088: Search in Gateway and on Compass Today
 
 - Status: Accepted
 - Date: 2026-10-27

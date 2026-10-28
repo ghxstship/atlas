@@ -16,7 +16,7 @@ import { getTranslate } from "@/lib/shell/translate";
 export type { SearchResultGroup, SearchResultItem } from "@/lib/shell/search-index";
 
 /**
- * Gateway search, the server half (Section 11.10 item 1, trace S11.10-02, A126, ADR 0086): the command
+ * Gateway search, the server half (Section 11.10 item 1, trace S11.10-02, A126, ADR 0088): the command
  * menu and the phone Home ask here as the person types. It answers with the actions and settings whose
  * words match and the person's own engagements, documents, conversations and opportunities from
  * app.gateway_search, which returns only what they read in Gateway; on an org's custom domain, only that

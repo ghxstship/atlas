@@ -25,4 +25,4 @@ The command menu found pages, settings pages and, after A61 (A59-015), records a
 - The similarity floor for gte-small is 0.82. On the demo seed, related texts scored 0.82 to 0.87 and unrelated ones 0.74 to 0.81. It is a constant in `@xos/ai` and can be tuned there.
 - The first query after the Edge Function goes cold may miss the 1.5-second limit Atlas allows for the query vector, and that search is lexical only.
 - Gateway's command menu is unchanged: Gateway has no record search for operators to narrow. Compass phone search is a separate follow-up.
-- Both followed in A126 (ADR 0086): a person-scoped search for Gateway's menu and Home, and a search of the device's offline store on Compass Today.
+- Both followed in A126 (ADR 0088): a person-scoped search for Gateway's menu and Home, and a search of the device's offline store on Compass Today.

@@ -1,5 +1,5 @@
 /**
- * Search on Compass Today (Section 11.10 item 1, trace S11.10-02, A126, ADR 0086): shifts, tasks, records,
+ * Search on Compass Today (Section 11.10 item 1, trace S11.10-02, A126, ADR 0088): shifts, tasks, records,
  * people, reference and actions, found in what the device already holds, so search works with no signal.
  * Nothing here reads the network; Today builds the documents from the offline store and this ranks them.
  *

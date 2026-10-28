@@ -3,7 +3,7 @@
 -- A126 (RRR-171), Section 11.10 item 1 (trace S11.10-02): search first in Gateway. The command menu (Cmd or Ctrl+K)
 -- and the search field on the phone Home find the person's own engagements, opportunities, documents and messages, the
 -- way Atlas's command menu finds an org's records (A87, ADR 0043). Gateway has no org to search inside: an external
--- party works with several orgs at once, so the search is scoped to the person, not to an org (ADR 0086).
+-- party works with several orgs at once, so the search is scoped to the person, not to an org (ADR 0088).
 --   * app.gateway_search(query, org, limit): SECURITY DEFINER, because the rows it reads (engagements, their
 --     documents and threads, org-level conversations, opportunities) are reached by external parties only through the
 --     owner-rights api_external projections (Section 8.7), never through row level security on the app tables. It
@@ -252,6 +252,6 @@ begin
 end;
 $$;
 
-comment on function app.gateway_search(jsonb, uuid, integer) is 'Gateway search (Section 11.10 item 1, A126, ADR 0086): the signed-in person''s own engagements, engagement documents, conversations (engagement threads and org-level threads, one result per thread with the best-matching message) and opportunities (those they applied to, and those open to them in an org they work with, applied to or talk to). SECURITY DEFINER with the Section 8.7 helpers the api_external projections apply, so it returns only what the person reads in Gateway and nothing for a caller who is not signed in. p_query is the request @xos/data builds: terms (prefix words), phrases, exclude_terms, exclude_phrases, types and exclude_types (engagement, opportunity, document, message). p_org_id, on an org''s custom domain, keeps that org''s rows only. Ranked by text relevance (title above body) times recency (45-day decay), up to p_limit results of each type (at most 25).';
+comment on function app.gateway_search(jsonb, uuid, integer) is 'Gateway search (Section 11.10 item 1, A126, ADR 0088): the signed-in person''s own engagements, engagement documents, conversations (engagement threads and org-level threads, one result per thread with the best-matching message) and opportunities (those they applied to, and those open to them in an org they work with, applied to or talk to). SECURITY DEFINER with the Section 8.7 helpers the api_external projections apply, so it returns only what the person reads in Gateway and nothing for a caller who is not signed in. p_query is the request @xos/data builds: terms (prefix words), phrases, exclude_terms, exclude_phrases, types and exclude_types (engagement, opportunity, document, message). p_org_id, on an org''s custom domain, keeps that org''s rows only. Ranked by text relevance (title above body) times recency (45-day decay), up to p_limit results of each type (at most 25).';
 revoke all on function app.gateway_search(jsonb, uuid, integer) from public, anon;
 grant execute on function app.gateway_search(jsonb, uuid, integer) to authenticated, service_role;
