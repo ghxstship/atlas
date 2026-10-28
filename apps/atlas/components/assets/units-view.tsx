@@ -216,7 +216,8 @@ export async function UnitsView({
                     key: "asset_state",
                     label: t("assets.fields.state"),
                     reason: true,
-                    options: stateOptions(t),
+                    // Returned is reached only through a return on the unit's order (R7a).
+                    options: stateOptions(t).filter((o) => o.value !== "Returned"),
                   },
                   {
                     key: "home_venue_id",

@@ -3,7 +3,7 @@
 - Status: Accepted (the owner confirmed this answer to decision 8 as recommended on 2026-10-27)
 - Date: 2026-10-28
 - Decider: Owner decisions on advancing, 2026-10-28 (decision 8, answered here and confirmed by the owner on 2026-10-27); R0 (RRR-176)
-- Migrations: none
+- Migrations: none (R0); 2680 to 2683 (R7a, see the amendment below)
 
 ## Context
 
@@ -121,3 +121,35 @@ fully received order, and finance committed and accrued views. None blocks advan
 - Reservations and scans take the same row lock, so a scan never checks out a unit a concurrent reservation is
   claiming without seeing it.
 - With the owner's confirmation, R7a and R7 may start once their dependencies merge.
+
+## Amendment: R7a as built (RRR-183, 2026-10-28)
+
+Migrations 2680 to 2683 build section 4. Where the build differs from the text above or adds to it:
+
+- **Idempotency.** The event id is the row id: `app.receive_goods` inserts the goods receipt with id = the event id,
+  and `app.return_goods` the goods return. A replay on the same order returns outcome duplicate with the stored ids;
+  the same id on another order is refused (receipt_event_reused, return_event_reused). The API mints a fresh event id
+  on the first request and its Idempotency-Key ledger replays the stored response.
+- **Compass.** The receiving scan mode is not replaced. Receiving gains a Receive against an order sheet for internal
+  receivers (feature `scan.receiving.order`, procurement.receipt.write) that queues one `app.receive_goods`
+  mutation; scans outside the sheet keep queuing unknown codes to scan intake, and a vendor still only acknowledges.
+- **Returned.** Reached from Available, Damaged or In Maintenance, only inside `app.return_goods`
+  (`app.transition_asset` refuses it otherwise, asset_returned_through_goods_return). A unit in someone's custody is
+  checked in first (return_unit_in_custody). A quantity out of a lot is a Vendor Return movement; the direction
+  constraint keeps R1's engagement custodian on Check Out.
+- **Units on a receipt line.** `app.asset_units.receipt_line_id` is fixed once set, and a receipt line never brings
+  in more live units than it received or a unit of another element (t42_guard_asset_unit_receipt).
+- **Trash.** `app.goods_returns` and `app.return_lines` are excluded from Trash (ADR 0110): a return is undone by
+  receiving again, never by restoring a row.
+- **Reader views.** `app.po_line_supply` (ordered, acknowledged, received, returned, off-hire due; no prices) and
+  `app.asset_unit_provenance` (receipt, order, vendor and unit price) run as the reader, so cost never reaches a
+  reader without procurement.po.read.
+- **Parity additions (gaps G-96 and G-99).** `app.asset_unit_hire`, an owner-rights view filtered to
+  assets.asset.read with no vendor, cost or order, feeds the units list's built-in Damaged, Hired in and Unavailable
+  views. `app.po_line_hire_warnings` and `app.hire_window_warnings` warn, never refuse, when a hire starts after the
+  site opens, ends before it closes, runs more than a day beyond it, or starts or ends when every dock the project
+  books is taken. The site window is the project's live Build and Strike records, else its dates; a missing bound
+  gives no warning for the rules that use it.
+- **API.** `poLines` and `assetUnits` take the new fields through correction entries (`po-line-rental`,
+  `asset-unit-receipt-line`); `purchaseOrders.receive`, `purchaseOrders.returnGoods`, `poLines.hireWindowWarnings`,
+  `goodsReturns`, `returnLines`, `poLineHireWarnings` and `assetUnitHire` are additions.
