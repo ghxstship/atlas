@@ -1,7 +1,7 @@
 /** Flag grammar shared by the resource commands. */
 import { readFileSync } from "node:fs";
-import type { FilterOperators, OperationSpec } from "@xos/sdk";
-import { FILTER_OPERATORS, OPERATIONS, RESOURCES } from "@xos/sdk";
+import type { FilterOperators, OperationSpec } from "@ghxstship/xos-sdk";
+import { FILTER_OPERATORS, OPERATIONS, RESOURCES } from "@ghxstship/xos-sdk";
 import type { Io } from "./io.ts";
 import { UsageError } from "./io.ts";
 

@@ -255,6 +255,11 @@ supabase db push
   `main` never migrates it. `supabase db push` asks for the database password, which the owner types
   (decision 75).
 - Never load `supabase/seeds` into production; they are the demo tenant.
+- Then put back any Realtime channel rule the project lacks:
+  `supabase db query --linked "select private.ensure_realtime_channel_policies();"`. It answers the names of the
+  rules it created, usually none (`{}`). Realtime creates `realtime.messages` itself, the first time it starts and
+  in some upgrades, and the co-editing rooms refuse every join until their rules exist (ADR 0044, decision 6). The
+  `xos_ensure_realtime_channel_policies` job does the same every minute.
 - Then run `infra/drills/key-tables.sql` read-only in the production SQL editor and keep the output with the release.
 - Database advisors: Dashboard, Advisors. Zero errors (gate 11).
 
@@ -306,7 +311,7 @@ See Compass releases below. Compass ships on its own cadence; a web release neve
 | Edge Functions         | Check out the previous tag and redeploy the functions: `git switch --detach vPREV`, then `supabase functions deploy --project-ref <production-ref>`, then return to `main`                      | Minutes         |
 | A migration            | Never run a down migration. Ship a forward fix as a new migration. The previous app build keeps working on the new schema (expand and contract)                                                 | One deploy      |
 | Lost or corrupted data | Restore to a new project and switch traffic (`backup-and-restore.md`, Restoring production). Declare a SEV1 first                                                                               | Under 4 h (RTO) |
-| A published package    | Never unpublish. Publish the next patch; `npm deprecate @xos/sdk@X.Y.Z "<reason>"` and yank on PyPI                                                                                             | Minutes         |
+| A published package    | Never unpublish. Publish the next patch; `npm deprecate @ghxstship/xos-sdk@X.Y.Z "<reason>"` and yank on PyPI                                                                                   | Minutes         |
 | A Compass build        | Expire the build in TestFlight, or halt the Play rollout; testers keep the previous build                                                                                                       | Minutes         |
 
 ## Environment variables

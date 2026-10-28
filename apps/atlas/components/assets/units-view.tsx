@@ -20,6 +20,7 @@ import { assetCapabilities, loadPickers, must } from "@/lib/assets/context";
 import { DEFAULT_CURRENCY, pageViews } from "@/lib/assets/page";
 import { ASSET_STATE_TONE, matches, type ListQuery } from "@/lib/assets/views";
 import type { OrgContext } from "@/lib/shell/context";
+import { customFieldList } from "@/lib/custom-fields/server";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import { LiveRefresh } from "@/components/live/live-refresh";
@@ -48,10 +49,11 @@ export async function UnitsView({
   const can = assetCapabilities(ctx);
   // Assets are the org's: warranty and service dates follow its calendar, not UTC's (A71).
   const today = await orgToday(ctx);
-  const [unitsResult, classesResult, pickers] = await Promise.all([
+  const [unitsResult, classesResult, pickers, custom] = await Promise.all([
     listAssetUnits(db, ctx.org.id, project ? { projectId: project.id } : {}),
     listAssetClasses(db, ctx.org.id),
     loadPickers(ctx, t("assets.common.unnamed")),
+    customFieldList(ctx, "app.asset_units", new URLSearchParams(query.conditions ?? "")),
   ]);
   const units = must(unitsResult, "asset units");
   const classes = must(classesResult, "asset classes");
@@ -107,6 +109,7 @@ export async function UnitsView({
   const visible = units.filter(
     (u) =>
       (!filter || u.state === filter) &&
+      custom.keep(u.id) &&
       matches(query.q, u.assetTag, u.className, custodianOf(u), u.homeVenueName),
   );
   const rows: CollectionRow[] = visible.map((u) => ({
@@ -151,6 +154,7 @@ export async function UnitsView({
         views={views}
         total={units.length}
         rows={rows}
+        customFields={await custom.view(visible.map((u) => u.id))}
         columns={[
           { key: "assetTag", label: t("assets.fields.assetTag"), type: "code" },
           { key: "className", label: t("assets.fields.classId") },

@@ -16,6 +16,8 @@ import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 // Its menu loads on the first right-click, keeping the page in its route budget.
 import { useRowMenuOnDemand } from "@/components/menus/row-menu-on-demand";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
+import { isConditionParam } from "@/lib/views/query";
 
 // Views other than the default table, and the peek, load when shown (A24-009).
 const ProjectOtherView = dynamic(() =>
@@ -81,6 +83,14 @@ export function ProjectCollection({
   const params = useSearchParams();
   const [query, setQuery] = useState("");
   const [peekKey, setPeekState] = useState<string | null>(params.get("peek"));
+  // The org's filterable project fields (A117), from the CustomFieldList the page wraps this in.
+  const custom = useCustomFieldColumns();
+  const tv = useTranslations("views");
+  const clearFilters = () => {
+    const next = new URLSearchParams(window.location.search);
+    for (const name of [...next.keys()]) if (isConditionParam(name)) next.delete(name);
+    router.replace(`${pathname}${next.size > 0 ? `?${next}` : ""}` as Route, { scroll: false });
+  };
   /** Opens or closes the peek and keeps it in the URL (`?peek=KEY`) without a server round trip. */
   const setPeekKey = (key: string | null) => {
     setPeekState(key);
@@ -181,7 +191,9 @@ export function ProjectCollection({
   );
 
   let body: React.ReactNode;
-  if (projects.length === 0) {
+  // Custom field filters apply on the server (A117), so an empty list under them is no match, not no projects.
+  const filtering = [...params.keys()].some(isConditionParam);
+  if (projects.length === 0 && !filtering) {
     body = create ? (
       <EmptyState
         icon="FolderPlus"
@@ -205,9 +217,9 @@ export function ProjectCollection({
     body = (
       <EmptyState
         icon="Search"
-        sentence={t("list.noMatch", { query })}
-        actionLabel={t("list.clearSearch")}
-        onAction={() => setQuery("")}
+        sentence={query === "" && filtering ? tv("filter.noMatches") : t("list.noMatch", { query })}
+        actionLabel={query === "" && filtering ? tv("filter.clear") : t("list.clearSearch")}
+        onAction={() => (query === "" && filtering ? clearFilters() : setQuery(""))}
       />
     );
   } else if (view === "table") {
@@ -223,6 +235,7 @@ export function ProjectCollection({
             { key: "jurisdiction", label: t("fields.jurisdiction"), type: "code", width: 180 },
             { key: "venue", label: t("fields.venue"), width: 180 },
             { key: "dates", label: t("fields.dates"), width: 220 },
+            ...custom.columns,
           ]}
           pinStart={["key"]}
           rows={shown.map((p) => ({
@@ -234,6 +247,7 @@ export function ProjectCollection({
             jurisdiction: p.jurisdictionId ?? t("values.unresolved"),
             venue: p.venueName ?? t("values.none"),
             dates: dates(p),
+            ...custom.cells(p.id),
           }))}
           onRowActivate={(row) => setPeekKey(String(row["key"]))}
           onRowContextMenu={(_row, index, at, cell) => {

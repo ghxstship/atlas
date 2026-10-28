@@ -1,5 +1,5 @@
 /** What every command receives: parsed global flags, the config and a client factory. */
-import { XosClient } from "@xos/sdk";
+import { XosClient } from "@ghxstship/xos-sdk";
 import type { Config, ResolvedCredentials } from "./config.ts";
 import { configPath, readConfig, resolveCredentials } from "./config.ts";
 import type { Io } from "./io.ts";
