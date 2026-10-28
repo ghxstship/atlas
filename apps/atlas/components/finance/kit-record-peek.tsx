@@ -10,7 +10,8 @@ import { useQueryNav } from "./kit-use-query-nav";
 
 /**
  * The record peek beside the list: non-modal, Esc closes, and the full page opens the same anatomy
- * at `&full=1` (broadcast 1, item 4). The kind label is catalog copy because finance documents are
+ * at `&full=1` (broadcast 1, item 4); a page whose records have no full page passes
+ * `fullPage={false}` (saved reports). The kind label is catalog copy because finance documents are
  * not one of the 26 record kinds.
  */
 export function RecordPeek({
@@ -21,6 +22,7 @@ export function RecordPeek({
   stateLabel,
   properties,
   children,
+  fullPage = true,
 }: {
   kindLabel: string;
   recordKey: string;
@@ -29,6 +31,8 @@ export function RecordPeek({
   stateLabel: string;
   properties: { label: string; value: ReactNode }[];
   children?: ReactNode;
+  /** False where the record has no full page, so the peek offers none. */
+  fullPage?: boolean;
 }) {
   const t = useFinanceT();
   const go = useQueryNav();
@@ -50,11 +54,13 @@ export function RecordPeek({
               <span className="font-mono text-text-12">{recordKey}</span>
             </span>
             <span className="flex items-center gap-2">
-              <IconButton
-                icon="Maximize2"
-                label={t("common.openFull")}
-                onClick={() => go({ full: "1" })}
-              />
+              {fullPage ? (
+                <IconButton
+                  icon="Maximize2"
+                  label={t("common.openFull")}
+                  onClick={() => go({ full: "1" })}
+                />
+              ) : null}
               <RDialog.Close asChild>
                 <IconButton icon="X" label={t("common.close")} shortcut="Esc" />
               </RDialog.Close>

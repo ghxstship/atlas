@@ -85,7 +85,8 @@
     "bulk": {
       "clear": "[Çléàr séléçtîöñ ·····]",
       "label": "[Bûlk àçtîöñs ····]",
-      "selected": "[{n} séléçtéd ····]"
+      "selected": "[{n} séléçtéd ····]",
+      "itemSelected": "[Šéļéçţéð ··]"
     },
     "calendar": {
       "agenda": "[Àgéñdà ··]",
@@ -533,6 +534,7 @@
     },
     "recordList": {
       "columns": {
+        "select": "[Šéļéçţ ·]",
         "state": "[Stàté ··]",
         "key": "[Kéý ··]",
         "title": "[Réçörd ···]",

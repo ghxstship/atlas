@@ -23,6 +23,8 @@ order: 51
 
 Shifts open as a resource schedule in Atlas, with people down the side and time across. Publish shifts so crew can accept them in Compass. Swaps between crew members need approval.
 
+Planners can plan a Draft shift from one line in the quick add field, such as "#stagehand @dana ~NWS-S01 Friday 8am-4pm": `#` names the role, `@` the person (leave it out for an open shift), `~` the scope and the date its call and end. Without an end time a shift runs eight hours.
+
 ## Time entries and timesheets
 
 Crew clock in and out in Compass, inside the venue's geofence. A second clock-in on another device is refused. Supervisors approve timesheets; if hours change after approval, the approval is voided and the timesheet needs approving again.

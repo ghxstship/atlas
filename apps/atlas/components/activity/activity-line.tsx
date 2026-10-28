@@ -7,6 +7,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 import type { ActivityDescription } from "./describe";
+import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
 import { peekHref as shellPeekHref } from "@/lib/shell/peek";
 
 /**
@@ -26,7 +27,8 @@ export function ActivityTarget({ parts }: { parts: readonly string[] }) {
 /**
  * One activity line (A59-030): who, the verb, and the thing acted on, named in the body font (a record
  * by its key and title, as a link that opens it in the peek), never a monospace kind. A run of identical
- * events reads once with a count. Section 11.10 item 2 keeps monospace for codes.
+ * events reads once with a count. Section 11.10 item 2 keeps monospace for codes. The record's link
+ * previews it after 400 ms (Section 11.7), read by its key.
  */
 export function ActivityLine({
   description,
@@ -43,8 +45,9 @@ export function ActivityLine({
   const org = pathname.split("/")[1] ?? "";
   // A peek where the shell opens it, else the record page (lib/shell/peek).
   const peekHref = (key: string) => shellPeekHref(org, pathname, search.toString(), key) as Route;
+  const hover = useRecordKeyHovers(org);
   return (
-    <article className="flex max-w-(--layout-peek) items-start gap-12">
+    <article className="flex max-w-(--layout-peek) items-start gap-12" {...hover.hoverProps}>
       <Avatar name={description.actor} />
       <div className="flex min-w-0 flex-1 flex-col gap-4">
         <p className="m-0">
@@ -54,6 +57,8 @@ export function ActivityLine({
             <NextLink
               href={peekHref(description.recordKey)}
               scroll={false}
+              data-item={description.recordKey}
+              data-column="key"
               className="font-medium text-accent-text no-underline hover:underline"
             >
               <ActivityTarget parts={description.targetParts} />
@@ -72,6 +77,7 @@ export function ActivityLine({
           </div>
         ) : null}
       </div>
+      {hover.card}
     </article>
   );
 }

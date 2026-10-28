@@ -15,6 +15,7 @@ import { buildShellKeys, goHints } from "@/lib/shell/shell-keys";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { getShellSettings } from "@/lib/shell/org-settings";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { PREFERENCES_COOKIE } from "@xos/ui/preferences";
 import { THEME_COOKIE, themeFromCookie } from "@/lib/theme";
 import { ReporterUser } from "./reporter-user";
@@ -112,6 +113,10 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
     lockedLocale(settings.language) === null
       ? selectableLocales(process.env.NODE_ENV === "production")
       : [];
+  // Quick add in the Create menu creates records, read on the org's calendar (Section 11.7).
+  const quickAdd = ctx.capabilities.has("work.record.write")
+    ? { org: ctx.org.slug, timeZone: await getOrgTimeZone(ctx) }
+    : null;
   return (
     <ShellFrame
       org={{ name: ctx.org.name, slug: ctx.org.slug }}
@@ -135,6 +140,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       storedPreferences={cookieStore.get(PREFERENCES_COOKIE)?.value ?? ""}
       keys={keys}
       create={createItems(sitemap, { nav: ctx.nav, capabilities: ctx.capabilities, params, t })}
+      quickAdd={quickAdd}
     >
       <ReporterUser personId={ctx.viewer.person?.id ?? null} />
       {children}

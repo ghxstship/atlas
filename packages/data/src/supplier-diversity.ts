@@ -86,8 +86,9 @@ export interface SupplierDiversityInput {
 }
 
 /**
- * Declares a certification; row level security admits only the owner. A certificate number goes
- * through app.set_supplier_diversity_certificate_number, which encrypts its letters and digits.
+ * Declares a certification and its certificate number in one call (migration 2350): the database
+ * admits only the owner, encrypts the number's letters and digits in the same insert, and refuses
+ * a bad number before any row exists, so a failure never leaves a certification behind.
  */
 export async function addSupplierDiversity(
   db: XosClient,
@@ -98,27 +99,18 @@ export async function addSupplierDiversity(
   if (number !== null && (digits === 0 || digits > 100)) {
     return fail({ kind: "invalid", message: "certificate_number" });
   }
-  const { data, error } = await db
-    .from("supplier_diversity_certifications")
-    .insert({
-      person_id: input.accountId ? null : input.personId,
-      account_id: input.accountId,
-      diversity_kind: input.kind,
-      certifying_body: input.certifyingBody.trim(),
-      issued_on: input.issuedOn,
-      expires_on: input.expiresOn,
-    })
-    .select("id")
-    .single();
+  const personId = input.accountId ? null : input.personId;
+  const { data, error } = await db.rpc("add_supplier_diversity_certification", {
+    p_kind: input.kind,
+    p_certifying_body: input.certifyingBody.trim(),
+    ...(personId ? { p_person_id: personId } : {}),
+    ...(input.accountId ? { p_account_id: input.accountId } : {}),
+    ...(number !== null ? { p_certificate_number: number } : {}),
+    ...(input.issuedOn ? { p_issued_on: input.issuedOn } : {}),
+    ...(input.expiresOn ? { p_expires_on: input.expiresOn } : {}),
+  });
   if (error) return fail(toDataError(error));
-  if (number !== null) {
-    const set = await db.rpc("set_supplier_diversity_certificate_number", {
-      p_certification_id: data.id,
-      p_certificate_number: number,
-    });
-    if (set.error) return fail(toDataError(set.error));
-  }
-  return ok({ id: data.id });
+  return ok({ id: data });
 }
 
 /** Removes a certification (soft delete); live shares stop with it, since the org reads only live rows. */

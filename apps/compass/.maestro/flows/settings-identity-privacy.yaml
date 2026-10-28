@@ -1,0 +1,48 @@
+appId: pro.ghxstship.compass
+# Settings, Profile Privacy edits natively (A110): marketplace search turns on and saves, then off again, and a
+# section narrows to Private and back to the profile's visibility. Blocked people show in the same screen.
+# Named after its file: config.yaml orders flows by name.
+name: settings-identity-privacy
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/profile-privacy
+- extendedWaitUntil:
+    visible:
+      id: "settings-privacy-discoverable"
+    timeout: 30000
+- tapOn:
+    id: "settings-privacy-discoverable"
+- tapOn:
+    id: "settings-privacy-save"
+- extendedWaitUntil:
+    visible: "Saved."
+    timeout: 30000
+- tapOn:
+    id: "settings-privacy-discoverable"
+- tapOn:
+    id: "settings-privacy-save"
+- extendedWaitUntil:
+    visible: "Saved."
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "settings-privacy-section-rates-Private"
+    direction: DOWN
+- tapOn:
+    id: "settings-privacy-section-rates-Private"
+- extendedWaitUntil:
+    visible: "Saved."
+    timeout: 30000
+- tapOn:
+    id: "settings-privacy-section-rates-inherit"
+- scrollUntilVisible:
+    element:
+      id: "settings-privacy-blocked"
+    direction: DOWN
+- assertVisible: "Blocked People and Organizations"

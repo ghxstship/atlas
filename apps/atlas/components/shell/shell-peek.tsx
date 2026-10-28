@@ -12,17 +12,18 @@ import { shellOpensPeek } from "@/lib/shell/peek";
 import { peekHandoffs, serverPeekHandoffs, subscribePeekHandoffs } from "@/lib/shell/peek-handoff";
 import { onDemand, useOnDemand } from "./on-demand";
 
-/** The side peek loads with the first record the shell opens (A24-009). */
-const peek = onDemand(() => import("@/components/work/record-peek"));
+/** The side peek and its sections load with the first record the shell opens (A24-009). */
+const peek = onDemand(() => import("./shell-peek-sections"));
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /**
  * The shell's global `?peek={recordKey}` hook: on every Atlas route that does not peek its own rows,
- * the record the key names opens in the side peek; on a collection page it opens only a key the page
- * hands over because it shows no row for it (PeekHandoff), never on the collection's full record
- * page (`&full=1`); closing it removes the parameter. Aurora citation links and proposed sitemap
- * nodes rely on it (see lib/shell/peek.ts).
+ * the record the key names opens in the side peek, with the sections of its full page (properties,
+ * recent activity, comments and files, related records); on a collection page it opens only a key
+ * the page hands over because it shows no row for it (PeekHandoff), never on the collection's full
+ * record page (`&full=1`); closing it removes the parameter. Aurora citation links and proposed
+ * sitemap nodes rely on it (see lib/shell/peek.ts).
  */
 export function ShellPeek({ org }: { org: string }) {
   const pathname = usePathname();
@@ -39,6 +40,8 @@ export function ShellPeek({ org }: { org: string }) {
   const handoffs = useSyncExternalStore(subscribePeekHandoffs, peekHandoffs, serverPeekHandoffs);
   const active = shellOpensPeek(pathname, search, handoffs);
   const [result, setResult] = useState<{ key: string; value: ShellPeekResult } | null>(null);
+  // Bumped after a comment or file changes, to read the record again.
+  const [version, setVersion] = useState(0);
   const loaded = useOnDemand(peek, active);
 
   useEffect(() => {
@@ -56,7 +59,7 @@ export function ShellPeek({ org }: { org: string }) {
     return () => {
       live = false;
     };
-  }, [active, key, org]);
+  }, [active, key, org, version]);
 
   if (!active || key === null) return null;
   const close = () =>
@@ -111,7 +114,7 @@ export function ShellPeek({ org }: { org: string }) {
     ...(r.blockerText ? [{ label: t("blocker"), value: r.blockerText }] : []),
   ];
   if (loaded === null) return null;
-  const { RecordPeek } = loaded;
+  const { RecordPeek, ShellPeekSections } = loaded;
   return (
     <RecordPeek
       org={org}
@@ -144,13 +147,14 @@ export function ShellPeek({ org }: { org: string }) {
             ))}
           </ol>
         )}
-        <NextLink
-          href={`/${org}/r/${encodeURIComponent(r.key)}` as Route}
-          className="text-text-13 font-medium text-accent-text no-underline hover:underline"
-        >
-          {t("openFull")}
-        </NextLink>
       </section>
+      <ShellPeekSections org={org} record={r} onChange={() => setVersion((v) => v + 1)} />
+      <NextLink
+        href={`/${org}/r/${encodeURIComponent(r.key)}` as Route}
+        className="text-text-13 font-medium text-accent-text no-underline hover:underline"
+      >
+        {t("openFull")}
+      </NextLink>
     </RecordPeek>
   );
 }

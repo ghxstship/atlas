@@ -203,6 +203,9 @@ importers:
       '@xos/ia':
         specifier: workspace:*
         version: link:../../packages/ia
+      '@xos/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       '@xos/sync':
         specifier: workspace:*
         version: link:../../packages/sync

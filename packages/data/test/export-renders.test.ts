@@ -416,4 +416,30 @@ describe("supabaseExportRenderStore", () => {
     expect(primaryCalls).toEqual([["export_job_rows", { p_export_job_id: "exp-1", p_limit: 11 }]]);
     expect(fallbacks).toEqual(["export rows"]);
   });
+
+  it("reads every row of a large export as the one array export_job_rows answers (2360)", async () => {
+    const many = Array.from({ length: 2_500 }, (_, i) => ({ name: `Venue ${i + 1}` }));
+    const primaryCalls: unknown[][] = [];
+    const replicaCalls: unknown[][] = [];
+    const answer = { export_job_rows: { data: many, error: null } };
+    const onPrimary = supabaseExportRenderStore(rpcClient(answer, primaryCalls));
+    expect(await onPrimary.rows("exp-1", 50_001)).toHaveLength(2_500);
+    const onReplica = supabaseExportRenderStore(rpcClient({}, []), {
+      replica: rpcClient(answer, replicaCalls),
+    });
+    expect(await onReplica.rows("exp-1", 50_001)).toHaveLength(2_500);
+    expect(primaryCalls).toHaveLength(1);
+    expect(replicaCalls).toHaveLength(1);
+  });
+
+  it("refuses an answer that is not an array of rows", async () => {
+    const store = supabaseExportRenderStore(
+      rpcClient({ export_job_rows: { data: { name: "Venue 1" }, error: null } }, []),
+    );
+    await expect(store.rows("exp-1", 11)).rejects.toThrow(/array of rows/);
+    const empty = supabaseExportRenderStore(
+      rpcClient({ export_job_rows: { data: null, error: null } }, []),
+    );
+    expect(await empty.rows("exp-1", 11)).toEqual([]);
+  });
 });
