@@ -17,8 +17,11 @@ test("Cmd or Ctrl+K finds a document and a message, and opens each", async ({ pa
   const menu = page.getByRole("dialog").filter({ has: page.getByRole("combobox") });
   await expect(menu).toBeVisible();
   await page.keyboard.type(agreement.title);
-  const document = menu.getByRole("option", { name: new RegExp(`^${agreement.title} · Agreement`) });
-  await expect(document).toBeVisible();
+  const document = menu.getByRole("option", {
+    name: new RegExp(`^${agreement.title} · Agreement`),
+  });
+  // The first search compiles the server action on a cold development server.
+  await expect(document).toBeVisible({ timeout: 15_000 });
   await expectAccessible(page);
   await document.click();
   await expect(page).toHaveURL(
@@ -43,7 +46,9 @@ test("the menu finds a setting and an action by their words", async ({ page }) =
   const menu = page.getByRole("dialog").filter({ has: page.getByRole("combobox") });
   await expect(menu).toBeVisible();
   await page.keyboard.type("time zone");
-  await expect(menu.getByRole("group", { name: "Settings" }).getByRole("option").first()).toBeVisible();
+  await expect(
+    menu.getByRole("group", { name: "Settings" }).getByRole("option").first(),
+  ).toBeVisible({ timeout: 15_000 });
   await page.keyboard.press("ControlOrMeta+a");
   await page.keyboard.type("sign documents");
   await expect(menu.getByRole("option", { name: "Sign documents" })).toBeVisible();
@@ -55,7 +60,7 @@ test("Home's search field finds the person's message as they type", async ({ pag
   await search.fill("weekends November");
   const results = page.getByRole("navigation", { name: "Search results" });
   const message = results.getByRole("link", { name: /Availability for the Fall Season/ });
-  await expect(message).toBeVisible();
+  await expect(message).toBeVisible({ timeout: 15_000 });
   await expect(results.getByRole("link", { name: /Search opportunities for/ })).toBeVisible();
   await expectAccessible(page);
   await message.click();
