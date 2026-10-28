@@ -3,6 +3,7 @@ import { getMessages, locales } from "@xos/i18n";
 import { createElement } from "react";
 import { describe, expect, it } from "vitest";
 import { pageOwnsPeek, peekHref, shellOpensPeek, shellPeekMode } from "../lib/shell/peek";
+import { shellPeekHref } from "../lib/shell/peek-link";
 import {
   handOffPeek,
   peekHandoffs,
@@ -172,6 +173,24 @@ describe("the shell's global ?peek hook", () => {
       const peek = getMessages(locale).peek;
       expect(peek.missing).toContain("{key}");
       expect(peek.close.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("the activity feeds' peek links", () => {
+  // ActivityLine links records with shellPeekHref, without the sitemap: every page that renders a
+  // feed must leave `?peek` to the shell.
+  it("sit only on pages that do not peek their own rows", () => {
+    for (const path of [
+      "/demo-productions/home",
+      "/demo-productions/p/NWS/overview",
+      "/demo-productions/p/NWS/activity",
+      "/demo-productions/activity/feed",
+    ]) {
+      expect(pageOwnsPeek(path), path).toBe(false);
+      expect(shellPeekHref(path, "view=list&full=1", "NWS-7")).toBe(
+        peekHref("demo-productions", path, "view=list&full=1", "NWS-7"),
+      );
     }
   });
 });

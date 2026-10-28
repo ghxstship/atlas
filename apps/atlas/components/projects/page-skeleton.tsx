@@ -1,11 +1,9 @@
-"use client";
-
-import { Skeleton } from "@xos/ui";
+import { Skeleton } from "@xos/ui/static";
 
 /**
- * The loading state of a Projects, Home or Activity page: the header and rows it will fill. A
- * client module of its own: a route's loading boundary loads with every visit, and the shared
- * `./ui` boundary would bring every @xos/ui component the server pages render (ADR 0027).
+ * The loading state of a Projects, Home or Activity page: the header and rows it will fill. Server
+ * rendered from the hook-free `@xos/ui/static`, so the loading boundaries that use it send no
+ * JavaScript; a client module here loaded with every visit to the route (ADR 0027).
  */
 export function PageSkeleton({ rows = 8 }: { rows?: number }) {
   return (

@@ -1,6 +1,5 @@
 "use client";
 
-import { resolveBreadcrumbs } from "@xos/ia";
 import {
   AppShell,
   Breadcrumbs,
@@ -26,9 +25,9 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { clientSitemap } from "@/ia/sitemap.client.generated";
 import { isBetaLocale } from "@xos/i18n/locales";
 import type { AtlasLocale } from "@/i18n/negotiate";
+import type { CrumbItem } from "@/lib/shell/breadcrumbs";
 import type { CreateItem } from "@/lib/shell/create-order";
 import type { ShellQuickAdd } from "./shell-create";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
@@ -56,9 +55,22 @@ const commandMenu = onDemand(() => import("./shell-command"));
 const createMenu = onDemand(() => import("./shell-create"));
 /** The key handler loads once the shell has hydrated, outside the route's first JavaScript. */
 const keyHandler = onDemand(() => import("./shell-keys"));
+/**
+ * Breadcrumbs and the help panel's page for the pages the shell navigates to, with the client
+ * sitemap: they load with the person's first pointer press, key or focus, ahead of any navigation,
+ * since the server hands over both for the page it rendered (ADR 0027).
+ */
+const routeTrail = onDemand(() => import("./route-trail"));
+const INTERACTIONS = ["pointerdown", "keydown", "focusin"] as const;
 
 export interface ShellFrameProps {
   readonly org: { readonly name: string; readonly slug: string };
+  /** The page the server rendered the shell for, with its breadcrumbs and sitemap node; null on a prefetch. */
+  readonly page: {
+    readonly path: string;
+    readonly crumbs: readonly CrumbItem[];
+    readonly nodeId: string | null;
+  } | null;
   readonly orgs: readonly { readonly name: string; readonly slug: string; readonly role: string }[];
   readonly nav: ShellNav;
   /** The person's pinned pages and records in this org (app.favorites). */
@@ -202,17 +214,25 @@ export function ShellFrame(props: ShellFrameProps) {
     document.cookie = preferencesCookie(preferences, window.location.protocol === "https:");
   }, [preferences, storedPreferences, displayPreferences]);
 
+  // The server's trail for the page it rendered; after a client navigation, the client sitemap's,
+  // which the first interaction has usually loaded by then (the org alone until it arrives).
+  const navigated = pathname !== props.page?.path;
+  const trail = useOnDemand(routeTrail, navigated);
+  useEffect(() => {
+    const wake = () => void routeTrail.load().catch(() => undefined);
+    for (const type of INTERACTIONS)
+      window.addEventListener(type, wake, { once: true, capture: true });
+    return () => {
+      for (const type of INTERACTIONS) window.removeEventListener(type, wake, { capture: true });
+    };
+  }, []);
   const workspaceName = props.workspaces.find((w) => w.slug === props.workspace)?.name;
-  const crumbs = resolveBreadcrumbs(
-    clientSitemap,
-    pathname,
-    workspaceName ? { workspace: workspaceName } : {},
-  ).map((c) => {
-    if (c.kind === "org") return { label: org.name, href: `/${org.slug}/home` };
-    if (c.kind === "workspace") return { label: c.value };
-    if (c.kind === "node") return { label: t(c.label), href: c.href };
-    return { label: c.value, ...(c.href ? { href: c.href } : {}) };
-  });
+  const crumbs: CrumbItem[] = !navigated
+    ? [...(props.page?.crumbs ?? [])]
+    : trail
+      ? trail.trailFor(pathname, { org, workspace: workspaceName }, t)
+      : [{ label: org.name, href: `/${org.slug}/home` }];
+  const nodeId = navigated ? (trail?.nodeIdFor(pathname) ?? null) : (props.page?.nodeId ?? null);
 
   const account = nav.account;
   const accountItems: MenuItem[] = [
@@ -409,7 +429,7 @@ export function ShellFrame(props: ShellFrameProps) {
                 canManage={props.canManageAi}
                 shortcut={props.keys.display["aurora"]}
               />
-              <HelpCenter org={org.slug} shortcut={props.keys.display["help"]} />
+              <HelpCenter org={org.slug} nodeId={nodeId} shortcut={props.keys.display["help"]} />
               <DeferredDropdownMenu
                 label={t("shell.chrome.account")}
                 icon="CircleUserRound"

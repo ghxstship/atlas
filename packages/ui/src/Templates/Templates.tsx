@@ -10,6 +10,7 @@ export {
   type TemplateAuthProps,
   type TemplateGatewayShellProps,
   type TemplateSystemProps,
+  type TemplateSystemLinkProps,
 } from "./Templates.types.ts";
 export { TemplateCollection } from "./TemplateCollection.tsx";
 export { TemplateRecord } from "./TemplateRecord.tsx";
@@ -22,3 +23,4 @@ export { TemplateDocument } from "./TemplateDocument.tsx";
 export { TemplateAuth } from "./TemplateAuth.tsx";
 export { TemplateGatewayShell } from "./TemplateGatewayShell.tsx";
 export { TemplateSystem } from "./TemplateSystem.tsx";
+export { TemplateSystemLink } from "./TemplateSystemLink.tsx";

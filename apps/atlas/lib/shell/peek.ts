@@ -1,5 +1,6 @@
 import { findRoute } from "@xos/ia";
 import { clientSitemap, listNodes } from "@/ia/sitemap.client.generated";
+import { shellPeekHref } from "./peek-link";
 import type { PeekHandoff } from "./peek-handoff";
 
 /**
@@ -102,8 +103,5 @@ export function shellOpensPeek(
  */
 export function peekHref(org: string, pathname: string, search: string, recordKey: string): string {
   if (pageOwnsPeek(pathname)) return `/${org}/r/${encodeURIComponent(recordKey)}`;
-  const params = new URLSearchParams(search);
-  params.set("peek", recordKey);
-  params.delete("full");
-  return `${pathname}?${params.toString()}`;
+  return shellPeekHref(pathname, search, recordKey);
 }

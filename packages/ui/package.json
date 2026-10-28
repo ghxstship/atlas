@@ -10,6 +10,7 @@
   ],
   "exports": {
     ".": "./src/index.ts",
+    "./static": "./src/static.ts",
     "./preferences": "./src/lib/preferences.ts",
     "./undo": "./src/lib/undo-stack.ts",
     "./quick-add": "./src/Editing/quickAddCore.ts",
