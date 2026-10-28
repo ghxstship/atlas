@@ -1651,7 +1651,7 @@
       "email": "Correo de contacto",
       "profileUnavailable": "El perfil de la empresa lo administran los administradores de Atlas de la organización. Pide a un propietario de la cuenta que lo configure.",
       "remove": "Quitar",
-      "inviteNote": "Para agregar a alguien al equipo, pídele que cree una cuenta de Gateway; luego un propietario o administrador lo agrega por su cuenta.",
+      "inviteNote": "La persona invitada inicia sesión en Gateway con la dirección que invitaste y acepta en Inicio. Hasta entonces no figura en ninguna lista del equipo ni tiene contrataciones asignadas, y no se comparte nada sobre ella.",
       "noInsurance": "No hay certificados de seguro registrados. Las organizaciones los piden durante la incorporación; súbelos ahí.",
       "toEngagements": "Ver contrataciones",
       "noRepresentation": "Tu agencia aún no representa a ningún artista.",

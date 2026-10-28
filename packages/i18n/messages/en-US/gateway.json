@@ -1651,7 +1651,7 @@
       "email": "Contact email",
       "profileUnavailable": "The company profile is managed by the organization's Atlas administrators. Ask an Account Owner to set it up.",
       "remove": "Remove",
-      "inviteNote": "To add a team member, ask them to create a Gateway account; an Account Owner or Admin then adds them by their account.",
+      "inviteNote": "An invited person signs in to Gateway with the address you invited and accepts on Home. Until then they are not rostered or assigned, and nothing about them is shared.",
       "noInsurance": "No insurance certificates on file. Organizations request them during onboarding; upload them there.",
       "toEngagements": "See engagements",
       "noRepresentation": "Your agency represents no artists yet.",

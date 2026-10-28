@@ -276,7 +276,27 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "To add someone, ask them to create a Gateway account; an Account Owner or Admin then adds them by their account. Owners and Admins can remove members here.",
+            v: "An Account Owner or Admin invites someone by email with a role; only an Owner offers Account Owner. We send one email to the address, and the person signs in to Gateway with it and accepts on Home. Pending invitations are listed here until they are accepted, and Owners and Admins can revoke them.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A member marked " },
+          { t: "strong", v: "Not confirmed" },
+          {
+            t: "text",
+            v: " was added without an invitation and has not confirmed yet. Until they confirm on Home, they cannot be put on a crew roster or assigned to an engagement, and nothing about them is shared.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "An Account Member reaches only the engagements an Owner or Admin assigns them, on the engagement's Overview. Owners and Admins can remove members here.",
           },
         ],
       },
@@ -3795,7 +3815,27 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Para agregar a alguien, pídele que cree una cuenta de Gateway; luego un Propietario o Administrador de la cuenta lo agrega por su cuenta. Los Propietarios y Administradores pueden quitar miembros aquí.",
+            v: "Un Propietario o Administrador de la cuenta invita a alguien por correo con un rol; solo un Propietario ofrece el rol de Propietario de la cuenta. Enviamos un correo a esa dirección, y la persona inicia sesión en Gateway con ella y acepta en Inicio. Las invitaciones pendientes aparecen aquí hasta que se aceptan, y los Propietarios y Administradores pueden revocarlas.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Un miembro marcado como " },
+          { t: "strong", v: "Sin confirmar" },
+          {
+            t: "text",
+            v: " se agregó sin invitación y aún no ha confirmado. Hasta que confirme en Inicio, no se le puede poner en una lista del equipo ni asignar a una contratación, y no se comparte nada sobre él.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un Miembro de la cuenta solo accede a las contrataciones que un Propietario o Administrador le asigna, en el Resumen de la contratación. Los Propietarios y Administradores pueden quitar miembros aquí.",
           },
         ],
       },
