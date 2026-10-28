@@ -117,7 +117,8 @@ jobs:
               echo "$1@${VERSION} is already published; skipping."
             else
               # No --provenance: npm signs provenance only for packages built in a public repository, and
-              # this one is private (owner decision, 2026-10-24).
+              # this one is private (owner decision, 2026-10-24). Both manifests also set publishConfig.provenance
+              # to false, since npm reads publishConfig from the archive.
               npm publish "$2" --access public
             fi
           }
