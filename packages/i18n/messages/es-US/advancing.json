@@ -448,6 +448,7 @@
     "returnSubmit": "Devolver entrada",
     "cancel": "Cancelar",
     "profileTitle": "Perfil compartido",
+    "profileNone": "No hay datos de trabajo compartidos que puedas leer.",
     "noArrival": "Sin definir"
   }
 }
