@@ -137,6 +137,8 @@ if TYPE_CHECKING:
         AssetUnitBulkEditRequest,
         AssetUnitBulkEditResult,
         AssetUnitCreate,
+        AssetUnitHire,
+        AssetUnitHirePage,
         AssetUnitPage,
         AssetUnitUpdate,
         AssignHelpDeskRequest,
@@ -561,6 +563,8 @@ if TYPE_CHECKING:
         GoodsReceipt,
         GoodsReceiptCreate,
         GoodsReceiptPage,
+        GoodsReturn,
+        GoodsReturnPage,
         GrainCode,
         GuestCheckIn,
         GuestCheckInCreate,
@@ -591,6 +595,7 @@ if TYPE_CHECKING:
         HelpDeskTeamUpdate,
         HelpDeskTransitionRequest,
         HideFeedPostRequest,
+        HireWindowWarnings,
         HomeSummary,
         ImportBatch,
         ImportBatchPage,
@@ -900,6 +905,8 @@ if TYPE_CHECKING:
         PoChangeOrderUpdate,
         PoLine,
         PoLineCreate,
+        PoLineHireWarning,
+        PoLineHireWarningPage,
         PoLinePage,
         PoLineUpdate,
         Poll,
@@ -972,6 +979,10 @@ if TYPE_CHECKING:
         PurchaseOrderApproveRequest,
         PurchaseOrderCreate,
         PurchaseOrderPage,
+        PurchaseOrderReceiveRequest,
+        PurchaseOrderReceiveResult,
+        PurchaseOrderReturnRequest,
+        PurchaseOrderReturnResult,
         PurchaseOrderTransitionRequest,
         PurchaseOrderUpdate,
         RFQTransitionRequest,
@@ -1076,6 +1087,8 @@ if TYPE_CHECKING:
         RetentionPolicyPage,
         RetireCourseRequest,
         RetireFormRequest,
+        ReturnLine,
+        ReturnLinePage,
         Rfq,
         RfqCreate,
         RfqInvitation,
@@ -13529,6 +13542,40 @@ class PurchaseOrdersResource(Resource):
         """
         return self._client.request(OPERATIONS["purchaseOrders.fieldHistory"], path={"id": id}, query={"limit": limit_}, options=options)
 
+    def receive(
+        self,
+        id: str,
+        body: PurchaseOrderReceiveRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PurchaseOrderReceiveResult]:
+        """Receive goods against a purchase order
+
+        Records one receipt event in one transaction (app.receive_goods): the goods receipt, a receipt line per entry and, for an element with an asset class, Received units by asset tag or a Receipt movement into the lot at a venue. Needs procurement.receipt.write on the project, and assets.asset.write to bring stock in. The order must be Approved or Sent, and receipts never exceed the quantity ordered (422 receipt_order_state, receipt_exceeds_order). A replay with the same Idempotency-Key returns the original response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /purchase-orders/{id}/receive`` (operation ``purchaseOrders.receive``).
+        Requires the capability ``procurement.receipt.write``.
+        """
+        return self._client.request(OPERATIONS["purchaseOrders.receive"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def return_goods(
+        self,
+        id: str,
+        body: PurchaseOrderReturnRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PurchaseOrderReturnResult]:
+        """Return goods to the vendor
+
+        Records one return event in one transaction (app.return_goods): return lines against the receipt lines that brought the goods in, never more than they received (422 return_exceeds_receipt). Serialized units must be Available, Damaged or In Maintenance and checked in; they become Returned. A quantity out of a lot writes a Vendor Return movement. Off Hire applies only to rental lines (422 return_off_hire_not_rental). Needs procurement.receipt.write on the project. A replay with the same Idempotency-Key returns the original response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /purchase-orders/{id}/returns`` (operation ``purchaseOrders.returnGoods``).
+        Requires the capability ``procurement.receipt.write``.
+        """
+        return self._client.request(OPERATIONS["purchaseOrders.returnGoods"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
 
 class PoLinesResource(Resource):
     """Operations on ``poLines``, in the Procurement module."""
@@ -13635,6 +13682,23 @@ class PoLinesResource(Resource):
         Requires the capability ``procurement.po.write``.
         """
         return self._client.request(OPERATIONS["poLines.delete"], path={"id": id}, options=options)
+
+    def hire_window_warnings(
+        self,
+        *,
+        project_id: str,
+        from_: str,
+        to: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[HireWindowWarnings]:
+        """Window warnings for a hire
+
+        The delivery and return window warnings a rental line with this hire would raise on the project before it is saved (app.hire_window_warnings, G-99): the same rules as `poLineHireWarnings`. Warnings never refuse a line. Needs procurement.po.read on the project; a hire that does not end after it starts is refused (422 hire_period_order). A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /po-lines/hire-window-warnings`` (operation ``poLines.hireWindowWarnings``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request(OPERATIONS["poLines.hireWindowWarnings"], query={"project_id": project_id, "from": from_, "to": to}, options=options)
 
 
 class PoChangeOrdersResource(Resource):
@@ -32081,6 +32145,49 @@ class GuestListEntriesResource(Resource):
         return self._client.request(OPERATIONS["guestListEntries.checkIn"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
 
+class AssetUnitHireResource(Resource):
+    """Operations on ``assetUnitHire``, in the Assets module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[AssetUnitHire]:
+        """List unit hire rows
+
+        Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order. Returns a cursor page of unit hire rows the caller may see. The default order is `asset_unit_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /asset-unit-hire`` (operation ``assetUnitHire.list``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.request_page(OPERATIONS["assetUnitHire.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[AssetUnitHire]:
+        """List unit hire rows
+
+        Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order. Returns a cursor page of unit hire rows the caller may see. The default order is `asset_unit_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /asset-unit-hire`` (operation ``assetUnitHire.list``).
+        Requires the capability ``assets.asset.read``.
+        """
+        return self._client.paginate(OPERATIONS["assetUnitHire.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
 class Form1099NecResource(Resource):
     """Operations on ``form1099Nec``, in the Finance module."""
 
@@ -32098,6 +32205,167 @@ class Form1099NecResource(Resource):
         Requires the capability ``finance.payment.read``.
         """
         return self._client.request(OPERATIONS["form1099Nec.rows"], query={"year": year}, options=options)
+
+
+class GoodsReturnsResource(Resource):
+    """Operations on ``goodsReturns``, in the Procurement module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[GoodsReturn]:
+        """List goods return rows
+
+        Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`. Returns a cursor page of goods return rows the caller may see. The default order is `returned_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /goods-returns`` (operation ``goodsReturns.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request_page(OPERATIONS["goodsReturns.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[GoodsReturn]:
+        """List goods return rows
+
+        Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`. Returns a cursor page of goods return rows the caller may see. The default order is `returned_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /goods-returns`` (operation ``goodsReturns.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.paginate(OPERATIONS["goodsReturns.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[GoodsReturn]:
+        """Get a goods return
+
+        Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`. Returns one goods return with its `ETag`. A goods return the caller may not see returns 404.
+
+        ``GET /goods-returns/{id}`` (operation ``goodsReturns.get``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request(OPERATIONS["goodsReturns.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class ReturnLinesResource(Resource):
+    """Operations on ``returnLines``, in the Procurement module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ReturnLine]:
+        """List return line rows
+
+        What went back in a goods return, per receipt line: one row per serialized unit, or a quantity. Returns a cursor page of return line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /return-lines`` (operation ``returnLines.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request_page(OPERATIONS["returnLines.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ReturnLine]:
+        """List return line rows
+
+        What went back in a goods return, per receipt line: one row per serialized unit, or a quantity. Returns a cursor page of return line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /return-lines`` (operation ``returnLines.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.paginate(OPERATIONS["returnLines.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ReturnLine]:
+        """Get a return line
+
+        What went back in a goods return, per receipt line: one row per serialized unit, or a quantity. Returns one return line with its `ETag`. A return line the caller may not see returns 404.
+
+        ``GET /return-lines/{id}`` (operation ``returnLines.get``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request(OPERATIONS["returnLines.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class PoLineHireWarningsResource(Resource):
+    """Operations on ``poLineHireWarnings``, in the Procurement module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[PoLineHireWarning]:
+        """List hire warning rows
+
+        A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line. Returns a cursor page of hire warning rows the caller may see. The default order is `po_line_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /po-line-hire-warnings`` (operation ``poLineHireWarnings.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.request_page(OPERATIONS["poLineHireWarnings.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[PoLineHireWarning]:
+        """List hire warning rows
+
+        A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line. Returns a cursor page of hire warning rows the caller may see. The default order is `po_line_id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /po-line-hire-warnings`` (operation ``poLineHireWarnings.list``).
+        Requires the capability ``procurement.po.read``.
+        """
+        return self._client.paginate(OPERATIONS["poLineHireWarnings.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
 
 class InsuranceCertificateInsuredsResource(Resource):

@@ -11,6 +11,7 @@ import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions } from "../correct.ts";
 import { collectionAction } from "../define.ts";
 import { assetUnitBulkActions, fieldHistoryAction } from "./parts/bulk-edit-and-history.ts";
+import { assetSupplyResources } from "./parts/supply-bridge.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -25,6 +26,9 @@ const ASSET_STATES = [
   "Lost",
   "Retired",
 ] as const;
+
+/** The ten asset states since R7a's Returned (2680). */
+const ASSET_STATES_WITH_RETURNED = [...ASSET_STATES, "Returned"] as const;
 
 const assetState = (description: string) =>
   z.enum(ASSET_STATES).meta({ description, example: "Available" });
@@ -86,7 +90,9 @@ const AssetScanResult = z
   .meta({ id: "AssetScanResult", description: "The outcome of one scan event." });
 
 export const additions = defineAdditions("Assets", {
+  resources: assetSupplyResources,
   actions: { assetUnits: [...assetUnitBulkActions, fieldHistoryAction("asset unit")] },
+  capabilities: { assetUnitHire: { read: "assets.asset.read" } },
   corrections: [
     {
       id: "asset-class-element",
@@ -152,6 +158,25 @@ export const additions = defineAdditions("Assets", {
           { applyScan: "assets.custody.write" },
         ),
       ),
+    },
+    {
+      id: "asset-unit-receipt-line",
+      since: SINCE,
+      resources: ["assetUnits"],
+      change:
+        "Adds the read-only `receipt_line_id`, the receipt line the unit arrived on; `asset_state` gains Returned, the tenth state.",
+      reason:
+        "app.asset_units.receipt_line_id (2681, R7a) links a unit received through app.receive_goods to its receipt line, fixed once set (unit_receipt_immutable), so owner, cost and vendor are derived and never stored on the unit. 2680 adds Returned to app.asset_state, reached only through app.return_goods.",
+      apply: editShape({
+        add: {
+          receipt_line_id: { schema: orNull(fields.ref("receipt line the unit arrived on")) },
+          asset_state: {
+            schema: z
+              .enum(ASSET_STATES_WITH_RETURNED)
+              .meta({ description: "Asset lifecycle state.", example: "Available" }),
+          },
+        },
+      }),
     },
     {
       id: "asset-lot-ledger",

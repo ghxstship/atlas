@@ -7386,7 +7386,8 @@ export interface AssetUnit {
     | "In Maintenance"
     | "Damaged"
     | "Lost"
-    | "Retired";
+    | "Retired"
+    | "Returned";
   /**
    * Condition: a row of the canon Asset Condition enumeration.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -7397,6 +7398,11 @@ export interface AssetUnit {
    * Format: `uuid`.
    */
   readonly home_venue_id: string | null;
+  /**
+   * Identifier of the receipt line the unit arrived on.
+   * Format: `uuid`.
+   */
+  readonly receipt_line_id: string | null;
 }
 
 /**
@@ -15966,6 +15972,139 @@ export interface PurchaseOrderTransitionRequest {
 }
 
 /**
+ * What one receipt event recorded.
+ */
+export interface PurchaseOrderReceiveResult {
+  /**
+   * applied for a new event; duplicate when the event was already recorded.
+   */
+  readonly outcome: "applied" | "duplicate";
+  /**
+   * The goods receipt recorded.
+   * Format: `uuid`.
+   */
+  readonly goods_receipt_id: string;
+  /**
+   * Its receipt lines.
+   */
+  readonly receipt_line_ids: ReadonlyArray<string>;
+  /**
+   * Units that came in on them.
+   */
+  readonly asset_unit_ids: ReadonlyArray<string>;
+  /**
+   * Receipt movements into lots.
+   */
+  readonly lot_movement_ids: ReadonlyArray<string>;
+}
+
+/**
+ * One receipt event against an order.
+ */
+export interface PurchaseOrderReceiveRequest {
+  /**
+   * Lines received.
+   */
+  readonly lines: ReadonlyArray<PurchaseOrderReceiveLine>;
+  /**
+   * Note.
+   * Length: 1 to 1000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * One order line received: by asset tags, into a lot at a venue, or neither.
+ */
+export interface PurchaseOrderReceiveLine {
+  /**
+   * Identifier of the order line received.
+   * Format: `uuid`.
+   */
+  readonly po_line_id: string;
+  /**
+   * Quantity received.
+   */
+  readonly quantity: number;
+  /**
+   * One asset tag per unit received, for an element with an asset class: each unit comes in Received. Needs assets.asset.write.
+   */
+  readonly asset_tags?: ReadonlyArray<string>;
+  /**
+   * Identifier of the venue whose lot takes the quantity into stock; needs assets.asset.write.
+   * Format: `uuid`.
+   */
+  readonly venue_id?: string | null;
+  /**
+   * Condition of the units: a row of the canon Asset Condition enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly condition_enum_id?: string | null;
+}
+
+/**
+ * What one return event recorded.
+ */
+export interface PurchaseOrderReturnResult {
+  /**
+   * applied for a new event; duplicate when the event was already recorded.
+   */
+  readonly outcome: "applied" | "duplicate";
+  /**
+   * The goods return recorded.
+   * Format: `uuid`.
+   */
+  readonly goods_return_id: string;
+  /**
+   * Its return lines.
+   */
+  readonly return_line_ids: ReadonlyArray<string>;
+}
+
+/**
+ * One return to the vendor.
+ */
+export interface PurchaseOrderReturnRequest {
+  /**
+   * Why the goods go back. Off Hire applies only to rental lines.
+   */
+  readonly reason: "Off Hire" | "Defective" | "Wrong Item" | "Over Delivery";
+  /**
+   * Lines returned.
+   */
+  readonly lines: ReadonlyArray<PurchaseOrderReturnLine>;
+  /**
+   * Note.
+   * Length: 1 to 1000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Goods of one receipt line going back: units, a quantity out of a lot, or a quantity.
+ */
+export interface PurchaseOrderReturnLine {
+  /**
+   * Identifier of the receipt line of the same order that brought the goods in.
+   * Format: `uuid`.
+   */
+  readonly receipt_line_id: string;
+  /**
+   * Quantity returned.
+   */
+  readonly quantity: number;
+  /**
+   * The serialized units going back, one per unit, each received on that receipt line.
+   */
+  readonly asset_unit_ids?: ReadonlyArray<string>;
+  /**
+   * Identifier of the venue whose lot the quantity leaves.
+   * Format: `uuid`.
+   */
+  readonly venue_id?: string | null;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface PoLinePage {
@@ -16044,6 +16183,20 @@ export interface PoLine {
    * Range: 1 to unbounded.
    */
   readonly line_number: number;
+  /**
+   * Whether the line buys or hires its item.
+   */
+  readonly acquisition_kind: "Purchase" | "Rental";
+  /**
+   * Rental lines: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at: string | null;
+  /**
+   * Rental lines: when the hire ends and off-hire is due.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at: string | null;
 }
 
 /**
@@ -16081,6 +16234,20 @@ export interface PoLineCreate {
    * Range: 1 to unbounded.
    */
   readonly line_number?: number;
+  /**
+   * Whether the line buys or hires its item.
+   */
+  readonly acquisition_kind?: "Purchase" | "Rental";
+  /**
+   * Rental lines: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at?: string | null;
+  /**
+   * Rental lines: when the hire ends and off-hire is due.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at?: string | null;
 }
 
 /**
@@ -16113,6 +16280,36 @@ export interface PoLineUpdate {
    * Range: 1 to unbounded.
    */
   readonly line_number?: number;
+  /**
+   * Whether the line buys or hires its item.
+   */
+  readonly acquisition_kind?: "Purchase" | "Rental";
+  /**
+   * Rental lines: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at?: string | null;
+  /**
+   * Rental lines: when the hire ends and off-hire is due.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at?: string | null;
+}
+
+/**
+ * Window warnings for a hire.
+ */
+export interface HireWindowWarnings {
+  /**
+   * Warnings, in rule order.
+   */
+  readonly data: ReadonlyArray<
+    | "Delivery After Load In"
+    | "Return Before Load Out"
+    | "Hire Beyond Site Window"
+    | "Delivery Docks Full"
+    | "Return Docks Full"
+  >;
 }
 
 /**
@@ -37205,6 +37402,44 @@ export interface GuestDecisionRequest {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface AssetUnitHirePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AssetUnitHire>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order.
+ */
+export interface AssetUnitHire {
+  /**
+   * Identifier of the asset unit.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string;
+  /**
+   * Rental when the unit arrived on a rental order line; Purchase otherwise.
+   */
+  readonly acquisition_kind: "Purchase" | "Rental";
+  /**
+   * Rental units: when the hire ends.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at: string | null;
+  /**
+   * True for a rental unit whose hire has ended and which has not been Returned.
+   */
+  readonly off_hire_due: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface Form1099NecRowPage {
   /**
    * Items on this page, in the documented default order.
@@ -37263,6 +37498,213 @@ export interface Form1099NecRow {
    * Range: 0 to unbounded.
    */
   readonly payment_count: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface GoodsReturnPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<GoodsReturn>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`.
+ */
+export interface GoodsReturn {
+  /**
+   * Identifier of the goods return.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the purchase order the goods were received on.
+   * Format: `uuid`.
+   */
+  readonly purchase_order_id: string;
+  /**
+   * When the goods went back.
+   * Format: `date-time`.
+   */
+  readonly returned_at: string;
+  /**
+   * Identifier of the person who returned the goods.
+   * Format: `uuid`.
+   */
+  readonly returned_by: string | null;
+  /**
+   * Why the goods went back.
+   */
+  readonly return_reason: "Off Hire" | "Defective" | "Wrong Item" | "Over Delivery";
+  /**
+   * Condition or carrier noted at the return.
+   * Length: 1 to 20000.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ReturnLinePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ReturnLine>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What went back in a goods return, per receipt line: one row per serialized unit, or a quantity.
+ */
+export interface ReturnLine {
+  /**
+   * Identifier of the return line.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the goods return.
+   * Format: `uuid`.
+   */
+  readonly goods_return_id: string;
+  /**
+   * Identifier of the receipt line that brought the goods in.
+   * Format: `uuid`.
+   */
+  readonly receipt_line_id: string;
+  /**
+   * Identifier of the serialized unit returned.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string | null;
+  /**
+   * Quantity returned; 1 for a unit.
+   */
+  readonly quantity_returned: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface PoLineHireWarningPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<PoLineHireWarning>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line.
+ */
+export interface PoLineHireWarning {
+  /**
+   * Identifier of the rental order line.
+   * Format: `uuid`.
+   */
+  readonly po_line_id: string;
+  /**
+   * Identifier of the project of the order.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the purchase order.
+   * Format: `uuid`.
+   */
+  readonly purchase_order_id: string;
+  /**
+   * When the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at: string;
+  /**
+   * When the hire ends.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at: string;
+  /**
+   * When the site window opens; null when nothing sets it.
+   * Format: `date-time`.
+   */
+  readonly site_opens_at: string | null;
+  /**
+   * When the site window closes; null when nothing sets it.
+   * Format: `date-time`.
+   */
+  readonly site_closes_at: string | null;
+  /**
+   * The window rule the hire breaks.
+   */
+  readonly warning:
+    | "Delivery After Load In"
+    | "Return Before Load Out"
+    | "Hire Beyond Site Window"
+    | "Delivery Docks Full"
+    | "Return Docks Full";
 }
 
 /**
