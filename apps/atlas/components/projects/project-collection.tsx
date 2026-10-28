@@ -24,15 +24,12 @@ import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
 import dynamic from "next/dynamic";
 // Views other than the default table, and the peek, load when shown (A24-009).
-import {
-  Board,
-  Calendar,
-  Drawer,
-  Gallery,
-  PropertyList,
-  RecordList,
-  RecordRow,
-} from "@/components/lazy-ui";
+import { Board } from "@/components/lazy-ui/board";
+import { Calendar } from "@/components/lazy-ui/calendar";
+import { Drawer } from "@/components/lazy-ui/drawer";
+import { Gallery } from "@/components/lazy-ui/gallery";
+import { PropertyList } from "@/components/lazy-ui/property-list";
+import { RecordList, RecordRow } from "@/components/lazy-ui/record-list";
 
 /** The portfolio timeline loads when the Timeline view is shown (A24-009). */
 const PortfolioTimeline = dynamic(() =>

@@ -19,7 +19,7 @@ import {
 import { quickInboxAction, rejectInboxAction } from "@/app/[org]/inbox/actions";
 import { ActionForm, EmptyPanel, Feedback, usePlatformT } from "@/components/platform/kit";
 // The bulk bar shows only with a selection, so it loads then (A24-009).
-import { BulkActionBar } from "@/components/lazy-ui";
+import { BulkActionBar } from "@/components/lazy-ui/bulk-action-bar";
 import { useShellKeys } from "@/components/shell/shell-keys-context";
 import { neighbourOf, neighbourOutside, selectItems } from "@/lib/inbox/focus";
 import type { PlatformActionState } from "@/lib/platform/state";
