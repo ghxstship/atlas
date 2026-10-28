@@ -12,7 +12,7 @@
 --     change to the two columns. No domain event or notification kind is added.
 --   * Venues archived through deleted_at until now (0420, the Places kit). Those rows become archived rows, so what
 --     Places showed under Archived stays there and can still be restored; venue.archived and venue.restored now
---     follow archived_at, and a venue's name is unique among live, unarchived venues (ADR 0083).
+--     follow archived_at, and a venue's name is unique among live, unarchived venues (ADR 0085).
 
 -- Columns ------------------------------------------------------------------------------------------------------------
 
