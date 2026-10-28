@@ -1,4 +1,3 @@
-import { listMembers } from "@xos/data";
 import {
   getFulfillment,
   listCurrencies,
@@ -30,7 +29,9 @@ import {
   updateFulfillmentAction,
 } from "@/app/[org]/hospitality/actions";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
+import { projectPeople, projectPeopleNames, projectPersonLabel } from "@/lib/people/project-people";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { getTranslate } from "@/lib/shell/translate";
 import {
   OperationsBoard,
   OperationsCalendar,
@@ -75,14 +76,20 @@ export const FULFILLMENT_RECORD_STATE: Record<FulfillmentState, RecordState> = {
   Canceled: "canceled",
 };
 
-/** Guest choices: the org's members by name. */
-export async function guestOptions(scope: PageScope) {
-  const t = await getTranslations("logistics.common");
-  const members = await listMembers(scope.ctx.viewer.db, scope.ctx.org.id);
-  if (!members.ok) throw new Error(`Cannot read members: ${JSON.stringify(members.error)}`);
-  return members.data
-    .map((m) => ({ value: m.personId, label: m.fullName ?? t("unnamed") }))
+/**
+ * Guest choices on a project: the org's members and the people engaged on the project (R1), engaged
+ * non-members labelled with the account that supplies them.
+ */
+export async function guestOptions(scope: PageScope, projectId: string) {
+  const [tc, t] = await Promise.all([getTranslations("logistics.common"), getTranslate()]);
+  return (await projectPeople(scope.ctx, projectId))
+    .map((p) => ({ value: p.personId, label: projectPersonLabel(t, p, tc("unnamed")) }))
     .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+/** Names of a project's members and engaged people by person id, for guest and traveller names. */
+export async function guestNames(scope: PageScope, projectId: string) {
+  return projectPeopleNames(await projectPeople(scope.ctx, projectId));
 }
 
 export async function currencyOptions(scope: PageScope) {
@@ -331,8 +338,51 @@ export async function FulfillmentsSection({
                 f.total.currencyCode,
                 exponents.get(f.total.currencyCode ?? "") ?? 2,
               ) ?? tc("unpriced")),
+          id: f.id,
+          label: f.key,
           href: peekHref(f.key),
+          fullHref: hrefWith(base, search, { peek: f.key, full: "1", edit: null }),
+          ...(scope.access.can(f.projectId, "hospitality.fulfillment.write")
+            ? { trashMessage: tc("deleted", { key: f.key }) }
+            : {}),
         }))}
+        bulk={
+          writable.length > 0
+            ? {
+                org: scope.ctx.org.slug,
+                resource: "fulfillments",
+                fields: [
+                  {
+                    key: "fulfillment_state",
+                    label: t("fulfillments.fields.state"),
+                    reason: true,
+                    // Proposed is where a fulfillment starts; no move returns to it.
+                    options: FULFILLMENT_STATES.filter((st) => st !== "Proposed").map((st) => ({
+                      value: st,
+                      label: stateLabel(st),
+                    })),
+                  },
+                  {
+                    key: "counterparty_id",
+                    label: t("fulfillments.fields.supplier"),
+                    options: [
+                      { value: null, label: tc("none") },
+                      ...suppliers.data.map((c) => ({
+                        value: c.id,
+                        label: c.name ?? tc("notSet"),
+                      })),
+                    ],
+                  },
+                ],
+              }
+            : null
+        }
+        trash={{
+          org: scope.ctx.org.slug,
+          label: tc("delete"),
+          run: deleteFulfillmentAction,
+          restore: restoreFulfillmentAction,
+        }}
       />
     );
   } else if (view === "board") {
@@ -442,9 +492,10 @@ async function FulfillmentRecord({
     listFulfillmentMoves(db, f.state),
     listFulfillmentTransitions(db, f.id),
     f.kind === "Travel" ? listTravelSegments(db, { orgId: "", fulfillmentId: f.id }) : null,
-    guestOptions(scope),
+    guestOptions(scope, f.projectId),
     currencyOptions(scope),
   ]);
+  const names = await guestNames(scope, f.projectId);
   if (!moves.ok) throw new Error(`Cannot read moves: ${JSON.stringify(moves.error)}`);
   if (!history.ok) throw new Error(`Cannot read history: ${JSON.stringify(history.error)}`);
   if (travel && !travel.ok) throw new Error(`Cannot read travel: ${JSON.stringify(travel.error)}`);
@@ -529,7 +580,9 @@ async function FulfillmentRecord({
                     <span className="tabular-nums">{line.quantity}</span> {line.description}
                   </span>
                   <span className="text-text-12 text-text-secondary">
-                    {line.personName ?? t("fulfillments.lines.noGuest")}
+                    {line.personName ??
+                      (line.personId ? names.get(line.personId) : undefined) ??
+                      t("fulfillments.lines.noGuest")}
                   </span>
                 </span>
                 <span className="flex items-center gap-8">
@@ -643,7 +696,7 @@ async function FulfillmentRecord({
                   <span className="flex flex-col gap-2">
                     <span className="text-text-14">
                       {t("fulfillments.travel.line", {
-                        traveler: seg.personName ?? tc("unnamed"),
+                        traveler: seg.personName ?? names.get(seg.personId) ?? tc("unnamed"),
                         summary: t("fulfillments.travel.summary", {
                           mode: t(`fulfillments.travel.modes.${seg.mode}`),
                           service: seg.serviceIdentifier ?? seg.operatorName ?? "",

@@ -186,18 +186,21 @@
       "title": {
         "sop": "Draft an SOP with Aurora",
         "advance_packet": "Draft a section with Aurora",
-        "change_order_description": "Draft a description with Aurora"
+        "change_order_description": "Draft a description with Aurora",
+        "day_sheet": "Draft a day sheet with Aurora"
       },
       "instructions": "What should the draft say?",
       "instructionsHelp": {
         "sop": "For example: the load-in procedure for the main stage, with the crew lead responsible.",
         "advance_packet": "For example: ask the artist's team for their hospitality needs and arrival times.",
-        "change_order_description": "For example: four more rigging points over the downstage edge, asked for by the client."
+        "change_order_description": "For example: four more rigging points over the downstage edge, asked for by the client.",
+        "day_sheet": "For example: load-in at 7:00 with the rigging crew, doors at 19:00, and the stage manager's contacts."
       },
       "kind": {
         "sop": "Standard operating procedure",
         "advance_packet": "Advance packet section",
-        "change_order_description": "Change order description"
+        "change_order_description": "Change order description",
+        "day_sheet": "Day sheet"
       },
       "sentKind": "Draft",
       "sentInstructions": "Your instructions",

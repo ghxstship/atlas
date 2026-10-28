@@ -36,6 +36,7 @@ import {
   type TravelMode,
 } from "@xos/data/hospitality";
 import type { XosClient } from "@xos/data";
+import { resolveProjectPerson } from "@xos/data/project-people";
 import { z } from "zod";
 import {
   contextFor,
@@ -519,8 +520,16 @@ export async function createTravelAction(_: ActionState, form: FormData): Promis
   ) {
     return { fieldErrors };
   }
+  // An engaged non-member travels under their engagement, so Gateway's travel tab shows the segment.
+  const traveller = await resolveProjectPerson(
+    ctx.viewer.db,
+    fulfillment.data.projectId,
+    person.data,
+  );
+  if (!traveller.ok) return failed(traveller);
   const result = await createTravelSegment(ctx.viewer.db, fulfillment.data.projectId, {
     personId: person.data,
+    engagementId: traveller.data.membershipId === null ? traveller.data.engagementId : null,
     fulfillmentId: fulfillment.data.id,
     mode: m.data as TravelMode,
     operatorName: operator.success ? operator.data : null,

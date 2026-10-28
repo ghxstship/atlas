@@ -30,6 +30,7 @@ import { clientSitemap } from "@/ia/sitemap.client.generated";
 import { isBetaLocale } from "@xos/i18n/locales";
 import type { AtlasLocale } from "@/i18n/negotiate";
 import type { CreateItem } from "@/lib/shell/create-order";
+import type { ShellQuickAdd } from "./shell-create";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
 import type { ShellKeys } from "@/lib/shell/shell-keys";
 import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
@@ -41,7 +42,7 @@ import { AuroraCenter, openAurora } from "@/components/aurora/aurora-center";
 import { HelpCenter, openHelpArticle } from "@/components/help/help-center";
 import { atlasLiveSource } from "@/components/live/live-source";
 import { UndoCenter } from "@/components/undo/undo-center";
-import { undoStack } from "@/components/undo/undo-stack";
+import { undoStack } from "@xos/ui/undo";
 import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
 import { onDemand, useOnDemand } from "./on-demand";
 import { useRecentProjects } from "./recent-projects";
@@ -84,6 +85,8 @@ export interface ShellFrameProps {
   readonly keys: ShellKeys;
   /** What the person may create, for the Create menu (lib/shell/create-menu.ts). */
   readonly create: readonly CreateItem[];
+  /** Quick add in the Create menu (Section 11.7), for people who may create records. */
+  readonly quickAdd?: ShellQuickAdd | null;
   readonly children: ReactNode;
 }
 
@@ -449,6 +452,7 @@ export function ShellFrame(props: ShellFrameProps) {
             items={props.create}
             pathname={pathname}
             go={go}
+            quickAdd={props.quickAdd}
           />
         ) : null}
         {pendingKey !== null && keyModule ? (

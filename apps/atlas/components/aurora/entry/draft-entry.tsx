@@ -9,7 +9,7 @@ const dialog = onDemand(() => import("./draft-dialog"));
 
 export interface DraftEntryProps {
   /** What to draft, as aurora.draft names it. */
-  readonly kind: "sop" | "advance_packet" | "change_order_description";
+  readonly kind: "sop" | "advance_packet" | "day_sheet" | "change_order_description";
   /** The editor's form; by default the form the button sits in. */
   readonly formId?: string;
   /** Names of the form fields the draft fills: its title (optional) and body. */
@@ -27,8 +27,9 @@ export interface DraftEntryProps {
 }
 
 /**
- * "Draft with Aurora" in an editor (A95, finding A65-020): the SOP, advance packet section and
- * change order editors. Shown only while drafting is on for the org; the panel loads on first use.
+ * "Draft with Aurora" in an editor (A95, finding A65-020): the SOP, advance packet section, day
+ * sheet and change order editors. Shown only while drafting is on for the org; the panel loads on
+ * first use.
  */
 export function DraftEntry(props: DraftEntryProps) {
   const t = useTranslations("aurora.entry.draft");

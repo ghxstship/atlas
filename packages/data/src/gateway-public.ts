@@ -320,6 +320,20 @@ export interface AdvanceSection {
   readonly prompt: string | null;
   readonly answer: string | null;
   readonly answeredAt: string | null;
+  /** Review of the latest answer: Accepted, Returned, or null while it waits (or is unanswered). */
+  readonly reviewOutcome: "Accepted" | "Returned" | null;
+  /** Why the latest answer was returned, shown to the recipient. */
+  readonly returnReason: string | null;
+}
+
+/**
+ * A section takes an answer when it has none or its latest answer was Returned; otherwise the
+ * database refuses with advance_answer_pending (migration 2604).
+ */
+export function advanceSectionOpen(
+  section: Pick<AdvanceSection, "answer" | "reviewOutcome">,
+): boolean {
+  return !section.answer || section.reviewOutcome === "Returned";
 }
 
 export interface AdvancePacket {
@@ -346,6 +360,8 @@ interface AdvanceRow {
   section_prompt: string | null;
   answer_body: string | null;
   answered_at: string | null;
+  review_outcome: "Accepted" | "Returned" | null;
+  return_reason: string | null;
 }
 
 /** The advance packet an advance link opens, after the access code (api_public.preview_advance). */
@@ -377,6 +393,8 @@ export async function previewAdvance(
         prompt: r.section_prompt,
         answer: r.answer_body,
         answeredAt: r.answered_at,
+        reviewOutcome: r.review_outcome ?? null,
+        returnReason: r.return_reason ?? null,
       }))
       .sort((a, b) => a.position - b.position),
   });

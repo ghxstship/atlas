@@ -20,6 +20,7 @@ Decision 38 sets the rule for a government identifier: encrypted under its own V
 3. **Writers.**
    - `app.set_vendor_bank_account` adds a vendor's bank account, or replaces one's details, with `vendors.bank_details.write`. It derives `account_last4` from the account number: the check 0330's constraint used to make, which a constraint cannot make on ciphertext. The last four keeps its format check.
    - `app.set_supplier_diversity_certificate_number` lets the owner set or clear a certificate number, which stays write-only to them as 1464 had it. The new `certificate_number_last4` column (Confidential) holds the last four, as `passport_number_last4` does.
+   - `app.add_supplier_diversity_certification` (2350) declares a certification and its number in one call and one insert. It admits only the owner, as the insert policy does, and refuses a bad number before any row exists. A failed declaration therefore never leaves a certification without its number, and the access log records one `created`, with no `updated` for the number.
    - Both keep only letters and digits, upper-cased, like the tax identifier and passport writers: an account number has 4 to 34 (34 is the longest IBAN), a routing number up to 34, a certificate number 1 to 100.
 4. **Readers.**
    - Bank numbers decrypt only inside the masked view, for holders of `data.restricted.read.banking`. Everyone else who reads vendors sees NULL with `is_masked` and the last four, as before.

@@ -1,12 +1,14 @@
+import type { Locator } from "@playwright/test";
 import { expect, test } from "./engine-test";
-import { ORG, settled, signIn } from "./operations-support";
+import { expectAccessibleInBothThemes, ORG, settled, signIn } from "./operations-support";
 
 /**
  * The shell's global `?peek={recordKey}` (Section 4.5.3): on a page that does not peek its own rows,
- * the record opens in the side peek, Open full goes to the record page, closing removes the parameter,
- * a collection keeps its own rows (peek or full page, however slow) and hands over a key it has no
- * row for (a record key from elsewhere, a stale link), and a key for no readable record says so.
- * Runs on the demo tenant seed (NWS-12 is the Production Meeting record, MH-001 an asset unit).
+ * the record opens in the side peek with the sections of its full page (Section 11.2 item 4), Open
+ * full goes to the record page, closing removes the parameter, a collection keeps its own rows (peek
+ * or full page, however slow) and hands over a key it has no row for (a record key from elsewhere, a
+ * stale link), and a key for no readable record says so. Runs on the demo tenant seed (NWS-12 is the
+ * Production Meeting record, NWS-3 the main truss, MH-001 an asset unit).
  */
 
 test.use({ reducedMotion: "reduce" });
@@ -29,6 +31,44 @@ test("a record opens in the side peek from any route and closes back to the page
   await expect(page.getByRole("dialog", { name: /Production Meeting/ })).toBeVisible();
   await page.getByRole("button", { name: "Open full page" }).click();
   await expect(page).toHaveURL(new RegExp(`/${ORG}/r/NWS-12$`));
+});
+
+test("the shell's peek, a work peek and the full page show the same record sections", async ({
+  page,
+}) => {
+  // Section 11.2 item 4: activity and comments, and related records, wherever the record opens.
+  // NWS-3 (Hang the main truss) waits on NWS-2 (the stage deck) and holds up NWS-4 (the focus).
+  await signIn(page, "producer@example.com");
+  const note = `Shackles checked ${Date.now()}`;
+  const sections = async (scope: Locator) => {
+    await expect(scope.getByRole("region", { name: "Comments" })).toBeVisible();
+    await expect(scope.getByRole("region", { name: "Attachments" })).toBeVisible();
+    const related = scope.getByRole("region", { name: "Related records" });
+    await expect(related).toContainText("Install the stage deck");
+    await expect(related).toContainText("Focus the wash lights");
+    await expect(scope.getByRole("region", { name: "Comments" })).toContainText(note);
+  };
+
+  await page.goto(`/${ORG}/home?peek=NWS-3`);
+  const peek = page.getByRole("dialog", { name: /Hang the main truss/ });
+  await expect(peek).toBeVisible();
+  await expect(peek.getByRole("region", { name: "Recent activity" })).toBeVisible();
+  // A comment posted in the shell's peek shows there at once: the peek reads the record again.
+  await peek.getByLabel("Write a comment").fill(note);
+  await peek.getByRole("button", { name: "Post comment" }).click();
+  await sections(peek);
+  await settled(page);
+
+  await page.goto(`/${ORG}/work/all-records?peek=NWS-3`);
+  const workPeek = page.getByRole("dialog", { name: /Hang the main truss/ });
+  await expect(workPeek).toBeVisible();
+  await sections(workPeek);
+  await expect(page.getByTestId(/^shell-peek-/)).toHaveCount(0);
+
+  await page.goto(`/${ORG}/r/NWS-3`);
+  await expect(page.getByRole("heading", { level: 1, name: "Hang the main truss" })).toBeVisible();
+  await sections(page.locator("main"));
+  await expectAccessibleInBothThemes(page);
 });
 
 test("a collection's full record page keeps the shell's peek closed", async ({ page }) => {

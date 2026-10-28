@@ -265,6 +265,7 @@ export {
   type DataTableColumn,
   type DataTableSelection,
 } from "./DataTable/DataTable.tsx";
+export { useItemSelection, type ItemSelection, type ItemSelect } from "./lib/selection.ts";
 export {
   RecordRow,
   RecordList,
@@ -275,6 +276,7 @@ export {
   StatTile,
   type RecordRowProps,
   type RecordListProps,
+  type ItemContextMenu,
   type BoardProps,
   type TreeNode,
   type TreeViewProps,
@@ -443,6 +445,11 @@ export {
   ColorPicker,
   DiffViewer,
   parseQuickAdd,
+  finalizeQuickAdd,
+  quickAddKey,
+  zonedInstant,
+  useQuickAdd,
+  QuickAddChips,
   contrastRatio,
   type FilterBuilderProps,
   type QuickAddProps,
@@ -450,6 +457,17 @@ export {
   type DiffViewerProps,
   type QuickAddResult,
   type QuickAddToken,
+  type QuickAddCandidate,
+  type QuickAddChipsProps,
+  type QuickAddCopy,
+  type QuickAddController,
+  type QuickAddOptions,
+  type QuickAddParse,
+  type QuickAddResolution,
+  type QuickAddResolver,
+  type QuickAddSpan,
+  type QuickAddTokenType,
+  type UseQuickAddOptions,
 } from "./Editing/Editing.tsx";
 
 /* Grids */

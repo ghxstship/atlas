@@ -68,6 +68,7 @@ export type ExportOutcome =
 export interface ExportRenderStore {
   claim(worker: string, limit: number): Promise<readonly ClaimedExport[]>;
   columns(exportId: string): Promise<readonly ExportColumn[]>;
+  /** At most `limit` rows; fewer only when the export has no more (the worker tells a cut file by limit + 1). */
   rows(exportId: string, limit: number): Promise<readonly Record<string, unknown>[]>;
   /** Records the attempt; answers the export's status after it (Queued means it will retry). */
   finish(jobId: string, outcome: ExportOutcome): Promise<string>;
@@ -302,6 +303,14 @@ function text(row: Record<string, unknown>, key: string): string {
   return value;
 }
 
+/** The one jsonb array export_job_rows answers; null reads as no rows. */
+function exportRowsArray(data: unknown): readonly unknown[] {
+  if (data === null || data === undefined) return [];
+  if (!Array.isArray(data))
+    throw new Error("export_job_rows answered something other than an array of rows.");
+  return data;
+}
+
 const FORMATS: readonly ExportFormat[] = ["CSV", "XLSX", "PDF"];
 const CLASSES: readonly DataClassification[] = ["Public", "Internal", "Confidential", "Restricted"];
 
@@ -371,22 +380,22 @@ export function supabaseExportRenderStore(
     },
     async rows(exportId, limit) {
       const args = { p_export_job_id: exportId, p_limit: limit };
+      // export_job_rows answers one jsonb array (2360), never a set: PostgREST caps a set-returning function
+      // at max_rows (1,000), which would cut a larger export short without a note.
       // On the replica the read goes as GET, which a read-only standby serves (export_job_rows is stable).
       // An export the replica does not yet see as Rendering is refused there, and the primary answers.
       const rows = await preferReplica(
         client,
         options.replica,
         async (c, onReplica) => {
-          if (!onReplica) return (await call("export_job_rows", args)) as unknown[] | null;
+          if (!onReplica) return exportRowsArray(await call("export_job_rows", args));
           const { data, error } = await c.schema("app").rpc("export_job_rows", args, { get: true });
           if (error) throw new Error(`export_job_rows on the replica: ${error.message}`);
-          return data as unknown[] | null;
+          return exportRowsArray(data);
         },
         { label: "export rows", onFallback: options.onReplicaFallback },
       );
-      return (rows ?? []).filter(
-        (r): r is Record<string, unknown> => typeof r === "object" && r !== null,
-      );
+      return rows.filter((r): r is Record<string, unknown> => typeof r === "object" && r !== null);
     },
     async finish(jobId, outcome) {
       return String(

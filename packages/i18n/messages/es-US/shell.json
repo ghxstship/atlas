@@ -1337,6 +1337,10 @@
       "vendor": "Proveedor",
       "sop": "Procedimiento operativo estándar",
       "document": "Documento"
+    },
+    "quickAdd": {
+      "group": "Agregar rápido",
+      "item": "Agregar {title} como {kind}"
     }
   },
   "keys": {

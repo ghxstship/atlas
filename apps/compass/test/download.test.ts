@@ -60,7 +60,15 @@ describe("sources", () => {
     const external = sourcesFor("vendor");
     expect(external.filter((s) => s.schema === "app")).toEqual([]);
     expect(external.map((s) => s.table)).toContain("dock_slots");
-    expect(sourcesFor("field").every((s) => s.schema !== "api_external")).toBe(true);
+    // A member reads api_external only for their own profile rows, which those views limit to the caller (A109).
+    expect(
+      sourcesFor("field")
+        .filter((s) => s.schema === "api_external")
+        .map((s) => [s.table, s.personColumn]),
+    ).toEqual([
+      ["profile_certifications", "person_id"],
+      ["profile_documents", "person_id"],
+    ]);
     expect(sourcesFor("field").map((s) => s.table)).toEqual(
       expect.arrayContaining(["incident_severities", "emergency_codes", "canon_emergency_codes"]),
     );
@@ -263,5 +271,40 @@ describe("REST download", () => {
     expect(report.failed).toEqual([]);
     expect(await store.get("cues", "c1")).toMatchObject({ called_at: "2026-10-17T08:03:59Z" });
     expect(await store.list("shifts")).toEqual([]);
+  });
+
+  it("keeps a member's own certifications and documents on the device for the Profile (A109)", async () => {
+    const store = new MemoryStore();
+    const session = new SyncSession(store, {
+      audience: "field",
+      personIds: ["person-1"],
+      orgIds: ["org-1"],
+      membershipIds: ["mem-1"],
+      readableProjectIds: ["proj-1"],
+      engagementIds: [],
+      engagedProjectIds: [],
+    });
+    const { client: api, filters } = client({
+      "api_external.my_profile_certifications": [
+        { id: "cert-1", person_id: "person-1", source: "Org Record", name: "Arena Rigging" },
+        { id: "cert-9", person_id: "person-9", source: "Profile", name: "Not Mine" },
+      ],
+      "api_external.my_profile_documents": [
+        { id: "doc-1", person_id: "person-1", document_type: "Passport", issuer: "US" },
+      ],
+    });
+    const report = await downloadAll({
+      client: api,
+      session,
+      projectId: null,
+      only: ["profile_certifications", "profile_documents"],
+    });
+    expect(report.failed).toEqual([]);
+    expect(filters).toContain("api_external.my_profile_certifications person_id=person-1");
+    expect((await store.list("profile_certifications")).map((r) => r.id)).toEqual(["cert-1"]);
+    expect(await store.get("profile_documents", "doc-1")).toMatchObject({ issuer: "US" });
+    // A row for someone else never reaches the device, even if a view returned it.
+    await session.ingest("profile_documents", [{ id: "doc-9", person_id: "person-9" }]);
+    expect(await store.get("profile_documents", "doc-9")).toBeUndefined();
   });
 });
