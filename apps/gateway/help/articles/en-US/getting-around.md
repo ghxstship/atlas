@@ -28,4 +28,35 @@ If you belong to a company account, the account menu lets you act as yourself or
 
 ## Search and help
 
-Press **Mod+K** or choose Search to go to any page, engagement or opportunity. Press **?** or choose Help on any page for its articles, the shortcuts, What's New and [Contact support](help:contact-support).
+Choose Search to go to any page, engagement or opportunity. Choose Help on any page for its articles, the shortcuts, What's New and [Contact support](help:contact-support).
+
+## On a keyboard
+
+These work everywhere on a computer. Mod is Cmd on a Mac and Ctrl elsewhere.
+
+<!-- shortcuts gateway general -->
+
+- **Mod+K**: Search Gateway
+- **?**: Open help for this page
+- **A**: Open the account menu
+- **O**: Switch organization
+- **Esc**: Close a menu, dialog or peek
+
+<!-- /shortcuts -->
+
+Two keys, one after the other, go to a destination:
+
+<!-- shortcuts gateway go -->
+
+- **G H**: Go to Home
+- **G E**: Go to Explore
+- **G W**: Go to Work
+- **G M**: Go to Money
+- **G I**: Go to Messages
+- **G P**: Go to Profile
+- **G D**: Go to Documents
+- **G T**: Go to Settings
+
+<!-- /shortcuts -->
+
+[Keyboard shortcuts](help:settings-keyboard-shortcuts) has the rest.

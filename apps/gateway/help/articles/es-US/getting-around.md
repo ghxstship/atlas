@@ -28,4 +28,35 @@ Si perteneces a una cuenta de empresa, el menú de la cuenta te deja actuar como
 
 ## Búsqueda y ayuda
 
-Pulsa **Mod+K** o elige Buscar para ir a cualquier página, contratación u oportunidad. Pulsa **?** o elige Ayuda en cualquier página para ver sus artículos, los atajos, las novedades y [Contactar a soporte](help:contact-support).
+Elige Buscar para ir a cualquier página, contratación u oportunidad. Elige Ayuda en cualquier página para ver sus artículos, los atajos, las novedades y [Contactar a soporte](help:contact-support).
+
+## Con el teclado
+
+Funcionan en todas partes en una computadora. Mod es Cmd en una Mac y Ctrl en los demás equipos.
+
+<!-- shortcuts gateway general -->
+
+- **Mod+K**: Buscar en Gateway
+- **?**: Abrir la ayuda de esta página
+- **A**: Abrir el menú de la cuenta
+- **O**: Cambiar de organización
+- **Esc**: Cerrar un menú, diálogo o panel
+
+<!-- /shortcuts -->
+
+Dos teclas, una después de la otra, llevan a un destino:
+
+<!-- shortcuts gateway go -->
+
+- **G H**: Ir a Inicio
+- **G E**: Ir a Explorar
+- **G W**: Ir a Trabajo
+- **G M**: Ir a Dinero
+- **G I**: Ir a Mensajes
+- **G P**: Ir a Perfil
+- **G D**: Ir a Documentos
+- **G T**: Ir a Configuración
+
+<!-- /shortcuts -->
+
+[Atajos de teclado](help:settings-keyboard-shortcuts) explica el resto.

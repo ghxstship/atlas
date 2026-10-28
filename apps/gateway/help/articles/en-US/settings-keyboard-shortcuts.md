@@ -6,12 +6,33 @@ nodes: [settings.keyboard-shortcuts]
 order: 1
 ---
 
-On a computer, Gateway answers these shortcuts everywhere:
+On a computer, Gateway answers these shortcuts everywhere. Mod is Cmd on a Mac and Ctrl elsewhere.
 
-- **Mod+K**: search pages, engagements and opportunities. Mod is Cmd on a Mac and Ctrl elsewhere.
-- **?**: open help for the page you are on, unless you are typing.
-- **Esc**: close the open menu, dialog or panel.
+<!-- shortcuts gateway general -->
 
-In search, the arrow keys move and Enter opens. Every icon button names its shortcut in a tooltip.
+- **Mod+K**: Search Gateway
+- **?**: Open help for this page
+- **A**: Open the account menu
+- **O**: Switch organization
+- **Esc**: Close a menu, dialog or peek
 
-The **Keyboard shortcuts** setting on this page is your personal setting, shared with Atlas, where it turns single-key shortcuts such as J and K on or off.
+<!-- /shortcuts -->
+
+To go to a destination, press two keys, one after the other:
+
+<!-- shortcuts gateway go -->
+
+- **G H**: Go to Home
+- **G E**: Go to Explore
+- **G W**: Go to Work
+- **G M**: Go to Money
+- **G I**: Go to Messages
+- **G P**: Go to Profile
+- **G D**: Go to Documents
+- **G T**: Go to Settings
+
+<!-- /shortcuts -->
+
+A destination you cannot open has no shortcut, and Switch organization works only where the account menu offers it. Shortcuts never act while you type in a field, except the ones with **Mod**. In search, the arrow keys move and Enter opens. Every icon button names its shortcut in a tooltip.
+
+The **Keyboard shortcuts** setting on this page is your personal setting, shared with Atlas. Turned off, it stops every shortcut without **Mod**, **Ctrl** or **Alt**.
