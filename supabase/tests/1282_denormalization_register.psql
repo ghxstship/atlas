@@ -77,6 +77,7 @@ insert into register_restated values
   ('app.approval_instances.document_type', 'app.approval_policies.document_type', 'fact'),
   ('app.asset_custody.project_id', 'app.engagements.project_id', 'own'),
   ('app.asset_custody.venue_id', 'app.projects.venue_id', 'own'),
+  ('app.asset_lot_movements.project_id', 'app.engagements.project_id', 'own'),
   ('app.attachment_versions.checksum_sha256', 'app.document_versions.checksum_sha256', 'own'),
   ('app.attachment_versions.version_number', 'app.document_versions.version_number', 'own'),
   ('app.attendance_counts.integration_connection_id', 'app.integration_sync_runs.integration_connection_id', 'own'),

@@ -334,6 +334,10 @@ restated:
     parent: app.projects.venue_id
     kind: own
     note: Where the asset is kept, not the project's primary venue.
+  - column: app.asset_lot_movements.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project the quantity is out for; the custodian's engagement can be for another project or for none.
   - column: app.attachment_versions.checksum_sha256
     parent: app.document_versions.checksum_sha256
     kind: own

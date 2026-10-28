@@ -34,6 +34,8 @@ export const KNOWN_REFUSALS = [
   "cross_org_reference",
   "supplier_diversity_no_program",
   "time_zone_unknown",
+  // R1: an advance section takes one answer until it is returned (migration 2604).
+  "advance_answer_pending",
   // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
   "personal_tokens_off",
   "personal_token_scope_not_held",

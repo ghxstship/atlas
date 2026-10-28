@@ -1116,6 +1116,13 @@ export const sitemap: Sitemap = {
               route: "/{org}/crew/time-off",
               list: { views: ["list", "table", "calendar"], default: "list" },
             },
+            {
+              id: "crew.per-diems",
+              kind: "page",
+              label: "nav.atlas.pages.crew.perDiems",
+              route: "/{org}/crew/per-diems",
+              list: { views: ["table", "list"], default: "table" },
+            },
           ],
         },
       ],
