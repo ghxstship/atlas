@@ -14,6 +14,10 @@
 # and claiming shifts, the kiosk punch) expect the fresh seed.
 flows:
   - "flows/*.yaml"
+# The gallery flows (gallery-*.yaml, A141) need a gallery build and run on their own through
+# scripts/gallery-snapshots.sh; the suite's release build has no gallery.
+excludeTags:
+  - gallery
 executionOrder:
   continueOnFailure: false
   flowsOrder:

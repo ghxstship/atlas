@@ -339,3 +339,55 @@ route-js-budget:
     # Fails when a key page passes 200 KB gzip, or the ceiling recorded for it in
     # packages/testing/bundle-ceilings.json.
     - run: pnpm --filter @xos/testing budget:js -- --chunks
+
+# A141 (S11.4-01): the Compass component gallery, every @xos/ui-native component in Dark and Light,
+# snapshotted on the iOS simulator and compared with apps/compass/.maestro/gallery/baselines (tolerance in
+# apps/compass/scripts/gallery-compare.ts). It needs no stack, so it runs on GitHub's Apple Silicon image
+# without Docker, in ci.yml or nightly.yml as the owner decides. The baselines are for
+# the simulator and runtime in baselines/manifest.json; on another runtime the comparison stops with a
+# "Not compared" message instead of failing every page, and the baselines are re-recorded on the runner
+# (owner step in apps/compass/.maestro/gallery/README.md). Costs macOS minutes: an owner decision, like
+# the Maestro jobs above.
+compass-gallery-visual:
+  name: Compass component gallery snapshots (gate 9)
+  runs-on: macos-15
+  timeout-minutes: 60
+  env:
+    MAESTRO_VERSION: 2.0.10
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+    - name: Build the gallery build of Compass for the simulator
+      working-directory: apps/compass
+      run: |
+        sudo xcode-select -s /Applications/Xcode_26.5.app
+        # The gallery exists only in a build with this switch (refused in EAS builds, app.config.ts).
+        export EXPO_PUBLIC_XOS_GALLERY=1
+        pnpm exec expo prebuild --platform ios --no-install
+        (cd ios && pod install)
+        xcodebuild -workspace ios/Compass.xcworkspace -scheme Compass -configuration Release \
+          -sdk iphonesimulator -derivedDataPath build ARCHS=arm64 ONLY_ACTIVE_ARCH=YES
+        UDID=$(xcrun simctl create "Gallery" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro \
+          com.apple.CoreSimulator.SimRuntime.iOS-26-5)
+        echo "UDID=$UDID" >> "$GITHUB_ENV"
+        echo "APP=$PWD/build/Build/Products/Release-iphonesimulator/Compass.app" >> "$GITHUB_ENV"
+    - name: Snapshot the gallery and compare with the baselines
+      run: |
+        curl -fsSL "https://get.maestro.mobile.dev" | bash
+        # GALLERY_UPDATE=1 (a repository variable, for one run) re-records the baselines on this runner.
+        OUT="$PWD/node_modules/.cache/gallery" apps/compass/scripts/gallery-snapshots.sh \
+          ${{ vars.GALLERY_UPDATE == '1' && '--update' || '' }}
+    - if: always()
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: compass-gallery
+        # The captures and any .diff.png, and the baselines (re-recorded ones after a run with --update).
+        path: |
+          node_modules/.cache/gallery
+          apps/compass/.maestro/gallery/baselines
+        if-no-files-found: ignore

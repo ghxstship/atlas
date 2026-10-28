@@ -1,6 +1,6 @@
 import * as Linking from "expo-linking";
 import { hapticsOn, themeOptionsOf } from "../src/domain/settings";
-import { Stack } from "expo-router";
+import { Slot, Stack, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState, type ReactElement } from "react";
 import { activeBrand, brandColors } from "../src/domain/brand";
@@ -192,6 +192,17 @@ function Themed(): ReactElement {
 }
 
 export default function RootLayout(): ReactElement {
+  const pathname = usePathname();
+  // Gallery builds only (EXPO_PUBLIC_XOS_GALLERY=1, A141): the component gallery under app/dev opens without
+  // sign-in, sync or the server, so its snapshots never depend on them. Every other build has no app/dev
+  // (metro.config.js) and never takes this branch.
+  if (process.env["EXPO_PUBLIC_XOS_GALLERY"] === "1" && pathname.startsWith("/dev/")) {
+    return (
+      <SafeAreaProvider>
+        <Slot />
+      </SafeAreaProvider>
+    );
+  }
   return (
     <SafeAreaProvider>
       <CompassProvider>

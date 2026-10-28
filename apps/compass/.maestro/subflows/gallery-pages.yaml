@@ -1,0 +1,31 @@
+appId: pro.ghxstship.compass
+---
+# Every page of the component gallery in one theme (THEME: dark or light), one screenshot per page, named
+# gallery-<theme>-NN in the working directory (A141). Pages open by link until the page past the last
+# shows the end marker, so the flow needs no page count; the cap only stops a gallery that never ends.
+- evalScript: ${output.galleryPage = 1}
+- repeat:
+    times: 60
+    while:
+      notVisible:
+        id: "gallery-end"
+    commands:
+      - runFlow:
+          file: open-route.yaml
+          env:
+            ROUTE: dev/gallery?theme=${THEME}&page=${output.galleryPage}
+      - extendedWaitUntil:
+          visible:
+            id: "gallery-page-${output.galleryPage}|gallery-end"
+          timeout: 30000
+      - runFlow:
+          when:
+            visible:
+              id: "gallery-page-${output.galleryPage}"
+          commands:
+            - evalScript: ${output.galleryShot = "gallery-" + THEME + "-" + String(output.galleryPage).padStart(2, "0")}
+            # A sheet or dialog page settles before it is captured.
+            - waitForAnimationToEnd:
+                timeout: 5000
+            - takeScreenshot: ${output.galleryShot}
+      - evalScript: ${output.galleryPage = output.galleryPage + 1}

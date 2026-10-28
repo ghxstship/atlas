@@ -48,7 +48,10 @@ const nodeIds = new Set([...sitemapNodes, ...INTERNAL_SCREEN_NODES, ...SHARED_SC
 const english = content.articles["en-US"];
 const audiences: readonly Audience[] = [...INTERNAL_AUDIENCES, ...EXTERNAL_AUDIENCES];
 
-/** Expo-router route files as their route patterns; layouts and the launch redirect are not screens. */
+/**
+ * Expo-router route files as their route patterns; layouts and the launch redirect are not screens, and
+ * neither is the component gallery (app/dev, A141), which only gallery builds carry and nobody navigates to.
+ */
 function screenRoutes(): string[] {
   const walk = (dir: string): string[] =>
     readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
@@ -58,6 +61,7 @@ function screenRoutes(): string[] {
     .filter((file) => file.endsWith(".tsx"))
     .map((file) => relative(join(appRoot, "app"), file).replace(/\.tsx$/, ""))
     .filter((path) => !/(^|\/)(_layout|\+native-intent)$/.test(path) && path !== "index")
+    .filter((path) => !path.startsWith("dev/"))
     .map((path) =>
       `/${path.replace(/\(\w+\)\//g, "").replace(/(^|\/)index$/, "")}`.replace(/\/$/, ""),
     );
