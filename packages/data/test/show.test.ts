@@ -268,7 +268,10 @@ describe("cues", () => {
         okResponse([cueRow("c1", 1), cueRow("c2", 2)]),
         okResponse([cueRow("c1", 1), cueRow("c2", 2)]),
       ],
-      "rpc:move_cue": [okResponse(1), errorResponse("XR001", "cue_move_called: A called cue keeps its place.")],
+      "rpc:move_cue": [
+        okResponse(1),
+        errorResponse("XR001", "cue_move_called: A called cue keeps its place."),
+      ],
     });
     expect((await moveCue(db, "ros1", "c2", "up")).ok).toBe(true);
     // Up from the second place is the first 1-based place; no row is written outside the RPC.
@@ -290,7 +293,10 @@ describe("cues", () => {
     const { db, calls } = moduleClient({
       "rpc:move_cue": [okResponse(2)],
       "rpc:standby_cue": [okResponse(null), okResponse(null)],
-      "rpc:shift_cue_plan": [okResponse(4), errorResponse("XR001", "cue_shift_range: Nudge by up to an hour.")],
+      "rpc:shift_cue_plan": [
+        okResponse(4),
+        errorResponse("XR001", "cue_shift_range: Nudge by up to an hour."),
+      ],
     });
     expect(await moveCueTo(db, "c5", 2)).toEqual({ ok: true, data: { position: 2 } });
     expect((await standbyCue(db, "ros1", "c3")).ok).toBe(true);

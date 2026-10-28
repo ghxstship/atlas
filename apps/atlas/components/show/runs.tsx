@@ -532,7 +532,11 @@ function CallLines({
       {lines.map((line) => (
         <li
           key={line.kind}
-          className={department === null ? "text-text-12 text-text-secondary" : "text-text-13 font-semibold text-accent-text"}
+          className={
+            department === null
+              ? "text-text-12 text-text-secondary"
+              : "text-text-13 font-semibold text-accent-text"
+          }
         >
           {t("cues.callLine", { department: name(line.kind), instruction: line.instruction })}
         </li>
@@ -542,7 +546,13 @@ function CallLines({
 }
 
 /** The Department select (All plus the five), held in the URL as `dept=<slug>`. */
-function DepartmentFilter({ runId, department }: { runId: string; department: CueCallKind | null }) {
+function DepartmentFilter({
+  runId,
+  department,
+}: {
+  runId: string;
+  department: CueCallKind | null;
+}) {
   const t = useCopy("show");
   const router = useRouter();
   const pathname = usePathname();
@@ -789,7 +799,9 @@ export function RunBody({
                 >
                   <span className="flex flex-col gap-2">
                     <span className="flex items-baseline gap-8">
-                      <span className="font-mono text-text-12 text-text-secondary">{c.position}</span>
+                      <span className="font-mono text-text-12 text-text-secondary">
+                        {c.position}
+                      </span>
                       <span className="text-text-14">{c.label}</span>
                       <span className="text-text-12 text-text-secondary">{cueTime(c)}</span>
                       {marked ? (

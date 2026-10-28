@@ -472,20 +472,26 @@ export interface CueCall {
 }
 
 /** The live department calls of a running order's live cues, in enum order per cue. */
-export async function listCueCalls(
-  db: XosClient,
-  runOfShowId: string,
-): Promise<Result<CueCall[]>> {
+export async function listCueCalls(db: XosClient, runOfShowId: string): Promise<Result<CueCall[]>> {
   const { data, error } = await db
     .from("cue_calls")
-    .select("id, cue_id, call_kind, instruction, cue:cues!cue_calls_cue_id_fkey!inner(run_of_show_id, deleted_at)")
+    .select(
+      "id, cue_id, call_kind, instruction, cue:cues!cue_calls_cue_id_fkey!inner(run_of_show_id, deleted_at)",
+    )
     .eq("cue.run_of_show_id", runOfShowId)
     .is("cue.deleted_at", null)
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
   const order = (k: CueCallKind) => CUE_CALL_KINDS.indexOf(k);
   return ok(
-    (data as unknown as { id: string; cue_id: string; call_kind: CueCallKind; instruction: string }[])
+    (
+      data as unknown as {
+        id: string;
+        cue_id: string;
+        call_kind: CueCallKind;
+        instruction: string;
+      }[]
+    )
       .map((r) => ({ id: r.id, cueId: r.cue_id, kind: r.call_kind, instruction: r.instruction }))
       .sort((a, b) => a.cueId.localeCompare(b.cueId) || order(a.kind) - order(b.kind)),
   );

@@ -231,8 +231,14 @@ export async function recordPropertyItems(detail: RecordDetail) {
     {
       label: t("work.fields.starts"),
       value:
-        formatStartTime(record.startsAt, record.startTbc, locale, tz, detail.scheduleView, "dateTime", (time) =>
-          t("work.values.tbcEstimate", { time }),
+        formatStartTime(
+          record.startsAt,
+          record.startTbc,
+          locale,
+          tz,
+          detail.scheduleView,
+          "dateTime",
+          (time) => t("work.values.tbcEstimate", { time }),
         ) ?? t("work.values.notSet"),
     },
     { label: t("work.fields.ends"), value: when(record.endsAt) },

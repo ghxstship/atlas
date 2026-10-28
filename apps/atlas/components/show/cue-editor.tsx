@@ -147,7 +147,12 @@ export function CueEditor({
         ))}
       </div>
       <div className="flex gap-8">
-        <Button type="submit" variant="primary" loading={save.pending} disabled={label.trim() === ""}>
+        <Button
+          type="submit"
+          variant="primary"
+          loading={save.pending}
+          disabled={label.trim() === ""}
+        >
           {t("cues.save")}
         </Button>
         <Button variant="ghost" onClick={onClose}>
@@ -180,7 +185,10 @@ export function MoveCueDialog({
   const lastCalled = cues.reduce((last, c, i) => (c.calledAt ? i + 1 : last), 0);
   const here = cues.findIndex((c) => c.id === cue.id) + 1;
   const options = cues
-    .map((c, i) => ({ value: String(i + 1), label: t("cues.moveOption", { n: i + 1, label: c.label }) }))
+    .map((c, i) => ({
+      value: String(i + 1),
+      label: t("cues.moveOption", { n: i + 1, label: c.label }),
+    }))
     .filter((o) => Number(o.value) > lastCalled);
   const [place, setPlace] = useState(String(here));
   return (
@@ -198,7 +206,9 @@ export function MoveCueDialog({
             variant="primary"
             loading={move.pending}
             disabled={Number(place) === here}
-            onClick={() => move.run(() => moveCueToAction(org, runId, cue.id, Number(place)), onClose)}
+            onClick={() =>
+              move.run(() => moveCueToAction(org, runId, cue.id, Number(place)), onClose)
+            }
           >
             {t("cues.moveConfirm")}
           </Button>

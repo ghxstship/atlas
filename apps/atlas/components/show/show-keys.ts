@@ -8,14 +8,7 @@ import { isCharacterKey } from "@xos/schemas/shortcuts/keys";
  */
 
 export type ShowAction =
-  | "go"
-  | "standby"
-  | "previous"
-  | "next"
-  | "jump"
-  | "nudge-later"
-  | "nudge-earlier"
-  | "department";
+  "go" | "standby" | "previous" | "next" | "jump" | "nudge-later" | "nudge-earlier" | "department";
 
 const ACTIONS: readonly ShowAction[] = [
   "go",

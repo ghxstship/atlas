@@ -137,11 +137,11 @@ export function ongoingContent(
       body: cue.tbc
         ? (cue.project ?? cueLine)
         : cue.project
-        ? t("compass.glance.cueBody", {
-            project: cue.project,
-            time: formatTime(new Date(cue.at).toISOString(), cue.zone),
-          })
-        : cueLine,
+          ? t("compass.glance.cueBody", {
+              project: cue.project,
+              time: formatTime(new Date(cue.at).toISOString(), cue.zone),
+            })
+          : cueLine,
     };
   }
   return null;

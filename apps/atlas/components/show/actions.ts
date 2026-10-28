@@ -220,9 +220,7 @@ export async function saveCueCallsAction(
   calls: Record<string, string | null>,
 ): Promise<ActionResult> {
   const ctx = await context(org);
-  const parsed = z
-    .partialRecord(cueCallKind, z.string().max(2000).nullable())
-    .safeParse(calls);
+  const parsed = z.partialRecord(cueCallKind, z.string().max(2000).nullable()).safeParse(calls);
   if (!id.safeParse(cueId).success || !parsed.success) return invalid("cueCall");
   const result = await saveCueCalls(ctx.viewer.db, cueId, parsed.data);
   if (!result.ok) return failed(result.error);

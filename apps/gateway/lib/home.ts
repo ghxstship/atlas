@@ -214,7 +214,12 @@ export function upNextDetails(input: {
   const kind = row?.next_call_kind ? CALL_KINDS[row.next_call_kind] : undefined;
   const call =
     row?.next_call_at && row.next_call_time_zone && kind
-      ? { at: row.next_call_at, timeZone: row.next_call_time_zone, kind, tbc: row.next_call_tbc === true }
+      ? {
+          at: row.next_call_at,
+          timeZone: row.next_call_time_zone,
+          kind,
+          tbc: row.next_call_tbc === true,
+        }
       : null;
   const place = row
     ? [row.venue_name, row.venue_street_address, row.venue_locality, row.venue_postal_code]

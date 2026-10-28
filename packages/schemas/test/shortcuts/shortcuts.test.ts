@@ -106,7 +106,9 @@ describe("shortcut registry", () => {
     expect(atlas.scopes).toContain("show");
     expect(atlas.groups.map((g) => g.id)).toEqual(expect.arrayContaining(["show", "show-deck"]));
     const keysOf = (group: string) =>
-      Object.fromEntries(atlas.shortcuts.filter((x) => x.group === group).map((x) => [x.id, x.keys]));
+      Object.fromEntries(
+        atlas.shortcuts.filter((x) => x.group === group).map((x) => [x.id, x.keys]),
+      );
     expect(keysOf("show")).toEqual({
       "show.go": "Space",
       "show.next": "J",
@@ -278,10 +280,18 @@ describe("key grammar", () => {
   it("lets a person bind a show key to a function key", () => {
     const current = (platform: Platform) => effectiveBindings(registry.shells.atlas, {}, platform);
     expect(bindingProblem(registry, "atlas", current, "show.deck.go", "Shift+F13")).toBeNull();
-    expect(bindingProblem(registry, "atlas", current, "show.next", "F15")).toMatchObject({ kind: "conflict" });
-    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F21")).toEqual({ kind: "invalid" });
-    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F12")).toMatchObject({ kind: "reserved" });
-    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F14")).toMatchObject({ kind: "conflict" });
+    expect(bindingProblem(registry, "atlas", current, "show.next", "F15")).toMatchObject({
+      kind: "conflict",
+    });
+    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F21")).toEqual({
+      kind: "invalid",
+    });
+    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F12")).toMatchObject({
+      kind: "reserved",
+    });
+    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F14")).toMatchObject({
+      kind: "conflict",
+    });
   });
 
   it("turns key presses into chords on each platform", () => {

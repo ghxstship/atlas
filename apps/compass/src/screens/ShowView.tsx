@@ -51,8 +51,16 @@ const LIVE_PULL_MS = 10_000;
 
 export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactElement {
   const { t } = useTranslation();
-  const { projectId, enqueue, settings, updateSettings, orgSettings, client, refreshTables, network } =
-    useCompass();
+  const {
+    projectId,
+    enqueue,
+    settings,
+    updateSettings,
+    orgSettings,
+    client,
+    refreshTables,
+    network,
+  } = useCompass();
   // Journey 15: followers see cues called in Atlas as they happen. A realtime change on the project's
   // cues pulls them at once; a 10 s pull covers externals (whose cues come through an api_external view)
   // and a dropped channel. On the simulator a called cue stayed "next" until a manual refresh.
@@ -202,7 +210,12 @@ export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactEle
         testID="run-of-show"
         cues={ordered.map((c) => ({
           number: String(c.position),
-          time: c.start_tbc && c.planned_at ? t("compass.show.tbc") : c.planned_at ? formatTime(c.planned_at) : "",
+          time:
+            c.start_tbc && c.planned_at
+              ? t("compass.show.tbc")
+              : c.planned_at
+                ? formatTime(c.planned_at)
+                : "",
           title: c.label,
         }))}
         current={currentIndex}

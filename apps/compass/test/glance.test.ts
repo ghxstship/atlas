@@ -214,7 +214,15 @@ describe("a next cue to be confirmed (G-40, ADR 0131)", () => {
 
   it("names it in the ongoing notification without a time", () => {
     expect(
-      ongoingContent(snap({ state: "on", onSince: T0 - 3600_000 }), tbc, "Pier", T0, t, formatTime, "UTC")?.body,
+      ongoingContent(
+        snap({ state: "on", onSince: T0 - 3600_000 }),
+        tbc,
+        "Pier",
+        T0,
+        t,
+        formatTime,
+        "UTC",
+      )?.body,
     ).toContain("compass.glance.cueTitle(cue=Headliner · TBC)");
     expect(ongoingContent(snap({}), tbc, "", T0, t, formatTime, "UTC")).toEqual({
       title: "compass.glance.cueTitle(cue=Headliner · TBC)",

@@ -20,11 +20,7 @@ const cue = (position: number, over: Partial<TimedCue> = {}): TimedCue => ({
 
 describe("cueProgress", () => {
   it("orders the cues by position itself and answers in indices of that order", () => {
-    const cues = [
-      cue(3),
-      cue(1, { calledAt: "2027-06-05T23:02:10Z" }),
-      cue(2),
-    ];
+    const cues = [cue(3), cue(1, { calledAt: "2027-06-05T23:02:10Z" }), cue(2)];
     expect(cueProgress(cues, NOW)).toEqual({
       current: 0,
       next: 1,
@@ -37,8 +33,17 @@ describe("cueProgress", () => {
   });
 
   it("takes the standby cue as next, ahead of the cue after the latest call", () => {
-    const cues = [cue(1, { calledAt: "2027-06-05T23:02:00Z" }), cue(2), cue(3, { standbyAt: "2027-06-05T23:09:00Z" })];
-    expect(cueProgress(cues, NOW)).toMatchObject({ current: 0, next: 2, standby: true, complete: false });
+    const cues = [
+      cue(1, { calledAt: "2027-06-05T23:02:00Z" }),
+      cue(2),
+      cue(3, { standbyAt: "2027-06-05T23:09:00Z" }),
+    ];
+    expect(cueProgress(cues, NOW)).toMatchObject({
+      current: 0,
+      next: 2,
+      standby: true,
+      complete: false,
+    });
   });
 
   it("marks cues jumped past as skipped, and the cue after the latest call as next", () => {
@@ -48,7 +53,12 @@ describe("cueProgress", () => {
       cue(3, { calledAt: "2027-06-05T23:06:00Z" }),
       cue(4),
     ];
-    expect(cueProgress(cues, NOW)).toMatchObject({ current: 2, next: 3, skipped: [1], standby: false });
+    expect(cueProgress(cues, NOW)).toMatchObject({
+      current: 2,
+      next: 3,
+      skipped: [1],
+      standby: false,
+    });
   });
 
   it("takes the most recent call as current after a back-call", () => {
@@ -68,12 +78,24 @@ describe("cueProgress", () => {
       cue(2),
       cue(3, { calledAt: "2027-06-05T23:06:00Z" }),
     ];
-    expect(cueProgress(allButSkipped, NOW)).toMatchObject({ complete: true, next: 1, skipped: [1] });
+    expect(cueProgress(allButSkipped, NOW)).toMatchObject({
+      complete: true,
+      next: 1,
+      skipped: [1],
+    });
     const standbyOnSkipped = allButSkipped.map((c) =>
       c.position === 2 ? { ...c, standbyAt: "2027-06-05T23:09:00Z" } : c,
     );
-    expect(cueProgress(standbyOnSkipped, NOW)).toMatchObject({ complete: false, next: 1, standby: true });
-    expect(cueProgress([cue(1), cue(2)], NOW)).toMatchObject({ current: -1, next: 0, complete: false });
+    expect(cueProgress(standbyOnSkipped, NOW)).toMatchObject({
+      complete: false,
+      next: 1,
+      standby: true,
+    });
+    expect(cueProgress([cue(1), cue(2)], NOW)).toMatchObject({
+      current: -1,
+      next: 0,
+      complete: false,
+    });
     expect(cueProgress([], NOW)).toMatchObject({ current: -1, next: -1, complete: false });
   });
 
@@ -85,7 +107,12 @@ describe("cueProgress", () => {
 describe("showClock", () => {
   it("has not started before the first call", () => {
     const clock = showClock([cue(1), cue(2)], { curfewAt: null }, new Date("2027-06-05T23:00:00Z"));
-    expect(clock).toMatchObject({ startedAt: null, elapsedSeconds: null, overrunSeconds: 0, curfewRisk: "none" });
+    expect(clock).toMatchObject({
+      startedAt: null,
+      elapsedSeconds: null,
+      overrunSeconds: 0,
+      curfewRisk: "none",
+    });
     // Before the first cue is due nothing is late; once it is due the show runs behind.
     expect(showClock([cue(1), cue(2)], { curfewAt: null }, NOW).overrunSeconds).toBe(480);
   });
@@ -102,18 +129,26 @@ describe("showClock", () => {
   });
 
   it("runs ahead when the last call came early and the next cue is not yet due", () => {
-    const cues = [cue(1, { plannedAt: "2027-06-05T23:12:00Z", calledAt: "2027-06-05T23:09:00Z" }), cue(8)];
+    const cues = [
+      cue(1, { plannedAt: "2027-06-05T23:12:00Z", calledAt: "2027-06-05T23:09:00Z" }),
+      cue(8),
+    ];
     expect(showClock(cues, { curfewAt: null }, NOW).overrunSeconds).toBe(-180);
   });
 
   it("ignores the plan of a next cue whose time is to be confirmed", () => {
     const cues = [cue(1, { calledAt: "2027-06-05T23:02:00Z" }), cue(2, { startTbc: true }), cue(3)];
     expect(showClock(cues, { curfewAt: null }, NOW).overrunSeconds).toBe(0);
-    expect(showClock([cue(1, { startTbc: true })], { curfewAt: null }, NOW).overrunSeconds).toBeNull();
+    expect(
+      showClock([cue(1, { startTbc: true })], { curfewAt: null }, NOW).overrunSeconds,
+    ).toBeNull();
   });
 
   it("freezes the elapsed time at the last call once complete", () => {
-    const cues = [cue(1, { calledAt: "2027-06-05T23:02:00Z" }), cue(2, { calledAt: "2027-06-05T23:05:00Z" })];
+    const cues = [
+      cue(1, { calledAt: "2027-06-05T23:02:00Z" }),
+      cue(2, { calledAt: "2027-06-05T23:05:00Z" }),
+    ];
     expect(showClock(cues, { curfewAt: null }, NOW).elapsedSeconds).toBe(180);
   });
 
@@ -122,12 +157,22 @@ describe("showClock", () => {
     const at = (curfewAt: string | null) => showClock(cues, { curfewAt }, NOW);
     // Planned end 23:05, six minutes behind: projected 23:11.
     expect(at(null).curfewRisk).toBe("none");
-    expect(at("2027-06-06T00:00:00Z")).toMatchObject({ curfewRisk: "ok", curfewMarginSeconds: 2940 });
-    expect(at("2027-06-05T23:20:00Z")).toMatchObject({ curfewRisk: "near", curfewMarginSeconds: 540 });
+    expect(at("2027-06-06T00:00:00Z")).toMatchObject({
+      curfewRisk: "ok",
+      curfewMarginSeconds: 2940,
+    });
+    expect(at("2027-06-05T23:20:00Z")).toMatchObject({
+      curfewRisk: "near",
+      curfewMarginSeconds: 540,
+    });
     expect(540).toBeLessThanOrEqual(CURFEW_WARNING_SECONDS);
-    expect(at("2027-06-05T23:10:00Z")).toMatchObject({ curfewRisk: "over", curfewMarginSeconds: -60 });
-    expect(showClock([cue(1, { plannedAt: null })], { curfewAt: "2027-06-06T00:00:00Z" }, NOW).curfewRisk).toBe(
-      "none",
-    );
+    expect(at("2027-06-05T23:10:00Z")).toMatchObject({
+      curfewRisk: "over",
+      curfewMarginSeconds: -60,
+    });
+    expect(
+      showClock([cue(1, { plannedAt: null })], { curfewAt: "2027-06-06T00:00:00Z" }, NOW)
+        .curfewRisk,
+    ).toBe("none");
   });
 });

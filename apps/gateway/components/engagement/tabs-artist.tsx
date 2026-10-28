@@ -118,13 +118,13 @@ export async function SetTimesTab({ view, t, locale, engagementKey }: TabProps) 
               c.planned_at && c.start_tbc
                 ? t("gateway.common.tbc")
                 : c.planned_at
-                ? formatScheduleTime(
-                    locale,
-                    c.planned_at,
-                    view.engagement.projectTimeZone,
-                    view.scheduleView,
-                  )
-                : null,
+                  ? formatScheduleTime(
+                      locale,
+                      c.planned_at,
+                      view.engagement.projectTimeZone,
+                      view.scheduleView,
+                    )
+                  : null,
               c.duration,
             ],
             ...(c.called_at

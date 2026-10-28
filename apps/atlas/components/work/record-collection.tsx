@@ -160,8 +160,14 @@ export function RecordCollection({
         : (r.dueAt ?? r.endsAt ?? r.startsAt);
     // A start to be confirmed reads "TBC · est. <time>" (G-40); it still sorts by the estimate.
     return at === r.startsAt
-      ? formatStartTime(at, r.startTbc, locale, r.timeZone ?? r.projectTimeZone, zoneView, "dateTime", (time) =>
-          t("values.tbcEstimate", { time }),
+      ? formatStartTime(
+          at,
+          r.startTbc,
+          locale,
+          r.timeZone ?? r.projectTimeZone,
+          zoneView,
+          "dateTime",
+          (time) => t("values.tbcEstimate", { time }),
         )
       : when(at, r.timeZone ?? r.projectTimeZone);
   };

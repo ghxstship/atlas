@@ -245,7 +245,9 @@ describe("RunOfShowLive", () => {
     );
     expect(screen.getByText("Walk-in music").closest("li")?.textContent).toContain("Skipped");
     expect(screen.getByText("Headliner").closest("li")?.textContent).toContain("Standby");
-    expect(screen.getByText("Host welcome").closest("li")?.getAttribute("aria-current")).toBe("true");
+    expect(screen.getByText("Host welcome").closest("li")?.getAttribute("aria-current")).toBe(
+      "true",
+    );
     await expectAccessible(container);
   });
 });

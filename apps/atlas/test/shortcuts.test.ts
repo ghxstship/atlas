@@ -152,7 +152,8 @@ describe("showcaller console keys (ADR 0131)", () => {
       ["[", "nudge-earlier"],
       ["D", "department"],
     ];
-    for (const [chord, action] of actions) expect(showKeyAction(chord, scoped, true), chord).toBe(action);
+    for (const [chord, action] of actions)
+      expect(showKeyAction(chord, scoped, true), chord).toBe(action);
   });
 
   it("answers function keys with single-key shortcuts off, and leaves letters and symbols alone", () => {

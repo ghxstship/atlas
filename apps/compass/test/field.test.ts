@@ -435,7 +435,12 @@ describe("live run of show", () => {
 
   it("takes the caller's standby as next, as Atlas does (show-timing, ADR 0131)", () => {
     const s = showState(
-      [cue(1, -10, -10), cue(2, 2), { ...cue(3, 5), standby_at: new Date(now).toISOString() }, cue(4, 8)],
+      [
+        cue(1, -10, -10),
+        cue(2, 2),
+        { ...cue(3, 5), standby_at: new Date(now).toISOString() },
+        cue(4, 8),
+      ],
       now,
     );
     // status keeps "standby" for before the first call; the caller's standby is onStandby.
@@ -467,8 +472,14 @@ describe("live run of show", () => {
       { id: "k4", cue_id: "c9", call_kind: "Lighting", instruction: "Other cue" },
       { id: "k5", cue_id: "c2", call_kind: "Pyro", instruction: "Not a department" },
     ];
-    expect(cueCallLines(calls, "c2", null).map((l) => l.kind)).toEqual(["Audio", "Lighting", "Stage"]);
-    expect(cueCallLines(calls, "c2", "Lighting")).toEqual([{ kind: "Lighting", instruction: "LX 14 GO" }]);
+    expect(cueCallLines(calls, "c2", null).map((l) => l.kind)).toEqual([
+      "Audio",
+      "Lighting",
+      "Stage",
+    ]);
+    expect(cueCallLines(calls, "c2", "Lighting")).toEqual([
+      { kind: "Lighting", instruction: "LX 14 GO" },
+    ]);
     expect(cueCallLines(calls, "c2", "Video")).toEqual([]);
     expect(cueCallLines(calls, undefined, null)).toEqual([]);
   });

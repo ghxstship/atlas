@@ -285,10 +285,27 @@ describe("REST download", () => {
       engagedProjectIds: [],
     });
     const cues = [
-      { id: "c1", org_id: "org-1", project_id: "proj-1", run_of_show_id: "ros-1", deleted_at: null },
-      { id: "c2", org_id: "org-1", project_id: "proj-1", run_of_show_id: "ros-1", deleted_at: "2027-03-13T20:00:00Z" },
+      {
+        id: "c1",
+        org_id: "org-1",
+        project_id: "proj-1",
+        run_of_show_id: "ros-1",
+        deleted_at: null,
+      },
+      {
+        id: "c2",
+        org_id: "org-1",
+        project_id: "proj-1",
+        run_of_show_id: "ros-1",
+        deleted_at: "2027-03-13T20:00:00Z",
+      },
     ];
-    const call = (id: string, kind: string, instruction: string, deleted: string | null = null) => ({
+    const call = (
+      id: string,
+      kind: string,
+      instruction: string,
+      deleted: string | null = null,
+    ) => ({
       id,
       org_id: "org-1",
       cue_id: "c1",
@@ -298,9 +315,17 @@ describe("REST download", () => {
     });
     const first = client({
       "app.cues": cues,
-      "app.cue_calls": [call("k1", "Lighting", "LX 14 GO"), call("k0", "Audio", "Old", "2027-03-13T19:00:00Z")],
+      "app.cue_calls": [
+        call("k1", "Lighting", "LX 14 GO"),
+        call("k0", "Audio", "Old", "2027-03-13T19:00:00Z"),
+      ],
     });
-    await downloadAll({ client: first.client, session, projectId: null, only: ["cues", "cue_calls"] });
+    await downloadAll({
+      client: first.client,
+      session,
+      projectId: null,
+      only: ["cues", "cue_calls"],
+    });
     // A removed cue and a cleared call are soft-deleted rows row level security still returns; neither is stored.
     expect((await store.list("cues")).map((r) => r.id)).toEqual(["c1"]);
     expect(await store.list("cue_calls")).toEqual([
@@ -314,13 +339,23 @@ describe("REST download", () => {
         call("k2", "Lighting", "LX 15 GO"),
       ],
     });
-    await downloadAll({ client: second.client, session, projectId: null, only: ["cues", "cue_calls"] });
-    expect((await store.list("cue_calls")).map((r) => [r.id, r["instruction"]])).toEqual([["k2", "LX 15 GO"]]);
+    await downloadAll({
+      client: second.client,
+      session,
+      projectId: null,
+      only: ["cues", "cue_calls"],
+    });
+    expect((await store.list("cue_calls")).map((r) => [r.id, r["instruction"]])).toEqual([
+      ["k2", "LX 15 GO"],
+    ]);
   });
 
   it("never gives an external device department calls", () => {
     for (const audience of EXTERNAL_AUDIENCES) {
-      expect(sourcesFor(audience).some((s) => s.table === "cue_calls"), audience).toBe(false);
+      expect(
+        sourcesFor(audience).some((s) => s.table === "cue_calls"),
+        audience,
+      ).toBe(false);
     }
     expect(sourcesFor("field").some((s) => s.table === "cue_calls")).toBe(true);
   });

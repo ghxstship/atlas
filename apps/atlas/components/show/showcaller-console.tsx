@@ -114,7 +114,10 @@ export function ShowcallerConsole({
   const go = () => {
     const cue = selectedCue;
     if (!cue || cue.calledAt) return;
-    action.run(() => callCueAction(org, cue.id), () => setPicked(null));
+    action.run(
+      () => callCueAction(org, cue.id),
+      () => setPicked(null),
+    );
   };
   const standby = (cue: Cue | undefined) => {
     if (!cue || cue.calledAt) return;
@@ -161,7 +164,8 @@ export function ShowcallerConsole({
     if (!(event.target instanceof Node) || !event.currentTarget.contains(event.target)) return;
     if (typing(event.target)) return;
     const chord = chordOf(event.nativeEvent, keys.platform);
-    const what = chord === null ? null : showKeyAction(chord, keys.scoped, singleKeyShortcutsEnabled());
+    const what =
+      chord === null ? null : showKeyAction(chord, keys.scoped, singleKeyShortcutsEnabled());
     if (what === null) return;
     event.preventDefault();
     perform(what);
@@ -183,7 +187,9 @@ export function ShowcallerConsole({
         {shown.map((line) => (
           <li
             key={line.kind}
-            className={department === null ? "text-text-13" : "text-text-14 font-semibold text-accent-text"}
+            className={
+              department === null ? "text-text-13" : "text-text-14 font-semibold text-accent-text"
+            }
           >
             {t("cues.callLine", { department: label(line.kind), instruction: line.instruction })}
           </li>
@@ -201,9 +207,16 @@ export function ShowcallerConsole({
           ? t("console.ahead", { time: clock(timing.overrunSeconds) })
           : t("console.onTime");
   const curfewTone = { none: "neutral", ok: "success", near: "warning", over: "danger" } as const;
-  const curfewText = { none: "", ok: t("console.curfewOk"), near: t("console.curfewNear"), over: t("console.curfewOver") };
+  const curfewText = {
+    none: "",
+    ok: t("console.curfewOk"),
+    near: t("console.curfewNear"),
+    over: t("console.curfewOver"),
+  };
   const matches = uncalled.filter((i) =>
-    `${cues[i]?.position ?? ""} ${cues[i]?.label ?? ""}`.toLowerCase().includes(filter.trim().toLowerCase()),
+    `${cues[i]?.position ?? ""} ${cues[i]?.label ?? ""}`
+      .toLowerCase()
+      .includes(filter.trim().toLowerCase()),
   );
 
   return (
@@ -224,7 +237,9 @@ export function ShowcallerConsole({
         <Stat label={t("console.plan")}>
           <span
             data-testid="console-overrun"
-            className={timing.overrunSeconds !== null && timing.overrunSeconds > 0 ? "text-warning-text" : ""}
+            className={
+              timing.overrunSeconds !== null && timing.overrunSeconds > 0 ? "text-warning-text" : ""
+            }
           >
             {plan}
           </span>
@@ -274,7 +289,11 @@ export function ShowcallerConsole({
           loading={action.pending}
           disabled={!upcoming}
           onClick={() => {
-            if (upcoming) action.run(() => callCueAction(org, upcoming.id), () => setPicked(null));
+            if (upcoming)
+              action.run(
+                () => callCueAction(org, upcoming.id),
+                () => setPicked(null),
+              );
           }}
         >
           {t("live.callNext")}
@@ -292,7 +311,9 @@ export function ShowcallerConsole({
         <Button
           data-shortcut="show.standby"
           disabled={!selectedCue}
-          aria-label={selectedCue ? t("console.standbyLabel", { label: selectedCue.label }) : undefined}
+          aria-label={
+            selectedCue ? t("console.standbyLabel", { label: selectedCue.label }) : undefined
+          }
           onClick={() => standby(selectedCue)}
         >
           {t("console.standbyAction")}

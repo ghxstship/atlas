@@ -59,15 +59,24 @@ export function cueProgress(cues: readonly TimedCue[], now: Date = new Date()): 
   const uncalled = (i: number) => list[i]?.calledAt === null;
   const standbyIndex = list.findIndex((c) => c.calledAt === null && Boolean(c.standbyAt));
   const after = list.findIndex((c, i) => i > highest && c.calledAt === null);
-  const next = standbyIndex >= 0 ? standbyIndex : after >= 0 ? after : list.findIndex((c) => c.calledAt === null);
+  const next =
+    standbyIndex >= 0
+      ? standbyIndex
+      : after >= 0
+        ? after
+        : list.findIndex((c) => c.calledAt === null);
   const skipped = list.map((_, i) => i).filter((i) => i < highest && uncalled(i));
   const nextCue = next >= 0 ? list[next] : undefined;
   const currentCue = current >= 0 ? list[current] : undefined;
   return {
     current,
     next,
-    nextInSeconds: nextCue?.plannedAt ? Math.round((Date.parse(nextCue.plannedAt) - nowMs) / 1000) : null,
-    elapsedSeconds: currentCue?.calledAt ? Math.round((nowMs - Date.parse(currentCue.calledAt)) / 1000) : null,
+    nextInSeconds: nextCue?.plannedAt
+      ? Math.round((Date.parse(nextCue.plannedAt) - nowMs) / 1000)
+      : null,
+    elapsedSeconds: currentCue?.calledAt
+      ? Math.round((nowMs - Date.parse(currentCue.calledAt)) / 1000)
+      : null,
     complete: list.length > 0 && after === -1 && highest >= 0 && standbyIndex === -1,
     standby: standbyIndex >= 0,
     skipped,
@@ -124,9 +133,14 @@ export function showClock(
   const terms: number[] = [];
   const latestPlanned = list
     .filter((c) => c.calledAt !== null && firm(c))
-    .sort((a, b) => Date.parse(b.calledAt ?? "") - Date.parse(a.calledAt ?? "") || b.position - a.position)[0];
+    .sort(
+      (a, b) =>
+        Date.parse(b.calledAt ?? "") - Date.parse(a.calledAt ?? "") || b.position - a.position,
+    )[0];
   if (firm(latestPlanned)) {
-    terms.push((Date.parse(latestPlanned.calledAt ?? "") - Date.parse(latestPlanned.plannedAt)) / 1000);
+    terms.push(
+      (Date.parse(latestPlanned.calledAt ?? "") - Date.parse(latestPlanned.plannedAt)) / 1000,
+    );
   }
   const nextCue = progress.next >= 0 ? list[progress.next] : undefined;
   if (!progress.complete && firm(nextCue) && nowMs > Date.parse(nextCue.plannedAt)) {
@@ -136,12 +150,15 @@ export function showClock(
   const overrunSeconds = !hasPlan ? null : terms.length === 0 ? 0 : Math.round(Math.max(...terms));
 
   const end = list.at(-1);
-  const plannedEndMs =
-    end?.plannedAt ? Date.parse(end.plannedAt) + (end.durationSeconds ?? 0) * 1000 : null;
+  const plannedEndMs = end?.plannedAt
+    ? Date.parse(end.plannedAt) + (end.durationSeconds ?? 0) * 1000
+    : null;
   const projectedEndMs = plannedEndMs === null ? null : plannedEndMs + (overrunSeconds ?? 0) * 1000;
   const curfewMs = run.curfewAt ? Date.parse(run.curfewAt) : null;
   const curfewMarginSeconds =
-    curfewMs === null || projectedEndMs === null ? null : Math.round((curfewMs - projectedEndMs) / 1000);
+    curfewMs === null || projectedEndMs === null
+      ? null
+      : Math.round((curfewMs - projectedEndMs) / 1000);
   const curfewRisk: CurfewRisk =
     curfewMarginSeconds === null
       ? "none"

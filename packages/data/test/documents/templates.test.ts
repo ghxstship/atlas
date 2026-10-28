@@ -252,7 +252,11 @@ describe("data mapping", () => {
 describe("run of show version 2 (ADR 0131)", () => {
   const v2Data = {
     ...FIXTURES["run-of-show"],
-    run: { ...FIXTURES["run-of-show"].run, showDate: "2026-11-07", curfewAt: "2026-11-08T02:00:00Z" as string | null },
+    run: {
+      ...FIXTURES["run-of-show"].run,
+      showDate: "2026-11-07",
+      curfewAt: "2026-11-08T02:00:00Z" as string | null,
+    },
     cues: FIXTURES["run-of-show"].cues.map((c) => (c.id === "q2" ? { ...c, startTbc: true } : c)),
     calls: [
       { id: "k2", cueId: "q2", kind: "Stage" as const, instruction: "Riser lock checked" },
@@ -281,7 +285,8 @@ describe("run of show version 2 (ADR 0131)", () => {
     const es = render("es-US");
     expect(strings(es)).toContain("Por confirmar");
     expect(strings(es)).toContain("Iluminación: LX 14 GO\nEscenario: Riser lock checked");
-    for (const text of [...strings(model), ...strings(es)]) expect(text).not.toMatch(/^runOfShow\./);
+    for (const text of [...strings(model), ...strings(es)])
+      expect(text).not.toMatch(/^runOfShow\./);
   });
 
   it("leaves the curfew out when none is set", () => {
