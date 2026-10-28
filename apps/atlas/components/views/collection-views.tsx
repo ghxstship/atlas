@@ -272,16 +272,19 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
   return (
     <div className="flex flex-wrap items-center gap-8">
       {options.length > 1 ? (
-        <SegmentedControl
-          label={label}
-          value={value}
-          options={options.map((o) => ({
-            value: o.value,
-            label: o.label,
-            ...(o.icon ? { icon: o.icon } : {}),
-          }))}
-          onChange={switchView}
-        />
+        // The view.switch shortcut focuses the view on screen; the arrow keys then switch it.
+        <span data-shortcut="view.switch" data-shortcut-focus="" className="contents">
+          <SegmentedControl
+            label={label}
+            value={value}
+            options={options.map((o) => ({
+              value: o.value,
+              label: o.label,
+              ...(o.icon ? { icon: o.icon } : {}),
+            }))}
+            onChange={switchView}
+          />
+        </span>
       ) : null}
       {collection ? (
         <DeferredDropdownMenu
@@ -289,6 +292,16 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
           icon="Bookmark"
           items={items}
           onOpen={retryLoad}
+        />
+      ) : null}
+      {collection ? (
+        // Save view lives in the menu above; this hidden button is the view.save shortcut's target.
+        <button
+          type="button"
+          hidden
+          data-shortcut="view.save"
+          aria-label={t("menu.save")}
+          onClick={() => setDialog({ kind: "save" })}
         />
       ) : null}
       <CollectionExport />
