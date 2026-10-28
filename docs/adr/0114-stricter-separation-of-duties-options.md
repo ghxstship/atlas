@@ -1,4 +1,4 @@
-# ADR 0113: Stricter Separation of Duties Options
+# ADR 0114: Stricter Separation of Duties Options
 
 - Status: Proposed
 - Date: 2026-10-28

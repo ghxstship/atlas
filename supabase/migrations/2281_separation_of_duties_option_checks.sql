@@ -1,5 +1,5 @@
 -- 2281_separation_of_duties_option_checks.sql
--- A135 (RRR-197), Section 8.2, ADR 0113: the stricter separation of duties options of 2280 are enforced in the same
+-- A135 (RRR-197), Section 8.2, ADR 0114: the stricter separation of duties options of 2280 are enforced in the same
 -- functions that enforce the built-in rules, each refusing with the option's code and sentence (XR001, message
 -- "<code>: <sentence>", hint the code), and only where the org switched the option on.
 --   * sod_document_creator: private.approve_under_spend_authority, which every spend approval RPC runs (purchase

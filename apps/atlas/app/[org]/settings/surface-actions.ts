@@ -290,7 +290,7 @@ export async function removeSpendLimitAction(
 
 // Separation of duties ------------------------------------------------------------------------------------
 
-/** Switches a stricter option on or off (2280, ADR 0113); the database refuses a built-in rule's code. */
+/** Switches a stricter option on or off (2280, ADR 0114); the database refuses a built-in rule's code. */
 export async function setSeparationOptionAction(
   _: SurfaceState,
   form: FormData,

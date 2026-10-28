@@ -1,7 +1,7 @@
 -- 2280_separation_of_duties_options.sql
 -- A135 (RRR-197), trace row S4.5.6-23, Section 8.2: "an org may tighten separation of duties but never remove it".
 -- The rules every org keeps stay as they are (0320, 1150). This adds the stricter options an org may switch on, and
--- the per-org record of which are on (ADR 0113).
+-- the per-org record of which are on (ADR 0114).
 --   * private.separation_of_duties_rules gains tightens: NULL for a built-in rule, and for an option the built-in
 --     rule it tightens. Options live in the same registry, so the 1150 catalog check (every sod_ code a function
 --     refuses with is registered) covers them, and their refusals name the code and sentence the same way.
@@ -46,7 +46,7 @@ create view app.separation_of_duties_options as
 select r.code, r.tightens, r.enforced_on, r.description from private.separation_of_duties_rules r
 where r.tightens is not null;
 
-comment on view app.separation_of_duties_options is 'The stricter separation of duties options an org may switch on (Section 8.2, ADR 0113). Which are on is app.org_separation_of_duties_options.';
+comment on view app.separation_of_duties_options is 'The stricter separation of duties options an org may switch on (Section 8.2, ADR 0114). Which are on is app.org_separation_of_duties_options.';
 comment on column app.separation_of_duties_options.code is 'Option code, the prefix of its refusal.';
 comment on column app.separation_of_duties_options.tightens is 'The built-in rule the option tightens.';
 comment on column app.separation_of_duties_options.enforced_on is 'Documents the option covers.';
@@ -68,7 +68,7 @@ call private.install_domain_table('app.org_separation_of_duties_options');
 create unique index org_separation_of_duties_options_key on app.org_separation_of_duties_options (org_id, rule_code)
   where deleted_at is null;
 create index org_separation_of_duties_options_rule_code_idx on app.org_separation_of_duties_options (rule_code);
-call private.describe('app.org_separation_of_duties_options', 'A stricter separation of duties option the org switched on (Section 8.2, ADR 0113). Only options can have a row; the built-in rules hold for every org and are never switched. Switching an option off soft-deletes its row. Set in Settings, Separation of Duties.', array[
+call private.describe('app.org_separation_of_duties_options', 'A stricter separation of duties option the org switched on (Section 8.2, ADR 0114). Only options can have a row; the built-in rules hold for every org and are never switched. Switching an option off soft-deletes its row. Set in Settings, Separation of Duties.', array[
   'rule_code', 'Option code (app.separation_of_duties_options), never a built-in rule.'
 ]);
 
@@ -152,7 +152,7 @@ begin
 end;
 $$;
 
-comment on function app.set_separation_of_duties_option(uuid, text, boolean) is 'Switches a stricter separation of duties option on or off for an org (Section 8.2, ADR 0113; org.separation_of_duties.write). Only options switch: a built-in rule code is refused (separation_option_unknown). Repeating a choice changes nothing. Each change is audited. Returns the option''s new state.';
+comment on function app.set_separation_of_duties_option(uuid, text, boolean) is 'Switches a stricter separation of duties option on or off for an org (Section 8.2, ADR 0114; org.separation_of_duties.write). Only options switch: a built-in rule code is refused (separation_option_unknown). Repeating a choice changes nothing. Each change is audited. Returns the option''s new state.';
 
 -- Retention -----------------------------------------------------------------------------------------------------------
 

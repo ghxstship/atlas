@@ -478,7 +478,7 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "hospitality.accommodation.write":
     "Accommodation blocks and room assignments (0440) are written in Atlas through @xos/data/hospitality; fulfillment lines check hospitality.fulfillment.write (0351, ADR 0023), and no v1 operation writes blocks yet.",
   "org.separation_of_duties.write":
-    "The separation of duties rules are the platform's, read through the view app.separation_of_duties_rules (0320); orgs turn stricter options on in Atlas through app.set_separation_of_duties_option (2280, ADR 0113), and no v1 operation writes them (ADR 0023).",
+    "The separation of duties rules are the platform's, read through the view app.separation_of_duties_rules (0320); orgs turn stricter options on in Atlas through app.set_separation_of_duties_option (2280, ADR 0114), and no v1 operation writes them (ADR 0023).",
   "procurement.bid.unseal":
     "Sealed bids unseal for the reader through row level security (private.bid_readable_by_org, 0720); no operation unseals a bid (ADR 0023).",
   "people.offer.write":

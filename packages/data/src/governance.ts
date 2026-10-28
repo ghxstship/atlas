@@ -7,7 +7,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  *   * spend authority limits per role or member, document type and currency (0320, 0360; Section 4.5.6 org
  *     settings item 22), which the approval RPCs enforce;
  *   * the separation of duties rules the platform enforces for every org (0320, 1150; item 23), and the stricter
- *     options an org may switch on (2280, A135, ADR 0113);
+ *     options an org may switch on (2280, A135, ADR 0114);
  *   * custom field definitions and their choices on built-in tables (0540; item 16).
  * Writes are plain table writes under row level security (org.spend_authority.write, org.custom_fields.write) or,
  * for separation of duties options, app.set_separation_of_duties_option (org.separation_of_duties.write); the
@@ -137,7 +137,7 @@ export interface SeparationOption extends SeparationRule {
 }
 
 /**
- * The stricter options an org may switch on (2280, ADR 0113), each with whether this org has. Only options
+ * The stricter options an org may switch on (2280, ADR 0114), each with whether this org has. Only options
  * switch; the built-in rules of `listSeparationRules` are always on.
  */
 export async function listSeparationOptions(

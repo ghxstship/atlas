@@ -41,7 +41,7 @@ import {
  * Org rule panels (A86, RRR-131, finding A65-004):
  *   Spend Authority        limits per role or member, document type and currency (Section 4.5.6 org item 22)
  *   Separation of Duties   the rules every org is held to (item 23), always on, and the stricter options an
- *                          org switches on (A135, ADR 0113); none can be loosened
+ *                          org switches on (A135, ADR 0114); none can be loosened
  *   Custom Fields          fields on built-in tables and their choices (item 16)
  *   Canon Extensions       the org's proposed and approved extensions, made on the Canon page (item 14)
  *   Automations            what runs on its own today: scheduled reports, recurring work, approval policies

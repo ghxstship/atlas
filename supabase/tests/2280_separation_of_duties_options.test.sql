@@ -1,4 +1,4 @@
--- pgTAP: orgs tighten separation of duties (A135, RRR-197, Section 8.2, ADR 0113, migrations 2280 and 2281). The three
+-- pgTAP: orgs tighten separation of duties (A135, RRR-197, Section 8.2, ADR 0114, migrations 2280 and 2281). The three
 -- options are registered beside the built-in rules and listed apart from them; only an option can be switched, so
 -- the built-in rules cannot be removed; switching needs org.separation_of_duties.write; each option, once on, refuses
 -- with its code and sentence and stops refusing once off:

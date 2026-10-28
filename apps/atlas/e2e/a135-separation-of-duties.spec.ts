@@ -4,7 +4,7 @@ import { expectAccessibleInBothThemes, ORG, signIn } from "./a16-support";
 import { expectAccessible, uniqueId } from "./support";
 
 /**
- * A135 (RRR-197, Section 8.2, ADR 0113) on the demo tenant: the Owner sees the rules every organization keeps,
+ * A135 (RRR-197, Section 8.2, ADR 0114) on the demo tenant: the Owner sees the rules every organization keeps,
  * always on and with no control, turns on each stricter option in Settings, Separation of Duties, and the matching
  * refusal appears where the option bites:
  *   sod_receiver_po_approver          the Admin approved the seeded purchase order (seed 0116) and cannot receive it;
