@@ -61593,6 +61593,7 @@ export type Database = {
       decline_oauth_request: { Args: { p_authorization_id: string }; Returns: undefined };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       decline_ownership_transfer: { Args: { p_transfer_id: string }; Returns: string };
+      decline_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
       delete_automation: { Args: { p_automation_id: string }; Returns: undefined };
       delete_chat_message: { Args: { p_message_id: string }; Returns: string };
       delete_my_account: { Args: { p_confirm_email: string }; Returns: Json };
@@ -62109,6 +62110,15 @@ export type Database = {
       };
       message_translation_enabled: { Args: { p_org_id: string }; Returns: boolean };
       minimum_age_confirmed: { Args: Record<PropertyKey, never>; Returns: boolean };
+      mint_notification_action_tokens: {
+        Args: { p_delivery_id: string };
+        Returns: {
+          action: string;
+          audience: string;
+          expires_at: string;
+          token: string;
+        }[];
+      };
       my_access_paths: {
         Args: {
           p_org_id: string;
@@ -62746,6 +62756,20 @@ export type Database = {
       reactivate_organization: { Args: { p_org_id: string }; Returns: string };
       read_integration_credential: { Args: { p_connection_id: string }; Returns: string };
       read_integration_inbound_secret: { Args: { p_connection_id: string }; Returns: string };
+      read_notification_action: {
+        Args: { p_token: string };
+        Returns: {
+          action: string;
+          audience: string;
+          expires_at: string;
+          kind: string;
+          link_state: string;
+          notification_id: string;
+          org_name: string;
+          org_slug: string;
+          title: string;
+        }[];
+      };
       read_warehouse_credential: { Args: { p_destination_id: string }; Returns: string };
       reassign_offboarding_records: {
         Args: { p_offboarding_id: string; p_to_person_id: string };
@@ -64565,6 +64589,7 @@ export type Database = {
         };
         Returns: string;
       };
+      use_notification_action: { Args: { p_comment?: string; p_token: string }; Returns: string };
       venue_latitude: {
         Args: {
           p_venue: Omit<

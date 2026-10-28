@@ -40,6 +40,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/network-restricted":
     "Auth template: an org's IP allow-list refused this network; an Owner may take emergency access (A52).",
   "/auth/invite/{token}": "Auth template: preview and accept an invitation.",
+  "/auth/act/{token}":
+    "Auth template: confirm a one-tap action from a notification email; opening it never acts (A127, ADR 0086).",
   "/auth/mfa":
     "Auth template: the second factor after the first, or setting one up an org requires (A77).",
   "/auth/session-ended":

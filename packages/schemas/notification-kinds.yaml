@@ -442,6 +442,13 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1462_saved_search_alerts.sql#private.notify_saved_search_matches
         test: supabase/tests/1462_saved_search_alerts.test.sql
+  # Offers that wait on the applicant (A127, 2200): Gateway confirms an email's Accept link, Compass answers the push.
+  - kind: offer.sent
+    category: opportunities
+    channels: [In App, Email, Push]
+    emitted_by:
+      - emitter: supabase/migrations/2200_one_tap_actions.sql#private.notify_offer_sent
+        test: supabase/tests/2200_one_tap_actions.test.sql
   - kind: onboarding.item_expiring
     category: expiry_reminders
     emitted_by:

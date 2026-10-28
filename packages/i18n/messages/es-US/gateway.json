@@ -36,7 +36,12 @@
       "sole_account_owner": "Una cuenta de empresa conserva al menos un Propietario. Nombre primero a otra persona Propietario.",
       "notification_channel_outside": "Una empresa solo configura Correo electrónico y Push.",
       "supplier_diversity_no_program": "Esa organización no tiene un programa de diversidad de proveedores, así que no recibe certificaciones de diversidad.",
-      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York."
+      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
+      "notification_action_used": "Esto ya se resolvió. No hay nada más que hacer.",
+      "notification_action_expired": "Este enlace venció. Abre el elemento desde Inicio para resolverlo.",
+      "notification_action_not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
+      "notification_action_invalid": "Este enlace no funciona. Abre el elemento desde Inicio.",
+      "notification_action_reason": "Di por qué lo rechazas."
     }
   },
   "common": {
@@ -1060,6 +1065,24 @@
       "rate": "Califica tu trabajo con {org}",
       "rateAction": "Calificar"
     },
+    "fyi": {
+      "title": "Para tu información",
+      "empty": "Nada nuevo. Aquí aparecen las novedades de las organizaciones con las que trabajas.",
+      "done": "Listo",
+      "snooze": "Posponer",
+      "doneLabel": "Marcar {text} como listo",
+      "snoozeLabel": "Posponer {text} un día",
+      "keys": "Selecciona un elemento y presiona E para Listo o H para posponerlo un día. J y K pasan de un elemento a otro.",
+      "new": "Nuevo",
+      "kinds": {
+        "offerSent": "{orgName} te envió una oferta para {title}",
+        "shiftAssigned": "Nuevo turno: {title}",
+        "shiftChanged": "Turno modificado: {title}",
+        "messageReceived": "Mensaje nuevo",
+        "other": "{title}",
+        "untitled": "Novedad"
+      }
+    },
     "recommended": {
       "title": "Recomendadas para ti",
       "all": "Ver todas",
@@ -1067,8 +1090,6 @@
       "emptyAction": "Crear alerta"
     },
     "updates": {
-      "title": "Novedades",
-      "new": "Nuevo",
       "kinds": {
         "invoiceSubmitted": "{orgName} recibió la factura {title}",
         "invoiceApproved": "{orgName} aprobó la factura {title}",
@@ -1683,6 +1704,35 @@
       "done": "Listo: {advance, plural, one {# respuesta de avance} other {# respuestas de avance}} y {documents, plural, one {# documento firmado} other {# documentos firmados}} ya están en tu cuenta.",
       "nothing": "No había envíos pendientes para {email}. Todo lo que completes desde ahora se guarda en esta cuenta.",
       "home": "Ir al inicio"
+    },
+    "actionLink": {
+      "title": "Confirmar desde el correo",
+      "heading": {
+        "approve": "¿Aprobar {title}?",
+        "reject": "¿Rechazar {title}?",
+        "accept": "¿Aceptar {title}?"
+      },
+      "untitled": "este elemento",
+      "org": "De {org}. No pasa nada hasta que confirmes.",
+      "signedInAs": "Sesión iniciada como {email}.",
+      "confirm": {
+        "approve": "Aprobar",
+        "reject": "Rechazar",
+        "accept": "Aceptar"
+      },
+      "reason": "¿Por qué lo rechazas?",
+      "done": {
+        "approve": "Aprobado. No hay nada más que hacer.",
+        "reject": "Rechazado con tu motivo.",
+        "accept": "Aceptado. La organización se encarga desde aquí."
+      },
+      "home": "Ir al inicio",
+      "state": {
+        "used": "Esto ya se resolvió. No hay nada más que hacer.",
+        "expired": "Este enlace venció. Abre el elemento desde Inicio para resolverlo.",
+        "not_yours": "Este enlace se envió a otra persona. Cierra sesión e inicia sesión como la persona a quien se envió.",
+        "invalid": "Este enlace no funciona. Abre el elemento desde Inicio."
+      }
     },
     "errors": {
       "invalid_credentials": "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace de acceso.",

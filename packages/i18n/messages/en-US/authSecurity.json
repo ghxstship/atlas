@@ -268,6 +268,40 @@
     "invalid": "This sign-in request is incomplete. Go back to the app and start again.",
     "pageTitle": "Allow an app"
   },
+  "actionLink": {
+    "pageTitle": "Confirm from email",
+    "heading": {
+      "approve": "Approve {title}?",
+      "reject": "Reject {title}?",
+      "accept": "Accept {title}?"
+    },
+    "untitled": "this item",
+    "org": "From {org}. Nothing happens until you confirm.",
+    "signedInAs": "Signed in as {email}.",
+    "confirm": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "accept": "Accept"
+    },
+    "reason": "Why are you rejecting it?",
+    "reasonHelp": "The person who asked sees your reason.",
+    "done": {
+      "approve": "Approved. Nothing else to do.",
+      "reject": "Rejected with your reason.",
+      "accept": "Accepted. Nothing else to do."
+    },
+    "openInbox": "Open your Inbox",
+    "state": {
+      "used": "This was already handled. Nothing else to do.",
+      "expired": "This link has expired. Open the item from your Inbox to act on it.",
+      "not_yours": "This link was sent to someone else. Sign out, then sign in as the person it was sent to.",
+      "invalid": "This link does not work. Open the item from your Inbox."
+    },
+    "errors": {
+      "notification_action_reason": "Say why you are rejecting it.",
+      "unexpected": "It wasn't done. Try again, or open the item from your Inbox."
+    }
+  },
   "scopes": {
     "home": "Home",
     "inbox": "Inbox",

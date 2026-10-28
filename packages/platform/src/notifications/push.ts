@@ -12,13 +12,41 @@ import type { WebPushClient, WebPushDevice, WebPushPayload } from "./web-push.ts
  * which makes a retry idempotent per delivery and device), and later reads the receipts, revoking the
  * devices Expo reports as DeviceNotRegistered.
  *
- * The contract Compass handles (apps/compass/src/domain/notifications.ts):
- *   - `categoryId` is the kind's push category from notification-kinds.yaml (`approval_request` for
- *     approval.requested), whose Approve and Reject actions answer through notifications.act;
+ * The contract Compass handles (apps/compass/src/domain/notifications.ts and offer-actions.ts):
+ *   - `categoryId` is the kind's push category (pushCategoryFor): `approval_request` for approval.requested, from
+ *     notification-kinds.yaml, whose Approve and Reject actions answer through notifications.act; and the
+ *     categories below (A127), whose Accept, Decline and Reply actions answer through the same operation;
  *   - `data` is { notificationId, kind, subjectTable, subjectId, title, recordKey, url }, where url is the deep
  *     link (Section 4.5.7: a push always carries one) and recordKey the display key of the record a notification is
  *     about (message_args.recordKey, 1600), which Compass opens on a tap (A101).
  */
+
+/** Push categories Compass registers in offer-actions.ts (A127, ADR 0086); approval_request is the registry's. */
+export const SHIFT_OFFER_CATEGORY = "shift_offer";
+export const ENGAGEMENT_OFFER_CATEGORY = "engagement_offer";
+export const MESSAGE_REPLY_CATEGORY = "message_reply";
+
+/** A notification's push category: the registry's, else a still Published shift's, an offer's or a message's. */
+export function pushCategoryFor(
+  kind: string,
+  messageArgs: Readonly<Record<string, unknown>>,
+): string | null {
+  const registered = notificationKind(kind)?.pushCategory ?? null;
+  if (registered !== null) return registered;
+  if (
+    (kind === "shift.assigned" || kind === "shift.changed") &&
+    messageArgs["shiftState"] === "Published"
+  )
+    return SHIFT_OFFER_CATEGORY;
+  if (kind === "offer.sent") return ENGAGEMENT_OFFER_CATEGORY;
+  if (kind === "message.received") return MESSAGE_REPLY_CATEGORY;
+  return null;
+}
+
+/** A decision goes out at high priority; a message's Reply does not. */
+function urgentCategory(category: string | null): boolean {
+  return category !== null && category !== MESSAGE_REPLY_CATEGORY;
+}
 
 /** Expo push service endpoints. */
 export const EXPO_PUSH_SEND_URL = "https://exp.host/--/api/v2/push/send";
@@ -145,7 +173,7 @@ export function pushMessage(
     localeOf(recipient.locale),
     recipient.timeZone,
   );
-  const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
+  const pushCategory = pushCategoryFor(claim.kind, claim.messageArgs);
   const title = claim.messageArgs["title"];
   const recordKey = claim.messageArgs["recordKey"];
   return {
@@ -163,7 +191,7 @@ export function pushMessage(
     },
     ...(pushCategory === null ? {} : { categoryId: pushCategory }),
     sound: "default",
-    priority: pushCategory === null ? "default" : "high",
+    priority: urgentCategory(pushCategory) ? "high" : "default",
     ttl: 60 * 60 * 24,
   };
 }
@@ -358,7 +386,7 @@ async function pushBrowsers(
 ): Promise<DeviceTicket[]> {
   const devices = await web.store.webDevices(claim.deliveryId);
   if (devices.length === 0) return [];
-  const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
+  const pushCategory = pushCategoryFor(claim.kind, claim.messageArgs);
   const links = new Map<WebPushDevice["app"], string>();
   for (const device of devices)
     if (!links.has(device.app)) links.set(device.app, await web.store.webLink(claim, device.app));
@@ -367,7 +395,7 @@ async function pushBrowsers(
       const payload = webPushPayload(claim, recipient, links.get(device.app) ?? "/");
       const answer = await web.client.send(device, payload, {
         ttl: 60 * 60 * 24,
-        urgency: pushCategory === null ? "normal" : "high",
+        urgency: urgentCategory(pushCategory) ? "high" : "normal",
       });
       return answer.status === "ok"
         ? {

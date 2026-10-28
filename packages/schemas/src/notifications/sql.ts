@@ -14,9 +14,10 @@ import type { NotificationKindRegistry } from "./model.ts";
  * carries their kinds. 1620 applies the owner decisions of 2026-10-23: shift.assigned, account.security_changed and
  * access.break_glass_started join the bypass list (ADR 0033 decision 62), and report.delivered reaches only the Inbox and a
  * push (ADR 0033 decision 77). 1639 adds the reported content kinds (ADR 0033 decision 57, 1630) and carries 1620's.
+ * 2201 adds offer.sent (A127, ADR 0086), the offer that waits on the applicant, and carries 1639's.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/1639_notification_kind_seed.sql";
+  "supabase/migrations/2201_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(

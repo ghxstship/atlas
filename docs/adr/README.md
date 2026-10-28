@@ -68,5 +68,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0073](0073-quick-add.md)                                           | Quick Add                                                                        | Accepted |
 | [0074](0074-record-sections-and-custom-object-history.md)           | Record Sections in Every Peek, and Custom Object Record History                  | Accepted |
 | [0075](0075-selection-menus-and-hover-cards-in-every-view.md)       | Selection, Record Menus and Hover Cards in Every View                            | Accepted |
+| [0086](0086-one-tap-actions-from-email-and-push.md)                 | One-Tap Actions from Email and Push, and Gateway's For Your Information          | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.
