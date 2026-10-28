@@ -6420,6 +6420,7 @@ export type Database = {
           asset_lot_id: string;
           created_at: string;
           created_by: string | null;
+          custodian_engagement_id: string | null;
           custodian_membership_id: string | null;
           deleted_at: string | null;
           delta: number;
@@ -6436,6 +6437,7 @@ export type Database = {
           asset_lot_id: string;
           created_at?: string;
           created_by?: string | null;
+          custodian_engagement_id?: string | null;
           custodian_membership_id?: string | null;
           deleted_at?: string | null;
           delta: number;
@@ -6451,6 +6453,7 @@ export type Database = {
           asset_lot_id?: string;
           created_at?: string;
           created_by?: string | null;
+          custodian_engagement_id?: string | null;
           custodian_membership_id?: string | null;
           deleted_at?: string | null;
           delta?: number;
@@ -6482,6 +6485,34 @@ export type Database = {
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_custodian_engagement_id_fkey";
+            columns: ["custodian_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_custodian_engagement_id_fkey";
+            columns: ["custodian_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_custodian_engagement_id_fkey";
+            columns: ["custodian_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "asset_lot_movements_custodian_engagement_id_fkey";
+            columns: ["custodian_engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
             referencedColumns: ["id"];
           },
           {
@@ -60291,6 +60322,18 @@ export type Database = {
         Args: { p_entry: string; p_project_id: string; p_shipment_id?: string; p_zone_id?: string };
         Returns: string;
       };
+      add_per_diems: {
+        Args: {
+          p_amount_minor: number;
+          p_currency_code: string;
+          p_engagement_id: string;
+          p_from: string;
+          p_membership_id: string;
+          p_project_id: string;
+          p_to: string;
+        };
+        Returns: number;
+      };
       add_supplier_diversity_certification: {
         Args: {
           p_account_id?: string;
@@ -61727,6 +61770,19 @@ export type Database = {
         }[];
       };
       engaged_person_name: { Args: { p_engagement_id: string }; Returns: string };
+      engagement_options: {
+        Args: { p_org_id: string; p_project_id?: string };
+        Returns: {
+          account_name: string;
+          engagement_id: string;
+          engagement_state: Database["app"]["Enums"]["engagement_state"];
+          person_id: string;
+          person_name: string;
+          project_id: string;
+          project_key: string;
+          role_type: Database["app"]["Enums"]["external_role_type"];
+        }[];
+      };
       enqueue_integration_sync: {
         Args: {
           p_connection_id: string;
@@ -62739,6 +62795,18 @@ export type Database = {
           content: string;
           file_uri: string;
           payroll_export_id: string;
+        }[];
+      };
+      project_people: {
+        Args: { p_project_id: string };
+        Returns: {
+          account_name: string;
+          engagement_id: string;
+          engagement_state: Database["app"]["Enums"]["engagement_state"];
+          full_name: string;
+          membership_id: string;
+          person_id: string;
+          role_type: Database["app"]["Enums"]["external_role_type"];
         }[];
       };
       propose_representation: {
