@@ -3,6 +3,9 @@
  * of the tab bar, More menu, scan modes and Today content). The app bundle cannot parse YAML at runtime,
  * so the per-audience navigation is resolved here with @xos/ia and emitted as data.
  *
+ * Nodes that only some people see on the device (Settings, Developer, where an org allows personal API tokens) are
+ * resolved with their condition met and carry it in `conditions`, so the app decides at runtime (A110).
+ *
  * test/navigation.test.ts fails when the file is stale; `pnpm --filter @xos/compass generate:navigation`
  * rewrites it.
  */
@@ -15,6 +18,7 @@ import {
   indexSitemap,
   navigationTree,
   type CompassAudience,
+  type Condition,
   type NavTreeNode,
 } from "@xos/ia";
 import { loadSitemapFile } from "@xos/ia/node";
@@ -24,29 +28,36 @@ const outPath = fileURLToPath(new URL("../src/navigation.generated.ts", import.m
 const sitemap = loadSitemapFile(sitemapPath);
 const index = indexSitemap(sitemap);
 
+/** Conditions the device decides itself; their nodes are emitted with the condition they need. */
+const RUNTIME_CONDITIONS: readonly Condition[] = ["org-allows-personal-tokens"];
+
 interface NavEntry {
   id: string;
   label: string;
   route: string;
   access: string;
+  conditions?: readonly Condition[];
   children: NavEntry[];
 }
 
 function entry(node: NavTreeNode, role: CompassAudience): NavEntry {
   const access = effectiveVisibility(sitemap, node.id, role) ?? "full";
+  const conditions = index.byId.get(node.id)?.node.conditions ?? [];
   return {
     id: node.id,
     label: node.label,
     route: index.byId.get(node.id)?.node.route ?? "",
     access,
+    ...(conditions.length > 0 ? { conditions } : {}),
     children: (node.children ?? []).map((c) => entry(c, role)),
   };
 }
 
 const audiences: Record<string, unknown> = {};
 for (const role of COMPASS_AUDIENCES) {
-  const tabs = navigationTree(sitemap, { role }, ["tab-bar"])[0]?.children ?? [];
-  const tabBar = chromeSlot(sitemap, "tabBar", { role }).map((n) => n.id);
+  const ctx = { role, conditions: RUNTIME_CONDITIONS };
+  const tabs = navigationTree(sitemap, ctx, ["tab-bar"])[0]?.children ?? [];
+  const tabBar = chromeSlot(sitemap, "tabBar", ctx).map((n) => n.id);
   const profile = sitemap.contentProfiles?.[role];
   audiences[role] = {
     tabs: tabs.filter((t) => tabBar.includes(t.id)).map((t) => entry(t, role)),

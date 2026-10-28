@@ -218,6 +218,13 @@ function text(row, key) {
     throw new Error(`Expected text in ${key} of the database response.`);
   return value;
 }
+/** The one jsonb array export_job_rows answers; null reads as no rows. */
+function exportRowsArray(data) {
+  if (data === null || data === void 0) return [];
+  if (!Array.isArray(data))
+    throw new Error("export_job_rows answered something other than an array of rows.");
+  return data;
+}
 var FORMATS = ["CSV", "XLSX", "PDF"];
 var CLASSES = ["Public", "Internal", "Confidential", "Restricted"];
 /** ExportRenderStore over the service-role client: the 2030 worker RPCs and export_job_columns. */
@@ -283,22 +290,22 @@ function supabaseExportRenderStore(client, options = {}) {
         p_limit: limit,
       };
       return (
-        (await preferReplica(
+        await preferReplica(
           client,
           options.replica,
           async (c, onReplica) => {
-            if (!onReplica) return await call("export_job_rows", args);
+            if (!onReplica) return exportRowsArray(await call("export_job_rows", args));
             const { data, error } = await c
               .schema("app")
               .rpc("export_job_rows", args, { get: true });
             if (error) throw new Error(`export_job_rows on the replica: ${error.message}`);
-            return data;
+            return exportRowsArray(data);
           },
           {
             label: "export rows",
             onFallback: options.onReplicaFallback,
           },
-        )) ?? []
+        )
       ).filter((r) => typeof r === "object" && r !== null);
     },
     async finish(jobId, outcome) {

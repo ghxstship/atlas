@@ -112,7 +112,8 @@ This is A88's `useRowMenu`, ported with Gateway copy.
 ## Consequences
 
 - Gateway's tables select, take their action in bulk, open row menus, undo a submit with Mod+Z, and update live.
-  List and card views (Explore, Messages) gain selection once A115's `RecordList` selection lands.
+  List and card views (Explore, Messages) do not select, though A115's `RecordList` selection would allow it: Save
+  and Pass stay one at a time (above), and a thread is marked read by opening it.
 - The recall rule is new: a worker can take back a submitted timesheet until it is decided.
 - Once A106 merges, the rule `xos_gateway_channel_read` belongs in its registry. On an environment that ran 2161
   before 1710, one insert into `private.realtime_channel_policies` registers it.

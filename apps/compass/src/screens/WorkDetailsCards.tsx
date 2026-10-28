@@ -7,6 +7,7 @@ import {
 import type { XosClient } from "@xos/data";
 import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
 import * as Linking from "expo-linking";
+import { useRouter } from "expo-router";
 import { useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { useCompass } from "../runtime/CompassProvider";
@@ -15,8 +16,8 @@ import { Button, Card, ListRow, Text } from "../ui";
 /**
  * The emergency contacts and uniform sizes on the Compass profile (Section 4.3 item 13, A65-003).
  * They are the person's own Work Details, read online with their session (owner-only rows); they
- * are never synced to the device. Editing happens in Gateway Settings, Work Details, which the
- * button opens.
+ * are never synced to the device. They stay read-only here: the button opens Settings, Work
+ * Details, where Compass edits them (A111).
  */
 interface Loaded {
   readonly contacts: readonly EmergencyContact[];
@@ -25,7 +26,8 @@ interface Loaded {
 
 export function WorkDetailsCards(): ReactElement {
   const { t, i18n } = useTranslation();
-  const { client, config, network } = useCompass();
+  const router = useRouter();
+  const { client, network } = useCompass();
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [failed, setFailed] = useState(false);
   const online = network.isConnected;
@@ -89,9 +91,10 @@ export function WorkDetailsCards(): ReactElement {
           ))
         )}
         <Button
+          testID="profile-work-details-edit"
           label={t("workDetails.compass.edit")}
           variant="secondary"
-          onPress={() => void Linking.openURL(`${config.gatewayUrl}/settings/work-details`)}
+          onPress={() => router.push("/settings/work-details")}
         />
       </Card>
     </>

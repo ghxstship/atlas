@@ -358,7 +358,24 @@
     "tableCaption": "Shifts",
     "listLabel": "Shifts",
     "clashTitle": "{count, plural, one {# double booking} other {# double bookings}}",
-    "clashBody": "Someone holds overlapping shifts. Reassign one of them before publishing; their second clock in will be refused."
+    "clashBody": "Someone holds overlapping shifts. Reassign one of them before publishing; their second clock in will be refused.",
+    "quickAdd": {
+      "label": "Quick add a shift",
+      "hint": "#role @person ~scope Friday 8am-4pm",
+      "types": {
+        "person": "Person",
+        "tag": "Role",
+        "kind": "Kind",
+        "scope": "Scope",
+        "date": "When"
+      },
+      "created": "Shift created",
+      "errors": {
+        "text": "A shift has no title. Name its role with #, for example #stagehand.",
+        "when": "Add when the shift starts, for example Friday 8am-4pm.",
+        "role": "That role is not in the Roles Library."
+      }
+    }
   },
   "swapsPage": {
     "title": "{from} to {to}",
