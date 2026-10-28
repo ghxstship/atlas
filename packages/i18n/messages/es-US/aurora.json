@@ -186,18 +186,21 @@
       "title": {
         "sop": "Redactar un POE con Aurora",
         "advance_packet": "Redactar una sección con Aurora",
-        "change_order_description": "Redactar una descripción con Aurora"
+        "change_order_description": "Redactar una descripción con Aurora",
+        "day_sheet": "Redactar una hoja del día con Aurora"
       },
       "instructions": "¿Qué debe decir el borrador?",
       "instructionsHelp": {
         "sop": "Por ejemplo: el procedimiento de montaje del escenario principal, con el jefe de equipo como responsable.",
         "advance_packet": "Por ejemplo: pida al equipo del artista sus necesidades de hospitalidad y sus horas de llegada.",
-        "change_order_description": "Por ejemplo: cuatro puntos de colgado más sobre el borde delantero del escenario, a pedido del cliente."
+        "change_order_description": "Por ejemplo: cuatro puntos de colgado más sobre el borde delantero del escenario, a pedido del cliente.",
+        "day_sheet": "Por ejemplo: montaje a las 7:00 con el equipo de rigging, apertura de puertas a las 19:00 y los contactos del jefe de escena."
       },
       "kind": {
         "sop": "Procedimiento operativo estándar",
         "advance_packet": "Sección del paquete de avance",
-        "change_order_description": "Descripción de la orden de cambio"
+        "change_order_description": "Descripción de la orden de cambio",
+        "day_sheet": "Hoja del día"
       },
       "sentKind": "Borrador",
       "sentInstructions": "Sus instrucciones",

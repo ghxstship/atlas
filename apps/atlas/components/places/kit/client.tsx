@@ -16,6 +16,7 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, type ReactNode } from "react";
 import type { ViewType } from "./views";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 import { CollectionViews } from "@/components/views/collection-views";
 
 /**
@@ -96,7 +97,15 @@ export function QueryDrawer({
   );
 }
 
-/** The table view: Enter or a click on a row opens its peek. */
+/** A cell's value as text, for naming a row in its menu; a chip or state cell has none. */
+const cellText = (value: unknown): string | null =>
+  typeof value === "string" || typeof value === "number" ? String(value) : null;
+
+/**
+ * The table view: Enter or a click on a row opens its peek. Right-click, Shift+F10 or the Context
+ * Menu key opens the row's menu: open it, open its full page, copy its link (Section 11.7). Places
+ * and permits have no property that changes in bulk, so their rows are not selectable.
+ */
 export function PeekTable({
   label,
   columns,
@@ -109,16 +118,42 @@ export function PeekTable({
   pinStart?: string[];
 }) {
   const navigate = useQueryNavigation();
+  const pathname = usePathname();
+  const search = useSearchParams();
+  const rowMenu = useRowMenu();
+  const fullHref = (id: string) => {
+    const next = new URLSearchParams(search.toString());
+    next.set("peek", id);
+    next.set("full", "1");
+    next.delete("create");
+    return `${pathname}?${next.toString()}`;
+  };
   return (
-    <DataTable
-      label={label}
-      caption={label}
-      columns={columns}
-      rows={rows}
-      height="auto"
-      {...(pinStart ? { pinStart } : {})}
-      onRowActivate={(row) => navigate({ peek: String(row["id"]) })}
-    />
+    <>
+      <DataTable
+        label={label}
+        caption={label}
+        columns={columns}
+        rows={rows}
+        height="auto"
+        {...(pinStart ? { pinStart } : {})}
+        onRowActivate={(row) => navigate({ peek: String(row["id"]) })}
+        onRowContextMenu={(row, _index, at, cell) => {
+          const id = String(row["id"]);
+          rowMenu.open(
+            {
+              id,
+              label: cellText(row[pinStart?.[0] ?? columns[0]?.key ?? "id"]) ?? id,
+              open: () => navigate({ peek: id }),
+              href: fullHref(id),
+            },
+            at,
+            cell,
+          );
+        }}
+      />
+      {rowMenu.menu}
+    </>
   );
 }
 
