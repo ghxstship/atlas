@@ -84,7 +84,7 @@ export function Timeline({
             >
               <StateIcon state={r.state} />
               <span className="font-mono text-text-12 text-text-secondary">{r.key}</span>
-              <span className="truncate">{r.title}</span>
+              <span className="truncate" title={r.title}>{r.title}</span>
             </div>
           ))}
         </div>
