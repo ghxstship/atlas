@@ -28,12 +28,16 @@ import { DeferredDropdownMenu } from "@/components/shell/deferred-menus";
 import type { ViewDialogState } from "./view-dialogs";
 import { CollectionExport } from "./collection-export";
 import { onDemand, useOnDemand } from "@/components/shell/on-demand";
-import { CollectionFilters } from "./filter-bar";
+import dynamic from "next/dynamic";
 import type { FilterField } from "./filter-model";
+import { useCustomFieldList } from "@/components/custom-fields/list";
 import type { CustomFieldListView } from "@/lib/custom-fields/types";
 
 /** The save, share and delete dialogs load when one opens (A24-009). */
 const viewDialogs = onDemand(() => import("./view-dialogs"));
+
+/** The Add filter control loads on a page that has something to filter by, not with every collection (A24-009). */
+const CollectionFilters = dynamic(() => import("./filter-bar").then((m) => m.CollectionFilters));
 
 /** Copy lookups take built keys (`status.saved`), so the catalog type is widened. */
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -88,6 +92,13 @@ export function CollectionViews({
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
+  const surrounding = useCustomFieldList();
+  // The control shows only where there is something to filter by, as filter-bar.tsx decides on its targets.
+  const filterable =
+    fields.length > 0 ||
+    ((customFields === undefined ? surrounding : customFields)?.fields ?? []).some(
+      (f) => f.filterable,
+    );
   const org = pathname.split("/").filter(Boolean)[0] ?? "";
   const collection = collectionKeyFor(pathname);
   const offered = useMemo(() => options.map((o) => o.value), [options]);
@@ -321,13 +332,15 @@ export function CollectionViews({
           {error}
         </p>
       ) : null}
-      <CollectionFilters
-        search={search}
-        fields={fields}
-        {...(customFields !== undefined ? { customFields } : {})}
-        onNavigate={go}
-        {...(collection && !active ? { onSave: () => setDialog({ kind: "save" }) } : {})}
-      />
+      {filterable ? (
+        <CollectionFilters
+          search={search}
+          fields={fields}
+          {...(customFields !== undefined ? { customFields } : {})}
+          onNavigate={go}
+          {...(collection && !active ? { onSave: () => setDialog({ kind: "save" }) } : {})}
+        />
+      ) : null}
       {dialog && dialogsModule ? (
         <dialogsModule.ViewDialog
           dialog={dialog}

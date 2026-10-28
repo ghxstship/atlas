@@ -1,5 +1,6 @@
 import type { createFormatter } from "next-intl";
-import type { CustomField, CustomFieldListView, CustomFieldValue } from "@/lib/custom-fields/types";
+import type { CustomField, CustomFieldValue } from "@/lib/custom-fields/types";
+import { customFieldColumnKey } from "./columns";
 
 /**
  * Custom field values as display text (A117), shared by server tables (getFormatter) and client ones
@@ -73,40 +74,31 @@ export function formatCustomFieldValue(
   }
 }
 
-/** The column key of a custom field in a table: the filter's `cf.<key>`. */
-export function customFieldColumnKey(key: string): string {
-  return `cf.${key}`;
-}
-
-export interface CustomFieldColumns {
-  /** The filterable fields as columns, after the page's own. */
-  readonly columns: readonly { readonly key: string; readonly label: string }[];
-  /** A row's cells for those columns: display text, or null for no value. */
-  readonly cells: (id: string) => Record<string, string | null>;
-}
-
-export const NO_CUSTOM_FIELD_COLUMNS: CustomFieldColumns = { columns: [], cells: () => ({}) };
-
-/** A list view's filterable fields as table columns and each row's cells. */
-export function customFieldColumns(
-  view: CustomFieldListView | null | undefined,
-  c: Omit<CustomFieldFormatContext, "people" | "timeZone">,
-): CustomFieldColumns {
-  if (!view || view.fields.length === 0) return NO_CUSTOM_FIELD_COLUMNS;
-  const context = { ...c, people: view.people, timeZone: view.timeZone };
-  return {
-    columns: view.fields.map((f) => ({ key: customFieldColumnKey(f.key), label: f.label })),
-    cells: (id) => {
-      const values = view.values[id] ?? {};
-      return Object.fromEntries(
-        view.fields.map((f) => {
-          const value = values[f.key];
-          return [
-            customFieldColumnKey(f.key),
-            value ? formatCustomFieldValue(f, value, context) : null,
-          ];
-        }),
-      );
-    },
-  };
+/**
+ * The display text of each row's values by column key (`cf.<key>`), null for none: what a list view carries
+ * to its table (lib/custom-fields/server.ts).
+ */
+export function customFieldCells(
+  fields: readonly CustomField[],
+  values: ReadonlyMap<string, Readonly<Record<string, CustomFieldValue>>>,
+  ids: readonly string[],
+  c: CustomFieldFormatContext,
+): Record<string, Record<string, string | null>> {
+  return Object.fromEntries(
+    ids.map((id) => {
+      const row = values.get(id) ?? {};
+      return [
+        id,
+        Object.fromEntries(
+          fields.map((f) => {
+            const value = row[f.key];
+            return [
+              customFieldColumnKey(f.key),
+              value ? formatCustomFieldValue(f, value, c) : null,
+            ];
+          }),
+        ),
+      ];
+    }),
+  );
 }

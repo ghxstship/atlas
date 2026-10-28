@@ -11,18 +11,15 @@
  * (app.filter_operator, ADR 0003), so a saved view stores field `cf.seats`, operator `gte`, value `100`.
  */
 
-export const CONDITION_OPERATORS = [
-  "eq",
-  "ne",
-  "lt",
-  "lte",
-  "gt",
-  "gte",
-  "contains",
-  "is_null",
-] as const;
+import { filterParam, splitFilterParam, type ConditionOperator } from "./filter-param";
 
-export type ConditionOperator = (typeof CONDITION_OPERATORS)[number];
+export {
+  CONDITION_OPERATORS,
+  filterParam,
+  isConditionOperator,
+  splitFilterParam,
+  type ConditionOperator,
+} from "./filter-param";
 
 export type ConditionScope = "field" | "custom";
 
@@ -38,31 +35,9 @@ const PREFIX: Readonly<Record<ConditionScope, string>> = { field: "f.", custom: 
 const KEY = /^[a-z][a-z0-9_]{0,47}$/;
 const MAX_VALUE = 1000;
 
-export function isConditionOperator(value: unknown): value is ConditionOperator {
-  return typeof value === "string" && (CONDITION_OPERATORS as readonly string[]).includes(value);
-}
-
 /** A column key as the URL spells it: `dueOn` is `due_on`. */
 export function fieldParamKey(columnKey: string): string {
   return columnKey.replace(/[A-Z]/g, (c) => `_${c.toLowerCase()}`).replace(/[^a-z0-9_]/g, "_");
-}
-
-/**
- * A saved view filter's field and operator from a query parameter name: `cf.seats.gte` is field `cf.seats` with
- * gte, and any other name is itself with eq.
- */
-export function splitFilterParam(name: string): { field: string; operator: ConditionOperator } {
-  const parts = name.split(".");
-  const last = parts[parts.length - 1] ?? "";
-  if (parts.length === 3 && (parts[0] === "f" || parts[0] === "cf") && isConditionOperator(last)) {
-    return { field: `${parts[0]}.${parts[1]}`, operator: last };
-  }
-  return { field: name, operator: "eq" };
-}
-
-/** The query parameter name of a field and operator; the inverse of `splitFilterParam`. */
-export function filterParam(field: string, operator: ConditionOperator): string {
-  return operator === "eq" ? field : `${field}.${operator}`;
 }
 
 /** One query parameter as a condition, or null when it is not one. */

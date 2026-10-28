@@ -23,9 +23,9 @@ import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
 import dynamic from "next/dynamic";
-import { CustomFieldsSection } from "@/components/custom-fields/custom-fields-section";
+import { CustomFieldsPeekSection } from "@/components/custom-fields/custom-fields-peek";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
-import { conditionParam, conditionsOf } from "@/lib/views/conditions";
+import { isConditionParam } from "@/lib/views/filter-param";
 // Views other than the default table, and the peek, load when shown (A24-009).
 import {
   Board,
@@ -101,7 +101,7 @@ export function ProjectCollection({
   const tv = useTranslations("views");
   const clearFilters = () => {
     const next = new URLSearchParams(window.location.search);
-    for (const c of conditionsOf(next)) next.delete(conditionParam(c)[0]);
+    for (const name of [...next.keys()]) if (isConditionParam(name)) next.delete(name);
     router.replace(`${pathname}${next.size > 0 ? `?${next}` : ""}` as Route, { scroll: false });
   };
   /** Opens or closes the peek and keeps it in the URL (`?peek=KEY`) without a server round trip. */
@@ -191,7 +191,7 @@ export function ProjectCollection({
 
   let body: React.ReactNode;
   // Custom field filters apply on the server (A117), so an empty list under them is no match, not no projects.
-  const filtering = conditionsOf(params).length > 0;
+  const filtering = [...params.keys()].some(isConditionParam);
   if (projects.length === 0 && !filtering) {
     body = create ? (
       <EmptyState
@@ -419,7 +419,7 @@ export function ProjectCollection({
                 { label: t("fields.dates"), value: dates(peek) },
               ]}
             />
-            <CustomFieldsSection table="app.projects" id={peek.id} />
+            <CustomFieldsPeekSection table="app.projects" id={peek.id} />
           </Drawer>
         ) : undefined,
       )}

@@ -1,9 +1,8 @@
 "use client";
 
-import { useFormatter, useTranslations } from "next-intl";
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import type { CustomFieldListView } from "@/lib/custom-fields/types";
-import { customFieldColumns, type CustomFieldColumns } from "./format";
+import { customFieldColumns, type CustomFieldColumns } from "./columns";
 
 /**
  * A list page's custom fields (A117): the loader's `customFieldList(...).view(ids)` handed to the collection,
@@ -38,16 +37,5 @@ export function useCustomFieldList(): CustomFieldListView | null {
 export function useCustomFieldColumns(view?: CustomFieldListView | null): CustomFieldColumns {
   const surrounding = useCustomFieldList();
   const shown = view === undefined ? surrounding : view;
-  const format = useFormatter();
-  const t = useTranslations("platform.customFields");
-  return useMemo(
-    () =>
-      customFieldColumns(shown, {
-        format,
-        yes: t("yes"),
-        no: t("no"),
-        someone: t("someone"),
-      }),
-    [shown, format, t],
-  );
+  return useMemo(() => customFieldColumns(shown), [shown]);
 }

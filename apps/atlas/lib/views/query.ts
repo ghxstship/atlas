@@ -4,7 +4,7 @@ import {
   isConditionOperator,
   splitFilterParam,
   type ConditionOperator,
-} from "./conditions";
+} from "./filter-param";
 
 /**
  * Saved views and the query string (Section 11.15). Every Atlas collection keeps its view, filters,

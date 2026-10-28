@@ -29,7 +29,7 @@ import { useAssetsCopy } from "./copy";
 import { CreateDialogContext } from "./dialog";
 import { CollectionViews } from "@/components/views/collection-views";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
-import type { CustomFieldColumns } from "@/components/custom-fields/format";
+import type { CustomFieldColumns } from "@/components/custom-fields/columns";
 import type { CustomFieldListView } from "@/lib/custom-fields/types";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";

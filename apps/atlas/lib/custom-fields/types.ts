@@ -50,12 +50,15 @@ export interface CustomFieldForm {
   readonly canWrite: boolean;
 }
 
-/** The filterable custom fields of a list and their values on the rows shown (table columns, filters). */
+/** The filterable custom fields of a list and their values on the rows shown, as text (table columns, filters). */
 export interface CustomFieldListView {
   readonly table: CustomFieldTable;
   readonly fields: readonly CustomField[];
-  /** Row id to field key to value. */
-  readonly values: Readonly<Record<string, Readonly<Record<string, CustomFieldValue>>>>;
+  /**
+   * Row id to column key (`cf.<key>`) to the value as display text, or null for none. The server formats them
+   * in the viewer's locale, so a table shows them without the formatting code (A24-009).
+   */
+  readonly cells: Readonly<Record<string, Readonly<Record<string, string | null>>>>;
   /** Person id to name, for Person values and the Person filter. */
   readonly people: Readonly<Record<string, string>>;
   readonly timeZone: string;

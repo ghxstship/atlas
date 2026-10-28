@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { CustomField } from "@xos/data/custom-fields";
+import { customFieldColumns } from "@/components/custom-fields/columns";
 import {
   currencyExponent,
-  customFieldColumns,
+  customFieldCells,
   formatCustomFieldValue,
   type CustomFieldFormatContext,
 } from "@/components/custom-fields/format";
@@ -203,22 +204,33 @@ describe("custom field values as display text", () => {
     expect(currencyExponent("NOT")).toBe(2);
   });
 
-  it("turns a list's filterable fields into table columns and cells", () => {
+  it("formats a list's values as cells and turns its filterable fields into table columns", () => {
+    const fields = [tier, field("Number", { key: "seats", label: "Seats" })];
+    const cells = customFieldCells(
+      fields,
+      new Map([["r1", { tier: { type: "Choice", choiceId: "c-gold" } as const }]]),
+      ["r1", "r2"],
+      context,
+    );
+    expect(cells).toEqual({
+      r1: { "cf.tier": "Gold", "cf.seats": null },
+      r2: { "cf.tier": null, "cf.seats": null },
+    });
     const view: CustomFieldListView = {
       table: "app.records",
-      fields: [tier, field("Number", { key: "seats", label: "Seats" })],
-      values: { r1: { tier: { type: "Choice", choiceId: "c-gold" } } },
+      fields,
+      cells,
       people: {},
       timeZone: "UTC",
     };
-    const columns = customFieldColumns(view, context);
+    const columns = customFieldColumns(view);
     expect(columns.columns).toEqual([
       { key: "cf.tier", label: "Tier" },
       { key: "cf.seats", label: "Seats" },
     ]);
     expect(columns.cells("r1")).toEqual({ "cf.tier": "Gold", "cf.seats": null });
-    expect(columns.cells("r2")).toEqual({ "cf.tier": null, "cf.seats": null });
-    expect(customFieldColumns(null, context).columns).toEqual([]);
+    expect(columns.cells("r3")).toEqual({ "cf.tier": null, "cf.seats": null });
+    expect(customFieldColumns(null).columns).toEqual([]);
   });
 });
 
@@ -232,7 +244,7 @@ describe("what the Add filter control offers", () => {
       field("Timestamp", { key: "load_in", label: "Load in" }),
       field("Text", { key: "notes", label: "Notes", filterable: false }),
     ],
-    values: {},
+    cells: {},
     people: { p2: "Zoe Park", p1: "Ana Ruiz" },
     timeZone: "UTC",
   };

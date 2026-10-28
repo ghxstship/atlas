@@ -56,7 +56,7 @@ import { RecordCollab } from "@/components/operations/record-collab";
 import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 import { CustomFieldList } from "@/components/custom-fields/list";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
-import { customFieldColumns } from "@/components/custom-fields/format";
+import { customFieldColumns } from "@/components/custom-fields/columns";
 import { customFieldList } from "@/lib/custom-fields/server";
 import { customConditionsOf } from "@/lib/views/conditions";
 import { EmergencyCodeCard, TemplateSplitView } from "@/components/operations/ui";
@@ -166,12 +166,7 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
     (i) => (!severityFilter || i.severityId === severityFilter) && custom.keep(i.id),
   );
   const customView = await custom.view(incidents.map((i) => i.id));
-  const customColumns = customFieldColumns(customView, {
-    format,
-    yes: t("platform.customFields.yes"),
-    no: t("platform.customFields.no"),
-    someone: t("platform.customFields.someone"),
-  });
+  const customColumns = customFieldColumns(customView);
   const located = incidents.some((i) => i.latitude !== null);
   const declared = chooseView("safety.incidents", param(page.search, "view"));
   // The map view appears only when the data has a location (Section 11.15).

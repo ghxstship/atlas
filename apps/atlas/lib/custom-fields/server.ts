@@ -14,7 +14,9 @@ import {
 import { listCurrencies } from "@xos/data/procurement";
 import { getOrgSettingValue } from "@xos/data/settings";
 import { listPeopleRefs } from "@xos/data/work";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { cache } from "react";
+import { customFieldCells } from "@/components/custom-fields/format";
 import { customConditionsOf } from "@/lib/views/conditions";
 import { observability } from "@/lib/observability";
 import type { OrgContext } from "@/lib/shell/context";
@@ -205,22 +207,28 @@ export async function customFieldList(
   return {
     keep,
     view: async (ids) => {
-      const [values, members] = await Promise.all([
+      const [values, members, format, t] = await Promise.all([
         listCustomFieldValues(ctx.viewer.db, fields, ids),
         fields.some((f) => f.dataType === "Person") ? people(ctx) : Promise.resolve([]),
+        getFormatter(),
+        getTranslations("platform.customFields"),
       ]);
       if (!values.ok)
         observability.logger.error("custom field values could not be read", {
           table,
           error: values.error,
         });
-      return {
-        table,
-        fields,
-        values: values.ok ? Object.fromEntries(values.data) : {},
-        people: Object.fromEntries(members.map((p) => [p.id, p.name])),
+      const names = Object.fromEntries(members.map((p) => [p.id, p.name]));
+      // Cells arrive formatted in the viewer's locale, so tables carry no formatting code (A24-009).
+      const cells = customFieldCells(fields, values.ok ? values.data : new Map(), ids, {
+        format,
+        yes: t("yes"),
+        no: t("no"),
+        someone: t("someone"),
+        people: names,
         timeZone,
-      };
+      });
+      return { table, fields, cells, people: names, timeZone };
     },
   };
 }
