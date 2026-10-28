@@ -61940,6 +61940,21 @@ export type Database = {
           last_success_at: string;
         }[];
       };
+      gateway_search: {
+        Args: { p_limit?: number; p_org_id?: string; p_query: Json };
+        Returns: {
+          dated_at: string;
+          detail: string;
+          kind: string;
+          org_id: string;
+          org_name: string;
+          parent_id: string;
+          rank: number;
+          result_id: string;
+          result_type: string;
+          title: string;
+        }[];
+      };
       generate_permit_requirements: { Args: { p_project_id: string }; Returns: number };
       generate_recovery_codes: {
         Args: Record<PropertyKey, never>;
