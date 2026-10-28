@@ -97,6 +97,38 @@ describe("saves against the version the person edited (A118)", () => {
     expect(result).toEqual({ ok: false, error: { kind: "not-found" } });
   });
 
+  it("reads a row its update policy keeps from the person as not found, never as a conflict", async () => {
+    const { db, calls } = moduleClient({
+      "from:records": [okResponse([]), okResponse({ title: "Hang the banner", updated_at: V1 })],
+    });
+    const result = await saveVersioned(
+      db,
+      "records",
+      { column: "id", value: "r1" },
+      { set: { title: "Hang two banners" }, expect: { title: "Hang the banner" }, version: V1 },
+    );
+    expect(result).toEqual({ ok: false, error: { kind: "not-found" } });
+    expect(calls).toHaveLength(2);
+  });
+
+  it("also when the save carried no version, after one write at the version it read", async () => {
+    const { db, calls } = moduleClient({
+      "from:records": [
+        okResponse({ title: "Hang the banner", updated_at: V2 }),
+        okResponse([]),
+        okResponse({ title: "Hang the banner", updated_at: V2 }),
+      ],
+    });
+    const result = await saveVersioned(
+      db,
+      "records",
+      { column: "id", value: "r1" },
+      { set: { title: "Hang two banners" }, expect: { title: "Hang the banner" } },
+    );
+    expect(result).toEqual({ ok: false, error: { kind: "not-found" } });
+    expect(calls).toHaveLength(3);
+  });
+
   it("maps record properties to their columns and back, and never compares the replan reason", async () => {
     const { db, calls } = moduleClient({
       "from:records": [

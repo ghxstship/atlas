@@ -56,7 +56,8 @@ const ATTEMPTS = 3;
 
 /**
  * Saves one row of `table` matched by `match` (its id or record_id) against a version. The outcome is saved with
- * the new version, or a conflict with the row's current values; a row that is gone or hidden is not-found.
+ * the new version, or a conflict with the row's current values. A row that is gone or hidden is not-found, and so is
+ * one the person may read but not update: its row level security matches no row, and it reads back unchanged.
  */
 export async function saveVersioned(
   db: XosClient,
@@ -79,10 +80,14 @@ export async function saveVersioned(
     return ok(row ? row.updated_at : null);
   };
 
+  // The version the last write was sent against when it matched no row. A row read back at that same version was
+  // changed by no one: its update policy refused the write, which no retry and no choice of values can change.
+  let missed: string | null = null;
   if (save.version) {
     const first = await write(save.version);
     if (!first.ok) return first;
     if (first.data !== null) return ok({ saved: true, version: first.data });
+    missed = save.version;
   }
   for (let attempt = 0; attempt < ATTEMPTS; attempt += 1) {
     const { data, error } = await client
@@ -94,6 +99,7 @@ export async function saveVersioned(
     if (!data) return fail({ kind: "not-found" });
     const row = data as unknown as Record<string, FieldValue>;
     const version = String(row["updated_at"]);
+    if (version === missed) return fail({ kind: "not-found" });
     const current = Object.fromEntries(keys.map((k) => [k, row[k] ?? null]));
     // Only the version was sent: any later save is a conflict, as in the bulk RPCs.
     const expected = save.expect ?? {};
@@ -105,6 +111,7 @@ export async function saveVersioned(
     const again = await write(version);
     if (!again.ok) return again;
     if (again.data !== null) return ok({ saved: true, version: again.data });
+    missed = version;
   }
   // Someone kept saving between every check and write: report the latest as a conflict.
   const { data, error } = await client
@@ -115,6 +122,7 @@ export async function saveVersioned(
   if (error) return fail(toDataError(error));
   if (!data) return fail({ kind: "not-found" });
   const row = data as unknown as Record<string, FieldValue>;
+  if (String(row["updated_at"]) === missed) return fail({ kind: "not-found" });
   return ok({
     saved: false,
     current: Object.fromEntries(keys.map((k) => [k, row[k] ?? null])),
