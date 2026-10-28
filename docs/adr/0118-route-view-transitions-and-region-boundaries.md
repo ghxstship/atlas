@@ -13,7 +13,8 @@ so an error anywhere in a page replaced the whole page region, and a navigation 
 ([A65-006](../../legal/qa/findings/A65-006.md)).
 
 Two limits shape the answer. The key pages must stay under the 200 KB route JavaScript budget (ADR 0027), and
-`/demo-productions/projects` is 32 bytes under it, so nothing can join the shell's client code. And Next 16 with
+`/demo-productions/projects` and `/demo-productions/inbox` sit within 2 KB of it, so nothing can join the shell's
+client code. And Next 16 with
 React 19.3 supports view transitions without configuration: React's `<ViewTransition>` animates when a
 transition, such as a navigation, inserts or removes it.
 
@@ -77,8 +78,10 @@ Region wraps:
 - The comments and attachments of every collection kit panel (`collection-kit/collab.tsx`), around the server
   component that loads them, so a read that throws stays in the panel.
 
-Region adds about half a kilobyte of route JavaScript where it renders. Of the key pages only Home renders it;
-the shell, the peek's host and the collection pages that are key pages do not import it.
+Region and RegionBoundary add under 1 KB of gzip route JavaScript where they render (about 0.3 and 0.7 KB). Of
+the key pages Home renders them; the shell and the peek's host do not import them, and the shell peek's sections
+load on demand. The two `ui.region` messages join the en-US `ui` catalog that every page carries. After the change
+every key page is within budget (`budget:js`: Projects and Inbox 198 KB, Home 183 KB).
 
 ## Consequences
 

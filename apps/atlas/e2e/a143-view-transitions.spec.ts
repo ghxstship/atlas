@@ -81,5 +81,11 @@ test("under reduced motion no transition runs and the page swaps at once", async
   // Let any transition the navigation started reach ready before reading the record.
   await page.waitForTimeout(500);
   const transitions = await recorded(page);
-  expect(transitions.flatMap((t) => t.animations)).toEqual([]);
+  if (await page.evaluate(() => typeof document.startViewTransition === "function")) {
+    // The navigation did go through a view transition, so the check below reads a real one.
+    expect(transitions.length).toBeGreaterThan(0);
+  }
+  // React still starts a view transition and pins the root's size with a zero-length animation of
+  // its own; nothing on screen moves or fades, so no animation may take any time.
+  expect(transitions.flatMap((t) => t.animations).filter((ms) => ms > 0)).toEqual([]);
 });
