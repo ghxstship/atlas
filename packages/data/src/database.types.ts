@@ -61915,6 +61915,17 @@ export type Database = {
           operation: string;
         }[];
       };
+      field_history_events: {
+        Args: { p_limit?: number; p_subject_id: string; p_subject_table: string };
+        Returns: {
+          actor_name: string;
+          actor_person_id: string;
+          changed_at: string;
+          changes: Json;
+          event_id: string;
+          operation: string;
+        }[];
+      };
       file_inbound_message: {
         Args: { p_inbound_message_id: string; p_record_id?: string; p_title?: string };
         Returns: string;
