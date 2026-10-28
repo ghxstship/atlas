@@ -357,9 +357,6 @@
       "empty": "Aún no hay reglas. Las ofertas anteriores se aplican a todas las personas contratadas.",
       "readOnly": "Solo quienes pueden editar la configuración del proyecto cambian las ofertas.",
       "added": "Regla agregada.",
-      "removed": "Regla quitada.",
-      "sourceProjectRule": "Definido por una regla de este proyecto.",
-      "sourceOrganizationRule": "Definido por una regla de la organización.",
       "kinds": {
         "Travel": "Viajes",
         "Lodging": "Alojamiento",

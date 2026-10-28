@@ -357,9 +357,6 @@
       "empty": "No rules yet. The offerings above apply to everyone engaged.",
       "readOnly": "Only people who can edit project settings change offerings.",
       "added": "Rule added.",
-      "removed": "Rule removed.",
-      "sourceProjectRule": "Set by a rule of this project.",
-      "sourceOrganizationRule": "Set by a rule of the organization.",
       "kinds": {
         "Travel": "Travel",
         "Lodging": "Lodging",
