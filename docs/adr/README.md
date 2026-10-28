@@ -68,5 +68,10 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0073](0073-quick-add.md)                                           | Quick Add                                                                        | Accepted |
 | [0074](0074-record-sections-and-custom-object-history.md)           | Record Sections in Every Peek, and Custom Object Record History                  | Accepted |
 | [0075](0075-selection-menus-and-hover-cards-in-every-view.md)       | Selection, Record Menus and Hover Cards in Every View                            | Accepted |
+| [0100](0100-crew-roster-and-production-advancing.md)                | Crew Roster and Production Advancing                                             | Accepted |
+| [0101](0101-roster-access-and-account-engagement-assignments.md)    | Roster Access and Account Engagement Assignments                                 | Accepted |
+| [0102](0102-profile-facts-and-project-facts.md)                     | Profile Facts and Project Facts                                                  | Accepted |
+| [0103](0103-combined-statuses-are-computed.md)                      | Combined Statuses Are Computed                                                   | Accepted |
+| [0104](0104-advanceable-item-lifecycle-and-supply-bridge.md)        | Advanceable Item Lifecycle and the Supply Bridge                                 | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.
