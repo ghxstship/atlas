@@ -476,3 +476,14 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/2642_roster_notifications.sql#private.notify_roster_entry_declined
         test: supabase/tests/2642_roster_notifications.test.sql
+  # Project facts and the names lock (R5: 2655, 2656)
+  - kind: roster_entry.project_facts_entered
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2655_roster_project_fact_rpcs.sql#private.notify_project_facts_entered
+        test: supabase/tests/2655_roster_project_fact_rpcs.test.sql
+  - kind: engagement.roster_lock_changed
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2656_roster_lock.sql#app.set_roster_lock
+        test: supabase/tests/2656_roster_lock.test.sql

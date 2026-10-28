@@ -1,4 +1,4 @@
--- 2649_notification_kind_seed.test.sql
+-- 2650_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -282,7 +282,15 @@ select set_eq(
   ('roster_entry.declined', 'In App', 'assignments', null::text),
   ('roster_entry.declined', 'Email', 'assignments', 'notification'),
   ('roster_entry.declined', 'SMS', 'assignments', null::text),
-  ('roster_entry.declined', 'Push', 'assignments', null::text)$$,
+  ('roster_entry.declined', 'Push', 'assignments', null::text),
+  ('roster_entry.project_facts_entered', 'In App', 'assignments', null::text),
+  ('roster_entry.project_facts_entered', 'Email', 'assignments', 'notification'),
+  ('roster_entry.project_facts_entered', 'SMS', 'assignments', null::text),
+  ('roster_entry.project_facts_entered', 'Push', 'assignments', null::text),
+  ('engagement.roster_lock_changed', 'In App', 'assignments', null::text),
+  ('engagement.roster_lock_changed', 'Email', 'assignments', 'notification'),
+  ('engagement.roster_lock_changed', 'SMS', 'assignments', null::text),
+  ('engagement.roster_lock_changed', 'Push', 'assignments', null::text)$$,
   'notification kinds by channel match notification-kinds.yaml');
 
 select set_eq(

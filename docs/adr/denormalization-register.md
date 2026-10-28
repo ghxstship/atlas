@@ -73,6 +73,7 @@ ADR 0002 forbids arrays of identifiers, and pgTAP 1280 refuses any `uuid[]` colu
 | `app.training_quiz_questions.options`         | reviewed | The ordered answer texts of one question; the quiz key follows its option (A22-008, migration 1042).                 |
 | `app.work_detail_events.categories`           | reviewed | The set of work detail categories an access touched, in the person's append-only log (migration 1340).               |
 | `app.work_detail_events.changed_columns`      | reviewed | Column names an edit changed, in the person's append-only log; a log payload, never a relationship (migration 1340). |
+| `app.work_detail_events.fact_kinds`           | reviewed | The set of project fact kinds an access touched, in the person's append-only log (R5, migration 2654).               |
 | `app.work_detail_shares.categories`           | reviewed | The set of work detail categories a share grants, read whole (migration 1340).                                       |
 
 ## Restated parent columns
@@ -452,6 +453,7 @@ ADR 0002 puts `org_id` and the audit columns on every tenant table. The identity
 | Table                                     | Kind         | Why                                                                                                                       |
 | ----------------------------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------- |
 | `app.active_org_selections`               | person-owned | One row per sign-in, keyed by user_id (ADR 0007 item 1, migration 0920).                                                  |
+| `app.airports`                            | platform     | Airports by IATA code, seeded by migration from packages/schemas/airports/airports.csv (R5, migration 2651).              |
 | `app.blocks`                              | person-owned | Blocks keyed by person_id, readable only by the blocker (A52, migration 1206).                                            |
 | `app.capabilities`                        | platform     | Capability registry rows generated from capabilities.yaml.                                                                |
 | `app.capability_modules`                  | platform     | Capability modules generated from capabilities.yaml.                                                                      |
