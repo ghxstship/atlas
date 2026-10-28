@@ -41,7 +41,7 @@ function EntryFields({
       <input type="hidden" name="roleCode" value={role} />
       <Combobox
         label={t("roster.role")}
-        placeholder={t("roster.rolePlaceholder")}
+        placeholder={t("roster.roleHint")}
         noMatch={t("roster.roleNoMatch")}
         options={[...roles]}
         value={role}
@@ -97,7 +97,7 @@ export function AddFromTeamForm(props: {
         id="roster-add-person"
         name="personId"
         label={t("roster.person")}
-        placeholder={t("roster.personPlaceholder")}
+        placeholder={t("roster.personHint")}
         options={[...props.talent]}
       />
       <EntryFields idPrefix="roster-add" roles={props.roles} timeZone={props.timeZone} />
@@ -198,7 +198,7 @@ export function AssignMemberForm(props: { engagementId: string; members: readonl
         id="assign-member"
         name="accountMembershipId"
         label={t("accountTeam.member")}
-        placeholder={t("accountTeam.memberPlaceholder")}
+        placeholder={t("accountTeam.memberHint")}
         options={[...props.members]}
       />
       <Select
