@@ -4,6 +4,27 @@ import type { SettingDefinition } from "./model.ts";
 
 export const SETTINGS: readonly SettingDefinition[] = [
   {
+    key: "media.keep_photo_location",
+    contributor: "a140",
+    type: "boolean",
+    scopes: ["organization"],
+    capability: "data.classification.write",
+    lockable: false,
+    default: false,
+    choices: [],
+    min: null,
+    max: null,
+    maxLength: null,
+    input: "text",
+    label: "settings.fields.keepPhotoLocation.label",
+    help: "settings.fields.keepPhotoLocation.help",
+    pages: {
+      org: "settings.data-and-privacy",
+    },
+    deferred: false,
+    hidden: false,
+  },
+  {
     key: "finance.self_billing_enabled",
     contributor: "a15",
     type: "boolean",

@@ -1,6 +1,6 @@
 /**
- * Takes one field photo with the camera, compressed for upload. Used by incident reports and failed
- * inspection items.
+ * Takes one field photo with the camera, compressed for upload, keeping where it was taken only when the org keeps
+ * photo location. Used by incident reports, failed inspection items and sponsors' proof-of-performance photos.
  */
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRef, useState, type ReactElement } from "react";
@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { soundsOn } from "../domain/settings";
 import { useCompass } from "../runtime/CompassProvider";
-import { processPhoto } from "../runtime/media";
+import { processPhoto, wantsExif } from "../runtime/media";
 import { Button, InlineAlert, Sheet, Text, useTheme } from "../ui";
 
 export function PhotoSheet({
@@ -33,11 +33,16 @@ export function PhotoSheet({
     setError(null);
     try {
       const shot = await camera.current.takePictureAsync({
-        exif: false,
+        exif: wantsExif(orgSettings),
         quality: 0.9,
         shutterSound: soundsOn(orgSettings),
       });
-      onPhoto(await processPhoto(shot.uri, shot.width, shot.height));
+      onPhoto(
+        await processPhoto(shot.uri, shot.width, shot.height, {
+          settings: orgSettings,
+          exif: shot.exif as Record<string, unknown> | undefined,
+        }),
+      );
       onClose();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
