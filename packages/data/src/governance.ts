@@ -6,10 +6,13 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * Org rules set in Settings (A86, RRR-131, finding A65-004):
  *   * spend authority limits per role or member, document type and currency (0320, 0360; Section 4.5.6 org
  *     settings item 22), which the approval RPCs enforce;
- *   * the separation of duties rules the platform enforces for every org (0320, 1150; item 23);
+ *   * the separation of duties rules the platform enforces for every org (0320, 1150; item 23), and the stricter
+ *     options an org may switch on (2280, A135, ADR 0113);
  *   * custom field definitions and their choices on built-in tables (0540; item 16).
- * Writes are plain table writes under row level security (org.spend_authority.write, org.custom_fields.write);
- * the guards refuse a limit that would apply to its own author (sod_self_grant) and changing a field's type.
+ * Writes are plain table writes under row level security (org.spend_authority.write, org.custom_fields.write) or,
+ * for separation of duties options, app.set_separation_of_duties_option (org.separation_of_duties.write); the
+ * guards refuse a limit that would apply to its own author (sod_self_grant), changing a field's type and switching
+ * a built-in rule.
  */
 
 export type SpendDocumentType = Database["app"]["Enums"]["spend_document_type"];
@@ -124,6 +127,71 @@ export async function listSeparationRules(db: XosClient): Promise<Result<Separat
         : [],
     ),
   );
+}
+
+export interface SeparationOption extends SeparationRule {
+  /** The built-in rule the option tightens. */
+  readonly tightens: string;
+  /** Whether the org switched it on. */
+  readonly on: boolean;
+}
+
+/**
+ * The stricter options an org may switch on (2280, ADR 0113), each with whether this org has. Only options
+ * switch; the built-in rules of `listSeparationRules` are always on.
+ */
+export async function listSeparationOptions(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<SeparationOption[]>> {
+  const [options, chosen] = await Promise.all([
+    db
+      .from("separation_of_duties_options")
+      .select("code, tightens, enforced_on, description")
+      .order("code"),
+    db
+      .from("org_separation_of_duties_options")
+      .select("rule_code")
+      .eq("org_id", orgId)
+      .is("deleted_at", null),
+  ]);
+  if (options.error) return fail(toDataError(options.error));
+  if (chosen.error) return fail(toDataError(chosen.error));
+  const on = new Set(chosen.data.map((r) => r.rule_code));
+  return ok(
+    options.data.flatMap((r) =>
+      r.code
+        ? [
+            {
+              code: r.code,
+              tightens: r.tightens ?? "",
+              enforcedOn: r.enforced_on ?? "",
+              description: r.description ?? "",
+              on: on.has(r.code),
+            },
+          ]
+        : [],
+    ),
+  );
+}
+
+/**
+ * Switches an option on or off (org.separation_of_duties.write). A built-in rule code is refused
+ * (`separation_option_unknown`); repeating a choice changes nothing.
+ */
+export async function setSeparationOption(
+  db: XosClient,
+  orgId: string,
+  code: string,
+  on: boolean,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("set_separation_of_duties_option", {
+    p_org_id: orgId,
+    p_rule_code: code,
+    p_on: on,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
 }
 
 // Custom fields ----------------------------------------------------------------------------------------------

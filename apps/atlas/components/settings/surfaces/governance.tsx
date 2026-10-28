@@ -6,6 +6,7 @@ import {
   CUSTOM_DATA_TYPES,
   listCustomFields,
   listCustomFieldTargets,
+  listSeparationOptions,
   listSeparationRules,
   listSpendAuthorities,
   SPEND_DOCUMENT_TYPES,
@@ -17,6 +18,7 @@ import {
   createCustomFieldAction,
   removeCustomFieldAction,
   removeSpendLimitAction,
+  setSeparationOptionAction,
 } from "@/app/[org]/settings/surface-actions";
 import { legalEntityDefaults } from "@/lib/shell/org-settings";
 import type { SettingsPanelProps } from "../contributions/types";
@@ -38,7 +40,8 @@ import {
 /**
  * Org rule panels (A86, RRR-131, finding A65-004):
  *   Spend Authority        limits per role or member, document type and currency (Section 4.5.6 org item 22)
- *   Separation of Duties   the rules every org is held to (item 23); none can be loosened
+ *   Separation of Duties   the rules every org is held to (item 23), always on, and the stricter options an
+ *                          org switches on (A135, ADR 0113); none can be loosened
  *   Custom Fields          fields on built-in tables and their choices (item 16)
  *   Canon Extensions       the org's proposed and approved extensions, made on the Canon page (item 14)
  *   Automations            what runs on its own today: scheduled reports, recurring work, approval policies
@@ -198,24 +201,90 @@ export async function SpendAuthorityPanel({ ctx }: SettingsPanelProps) {
 
 // Separation of duties -----------------------------------------------------------------------------------
 
+/** The options of 2280 with a sentence in the catalogs (settingsSurfaces.sod.options.names). */
+const NAMED_SOD_OPTIONS: ReadonlySet<string> = new Set([
+  "sod_change_order_requester_steps",
+  "sod_document_creator",
+  "sod_receiver_po_approver",
+]);
+
 export async function SeparationOfDutiesPanel({ ctx }: SettingsPanelProps) {
-  const [f, rules] = await Promise.all([formatters(ctx), listSeparationRules(ctx.viewer.db)]);
-  if (!rules.ok) return <LoadFailed t={f.t} />;
+  const [f, rules, options] = await Promise.all([
+    formatters(ctx),
+    listSeparationRules(ctx.viewer.db),
+    listSeparationOptions(ctx.viewer.db, ctx.org.id),
+  ]);
+  if (!rules.ok || !options.ok) return <LoadFailed t={f.t} />;
+  const canEdit = ctx.capabilities.has("org.separation_of_duties.write");
+  // Options read in the viewer's language; an option added after this catalog reads its registry sentence.
+  const optionName = (code: string, fallback: string) =>
+    NAMED_SOD_OPTIONS.has(code) ? f.t(`${P}.sod.options.names.${code}`) : fallback;
   return (
-    <Section id="sod-rules" title={f.t(`${P}.sod.title`)} description={f.t(`${P}.sod.description`)}>
-      <Rows
-        label={f.t(`${P}.sod.title`)}
-        rows={rules.data.map((r) => ({
-          id: r.code,
-          title: r.description,
-          meta: [
-            <Code key="c">{r.code}</Code>,
-            f.t(`${P}.sod.enforcedOn`, { where: r.enforcedOn }),
-          ],
-        }))}
-      />
-      <Quiet>{f.t(`${P}.sod.tighten`)}</Quiet>
-    </Section>
+    <>
+      <Section
+        id="sod-rules"
+        title={f.t(`${P}.sod.title`)}
+        description={f.t(`${P}.sod.description`)}
+      >
+        <Rows
+          label={f.t(`${P}.sod.title`)}
+          rows={rules.data.map((r) => ({
+            id: r.code,
+            title: (
+              <>
+                {r.description}
+                <Chip tone="success">{f.t(`${P}.sod.alwaysOn`)}</Chip>
+              </>
+            ),
+            meta: [
+              <Code key="c">{r.code}</Code>,
+              f.t(`${P}.sod.enforcedOn`, { where: r.enforcedOn }),
+            ],
+          }))}
+        />
+        <Quiet>{f.t(`${P}.sod.tighten`)}</Quiet>
+      </Section>
+      <Section
+        id="sod-options"
+        title={f.t(`${P}.sod.options.title`)}
+        description={f.t(`${P}.sod.options.description`)}
+      >
+        <Rows
+          label={f.t(`${P}.sod.options.title`)}
+          rows={options.data.map((o) => {
+            const name = optionName(o.code, o.description);
+            return {
+              id: o.code,
+              title: (
+                <>
+                  {name}
+                  <Chip tone={o.on ? "success" : "neutral"}>
+                    {f.t(o.on ? `${P}.sod.options.on` : `${P}.sod.options.off`)}
+                  </Chip>
+                </>
+              ),
+              meta: [
+                <Code key="c">{o.code}</Code>,
+                f.t(`${P}.sod.options.tightens`, { rule: o.tightens }),
+                f.t(`${P}.sod.enforcedOn`, { where: o.enforcedOn }),
+              ],
+              actions: canEdit ? (
+                <SurfaceButton
+                  action={setSeparationOptionAction}
+                  hidden={{ org: ctx.org.slug, code: o.code, on: o.on ? "off" : "on" }}
+                  label={f.t(o.on ? `${P}.sod.options.turnOff` : `${P}.sod.options.turnOn`)}
+                  variant={o.on ? "ghost" : "secondary"}
+                  {...(o.on
+                    ? { confirm: removeConfirm(f, "sod.options.offConfirm", { option: name }) }
+                    : {})}
+                />
+              ) : undefined,
+            };
+          })}
+        />
+        {canEdit ? null : <Quiet>{f.t(`${P}.sod.options.readOnly`)}</Quiet>}
+      </Section>
+    </>
   );
 }
 

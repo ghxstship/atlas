@@ -8,6 +8,7 @@ import {
   fieldKeyFrom,
   removeCustomField,
   removeSpendAuthority,
+  setSeparationOption,
   SPEND_DOCUMENT_TYPES,
   type CustomDataType,
   type SpendDocumentType,
@@ -285,6 +286,25 @@ export async function removeSpendLimitAction(
   const id = text(form, "id");
   if (id === null || !UUID.test(id)) return invalid([]);
   return finish(org(ctx, "spend-authority"), await removeSpendAuthority(ctx.viewer.db, id));
+}
+
+// Separation of duties ------------------------------------------------------------------------------------
+
+/** Switches a stricter option on or off (2280, ADR 0113); the database refuses a built-in rule's code. */
+export async function setSeparationOptionAction(
+  _: SurfaceState,
+  form: FormData,
+): Promise<SurfaceState> {
+  const ctx = await contextFor(form);
+  const code = text(form, "code");
+  const on = text(form, "on");
+  if (code === null || !/^sod_[a-z_]+$/.test(code) || (on !== "on" && on !== "off")) {
+    return invalid([]);
+  }
+  return finish(
+    org(ctx, "separation-of-duties"),
+    await setSeparationOption(ctx.viewer.db, ctx.org.id, code, on === "on"),
+  );
 }
 
 // Custom fields --------------------------------------------------------------------------------------------
