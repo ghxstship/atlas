@@ -19,6 +19,7 @@ import { useAssetsCopy } from "./copy";
 import { ActionError } from "./dialog";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { AttachmentPreview } from "@/components/files/file-preview";
 type Action = (state: CollabState, form: FormData) => Promise<CollabState>;
 
 function useCollab(action: Action, after?: (state: CollabState) => void) {
@@ -162,6 +163,7 @@ export function AssetCollabPanel(props: {
                   >
                     {t(`collab.scan.${scan(a).replace(/\s/g, "")}`)}
                   </Tag>
+                  <AttachmentPreview attachment={a} />
                   {a.current ? (
                     <form action={link} onSubmit={keepInputOnSubmit(link)}>
                       {subject}

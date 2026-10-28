@@ -7,6 +7,11 @@ packages:
 onlyBuiltDependencies:
   - unrs-resolver
 
+# pdfjs-dist (Atlas file previews, A142) offers @napi-rs/canvas for rendering in Node; Atlas renders PDFs
+# only in the browser, so the native binary is never installed.
+ignoredOptionalDependencies:
+  - "@napi-rs/canvas"
+
 # Every override lives here. pnpm ignores this list when the root package.json has a `pnpm.overrides`
 # field, which is how the unzipper override below silently stopped applying (A94): keep package.json
 # free of a `pnpm` field. Accepted audit advisories are in infra/security/audit-allowlist.json.

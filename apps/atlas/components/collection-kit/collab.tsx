@@ -44,6 +44,8 @@ export async function CollabPanels({
     title: a.title,
     filename: a.current?.filename ?? null,
     sizeBytes: a.current?.sizeBytes ?? null,
+    versionId: a.current?.id ?? null,
+    contentType: a.current?.contentType ?? null,
     ready: a.current !== null,
     mine: a.createdBy === me,
     classification: a.classification,

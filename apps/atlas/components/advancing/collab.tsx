@@ -21,6 +21,7 @@ import {
   uploadAttachmentAction,
 } from "./collab-actions";
 import { useCopy } from "./use-copy";
+import { AttachmentPreview } from "@/components/files/file-preview";
 
 interface SubjectProps {
   readonly org: string;
@@ -209,6 +210,7 @@ export function AttachmentsPanel({
                 </span>
               </span>
               <span className="flex items-center gap-8">
+                <AttachmentPreview attachment={a} />
                 <Button
                   variant="secondary"
                   size="sm"
