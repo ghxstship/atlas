@@ -2,10 +2,11 @@ import { listAttachments } from "@xos/data/attachments";
 import { listThreads } from "@xos/data/comments";
 import { listMembers } from "@xos/data";
 import type { ModulePage } from "@/lib/operations/context";
+import { RecordHistory } from "@/components/history/record-history";
 import { AttachmentsPanel, CommentsPanel } from "./collab";
 
 /**
- * Comments and attachments of one record. Reading follows the subject's read policy in the
+ * Field history (A131), comments and attachments of one record. Reading follows the subject's read policy in the
  * database; anyone who can read the record may comment (A18), and uploads are offered to people
  * who may change the record.
  */
@@ -34,6 +35,7 @@ export async function RecordCollab({
   if (members.ok) for (const m of members.data) if (m.fullName) names[m.personId] = m.fullName;
   return (
     <>
+      <RecordHistory db={db} table={table} id={id} />
       <CommentsPanel
         org={page.ctx.org.slug}
         subjectTable={table}

@@ -291,7 +291,7 @@ export async function SopsSection({
             })}
           />
         ) : null}
-        <CollabPanels ctx={ctx} table="app.sops" id={sop.id} />
+        <CollabPanels ctx={ctx} table="app.sops" id={sop.id} history={false} />
       </RecordPage>
     );
   }

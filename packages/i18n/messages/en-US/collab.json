@@ -61,7 +61,9 @@
     "notSet": "Not set",
     "trash": "In Trash",
     "restored": "Restored",
-    "unavailable": "The field history could not be loaded."
+    "unavailable": "The field history could not be loaded.",
+    "yes": "Yes",
+    "no": "No"
   },
   "coedit": {
     "open": "Edit together",

@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
+import { RecordHistory } from "@/components/history/record-history";
 import type { CrewContext } from "@/lib/crew/context";
 import { getTranslate } from "@/lib/shell/translate";
 import { PropertyList, StateChip, TemplateRecord } from "./ui";
@@ -83,7 +84,10 @@ async function History(props: {
   );
 }
 
-/** The comment thread and attachments of the record (A18's unified comment and attachment services). */
+/**
+ * The field history (A131), comment thread and attachments of the record (A18's unified comment and
+ * attachment services).
+ */
 async function Conversation(props: { crew: CrewContext; subject: { table: string; id: string } }) {
   const db = props.crew.ctx.viewer.db;
   const [threads, attachments] = await Promise.all([
@@ -95,19 +99,22 @@ async function Conversation(props: { crew: CrewContext; subject: { table: string
   const authors = threads.data.flatMap((th) => th.comments.map((c) => c.authorPersonId));
   const names = await personNames(db, authors);
   return (
-    <CrewCollab
-      org={props.crew.slug}
-      table={props.subject.table}
-      id={props.subject.id}
-      threads={threads.data}
-      attachments={attachments.data}
-      names={Object.fromEntries(
-        [...(names.ok ? names.data : new Map<string, string | null>())].flatMap(([k, v]) =>
-          v ? [[k, v]] : [],
-        ),
-      )}
-      me={props.crew.ctx.viewer.person?.id ?? null}
-    />
+    <>
+      <RecordHistory db={db} table={props.subject.table} id={props.subject.id} />
+      <CrewCollab
+        org={props.crew.slug}
+        table={props.subject.table}
+        id={props.subject.id}
+        threads={threads.data}
+        attachments={attachments.data}
+        names={Object.fromEntries(
+          [...(names.ok ? names.data : new Map<string, string | null>())].flatMap(([k, v]) =>
+            v ? [[k, v]] : [],
+          ),
+        )}
+        me={props.crew.ctx.viewer.person?.id ?? null}
+      />
+    </>
   );
 }
 

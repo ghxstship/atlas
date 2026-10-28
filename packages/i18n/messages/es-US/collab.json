@@ -61,7 +61,9 @@
     "notSet": "Sin definir",
     "trash": "En la papelera",
     "restored": "Restaurado",
-    "unavailable": "No se pudo cargar el historial de campos."
+    "unavailable": "No se pudo cargar el historial de campos.",
+    "yes": "Sí",
+    "no": "No"
   },
   "coedit": {
     "open": "Editar en conjunto",
