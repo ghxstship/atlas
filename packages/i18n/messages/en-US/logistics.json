@@ -222,7 +222,9 @@
       "checkedIn": "Check-in",
       "vendor": "Vendor"
     },
-    "noVendor": "No vendor"
+    "noVendor": "No vendor",
+    "endedVendor": "Ended vendor engagement",
+    "linkedVendor": "A vendor engagement is linked"
   },
   "yard": {
     "title": "Marshalling yard log",

@@ -119,8 +119,14 @@ export async function DockSection({
   const writable = writableProjects(scope, "logistics.dock_slot.write");
   // Vendor engagements a slot can serve (R1, app.engagement_options).
   const vendors = (await engagementOptions(scope.ctx)).filter((e) => e.roleType === "Vendor");
+  // The account and its contact: one vendor can hold several engagements on a project.
   const vendorLabel = (e: EngagementOption) =>
-    `${e.projectKey} ${e.accountName ?? e.personName ?? ""}`.trim();
+    [
+      `${e.projectKey} ${e.accountName ?? e.personName ?? ""}`.trim(),
+      e.accountName ? e.personName : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
   const listHref = hrefWith(base, search, { peek: null, full: null, edit: null, create: null });
   const peekHref = (id: string) => hrefWith(base, search, { peek: id, full: null, edit: null });
   const slotLabel = (slot: DockSlot) => {
@@ -144,7 +150,6 @@ export async function DockSection({
     );
     const zoneLabel = (z: ZoneOption) => `${z.code} ${z.name}`;
     const tz = project?.timeZone ?? timeZone;
-    const chosenProject = slot?.projectId ?? param(search, "project") ?? scope.project?.id;
     return [
       ...(slot
         ? []
@@ -185,8 +190,13 @@ export async function DockSection({
         defaultValue: slot?.engagementId ?? "",
         options: [
           { value: "", label: t("dock.noVendor") },
+          // engagement_options lists live engagements only; a slot whose vendor engagement has ended keeps it
+          // as an option, so saving other changes does not clear the vendor.
+          ...(slot?.engagementId && !vendors.some((e) => e.engagementId === slot.engagementId)
+            ? [{ value: slot.engagementId, label: t("dock.endedVendor") }]
+            : []),
           ...vendors
-            .filter((e) => !chosenProject || e.projectId === chosenProject)
+            .filter((e) => !project || e.projectId === project.id)
             .map((e) => ({ value: e.engagementId, label: vendorLabel(e) })),
         ],
       },
@@ -283,7 +293,12 @@ export async function DockSection({
                 value: slot.engagementId
                   ? (() => {
                       const vendor = vendors.find((e) => e.engagementId === slot.engagementId);
-                      return vendor ? vendorLabel(vendor) : t("common.notSet");
+                      if (vendor) return vendorLabel(vendor);
+                      // Writers reach every live engagement of the project, so a missing one has ended; a
+                      // reader without a picker capability sees only that one is linked.
+                      return writable.some((p) => p.id === slot.projectId)
+                        ? t("dock.endedVendor")
+                        : t("dock.linkedVendor");
                     })()
                   : t("dock.noVendor"),
               },

@@ -222,7 +222,9 @@
       "checkedIn": "Registro de llegada",
       "vendor": "Proveedor"
     },
-    "noVendor": "Sin proveedor"
+    "noVendor": "Sin proveedor",
+    "endedVendor": "Contratación de proveedor terminada",
+    "linkedVendor": "Hay una contratación de proveedor vinculada"
   },
   "yard": {
     "title": "Registro del patio de maniobras",
