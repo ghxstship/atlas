@@ -1,5 +1,13 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, type Locator, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
+import {
+  acknowledgmentBudgetMs,
+  describeTiming,
+  latencyOf,
+  probeHolds,
+  type InteractionTiming,
+  type VisibleProbe,
+} from "./interaction.ts";
 
 /** Unique test identities so runs never collide on a shared local stack. */
 export function uniqueId(): string {
@@ -44,21 +52,176 @@ export async function expectInputKeptAfterRefusal(input: RefusalCase): Promise<v
  * Counts the clicks, taps and key presses a journey makes, for the interaction budgets of
  * Sections 11.11 to 11.13 (Section 18, gate 26). Wrap the page once and read `count` at the end.
  */
-export function countInteractions(page: Page): { readonly count: () => number } {
+export function countInteractions(page: Page): {
+  readonly count: () => number;
+  /** The pointer presses alone, so a keyboard-only journey can show it made none. */
+  readonly pointers: () => number;
+} {
   let total = 0;
-  const bump = () => {
+  let pointers = 0;
+  const bump = (kind: string) => {
     total += 1;
+    if (kind === "pointerdown") pointers += 1;
   };
   void page.exposeFunction("__xosInteraction", bump);
   void page.addInitScript(() => {
     // Runs in the browser; typed loosely because this package compiles without the DOM library.
     const win = globalThis as unknown as {
-      __xosInteraction?: () => void;
-      addEventListener: (type: string, listener: () => void, options: object) => void;
+      __xosInteraction?: (kind: string) => void;
+      addEventListener: (
+        type: string,
+        listener: (e: { type: string }) => void,
+        options: object,
+      ) => void;
     };
-    const report = () => win.__xosInteraction?.();
+    const report = (e: { type: string }) => win.__xosInteraction?.(e.type);
     win.addEventListener("pointerdown", report, { capture: true });
     win.addEventListener("keydown", report, { capture: true });
   });
-  return { count: () => total };
+  return { count: () => total, pointers: () => pointers };
+}
+
+/**
+ * Watches the page for a visible state (Section 11.10 rule 9), from inside the browser so the measure carries no
+ * round trip to the test runner. With `afterInput`, the watch notes the first pointer or key press and counts the
+ * state only from then on. The state is checked on every animation frame and on every DOM change, and its first
+ * moment kept. Runs in the browser; typed loosely because this package compiles without the DOM library.
+ */
+function installWatch(
+  probe: VisibleProbe,
+  afterInput: boolean,
+  holds: (probe: VisibleProbe, root: unknown) => boolean,
+): boolean {
+  const win = globalThis as unknown as {
+    document: unknown;
+    performance: { now(): number; timeOrigin: number };
+    requestAnimationFrame(callback: () => void): number;
+    addEventListener(type: string, listener: () => void, options: object): void;
+    removeEventListener(type: string, listener: () => void, options: object): void;
+    MutationObserver: new (callback: () => void) => {
+      observe(target: unknown, options: object): void;
+      disconnect(): void;
+    };
+    __xosWatch?: { inputAt: number | null; seenAt: number | null };
+  };
+  const now = () => win.performance.timeOrigin + win.performance.now();
+  const before = holds(probe, win.document);
+  const state: { inputAt: number | null; seenAt: number | null } = {
+    inputAt: afterInput ? null : now(),
+    seenAt: null,
+  };
+  win.__xosWatch = state;
+  const options = { capture: true };
+  const onInput = () => {
+    if (state.inputAt === null) state.inputAt = now();
+  };
+  const observer = new win.MutationObserver(() => check());
+  const stop = () => {
+    observer.disconnect();
+    win.removeEventListener("pointerdown", onInput, options);
+    win.removeEventListener("keydown", onInput, options);
+  };
+  const check = () => {
+    if (state.seenAt !== null || state.inputAt === null) return;
+    if (holds(probe, win.document)) {
+      state.seenAt = now();
+      stop();
+    }
+  };
+  const frame = () => {
+    check();
+    if (state.seenAt === null) win.requestAnimationFrame(frame);
+  };
+  if (afterInput) {
+    win.addEventListener("pointerdown", onInput, options);
+    win.addEventListener("keydown", onInput, options);
+  }
+  observer.observe(win.document, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    characterData: true,
+  });
+  win.requestAnimationFrame(frame);
+  return before;
+}
+
+export interface WatchOptions {
+  /** Count the state only after the next pointer or key press (the default), or from the moment the watch begins. */
+  readonly afterInput?: boolean;
+  /** How long to wait for the state; ten seconds by default. */
+  readonly timeout?: number;
+}
+
+/**
+ * Starts watching `page` for `probe` and returns a function that waits for it and answers when it was seen (and,
+ * after input, when the input came), in epoch milliseconds, comparable across pages and browser contexts. The
+ * state must not hold yet: a watch that would pass before anything happens fails at once.
+ */
+export async function watchFor(
+  page: Page,
+  probe: VisibleProbe,
+  options: WatchOptions = {},
+): Promise<() => Promise<InteractionTiming>> {
+  const afterInput = options.afterInput ?? true;
+  // The watcher and the probe go to the browser as source, the probe's function unchanged (it refers to nothing
+  // outside itself), so the browser runs exactly what the unit tests check.
+  const before = await page.evaluate<boolean>(
+    `(${installWatch.toString()})(${JSON.stringify(probe)}, ${afterInput}, ${probeHolds.toString()})`,
+  );
+  expect(before, `${JSON.stringify(probe)} already holds before the action`).toBe(false);
+  return async () => {
+    await page.waitForFunction(
+      () => {
+        const state = (globalThis as unknown as { __xosWatch?: { seenAt: number | null } })
+          .__xosWatch;
+        return state !== undefined && state.seenAt !== null;
+      },
+      undefined,
+      { timeout: options.timeout ?? 10_000 },
+    );
+    return page.evaluate(() => {
+      const state = (
+        globalThis as unknown as { __xosWatch: { inputAt: number | null; seenAt: number } }
+      ).__xosWatch;
+      return { inputAt: state.inputAt, seenAt: state.seenAt };
+    });
+  };
+}
+
+/** Milliseconds from the pointer or key press `act` makes to the moment `probe` holds on screen. */
+export async function measureAcknowledgment(
+  page: Page,
+  act: () => Promise<unknown>,
+  probe: VisibleProbe,
+  options: Omit<WatchOptions, "afterInput"> = {},
+): Promise<number> {
+  const seen = await watchFor(page, probe, options);
+  await act();
+  return latencyOf(await seen());
+}
+
+/**
+ * Asserts that `act` shows `probe` within the budget, 100 ms by default (Section 11.10 rule 9: every action
+ * acknowledges within 100 ms). The measure is kept on the test as a `latency` annotation. Returns it.
+ */
+export async function expectAcknowledged(
+  page: Page,
+  label: string,
+  act: () => Promise<unknown>,
+  probe: VisibleProbe,
+  budgetMs: number = acknowledgmentBudgetMs,
+): Promise<number> {
+  const elapsed = await measureAcknowledgment(page, act, probe);
+  const sentence = describeTiming(label, elapsed, budgetMs);
+  test.info().annotations.push({ type: "latency", description: sentence });
+  expect(elapsed, sentence).toBeLessThanOrEqual(budgetMs);
+  return elapsed;
+}
+
+/** Asserts a measured span against its budget and keeps it on the test as a `latency` annotation. */
+export function expectWithin(label: string, elapsedMs: number, budgetMs: number): void {
+  const sentence = describeTiming(label, elapsedMs, budgetMs);
+  test.info().annotations.push({ type: "latency", description: sentence });
+  expect(elapsedMs, sentence).toBeLessThanOrEqual(budgetMs);
 }
