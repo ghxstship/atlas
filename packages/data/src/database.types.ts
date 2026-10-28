@@ -15483,6 +15483,7 @@ export type Database = {
           created_by: string | null;
           deleted_at: string | null;
           id: string;
+          is_holiday: boolean;
           is_overtime: boolean;
           name: string;
           org_id: string;
@@ -15496,6 +15497,7 @@ export type Database = {
           created_by?: string | null;
           deleted_at?: string | null;
           id?: string;
+          is_holiday?: boolean;
           is_overtime?: boolean;
           name: string;
           org_id: string;
@@ -15508,6 +15510,7 @@ export type Database = {
           created_by?: string | null;
           deleted_at?: string | null;
           id?: string;
+          is_holiday?: boolean;
           is_overtime?: boolean;
           name?: string;
           org_id?: string;
@@ -20303,6 +20306,213 @@ export type Database = {
           },
           {
             foreignKeyName: "help_desk_teams_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      holiday_calendar_venues: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          holiday_calendar_id: string;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          venue_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          holiday_calendar_id: string;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          holiday_calendar_id?: string;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          venue_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "holiday_calendar_venues_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "holiday_calendar_venues_holiday_calendar_id_fkey";
+            columns: ["holiday_calendar_id"];
+            isOneToOne: false;
+            referencedRelation: "holiday_calendars";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "holiday_calendar_venues_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "holiday_calendar_venues_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "holiday_calendar_venues_venue_id_fkey";
+            columns: ["venue_id"];
+            isOneToOne: false;
+            referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      holiday_calendars: {
+        Row: {
+          applies_to_org: boolean;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          subdivision_code: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          applies_to_org?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          subdivision_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          applies_to_org?: boolean;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          subdivision_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "holiday_calendars_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "holiday_calendars_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "holiday_calendars_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      holidays: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          holiday_calendar_id: string;
+          id: string;
+          name: string;
+          observed_on: string;
+          org_id: string;
+          paid_hours: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          holiday_calendar_id: string;
+          id?: string;
+          name: string;
+          observed_on: string;
+          org_id: string;
+          paid_hours?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          holiday_calendar_id?: string;
+          id?: string;
+          name?: string;
+          observed_on?: string;
+          org_id?: string;
+          paid_hours?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "holidays_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "holidays_holiday_calendar_id_fkey";
+            columns: ["holiday_calendar_id"];
+            isOneToOne: false;
+            referencedRelation: "holiday_calendars";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "holidays_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "holidays_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -51537,8 +51747,9 @@ export type Database = {
           time_off_state: Database["app"]["Enums"]["time_off_state"];
           updated_at: string;
           updated_by: string | null;
+          time_off_day_count: number | null;
         };
-        ComputedFields: never;
+        ComputedFields: "time_off_day_count";
         Insert: {
           created_at?: string;
           created_by?: string | null;
@@ -64227,6 +64438,15 @@ export type Database = {
         }[];
       };
       test_automation: { Args: { p_automation_id: string; p_event: Json }; Returns: Json };
+      time_off_day_count: {
+        Args: {
+          p_request: Omit<
+            Database["app"]["Tables"]["time_off_requests"]["Row"],
+            Database["app"]["Tables"]["time_off_requests"]["ComputedFields"]
+          >;
+        };
+        Returns: number;
+      };
       touch_my_session: {
         Args: {
           p_client_address: string;
