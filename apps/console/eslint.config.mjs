@@ -1,5 +1,5 @@
 import nextVitals from "eslint-config-next/core-web-vitals";
-import base, { serverConsole } from "@xos/config/eslint";
+import base, { serverConsole, sitemapRoutes } from "@xos/config/eslint";
 
 /**
  * Console lint, as Gateway's. On top of the shared preset (raw design values, silent catches), JSX may not hold
@@ -10,6 +10,7 @@ const config = [
   ...nextVitals,
   ...base,
   ...serverConsole,
+  ...(await sitemapRoutes(import.meta.url)),
   {
     files: ["**/*.tsx"],
     ignores: ["**/test/**", "**/e2e/**", "**/*.test.tsx"],
