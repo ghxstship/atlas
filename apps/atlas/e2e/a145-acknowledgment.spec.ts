@@ -130,6 +130,9 @@ test("state change: a record moved on the board settles in its new column within
   await card.focus();
   await page.keyboard.press("Space");
   await page.keyboard.press("ArrowRight");
+  // The card is carried into the next column and keeps the focus there, still held.
+  const carried = board.locator(`section[aria-label="${to}"] article[data-item]`, { hasText: title });
+  await expect(carried).toBeFocused();
   await expectAcknowledged(page, "Board state change", () => page.keyboard.press("Space"), {
     selector: `section[aria-label="${to}"] article[data-item]:not([aria-pressed])`,
     text: title,
