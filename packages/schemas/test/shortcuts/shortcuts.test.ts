@@ -94,8 +94,51 @@ describe("shortcut registry", () => {
     expect(registry.shells.gateway.shortcuts.map((x) => x.id)).toEqual([
       "command-menu",
       "help",
+      "account",
+      "switch-org",
+      "go.home",
+      "go.explore",
+      "go.work",
+      "go.money",
+      "go.messages",
+      "go.profile",
+      "go.documents",
+      "go.settings",
       "close",
     ]);
+  });
+
+  it("gives every record and view action a default a person may rebind (Section 11.2)", () => {
+    const atlas = new Map(registry.shells.atlas.shortcuts.map((x) => [x.id, x]));
+    const actions = {
+      record: ["state", "assign", "comment", "edit-title", "open", "copy-link", "trash"],
+      view: ["switch", "filters", "save", "export"],
+    };
+    for (const [scope, names] of Object.entries(actions)) {
+      expect(registry.shells.atlas.scopes).toContain(scope);
+      for (const name of names) {
+        const shortcut = atlas.get(`${scope}.${name}`);
+        expect(shortcut, `${scope}.${name}`).toMatchObject({ scope, group: scope, fixed: false });
+        expect(shortcut?.keys, `${scope}.${name}`).not.toBeNull();
+      }
+    }
+    expect(atlas.get("record.trash")?.keys).toBe("Mod+Backspace");
+    expect(atlas.get("view.export")?.keys).toBe("Shift+E");
+  });
+
+  it("gives Gateway G then a letter for each destination", () => {
+    const gateway = registry.shells.gateway.shortcuts.filter((x) => x.go !== null);
+    expect(gateway.map((x) => x.go)).toEqual([
+      "home",
+      "explore",
+      "work",
+      "money",
+      "messages",
+      "profile",
+      "documents",
+      "settings",
+    ]);
+    for (const x of gateway) expect(x.keys, x.id).toMatch(/^G [A-Z]$/);
   });
 
   it("refuses defaults that clash where their scopes meet", () => {
@@ -359,7 +402,13 @@ describe("personal bindings", () => {
       with: "go.places",
     });
     expect(problem("go.safety", "G H", { "go.home": "G Q" })).toBeNull();
-    expect(problem("go.safety", "Shift+S")).toBeNull();
+    expect(problem("go.safety", "Shift+Q")).toBeNull();
     expect(problem("aurora", "Mod+Shift+A")).toBeNull();
+    // Record and view keys hold their letters against global shortcuts, not against each other.
+    expect(problem("go.safety", "S")).toEqual({ kind: "conflict", with: "record.state" });
+    expect(problem("go.safety", "Shift+S")).toEqual({ kind: "conflict", with: "view.save" });
+    expect(problem("record.state", "V")).toBeNull();
+    expect(problem("record.state", "A")).toEqual({ kind: "conflict", with: "record.assign" });
+    expect(problem("view.export", "C")).toEqual({ kind: "conflict", with: "create-menu" });
   });
 });
