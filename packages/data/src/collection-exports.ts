@@ -20,11 +20,23 @@ export const EXPORT_FORMATS: readonly ExportFormat[] = ["CSV", "XLSX", "PDF"];
 
 /**
  * An equality on a column of the source, a list of values one of which it holds (comma-separated, as the
- * collections' URLs carry them), or the collection's search across the exported columns.
+ * collections' URLs carry them), whether the column is unset or set (a page's default, such as Projects
+ * hiding archived projects; migration 2381), or the collection's search across the exported columns.
  */
 export type ExportFilter =
   | { readonly operator: "eq" | "in"; readonly column: string; readonly value: string }
+  | { readonly operator: "is_null" | "not_null"; readonly column: string }
   | { readonly operator: "search"; readonly value: string };
+
+/** A filter as app.request_export reads it: a null test names its column and no value. */
+function filterArgument(filter: ExportFilter): Record<string, string> {
+  if ("value" in filter) {
+    return filter.operator === "search"
+      ? { operator: "search", value: filter.value }
+      : { operator: filter.operator, column: filter.column, value: filter.value };
+  }
+  return { operator: filter.operator, column: filter.column };
+}
 
 export interface CollectionExportRequest {
   readonly orgId: string;
@@ -62,11 +74,7 @@ export async function requestCollectionExport(
     p_source_label: request.label.slice(0, 200),
     p_columns: request.columns.map((c) => `${request.relation}.${c}`),
     p_headers: [...request.headers],
-    p_filters: request.filters.map((f) =>
-      f.operator === "search"
-        ? { operator: "search", value: f.value }
-        : { operator: f.operator, column: f.column, value: f.value },
-    ),
+    p_filters: request.filters.map(filterArgument),
   });
   if (error) return fail(toDataError(error));
   if (typeof data !== "string") return fail({ kind: "unexpected", message: "no export id" });

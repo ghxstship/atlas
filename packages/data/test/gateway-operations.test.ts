@@ -3,6 +3,7 @@ import {
   acceptEngagedShift,
   acceptOffer,
   acknowledgePurchaseOrder,
+  advanceSectionOpen,
   agreeSelfBilling,
   brandForHost,
   brandForSlug,
@@ -474,6 +475,8 @@ describe("api_public", () => {
       section_prompt: null,
       answer_body: null,
       answered_at: null,
+      review_outcome: null,
+      return_reason: null,
     });
     const { db } = gatewayClient({
       "rpc:preview_advance": [
@@ -506,6 +509,10 @@ describe("api_public", () => {
       "s1",
       "s2",
     ]);
+    expect(packet.ok && !packet.data.refused && packet.data.sections[0]).toMatchObject({
+      reviewOutcome: null,
+      returnReason: null,
+    });
     expect(await previewAdvance(db, input)).toEqual({
       ok: true,
       data: { refused: true, reason: "advance_token_expired" },
@@ -521,5 +528,49 @@ describe("api_public", () => {
       data: { refused: true, reason: "advance_answer_length" },
     });
     expect((await submitAdvance(db, answer)).ok).toBe(false);
+  });
+});
+
+describe("advance sections", () => {
+  it("maps the review of the latest answer", async () => {
+    const { db } = gatewayClient({
+      "rpc:preview_advance": [
+        okResponse([
+          {
+            refusal: null,
+            reason: null,
+            org_name: "Northwind Live",
+            packet_title: "Artist Advance",
+            due_at: null,
+            recipient_email: null,
+            expires_at: null,
+            section_id: "s1",
+            section_position: 1,
+            section_title: "Arrival",
+            section_prompt: null,
+            answer_body: "Lands at noon.",
+            answered_at: "2027-05-01",
+            review_outcome: "Returned",
+            return_reason: "Which airport?",
+          },
+        ]),
+      ],
+    });
+    (db as unknown as Record<string, unknown>)["schema"] = () => ({
+      rpc: (fn: string, args: unknown) =>
+        (db as unknown as { rpc(f: string, a: unknown): unknown }).rpc(fn, args),
+    });
+    const packet = await previewAdvance(db, { token: "t", accessCode: "1" });
+    expect(packet.ok && !packet.data.refused && packet.data.sections[0]).toMatchObject({
+      reviewOutcome: "Returned",
+      returnReason: "Which airport?",
+    });
+  });
+
+  it("opens a section that is unanswered or returned", () => {
+    expect(advanceSectionOpen({ answer: null, reviewOutcome: null })).toBe(true);
+    expect(advanceSectionOpen({ answer: "Noon.", reviewOutcome: "Returned" })).toBe(true);
+    expect(advanceSectionOpen({ answer: "Noon.", reviewOutcome: null })).toBe(false);
+    expect(advanceSectionOpen({ answer: "Noon.", reviewOutcome: "Accepted" })).toBe(false);
   });
 });

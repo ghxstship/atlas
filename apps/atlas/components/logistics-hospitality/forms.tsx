@@ -10,9 +10,11 @@ import { Button, Drawer, InlineAlert, Input, Select, Textarea, type ButtonProps 
 import { useTranslations } from "next-intl";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useId, useState, useTransition, type FormEvent } from "react";
+import { useEffect, useId, useState, useTransition, type FormEvent } from "react";
+import { undoStack } from "@/components/undo/undo-stack";
 import type { ActionState } from "@/lib/logistics-hospitality/actions-kit";
 import { UndoNotice } from "./client";
+import { usePushTrash } from "./undo";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -250,7 +252,9 @@ export function InlineForm({
 
 /**
  * One action on a record, such as Check in, Release or Approve. With `undo`, a success shows an
- * Undo toast for 8 seconds instead of asking for confirmation (Section 11.7).
+ * Undo toast for 8 seconds instead of asking for confirmation, and goes on the session's undo stack,
+ * so Cmd or Ctrl+Z restores the row too (Section 11.7). An action that leaves the page (`doneHref`,
+ * a delete from the peek) hands its toast to the shell, which outlives the closed peek.
  */
 export function ActionButton({
   label,
@@ -270,9 +274,18 @@ export function ActionButton({
 }) {
   const router = useRouter();
   const tc = useCopy("logistics.common");
+  const pushTrash = usePushTrash();
   const [state, setState] = useState<ActionState>({});
-  const [undoable, setUndoable] = useState(false);
+  // The undo stack entry this button's own toast shows, while the button stays on the page.
+  const [entry, setEntry] = useState<number | null>(null);
   const [pending, startTransition] = useTransition();
+  useEffect(
+    () =>
+      undoStack.subscribe((event) => {
+        if (event.kind === "undone" && event.entry.id === entry) setEntry(null);
+      }),
+    [entry],
+  );
   return (
     <span className="inline-flex flex-col gap-4">
       <Button
@@ -285,7 +298,13 @@ export function ActionButton({
             const next = await run();
             setState(next);
             if (next.ok) {
-              if (undo) setUndoable(true);
+              if (undo) {
+                const pushed = pushTrash(
+                  { message: undo.message, run, restore: undo.restore },
+                  doneHref ? {} : { toast: false },
+                );
+                if (!doneHref) setEntry(pushed.id);
+              }
               if (doneHref) router.push(doneHref as Route, { scroll: false });
               else router.refresh();
             }
@@ -297,16 +316,10 @@ export function ActionButton({
       <ActionAlert state={state} />
       <UndoNotice
         region={tc("undoRegion")}
-        message={undo && undoable ? undo.message : null}
-        onUndo={() =>
-          startTransition(async () => {
-            if (!undo) return;
-            const restored = await undo.restore();
-            setState(restored);
-            setUndoable(false);
-            router.refresh();
-          })
-        }
+        message={undo && entry !== null ? undo.message : null}
+        onUndo={() => {
+          if (entry !== null) void undoStack.undo(entry);
+        }}
       />
     </span>
   );

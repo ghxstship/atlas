@@ -12,7 +12,7 @@ import {
 } from "../src/supplier-diversity.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
-describe("supplier diversity (A89, migrations 1464 and 2011)", () => {
+describe("supplier diversity (A89, migrations 1464, 2011 and 2350)", () => {
   it("lists the owner's certifications with their shares, the number reduced to four characters", async () => {
     const { db, calls } = fakeClient({
       "rpc:my_supplier_diversity": [
@@ -49,14 +49,14 @@ describe("supplier diversity (A89, migrations 1464 and 2011)", () => {
     expect(calls[1]?.steps[0]).toEqual(["args", [{ p_account_id: "acct" }]]);
   });
 
-  it("declares one for the person or for the company, and removes it", async () => {
+  it("declares one for the person or for the company in one call, and removes it", async () => {
     const { db, calls } = fakeClient({
-      "from:supplier_diversity_certifications": [
-        okResponse({ id: "c1" }),
-        okResponse({ id: "c2" }),
-        errorResponse("42501", "no"),
-        okResponse(null),
+      "rpc:add_supplier_diversity_certification": [
+        okResponse("c1"),
+        okResponse("c2"),
+        errorResponse("XR001", "supplier_diversity_not_yours: No.", "supplier_diversity_not_yours"),
       ],
+      "from:supplier_diversity_certifications": [okResponse(null)],
     });
     const input = {
       personId: "me",
@@ -69,35 +69,48 @@ describe("supplier diversity (A89, migrations 1464 and 2011)", () => {
     };
     expect(await addSupplierDiversity(db, input)).toEqual({ ok: true, data: { id: "c1" } });
     expect(calls[0]?.steps[0]).toEqual([
-      "insert",
+      "args",
+      [{ p_kind: "Veteran-Owned", p_certifying_body: "Self-declared", p_person_id: "me" }],
+    ]);
+    expect(
+      (
+        await addSupplierDiversity(db, {
+          ...input,
+          accountId: "acct",
+          issuedOn: "2026-01-15",
+          expiresOn: "2028-01-15",
+        })
+      ).ok,
+    ).toBe(true);
+    expect(calls[1]?.steps[0]).toEqual([
+      "args",
       [
         {
-          person_id: "me",
-          account_id: null,
-          diversity_kind: "Veteran-Owned",
-          certifying_body: "Self-declared",
-          issued_on: null,
-          expires_on: null,
+          p_kind: "Veteran-Owned",
+          p_certifying_body: "Self-declared",
+          p_account_id: "acct",
+          p_issued_on: "2026-01-15",
+          p_expires_on: "2028-01-15",
         },
       ],
     ]);
-    expect((await addSupplierDiversity(db, { ...input, accountId: "acct" })).ok).toBe(true);
-    expect((calls[1]?.steps[0]?.[1] as Record<string, unknown>[])[0]).toMatchObject({
-      person_id: null,
-      account_id: "acct",
+    expect(await addSupplierDiversity(db, input)).toEqual({
+      ok: false,
+      error: { kind: "refusal", rule: "supplier_diversity_not_yours", message: "No." },
     });
-    expect((await addSupplierDiversity(db, input)).ok).toBe(false);
     expect((await removeSupplierDiversity(db, "c1")).ok).toBe(true);
+    expect(calls.map((c) => c.target)).toEqual([
+      "rpc:add_supplier_diversity_certification",
+      "rpc:add_supplier_diversity_certification",
+      "rpc:add_supplier_diversity_certification",
+      "from:supplier_diversity_certifications",
+    ]);
   });
 
-  it("sets a certificate number through the encrypting RPC, never in the insert", async () => {
+  it("sends the certificate number with the declaration, so a refused number leaves no row", async () => {
     const { db, calls } = fakeClient({
-      "from:supplier_diversity_certifications": [
-        okResponse({ id: "c1" }),
-        okResponse({ id: "c2" }),
-      ],
-      "rpc:set_supplier_diversity_certificate_number": [
-        okResponse(null),
+      "rpc:add_supplier_diversity_certification": [
+        okResponse("c1"),
         errorResponse("XR001", "certificate_number_format: No.", "certificate_number_format"),
       ],
     });
@@ -111,13 +124,16 @@ describe("supplier diversity (A89, migrations 1464 and 2011)", () => {
       expiresOn: null,
     };
     expect(await addSupplierDiversity(db, input)).toEqual({ ok: true, data: { id: "c1" } });
-    expect((calls[0]?.steps[0]?.[1] as Record<string, unknown>[])[0]).not.toHaveProperty(
-      "certificate_number",
-    );
-    expect(calls[1]?.target).toBe("rpc:set_supplier_diversity_certificate_number");
-    expect(calls[1]?.steps[0]).toEqual([
+    expect(calls[0]?.steps[0]).toEqual([
       "args",
-      [{ p_certification_id: "c1", p_certificate_number: "FL-WBE-2026-118842" }],
+      [
+        {
+          p_kind: "Women-Owned",
+          p_certifying_body: "Florida OSD",
+          p_person_id: "me",
+          p_certificate_number: "FL-WBE-2026-118842",
+        },
+      ],
     ]);
     expect(await addSupplierDiversity(db, input)).toEqual({
       ok: false,
@@ -127,7 +143,11 @@ describe("supplier diversity (A89, migrations 1464 and 2011)", () => {
       ok: false,
       error: { kind: "invalid", message: "certificate_number" },
     });
-    expect(calls).toHaveLength(4);
+    // One request per declaration and nothing else: no separate insert that a refusal could strand.
+    expect(calls.map((c) => c.target)).toEqual([
+      "rpc:add_supplier_diversity_certification",
+      "rpc:add_supplier_diversity_certification",
+    ]);
   });
 
   it("offers the orgs that run a program, shares and revokes", async () => {

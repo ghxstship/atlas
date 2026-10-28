@@ -95,6 +95,8 @@ describe("shortcut registry", () => {
       "command-menu",
       "help",
       "close",
+      "undo",
+      "redo",
     ]);
   });
 

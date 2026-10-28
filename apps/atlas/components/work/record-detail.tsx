@@ -1,9 +1,7 @@
-import { listAttachments, type Attachment } from "@xos/data/attachments";
-import { listThreads, type Thread } from "@xos/data/comments";
 import { getFieldHistory, type HistoryEvent } from "@xos/data/field-history";
 import { FieldHistoryList } from "@/components/history/field-history-list";
 import { historyItems } from "@/lib/history/items";
-import { getActual, listDependencies, type Actual, type Dependency } from "@xos/data/schedule";
+import { getActual, type Actual, type Dependency } from "@xos/data/schedule";
 import { getPunchItemForRecord } from "@xos/data/work-orders";
 import {
   getRecordByKey,
@@ -38,8 +36,10 @@ import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
 import { formatScheduleTime, scheduleViewOf, slipAmount, type ScheduleView } from "./format";
 import { getShellSettings } from "@/lib/shell/org-settings";
+import { PresenceFor } from "@/components/presence/presence-for";
 import { kindFields } from "./kind-fields";
 import { capabilitySet, loadRecordMeta, must, type RecordMeta } from "./load";
+import { loadConversation, loadRelations, type Conversation } from "./record-sections";
 import {
   AssignmentsEditor,
   ChecklistEditor,
@@ -52,11 +52,12 @@ import {
   WatchButton,
   type KindField,
 } from "./record-panels";
+import { RelatedRecords, type RecordRelations } from "./related-records";
 
 /**
  * Everything the record peek and the record full page show (Record template, Section 11.6), read
  * once per request: the record, its kind's attributes, state ledger, replan log, checklist,
- * assignees, dependencies, actuals, recurrence, comments and attachments.
+ * assignees, related records with its dependencies, actuals, recurrence, comments and attachments.
  */
 export interface RecordDetail {
   readonly record: RecordSummary;
@@ -75,14 +76,16 @@ export interface RecordDetail {
   readonly fieldHistory: readonly HistoryEvent[] | null;
   readonly replans: readonly ReplanEntry[];
   readonly dependencies: readonly Dependency[];
+  /** Parent, sub-records, dependencies and linked custom object records (record-sections.ts). */
+  readonly relations: RecordRelations;
   readonly siblings: readonly RecordSummary[];
   readonly actual: Actual | null;
   readonly punch: {
     readonly sourceRecordId: string | null;
     readonly locationText: string | null;
   } | null;
-  readonly threads: readonly Thread[];
-  readonly attachments: readonly Attachment[];
+  /** Comments and files (record-sections.ts), the same the shell's peek shows. */
+  readonly conversation: Conversation;
   readonly canWrite: boolean;
   readonly canSchedule: boolean;
   readonly canRecur: boolean;
@@ -113,12 +116,11 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     recurrences,
     history,
     replans,
-    deps,
+    related,
     siblings,
     actual,
     punch,
-    threads,
-    attachments,
+    conversation,
     fieldHistory,
     shell,
   ] = await Promise.all([
@@ -136,12 +138,11 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     listRecurrences(db, [record.id]),
     listStateHistory(db, record.id),
     listReplans(db, record.id),
-    listDependencies(db, [record.id]),
+    loadRelations(ctx, record.id),
     listRecords(db, { orgId: ctx.org.id, projectId: record.projectId, limit: 500 }),
     getActual(db, record.id),
     getPunchItemForRecord(db, record.id),
-    listThreads(db, subject),
-    listAttachments(db, subject),
+    loadConversation(ctx, subject),
     getFieldHistory(db, "app.records", record.id),
     getShellSettings(db, ctx.org.id, null),
     // The command menu's recent items (Section 11.7); beside the reads, so it adds no wait.
@@ -162,12 +163,12 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     history: must(history, "state history"),
     fieldHistory: fieldHistory.ok ? fieldHistory.data : null,
     replans: must(replans, "replan log"),
-    dependencies: must(deps, "dependencies"),
+    dependencies: related.dependencies,
+    relations: related.relations,
     siblings: must(siblings, "project records").filter((r) => r.id !== record.id),
     actual: must(actual, "actuals"),
     punch: must(punch, "punch item"),
-    threads: must(threads, "comments"),
-    attachments: must(attachments, "attachments"),
+    conversation,
     canWrite: caps.has("work.record.write") && !record.deletedAt,
     canSchedule: caps.has("schedule.timeline.write") && !record.deletedAt,
     canRecur: caps.has("work.recurring.write") && !record.deletedAt,
@@ -289,7 +290,7 @@ export async function RecordBody({
               to: t(`work.states.${h.to}`),
             }),
     })),
-    ...detail.threads
+    ...detail.conversation.threads
       .flatMap((th) => th.comments)
       .filter((c) => c.deletedAt === null)
       .map((c) => ({
@@ -303,6 +304,8 @@ export async function RecordBody({
 
   return (
     <div className="flex flex-col gap-24">
+      {/* Who else has the record open, here or in a peek (Section 11.7). */}
+      <PresenceFor table="records" id={record.id} />
       <SummaryEntryRow
         subject={{ collection: "records", id: record.id, label: recordLabel }}
         kinds={["record_activity"]}
@@ -360,15 +363,22 @@ export async function RecordBody({
       {record.deletedAt ? null : (
         <WatchButton org={org} recordId={record.id} watchId={detail.watchId} />
       )}
-      {dated || detail.canSchedule ? (
-        <DependencyEditor
-          org={org}
-          record={record}
-          dependencies={detail.dependencies}
-          candidates={detail.siblings}
-          canEdit={detail.canSchedule}
-        />
-      ) : null}
+      <RelatedRecords
+        org={org}
+        recordId={record.id}
+        relations={detail.relations}
+        dependencies={
+          detail.canSchedule ? (
+            <DependencyEditor
+              org={org}
+              record={record}
+              dependencies={detail.dependencies}
+              candidates={detail.siblings}
+              canEdit
+            />
+          ) : undefined
+        }
+      />
       {dated ? (
         <ActualsForm
           org={org}
@@ -489,9 +499,9 @@ export async function RecordBody({
       <CollabPanels
         org={org}
         subject={{ table: "app.records", id: record.id }}
-        threads={detail.threads}
-        attachments={detail.attachments}
-        names={names}
+        threads={detail.conversation.threads}
+        attachments={detail.conversation.attachments}
+        names={{ ...names, ...detail.conversation.names }}
         me={me}
         canPost={!record.deletedAt}
       />

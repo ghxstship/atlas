@@ -137,14 +137,14 @@ select results_eq($$select requester_email, locale, time_zone from claimed where
 select is((select count(*)::int from app.claim_export_renders('worker-2', 20)), 0, 'a second worker gets nothing more');
 
 -- Rows read as the requester: their org, live rows, the filters and the search, in column order.
-select results_eq($$select r from app.export_job_rows((select id from k where key = 'venues'), 10) r$$,
+select results_eq($$select r from jsonb_array_elements(app.export_job_rows((select id from k where key = 'venues'), 10)) r$$,
   $$values ('{"name": "Seaside Amphitheater 100% Live", "locality": "Key West"}'::jsonb)$$,
   'rows are the requester''s, live, filtered (eq and in) and searched (with % taken literally)');
-select results_eq($$select r ->> 'rate_minor' from app.export_job_rows((select id from k where key = 'rates'), 10) r$$,
+select results_eq($$select r ->> 'rate_minor' from jsonb_array_elements(app.export_job_rows((select id from k where key = 'rates'), 10)) r$$,
   $$values ('85000'::text)$$, 'the Owner''s rows carry the rate they may read');
 -- Every row the Member reads is masked; since 2002 the org's Standard Library copies add lines of their own.
 select results_eq($$select bool_and((r ->> 'is_masked')::boolean), bool_or(r ->> 'role_code' = '0000.50.01')
-    from app.export_job_rows((select id from k where key = 'lines'), 10) r$$,
+    from jsonb_array_elements(app.export_job_rows((select id from k where key = 'lines'), 10)) r$$,
   $$values (true, true)$$, 'a Member''s export reads the view as the Member, with the rate masked');
 select is(current_user::text, 'service_role', 'the worker gets its own role back after reading');
 
@@ -224,6 +224,9 @@ select is((select classification::text from app.report_run_classification((selec
 select pg_temp.as_platform();
 select lives_ok($$select private.request_export_render()$$, 'without the Vault secrets the scheduler waits quietly');
 select is((select schedule from cron.job where jobname = 'xos_export_render'), '* * * * *', 'pg_cron runs the export step every minute');
+-- The nightly sweep first, which registers Trash tables and regenerates app.trash_items, so the two checks below hold
+-- in the state production reaches every night and no longer depend on whether it ran during the suite (2390).
+do $$ begin perform private.sweep_default_retention(); end $$;
 -- Every app view reading a classified column shows it under the same name, classified as high, or names its source.
 select is_empty($$
   select v.oid::regclass::text || '.' || a.attname

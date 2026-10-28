@@ -12,20 +12,25 @@
  *      resolves again and shows what the server now holds.
  */
 import { OUTBOX_TABLE, type LocalStore, type Mutation, type MutationInput } from "@xos/sync";
-import { COMPASS_SETTING_KEYS, withQueuedSetting, type ResolvedValues } from "./settings";
+import {
+  COMPASS_SETTING_KEYS,
+  PERSONAL_SETTING_RPCS,
+  withQueuedSetting,
+  type ResolvedValues,
+} from "./settings";
 
 /** The part of the outbox these rules read. */
 export interface QueuedOutbox {
   all(): Promise<readonly Mutation[]>;
 }
 
-/** True for a set_personal_setting waiting to be sent for a key Compass reads. */
+/** True for a set_personal_setting or clear_personal_setting waiting to be sent for a key Compass reads. */
 function isQueuedSetting(mutation: Mutation): boolean {
   const key = mutation.payload["p_setting_key"];
   return (
     mutation.status === "pending" &&
     mutation.op === "rpc" &&
-    mutation.target === "set_personal_setting" &&
+    PERSONAL_SETTING_RPCS.includes(mutation.target) &&
     typeof key === "string" &&
     COMPASS_SETTING_KEYS.includes(key)
   );

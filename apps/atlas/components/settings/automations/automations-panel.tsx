@@ -10,7 +10,7 @@ import {
   deleteAutomationAction,
   setAutomationEnabledAction,
 } from "@/app/[org]/settings/automation-actions";
-import { Dialog } from "@/components/lazy-ui";
+import { Dialog } from "@/components/lazy-ui/dialog";
 import { runTone } from "./run-tone";
 
 /**

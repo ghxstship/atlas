@@ -1,15 +1,16 @@
 import { expect as baseExpect, test } from "./engine-test";
 import {
   artistAdvance,
-  artistSetCue,
   asPerson,
   offerToApplication,
   PEOPLE,
+  PROJECT,
   publishArtistCall,
   ROLE_PEOPLE,
   submittedSettlement,
   transition,
 } from "./role-fixtures";
+import { atlasAs, ORG } from "./atlas";
 import { expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./support";
 import { toDisplayKey } from "@xos/data/gateway-keys";
 
@@ -85,7 +86,32 @@ test("journey 45: open call, representative accepts, advance, set time and settl
   const key = toDisplayKey("engagement", engagementId);
   await transition("engagement", engagementId, "Onboarding", "Active", "Contract signed.");
   const advance = await artistAdvance(ROLE_PEOPLE.artist);
-  const set = await artistSetCue(engagementId);
+
+  // The Producer sets the Opening Night cue for the artist in Atlas Show > Run of show (R1).
+  const [cue] = await sql<{ id: string; label: string; run: string }>(
+    `select c.id, c.label, r.id as run from app.cues c join app.run_of_show r on r.id = c.run_of_show_id
+      where r.project_id = $1 and r.name = 'Opening Night Running Order' and c.deleted_at is null
+        and c.called_at is null
+      order by c.position limit 1`,
+    [PROJECT],
+  );
+  const set = { label: cue?.label as string };
+  const producer = await atlasAs(browser, "producer@example.com");
+  await producer.page.goto(`/${ORG}/show/run-of-show?peek=${cue?.run}`);
+  await producer.page.locator(`#set-for-${cue?.id}`).selectOption(engagementId);
+  await expect
+    .poll(
+      async () =>
+        (
+          await sql<{ n: number }>(
+            `select count(*)::int as n from app.engagement_cues
+              where engagement_id = $1 and cue_id = $2 and deleted_at is null`,
+            [engagementId, cue?.id],
+          )
+        )[0]?.n,
+    )
+    .toBe(1);
+  await producer.context.close();
 
   // The representative answers the advance and reads the rider and the set time.
   await a.goto(`/work/engagements/${key}/advance`);

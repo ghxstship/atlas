@@ -4,7 +4,8 @@ import type * as Deliver from "@/lib/files/deliver";
 /**
  * The share link file route (Section 8.6, migration 1380). A watermarked copy links to the file in
  * Atlas, /files/{version}, never to the share link whose token would let a forwarded copy open it
- * again (A69-013), and a failure goes to the redacting logger, never the console (A69-012).
+ * again (A69-013), and a failure goes to the redacting logger, never the console (A69-012). The
+ * handover and watermark refusals are covered in file-routes.test.ts (A103).
  */
 const TOKEN = `xshr_${"ab".repeat(32)}`;
 const VERSION = "0192f0a0-0000-7000-8000-000000000001";
@@ -20,6 +21,7 @@ vi.mock("@/lib/env", () => ({
   env: () => ({
     SUPABASE_URL: "https://db.atlas.test",
     ATLAS_SITE_URL: "https://atlas.example.test",
+    XOS_FILE_HANDOVER_SECRET: "h".repeat(32),
   }),
 }));
 vi.mock("@/lib/supabase/server", () => ({ createServerSupabase: async () => ({}) }));
@@ -36,7 +38,7 @@ vi.mock("@xos/data/share-links", () => ({
   openShareLink: async () => state.opened,
   fetchTicketFile: async () => ({
     ok: true,
-    data: { bytes: new Uint8Array([1]), contentType: "image/png" },
+    data: { bytes: new Uint8Array([1]), contentType: "image/png", watermark: true },
   }),
 }));
 vi.mock("@/lib/files/deliver", async (importOriginal) => {
@@ -45,7 +47,10 @@ vi.mock("@/lib/files/deliver", async (importOriginal) => {
     ...actual,
     copyForViewer: async (input: { sourceUrl: string; watermark: boolean }) => {
       state.copies.push({ sourceUrl: input.sourceUrl, watermark: input.watermark });
-      return { bytes: new Uint8Array([1]), filename: "stage.pdf", contentType: "application/pdf" };
+      return {
+        ok: true,
+        file: { bytes: new Uint8Array([1]), filename: "stage.pdf", contentType: "application/pdf" },
+      };
     },
   };
 });
