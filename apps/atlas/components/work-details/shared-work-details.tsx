@@ -107,6 +107,10 @@ function categoryBody(
             value={d.dietary.dietaryNeeds.map((n) => label(t, "dietaryNeeds", n)).join(", ")}
           />
           <Line label={t(`${P}.org.allergies`)} value={d.dietary.allergies} />
+          {/* R4: allergies masked for this reader are on file, never shown. */}
+          {d.dietary.allergies === null && d.dietary.allergiesOnFile ? (
+            <p className="m-0 text-text-secondary">{t(`${P}.allergiesMasked`)}</p>
+          ) : null}
           <Line label={t(`${P}.org.notes`)} value={d.dietary.dietaryNotes} />
         </>
       );
