@@ -6,6 +6,7 @@ import {
   expectAccessibleInBothThemes,
   reloadSettled,
   signIn,
+  sql,
   uniqueId,
 } from "./support";
 
@@ -91,4 +92,35 @@ test("a crew member answers the org in Messages", async ({ page }) => {
   await composer.getByRole("button", { name: "Send" }).click();
   await expect(page.getByText(reply)).toBeVisible();
   await expect(composer.getByLabel("Message")).toHaveValue("");
+});
+
+test("R2: Up Next shows the call time, the venue and the contact", async ({ page }) => {
+  // The crew member's next call: a Published shift on the demo engagement, sooner than any other.
+  const [shift] = await sql<{ id: string }>(
+    `insert into app.shifts (project_id, engagement_id, role_code, starts_at, ends_at, time_zone)
+     values ($1, $2, '5000.51.02', now() + interval '30 minutes', now() + interval '8 hours', 'America/New_York')
+     returning id`,
+    [DEMO.project, DEMO.crewEngagement],
+    DEMO.owner,
+  );
+  await sql(
+    `select private.transition_lifecycle('shift', 'app.shifts', 'shift_state', 'app.shift_state_transitions', 'shift_id',
+       $1::uuid, 'Draft', 'Published', 'Published to the crew.')`,
+    [shift?.id],
+    DEMO.owner,
+  );
+  try {
+    await signIn(page, "crew@example.com", "/home");
+    const card = page.getByRole("region", { name: "Up next" });
+    await expect(card.getByText("Shift", { exact: true }).first()).toBeVisible();
+    await expect(card.getByText("Where", { exact: true })).toBeVisible();
+    await expect(card.getByText("Contact", { exact: true })).toBeVisible();
+    await expect(card.getByRole("link", { name: "Message" })).toHaveAttribute(
+      "href",
+      `/work/engagements/${DEMO.crewEngagementKey}/messages`,
+    );
+    await expectAccessible(page);
+  } finally {
+    await sql(`update app.shifts set deleted_at = now() where id = $1`, [shift?.id], DEMO.owner);
+  }
 });

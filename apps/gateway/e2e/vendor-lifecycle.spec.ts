@@ -4,9 +4,11 @@ import {
   ACCOUNTS,
   asPerson,
   codeAndApproveInvoice,
+  demoVendorId,
   invoiceByNumber,
   payInvoice,
   PEOPLE,
+  PROJECT,
   requiredInsured,
   requirements,
   sentDocument,
@@ -306,3 +308,102 @@ async function vendorOnboardingToClose(
   );
   expect(closed?.state).toBe("Complete");
 }
+
+/** A Proposed submittal the org asks of the demo vendor on the demo project, created by the Owner. */
+async function proposedSubmittal(title: string): Promise<{ id: string }> {
+  const vendor = await demoVendorId();
+  const [row] = await sql<{ id: string }>(
+    `insert into app.submittals (project_id, vendor_id, submittal_kind, title, spec_reference, due_on)
+     values ($1, $2, 'Shop Drawing', $3, 'S-201', '2027-05-20') returning id`,
+    [PROJECT, vendor, title],
+    PEOPLE.owner,
+  );
+  return { id: row?.id as string };
+}
+
+test("R2: the vendor submits, reads the return reason and resubmits a submittal", async ({
+  page,
+}) => {
+  const engagement = await vendorEngagement();
+  await transition("engagement", engagement.id, "Onboarding", "Active", "Vendor onboarded.");
+  const title = `Delay tower rigging plan ${suffix()}`;
+  const submittal = await proposedSubmittal(title);
+
+  await signIn(page, "vendor@example.com", `/work/engagements/${engagement.key}/submittals`);
+  const row = page.getByRole("listitem").filter({ hasText: title });
+  await expect(row).toBeVisible();
+  await expect(row).toContainText("Revision 0");
+  await expectAccessibleInBothThemes(page);
+  const form = row.getByRole("form", { name: title });
+  await form.getByLabel("Note").fill("Rigging plan attached, rev A.");
+  await form.getByRole("button", { name: "Submit" }).click();
+  await expect(row.getByText("Sent for review.")).toBeVisible();
+
+  // The producer returns it in Atlas: the Owner created it, so sod_approval_requester lets them.
+  await asPerson(
+    PEOPLE.producer,
+    `select app.transition_submittal($1, 'Submitted', 'Returned', $2)`,
+    [submittal.id, "Show the bridle points."],
+  );
+  await page.reload();
+  await expect(row.getByText("Returned: Show the bridle points.")).toBeVisible();
+  await row.getByRole("form", { name: title }).getByLabel("Note").fill("Bridle points on sheet 2.");
+  await row.getByRole("button", { name: "Resubmit" }).click();
+  await expect(row.getByText("Sent for review.")).toBeVisible();
+  await page.reload();
+  await expect(row).toContainText("Revision 1");
+  await expect(row.getByText("Submitted. The organization is reviewing it.")).toBeVisible();
+  const [stored] = await sql<{ revision: number; state: string }>(
+    `select revision, submittal_state::text as state from app.submittals where id = $1`,
+    [submittal.id],
+  );
+  expect(stored).toEqual({ revision: 1, state: "Submitted" });
+});
+
+test("R2: the vendor Owner's Credentials tab shows the supplied person's badge", async ({
+  page,
+}) => {
+  const engagement = await vendorEngagement();
+  await transition("engagement", engagement.id, "Onboarding", "Active", "Vendor onboarded.");
+  const code = `VEN${suffix()}`;
+  const [category] = await sql<{ id: string }>(
+    `insert into app.credential_categories (project_id, code, name) values ($1, $2, $3) returning id`,
+    [PROJECT, code, `Vendor Crew ${code}`],
+    PEOPLE.owner,
+  );
+  await sql(
+    `insert into app.credentials (credential_category_id, holder_person_id, engagement_id) values ($1, $2, $3)`,
+    [category?.id, PEOPLE.vendorContact, engagement.id],
+    PEOPLE.owner,
+  );
+  await signIn(page, "vendor@example.com", `/work/engagements/${engagement.key}/credentials`);
+  await expect(page.getByRole("listitem").filter({ hasText: `Vendor Crew ${code}` })).toBeVisible();
+  await expectAccessible(page);
+});
+
+test("R2: the vendor uploads an open document from Compliance and it moves to review", async ({
+  page,
+}) => {
+  const name = `Rigging certificate ${suffix()}`;
+  const packet = await requirements("Vendor", [{ name, kind: "Document Upload" }]);
+  try {
+    const engagement = await vendorEngagement();
+    await signIn(page, "vendor@example.com", `/work/engagements/${engagement.key}/compliance`);
+    const form = page.getByRole("form", { name });
+    await expect(form).toBeVisible();
+    await expectAccessibleInBothThemes(page);
+    await form.getByLabel("File or photo").setInputFiles({
+      name: "certificate.pdf",
+      mimeType: "application/pdf",
+      buffer: Buffer.from(
+        "%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n",
+      ),
+    });
+    await form.getByRole("button", { name: "Upload" }).click();
+    await expect(page.getByText("Uploaded. The organization verifies it next.")).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("form", { name })).toHaveCount(0);
+  } finally {
+    await packet.retire();
+  }
+});
