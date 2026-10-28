@@ -3,8 +3,8 @@ import type { Json } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Bulk edit (Section 11.7, ADR 0044) over the transactional bulk RPCs (migrations 1451, 1800 and
- * 1801): one property across a selection, previewed, all or nothing, with the inverse rows that undo
+ * Bulk edit (Section 11.7, ADR 0044) over the transactional bulk RPCs (migrations 1451, 2150 and
+ * 2151): one property across a selection, previewed, all or nothing, with the inverse rows that undo
  * it. Each resource has its own RPC; adding one is a row function, a registry row and a name here.
  */
 

@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-24
 - Decider: A121 (RRR-167), trace rows S11.7-01, S11.7-02, S11.7-03, S11.7-04, S11.7-09 and S4.7-05
-- Migrations: 1800 and 1801
+- Migrations: 2150 and 2151
 
 ## Context
 

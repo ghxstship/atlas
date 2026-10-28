@@ -1,4 +1,4 @@
--- pgTAP: 1800, bulk edit of shipments, dock slots, fulfillments, BEOs and room blocks (A121, RRR-167, Section 11.7).
+-- pgTAP: 2150, bulk edit of shipments, dock slots, fulfillments, BEOs and room blocks (A121, RRR-167, Section 11.7).
 -- For each resource: a preview changes nothing, a commit changes every row, the inverse undoes it, one refused row
 -- rolls back the whole call, another org's row is refused as not found, and the rules a single edit meets still apply
 -- (the dock overlap and check-in freeze, the fulfillment lifecycle, the BEO approval authority and its separation from

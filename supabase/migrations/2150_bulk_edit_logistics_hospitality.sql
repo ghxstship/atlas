@@ -1,4 +1,4 @@
--- 1800_bulk_edit_logistics_hospitality.sql
+-- 2150_bulk_edit_logistics_hospitality.sql
 -- A121 (RRR-167, A65-006, ADR 0080). Bulk edit (Section 11.7) reaches the Logistics and Hospitality tables: five more
 -- resources on the driver of 1451, private.run_bulk, so each call keeps its rules. All or nothing, a preview that
 -- always undoes, the capability checked on every row, refusals naming the row, the inverse rows that undo a call,

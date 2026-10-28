@@ -1,4 +1,4 @@
--- pgTAP: 1801, bulk edit of guest lists (A121, RRR-167, Section 11.7). A reviewer approves several requests in one
+-- pgTAP: 2151, bulk edit of guest lists (A121, RRR-167, Section 11.7). A reviewer approves several requests in one
 -- call, a preview changes nothing, one request the reviewer made rolls the whole call back (sod_guest_requester), the
 -- door checks approved guests in together, the one-way moves refuse an undo, another org's guest reads as not found,
 -- and the guest list gains the audit trail.

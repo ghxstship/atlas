@@ -1,4 +1,4 @@
--- 1801_bulk_edit_guest_lists.sql
+-- 2151_bulk_edit_guest_lists.sql
 -- A121 (RRR-167, A65-006, ADR 0080). Bulk edit (Section 11.7) reaches Advancing: guest list entries change state in
 -- bulk on the driver of 1451, so a reviewer approves or declines a show's requests, or the door checks a group in, in
 -- one all-or-nothing call ("approve 20 in 60 s", Section 11.11).
