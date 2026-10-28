@@ -11,7 +11,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(74);
+select plan(75);
 
 create function pg_temp.project(p_key text) returns uuid language sql stable as $$
   select p.id from app.projects p where p.org_id = pg_temp.id('lim_org') and p.project_key = p_key $$;
@@ -118,6 +118,8 @@ select throws_ok($$update app.projects set name = 'Spring Tour' where id = pg_te
   'XR001', null, 'not even to the writable project');
 select lives_ok($$insert into app.favorites (org_id, person_id, node_id) values (pg_temp.id('lim_org'), pg_temp.id('omar'), 'projects')$$,
   'a read-only seat keeps the personal tables: favorites');
+select ok(app.record_recent_view(pg_temp.id('lim_org'), 'projects', pg_temp.project('LRB')),
+  'and its recents, which no read-only state guards: opening a read-only project is still noted');
 select throws_like($$update app.membership_roles set deleted_at = now() where membership_id = pg_temp.id('pia@lim_org')$$,
   'plan_limit_read_only: Your seat is read-only:%',
   'an Admin whose seat is read-only cannot change another member''s roles, so cannot free a seat past the Owner''s choice');
