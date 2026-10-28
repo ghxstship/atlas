@@ -57,7 +57,8 @@
     "vendor": "Proveedor",
     "viewLabel": "Vista",
     "lineRemoved": "Se quitó {description}.",
-    "lineUndo": "Alguien cambió esta línea después de que usted la quitó; vuelva a cargar la página para ver el cambio."
+    "lineUndo": "Alguien cambió esta línea después de que usted la quitó; vuelva a cargar la página para ver el cambio.",
+    "editUndo": "Alguien cambió esta línea después de su edición; vuelva a cargar la página para ver el cambio."
   },
   "views": {
     "table": "Tabla",

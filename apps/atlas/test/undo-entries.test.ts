@@ -6,6 +6,7 @@ import {
   softDelete,
   stateChange,
   toggle,
+  versionChain,
 } from "../components/undo/entries";
 import { createUndoStack } from "../components/undo/undo-stack";
 
@@ -125,5 +126,94 @@ describe("undo entries for inline edits (A118)", () => {
     await stack.undo();
     await stack.redo();
     expect(calls).toEqual(["checked false", "checked true"]);
+  });
+});
+
+/** A budget line on a fake server: a save commits only against the line's version now, as updateBudgetLine does. */
+function budgetLine(values: string) {
+  let version = 0;
+  return {
+    get values() {
+      return values;
+    },
+    version: () => `v${version}`,
+    save(expected: string, next: string): string | null {
+      if (expected !== `v${version}`) return null;
+      version += 1;
+      values = next;
+      return `v${version}`;
+    },
+  };
+}
+
+describe("budget cell undo saves against the version its edit left (A118)", () => {
+  /** A cell edit the way the budget editor makes it: saved, recorded on the chain, pushed with its inverse. */
+  function editor(line: ReturnType<typeof budgetLine>) {
+    const chain = versionChain();
+    const stack = createUndoStack();
+    const edit = (next: string) => {
+      const before = line.values;
+      const from = line.version();
+      const left = line.save(from, next);
+      if (left === null) throw new Error("the edit itself was stale");
+      chain.record("l1", from, left);
+      return stack.push(
+        propertyEdit({
+          label: "Edited line 1.",
+          before: { line: before },
+          after: { line: next },
+          save: (set) => {
+            const expected = chain.latest("l1", left);
+            const saved = line.save(expected, String(set.line));
+            if (saved === null) {
+              return Promise.resolve({
+                ok: false as const,
+                message: "Someone changed this line after your edit.",
+              });
+            }
+            chain.record("l1", expected, saved);
+            return Promise.resolve({ ok: true as const });
+          },
+        }),
+      );
+    };
+    return { stack, edit };
+  }
+
+  it("undoes two edits of one line in turn, and redoes against the undo's version", async () => {
+    const line = budgetLine("cost 50");
+    const { stack, edit } = editor(line);
+    edit("cost 100");
+    edit("cost 120");
+    await stack.undo();
+    expect(line.values).toBe("cost 100");
+    await stack.undo();
+    expect(line.values).toBe("cost 50");
+    await stack.redo();
+    expect(line.values).toBe("cost 100");
+  });
+
+  it("refuses an undo after someone else saved the line, even once the grid holds their version", async () => {
+    const line = budgetLine("cost 50, quantity 1");
+    const { stack, edit } = editor(line);
+    const mine = edit("cost 100, quantity 1");
+    // Another session saves the same line; the grid reloads (a paste or a delete) and now shows their version.
+    line.save(line.version(), "cost 100, quantity 5");
+    const events: string[] = [];
+    stack.subscribe((e) => events.push(e.kind === "failed" ? `failed ${e.message}` : e.kind));
+    await stack.undo();
+    expect(line.values).toBe("cost 100, quantity 5");
+    expect(stack.has(mine.id)).toBe(true);
+    expect(events).toEqual(["failed Someone changed this line after your edit."]);
+  });
+
+  it("follows only the row's own chain", () => {
+    const chain = versionChain();
+    chain.record("l1", "v0", "v1");
+    chain.record("l1", "v1", "v2");
+    chain.record("l2", "v2", "v3");
+    expect(chain.latest("l1", "v0")).toBe("v2");
+    expect(chain.latest("l2", "v0")).toBe("v0");
+    expect(chain.latest("l1", "v9")).toBe("v9");
   });
 });

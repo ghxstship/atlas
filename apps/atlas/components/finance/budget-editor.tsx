@@ -25,7 +25,7 @@ import {
   type GridColumn,
 } from "@xos/ui";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import {
   addBudgetLinesAction,
   deleteBudgetLinesAction,
@@ -35,7 +35,7 @@ import {
   type ActionState,
 } from "@/app/[org]/finance/actions";
 import { parsePastedLines } from "@/lib/finance/paste";
-import { propertyEdit, softDelete } from "@/components/undo/entries";
+import { propertyEdit, softDelete, versionChain } from "@/components/undo/entries";
 import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { ActionFeedback } from "./kit-action-feedback";
 import { fieldError } from "./kit-field-error";
@@ -116,14 +116,9 @@ export function BudgetEditor(props: Props) {
   );
   // The undo stack entry a paste or delete toast shows.
   const [undo, setUndo] = useState<{ entry: number; message: string } | null>(null);
-  // Each line's latest version, so an undo of a cell edit saves against what the line holds now.
-  const versions = useRef(new Map<string, string>());
-  useEffect(() => {
-    for (const l of lines) {
-      const known = versions.current.get(l.id);
-      if (!known || known < l.updatedAt) versions.current.set(l.id, l.updatedAt);
-    }
-  }, [lines]);
+  // The versions this tab's own saves left. An undo of a cell edit saves against the version its edit left, carried
+  // past this tab's later saves of the line and never past anyone else's, so it cannot overwrite their change.
+  const [chain] = useState(versionChain);
   useEffect(
     () =>
       undoStack.subscribe((event) => {
@@ -134,10 +129,10 @@ export function BudgetEditor(props: Props) {
     [],
   );
   // A refusal reads in the catalog's words (finance.refusals), never the database's sentence.
-  const outcome = (result: ActionState): UndoResult => {
+  const outcome = (result: ActionState, stale = "common.lineUndo"): UndoResult => {
     if (result.ok) return { ok: true };
     const error = result.error;
-    if (result.conflict || !error) return { ok: false, message: t("common.lineUndo") };
+    if (result.conflict || !error) return { ok: false, message: t(stale) };
     if (error.kind === "refusal") {
       const key = `refusals.${error.rule}`;
       return {
@@ -171,22 +166,26 @@ export function BudgetEditor(props: Props) {
       ).id,
       message,
     });
-  /** Saves a line's values for an undo or a redo of a cell edit, against its latest version. */
-  const resave = async (id: string, input: BudgetLineInput): Promise<UndoResult> => {
+  /**
+   * Saves a line's values for an undo or a redo of a cell edit, against the version the edit left as this tab's own
+   * saves carried it on. A save by someone else in between leaves that version behind, and the server refuses.
+   */
+  const resave = async (id: string, input: BudgetLineInput, left: string): Promise<UndoResult> => {
+    const expected = chain.latest(id, left);
     const result = await submit(updateBudgetLineAction, {
       org: props.org,
       id,
-      expectedUpdatedAt: versions.current.get(id) ?? "",
+      expectedUpdatedAt: expected,
       line: JSON.stringify(input),
     });
     if (result.line) {
       const saved = result.line;
-      versions.current.set(saved.id, saved.updatedAt);
+      chain.record(saved.id, expected, saved.updatedAt);
       setLines((current) => current.map((l) => (l.id === saved.id ? { ...l, ...saved } : l)));
       setGridKey((k) => k + 1);
       start(() => router.refresh());
     }
-    return outcome(result);
+    return outcome(result, "common.editUndo");
   };
   const [sheet, setSheet] = useState<"add" | "catalog" | "paste" | "delete" | "draw" | null>(null);
   const [, start] = useTransition();
@@ -305,7 +304,7 @@ export function BudgetEditor(props: Props) {
     setStatus(result);
     if (result.line) {
       const saved = result.line;
-      versions.current.set(saved.id, saved.updatedAt);
+      chain.record(saved.id, expected, saved.updatedAt);
       setLines((current) => current.map((l) => (l.id === saved.id ? { ...l, ...saved } : l)));
       start(() => router.refresh());
       const before = inputOf(line);
@@ -315,7 +314,8 @@ export function BudgetEditor(props: Props) {
           toast: false,
           before: { line: JSON.stringify(before) },
           after: { line: JSON.stringify(input) },
-          save: (set) => resave(line.id, JSON.parse(String(set.line)) as BudgetLineInput),
+          save: (set) =>
+            resave(line.id, JSON.parse(String(set.line)) as BudgetLineInput, saved.updatedAt),
         }),
       );
     } else {

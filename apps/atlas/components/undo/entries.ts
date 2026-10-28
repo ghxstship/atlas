@@ -106,3 +106,32 @@ export function toggle(input: {
     redo: () => input.set(input.after),
   };
 }
+
+/**
+ * The versions this tab's own saves left, row by row, for edits whose server check is the row's version alone (a
+ * budget line). Each save records the version it was sent against and the one it produced. An undo or a redo saves
+ * against the end of its entry's chain: past this tab's own later saves of the row, which an earlier edit's undo may
+ * follow, but never past a save by someone else, which no save here started from. Such an undo goes against an old
+ * version and the server refuses it.
+ */
+export function versionChain() {
+  const next = new Map<string, string>();
+  const key = (id: string, version: string) => `${id}@${version}`;
+  return {
+    /** A save of row `id` sent against `from` committed and left `to`. */
+    record(id: string, from: string, to: string) {
+      if (from && to && from !== to) next.set(key(id, from), to);
+    },
+    /** The version row `id` holds after this tab's own saves that followed `version`. */
+    latest(id: string, version: string): string {
+      let current = version;
+      // Versions only grow, so a chain never loops; the bound keeps a bad entry from spinning.
+      for (let step = 0; step <= next.size; step += 1) {
+        const after = next.get(key(id, current));
+        if (after === undefined) break;
+        current = after;
+      }
+      return current;
+    },
+  };
+}
