@@ -172,9 +172,18 @@ _Amended 2026-10-23._
 - **Field history in v1.** The eight field history subjects (records, shifts, invoices, asset units, SOPs,
   documents, purchase orders and vendors) gain `fieldHistory` (`GET /<resource>/{id}/field-history`).
   - It answers one entry per audit event with its changed fields, newest first.
-  - It is a page whose `next_cursor` is always null: `limit` (at most 1,000) bounds it, as `app.field_history`
-    does.
+  - It reads `app.field_history_events` (migration 2061), which groups `app.field_history`'s rows into one row per
+    event with its changes as a JSON array. `app.field_history` answers one row per changed field while its limit
+    counts events, and PostgREST caps every answer at `max_rows` (1,000) without an error, so a long or busy
+    history lost its oldest events, or the last event lost some of its changes. With one row per event, `limit`
+    and `max_rows` count the same thing. Atlas's history tab reads it too.
+  - It is a page whose `next_cursor` is always null: `limit` (at most 1,000 events) bounds it.
   - A row the caller cannot read answers 404.
+- **Compare-and-set on instants.** A bulk row's `expect` was compared with the row as JSON, and a stored instant
+  reads back as `+00:00`, so an integration that sent the same instant with `Z` was refused as `bulk_stale`.
+  Migration 2062 makes `private.bulk_check_expect` treat two full ISO 8601 timestamps with an offset as equal when
+  they name the same instant. A date alone, a timestamp without an offset and any other text still compare
+  exactly.
 - **Co-editing in v1.** v1 has no operation that writes a live document or joins its room.
   - Yjs updates travel over the private Realtime channel, and only a Yjs client can merge them; a REST write
     would bypass the merge.
