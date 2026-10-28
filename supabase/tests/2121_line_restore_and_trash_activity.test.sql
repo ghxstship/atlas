@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(25);
+select plan(27);
 
 create function pg_temp.events(p_type text, p_key text) returns integer
 language sql as $$
@@ -89,6 +89,28 @@ select throws_ok($$select app.restore_trash_item('invoice_lines', (select id fro
 select pg_temp.as_user('xavier');
 select throws_ok($$select app.restore_trash_item('invoice_lines', (select id from world where key = 'il3'))$$, '42501', null,
   'nor can another org');
+
+-- 2122: a child table that grants UPDATE on deleted_at alone (as project_shares, applications and api_keys do) is
+-- walked, so its rows deleted with the line come back with it.
+select pg_temp.as_platform();
+create table app.a118_line_notes (
+  id uuid primary key default gen_random_uuid(),
+  invoice_line_id uuid not null references app.invoice_lines (id),
+  note text not null,
+  deleted_at timestamptz
+);
+grant select on app.a118_line_notes to authenticated;
+grant update (deleted_at) on app.a118_line_notes to authenticated;
+insert into app.a118_line_notes (invoice_line_id, note) values (pg_temp.id('il1'), 'Rigging quote attached.');
+select pg_temp.as_user('carol');
+update app.invoice_lines set deleted_at = now() where id = pg_temp.id('il1');
+select pg_temp.as_platform();
+update app.a118_line_notes set deleted_at = now();
+select pg_temp.as_user('carol');
+select is(app.restore_trash_item('invoice_lines', pg_temp.id('il1')), 2,
+  'a child whose table grants UPDATE on deleted_at alone is restored with its line');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.a118_line_notes where deleted_at is null), 1, 'and is live again');
 
 -- Moving to Trash reaches Activity --------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
