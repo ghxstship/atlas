@@ -174,7 +174,28 @@
     "title": "Rules every organization keeps",
     "description": "Separation of duties: one person never does both halves of these acts. The database enforces each rule, for every organization.",
     "enforcedOn": "Checked on {where}",
-    "tighten": "No rule can be loosened. Approval policies add more approvers where you need them."
+    "tighten": "No rule can be switched off. Approval policies add more approvers where you need them, and the stricter options below add checks.",
+    "alwaysOn": "Always on",
+    "options": {
+      "title": "Stricter options",
+      "description": "Your organization can make separation of duties stricter, never looser. Each option you turn on adds a check on top of the rules every organization keeps.",
+      "on": "On",
+      "off": "Off",
+      "turnOn": "Turn on",
+      "turnOff": "Turn off",
+      "tightens": "Tightens {rule}",
+      "readOnly": "Only someone who can tighten separation of duties turns these options on or off.",
+      "offConfirm": {
+        "title": "Turn off this option?",
+        "body": "{option} The rules every organization keeps stay on.",
+        "confirm": "Turn off"
+      },
+      "names": {
+        "sod_change_order_requester_steps": "The requester of a change order cannot decide any step of its approval.",
+        "sod_document_creator": "Whoever created a purchase order, change order, invoice, requisition, expense, payroll run or settlement cannot approve it or decide a step of its approval.",
+        "sod_receiver_po_approver": "Goods are received by someone other than a person who approved the purchase order or a change to it."
+      }
+    }
   },
   "customFields": {
     "title": "Custom fields",
@@ -483,7 +504,8 @@
     "discipline_unknown": "One of the disciplines is not in the canon.",
     "discipline_department_not_in_use": "Choose a discipline's department too.",
     "jurisdiction_unknown": "Choose a jurisdiction from the canon.",
-    "time_zone_unknown": "Choose a time zone from the list."
+    "time_zone_unknown": "Choose a time zone from the list.",
+    "separation_option_unknown": "Only a stricter option can be turned on or off. The rules every organization keeps are always on."
   },
   "fieldErrors": {
     "name": "Enter a name of up to 200 characters.",

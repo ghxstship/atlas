@@ -47,6 +47,7 @@ import { orgToday } from "@/lib/shell/time-zone";
 import { EmptyStateLink } from "@/components/ui";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { customFieldList } from "@/lib/custom-fields/server";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "gallery"];
 const REFUSALS = "vendors.refusals";
@@ -77,10 +78,9 @@ export async function VendorDirectory({
   const title = t("directory.title");
   if (!vendors.ok || !classes.ok || !rules.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("directory.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canWrite = ctx.capabilities.has("vendors.vendor.write");
