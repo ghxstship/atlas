@@ -13474,6 +13474,8 @@ export type Database = {
       };
       custom_object_records: {
         Row: {
+          archived_at: string | null;
+          archived_by: string | null;
           created_at: string;
           created_by: string | null;
           custom_object_type_id: string;
@@ -13486,6 +13488,8 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           custom_object_type_id: string;
@@ -13497,6 +13501,8 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           custom_object_type_id?: string;
@@ -13508,6 +13514,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "custom_object_records_archived_by_fkey";
+            columns: ["archived_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "custom_object_records_created_by_fkey";
             columns: ["created_by"];
@@ -14948,6 +14961,8 @@ export type Database = {
       };
       documents: {
         Row: {
+          archived_at: string | null;
+          archived_by: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -14961,6 +14976,8 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -14973,6 +14990,8 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -14985,6 +15004,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "documents_archived_by_fkey";
+            columns: ["archived_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "documents_created_by_fkey";
             columns: ["created_by"];
@@ -40459,6 +40485,8 @@ export type Database = {
       records: {
         Row: {
           accountable_party_id: string | null;
+          archived_at: string | null;
+          archived_by: string | null;
           blocker_text: string | null;
           created_at: string;
           created_by: string | null;
@@ -40495,6 +40523,8 @@ export type Database = {
         ComputedFields: "record_class" | "record_display_key";
         Insert: {
           accountable_party_id?: string | null;
+          archived_at?: string | null;
+          archived_by?: string | null;
           blocker_text?: string | null;
           created_at?: string;
           created_by?: string | null;
@@ -40528,6 +40558,8 @@ export type Database = {
         };
         Update: {
           accountable_party_id?: string | null;
+          archived_at?: string | null;
+          archived_by?: string | null;
           blocker_text?: string | null;
           created_at?: string;
           created_by?: string | null;
@@ -40563,6 +40595,13 @@ export type Database = {
           {
             foreignKeyName: "records_accountable_party_id_fkey";
             columns: ["accountable_party_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_archived_by_fkey";
+            columns: ["archived_by"];
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
@@ -53529,6 +53568,8 @@ export type Database = {
       };
       vendors: {
         Row: {
+          archived_at: string | null;
+          archived_by: string | null;
           counterparty_id: string;
           created_at: string;
           created_by: string | null;
@@ -53545,6 +53586,8 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           counterparty_id: string;
           created_at?: string;
           created_by?: string | null;
@@ -53560,6 +53603,8 @@ export type Database = {
           vendor_state?: Database["app"]["Enums"]["vendor_state"];
         };
         Update: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           counterparty_id?: string;
           created_at?: string;
           created_by?: string | null;
@@ -53575,6 +53620,13 @@ export type Database = {
           vendor_state?: Database["app"]["Enums"]["vendor_state"];
         };
         Relationships: [
+          {
+            foreignKeyName: "vendors_archived_by_fkey";
+            columns: ["archived_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "vendors_counterparty_id_fkey";
             columns: ["counterparty_id"];
@@ -53621,6 +53673,8 @@ export type Database = {
       };
       venues: {
         Row: {
+          archived_at: string | null;
+          archived_by: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -53641,6 +53695,8 @@ export type Database = {
         };
         ComputedFields: "venue_latitude" | "venue_longitude";
         Insert: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -53658,6 +53714,8 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -53675,6 +53733,13 @@ export type Database = {
           updated_by?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "venues_archived_by_fkey";
+            columns: ["archived_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "venues_created_by_fkey";
             columns: ["created_by"];
@@ -55433,6 +55498,8 @@ export type Database = {
       };
       work_orders: {
         Row: {
+          archived_at: string | null;
+          archived_by: string | null;
           awarded_bid_id: string | null;
           bid_due_at: string | null;
           budget_minor: number | null;
@@ -55461,6 +55528,8 @@ export type Database = {
         };
         ComputedFields: "work_order_display_key";
         Insert: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           awarded_bid_id?: string | null;
           bid_due_at?: string | null;
           budget_minor?: number | null;
@@ -55487,6 +55556,8 @@ export type Database = {
           zone_id?: string | null;
         };
         Update: {
+          archived_at?: string | null;
+          archived_by?: string | null;
           awarded_bid_id?: string | null;
           bid_due_at?: string | null;
           budget_minor?: number | null;
@@ -55513,6 +55584,13 @@ export type Database = {
           zone_id?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: "work_orders_archived_by_fkey";
+            columns: ["archived_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "work_orders_awarded_bid_fkey";
             columns: ["awarded_bid_id"];
@@ -59772,6 +59850,7 @@ export type Database = {
         Args: { p_reason: string; p_requisition_id: string };
         Returns: boolean;
       };
+      archive_row: { Args: { p_entity: string; p_id: string }; Returns: string };
       assign_help_desk_request: {
         Args: {
           p_assignee_membership_id: string;
@@ -63857,6 +63936,7 @@ export type Database = {
         Args: { p_id: string; p_note?: string; p_state: string };
         Returns: undefined;
       };
+      unarchive_row: { Args: { p_entity: string; p_id: string }; Returns: string };
       undo_import_batch: {
         Args: { p_import_batch_id: string; p_reason: string };
         Returns: {

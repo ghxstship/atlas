@@ -31,8 +31,9 @@ select is((select location from app.venues where id = pg_temp.id('venue_a')), nu
 
 -- Places events --------------------------------------------------------------------------------------------------
 update app.venues set name = 'Northwind Pier Pavilion East' where id = pg_temp.id('venue_a');
-update app.venues set deleted_at = now() where id = pg_temp.id('venue_a');
-update app.venues set deleted_at = null where id = pg_temp.id('venue_a');
+-- A venue is archived and restored through app.archive_row and app.unarchive_row (2180).
+select app.archive_row('venues', pg_temp.id('venue_a'));
+select app.unarchive_row('venues', pg_temp.id('venue_a'));
 with x as (insert into app.capability_documents (venue_id, title, document_uri, valid_from) values (pg_temp.id('venue_a'), 'Tech Pack', 'docs/tech-pack.pdf', '2027-01-01') returning id) insert into world select 'doc', id from x;
 update app.capability_documents set is_frozen = true where id = pg_temp.id('doc');
 with x as (insert into app.spaces (venue_id, name) values (pg_temp.id('venue_a'), 'Main Deck') returning id) insert into world select 'space', id from x;
