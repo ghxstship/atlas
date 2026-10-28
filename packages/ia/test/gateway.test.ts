@@ -41,6 +41,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Deliveries",
     "Submittals",
     "Advance",
+    "Credentials",
     "Invoices",
     "Compliance",
     "Documents",
@@ -81,6 +82,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Set Times",
     "Hospitality",
     "Guest List",
+    "Credentials",
     "Settlement",
     "Documents",
     "Messages",
@@ -241,6 +243,7 @@ describe("gateway engagement tabs (Section 4.5.8)", () => {
       "Set Times",
       "Hospitality",
       "Guest List",
+      "Credentials",
       "Settlement",
       "Messages",
     ]);
