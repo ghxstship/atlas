@@ -40,6 +40,11 @@ export interface ConnectionView {
   readonly lastError: string | null;
   readonly needsCredential: boolean;
   readonly credentialStored: boolean;
+  /**
+   * Set for providers whose connection stores a developer app's client ID and secret (UPS, FedEx): where to
+   * create that app and which values to copy. The form then asks for the two values instead of a token.
+   */
+  readonly clientCredentialHelp?: string;
   readonly scopes: readonly { readonly value: string; readonly label: string }[];
 }
 
@@ -66,6 +71,9 @@ export interface IntegrationsCopy {
   readonly kindOAuth: string;
   readonly kindKey: string;
   readonly kindServiceAccount: string;
+  readonly clientId: string;
+  readonly clientSecret: string;
+  readonly clientSecretHelp: string;
   readonly storeCredential: string;
   readonly connect: string;
   readonly pause: string;
@@ -183,32 +191,64 @@ function CredentialForm({
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="connectionId" value={connection.id} />
       <Outcome state={state} success={copy.saved} />
-      <Textarea
-        id={`${id}-secret`}
-        name="secret"
-        label={copy.secret}
-        help={copy.secretHelp}
-        rows={3}
-        required
-        autoComplete="off"
-        spellCheck={false}
-      />
-      <div className="flex flex-wrap items-end gap-12">
-        <Select
-          id={`${id}-kind`}
-          name="kind"
-          label={copy.kind}
-          value="OAuth Token"
-          options={[
-            { value: "OAuth Token", label: copy.kindOAuth },
-            { value: "API Key", label: copy.kindKey },
-            { value: "Service Account", label: copy.kindServiceAccount },
-          ]}
-        />
-        <Button type="submit" variant="secondary" loading={pending}>
-          {copy.storeCredential}
-        </Button>
-      </div>
+      {connection.clientCredentialHelp === undefined ? (
+        <>
+          <Textarea
+            id={`${id}-secret`}
+            name="secret"
+            label={copy.secret}
+            help={copy.secretHelp}
+            rows={3}
+            required
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <div className="flex flex-wrap items-end gap-12">
+            <Select
+              id={`${id}-kind`}
+              name="kind"
+              label={copy.kind}
+              value="OAuth Token"
+              options={[
+                { value: "OAuth Token", label: copy.kindOAuth },
+                { value: "API Key", label: copy.kindKey },
+                { value: "Service Account", label: copy.kindServiceAccount },
+              ]}
+            />
+            <Button type="submit" variant="secondary" loading={pending}>
+              {copy.storeCredential}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <>
+          <Input
+            id={`${id}-client-id`}
+            name="clientId"
+            label={copy.clientId}
+            help={connection.clientCredentialHelp}
+            maxLength={1024}
+            required
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <div className="flex flex-wrap items-end gap-12">
+            <Input
+              id={`${id}-client-secret`}
+              name="clientSecret"
+              type="password"
+              label={copy.clientSecret}
+              help={copy.clientSecretHelp}
+              maxLength={1024}
+              required
+              autoComplete="off"
+            />
+            <Button type="submit" variant="secondary" loading={pending}>
+              {copy.storeCredential}
+            </Button>
+          </div>
+        </>
+      )}
     </form>
   );
 }

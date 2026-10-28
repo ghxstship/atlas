@@ -84,7 +84,8 @@
   "bulk": {
     "clear": "Borrar selección",
     "label": "Acciones masivas",
-    "selected": "{n} seleccionados"
+    "selected": "{n} seleccionados",
+    "itemSelected": "Seleccionado"
   },
   "calendar": {
     "agenda": "Agenda",
@@ -532,6 +533,7 @@
   },
   "recordList": {
     "columns": {
+      "select": "Seleccionar",
       "state": "Estado",
       "key": "Clave",
       "title": "Registro",

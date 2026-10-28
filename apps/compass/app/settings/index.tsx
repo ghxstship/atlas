@@ -1,14 +1,18 @@
+import { listOrgsAllowingPersonalTokens } from "@xos/data/developer";
+import type { XosClient } from "@xos/data/client";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
-import { useRouter } from "expo-router";
-import { useState, type ReactElement } from "react";
+import { useRouter, type Href } from "expo-router";
+import { useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { hapticsOn } from "../../src/domain/settings";
 import { useCompass } from "../../src/runtime/CompassProvider";
 import { useAllowed } from "../../src/screens/common";
+import { groupSections, settingsSections, type SettingsSection } from "../../src/settings/sections";
 import {
   Button,
   Card,
+  Icon,
   InlineAlert,
   ListRow,
   Screen,
@@ -19,16 +23,43 @@ import {
 } from "../../src/ui";
 
 /**
- * Compass settings: theme with the Sunlight outdoor theme, haptics, battery saver and low-data mode, kiosk
- * mode, blocked people, sign-out and account deletion. The theme also saves to the person's me.theme setting
- * (A30) when it is one the platform knows; Sunlight is a device preference only.
+ * Whether an org the person belongs to allows personal API tokens, so Settings lists Developer (the sitemap's
+ * org-allows-personal-tokens condition, as Gateway reads it). Unknown offline, and then left out.
+ */
+function usePersonalTokens(): boolean {
+  const { client, resolved, network } = useCompass();
+  const [allowed, setAllowed] = useState(false);
+  const member = resolved?.contexts.some((c) => c.kind === "member") ?? false;
+  useEffect(() => {
+    if (!network.isConnected || !member) return undefined;
+    let live = true;
+    void listOrgsAllowingPersonalTokens(client as unknown as XosClient).then((orgs) => {
+      if (live) setAllowed(orgs.ok && orgs.data.length > 0);
+    });
+    return () => {
+      live = false;
+    };
+  }, [client, member, network.isConnected]);
+  return allowed;
+}
+
+/**
+ * Compass settings. This device first: theme with the Sunlight outdoor theme, haptics, battery saver and low-data
+ * mode, biometric unlock and kiosk mode. The theme also saves to the person's me.theme setting (A30) when it is
+ * one the platform knows; Sunlight is a device preference only. Then the person's own settings (Section 4.5.6,
+ * src/settings/sections.ts): the sitemap's 14 sections by group, each opening its Compass screen or, until
+ * Compass draws it, the same section in Gateway. Then help, blocked people, account deletion and sign-out.
  */
 export default function SettingsScreen(): ReactElement {
   const { t } = useTranslation();
   const router = useRouter();
-  const { settings, updateSettings, status, signOut, enqueue, config, orgSettings } = useCompass();
+  const { settings, updateSettings, status, signOut, enqueue, config, orgSettings, resolved } =
+    useCompass();
   const canKiosk = useAllowed("kiosk.operate");
+  const personalTokens = usePersonalTokens();
   const [confirmSignOut, setConfirmSignOut] = useState(false);
+  const audience = resolved?.identity.audience;
+  const sections = audience ? settingsSections(audience, config, { personalTokens }) : [];
   const setTheme = (theme: ThemePreference) => {
     updateSettings({ theme });
     if (theme !== "sunlight") {
@@ -42,9 +73,16 @@ export default function SettingsScreen(): ReactElement {
       });
     }
   };
+  const open = (section: SettingsSection) => {
+    if (section.target.kind === "native") router.push(section.target.route as Href);
+    else void Linking.openURL(section.target.url);
+  };
   const queued = status?.queued ?? 0;
   return (
     <Screen testID="settings" title={t("compass.settings.title")}>
+      <Text variant="heading16" heading>
+        {t("compassSettings.index.device")}
+      </Text>
       <Card title={t("compass.settings.theme")}>
         <SegmentedControl
           testID="settings-theme"
@@ -102,8 +140,8 @@ export default function SettingsScreen(): ReactElement {
           onChange={(biometric) => updateSettings({ biometric })}
         />
       </Card>
-      <Card>
-        {canKiosk ? (
+      {canKiosk ? (
+        <Card>
           <ListRow
             testID="settings-kiosk"
             icon="tablet"
@@ -111,12 +149,39 @@ export default function SettingsScreen(): ReactElement {
             subtitle={t("compass.settings.kioskHelp")}
             onPress={() => router.push("/kiosk")}
           />
-        ) : null}
-        <ListRow
-          icon="user"
-          title={t("compass.settings.personal")}
-          onPress={() => void Linking.openURL(`${config.gatewayUrl}/settings`)}
-        />
+        </Card>
+      ) : null}
+      <Text variant="heading16" heading>
+        {t("compassSettings.index.personal")}
+      </Text>
+      {groupSections(sections).map(({ group, sections: inGroup }) => (
+        <Card
+          key={group}
+          testID={`settings-group-${group}`}
+          title={t(`compassSettings.groups.${group}`)}
+        >
+          {inGroup.map((section) => (
+            <ListRow
+              key={section.id}
+              testID={`settings-section-${section.id}`}
+              icon={section.icon}
+              title={t(section.label)}
+              subtitle={
+                section.target.kind === "native"
+                  ? t(section.lead)
+                  : t("compassSettings.index.inGateway", { lead: t(section.lead) })
+              }
+              trailing={
+                section.target.kind === "gateway" ? (
+                  <Icon name="external-link" size={20} tone="secondary" />
+                ) : undefined
+              }
+              onPress={() => open(section)}
+            />
+          ))}
+        </Card>
+      ))}
+      <Card>
         <ListRow
           testID="settings-help"
           icon="circle-help"
@@ -136,7 +201,7 @@ export default function SettingsScreen(): ReactElement {
           title={t("compass.settings.deleteAccount")}
           subtitle={t("compass.settings.deleteAccountHelp")}
           testID="settings-delete-account"
-          onPress={() => router.push("/settings/account")}
+          onPress={() => router.push("/settings/delete-account")}
         />
       </Card>
       {confirmSignOut && queued > 0 ? (

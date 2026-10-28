@@ -124,7 +124,7 @@ async function runOne(options: RunnerOptions, job: ClaimedJob): Promise<JobOutco
     }
     const needsCredential = providerEntry(connection.providerCode)?.needsCredential ?? true;
     const credential = needsCredential
-      ? parseCredential(await options.store.credential(connection.id))
+      ? parseCredential(await options.store.credential(connection.id), connection.providerCode)
       : null;
     outcome = await connector.sync({
       run,

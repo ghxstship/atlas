@@ -16,6 +16,7 @@ import {
   semanticText,
 } from "@xos/data/search-query";
 import { isNodeVisible } from "@xos/ia";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { SETTINGS } from "@xos/schemas/settings";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { CREATE_KINDS } from "@/lib/shell/create-menu";
@@ -81,7 +82,7 @@ const ACTIONS = [
 ] as const;
 
 /** The sitemap node an action needs to be visible, and the capability it needs, if any. */
-function gate(action: (typeof ACTIONS)[number]): { node: string; capability?: string } {
+function gate(action: (typeof ACTIONS)[number]): { node: string; capability?: CapabilityCode } {
   if ("node" in action) return { node: action.node };
   const kind = CREATE_KINDS.find((k) => k.id === action.create);
   if (!kind) throw new Error(`Unknown create kind ${action.create}`);

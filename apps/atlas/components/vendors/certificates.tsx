@@ -40,6 +40,7 @@ import {
 } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "calendar"];
 const REFUSALS = "vendors.refusals";
@@ -83,10 +84,9 @@ export async function InsuranceCertificates({
   const title = t("certificates.title");
   if (!certs.ok || !vendors.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("certificates.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canWrite = ctx.capabilities.has("vendors.coi.write");

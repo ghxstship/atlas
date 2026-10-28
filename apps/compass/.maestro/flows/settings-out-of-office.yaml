@@ -1,0 +1,74 @@
+appId: pro.ghxstship.compass
+# Settings, Out of Office in Compass (A111, S4.5.6-44): a member turns out of office on with a first and last day.
+# An end before the start is refused on the phone, and the server holds what was saved (private.person_away reads it).
+# Named after its file: config.yaml orders flows by name.
+name: settings-out-of-office
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/out-of-office
+- extendedWaitUntil:
+    visible:
+      id: "setting-me.out_of_office.enabled"
+    timeout: 30000
+- tapOn:
+    id: "setting-me.out_of_office.enabled"
+- extendedWaitUntil:
+    visible:
+      id: "setting-me.out_of_office.enabled-write-saved"
+    timeout: 30000
+- tapOn:
+    id: "setting-me.out_of_office.starts_on"
+- inputText: "2026-12-21"
+- hideKeyboard
+- tapOn:
+    id: "setting-me.out_of_office.starts_on-save"
+- extendedWaitUntil:
+    visible:
+      id: "setting-me.out_of_office.starts_on-write-saved"
+    timeout: 30000
+# A last day before the first is refused before anything is sent.
+- tapOn:
+    id: "setting-me.out_of_office.ends_on"
+- inputText: "2026-12-01"
+- hideKeyboard
+- tapOn:
+    id: "setting-me.out_of_office.ends_on-save"
+- assertVisible: "End on or after the start date."
+- tapOn:
+    id: "setting-me.out_of_office.ends_on"
+- eraseText: 20
+- inputText: "2027-01-04"
+- hideKeyboard
+- tapOn:
+    id: "setting-me.out_of_office.ends_on-save"
+- extendedWaitUntil:
+    visible:
+      id: "setting-me.out_of_office.ends_on-write-saved"
+    timeout: 30000
+- runScript:
+    file: ../scripts/personal-setting-saved.js
+    env:
+      EMAIL: field@example.com
+      KEY: me.out_of_office.ends_on
+      EXPECT: "2027-01-04"
+- assertTrue: ${output.setting.status == 200 && output.setting.value == "2027-01-04"}
+- runScript:
+    file: ../scripts/personal-setting-saved.js
+    env:
+      EMAIL: field@example.com
+      KEY: me.out_of_office.enabled
+      EXPECT: "true"
+- assertTrue: ${output.setting.status == 200 && output.setting.value == "true"}
+# Back from out of office, so the member's approvals stay theirs for the flows after this one.
+- tapOn:
+    id: "setting-me.out_of_office.enabled"
+- extendedWaitUntil:
+    visible:
+      id: "setting-me.out_of_office.enabled-write-saved"
+    timeout: 30000

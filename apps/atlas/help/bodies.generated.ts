@@ -269,6 +269,24 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: 'Planners can plan a Draft shift from one line in the quick add field, such as "#stagehand @dana ~NWS-S01 Friday 8am-4pm": ',
+          },
+          { t: "code", v: "#" },
+          { t: "text", v: " names the role, " },
+          { t: "code", v: "@" },
+          { t: "text", v: " the person (leave it out for an open shift), " },
+          { t: "code", v: "~" },
+          {
+            t: "text",
+            v: " the scope and the date its call and end. Without an end time a shift runs eight hours.",
+          },
+        ],
+      },
       { t: "h2", v: "Time entries and timesheets" },
       {
         t: "p",
@@ -286,6 +304,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Rate cards set pay by role and rule. Run the payroll export for a pay period, post it, and the period closes. A closed period cannot be reopened. Pay rates are masked for people without payroll access.",
+          },
+        ],
+      },
+      { t: "h2", v: "Per diems" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Add per diems in Crew > Per Diems once a project is chosen: pick a member or a person engaged on the project, the first and last day, and the daily amount. Each day is recorded once per person, and external crew receive per diems only while their engagement is Active or Closing. Removing a per diem keeps its history.",
           },
         ],
       },
@@ -2023,6 +2051,31 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: ", or open its full page from the peek." },
         ],
       },
+      { t: "h2", v: "Quick add" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Type one line in the quick add field above the list, or in the " },
+          { t: "strong", v: "Create" },
+          { t: "text", v: " menu, and press " },
+          { t: "strong", v: "Enter" },
+          {
+            t: "text",
+            v: '. Words become chips before you save: a date such as "Friday 8am" sets when the record is due (a range such as "Friday 8am-10am" sets when it starts and ends), ',
+          },
+          { t: "code", v: "@" },
+          { t: "text", v: " names the owner, " },
+          { t: "code", v: "#" },
+          { t: "text", v: " the canon category, " },
+          { t: "code", v: "/" },
+          { t: "text", v: " the kind and " },
+          { t: "code", v: "~" },
+          {
+            t: "text",
+            v: " the scope. A token that matches nothing you can see stays in the title, one that matches several offers a choice, and removing a chip keeps its words in the title. Without a kind, the record is the page's kind, a Task on most pages.",
+          },
+        ],
+      },
       { t: "h2", v: "Work orders" },
       {
         t: "p",
@@ -2421,6 +2474,24 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: 'Quien planifica puede crear un turno en borrador con una línea en el campo de agregar rápido, como "#tramoyista @dana ~NWS-S01 viernes 8am-4pm": ',
+          },
+          { t: "code", v: "#" },
+          { t: "text", v: " nombra el rol, " },
+          { t: "code", v: "@" },
+          { t: "text", v: " la persona (sin ella, el turno queda abierto), " },
+          { t: "code", v: "~" },
+          {
+            t: "text",
+            v: " el alcance y la fecha su llamada y su fin. Sin hora de fin, un turno dura ocho horas.",
+          },
+        ],
+      },
       { t: "h2", v: "Registros de tiempo y hojas de horas" },
       {
         t: "p",
@@ -2438,6 +2509,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Las tarjetas de tarifas fijan el pago por rol y regla. Ejecute la exportación de nómina de un período, publíquela y el período se cierra. Un período cerrado no se puede reabrir. Las tarifas se ocultan a quienes no tienen acceso a nómina.",
+          },
+        ],
+      },
+      { t: "h2", v: "Viáticos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Agregue viáticos en Equipo > Viáticos después de elegir un proyecto: elija a un miembro o a una persona contratada en el proyecto, el primer y el último día, y el monto diario. Cada día se registra una vez por persona, y el personal externo recibe viáticos solo mientras su contratación está Activa o En cierre. Quitar un viático conserva su historial.",
           },
         ],
       },
@@ -4141,6 +4222,34 @@ export const HELP_BODIES: HelpBodies = {
           },
           { t: "strong", v: "Enter" },
           { t: "text", v: " o abra su página completa desde el panel." },
+        ],
+      },
+      { t: "h2", v: "Agregar rápido" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Escriba una línea en el campo de agregar rápido sobre la lista, o en el menú ",
+          },
+          { t: "strong", v: "Crear" },
+          { t: "text", v: ", y pulse " },
+          { t: "strong", v: "Enter" },
+          {
+            t: "text",
+            v: '. Las palabras se convierten en fichas antes de guardar: una fecha como "viernes 8am" fija cuándo vence el registro (un rango como "viernes 8am-10am" fija cuándo empieza y termina), ',
+          },
+          { t: "code", v: "@" },
+          { t: "text", v: " nombra al responsable, " },
+          { t: "code", v: "#" },
+          { t: "text", v: " la categoría del canon, " },
+          { t: "code", v: "/" },
+          { t: "text", v: " el tipo y " },
+          { t: "code", v: "~" },
+          {
+            t: "text",
+            v: " el alcance. Un elemento que no coincide con nada que usted pueda ver queda en el título, uno que coincide con varios ofrece una opción, y al quitar una ficha sus palabras quedan en el título. Sin tipo, el registro es del tipo de la página, una tarea en la mayoría.",
+          },
         ],
       },
       { t: "h2", v: "Órdenes de trabajo" },

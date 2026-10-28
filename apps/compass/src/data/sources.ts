@@ -1,6 +1,8 @@
 /**
  * Where each local table comes from, per audience (Section 8.7: external reads go through the
- * column-allowlisted api_external views; internal reads go through the app tables under RLS).
+ * column-allowlisted api_external views; internal reads go through the app tables under RLS). The person's
+ * own certifications and documents come from api_external views that return only their rows, whatever their
+ * audience (A109).
  *
  * PowerSync streams these when the PowerSync service is configured (packages/sync/sync-rules.yaml); without
  * it, the REST downloader pulls the same sources. Either way every row passes the device-side scope check
@@ -560,15 +562,40 @@ export const CANON_DOMAIN: Readonly<Record<string, string>> = {
   inspection_result_values: "Inspection Result",
 };
 
+/**
+ * The person's own certifications and documents for the Compass Profile (Section 4.3 item 13, A109). The views return
+ * only the signed-in person's rows (2080), so every audience reads them there, members included.
+ */
+const PERSON_SOURCES: readonly Source[] = [
+  {
+    table: "profile_certifications",
+    schema: "api_external",
+    relation: "my_profile_certifications",
+    select:
+      "id,person_id,source,name,issuing_body,issued_on,expires_on,is_verified,verified_by_org_name,time_zone",
+    personColumn: "person_id",
+  },
+  {
+    table: "profile_documents",
+    schema: "api_external",
+    relation: "my_profile_documents",
+    select:
+      "id,person_id,document_type,document_kind,title,org_name,project_name,issuer,expires_on,document_state,time_zone,file_version_id,file_version_number,file_object_name,file_name,file_content_type,file_size_bytes,file_classification",
+    personColumn: "person_id",
+  },
+];
+
 export function sourcesFor(audience: Audience): readonly Source[] {
-  return [...(isInternal(audience) ? INTERNAL_SOURCES : EXTERNAL_SOURCES), ...CANON_SOURCES].filter(
-    (s) => !s.audiences || s.audiences.includes(audience),
-  );
+  return [
+    ...(isInternal(audience) ? INTERNAL_SOURCES : EXTERNAL_SOURCES),
+    ...PERSON_SOURCES,
+    ...CANON_SOURCES,
+  ].filter((s) => !s.audiences || s.audiences.includes(audience));
 }
 
 /**
  * The sources for a person in several orgs (Section 4.5.7): the app tables when they are a member of any
- * org, the api_external views when any org engages them, and canon once. A table can then come from both;
+ * org, the api_external views when any org engages them, and their own profile rows and canon once. A table can then come from both;
  * the downloader merges its rows before writing, and each row still passes its own org's scope.
  */
 export function sourcesForAudiences(audiences: readonly Audience[]): readonly Source[] {
@@ -577,6 +604,7 @@ export function sourcesForAudiences(audiences: readonly Audience[]): readonly So
   return [
     ...(internal ? INTERNAL_SOURCES : []),
     ...(external ? EXTERNAL_SOURCES : []),
+    ...PERSON_SOURCES,
     ...CANON_SOURCES,
   ];
 }

@@ -10,7 +10,7 @@ export function TemplateCollection({
   bulk,
 }: TemplateCollectionProps): ReactElement {
   return (
-    <div className="flex flex-col gap-12 min-w-0">
+    <div data-template="collection" className="flex flex-col gap-12 min-w-0">
       {header}
       {filters ? <div className="flex flex-wrap items-center gap-6">{filters}</div> : null}
       <div className="min-w-0">{children}</div>

@@ -345,21 +345,34 @@ export async function reviewSubmissionAction(
 
 // Riders --------------------------------------------------------------------------------------------
 
-const counterpartyId = z
+/**
+ * Whose rider it is (R2): nobody (""), a counterparty ("c:<id>") or an individual artist's
+ * engagement ("e:<id>"), so a rider never names both.
+ */
+const party = z
   .string()
   .trim()
-  .transform((v) => (v.length === 0 ? null : v))
-  .pipe(z.uuid().nullable());
+  .transform((v, ctx) => {
+    if (v.length === 0) return { counterpartyId: null, engagementId: null };
+    const [kind, value] = [v.slice(0, 2), v.slice(2)];
+    if (!z.uuid().safeParse(value).success || (kind !== "c:" && kind !== "e:")) {
+      ctx.addIssue({ code: "custom", message: "party" });
+      return z.NEVER;
+    }
+    return kind === "c:"
+      ? { counterpartyId: value, engagementId: null }
+      : { counterpartyId: null, engagementId: value };
+  });
 
 export async function createRiderAction(
   _: AdvancingState,
   form: FormData,
 ): Promise<AdvancingState> {
   const ctx = await contextFor(form);
-  const parsed = z.object({ projectId: id, title, counterpartyId }).safeParse({
+  const parsed = z.object({ projectId: id, title, party }).safeParse({
     projectId: text(form, "projectId"),
     title: text(form, "title"),
-    counterpartyId: text(form, "counterpartyId"),
+    party: text(form, "party"),
   });
   if (!parsed.success) {
     const fields = new Set(parsed.error.issues.map((i) => String(i.path[0])));
@@ -367,7 +380,12 @@ export async function createRiderAction(
   }
   return done(
     ctx.org.slug,
-    await createRider(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data }),
+    await createRider(ctx.viewer.db, {
+      orgId: ctx.org.id,
+      projectId: parsed.data.projectId,
+      title: parsed.data.title,
+      ...parsed.data.party,
+    }),
     (data) => ({ id: data.id }),
   );
 }
@@ -377,17 +395,20 @@ export async function updateRiderAction(
   form: FormData,
 ): Promise<AdvancingState> {
   const ctx = await contextFor(form);
-  const parsed = z.object({ riderId: id, title, counterpartyId }).safeParse({
+  const parsed = z.object({ riderId: id, title, party }).safeParse({
     riderId: text(form, "riderId"),
     title: text(form, "title"),
-    counterpartyId: text(form, "counterpartyId"),
+    party: text(form, "party"),
   });
-  if (!parsed.success) return { fieldErrors: { title: "title" } };
+  if (!parsed.success) {
+    const fields = new Set(parsed.error.issues.map((i) => String(i.path[0])));
+    return { fieldErrors: Object.fromEntries([...fields].map((f) => [f, f])) };
+  }
   return done(
     ctx.org.slug,
     await updateRider(ctx.viewer.db, parsed.data.riderId, {
       title: parsed.data.title,
-      counterpartyId: parsed.data.counterpartyId,
+      ...parsed.data.party,
     }),
   );
 }

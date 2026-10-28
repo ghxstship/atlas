@@ -8,6 +8,7 @@ import {
   type RfqState,
 } from "@xos/data/procurement";
 import { listTransitionRules, listVendors } from "@xos/data/vendors";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { getFormatter } from "next-intl/server";
 import {
   createRfqAction,
@@ -22,6 +23,7 @@ import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import { StateHistory } from "@/components/collection-kit/history";
+import { PresenceFor } from "@/components/presence/presence-for";
 import {
   ActionButton,
   EntityForm,
@@ -47,13 +49,14 @@ import {
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { ResponseForm } from "./forms";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
 const STATES: readonly RfqState[] = ["Proposed", "Issued", "Closed", "Awarded", "Canceled"];
 
 /** Which capability each RFQ move needs (app.transition_rfq). */
-const MOVE_CAPABILITY: Record<RfqState, string> = {
+const MOVE_CAPABILITY: Record<RfqState, CapabilityCode> = {
   Proposed: "procurement.rfq.write",
   Issued: "procurement.rfq.issue",
   Closed: "procurement.bid.unseal",
@@ -90,10 +93,9 @@ export async function RfqsSection({
   const title = t("rfqs.title");
   if (!all.ok || !projects.ok || !vendors.ok || !rules.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("rfqs.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const rfqs = projectId ? all.data.filter((r) => r.projectId === projectId) : all.data;
@@ -205,6 +207,7 @@ export async function RfqsSection({
         properties={properties(selected)}
         actions={transitions(selected)}
       >
+        <PresenceFor table="rfqs" id={selected.id} />
         <p className="m-0 text-text-13 text-text-secondary">
           {selected.state === "Issued" ? t("rfqs.sealedNotice") : t("rfqs.openFullHint")}
         </p>
@@ -289,6 +292,7 @@ async function RfqRecord({
       properties={properties}
       actions={transitions}
     >
+      <PresenceFor table="rfqs" id={rfq.id} />
       {canWrite && rfq.state === "Proposed" ? (
         <KitSection id="rfq-details" title={t("rfqs.details")}>
           <EntityForm
