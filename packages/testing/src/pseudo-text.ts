@@ -46,7 +46,7 @@ export const FORMATTED: readonly RegExp[] = [
   /^\d{1,2}:\d{2}( ?[AP]M)?$/,
   /^[AP]M$/,
   /^[A-Z]{3}$/,
-  /^[\d\s.,:/$€£¥%+\-–—()·]*(AM|PM|USD|EUR|GBP|hrs?|min|h|d|K|M|B)?[\d\s.,:/$€£¥%+\-–—()·]*$/,
+  /^[\d\s.,:/$€£¥%+\-\u2013\u2014()·]*(AM|PM|USD|EUR|GBP|hrs?|min|h|d|K|M|B)?[\d\s.,:/$€£¥%+\-\u2013\u2014()·]*$/,
 ];
 
 /** Never human text even when the data holds it: an event type or enum key shown raw. */
@@ -56,22 +56,22 @@ const RAW_KEY = /^[a-z][a-z0-9]*(?:[._][a-z0-9]+)+$/;
 const HOST = /^([a-z0-9-]+\.)+(com|org|net|io|dev|app|co|us|tech|pro|edu|gov)(\/\S*)?$/i;
 
 /** Separators code puts between data values ("NWS · Northwind Summer Series", "Lee, Jordan"). */
-const SEPARATORS = /\s*(?:·|•|—|–|\||\/|,|:|›|>|\(|\)|\+)\s*|\s+-\s+/;
+const SEPARATORS = /\s*(?:·|•|\u2014|\u2013|\||\/|,|:|›|>|\(|\)|\+)\s*|\s+-\s+/;
 
 /** A record key (NWS-12) or a code (US-FL-MIAMI-DADE, G2.CONTRACTS), with any hyphen glyph. */
-const CODE = /^[A-Z0-9]+(?:[-‐‑‒–−_.][A-Z0-9]+)*$/;
+const CODE = /^[A-Z0-9]+(?:[-‐‑‒\u2013−_.][A-Z0-9]+)*$/;
 
 /** Whether unwrapped text is data (or formatting of data) rather than copy that missed a catalog. */
 export function isData(raw: string, data: KnownText): boolean {
   // Punctuation code puts between values ("· NWS") belongs to neither side.
-  const text = raw.replace(/^[\s·•.,:;|/()–—-]+|[\s·•.,:;|/()–—-]+$/g, "");
+  const text = raw.replace(/^[\s·•.,:;|/()\u2013\u2014-]+|[\s·•.,:;|/()\u2013\u2014-]+$/g, "");
   if (!/[A-Za-z]{2,}/.test(text)) return true;
   // A site shown by its host name; a raw key never ends in a top-level domain.
   if (HOST.test(text)) return true;
   if (RAW_KEY.test(text) && !data.identifiers) return data.shownAsWritten?.(text) === true;
   // A value keeps its own punctuation ("produces.", "(per brief)"): look it up with only the
   // separators before it removed, too.
-  const leading = raw.replace(/^[\s·•,:;|/–—-]+/, "").trim();
+  const leading = raw.replace(/^[\s·•,:;|/\u2013\u2014-]+/, "").trim();
   if (data.has(raw.trim()) || data.has(text) || data.has(leading)) return true;
   if (CODE.test(text)) return true;
   if (FORMATTED.some((re) => re.test(text))) return true;
