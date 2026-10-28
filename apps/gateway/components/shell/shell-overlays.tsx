@@ -1,11 +1,12 @@
 "use client";
 
-import { Button, CommandMenu, Dialog, Drawer } from "@xos/ui";
+import { Button, Dialog, Drawer } from "@xos/ui";
 import { isBetaLocale } from "@xos/i18n/locales";
 import { useTranslations } from "next-intl";
 import { setActing, setLocale, setTheme } from "@/lib/shell/actions";
 import type { ThemePreference } from "@/lib/theme";
 import type { FrameAvatarEntry, FrameLink } from "./gateway-frame";
+import { GatewayCommand } from "./gateway-command";
 
 type Translate = (key: string, values?: Record<string, string>) => string;
 
@@ -36,8 +37,8 @@ export interface ShellOverlaysProps {
 }
 
 /**
- * The Gateway shell's overlays: search (the command menu), the account panel and the organization
- * switcher. They render nothing until opened, so they load the first time one opens
+ * The Gateway shell's overlays: search (the command menu, gateway-command.tsx), the account panel and
+ * the organization switcher. They render nothing until opened, so they load the first time one opens
  * (A24-009, ADR 0027): cmdk and the Radix dialog stay out of every page's JavaScript. The frame
  * keeps the open state and the shortcuts.
  */
@@ -46,24 +47,11 @@ export function ShellOverlays(props: ShellOverlaysProps) {
   const { go, refresh } = props;
   return (
     <>
-      <CommandMenu
+      <GatewayCommand
         open={props.commandOpen}
         onOpenChange={props.setCommandOpen}
-        hotkey={false}
-        placeholder={t("gateway.shell.searchHint")}
-        groups={[
-          {
-            label: t("gateway.shell.commandGroup"),
-            items: props.commands.map((c) => ({
-              label: c.label,
-              icon: c.icon,
-              onSelect: () => {
-                props.setCommandOpen(false);
-                go(c.href);
-              },
-            })),
-          },
-        ]}
+        commands={props.commands}
+        go={go}
       />
 
       <Drawer

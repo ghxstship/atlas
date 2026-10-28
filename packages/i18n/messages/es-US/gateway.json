@@ -1030,8 +1030,6 @@
   },
   "home": {
     "greeting": "Hola, {name}",
-    "searchLabel": "Buscar oportunidades",
-    "searchHint": "Busca roles, habilidades u organizaciones",
     "upNext": {
       "title": "A continuación",
       "empty": "Aún no tienes nada programado. Encuentra una oportunidad para llenar tu calendario.",
@@ -1567,7 +1565,6 @@
   "shell": {
     "skip": "Saltar al contenido",
     "search": "Buscar",
-    "searchHint": "Busca páginas, contrataciones y oportunidades",
     "commandGroup": "Ir a",
     "openAccount": "Abrir el menú de la cuenta de {name}",
     "account": "Cuenta",

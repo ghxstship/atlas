@@ -1030,8 +1030,6 @@
   },
   "home": {
     "greeting": "Hi, {name}",
-    "searchLabel": "Search opportunities",
-    "searchHint": "Search roles, skills or organizations",
     "upNext": {
       "title": "Up next",
       "empty": "Nothing is scheduled for you yet. Find an opportunity to fill your calendar.",
@@ -1567,7 +1565,6 @@
   "shell": {
     "skip": "Skip to content",
     "search": "Search",
-    "searchHint": "Search pages, engagements and opportunities",
     "commandGroup": "Go to",
     "openAccount": "Open the account menu for {name}",
     "account": "Account",

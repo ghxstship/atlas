@@ -1,0 +1,37 @@
+{
+  "placeholder": "Search pages, engagements, documents, messages and settings",
+  "groups": {
+    "actions": "Actions",
+    "documents": "Documents",
+    "messages": "Messages",
+    "engagements": "Engagements",
+    "opportunities": "Opportunities",
+    "settings": "Settings"
+  },
+  "labels": {
+    "engagement": "{title} · {project}",
+    "document": "{title} · {kind} · {org}",
+    "message": "{subject} · {org}",
+    "messageText": "{subject}: {text}",
+    "opportunity": "{title} · {org}",
+    "setting": "{setting} · {section}"
+  },
+  "actions": {
+    "findWork": "Find work",
+    "jobAlerts": "Set up job alerts",
+    "signDocuments": "Sign documents",
+    "messageOrg": "Message an organization",
+    "logTime": "Submit timesheets",
+    "checkPayments": "Check payments",
+    "editProfile": "Edit my profile",
+    "outOfOffice": "Set out of office",
+    "notifications": "Change notification settings"
+  },
+  "home": {
+    "label": "Search Gateway",
+    "hint": "Search your work, documents and messages",
+    "results": "Search results",
+    "count": "{count, plural, =0 {No matches} one {# match} other {# matches}}",
+    "explore": "Search opportunities for “{query}”"
+  }
+}

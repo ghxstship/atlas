@@ -28,4 +28,4 @@ If you belong to a company account, the account menu lets you act as yourself or
 
 ## Search and help
 
-Press **Mod+K** or choose Search to go to any page, engagement or opportunity. Press **?** or choose Help on any page for its articles, the shortcuts, What's New and [Contact support](help:contact-support).
+Press **Mod+K** or choose Search to go to any page, or to find your documents, messages, engagements, opportunities, actions and settings by their words. Press **?** or choose Help on any page for its articles, the shortcuts, What's New and [Contact support](help:contact-support).
