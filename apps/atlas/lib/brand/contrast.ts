@@ -1,5 +1,6 @@
 import {
   checkContrast,
+  resolveColor,
   type ContrastFailure,
   type ContrastRule,
   type ContrastSpec,
@@ -58,6 +59,60 @@ export function checkAccent(accent: string): AccentCheck {
     checked: result.checked,
     failures: result.failures,
   };
+}
+
+/**
+ * One pair the gate checks, with the accent's counterpart resolved to its hex in a theme: the form
+ * @xos/ui ColorPicker measures live in the brand editor (A142). The picker passes exactly when
+ * {@link checkAccent} does, since both run the token build's arithmetic on the same pairs.
+ */
+export interface AccentPair {
+  readonly theme: string;
+  readonly rule: string;
+  /** The token the accent is paired with. */
+  readonly counterpart: string;
+  /** A hover or pressed overlay drawn over the accent fill, when the rule declares one. */
+  readonly state: string | null;
+  /** The counterpart's hex: the label color on an accent fill, or the ground under an accent mark. */
+  readonly fg?: string;
+  readonly bg?: string;
+  /** True when the accent is the foreground (a mark on a ground). */
+  readonly fgIsValue: boolean;
+  readonly min: number;
+  readonly overlay?: { readonly color: string; readonly opacity: number };
+}
+
+export function accentPairs(): readonly AccentPair[] {
+  const source = tokens as unknown as TokenSource;
+  const themes = source.color.themes.map((t) => t.id);
+  const rules = accentRules(pairs as unknown as ContrastSpec).rules;
+  return themes.flatMap((theme) =>
+    rules.flatMap((rule) => {
+      const accentIsFg = rule.fg.includes(ACCENT_TOKEN);
+      const others = accentIsFg ? rule.bg : rule.fg;
+      return others.flatMap((counterpart): AccentPair[] => {
+        const hex = resolveColor(source, counterpart, theme);
+        const plain: AccentPair = {
+          theme,
+          rule: rule.name,
+          counterpart,
+          state: null,
+          ...(accentIsFg ? { bg: hex } : { fg: hex }),
+          fgIsValue: accentIsFg,
+          min: rule.min,
+        };
+        // As the gate does, each overlay is composited over the background before measuring.
+        return [
+          plain,
+          ...(rule.overlays ?? []).map((o) => ({
+            ...plain,
+            state: o.state,
+            overlay: { color: resolveColor(source, o.color, theme), opacity: o.opacity },
+          })),
+        ];
+      });
+    }),
+  );
 }
 
 /** The platform's own accent in the dark theme, the editor's starting value. */
