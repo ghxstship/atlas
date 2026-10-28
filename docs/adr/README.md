@@ -79,5 +79,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0102](0102-profile-facts-and-project-facts.md)                     | Profile Facts and Project Facts                                                  | Accepted |
 | [0103](0103-combined-statuses-are-computed.md)                      | Combined Statuses Are Computed                                                   | Accepted |
 | [0104](0104-advanceable-item-lifecycle-and-supply-bridge.md)        | Advanceable Item Lifecycle and the Supply Bridge                                 | Accepted |
+| [0110](0110-trash-is-registered-by-migrations.md)                   | Trash Is Registered by Migrations                                                | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
