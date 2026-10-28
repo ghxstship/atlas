@@ -1,4 +1,4 @@
--- pgTAP: migration 2390, Trash registered by the migrations (ADR 0105, RRR-193). After all migrations the sync and the
+-- pgTAP: migration 2390, Trash registered by the migrations (ADR 0110, RRR-193). After all migrations the sync and the
 -- nightly sweep change nothing, so a later migration that makes a table eligible for Trash must register or exclude it
 -- (this suite fails at once instead of the night the sweep runs). The thirteen tables 2390 decided are in or out of
 -- Trash as it says; no title is Restricted; a Confidential title is named in private.view_column_sources, so 2030's

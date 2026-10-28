@@ -1,4 +1,4 @@
-# ADR 0105: Trash Is Registered by Migrations
+# ADR 0110: Trash Is Registered by Migrations
 
 - Status: Accepted
 - Date: 2026-10-28
@@ -82,8 +82,7 @@ such as `name` or `description`, `updated_by`, `deleted_at`, or a Soft Deleted r
 Delete), decides in the same migration whether its rows belong in Trash. If they do not, it inserts the table into
 `private.trash_excluded_tables` with a rationale of at most 300 characters. Either way it ends with
 `select private.sync_trash_tables();`, after its retention policy and its column classifications. A table in Trash
-must let the people who delete its rows restore them through its own update policy and grants. A Confidential title
-column is named in `private.view_column_sources` by the sync; a Restricted column is never a title. A migration that
+must let the people who delete its rows restore them through its own update policy and grants. A Confidential title column is named in `private.view_column_sources` when the sync changes the registry and rebuilds the view; a migration that reclassifies the title column of a table already in Trash calls `private.rebuild_trash_items_view()` itself. A Restricted column is never a title. A migration that
 drops a table in Trash removes its retention policy or excludes it and runs the sync first, because `app.trash_items`
 depends on it. pgTAP 2390 fails otherwise.
 

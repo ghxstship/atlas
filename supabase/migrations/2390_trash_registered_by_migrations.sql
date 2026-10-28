@@ -1,6 +1,6 @@
 -- 2390_trash_registered_by_migrations.sql
 --
--- Trash is registered by the migrations, not by the nightly sweep (ADR 0022, 2390-2399; ADR 0105), RRR-193; a fix of
+-- Trash is registered by the migrations, not by the nightly sweep (ADR 0022, 2390-2399; ADR 0110), RRR-193; a fix of
 -- A33's 1031. private.sync_trash_tables registers every eligible soft-deletable app table in private.trash_tables, and
 -- private.rebuild_trash_items_view regenerates app.trash_items from that list. Migrations called the sync only in
 -- 1031, 1032 and 1033; after that it ran only inside private.sweep_default_retention, which pg_cron runs at 03:07 UTC
@@ -46,7 +46,7 @@
 --     as its highest source (2030), and keeps SELECT on the view away from xos_backup (1650).
 --   * The sync runs here, so the state after the migrations is the state after the sweep. pgTAP 2390 fails whenever
 --     the sync would add, change or remove anything after all migrations: a later migration that makes a table
---     eligible lists it in private.trash_excluded_tables or registers it with the sync itself (ADR 0105).
+--     eligible lists it in private.trash_excluded_tables or registers it with the sync itself (ADR 0110).
 
 -- 1. The tables kept out ------------------------------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ insert into private.trash_excluded_tables (table_name, rationale) values
   ('personal_access_tokens', 'A revoked token never comes back.')
 on conflict (table_name) do nothing;
 
-comment on table private.trash_excluded_tables is 'Soft-deletable tables kept out of Trash, with why: access, identity, credentials, settings, per-person state, restricted or legally kept records and derived data, whose deletion is not a mistake a person undoes from Trash. A migration that makes a table eligible for Trash and keeps it out lists it here (ADR 0105).';
+comment on table private.trash_excluded_tables is 'Soft-deletable tables kept out of Trash, with why: access, identity, credentials, settings, per-person state, restricted or legally kept records and derived data, whose deletion is not a mistake a person undoes from Trash. A migration that makes a table eligible for Trash and keeps it out lists it here (ADR 0110).';
 
 -- 2. Title columns are never Restricted (from 1031) -------------------------------------------------------------------
 
