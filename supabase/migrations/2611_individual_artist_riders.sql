@@ -31,6 +31,11 @@ security definer
 set search_path = ''
 as $$
 begin
+  -- An update that keeps the engagement (a rename lists engagement_id unchanged, and UPDATE OF fires anyway) is not
+  -- checked again, so a rider keeps an engagement that has since ended.
+  if tg_op = 'UPDATE' and new.engagement_id is not distinct from old.engagement_id then
+    return new;
+  end if;
   if new.engagement_id is not null and not exists (
     select 1 from app.engagements e
     where e.id = new.engagement_id and e.deleted_at is null and e.engagement_state not in ('Complete', 'Canceled')
@@ -41,7 +46,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_rider_engagement() is 'Riders (R2): an engagement, when given, is live (not deleted, Complete or Canceled), an Artist engagement, and names a person.';
+comment on function private.guard_rider_engagement() is 'Riders (R2): an engagement, when given or changed, is live (not deleted, Complete or Canceled), an Artist engagement, and names a person; an update that keeps it is not checked again.';
 revoke all on function private.guard_rider_engagement() from public, anon, authenticated;
 
 create trigger t40_guard_rider_engagement before insert or update of engagement_id on app.riders

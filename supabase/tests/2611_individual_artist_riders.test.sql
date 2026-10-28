@@ -1,7 +1,8 @@
 -- pgTAP: migration 2611 (R2), riders of an individual artist's engagement. The artist and their Advance representative
 -- read a rider assigned to the engagement; another artist on the project and an unrelated person do not. A rider names
--- at most one party; only a live Artist engagement that names a person, of the rider's project, takes one. Account
--- riders still read for the account, and the view keeps its columns with engagement_id appended.
+-- at most one party; only a live Artist engagement that names a person, of the rider's project, takes one, and a rider keeps
+-- its engagement through a rename after it ends. Account riders still read for the account, and the view keeps its columns
+-- with engagement_id appended.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -96,6 +97,18 @@ select pg_temp.move_engagement('eng_art_a', 'Active', 'Closing');
 select pg_temp.move_engagement('eng_art_a', 'Closing', 'Complete');
 select is(pg_temp.n('art', format('select 1 from api_external.riders where id = %L', pg_temp.id('rider_art'))), 0,
   'Complete closes the engagement''s rider');
+
+-- Atlas saves every field (updateRider lists engagement_id even when unchanged): a rename keeps the ended engagement, while
+-- moving the rider to an engagement that is not live is still refused.
+select pg_temp.as_user('alice');
+select lives_ok(format($$update app.riders set title = 'Arturo Bell Rider', counterparty_id = null, engagement_id = %L where id = %L$$,
+    pg_temp.id('eng_art_a'), pg_temp.id('rider_art')),
+  'a rider whose engagement is Complete can still be renamed with the engagement kept');
+select is((select engagement_id from app.riders where id = pg_temp.id('rider_art')), pg_temp.id('eng_art_a'), 'and keeps it');
+select throws_ok(format($$update app.riders set engagement_id = %L where id = %L$$, pg_temp.id('eng_quinn_a'), pg_temp.id('rider_art')),
+  'XR001', 'rider_engagement_artist: A rider belongs to a live Artist engagement that names a person.',
+  'changing it to a Canceled engagement is refused');
+select pg_temp.as_platform();
 
 -- Catalog --------------------------------------------------------------------------------------------------------------------------
 select is((select array_agg(column_name::text order by ordinal_position) from information_schema.columns
