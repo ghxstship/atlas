@@ -58,7 +58,6 @@ export function TodaySearch(): ReactElement {
           accessibilityRole="search"
           accessibilityLabel={t("compassSearch.label")}
           placeholder={t("compassSearch.hint")}
-          placeholderTextColor={theme.color.textTertiary}
           value={query}
           onChangeText={setQuery}
           autoCorrect={false}

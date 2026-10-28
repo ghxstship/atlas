@@ -1,5 +1,5 @@
 {
-  "placeholder": "Search pages, engagements, documents, messages and settings",
+  "menuHint": "Search pages, engagements, documents, messages and settings",
   "groups": {
     "actions": "Actions",
     "documents": "Documents",

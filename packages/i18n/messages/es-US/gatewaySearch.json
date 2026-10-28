@@ -1,5 +1,5 @@
 {
-  "placeholder": "Busca páginas, contrataciones, documentos, mensajes y configuración",
+  "menuHint": "Busca páginas, contrataciones, documentos, mensajes y configuración",
   "groups": {
     "actions": "Acciones",
     "documents": "Documentos",

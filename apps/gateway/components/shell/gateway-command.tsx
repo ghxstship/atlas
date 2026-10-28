@@ -97,7 +97,7 @@ export function GatewayCommand({ open, onOpenChange, commands, go }: GatewayComm
       filter={false}
       query={query}
       onQueryChange={setQuery}
-      placeholder={t("gatewaySearch.placeholder")}
+      placeholder={t("gatewaySearch.menuHint")}
       groups={naming.length > 0 ? [...pageGroup, ...found] : [...found, ...pageGroup]}
     />
   );
