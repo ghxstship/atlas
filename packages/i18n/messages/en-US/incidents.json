@@ -53,7 +53,7 @@
   "historyReported": "Reported",
   "key": "Key",
   "kind": "Incident",
-  "liveNotice": "This board refreshes every two seconds while it is open.",
+  "liveNotice": "This board updates live as incidents are reported and dispatched.",
   "location": "Location",
   "mapAlternative": "Located incidents",
   "mapLabel": "Incident locations",

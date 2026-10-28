@@ -75,5 +75,9 @@
     "offline": "Offline. Your changes stay here and are sent when you reconnect.",
     "saved": "Saved. Everyone in the document sees changes as you type.",
     "done": "Done"
+  },
+  "presence": {
+    "label": "Also viewing",
+    "viewing": "{count, plural, one {# other person here} other {# other people here}}"
   }
 }

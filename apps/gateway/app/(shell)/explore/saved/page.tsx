@@ -3,6 +3,7 @@ import { getNode } from "@xos/ia";
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
 import { SwipeActions } from "@/components/explore/swipe-actions";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { OpportunityLinkCard } from "@/components/page/opportunity-card";
 import {
   childTabLinks,
@@ -13,7 +14,8 @@ import {
   ViewSwitcher,
 } from "@/components/page/page";
 import { EmptyStateLink, Tag } from "@/components/ui";
-import { saveOpportunityAction, unsaveOpportunityAction } from "@/lib/actions/marketplace";
+import { saveOpportunityAction, unsaveListingAction } from "@/lib/actions/marketplace";
+import { personTopic } from "@/lib/live/topics";
 import { childTabs } from "@/lib/shell/nav-model";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
@@ -23,7 +25,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("gateway.explore.saved.title") };
 }
 
-/** Explore Saved (Section 4.5.8): opportunities the person saved, closed ones marked. */
+/**
+ * Explore Saved (Section 4.5.8): opportunities the person saved, closed ones marked. Removing one
+ * goes on the undo stack (Cmd or Ctrl+Z saves it again), and the list updates live when the person
+ * saves or removes a listing on another device.
+ */
 export default async function SavedPage({ searchParams }: PageProps<"/explore/saved">) {
   const ctx = await requireNode("explore.saved");
   const query = await searchParams;
@@ -47,6 +53,7 @@ export default async function SavedPage({ searchParams }: PageProps<"/explore/sa
   const byId = new Map((opportunities?.ok ? opportunities.data : []).map((o) => [o.id, o]));
   return (
     <>
+      <LiveRefresh topics={[personTopic("saved_opportunities", "person_id", ctx.personId)]} />
       <PageTitle
         title={t("gateway.explore.saved.title")}
         lead={t("gateway.explore.saved.lead")}
@@ -81,7 +88,8 @@ export default async function SavedPage({ searchParams }: PageProps<"/explore/sa
                   failed={t("gateway.explore.swipe.failed")}
                   left={{
                     label: t("gateway.explore.detail.unsave"),
-                    action: unsaveOpportunityAction.bind(null, s.id),
+                    // By the listing, so redo after an undo removes the saved row the undo made.
+                    action: unsaveListingAction.bind(null, s.opportunityId),
                     icon: "Trash2",
                     shortcut: "r",
                     done: t("gateway.explore.swipe.removed", { title }),

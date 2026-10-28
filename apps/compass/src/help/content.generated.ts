@@ -1535,6 +1535,154 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "settings-calendar-feeds",
+        title: "Calendar Feeds",
+        summary:
+          "Your published shifts and shared dates in Google Calendar, Apple Calendar or Outlook, with a link you can replace or revoke.",
+        kind: "page",
+        nodes: ["settings.calendar-feeds"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "A calendar feed puts your published shifts and the meetings, milestones and deadlines shared with you, from every organization you work with, into your own calendar app. Calendars refresh it about once an hour.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Add a feed" },
+                { t: "text", v: " makes a new link. It's shown only once: tap " },
+                { t: "strong", v: "Copy or Share Link" },
+                { t: "text", v: " to copy it or send it to yourself, or " },
+                { t: "strong", v: "Open in my calendar app" },
+                { t: "text", v: " to subscribe on this phone." },
+              ],
+              [
+                { t: "text", v: "Anyone with the link can read the feed. If it gets out, " },
+                { t: "strong", v: "Get a new link" },
+                {
+                  t: "text",
+                  v: ": the old one stops at once and your calendars stop updating until you subscribe with the new one.",
+                },
+              ],
+              [
+                { t: "strong", v: "Revoke" },
+                { t: "text", v: " ends a feed for good." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "The list shows offline; adding, a new link and revoking need a connection.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-connected-apps",
+        title: "Connected Apps",
+        summary:
+          "The apps you allowed to act for you, what each may use, and how to disconnect one.",
+        kind: "page",
+        nodes: ["settings.connected-apps"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Connected apps are tools an organization registered that you allowed to act for you. Each can do only what you can, in the areas you approved.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                {
+                  t: "text",
+                  v: "Each app shows the organization that registered it, the areas it may use, when you allowed it and when it last used its access.",
+                },
+              ],
+              [
+                { t: "strong", v: "Disconnect" },
+                {
+                  t: "text",
+                  v: " ends its access at once: its sessions end and it can no longer act for you. Connect it again from the app to give it access.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [{ t: "text", v: "The list shows offline; disconnecting needs a connection." }],
+          },
+        ],
+      },
+      {
+        slug: "settings-developer",
+        title: "Developer",
+        summary:
+          "Your personal API tokens in each organization that allows them, and how to revoke one.",
+        kind: "page",
+        nodes: ["settings.developer"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Personal API tokens let your own scripts call the XOS API as you, each in one organization and limited to the areas you chose. This section appears when an organization you belong to allows them.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                {
+                  t: "text",
+                  v: "Each token shows its organization, the start of the token, its areas, when it expires and when it was last used, tagged ",
+                },
+                { t: "strong", v: "Active" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Expired" },
+                { t: "text", v: " or " },
+                { t: "strong", v: "Revoked" },
+                { t: "text", v: "." },
+              ],
+              [
+                { t: "strong", v: "Revoke" },
+                {
+                  t: "text",
+                  v: " stops a token at once. Do it as soon as you stop using one or think someone else has it.",
+                },
+              ],
+              [
+                { t: "strong", v: "Create a Token in Gateway" },
+                {
+                  t: "text",
+                  v: " opens Gateway. A token is shown only once and belongs on the computer that runs your script, so create it there; creating one also asks for your second factor.",
+                },
+              ],
+            ],
+          },
+          { t: "p", c: [{ t: "text", v: "The list shows offline; revoking needs a connection." }] },
+        ],
+      },
+      {
         slug: "settings-notifications",
         title: "Notifications",
         summary:
@@ -1717,6 +1865,65 @@ export const COMPASS_HELP: HelpContent = {
               {
                 t: "text",
                 v: "Once you have opened Out of Office online, it opens without a connection too. Changes save on this phone and upload when you're back online; the Offline Queue lists them.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-payout-and-tax",
+        title: "Payout and Tax",
+        summary:
+          "Where each organization pays you, the tax forms you gave them, and the mailing address on your W-9.",
+        kind: "page",
+        nodes: ["settings.payout-and-tax"],
+        order: 1,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Payout destinations" },
+                {
+                  t: "text",
+                  v: " shows where each organization pays you: the payment provider and the last four digits only. Payout details are entered through each organization's payment provider, usually during onboarding, never in Compass.",
+                },
+              ],
+              [
+                { t: "strong", v: "Tax forms" },
+                {
+                  t: "text",
+                  v: " lists the W-9, W-8BEN or W-8BEN-E you gave each organization, the last four characters of the identifier, when you signed it, and whether foreign performer withholding applies.",
+                },
+              ],
+              [
+                {
+                  t: "text",
+                  v: "A W-9 needs your name and mailing address for the 1099-NEC each organization files at year end. ",
+                },
+                { t: "strong", v: "Add Address" },
+                { t: "text", v: " or " },
+                { t: "strong", v: "Edit Address" },
+                {
+                  t: "text",
+                  v: " saves it; offline it saves on this phone and uploads when you're back online.",
+                },
+              ],
+              [
+                { t: "strong", v: "Give a Tax Form" },
+                {
+                  t: "text",
+                  v: " opens Gateway: a tax form goes to the organization that asks for it, from that engagement's onboarding.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Both lists open offline once you've opened them online on this phone.",
               },
             ],
           },
@@ -2105,18 +2312,24 @@ export const COMPASS_HELP: HelpContent = {
             t: "p",
             c: [
               { t: "strong", v: "Your Settings" },
-              { t: "text", v: " are the same in Atlas, Gateway and Compass. Under " },
+              {
+                t: "text",
+                v: " are the same in Atlas, Gateway and Compass, and every section opens here: under ",
+              },
               { t: "strong", v: "You" },
               {
                 t: "text",
-                v: ", Profile, Profile Privacy, Account, Security and Organizations open here; so do every section under ",
+                v: ", Profile, Profile Privacy, Account, Security and Organizations; every section under ",
               },
               { t: "strong", v: "Preferences" },
-              { t: "text", v: ", and " },
+              { t: "text", v: "; and under " },
+              { t: "strong", v: "Work" },
+              { t: "text", v: ", " },
               { t: "link", v: "Work Details", href: "help:settings-work-details" },
-              { t: "text", v: ". A section marked " },
-              { t: "strong", v: "Opens in Gateway" },
-              { t: "text", v: " opens in your browser." },
+              {
+                t: "text",
+                v: ", Payout and Tax, Calendar Feeds, Connected Apps and Developer. A step Compass leaves to Gateway, such as giving a tax form or creating an API token, says why and opens in your browser.",
+              },
             ],
           },
           {
@@ -4466,6 +4679,162 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "settings-calendar-feeds",
+        title: "Suscripciones de calendario",
+        summary:
+          "Tus turnos publicados y las fechas compartidas en Google Calendar, Apple Calendar u Outlook, con un enlace que puedes reemplazar o revocar.",
+        kind: "page",
+        nodes: ["settings.calendar-feeds"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Una suscripción de calendario lleva tus turnos publicados y las reuniones, hitos y fechas límite compartidos contigo, de todas las organizaciones con las que trabajas, a tu propia aplicación de calendario. Los calendarios la actualizan aproximadamente cada hora.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Agregar un calendario" },
+                { t: "text", v: " crea un enlace nuevo. Se muestra solo una vez: toca " },
+                { t: "strong", v: "Copiar o compartir el enlace" },
+                { t: "text", v: " para copiarlo o enviártelo, o " },
+                { t: "strong", v: "Abrir en mi aplicación de calendario" },
+                { t: "text", v: " para suscribirte en este teléfono." },
+              ],
+              [
+                {
+                  t: "text",
+                  v: "Cualquier persona con el enlace puede leer el calendario. Si se divulga, toca ",
+                },
+                { t: "strong", v: "Obtener un enlace nuevo" },
+                {
+                  t: "text",
+                  v: ": el anterior deja de funcionar de inmediato y tus calendarios dejan de actualizarse hasta que te suscribas con el nuevo.",
+                },
+              ],
+              [
+                { t: "strong", v: "Revocar" },
+                { t: "text", v: " termina un calendario para siempre." },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "La lista se muestra sin conexión; agregar, obtener un enlace nuevo y revocar necesitan conexión.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-connected-apps",
+        title: "Aplicaciones conectadas",
+        summary:
+          "Las aplicaciones a las que permitiste actuar en tu nombre, lo que cada una puede usar y cómo desconectar una.",
+        kind: "page",
+        nodes: ["settings.connected-apps"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Las aplicaciones conectadas son herramientas que registró una organización y a las que permitiste actuar en tu nombre. Cada una solo puede hacer lo que tú puedes, en las áreas que aprobaste.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                {
+                  t: "text",
+                  v: "Cada aplicación muestra la organización que la registró, las áreas que puede usar, cuándo la permitiste y cuándo usó su acceso por última vez.",
+                },
+              ],
+              [
+                { t: "strong", v: "Desconectar" },
+                {
+                  t: "text",
+                  v: " termina su acceso de inmediato: sus sesiones terminan y ya no puede actuar en tu nombre. Vuelve a conectarla desde la aplicación para darle acceso.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "La lista se muestra sin conexión; desconectar necesita conexión." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-developer",
+        title: "Desarrollador",
+        summary:
+          "Tus tokens personales de API en cada organización que los permite y cómo revocar uno.",
+        kind: "page",
+        nodes: ["settings.developer"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Los tokens personales de API permiten que tus propios scripts llamen a la API de XOS en tu nombre, cada uno en una organización y limitado a las áreas que elegiste. Esta sección aparece cuando una organización a la que perteneces los permite.",
+              },
+            ],
+          },
+          {
+            t: "ul",
+            items: [
+              [
+                {
+                  t: "text",
+                  v: "Cada token muestra su organización, el inicio del token, sus áreas, cuándo vence y cuándo se usó por última vez, con la etiqueta ",
+                },
+                { t: "strong", v: "Activo" },
+                { t: "text", v: ", " },
+                { t: "strong", v: "Vencido" },
+                { t: "text", v: " o " },
+                { t: "strong", v: "Revocado" },
+                { t: "text", v: "." },
+              ],
+              [
+                { t: "strong", v: "Revocar" },
+                {
+                  t: "text",
+                  v: " detiene un token de inmediato. Hazlo en cuanto dejes de usar uno o creas que otra persona lo tiene.",
+                },
+              ],
+              [
+                { t: "strong", v: "Crear un token en Gateway" },
+                {
+                  t: "text",
+                  v: " abre Gateway. Un token se muestra solo una vez y pertenece a la computadora que ejecuta tu script, así que créalo allí; crearlo también pide tu segundo factor.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [{ t: "text", v: "La lista se muestra sin conexión; revocar necesita conexión." }],
+          },
+        ],
+      },
+      {
         slug: "settings-notifications",
         title: "Notificaciones",
         summary:
@@ -4657,6 +5026,65 @@ export const COMPASS_HELP: HelpContent = {
               {
                 t: "text",
                 v: "Una vez que abriste Fuera de la oficina con conexión, también se abre sin conexión. Los cambios se guardan en este teléfono y se suben cuando vuelves a tener conexión; la Cola sin conexión los muestra.",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "settings-payout-and-tax",
+        title: "Pagos e impuestos",
+        summary:
+          "Dónde te paga cada organización, los formularios de impuestos que les diste y la dirección postal de tu W-9.",
+        kind: "page",
+        nodes: ["settings.payout-and-tax"],
+        order: 1,
+        body: [
+          {
+            t: "ul",
+            items: [
+              [
+                { t: "strong", v: "Destinos de pago" },
+                {
+                  t: "text",
+                  v: " muestra dónde te paga cada organización: el proveedor de pagos y solo los últimos cuatro dígitos. Los datos de pago se ingresan mediante el proveedor de pagos de cada organización, normalmente durante la incorporación, nunca en Compass.",
+                },
+              ],
+              [
+                { t: "strong", v: "Formularios fiscales" },
+                {
+                  t: "text",
+                  v: " muestra el W-9, W-8BEN o W-8BEN-E que diste a cada organización, los últimos cuatro caracteres del identificador, cuándo lo firmaste y si aplica la retención a artista extranjero.",
+                },
+              ],
+              [
+                {
+                  t: "text",
+                  v: "Un W-9 necesita tu nombre y dirección postal para el 1099-NEC que cada organización presenta al cierre del año. ",
+                },
+                { t: "strong", v: "Agregar dirección" },
+                { t: "text", v: " o " },
+                { t: "strong", v: "Editar dirección" },
+                {
+                  t: "text",
+                  v: " la guarda; sin conexión se guarda en este teléfono y se sube cuando vuelvas a tener conexión.",
+                },
+              ],
+              [
+                { t: "strong", v: "Entregar un formulario fiscal" },
+                {
+                  t: "text",
+                  v: " abre Gateway: el formulario se entrega a la organización que lo pide, desde la incorporación de esa contratación.",
+                },
+              ],
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Ambas listas se abren sin conexión después de abrirlas una vez con conexión en este teléfono.",
               },
             ],
           },
@@ -5054,18 +5482,24 @@ export const COMPASS_HELP: HelpContent = {
             t: "p",
             c: [
               { t: "strong", v: "Tus ajustes" },
-              { t: "text", v: " son los mismos en Atlas, Gateway y Compass. En " },
+              {
+                t: "text",
+                v: " son los mismos en Atlas, Gateway y Compass, y todas las secciones se abren aquí: en ",
+              },
               { t: "strong", v: "Tú" },
               {
                 t: "text",
-                v: ", Perfil, Privacidad del perfil, Cuenta, Seguridad y Organizaciones se abren aquí; también todas las secciones de ",
+                v: ", Perfil, Privacidad del perfil, Cuenta, Seguridad y Organizaciones; todas las secciones de ",
               },
               { t: "strong", v: "Preferencias" },
-              { t: "text", v: " y " },
+              { t: "text", v: "; y en " },
+              { t: "strong", v: "Trabajo" },
+              { t: "text", v: ", " },
               { t: "link", v: "Datos de trabajo", href: "help:settings-work-details" },
-              { t: "text", v: ". Una sección marcada " },
-              { t: "strong", v: "Se abre en Gateway" },
-              { t: "text", v: " se abre en tu navegador." },
+              {
+                t: "text",
+                v: ", Pagos e impuestos, Suscripciones de calendario, Aplicaciones conectadas y Desarrollador. Un paso que Compass deja a Gateway, como entregar un formulario de impuestos o crear un token de API, explica por qué y se abre en tu navegador.",
+              },
             ],
           },
           {

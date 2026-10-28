@@ -4,8 +4,9 @@
  * its Compass screen or, until Compass draws that section, the same section in Gateway. Gateway serves every
  * personal section at the route Compass uses, so the link is the Gateway origin plus the route.
  *
- * A110 draws the identity group natively. A111 and A112 add their sections by adding the ids to NATIVE_SECTIONS
- * and their screens under app/settings/; nothing else changes.
+ * A110 draws the identity group natively, A111 the preferences and work details, A112 payout and tax, calendar
+ * feeds, connected apps and developer. A section joins by adding its id to NATIVE_SECTIONS and its screen under
+ * app/settings/; nothing else changes.
  */
 import type { Audience } from "@xos/sync";
 import { moreMenu, type MenuEntry } from "../domain/access";
@@ -23,6 +24,11 @@ export const NATIVE_SECTIONS: ReadonlySet<string> = new Set([
   "settings.notifications",
   "settings.out-of-office",
   "settings.work-details",
+  // A112 (ADR 0072).
+  "settings.payout-and-tax",
+  "settings.calendar-feeds",
+  "settings.connected-apps",
+  "settings.developer",
 ]);
 
 /** How the list groups the sections: who you are, how Compass behaves for you, and your work. */
