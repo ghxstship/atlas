@@ -47,10 +47,11 @@ import {
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { ResponseForm } from "./forms";
+import * as enums from "@xos/data/enums";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
-const STATES: readonly RfqState[] = ["Proposed", "Issued", "Closed", "Awarded", "Canceled"];
+const STATES: readonly RfqState[] = enums.rfqState;
 
 /** Which capability each RFQ move needs (app.transition_rfq). */
 const MOVE_CAPABILITY: Record<RfqState, string> = {

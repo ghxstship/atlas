@@ -12,6 +12,7 @@ import {
   type Raw,
 } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Partner console (A36, migration 1060; Section 4.6.1): client orgs, the default brand clients
@@ -21,8 +22,8 @@ import { untyped } from "./untyped.ts";
  * decide.
  */
 
-export type SubscriptionState = "trialing" | "active" | "past_due" | "read_only" | "canceled";
-export type RadiusScale = "Compact" | "Default" | "Rounded";
+export type SubscriptionState = Database["app"]["Enums"]["subscription_state"];
+export type RadiusScale = Database["app"]["Enums"]["brand_radius_scale"];
 
 export interface ClientOrg {
   readonly id: string;

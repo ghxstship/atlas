@@ -10,6 +10,7 @@ import type { CapabilityRule } from "../../capabilities.ts";
 import { editDefinition, orNull } from "../../correct.ts";
 import { collectionAction, itemAction, resource, transitionBody } from "../../define.ts";
 import type { ResourceSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
 /** Audit people are nullable on every resource (ADR 0023): seed and platform rows carry none. */
 const audited = (def: Parameters<typeof editDefinition>[0]) =>
@@ -30,19 +31,12 @@ const collectionKey = z
     example: "logistics/shipments",
   });
 
-const TourState = z.enum(["Offered", "Started", "Completed", "Dismissed"]);
-const SupportQueue = z.enum(["Organization", "Platform"]);
-const SupportState = z.enum(["Open", "Waiting", "Resolved", "Closed"]);
-const SupportSeverity = z.enum(["Severity 1", "Severity 2", "Severity 3", "Severity 4"]);
-const SupportCategory = z.enum([
-  "Question",
-  "Problem",
-  "Access",
-  "Billing",
-  "Account",
-  "Feature Request",
-]);
-const SupportChannel = z.enum(["In App", "Email", "Chat", "Priority Queue", "Dedicated Channel"]);
+const TourState = z.enum(Constants.app.Enums.tour_state);
+const SupportQueue = z.enum(Constants.app.Enums.support_queue);
+const SupportState = z.enum(Constants.app.Enums.support_ticket_state);
+const SupportSeverity = z.enum(Constants.app.Enums.support_severity);
+const SupportCategory = z.enum(Constants.app.Enums.support_category);
+const SupportChannel = z.enum(Constants.app.Enums.support_channel);
 
 const SavedViewShare = audited(
   defineResource({

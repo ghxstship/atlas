@@ -34,16 +34,11 @@ import { getCopy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
+import * as enums from "@xos/data/enums";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board", "calendar"];
 const REFUSALS = "procurement.refusals";
-const STATES: readonly ReviewState[] = [
-  "Proposed",
-  "Submitted",
-  "Returned",
-  "Approved",
-  "Canceled",
-];
+const STATES: readonly ReviewState[] = enums.reviewState;
 const RECORD_STATE: Record<ReviewState, KitState["state"]> = {
   Proposed: "proposed",
   Submitted: "in-review",

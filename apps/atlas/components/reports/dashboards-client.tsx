@@ -12,6 +12,7 @@ import {
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { ActionFeedback } from "@/components/finance/kit-action-feedback";
 import { type Option } from "@/components/finance/kit.types";
+import * as enums from "@xos/data/enums";
 
 /**
  * Client forms of dashboards and scheduled report email (A43, finding A38-004; journey 29). Field
@@ -136,7 +137,7 @@ export function ScheduleForm({
           label={t("schedule.cadence")}
           value={cadence}
           onChange={(e) => setCadence(e.target.value)}
-          options={["Daily", "Weekly", "Monthly"].map((c) => ({
+          options={enums.scheduleCadence.map((c) => ({
             value: c,
             label: t(`schedule.cadences.${c}`),
           }))}
@@ -191,7 +192,7 @@ export function ScheduleForm({
           name="format"
           label={t("schedule.format")}
           value="PDF"
-          options={["PDF", "CSV", "XLSX"].map((f) => ({ value: f, label: f }))}
+          options={enums.exportFormat.map((f) => ({ value: f, label: f }))}
         />
       </div>
       <fieldset className="m-0 flex flex-col gap-6 border-0 p-0">

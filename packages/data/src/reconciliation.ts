@@ -1,6 +1,7 @@
 import type { XosClient } from "./client.ts";
 import { callRpc, derivedOrg, writeResult } from "./places.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Requirements and capability reconciliation (Section 7.4): requirements and capabilities share one
@@ -10,8 +11,8 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * recomputes a result; it reads what the database decided.
  */
 
-export type CapabilityDirection = "Require" | "Provide";
-export type ReconciliationResult = "Met" | "Gap" | "Unknown";
+export type CapabilityDirection = Database["app"]["Enums"]["capability_direction"];
+export type ReconciliationResult = Database["app"]["Enums"]["reconciliation_result"];
 
 export interface CapabilityStatement {
   readonly id: string;

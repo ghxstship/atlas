@@ -115,6 +115,8 @@ function isGroup(
 }
 
 function itemsMatch(
+  // The group keys of AutomationConditions, which app.automation_match mirrors.
+  // eslint-disable-next-line xos/no-restated-enums
   match: "all" | "any",
   items: readonly AutomationConditionItem[],
   event: unknown,

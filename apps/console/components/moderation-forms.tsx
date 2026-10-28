@@ -5,9 +5,11 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { ActionForm } from "@/components/action-form";
 import { decideAppealAction, decideListingAction } from "@/lib/actions/operations";
+import type { Database } from "@xos/data/database.types";
+import * as enums from "@xos/data/enums";
 
-type Action = "Removed" | "Restricted" | "Restored" | "No Action";
-type Ground = "Illegal Content" | "Terms Violation" | "No Violation";
+type Action = Database["app"]["Enums"]["moderation_action_kind"];
+type Ground = Database["app"]["Enums"]["moderation_ground"];
 
 const VIOLATIONS: readonly Ground[] = ["Terms Violation", "Illegal Content"];
 
@@ -92,9 +94,9 @@ export function DecideListingForm({
   removed: boolean;
 }) {
   const t = useTranslations("console");
-  const actions: readonly Action[] = removed
-    ? ["Restored", "Removed", "Restricted", "No Action"]
-    : ["Removed", "Restricted", "No Action"];
+  // Restored applies only to a removed listing, and leads the list when it does.
+  const others = enums.moderationActionKind.filter((a) => a !== "Restored");
+  const actions: readonly Action[] = removed ? ["Restored", ...others] : others;
   return (
     <ActionForm
       action={decideListingAction}

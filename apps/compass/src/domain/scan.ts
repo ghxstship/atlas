@@ -6,6 +6,7 @@
  * to resolve; it is never mapped automatically.
  */
 import { uuidv7, type MutationInput } from "@xos/sync";
+import type { Database } from "@xos/data/database.types";
 
 export type Symbology =
   "ean13" | "upc_a" | "ean8" | "itf14" | "gs1_128" | "code128" | "qr" | "datamatrix" | "nfc";
@@ -503,7 +504,7 @@ export function custodyBlocked(unit: AssetUnitRow): boolean {
   return UNAVAILABLE_STATES.has(unit.asset_state);
 }
 
-export type AssetScanAction = "check-out" | "check-in" | "transfer";
+export type AssetScanAction = Database["app"]["Enums"]["asset_scan_action"];
 
 /**
  * What a scan does to a unit: a unit the person already holds goes back (check-in), a unit someone

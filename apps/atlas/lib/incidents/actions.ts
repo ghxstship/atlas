@@ -28,6 +28,7 @@ import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
 import { failed, type ActionState } from "@/lib/operations/state";
 import { localToInstant } from "@/lib/operations/time";
+import * as enums from "@xos/data/enums";
 
 /**
  * Safety incident actions (Section 4.2): report, edit, dispatch, contain, close with sign-off,
@@ -124,7 +125,7 @@ export async function updateIncidentAction(_: ActionState, form: FormData): Prom
   return done(ctx.org.slug);
 }
 
-const States = z.enum(["Reported", "Dispatched", "Contained", "Closed"]);
+const States = z.enum(enums.incidentState);
 
 export async function transitionIncidentAction(
   _: ActionState,

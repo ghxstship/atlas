@@ -1,6 +1,7 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Platform workflow (A33, migrations 1030 to 1034): approval policies and approvals of spend
@@ -60,8 +61,8 @@ export const APPROVAL_DOCUMENT_TYPES = [
 ] as const;
 export type ApprovalDocumentType = (typeof APPROVAL_DOCUMENT_TYPES)[number];
 
-export type PolicyState = "Draft" | "Active" | "Retired";
-export type ApprovalState = "In Review" | "Approved" | "Rejected" | "Canceled";
+export type PolicyState = Database["app"]["Enums"]["approval_policy_state"];
+export type ApprovalState = Database["app"]["Enums"]["approval_state"];
 
 export interface ApprovalStep {
   readonly id: string;
@@ -583,7 +584,7 @@ export async function restoreTrashItem(
 
 // Templates ----------------------------------------------------------------------------------------------
 
-export type TemplateItemKind = "Scope Node" | "Record";
+export type TemplateItemKind = Database["app"]["Enums"]["template_item_kind"];
 
 export interface TemplateItem {
   readonly id: string;

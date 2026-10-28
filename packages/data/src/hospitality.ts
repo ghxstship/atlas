@@ -1,6 +1,7 @@
 import type { Database, XosClient } from "./client.ts";
 import { displayKey, type OperationsScope } from "./logistics.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Hospitality repository (Section 4.2, RRR-23): lodging, catering, travel and amenity
@@ -15,22 +16,11 @@ type Tables = Database["app"]["Tables"];
 type Derived<T> = Omit<T, "org_id">;
 
 export type FulfillmentKind = Database["app"]["Enums"]["fulfillment_kind"];
-export const FULFILLMENT_KINDS: readonly FulfillmentKind[] = [
-  "Lodging",
-  "Catering",
-  "Travel",
-  "Amenity",
-];
+export const FULFILLMENT_KINDS: readonly FulfillmentKind[] = enums.fulfillmentKind;
 
 /** The fulfillment lifecycle of migration 0440, in lifecycle order. */
 export type FulfillmentState = Database["app"]["Enums"]["fulfillment_state"];
-export const FULFILLMENT_STATES: readonly FulfillmentState[] = [
-  "Proposed",
-  "Active",
-  "Blocked",
-  "Complete",
-  "Canceled",
-];
+export const FULFILLMENT_STATES: readonly FulfillmentState[] = enums.fulfillmentState;
 
 // Money -------------------------------------------------------------------------------------------
 
@@ -1003,7 +993,7 @@ export async function removeRoomAssignment(db: XosClient, id: string): Promise<R
 // Travel ---------------------------------------------------------------------------------------------
 
 export type TravelMode = Database["app"]["Enums"]["travel_mode"];
-export const TRAVEL_MODES: readonly TravelMode[] = ["Flight", "Ground"];
+export const TRAVEL_MODES: readonly TravelMode[] = enums.travelMode;
 
 /** One flight or ground transport segment of a traveler (migration 0442). */
 export interface TravelSegment {

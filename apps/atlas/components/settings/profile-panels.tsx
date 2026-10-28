@@ -31,6 +31,7 @@ import {
   RemoveItemButton,
   RevokeLinkButton,
 } from "./profile-forms";
+import * as enums from "@xos/data/enums";
 
 /**
  * A30's profile and joining panels (Section 4.8): the person's profile and its lists, profile
@@ -178,7 +179,7 @@ export async function ProfilePanel({ ctx }: SettingsPanelProps) {
             name="proficiency"
             label={t("profiles.languages.proficiency")}
             value="Fluent"
-            options={(["Basic", "Conversational", "Fluent", "Native"] as const).map((v) => ({
+            options={enums.languageProficiency.map((v) => ({
               value: v,
               label: t(`profiles.proficiency.${v}`),
             }))}

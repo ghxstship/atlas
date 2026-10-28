@@ -11,6 +11,7 @@ import { applySuggestions, suggestionIds } from "@/lib/aurora/suggestions";
 import { exponentOf, getExponents } from "@/lib/finance/money";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { observability } from "@/lib/observability";
+import * as enums from "@xos/data/enums";
 
 /**
  * Finance mutations (A15). Every action resolves the viewer's org context again (404 when it is
@@ -151,7 +152,7 @@ export async function deleteBudgetAction(_: ActionState, form: FormData): Promis
 
 const LineSchema = z.object({
   description: text(500),
-  lineType: z.enum(["Cost", "Labor", "Fee", "Contingency"]),
+  lineType: z.enum(enums.budgetLineType),
   urid: z.string().regex(/^\d{4}\.\d{2}(\.\d{2})?$/),
   costCenterId: z.uuid().nullable(),
   gradeCode: z.string().min(1).nullable(),
@@ -160,7 +161,7 @@ const LineSchema = z.object({
   unitBasis: z.string().min(1).nullable(),
   unitPriceMinor: z.number().int().min(0).nullable(),
   xyz: z.enum(["X", "Y", "Z"]),
-  xyzBasis: z.enum(["Category", "Declared"]),
+  xyzBasis: z.enum(enums.xyzBasis),
 });
 
 /** Appends one or many lines (single add, catalog picks or a spreadsheet paste) as one batch. */
@@ -396,7 +397,7 @@ export async function saveInvoiceAction(_: ActionState, form: FormData): Promise
   if (!project.success) return inputError("projectId");
   const counterparty = z.uuid().safeParse(f["counterpartyId"]);
   if (!counterparty.success) return inputError("counterpartyId");
-  const direction = z.enum(["Receivable", "Payable"]).safeParse(f["direction"]);
+  const direction = z.enum(enums.moneyDirection).safeParse(f["direction"]);
   if (!direction.success) return inputError("direction");
   const code = currency.safeParse(f["currency"]);
   if (!code.success) return inputError("currency");
@@ -455,7 +456,7 @@ export async function savePaymentAction(_: ActionState, form: FormData): Promise
   const f = fields(form);
   const counterparty = z.uuid().safeParse(f["counterpartyId"]);
   if (!counterparty.success) return inputError("counterpartyId");
-  const direction = z.enum(["Receivable", "Payable"]).safeParse(f["direction"]);
+  const direction = z.enum(enums.moneyDirection).safeParse(f["direction"]);
   if (!direction.success) return inputError("direction");
   const code = currency.safeParse(f["currency"]);
   if (!code.success) return inputError("currency");
@@ -626,7 +627,7 @@ export async function saveCostCenterAction(_: ActionState, form: FormData): Prom
   if (!code.success) return inputError("code", "costCenterCode");
   const name = text(200).safeParse(f["name"]);
   if (!name.success) return inputError("name");
-  const kind = z.enum(["Standing", "Overhead", "Event"]).safeParse(f["kind"]);
+  const kind = z.enum(enums.costCenterKind).safeParse(f["kind"]);
   if (!kind.success) return inputError("kind");
   const scope = optionalId.safeParse(f["scopeNodeId"] ?? "");
   if (!scope.success || (kind.data === "Event" && !scope.data))

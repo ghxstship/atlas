@@ -494,6 +494,7 @@ export async function dispatchSmsSummaries(
 
 // Inbound: keywords, signatures and status callbacks ------------------------------------------------------
 
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export type SmsKeywordAction = "Opt Out" | "Opt In" | "Help";
 
 /** Twilio's standard opt-out, opt-in and help keywords (10DLC), matched on the whole trimmed message. */

@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Opportunities repository (Section 4.2 Opportunities, Section 4.4.3 and 4.4.4): the org side of the engagement
@@ -32,77 +33,17 @@ export type DeliverableState = Enums["deliverable_state"];
 export type ApprovalDecision = Enums["approval_decision"];
 
 /** Every opportunity state in lifecycle order (Section 4.4.4). */
-export const OPPORTUNITY_STATES: readonly OpportunityState[] = [
-  "Draft",
-  "Pending Approval",
-  "Published",
-  "Paused",
-  "Filled",
-  "Closed",
-  "Canceled",
-];
+export const OPPORTUNITY_STATES: readonly OpportunityState[] = enums.opportunityState;
 /** Every application state in pipeline order: the columns of the Pipeline board. */
-export const APPLICATION_STATES: readonly ApplicationState[] = [
-  "Submitted",
-  "In Review",
-  "Shortlisted",
-  "Offered",
-  "Accepted",
-  "Declined",
-  "Withdrawn",
-  "Not Selected",
-];
-export const ENGAGEMENT_STATES: readonly EngagementState[] = [
-  "Onboarding",
-  "Blocked",
-  "Active",
-  "Closing",
-  "Complete",
-  "Canceled",
-];
-export const ROLE_TYPES: readonly ExternalRoleType[] = [
-  "Client",
-  "Vendor",
-  "Contractor",
-  "Crew",
-  "Staff",
-  "Artist",
-  "Artist Representative",
-  "Sponsor",
-];
+export const APPLICATION_STATES: readonly ApplicationState[] = enums.applicationState;
+export const ENGAGEMENT_STATES: readonly EngagementState[] = enums.engagementState;
+export const ROLE_TYPES: readonly ExternalRoleType[] = enums.externalRoleType;
 /** Role types that publish only from an Approved requisition (migration 0774). */
 export const REQUISITION_ROLE_TYPES: readonly ExternalRoleType[] = ["Contractor", "Crew", "Staff"];
-export const VISIBILITIES: readonly OpportunityVisibility[] = [
-  "Invited",
-  "Pool",
-  "Network",
-  "Public",
-];
-export const RATE_TYPES: readonly RateType[] = ["Hourly", "Day", "Flat", "Milestone", "Bid"];
-export const DOCUMENT_KINDS: readonly EngagementDocumentKind[] = [
-  "Offer",
-  "Agreement",
-  "Statement of Work",
-  "Non-Disclosure Agreement",
-  "Rider",
-  "Advance Packet",
-  "Insurance Certificate",
-  "Lien Waiver",
-  "Settlement",
-  "Proof of Performance",
-  "Content Consent",
-];
-export const ONBOARDING_ITEM_KINDS: readonly OnboardingItemKind[] = [
-  "Document Upload",
-  "Electronic Signature",
-  "Form",
-  "Certification",
-  "Training",
-  "Acknowledgment",
-  "Background Check",
-  "Tax Form",
-  "Payout Details",
-];
+export const VISIBILITIES: readonly OpportunityVisibility[] = enums.opportunityVisibility;
+export const RATE_TYPES: readonly RateType[] = enums.rateType;
+export const DOCUMENT_KINDS: readonly EngagementDocumentKind[] = enums.engagementDocumentKind;
+export const ONBOARDING_ITEM_KINDS: readonly OnboardingItemKind[] = enums.onboardingItemKind;
 
 /**
  * The moves each lifecycle allows from a state, mirroring private.lifecycle_transition_rules. The database still

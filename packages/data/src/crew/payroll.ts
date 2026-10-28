@@ -8,6 +8,7 @@ import {
   type MemberRef,
   type TransitionEntry,
 } from "./shared.ts";
+import * as enums from "../enums.generated.ts";
 
 /**
  * Pay periods, payroll runs, their lines and the payroll export (migrations 0341 and 0461). A posted
@@ -19,15 +20,8 @@ import {
 
 export type PayPeriodState = Database["app"]["Enums"]["pay_period_state"];
 export type PayrollRunState = Database["app"]["Enums"]["payroll_run_state"];
-export const PAY_PERIOD_STATES: readonly PayPeriodState[] = ["Open", "Closed", "Posted"];
-export const PAYROLL_RUN_STATES: readonly PayrollRunState[] = [
-  "Draft",
-  "Calculated",
-  "Approved",
-  "Exported",
-  "Accepted",
-  "Canceled",
-];
+export const PAY_PERIOD_STATES: readonly PayPeriodState[] = enums.payPeriodState;
+export const PAYROLL_RUN_STATES: readonly PayrollRunState[] = enums.payrollRunState;
 
 export interface PayPeriod {
   readonly id: string;

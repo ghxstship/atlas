@@ -7,8 +7,9 @@ import { Input, Select } from "@/components/ui";
 import { grantOperatorAction, revokeOperatorAction } from "@/lib/actions/operations";
 import { getConsoleFormat } from "@/lib/format";
 import { requirePermission } from "@/lib/operator";
+import * as enums from "@xos/data/enums";
 
-const ROLES = ["Support", "Trust and Safety", "Administrator"] as const;
+const ROLES = enums.platformOperatorRole;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getConsoleFormat();

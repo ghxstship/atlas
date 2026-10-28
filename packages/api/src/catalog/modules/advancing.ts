@@ -20,10 +20,11 @@ import {
   setCapabilities,
 } from "../correct.ts";
 import { itemAction, resource } from "../define.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
-const ReviewOutcome = z.enum(["Accepted", "Returned"]);
+const ReviewOutcome = z.enum(Constants.app.Enums.advance_review_outcome);
 
 const reviewBody = z
   .object({
@@ -38,7 +39,7 @@ const reviewBody = z
   })
   .meta({ id: "AdvanceSubmissionReviewRequest", description: "Review of one advance answer." });
 
-const GuestState = z.enum(["Requested", "Approved", "Declined", "Checked In"]);
+const GuestState = z.enum(Constants.app.Enums.guest_entry_state);
 
 /**
  * app.guest_list_entries (0431, 0965). The audit people are nullable, as ADR 0023 made them for

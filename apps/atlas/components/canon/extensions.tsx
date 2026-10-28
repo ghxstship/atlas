@@ -33,6 +33,7 @@ import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
+import * as enums from "@xos/data/enums";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "canonBrowser.refusals";
@@ -283,7 +284,7 @@ export async function CanonExtensions({
         { key: "state", label: t("fields.state"), type: "state" },
       ]}
       rows={rows}
-      board={(["Proposed", "Approved", "Rejected", "Withdrawn"] as const).map((s) => ({
+      board={enums.canonExtensionState.map((s) => ({
         value: s,
         state: RECORD_STATE[s],
         label: t(`extensions.states.${s}`),

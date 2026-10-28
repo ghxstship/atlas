@@ -5,8 +5,9 @@ import { Checkbox, Input, Select } from "@xos/ui";
 import { useState } from "react";
 import { saveDefaultBrandAction } from "@/app/partner/[partnerSlug]/actions";
 import { ActionForm, usePlatformT } from "@/components/platform/kit";
+import * as enums from "@xos/data/enums";
 
-const RADII = ["Compact", "Default", "Rounded"] as const;
+const RADII = enums.brandRadiusScale;
 
 /** The partner's default client brand: accent, tint, font, radius, sender details and the override rule. */
 export function DefaultBrandForm({

@@ -8,6 +8,7 @@ import {
   type ChatRequestDeps,
 } from "../connectors/communication/index.ts";
 import { verifyQuickBooksSignature, verifySharedToken, verifyXeroSignature } from "./verify.ts";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * The inbound webhook endpoint (the integration-inbound Edge Function; A83, finding A65-013). It answers
@@ -27,7 +28,7 @@ import { verifyQuickBooksSignature, verifySharedToken, verifyXeroSignature } fro
  * answered in the request, as the person linked to the chat user, under row level security.
  */
 
-export type InboundKind = "Link Unfurl" | "Change Notice";
+export type InboundKind = Database["app"]["Enums"]["integration_inbound_kind"];
 
 export interface InboundConnection {
   readonly id: string;

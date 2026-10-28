@@ -10,6 +10,7 @@ import {
   type Transition,
 } from "./commercial-common.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Procurement repository (Section 4.2 Procurement, Section 7.4, invariants 10 and 17): RFQs with
@@ -24,14 +25,8 @@ export type PoState = Database["app"]["Enums"]["po_state"];
 export type PoChangeOrderState = Database["app"]["Enums"]["po_change_order_state"];
 export type ApprovalDecision = Database["app"]["Enums"]["approval_decision"];
 
-export const RFQ_STATES: readonly RfqState[] = [
-  "Proposed",
-  "Issued",
-  "Closed",
-  "Awarded",
-  "Canceled",
-];
-export const PO_STATES: readonly PoState[] = ["Proposed", "Approved", "Sent", "Closed", "Canceled"];
+export const RFQ_STATES: readonly RfqState[] = enums.rfqState;
+export const PO_STATES: readonly PoState[] = enums.poState;
 
 /** A project as procurement pickers and display keys need it. */
 export interface ProjectOption {
@@ -1183,21 +1178,8 @@ export async function getPoAcknowledgment(
 export type SubmittalKind = Database["app"]["Enums"]["submittal_kind"];
 export type ReviewState = Database["app"]["Enums"]["review_state"];
 
-export const SUBMITTAL_KINDS: readonly SubmittalKind[] = [
-  "Shop Drawing",
-  "Product Data",
-  "Sample",
-  "Method Statement",
-  "Certificate",
-  "Other",
-];
-export const REVIEW_STATES: readonly ReviewState[] = [
-  "Proposed",
-  "Submitted",
-  "Approved",
-  "Returned",
-  "Canceled",
-];
+export const SUBMITTAL_KINDS: readonly SubmittalKind[] = enums.submittalKind;
+export const REVIEW_STATES: readonly ReviewState[] = enums.reviewState;
 
 export interface Submittal {
   readonly id: string;

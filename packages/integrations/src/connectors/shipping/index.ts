@@ -5,16 +5,9 @@ import { unwrap, type DbClient } from "../../framework/db.ts";
 import { IntegrationError } from "../../framework/errors.ts";
 import { callJson, callRaw, type HttpClient, type HttpRequest } from "../../framework/http.ts";
 import { sha256Hex } from "../../framework/support.ts";
+import * as enums from "@xos/data/enums";
 
-export const TRACKING_STATUSES = [
-  "Label Created",
-  "In Transit",
-  "Out for Delivery",
-  "Delivered",
-  "Exception",
-  "Returned",
-  "Unknown",
-] as const;
+export const TRACKING_STATUSES = enums.trackingStatus;
 export type TrackingStatus = (typeof TRACKING_STATUSES)[number];
 
 export interface TrackingScan {

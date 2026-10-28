@@ -15,6 +15,7 @@ import type { CapabilityRule } from "../../capabilities.ts";
 import { editDefinition, orNull } from "../../correct.ts";
 import { collectionAction, itemAction, resource } from "../../define.ts";
 import type { ActionSpec, ResourceSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -43,14 +44,7 @@ const EXAMPLE_EVENT = {
   data: { record_kind: "Task", title: "Call the venue" },
 };
 
-const ACTION_TYPES = [
-  "create_task",
-  "update_status",
-  "assign",
-  "add_comment",
-  "notify",
-  "call_webhook",
-] as const;
+const ACTION_TYPES = Constants.app.Enums.automation_action_type;
 
 const Automation = editDefinition(
   audited(
@@ -74,7 +68,7 @@ const Automation = editDefinition(
             example: "record.created",
           }),
         condition_match: label(
-          ["all", "any"],
+          Constants.app.Enums.automation_match,
           "How the top-level conditions combine; set from the conditions document.",
         ),
         owner_person_id: fields.ref("person the actions run as"),
@@ -97,7 +91,7 @@ const Automation = editDefinition(
 );
 
 const RunStatus = label(
-  ["Queued", "Running", "Retrying", "Succeeded", "Failed", "Skipped"],
+  Constants.app.Enums.automation_run_status,
   "Queued, Running, Retrying after a failure the job queue retries with backoff, Succeeded, Failed, or Skipped (loop_depth, rate_limited, or the automation was off).",
 );
 
@@ -172,7 +166,7 @@ const AutomationRunStep = audited(
       position: fields.int("Position of the action, 1 first.", 1, 1),
       action_type: label(ACTION_TYPES, "What the action does."),
       operation_id: orNull(fields.code("Public API operation called.", "records.create")),
-      step_status: label(["Succeeded", "Failed", "Skipped"], "Outcome of the action."),
+      step_status: label(Constants.app.Enums.automation_step_status, "Outcome of the action."),
       request_body: orNull(
         jsonObject("Body sent, with templates filled in from the event.", {
           title: "Review Call the venue",
@@ -215,10 +209,7 @@ const TestResult = z
         z
           .object({
             field: fields.text("Path into the event.", "data.record_kind"),
-            operator: label(
-              ["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"],
-              "Filter operator.",
-            ),
+            operator: label(Constants.app.Enums.filter_operator, "Filter operator."),
             value: orNull(fields.text("Value compared.", "Task", 1000)),
             actual: z.unknown().meta({
               description: "Value found in the event; null when missing.",

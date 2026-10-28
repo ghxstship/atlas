@@ -11,6 +11,7 @@ import { itemAction, transition } from "../define.ts";
 import { insuredCapabilities, insuredResources } from "./parts/insureds.ts";
 import { vendorFieldHomes } from "./parts/playbook-field-homes.ts";
 import { vendorFieldExposure } from "./parts/playbook-field-exposure.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -51,10 +52,7 @@ export const additions = defineAdditions("Vendors", {
               create: "optional",
             },
             vendor_state: {
-              schema: label(
-                ["Prospect", "Onboarded", "Active", "Blocked", "Canceled"],
-                "Vendor state.",
-              ),
+              schema: label(Constants.app.Enums.vendor_state, "Vendor state."),
             },
           },
         }),
@@ -104,7 +102,9 @@ export const additions = defineAdditions("Vendors", {
               create: "required",
             },
             decision: {
-              schema: orNull(label(["Approved", "Rejected"], "Decision; null while pending.")),
+              schema: orNull(
+                label(Constants.app.Enums.approval_decision, "Decision; null while pending."),
+              ),
             },
             decided_by: { schema: orNull(fields.ref("person who decided")) },
             decided_at: { schema: orNull(fields.instant("When it was decided.")) },
@@ -119,7 +119,7 @@ export const additions = defineAdditions("Vendors", {
                 "Approves or rejects a pending prequalification through app.decide_prequalification: vendors.prequalification.approve, never by the requester, final once decided. A refusal returns 422 and names the rule.",
               body: z
                 .object({
-                  decision: label(["Approved", "Rejected"], "Decision."),
+                  decision: label(Constants.app.Enums.approval_decision, "Decision."),
                   valid_to: z.iso
                     .date()
                     .optional()

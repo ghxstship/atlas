@@ -3542,7 +3542,7 @@ export interface Components {
     ticket_number: string;
     help_desk_team_id: string;
     category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
-    severity: "Severity 3" | "Severity 1" | "Severity 2" | "Severity 4";
+    severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
     subject: string;
     body: string;
     ticket_state: "Open" | "Waiting" | "Resolved" | "Closed";
@@ -3554,7 +3554,7 @@ export interface Components {
   HelpDeskRequestCreate: {
     help_desk_team_id: string;
     category: "Question" | "Problem" | "Access" | "Billing" | "Account" | "Feature Request";
-    severity: "Severity 3" | "Severity 1" | "Severity 2" | "Severity 4";
+    severity: "Severity 1" | "Severity 2" | "Severity 3" | "Severity 4";
     subject: string;
     body: string;
   };
@@ -4366,7 +4366,7 @@ export interface Components {
     project_id: string;
     item_number: string;
     category:
-      "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+      "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
     description: string;
     found_at: string;
     found_location: string;
@@ -4377,7 +4377,7 @@ export interface Components {
   LostFoundItemCreate: {
     project_id: string;
     category:
-      "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+      "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
     description: string;
     found_at: string;
     found_location: string;
@@ -4386,7 +4386,7 @@ export interface Components {
   LostFoundItemPage: { data: Array<Components["LostFoundItem"]>; next_cursor: string | null };
   LostFoundItemUpdate: {
     category?:
-      "Wallet" | "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Other";
+      "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
     description?: string;
     storage_location?: string | null;
   };
@@ -4675,7 +4675,7 @@ export interface Components {
     project_id: string;
     space_id: string | null;
     name: string;
-    load_basis: "Occupant Load Factor" | "Space Capacity" | "Permit";
+    load_basis: "Space Capacity" | "Occupant Load Factor" | "Permit";
     metric_domain: string | null;
     metric_item: string | null;
     permitted_load: number;
@@ -6849,13 +6849,13 @@ export interface Components {
     scope_node_id: string | null;
     budget_line_id: string | null;
     role_type:
-      | "Crew"
-      | "Contractor"
-      | "Staff"
+      | "Client"
       | "Vendor"
+      | "Contractor"
+      | "Crew"
+      | "Staff"
       | "Artist"
       | "Artist Representative"
-      | "Client"
       | "Sponsor"
       | null;
     worker_classification: string | null;
@@ -6876,13 +6876,13 @@ export interface Components {
     scope_node_id?: string | null;
     budget_line_id?: string | null;
     role_type?:
-      | "Crew"
-      | "Contractor"
-      | "Staff"
+      | "Client"
       | "Vendor"
+      | "Contractor"
+      | "Crew"
+      | "Staff"
       | "Artist"
       | "Artist Representative"
-      | "Client"
       | "Sponsor"
       | null;
     worker_classification?: string | null;
@@ -6903,13 +6903,13 @@ export interface Components {
     scope_node_id?: string | null;
     budget_line_id?: string | null;
     role_type?:
-      | "Crew"
-      | "Contractor"
-      | "Staff"
+      | "Client"
       | "Vendor"
+      | "Contractor"
+      | "Crew"
+      | "Staff"
       | "Artist"
       | "Artist Representative"
-      | "Client"
       | "Sponsor"
       | null;
     worker_classification?: string | null;
@@ -7092,7 +7092,7 @@ export interface Components {
     scope_node_id: string | null;
     person_id: string;
     requisition_id: string | null;
-    staffing_basis: "Declared" | "Ratio" | "Fixed";
+    staffing_basis: "Ratio" | "Fixed" | "Declared";
     starts_on: string | null;
     ends_on: string | null;
     assignment_state: "Proposed" | "Active" | "Complete" | "Canceled";
@@ -7103,7 +7103,7 @@ export interface Components {
     scope_node_id?: string | null;
     person_id: string;
     requisition_id?: string | null;
-    staffing_basis?: "Declared" | "Ratio" | "Fixed";
+    staffing_basis?: "Ratio" | "Fixed" | "Declared";
     starts_on?: string | null;
     ends_on?: string | null;
   };
@@ -7113,7 +7113,7 @@ export interface Components {
     scope_node_id?: string | null;
     person_id?: string;
     requisition_id?: string | null;
-    staffing_basis?: "Declared" | "Ratio" | "Fixed";
+    staffing_basis?: "Ratio" | "Fixed" | "Declared";
     starts_on?: string | null;
     ends_on?: string | null;
   };
@@ -9545,12 +9545,12 @@ export interface Components {
     updated_by: string | null;
     group_id: string;
     membership_id: string;
-    group_role: "Member" | "Owner";
+    group_role: "Owner" | "Member";
   };
   WorkforceGroupMemberCreate: {
     group_id: string;
     membership_id: string;
-    group_role: "Member" | "Owner";
+    group_role: "Owner" | "Member";
   };
   WorkforceGroupMemberPage: {
     data: Array<Components["WorkforceGroupMember"]>;

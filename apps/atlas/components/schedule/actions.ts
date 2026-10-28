@@ -13,6 +13,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { done, failed, invalid, type ActionResult } from "@/components/work/action-result";
 import { getOrgContext } from "@/lib/shell/context";
+import * as enums from "@xos/data/enums";
 
 /**
  * Schedule actions (A08): dependencies, actuals and baselines. Row level security and the guards
@@ -26,12 +27,7 @@ async function context(org: string) {
   return ctx;
 }
 
-const DEPENDENCY_TYPES = [
-  "Finish to Start",
-  "Start to Start",
-  "Finish to Finish",
-  "Start to Finish",
-] as const;
+const DEPENDENCY_TYPES = enums.dependencyType;
 
 export async function addDependencyAction(
   org: string,

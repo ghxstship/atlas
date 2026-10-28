@@ -7,6 +7,7 @@ import type { JobQueue } from "../framework/runner.ts";
 import { sha256Hex } from "../framework/support.ts";
 import { toParquetValue, writeParquet, type ParquetColumn, type ParquetType } from "./parquet.ts";
 import type { WarehouseProvider, WarehouseProviderName, WarehouseTarget } from "./provider.ts";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * The warehouse delivery worker (A83, finding A65-029; Section 4.6.4). It claims warehouse.deliver jobs and
@@ -29,7 +30,7 @@ export const WAREHOUSE_SCHEMA_VERSION = "1";
 export const PART_ROWS = 50_000;
 const PAGE_ROWS = 2_000;
 
-export type WarehouseFormat = "Parquet" | "CSV";
+export type WarehouseFormat = Database["app"]["Enums"]["warehouse_file_format"];
 
 export interface ClaimedDelivery {
   readonly id: string;

@@ -12,6 +12,7 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, setCapabilities } from "../correct.ts";
 import { transition } from "../define.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -54,10 +55,7 @@ export const additions = defineAdditions("Hospitality", {
               ),
             },
             fulfillment_state: {
-              schema: label(
-                ["Proposed", "Active", "Blocked", "Complete", "Canceled"],
-                "Fulfillment state.",
-              ),
+              schema: label(Constants.app.Enums.fulfillment_state, "Fulfillment state."),
             },
           },
         }),

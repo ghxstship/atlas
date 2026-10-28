@@ -10,6 +10,7 @@ import { useFinanceT } from "./kit-use-finance-t";
 import { type Option } from "./kit.types";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { INITIAL, Submit } from "./forms.shared";
+import * as enums from "@xos/data/enums";
 
 // Cost centers, rates and the UPL export -----------------------------------------------------------------
 
@@ -58,7 +59,7 @@ export function CostCenterForm({
         name="kind"
         label={t("costCenters.fields.kind")}
         value={kind}
-        options={["Standing", "Overhead", "Event"].map((k) => ({
+        options={enums.costCenterKind.map((k) => ({
           value: k,
           label: t(`costCenters.kinds.${k}`),
         }))}

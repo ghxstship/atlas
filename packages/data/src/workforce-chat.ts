@@ -18,6 +18,8 @@ import {
   strOrNull,
   type Raw,
 } from "./workforce-shared.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Group spaces, chat and the directory (Section 4.9 Groups, Chat and Directory; migrations 0800 and
@@ -27,13 +29,13 @@ import {
  * attachments on the message. Read receipts show only while the org has them on.
  */
 
-export type GroupKind = "Department" | "Project" | "Crew" | "Custom";
-export type GroupRole = "Owner" | "Member";
-export type ConversationKind = "Direct" | "Group";
-export type ChatMessageKind = "Text" | "Photo" | "File" | "Voice";
+export type GroupKind = Database["app"]["Enums"]["group_kind"];
+export type GroupRole = Database["app"]["Enums"]["group_role"];
+export type ConversationKind = Database["app"]["Enums"]["conversation_kind"];
+export type ChatMessageKind = Database["app"]["Enums"]["chat_message_kind"];
 
-export const GROUP_KINDS: readonly GroupKind[] = ["Department", "Project", "Crew", "Custom"];
-export const CHAT_MESSAGE_KINDS: readonly ChatMessageKind[] = ["Text", "Photo", "File", "Voice"];
+export const GROUP_KINDS: readonly GroupKind[] = enums.groupKind;
+export const CHAT_MESSAGE_KINDS: readonly ChatMessageKind[] = enums.chatMessageKind;
 
 export interface Group {
   readonly id: string;

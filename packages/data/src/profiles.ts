@@ -1,5 +1,6 @@
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Profiles repository (Section 4.8.2, Section 4.8.3, Section 4.8.1): the signed-in person's own
@@ -14,22 +15,7 @@ export type ProfileSection = Enums["profile_section"];
 export type RateUnit = Enums["rate_unit"];
 export type LanguageProficiency = Enums["language_proficiency"];
 
-export const PROFILE_SECTIONS: readonly ProfileSection[] = [
-  "photo",
-  "pronouns",
-  "headline",
-  "bio",
-  "location",
-  "skills",
-  "certifications",
-  "portfolio",
-  "rates",
-  "availability",
-  "languages",
-  "references",
-  "links",
-  "organizations",
-];
+export const PROFILE_SECTIONS: readonly ProfileSection[] = enums.profileSection;
 
 export interface MyProfile {
   readonly id: string;

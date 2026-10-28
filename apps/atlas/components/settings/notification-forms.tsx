@@ -11,6 +11,7 @@ import {
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { MATRIX_CHANNELS } from "@/lib/settings/notification-matrix";
 import { ChoiceDisclosure } from "./choice-disclosure";
+import * as enums from "@xos/data/enums";
 
 /**
  * The notification matrix forms (Section 4.5.6): a member's categories by channel with quiet hours and
@@ -292,7 +293,7 @@ export function MyNotificationsForm({
             label={t("mine.digest")}
             help={t("mine.digestHelp")}
             value={settings.digestFrequency}
-            options={["Off", "Daily", "Weekly"].map((f) => ({
+            options={enums.digestFrequency.map((f) => ({
               value: f,
               label: t(`digest.${f}`),
             }))}

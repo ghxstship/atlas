@@ -11,6 +11,7 @@ import { itemAction, transition } from "../define.ts";
 import { rfqSealedResponseCorrections } from "./parts/rfq-sealed-responses.ts";
 import { procurementFieldHomes } from "./parts/playbook-field-homes.ts";
 import { procurementFieldExposure } from "./parts/playbook-field-exposure.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -52,7 +53,7 @@ export const additions = defineAdditions("Procurement", {
               create: "optional",
             },
             rfq_state: {
-              schema: label(["Proposed", "Issued", "Closed", "Awarded", "Canceled"], "RFQ state."),
+              schema: label(Constants.app.Enums.rfq_state, "RFQ state."),
             },
           },
         }),
@@ -144,10 +145,7 @@ export const additions = defineAdditions("Procurement", {
               create: "optional",
             },
             po_state: {
-              schema: label(
-                ["Proposed", "Approved", "Sent", "Closed", "Canceled"],
-                "Purchase order state.",
-              ),
+              schema: label(Constants.app.Enums.po_state, "Purchase order state."),
             },
           },
         }),
@@ -196,10 +194,7 @@ export const additions = defineAdditions("Procurement", {
           remove: ["currency"],
           add: {
             po_change_order_state: {
-              schema: label(
-                ["Proposed", "Approved", "Rejected", "Canceled"],
-                "PO change order state.",
-              ),
+              schema: label(Constants.app.Enums.po_change_order_state, "PO change order state."),
             },
           },
         }),

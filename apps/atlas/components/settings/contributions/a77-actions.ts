@@ -11,6 +11,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
 import { observability } from "@/lib/observability";
+import * as enums from "@xos/data/enums";
 
 /**
  * Enterprise single sign-on and SCIM on Settings, Security (A77, Section 9). Each action resolves the viewer's org
@@ -64,7 +65,7 @@ const finished = (slug: string, extra: ProviderState = {}): ProviderState => {
 const uuid = z.uuid();
 const providerSchema = z.object({
   name: z.string().trim().min(1).max(120),
-  protocol: z.enum(["SAML", "OIDC"]),
+  protocol: z.enum(enums.identityProtocol),
   authProviderId: z.string().trim().min(1).max(200),
   defaultRoleId: uuid,
 });

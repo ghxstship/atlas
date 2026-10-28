@@ -21,6 +21,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
 import { getTranslate } from "@/lib/shell/translate";
+import * as enums from "@xos/data/enums";
 
 /**
  * Server actions of A19's integrations panel (settings.integrations). Each resolves the viewer's org
@@ -101,7 +102,7 @@ const clientPair = z.object({
 
 const pastedSecret = z.object({
   secret: z.string().max(16384),
-  kind: z.enum(["OAuth Token", "API Key", "Service Account"]),
+  kind: z.enum(enums.integrationCredentialKind),
 });
 
 /**
@@ -146,7 +147,7 @@ export async function storeIntegrationCredentialAction(
   return result.ok ? done(ctx.org.slug) : failure(result.error);
 }
 
-const STATES = ["Pending", "Connected", "Error", "Paused", "Disconnected"] as const;
+const STATES = enums.integrationConnectionState;
 
 export async function transitionIntegrationAction(
   _: IntegrationActionState,

@@ -12,6 +12,7 @@ import { editDefinition, editShape, orNull } from "../../correct.ts";
 import type { CorrectionInput } from "../../corrections.ts";
 import { collectionAction, itemAction, resource } from "../../define.ts";
 import type { ActionSpec, ResourceSpec } from "../../types.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -361,12 +362,10 @@ export const a79IdentityCorrections: readonly CorrectionInput[] = [
     apply: editShape({
       add: {
         provisioning_status: {
-          schema: z
-            .enum(["Not Started", "Requested", "Pending DNS", "Active", "Failed", "Released"])
-            .meta({
-              description: "Where the domain stands at its provider.",
-              example: "Pending DNS",
-            }),
+          schema: z.enum(Constants.app.Enums.domain_provisioning_status).meta({
+            description: "Where the domain stands at its provider.",
+            example: "Pending DNS",
+          }),
         },
         dns_records: {
           schema: z

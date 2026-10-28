@@ -19,6 +19,7 @@ import { env } from "@/lib/env";
 import { getOrgContext } from "@/lib/shell/context";
 import { getShellSettings, type OrgSupport } from "@/lib/shell/org-settings";
 import { platformChannel } from "@/lib/support/terms";
+import * as enums from "@xos/data/enums";
 
 /**
  * Server actions behind the help panel (Section 11.16): the person's tours and tips, and opening a
@@ -104,7 +105,7 @@ export async function recordTourAction(
   const parsed = z
     .object({
       key: KEY,
-      state: z.enum(["Offered", "Started", "Completed", "Dismissed"]),
+      state: z.enum(enums.tourState),
       step: z.number().int().min(0).max(50),
     })
     .safeParse({ key: tourKey, state, step });
@@ -141,7 +142,7 @@ export async function resetTipsAction(orgSlug: string): Promise<HelpResult> {
 }
 
 const supportShape = z.object({
-  queue: z.enum(["Organization", "Platform"]),
+  queue: z.enum(enums.supportQueue),
   category: z.enum(SUPPORT_CATEGORIES as [string, ...string[]]),
   severity: z.enum(SUPPORT_SEVERITIES as [string, ...string[]]),
   subject: z.string().trim().min(1).max(200),

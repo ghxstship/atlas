@@ -11,6 +11,7 @@ import {
   type Raw,
 } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * The import wizard's side of imports (A36 on A18's 0530 and A36's 1061; Section 4.6.2): upload a
@@ -21,19 +22,10 @@ import { untyped } from "./untyped.ts";
 
 export const IMPORT_BUCKET = "imports";
 
-export type ImportSource = "CSV" | "XLSX" | "XLS" | "Google Sheets";
-export type ImportStatus =
-  | "Uploaded"
-  | "Detected"
-  | "Mapped"
-  | "Validated"
-  | "Committing"
-  | "Committed"
-  | "Undone"
-  | "Failed"
-  | "Canceled";
-export type RowState = "Valid" | "Invalid" | "Written" | "Refused" | "Skipped";
-export type MergeDecision = "Pending" | "Merged" | "Kept Separate";
+export type ImportSource = Database["app"]["Enums"]["import_source"];
+export type ImportStatus = Database["app"]["Enums"]["import_status"];
+export type RowState = Database["app"]["Enums"]["import_row_state"];
+export type MergeDecision = Database["app"]["Enums"]["merge_decision"];
 
 export interface ImportTargetField {
   readonly name: string;
@@ -254,7 +246,7 @@ export interface ImportColumn {
   readonly fieldName: string | null;
   readonly suggestedFieldName: string | null;
   /** Where the suggestion came from: a saved profile, the Playbook column map or header similarity. */
-  readonly suggestionSource: "Profile" | "Playbook" | "Header" | null;
+  readonly suggestionSource: Database["app"]["Enums"]["import_suggestion_source"] | null;
 }
 
 /** A sheet detection found in the workbook, with the proposed target and the import that reads it, if any. */

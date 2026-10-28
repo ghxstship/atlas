@@ -53,10 +53,11 @@ import {
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { DocumentActions } from "@/components/documents/document-actions";
+import * as enums from "@xos/data/enums";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
-const STATES: readonly PoState[] = ["Proposed", "Approved", "Sent", "Closed", "Canceled"];
+const STATES: readonly PoState[] = enums.poState;
 
 /**
  * Procurement > Purchase orders (journeys 4, 5 and 30): orders with NULL-aware totals, lines that
@@ -442,7 +443,7 @@ async function PurchaseOrderRecord({
                       />
                     ) : null}
                     {ctx.capabilities.has("finance.po.approve")
-                      ? (["Approved", "Rejected"] as const).map((decision) => (
+                      ? enums.approvalDecision.map((decision) => (
                           <ActionButton
                             key={decision}
                             action={decideChangeOrderAction}

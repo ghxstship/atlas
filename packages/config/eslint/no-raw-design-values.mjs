@@ -11,6 +11,7 @@
  * Module specifiers and directives are not design values and are skipped.
  */
 
+import { noRestatedEnums } from "./no-restated-enums.mjs";
 import { noServerConsole } from "./no-server-console.mjs";
 
 const HEX = /(?:^|[^&\w])(#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4}))(?![\w-])/gi;
@@ -171,7 +172,11 @@ export const noRawDesignValues = {
 /** ESLint plugin namespace `xos`. */
 export const xosPlugin = {
   meta: { name: "@xos/eslint-plugin" },
-  rules: { "no-raw-design-values": noRawDesignValues, "no-server-console": noServerConsole },
+  rules: {
+    "no-raw-design-values": noRawDesignValues,
+    "no-restated-enums": noRestatedEnums,
+    "no-server-console": noServerConsole,
+  },
 };
 
 /**

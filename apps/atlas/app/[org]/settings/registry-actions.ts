@@ -16,6 +16,7 @@ import { clientIp } from "@/lib/auth/legal";
 import { parseSettingValue, settingByKey, settingErrorKey } from "@/lib/settings/registry";
 import { getOrgContext } from "@/lib/shell/context";
 import { applyDevicePreference } from "@/lib/shell/actions";
+import * as enums from "@xos/data/enums";
 
 /**
  * Saves the changed registered settings of one settings form (Section 4.5.6, A59-018): an org,
@@ -37,7 +38,7 @@ export interface SettingsFormState {
   readonly at?: number;
 }
 
-const SCOPE_KINDS = ["Organization", "Workspace", "Team", "Project"] as const;
+const SCOPE_KINDS = enums.settingScope;
 
 const formSchema = z.object({
   org: z.string().min(1),

@@ -19,6 +19,8 @@ import {
   strOrNull,
   type Raw,
 } from "./workforce-shared.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Training, the handbook and the Assistant source (Section 4.9; migration 0804), imported as
@@ -28,11 +30,11 @@ import {
  * publish and mandatory reads are acknowledged per version.
  */
 
-export type TrainingCourseState = "Draft" | "Published" | "Retired";
-export type TrainingLessonKind = "Reading" | "Video" | "Quiz";
-export type HandbookArticleState = "Draft" | "Published" | "Archived";
+export type TrainingCourseState = Database["app"]["Enums"]["training_course_state"];
+export type TrainingLessonKind = Database["app"]["Enums"]["training_lesson_kind"];
+export type HandbookArticleState = Database["app"]["Enums"]["handbook_article_state"];
 
-export const TRAINING_LESSON_KINDS: readonly TrainingLessonKind[] = ["Reading", "Video", "Quiz"];
+export const TRAINING_LESSON_KINDS: readonly TrainingLessonKind[] = enums.trainingLessonKind;
 
 export interface QuizQuestion {
   readonly id: string;

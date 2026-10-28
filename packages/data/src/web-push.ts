@@ -1,5 +1,6 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * Browser notifications through Web Push (Section 4.10, A65-023, migration 1533). A browser registers for every org
@@ -8,7 +9,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * dispatcher sends it the Push deliveries, under A80's quiet hours and preferences.
  */
 
-export type WebPushApp = "Atlas" | "Gateway";
+export type WebPushApp = Database["app"]["Enums"]["shortcut_shell"];
 
 /** A browser's PushSubscription as PushSubscription.toJSON() gives it. */
 export interface BrowserSubscription {

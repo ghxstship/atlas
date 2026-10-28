@@ -23,6 +23,7 @@ import { itemAction, transition } from "../define.ts";
 import type { ActionSpec, ResourceSpec } from "../types.ts";
 import { crewFieldHomes } from "./parts/playbook-field-homes.ts";
 import { crewFieldExposure } from "./parts/playbook-field-exposure.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -111,7 +112,7 @@ export const additions = defineAdditions("Crew", {
               create: "required",
             },
             shift_state: {
-              schema: label(["Draft", "Published", "Accepted", "Canceled"], "Shift state."),
+              schema: label(Constants.app.Enums.shift_state, "Shift state."),
             },
           },
         }),
@@ -148,7 +149,7 @@ export const additions = defineAdditions("Crew", {
             create: "required",
           },
           swap_state: {
-            schema: label(["Proposed", "Approved", "Rejected", "Canceled"], "Swap state."),
+            schema: label(Constants.app.Enums.swap_state, "Swap state."),
           },
         },
       }),
@@ -170,7 +171,7 @@ export const additions = defineAdditions("Crew", {
             membership_id: { schema: membership("the person who worked"), create: "optional" },
             engagement_id: { schema: engagement("the person who worked"), create: "optional" },
             source: {
-              schema: label(["Web", "Mobile", "Kiosk"], "Where the punch came from."),
+              schema: label(Constants.app.Enums.time_entry_source, "Where the punch came from."),
               create: "optional",
             },
             auto_closed_at: {
@@ -266,7 +267,7 @@ export const additions = defineAdditions("Crew", {
           },
           requested_by: { schema: orNull(fields.ref("person who asked for the correction")) },
           correction_state: {
-            schema: label(["Proposed", "Approved", "Rejected"], "Correction state."),
+            schema: label(Constants.app.Enums.correction_state, "Correction state."),
           },
         },
       }),
@@ -307,7 +308,7 @@ export const additions = defineAdditions("Crew", {
           period_end: { schema: fields.date("Last day of the period."), create: "required" },
           submitted_by: { schema: orNull(fields.ref("person who submitted the timesheet")) },
           timesheet_state: {
-            schema: label(["Proposed", "Submitted", "Approved", "Rejected"], "Timesheet state."),
+            schema: label(Constants.app.Enums.timesheet_state, "Timesheet state."),
           },
         },
       }),
@@ -567,10 +568,7 @@ export const additions = defineAdditions("Crew", {
           remove: ["gross_total"],
           add: {
             payroll_run_state: {
-              schema: label(
-                ["Draft", "Calculated", "Approved", "Exported", "Accepted", "Canceled"],
-                "Payroll run state.",
-              ),
+              schema: label(Constants.app.Enums.payroll_run_state, "Payroll run state."),
             },
           },
         }),
@@ -711,7 +709,7 @@ export const additions = defineAdditions("Crew", {
           },
           hours: { schema: fields.quantity("Hours requested.", 16), create: "required" },
           time_off_state: {
-            schema: label(["Proposed", "Approved", "Rejected", "Canceled"], "Request state."),
+            schema: label(Constants.app.Enums.time_off_state, "Request state."),
           },
         },
       }),

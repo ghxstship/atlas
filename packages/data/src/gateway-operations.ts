@@ -1,5 +1,5 @@
 import type { XosClient } from "./client.ts";
-import type { Json } from "./database.types.ts";
+import type { Database, Json } from "./database.types.ts";
 import { external, type ExternalRow, type ExternalView } from "./gateway-external.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
@@ -281,7 +281,7 @@ export function decideClientApproval(
   db: XosClient,
   input: {
     readonly requestId: string;
-    readonly decision: "Approved" | "Rejected";
+    readonly decision: Database["app"]["Enums"]["approval_decision"];
     readonly response: string;
   },
 ): Promise<Result<null>> {

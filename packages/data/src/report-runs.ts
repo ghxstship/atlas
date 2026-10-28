@@ -18,6 +18,7 @@ import {
   type DataClassification,
   type ReportFileInput,
 } from "./report-files.ts";
+import type { Database } from "./database.types.ts";
 
 /**
  * The report.run worker (A35, RRR-79; migration 1050). A18 queues a report.run job for every run
@@ -44,7 +45,7 @@ export interface ReportRunRecord {
   readonly orgId: string;
   readonly reportDefinitionId: string;
   readonly membershipId: string;
-  readonly exportFormat: "CSV" | "XLSX" | "PDF";
+  readonly exportFormat: Database["app"]["Enums"]["export_format"];
   readonly runStatus: string;
 }
 

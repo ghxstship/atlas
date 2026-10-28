@@ -1,6 +1,7 @@
 import { unwrap, type DbClient } from "../framework/db.ts";
 import { IntegrationError } from "../framework/errors.ts";
 import { callJson, type HttpClient } from "../framework/http.ts";
+import type { Database } from "@xos/data/database.types";
 
 /**
  * The verifier callers routed to A19: a job that checks pending org domains over DNS and records the
@@ -111,7 +112,7 @@ export function supabaseDomainStore(db: DbClient): DomainStore {
 
 export interface VerificationRequest {
   readonly id: string;
-  readonly method: "Stripe Identity" | "Business Registry";
+  readonly method: Database["app"]["Enums"]["organization_verification_method"];
   readonly reference: string;
 }
 

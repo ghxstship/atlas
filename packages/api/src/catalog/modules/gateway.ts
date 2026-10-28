@@ -14,6 +14,7 @@ import {
 } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeVerbs, setTable } from "../correct.ts";
+import { Constants } from "@xos/data/database.types";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -134,17 +135,7 @@ export const additions = defineAdditions("Gateway", {
             schema: fields.ref("person who reported, set from the session"),
           },
           reason: {
-            schema: label(
-              [
-                "Illegal Content",
-                "Discrimination",
-                "Fraud",
-                "Misleading Information",
-                "Missing Pay Range",
-                "Safety",
-              ],
-              "Ground for the report.",
-            ),
+            schema: label(Constants.app.Enums.listing_report_reason, "Ground for the report."),
             create: "required",
           },
           details: optional(
@@ -171,7 +162,7 @@ export const additions = defineAdditions("Gateway", {
         add: {
           opportunity_id: { schema: fields.ref("opportunity decided on"), create: "required" },
           action: {
-            schema: label(["Removed", "Restricted", "Restored", "No Action"], "Decision taken."),
+            schema: label(Constants.app.Enums.moderation_action_kind, "Decision taken."),
             create: "required",
           },
           decided_at: { schema: fields.instant("When the decision was made.") },
@@ -244,7 +235,7 @@ export const additions = defineAdditions("Gateway", {
       apply: editShape({
         add: {
           visibility: optional(
-            label(["Private", "Shared on Application", "Public"], "Who reads the calendar."),
+            label(Constants.app.Enums.availability_visibility, "Who reads the calendar."),
           ),
         },
       }),
@@ -261,7 +252,7 @@ export const additions = defineAdditions("Gateway", {
         remove: ["available"],
         add: {
           availability_kind: {
-            schema: label(["Available", "Unavailable", "Tentative"], "Kind of block."),
+            schema: label(Constants.app.Enums.availability_kind, "Kind of block."),
             create: "required",
           },
           note: optional(
@@ -295,7 +286,7 @@ export const additions = defineAdditions("Gateway", {
           person_id: { schema: orNull(fields.ref("payee person, set from the session")) },
           organization_id: optional(orNull(fields.ref("payee external account"))),
           form_kind: {
-            schema: label(["W-9", "W-8BEN", "W-8BEN-E"], "Tax form."),
+            schema: label(Constants.app.Enums.tax_form_kind, "Tax form."),
             create: "required",
           },
           tax_identifier: {
@@ -325,7 +316,7 @@ export const additions = defineAdditions("Gateway", {
         nullable: ["account_last4"],
         add: {
           provider: {
-            schema: label(["Stripe Connect", "Accounting System"], "Payment provider."),
+            schema: label(Constants.app.Enums.payout_provider, "Payment provider."),
             create: "required",
             update: false,
           },
@@ -346,7 +337,7 @@ export const additions = defineAdditions("Gateway", {
         add: {
           result: {
             schema: label(
-              ["Pending", "Clear", "Consider", "Suspended", "Canceled"],
+              Constants.app.Enums.background_check_result,
               "Result as the provider reports it.",
             ),
           },

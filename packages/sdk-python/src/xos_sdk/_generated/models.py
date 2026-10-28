@@ -5546,7 +5546,7 @@ class RoleAssignment(TypedDict):
     #: Identifier of the requisition the assignment fills.
     requisition_id: Optional[str]
     #: How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
-    staffing_basis: Literal["Declared", "Ratio", "Fixed"]
+    staffing_basis: Literal["Ratio", "Fixed", "Declared"]
     #: First day of the assignment.
     starts_on: Optional[str]
     #: Last day of the assignment.
@@ -5571,7 +5571,7 @@ class RoleAssignmentCreate(_RoleAssignmentCreateRequired, total=False):
     #: Identifier of the requisition the assignment fills.
     requisition_id: Optional[str]
     #: How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
-    staffing_basis: Literal["Declared", "Ratio", "Fixed"]
+    staffing_basis: Literal["Ratio", "Fixed", "Declared"]
     #: First day of the assignment.
     starts_on: Optional[str]
     #: Last day of the assignment.
@@ -5589,7 +5589,7 @@ class RoleAssignmentUpdate(TypedDict, total=False):
     #: Identifier of the requisition the assignment fills.
     requisition_id: Optional[str]
     #: How the role was sized: from the canon staffing ratio, a fixed canon count per tier, or declared.
-    staffing_basis: Literal["Declared", "Ratio", "Fixed"]
+    staffing_basis: Literal["Ratio", "Fixed", "Declared"]
     #: First day of the assignment.
     starts_on: Optional[str]
     #: Last day of the assignment.
@@ -5630,7 +5630,7 @@ class Requisition(TypedDict):
     #: Identifier of the budget line the cost is charged to.
     budget_line_id: Optional[str]
     #: External role type an opportunity published from the requisition seeks; null when filled internally.
-    role_type: Optional[Literal["Crew", "Contractor", "Staff", "Vendor", "Artist", "Artist Representative", "Client", "Sponsor"]]
+    role_type: Optional[Literal["Client", "Vendor", "Contractor", "Crew", "Staff", "Artist", "Artist Representative", "Sponsor"]]
     #: Worker classification, from xpms.worker_classification.
     worker_classification: Optional[str]
     #: Pay basis; set with the arrangement.
@@ -5673,7 +5673,7 @@ class RequisitionCreate(_RequisitionCreateRequired, total=False):
     #: Identifier of the budget line the cost is charged to.
     budget_line_id: Optional[str]
     #: External role type an opportunity published from the requisition seeks; null when filled internally.
-    role_type: Optional[Literal["Crew", "Contractor", "Staff", "Vendor", "Artist", "Artist Representative", "Client", "Sponsor"]]
+    role_type: Optional[Literal["Client", "Vendor", "Contractor", "Crew", "Staff", "Artist", "Artist Representative", "Sponsor"]]
     #: Worker classification, from xpms.worker_classification.
     worker_classification: Optional[str]
     #: Pay basis; set with the arrangement.
@@ -5701,7 +5701,7 @@ class RequisitionUpdate(TypedDict, total=False):
     #: Identifier of the budget line the cost is charged to.
     budget_line_id: Optional[str]
     #: External role type an opportunity published from the requisition seeks; null when filled internally.
-    role_type: Optional[Literal["Crew", "Contractor", "Staff", "Vendor", "Artist", "Artist Representative", "Client", "Sponsor"]]
+    role_type: Optional[Literal["Client", "Vendor", "Contractor", "Crew", "Staff", "Artist", "Artist Representative", "Sponsor"]]
     #: Worker classification, from xpms.worker_classification.
     worker_classification: Optional[str]
     #: Pay basis; set with the arrangement.
@@ -22827,7 +22827,7 @@ class WorkforceGroupMember(TypedDict):
     #: Identifier of the member of the org in the group.
     membership_id: str
     #: Owners add and remove members.
-    group_role: Literal["Member", "Owner"]
+    group_role: Literal["Owner", "Member"]
 
 
 class WorkforceGroupMemberCreate(TypedDict):
@@ -22838,7 +22838,7 @@ class WorkforceGroupMemberCreate(TypedDict):
     #: Identifier of the member of the org in the group.
     membership_id: str
     #: Owners add and remove members.
-    group_role: Literal["Member", "Owner"]
+    group_role: Literal["Owner", "Member"]
 
 
 class ConversationPage(TypedDict):
@@ -24589,7 +24589,7 @@ class HelpDeskRequest(TypedDict):
     #: What it is about.
     category: Literal["Question", "Problem", "Access", "Billing", "Account", "Feature Request"]
     #: Severity.
-    severity: Literal["Severity 3", "Severity 1", "Severity 2", "Severity 4"]
+    severity: Literal["Severity 1", "Severity 2", "Severity 3", "Severity 4"]
     #: One-line summary.
     subject: str
     #: What happened and what is needed.
@@ -24614,7 +24614,7 @@ class HelpDeskRequestCreate(TypedDict):
     #: What it is about.
     category: Literal["Question", "Problem", "Access", "Billing", "Account", "Feature Request"]
     #: Severity.
-    severity: Literal["Severity 3", "Severity 1", "Severity 2", "Severity 4"]
+    severity: Literal["Severity 1", "Severity 2", "Severity 3", "Severity 4"]
     #: One-line summary.
     subject: str
     #: What happened and what is needed.
@@ -24689,7 +24689,7 @@ class OccupancyCounter(TypedDict):
     #: Counter name.
     name: str
     #: Where the permitted load comes from.
-    load_basis: Literal["Occupant Load Factor", "Space Capacity", "Permit"]
+    load_basis: Literal["Space Capacity", "Occupant Load Factor", "Permit"]
     #: Bible metric domain of the load factor.
     metric_domain: Optional[str]
     #: Bible occupant load factor.
@@ -25041,7 +25041,7 @@ class LostFoundItem(TypedDict):
     #: Display number.
     item_number: str
     #: Category.
-    category: Literal["Wallet", "Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Other"]
+    category: Literal["Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Wallet", "Other"]
     #: Description a claimant is checked against.
     description: str
     #: When it was found.
@@ -25060,7 +25060,7 @@ class _LostFoundItemCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
     #: Category.
-    category: Literal["Wallet", "Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Other"]
+    category: Literal["Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Wallet", "Other"]
     #: Description a claimant is checked against.
     description: str
     #: When it was found.
@@ -25080,7 +25080,7 @@ class LostFoundItemUpdate(TypedDict, total=False):
     """Fields accepted when updating a LostFoundItem. Omitted fields are unchanged."""
 
     #: Category.
-    category: Literal["Wallet", "Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Other"]
+    category: Literal["Bag", "Clothing", "Electronics", "Jewelry", "Keys", "Documents", "Wallet", "Other"]
     #: Description a claimant is checked against.
     description: str
     #: Where it is held.

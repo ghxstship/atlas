@@ -373,6 +373,7 @@ export function inboundStore(db: PlatformDb): InboundStore {
 }
 
 /** Punch kinds of app.punch_kind (A03F, migration 0365). */
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export const PUNCH_KINDS = ["In", "Break Start", "Break End", "Out"] as const;
 export type PunchKind = (typeof PUNCH_KINDS)[number];
 

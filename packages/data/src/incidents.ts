@@ -1,5 +1,7 @@
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 /**
  * Safety incidents repository (Section 4.2 Safety, Section 7.4, invariant 22): incidents with their
@@ -49,14 +51,9 @@ export async function listIncidentSeverities(db: XosClient): Promise<Result<Inci
 
 // Incidents ------------------------------------------------------------------------------------
 
-export type IncidentState = "Reported" | "Dispatched" | "Contained" | "Closed";
+export type IncidentState = Database["app"]["Enums"]["incident_state"];
 
-export const INCIDENT_STATES: readonly IncidentState[] = [
-  "Reported",
-  "Dispatched",
-  "Contained",
-  "Closed",
-];
+export const INCIDENT_STATES: readonly IncidentState[] = enums.incidentState;
 
 /**
  * The moves the database allows (private.lifecycle_transition_rules, lifecycle incident). Closed is

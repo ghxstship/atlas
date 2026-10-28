@@ -10,11 +10,12 @@ import { z } from "@hono/zod-openapi";
 import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeActions, setOrder } from "../correct.ts";
+import { Constants } from "@xos/data/database.types";
 
 const SINCE = "1.0.0-draft.2";
 
 const scanResult = z
-  .enum(["Granted", "Denied"])
+  .enum(Constants.app.Enums.scan_result)
   .meta({ description: "The database's decision for the scan.", example: "Granted" });
 
 export const additions = defineAdditions("Credentials", {

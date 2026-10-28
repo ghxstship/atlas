@@ -13,6 +13,7 @@ import { z } from "zod";
 import { RecordState } from "../common/enums.ts";
 
 /** The API filter operators (ADR 0003), the same set as app.filter_operator. */
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export const FILTER_OPERATORS = [
   "eq",
   "ne",
@@ -27,6 +28,7 @@ export const FILTER_OPERATORS = [
 export type FilterOperator = (typeof FILTER_OPERATORS)[number];
 
 /** What an action does (app.automation_action_type), each through a public API operation run as the owner. */
+// eslint-disable-next-line xos/no-restated-enums -- below @xos/data; test/database-enums.test.ts holds it equal
 export const AUTOMATION_ACTION_TYPES = [
   "create_task",
   "update_status",

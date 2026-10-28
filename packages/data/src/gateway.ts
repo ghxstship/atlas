@@ -24,6 +24,8 @@ import {
 } from "./gateway-external.ts";
 import { toDisplayKey } from "./gateway-keys.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import type { Database } from "./database.types.ts";
+import * as enums from "./enums.generated.ts";
 
 export type { Database, XosClient } from "./client.ts";
 export { getCurrentPerson } from "./identity.ts";
@@ -591,12 +593,7 @@ export interface ExternalAccount {
 }
 
 /** Account roles in their Section 4.4.1 order, strongest first. */
-export const ACCOUNT_ROLE_ORDER: readonly AccountRole[] = [
-  "Account Owner",
-  "Account Admin",
-  "Account Finance",
-  "Account Member",
-];
+export const ACCOUNT_ROLE_ORDER: readonly AccountRole[] = enums.accountRole;
 
 /** The strongest of the roles held, for navigation standing; null when none is held. */
 export function strongestAccountRole(roles: readonly AccountRole[]): AccountRole | null {
@@ -885,7 +882,7 @@ export async function removeAvailabilityBlock(db: XosClient, id: string): Promis
 
 export interface Rating {
   readonly id: string;
-  readonly side: "Organization" | "Party";
+  readonly side: Database["app"]["Enums"]["rating_side"];
   readonly score: number;
   readonly comment: string | null;
   readonly submittedAt: string;

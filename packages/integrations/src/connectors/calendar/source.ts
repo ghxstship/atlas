@@ -1,8 +1,9 @@
 import type { SyncDirection } from "../../framework/catalog.ts";
 import { unwrap, type DbClient } from "../../framework/db.ts";
+import type { Database } from "@xos/data/database.types";
 
-export type CalendarKind = "Meeting" | "Event" | "Shift";
-export type ConflictPolicy = "XOS Wins" | "Provider Wins" | "Latest Wins";
+export type CalendarKind = Database["app"]["Enums"]["calendar_sync_kind"];
+export type ConflictPolicy = Database["app"]["Enums"]["calendar_conflict_policy"];
 
 export interface CalendarTarget {
   readonly id: string;

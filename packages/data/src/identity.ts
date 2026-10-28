@@ -279,7 +279,7 @@ export async function renameOrganization(
 export async function listRoleCapabilities(
   db: XosClient,
   roleIds: readonly string[],
-): Promise<Result<Map<string, "own" | "assigned" | "organization">>> {
+): Promise<Result<Map<string, Database["app"]["Enums"]["capability_reach"]>>> {
   if (roleIds.length === 0) return ok(new Map());
   const { data, error } = await db
     .from("role_capabilities")
@@ -288,7 +288,7 @@ export async function listRoleCapabilities(
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
   const order = { own: 0, assigned: 1, organization: 2 } as const;
-  const reach = new Map<string, "own" | "assigned" | "organization">();
+  const reach = new Map<string, Database["app"]["Enums"]["capability_reach"]>();
   for (const row of data) {
     const current = reach.get(row.capability_code);
     if (current === undefined || order[row.reach] > order[current]) {
