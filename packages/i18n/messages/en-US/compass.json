@@ -905,7 +905,7 @@
     "decline": "Decline",
     "reply": "Reply",
     "send": "Send",
-    "replyPlaceholder": "Write a reply",
+    "replyPrompt": "Write a reply",
     "shiftAccepted": "Shift accepted. You're on the schedule.",
     "shiftDeclined": "Shift declined. The scheduler sees it back in Draft.",
     "offerAccepted": "Offer accepted. The organization sets up your engagement next.",

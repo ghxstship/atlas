@@ -45,7 +45,7 @@ async function registerOfferCategories(t: Translate): Promise<void> {
           ? {
               textInput: {
                 submitButtonTitle: t("compass.offerActions.send"),
-                placeholder: t("compass.offerActions.replyPlaceholder"),
+                placeholder: t("compass.offerActions.replyPrompt"),
               },
             }
           : {}),

@@ -905,7 +905,7 @@
     "decline": "Rechazar",
     "reply": "Responder",
     "send": "Enviar",
-    "replyPlaceholder": "Escribe una respuesta",
+    "replyPrompt": "Escribe una respuesta",
     "shiftAccepted": "Turno aceptado. Ya estás en el horario.",
     "shiftDeclined": "Turno rechazado. Quien programa lo ve de nuevo en Borrador.",
     "offerAccepted": "Oferta aceptada. La organización prepara tu contratación a continuación.",
