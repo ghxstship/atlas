@@ -11,8 +11,9 @@ set search_path = extensions, public;
 select plan(21);
 
 -- The rules and the function that ensures them ---------------------------------------------------------------------
-select is((select array_agg(policy_name order by policy_name) from private.realtime_channel_policies),
-  array['xos_doc_channel_read', 'xos_doc_channel_write'], 'the document channel rules are registered');
+select ok((select array_agg(policy_name) from private.realtime_channel_policies)
+           @> array['xos_doc_channel_read', 'xos_doc_channel_write'],
+  'the document channel rules are registered (later migrations, 2161 and 2170, add their own)');
 select ok((select prosecdef and proconfig @> array['search_path=""']
            from pg_proc where oid = 'private.ensure_realtime_channel_policies()'::regprocedure),
   'ensure runs with owner rights and an empty search path');
