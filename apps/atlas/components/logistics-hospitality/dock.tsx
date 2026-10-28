@@ -21,7 +21,7 @@ import {
 } from "@/app/[org]/logistics/actions";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { nodeHref } from "@/lib/shell/sitemap";
-import { OperationsCalendar, OperationsList, ViewSwitcher } from "./client";
+import { OperationsCalendar, OperationsList, OperationsTable, ViewSwitcher } from "./client";
 import { ActionButton, FormDrawer, type FieldSpec } from "./forms";
 import {
   calendarMonth,
@@ -40,12 +40,13 @@ import { PageHeader, RefusalNotice, StateIcon, TemplateCollection } from "./ui";
 
 /**
  * Dock schedule (Section 4.5.5 Logistics; journey 20): booked windows at each loading dock, as a
- * resource schedule by dock and day (the default), a calendar and a list. A slot opens in the side
- * peek (`?peek={slot id}`; dock slots carry no display key), where it is checked in, moved or
- * canceled. Slots at one dock never overlap (dock_slot_overlap).
+ * resource schedule by dock and day (the default), a calendar, a list and a table, where the week's
+ * slots select and move to another dock in bulk (Section 11.7). A slot opens in the side peek
+ * (`?peek={slot id}`; dock slots carry no display key), where it is checked in, moved or canceled.
+ * Slots at one dock never overlap (dock_slot_overlap).
  */
 
-export const DOCK_VIEWS = ["resource-schedule", "calendar", "list"] as const;
+export const DOCK_VIEWS = ["resource-schedule", "calendar", "list", "table"] as const;
 type DockView = (typeof DOCK_VIEWS)[number];
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -442,6 +443,67 @@ export async function DockSection({
             href={nodeHref("logistics.shipments", scope.params) ?? "/"}
           />
         )}
+      </>
+    );
+  } else if (view === "table") {
+    body = (
+      <>
+        {weekNav}
+        <OperationsTable
+          caption={t("dock.weekOf", { date: format.date(isoDay(monday)) ?? "" })}
+          columns={[
+            { key: "dock", label: t("dock.fields.zone"), type: "code", width: 110 },
+            { key: "when", label: t("dock.fields.startsAt"), wrap: true },
+            { key: "shipment", label: t("dock.fields.shipment"), wrap: true },
+            { key: "project", label: t("dock.fields.project"), type: "code", width: 90 },
+            { key: "state", label: t("dock.fields.checkedIn") },
+          ]}
+          rows={weekSlots.map((s) => {
+            const shipment = s.shipmentId ? shipmentById.get(s.shipmentId) : undefined;
+            const when = t("dock.slot", {
+              start: format.dateTime(s.startsAt, s.timeZone) ?? "",
+              end: format.time(s.endsAt, s.timeZone),
+            });
+            return {
+              id: s.id,
+              label: `${s.zoneCode ?? ""} ${when}`.trim(),
+              dock: s.zoneCode ?? "",
+              when,
+              shipment: shipment ? `${shipment.key} ${shipmentTitle(shipment)}` : "",
+              project: s.projectKey,
+              state: s.checkedInAt ? t("dock.state.checkedIn") : t("dock.state.booked"),
+              href: peekHref(s.id),
+              fullHref: hrefWith(base, search, { peek: s.id, full: "1", edit: null }),
+              ...(!s.checkedInAt && scope.access.can(s.projectId, "logistics.dock_slot.write")
+                ? { trashMessage: t("dock.canceled") }
+                : {}),
+            };
+          })}
+          bulk={
+            writable.length > 0
+              ? {
+                  org: scope.ctx.org.slug,
+                  resource: "dock_slots",
+                  fields: [
+                    {
+                      key: "zone_id",
+                      label: t("dock.fields.zone"),
+                      options: zones.data.map((z) => ({
+                        value: z.id,
+                        label: `${z.code} ${z.name}`,
+                      })),
+                    },
+                  ],
+                }
+              : null
+          }
+          trash={{
+            org: scope.ctx.org.slug,
+            label: t("dock.cancelSlot"),
+            run: cancelDockSlotAction,
+            restore: restoreDockSlotAction,
+          }}
+        />
       </>
     );
   } else if (view === "list") {

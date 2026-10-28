@@ -17,6 +17,7 @@ import {
   moveCue,
   publishSheet,
   removeCue,
+  restoreSheet,
   saveDaySheet,
   updateCue,
   updateRunOfShow,
@@ -394,6 +395,24 @@ describe("sheets", () => {
       error: { kind: "not-found" },
     });
     expect((await deleteSheet(db, "call_sheets", "s1")).ok).toBe(false);
+  });
+
+  it("restores a trashed day sheet, the undo of a delete", async () => {
+    const { db, calls } = moduleClient({
+      "from:day_sheets": [
+        okResponse([{ id: "d1" }]),
+        okResponse([]),
+        errorResponse("23505", "duplicate key value violates unique constraint"),
+      ],
+    });
+    expect(await restoreSheet(db, "day_sheets", "d1")).toEqual({ ok: true, data: null });
+    expect(stepsOf(calls[0], "update")).toEqual([[{ deleted_at: null }]]);
+    expect(stepsOf(calls[0], "not")).toEqual([["deleted_at", "is", null]]);
+    expect(await restoreSheet(db, "day_sheets", "d1")).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
+    expect((await restoreSheet(db, "day_sheets", "d1")).ok).toBe(false);
   });
 
   it("lists and creates call sheets", async () => {

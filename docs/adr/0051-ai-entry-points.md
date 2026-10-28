@@ -84,3 +84,7 @@ Writing the entry points showed four mismatches between the features and the API
 - Summaries are on in the demo seed, so the project Overview and record core screens gain a Summarize button.
 - Follow-ups: plain-language filters on more collections (each page declares its filters), binding a code by
   hand without Aurora, and Compass entry points.
+- Day sheets gained "Draft with Aurora" in their editor (A121, ADR 0080). Atlas 4.0 has no free-text email
+  composer: notification, invitation and reminder emails are system templates, advance packet links are shared
+  by the coordinator, and the project inbox files or discards inbound mail without replying. Drafting an email
+  stays an API feature (`aurora.draft` kind `email`) with no entry point in any shell.
