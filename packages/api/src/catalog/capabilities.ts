@@ -8,17 +8,19 @@
  * governs the same operation.
  */
 
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
+
 export interface CapabilityRule {
-  readonly read?: string;
-  readonly write?: string;
-  readonly create?: string;
-  readonly delete?: string;
-  readonly actions?: Readonly<Record<string, string>>;
+  readonly read?: CapabilityCode;
+  readonly write?: CapabilityCode;
+  readonly create?: CapabilityCode;
+  readonly delete?: CapabilityCode;
+  readonly actions?: Readonly<Record<string, CapabilityCode>>;
 }
 
 const rw = (
-  read: string,
-  write: string,
+  read: CapabilityCode,
+  write: CapabilityCode,
   more: Omit<CapabilityRule, "read" | "write"> = {},
 ): CapabilityRule => ({
   read,
