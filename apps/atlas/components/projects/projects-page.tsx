@@ -18,6 +18,8 @@ import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import type { OrgContext } from "@/lib/shell/context";
 import { LoadError } from "./load-error";
+import { CustomFieldList } from "@/components/custom-fields/list";
+import { customFieldList } from "@/lib/custom-fields/server";
 import { ProjectCollection, type BoardMode, type ProjectView } from "./project-collection";
 import { SharedWithUs } from "./shared-with-us";
 import type { ProjectFormOptions } from "./create-project";
@@ -115,24 +117,26 @@ export async function ProjectsPage({
     monthParam && /^\d{4}-\d{2}-01$/.test(monthParam) ? monthParam : `${today.slice(0, 7)}-01`;
 
   const db = ctx.viewer.db;
-  const [projects, phases, shared] = await Promise.all([
+  const [projects, phases, shared, custom] = await Promise.all([
     listProjects(db, ctx.org.id, { includeArchived }),
     listPhases(db),
     // Projects partner orgs share with this org (A52, Section 8.5), on the main list only.
     node === "projects" ? listSharedWithMe(db) : Promise.resolve({ ok: true as const, data: [] }),
+    customFieldList(ctx, "app.projects", searchParams),
   ]);
   if (!projects.ok || !phases.ok) return <LoadError title={translate(entry.label)} />;
   const canCreate = ctx.capabilities.has("projects.project.create");
   // A reader who cannot create a project and has none shared learns who can share one (A59-014).
   const sharers = !canCreate && projects.data.length === 0 ? await projectSharers(ctx) : [];
+  const listed = projects.data.filter((p) => custom.keep(p.id));
 
   return (
-    <>
+    <CustomFieldList value={await custom.view(listed.map((p) => p.id))}>
       <LimitBanners ctx={ctx} limits={["active_projects"]} />
       <ProjectCollection
         org={ctx.org.slug}
         title={translate(entry.label)}
-        projects={projects.data}
+        projects={listed}
         phases={phases.data.map((p) => ({ code: p.code, gate: p.gate }))}
         views={views}
         view={view}
@@ -148,6 +152,6 @@ export async function ProjectsPage({
         sharers={sharers}
       />
       <SharedWithUs shared={shared.ok ? shared.data : []} />
-    </>
+    </CustomFieldList>
   );
 }

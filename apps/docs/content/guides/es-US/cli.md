@@ -7,6 +7,15 @@ order: 9
 
 `xos` es la línea de comandos de la API pública. Cada operación de la referencia es un comando, y su salida es JSON en scripts y una tabla en una terminal.
 
+## Instala
+
+`xos` necesita Node.js 22.12 o posterior.
+
+```bash
+npm install --global @ghxstship/xos-cli
+xos --version
+```
+
 ## Inicia sesión
 
 ```bash

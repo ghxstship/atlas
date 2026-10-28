@@ -1,5 +1,5 @@
 {
-  "name": "@xos/sdk",
+  "name": "@ghxstship/xos-sdk",
   "version": "4.0.0",
   "description": "TypeScript SDK for the XOS public API, generated from the OpenAPI v1 document.",
   "license": "MIT",
@@ -42,7 +42,7 @@
   ],
   "publishConfig": {
     "access": "public",
-    "provenance": true,
+    "provenance": false,
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",

@@ -27,6 +27,7 @@ import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { getProjectContextFor, type ProjectContext } from "./context";
 import { getOrgContext } from "@/lib/shell/context";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import { withEcho } from "./echo";
 
 /**
@@ -198,8 +199,11 @@ async function createProjectActionImpl(_: ActionState, form: FormData): Promise<
   if (!ctx) notFound();
   const parsed = parseProject(form);
   if (!parsed.success) return fieldErrors(parsed.error.issues);
+  const custom = await customFieldsOf(ctx, "app.projects", form);
+  if (custom.fieldErrors) return { error: "invalid", fieldErrors: custom.fieldErrors };
   const result = await createProject(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
   if (!result.ok) return errorState(result.error);
+  await custom.save(result.data.id);
   revalidatePath(`/${ctx.org.slug}`, "layout");
   redirect(`/${ctx.org.slug}/p/${parsed.data.key}/overview`);
 }

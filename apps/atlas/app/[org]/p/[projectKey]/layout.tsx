@@ -6,9 +6,11 @@ import { Suspense } from "react";
 import { ProjectOverLimitBanner } from "@/components/plan-limits/banners";
 import { ProjectTabs, type ProjectTabGroup } from "@/components/projects/project-tabs";
 import { ScopePicker } from "@/components/projects/scope-picker";
+import { ProjectOpened } from "@/components/shell/project-opened";
 import { PhaseChip, StateChip, Tag } from "@/components/projects/ui";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { phaseCode, stateIcon } from "@/lib/projects/format";
+import { rememberView } from "@/lib/shell/recents";
 import { navigableChildren, nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 
@@ -17,6 +19,8 @@ import { getTranslate } from "@/lib/shell/translate";
  * the scope picker, the banner of a project a plan limit made read-only (A107), and the tab bar grouped by act,
  * showing only the tabs the viewer may open.
  * Every tab page renders inside it. A project the viewer may not read answers 404 (invariant 2).
+ * Opening it notes the view, so it leads the recent projects under Projects in the sidebar (Section
+ * 4.5.2).
  */
 export default async function ProjectLayout({
   children,
@@ -30,6 +34,7 @@ export default async function ProjectLayout({
     getTranslate(),
     listScopeNodes(ctx.org.viewer.db, ctx.project.id),
     listPhases(ctx.org.viewer.db),
+    rememberView(ctx.org, "projects", ctx.project.id),
   ]);
   if (!scope.ok) throw new Error(`Cannot read the scope tree: ${JSON.stringify(scope.error)}`);
   if (!phases.ok) throw new Error(`Cannot read the phases: ${JSON.stringify(phases.error)}`);
@@ -93,6 +98,7 @@ export default async function ProjectLayout({
         />
       </Suspense>
       <div className="min-w-0">{children}</div>
+      <ProjectOpened org={ctx.org.org.slug} href={nodeHref("project", routeParams) ?? ""} />
     </div>
   );
 }
