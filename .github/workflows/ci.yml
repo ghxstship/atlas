@@ -174,6 +174,14 @@ jobs:
       # The full stack (Auth, PostgREST, Storage, Mailpit) with migrations and the demo seed.
       # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
       - run: infra/ci/supabase-images.sh start
+      # The file handover secret (A103, ADR 0061): a fresh value for each run, which the file-download function reads
+      # from supabase/functions/.env and Atlas from its environment, so classified PDFs and images download marked.
+      - name: Generate the file handover secret
+        run: |
+          SECRET=$(openssl rand -hex 32)
+          echo "::add-mask::$SECRET"
+          echo "XOS_FILE_HANDOVER_SECRET=$SECRET" > supabase/functions/.env
+          echo "XOS_FILE_HANDOVER_SECRET=$SECRET" >> "$GITHUB_ENV"
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - name: Write the app environment from the stack
         run: |
@@ -181,7 +189,7 @@ jobs:
           # XOS_API_HOST: e2e/api-host.spec.ts reaches the API host by sending Host: api.localhost (RRR-119).
           # XOS_INBOUND_DOMAIN: the project inbox journey (a84) reads the full address Project Settings shows.
           # STRIPE_*: e2e/billing-checkout.spec.ts pays on its local fake of Stripe (e2e/fake-stripe.ts), never Stripe.
-          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\nXOS_API_HOST=api.localhost\nXOS_INBOUND_DOMAIN=inbound.xos.localhost\nSTRIPE_SECRET_KEY=sk_test_abcdefghij\nSTRIPE_API_URL=http://127.0.0.1:12111\n' "$ANON" > apps/atlas/.env.local
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\nXOS_API_HOST=api.localhost\nXOS_INBOUND_DOMAIN=inbound.xos.localhost\nSTRIPE_SECRET_KEY=sk_test_abcdefghij\nSTRIPE_API_URL=http://127.0.0.1:12111\nXOS_FILE_HANDOVER_SECRET=%s\n' "$ANON" "$XOS_FILE_HANDOVER_SECRET" > apps/atlas/.env.local
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
           echo "E2E_ATLAS_URL=http://127.0.0.1:3006" >> "$GITHUB_ENV"
           echo "E2E_API_HOST=api.localhost" >> "$GITHUB_ENV"

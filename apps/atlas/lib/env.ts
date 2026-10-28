@@ -89,6 +89,16 @@ const EnvSchema = z.object({
    */
   XOS_READ_REPLICA_URL: z.url({ protocol: /^https?$/ }).optional(),
   /**
+   * The file handover secret (A103, ADR 0061, migration 2041), the same value as the file-download Edge
+   * Function's XOS_FILE_HANDOVER_SECRET: at least 32 random characters, server only. The function hands a
+   * Confidential or Restricted PDF or image, which must carry the viewer watermark, only to the web shell
+   * that sends it. Unset, those files are refused in Atlas and through share links, never sent unmarked.
+   */
+  XOS_FILE_HANDOVER_SECRET: z
+    .string()
+    .regex(/^\S{32,}$/, "Use at least 32 characters without spaces, such as openssl rand -hex 32.")
+    .optional(),
+  /**
    * The owner's Stripe secret or restricted key (ADR 0033 decision 59): a test mode key on
    * staging, a live one once billing opens in production. Server only; Checkout and the customer portal
    * in Billing and Plan call Stripe with it. Unset, Billing and Plan says billing is not open yet.

@@ -37,6 +37,7 @@ import {
 } from "./actions";
 import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
@@ -76,6 +77,7 @@ export function RunCollection({
   const pathname = usePathname();
   const params = useSearchParams();
   const [search, setSearch] = useState(q);
+  const rowMenu = useRowMenu();
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   const open = (runId: string) =>
@@ -166,6 +168,36 @@ export function RunCollection({
           cues: progress(r),
         }))}
         onRowActivate={(row) => open(String(row["id"]))}
+        onRowContextMenu={(_row, index, at, cell) => {
+          const r = runs[index];
+          if (!r) return;
+          // A running order has no full page or property that changes in bulk (Section 11.7):
+          // its menu opens it, or starts live mode as its peek does once it has cues.
+          rowMenu.open(
+            {
+              id: r.id,
+              label: `${r.projectKey} · ${r.name}`,
+              open: () => open(r.id),
+              ...(r.cueCount > 0
+                ? {
+                    more: [
+                      {
+                        label: t("live.start"),
+                        icon: "Play" as const,
+                        onSelect: () =>
+                          router.push(
+                            withQuery(pathname, params, { peek: r.id, live: "1" }) as Route,
+                            { scroll: false },
+                          ),
+                      },
+                    ],
+                  }
+                : {}),
+            },
+            at,
+            cell,
+          );
+        }}
       />
     );
   } else if (view === "timeline") {
@@ -238,6 +270,7 @@ export function RunCollection({
   return (
     <TemplateCollection header={header} filters={filters} peek={peek}>
       {body}
+      {rowMenu.menu}
     </TemplateCollection>
   );
 }

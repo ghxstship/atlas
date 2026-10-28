@@ -167,6 +167,7 @@ export async function RidersCollection({
           ]}
           rows={riders.map((r) => ({
             id: r.id,
+            label: r.title,
             title: r.title,
             project: projectKey(r.projectId),
             party: partyName(r, t),

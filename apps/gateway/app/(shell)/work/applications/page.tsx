@@ -12,6 +12,7 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
 import { ActionButton } from "@/components/actions/action-button";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { LinkBoard, LinkTable } from "@/components/page/collections";
 import { PageTitle, pickView, RegionError, ViewSwitcher } from "@/components/page/page";
 import { DestinationTabs } from "@/components/page/work-tabs";
@@ -20,6 +21,7 @@ import { Card, EmptyStateLink, PropertyList, Tag } from "@/components/ui";
 import { decideApplicationAction } from "@/lib/actions/engagement";
 import { acceptOfferAction, declineOfferAction } from "@/lib/actions/offers";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
+import { idsTopic, personTopic, topics } from "@/lib/live/topics";
 import { lensApplications } from "@/lib/shell/role-lens";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
@@ -143,7 +145,8 @@ function OfferPanel({
 /**
  * Work, Applications (Section 4.5.8): submitted applications and bids, offers to answer with
  * accept, decline or counter, interviews, and history. Sealed bids show only the person's own
- * lines (Section 8.7).
+ * lines (Section 8.7). In the table a selection of open applications is withdrawn at once (Section
+ * 11.7); the page updates live as orgs review applications and send offers.
  */
 export default async function ApplicationsPage({ searchParams }: PageProps<"/work/applications">) {
   const ctx = await requireNode("work.applications");
@@ -166,6 +169,15 @@ export default async function ApplicationsPage({ searchParams }: PageProps<"/wor
 
   return (
     <>
+      <LiveRefresh
+        topics={topics(
+          personTopic("applications", "applicant_person_id", ctx.personId),
+          ctx.acting
+            ? personTopic("applications", "applicant_organization_id", ctx.acting.id)
+            : null,
+          idsTopic("offers", "application_id", appIds),
+        )}
+      />
       <PageTitle
         title={t("nav.gateway.primary.work")}
         action={
@@ -200,6 +212,7 @@ export default async function ApplicationsPage({ searchParams }: PageProps<"/wor
       ) : view === "table" ? (
         <LinkTable
           caption={t("nav.gateway.work.applications")}
+          action="withdraw"
           columns={[
             { key: "title", label: t("gateway.work.applications.opportunity") },
             { key: "org", label: t("gateway.work.engagements.org") },
@@ -207,6 +220,10 @@ export default async function ApplicationsPage({ searchParams }: PageProps<"/wor
             { key: "state", label: t("gateway.work.engagements.state") },
           ]}
           rows={apps.map((a) => ({
+            id: a.id,
+            label: a.opportunity?.title ?? a.key,
+            // As the card's Withdraw: open applications; an offer is answered on its own.
+            eligible: OPEN_APPLICATION_STATES.includes(a.state) && a.state !== "Offered",
             href: opportunityHref(a),
             title: a.opportunity?.title ?? a.key,
             org: a.opportunity?.orgName ?? "",

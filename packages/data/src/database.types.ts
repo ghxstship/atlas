@@ -60552,11 +60552,43 @@ export type Database = {
       billing_portal_customer: { Args: { p_livemode: boolean; p_org_id: string }; Returns: string };
       block_member: { Args: { p_membership_id: string }; Returns: string };
       block_profile: { Args: { p_handle: string; p_kind: string }; Returns: string };
+      bulk_update_accommodation_blocks: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
       bulk_update_asset_units: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
+      bulk_update_beos: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_dock_slots: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_fulfillments: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_guest_list_entries: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
       bulk_update_invoices: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_my_applications: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_my_engagement_documents: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_my_timesheets: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
@@ -60565,6 +60597,10 @@ export type Database = {
         Returns: Json;
       };
       bulk_update_shifts: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_shipments: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
@@ -61220,13 +61256,14 @@ export type Database = {
         }[];
       };
       consume_file_download_ticket: {
-        Args: { p_ticket: string };
+        Args: { p_ticket: string; p_watermarks?: boolean };
         Returns: {
           bucket_id: string;
           content_type: string;
           filename: string;
           object_name: string;
           size_bytes: number;
+          watermark: boolean;
         }[];
       };
       content_moderation_queue: {
@@ -62915,6 +62952,7 @@ export type Database = {
         Args: { p_attachment_version_id: string };
         Returns: {
           classification: Database["app"]["Enums"]["data_classification"];
+          ticket: string;
           viewer_email: string;
           watermark: boolean;
         }[];

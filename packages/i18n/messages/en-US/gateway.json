@@ -1817,5 +1817,84 @@
       "expiresOn": "Choose an expiry date on or after the issue date.",
       "orgId": "Choose the organization to share with."
     }
+  },
+  "collections": {
+    "actions": {
+      "sign": {
+        "one": "Sign",
+        "bulk": "{count, plural, =0 {Sign} one {Sign # document} other {Sign # documents}}",
+        "title": "{count, plural, =0 {Sign documents} one {Sign # document} other {Sign # documents}}",
+        "apply": "{count, plural, one {Sign # document} other {Sign # documents}}",
+        "willChange": "{count, plural, one {# document will be signed in your name.} other {# documents will be signed in your name.}}",
+        "unchanged": "{count, plural, one {# document is already signed.} other {# documents are already signed.}}",
+        "nothing": "Every selected document is already signed.",
+        "none": "None of the selected documents is waiting for your signature.",
+        "skipped": "{count, plural, one {# selected document is not waiting for your signature, so it is left out.} other {# selected documents are not waiting for your signature, so they are left out.}}",
+        "final": "A signature is final and cannot be undone. Open each document and read it before you sign.",
+        "done": "{count, plural, one {Signed # document.} other {Signed # documents.}}"
+      },
+      "submit": {
+        "one": "Submit",
+        "bulk": "{count, plural, =0 {Submit} one {Submit # timesheet} other {Submit # timesheets}}",
+        "title": "{count, plural, =0 {Submit timesheets} one {Submit # timesheet} other {Submit # timesheets}}",
+        "apply": "{count, plural, one {Submit # timesheet} other {Submit # timesheets}}",
+        "willChange": "{count, plural, one {# timesheet will be submitted for approval.} other {# timesheets will be submitted for approval.}}",
+        "unchanged": "{count, plural, one {# timesheet is already submitted.} other {# timesheets are already submitted.}}",
+        "nothing": "Every selected timesheet is already submitted.",
+        "none": "None of the selected timesheets is a draft or a rejected one of yours to submit.",
+        "skipped": "{count, plural, one {# selected timesheet is not yours to submit now, so it is left out.} other {# selected timesheets are not yours to submit now, so they are left out.}}",
+        "undoable": "Until an approver decides, Undo or Cmd or Ctrl+Z takes the timesheets back to draft.",
+        "done": "{count, plural, one {Submitted # timesheet.} other {Submitted # timesheets.}}"
+      },
+      "withdraw": {
+        "one": "Withdraw",
+        "bulk": "{count, plural, =0 {Withdraw} one {Withdraw # application} other {Withdraw # applications}}",
+        "title": "{count, plural, =0 {Withdraw applications} one {Withdraw # application} other {Withdraw # applications}}",
+        "apply": "{count, plural, one {Withdraw # application} other {Withdraw # applications}}",
+        "willChange": "{count, plural, one {# application will be withdrawn.} other {# applications will be withdrawn.}}",
+        "unchanged": "{count, plural, one {# application is already withdrawn.} other {# applications are already withdrawn.}}",
+        "nothing": "Every selected application is already withdrawn.",
+        "none": "None of the selected applications is open to withdraw. Answer an offer on its own.",
+        "skipped": "{count, plural, one {# selected application is closed or has an offer, so it is left out.} other {# selected applications are closed or have an offer, so they are left out.}}",
+        "final": "Withdrawing is final. To be considered again, apply again while the opportunity is open.",
+        "done": "{count, plural, one {Withdrew # application.} other {Withdrew # applications.}}"
+      }
+    },
+    "cancel": "Cancel",
+    "checking": "Checking the selected rows…",
+    "refusedTitle": "{count, plural, one {# row cannot take this action} other {# rows cannot take this action}}",
+    "refusedBody": "Nothing changes until every row can. Clear these rows from the selection, or fix what each one needs.",
+    "refusedRow": "{row}: {message}",
+    "failed": "That could not be saved. Try again.",
+    "refusals": {
+      "bulk_stale": "Someone changed it after you loaded the page. Reload to see the change.",
+      "bulk_row_not_found": "It is no longer open to you. Reload the page to see what is current.",
+      "bulk_field_not_editable": "This action does not apply to it.",
+      "not_allowed": "Your role does not allow this here.",
+      "timesheet_open_entry": "Clock out of every entry in its period first.",
+      "timesheet_recall_not_submitter": "Only the person who submitted it can take it back.",
+      "document_not_awaiting_signature": "It is not waiting for your signature.",
+      "application_offered": "It has an offer. Accept, decline or counter it on its own.",
+      "lifecycle_transition": "That step is not possible from where it is now. Reload to see its current state.",
+      "lifecycle_conflict": "Someone changed it a moment ago. Reload to see the latest.",
+      "refused": "The organization's rules do not allow this for it."
+    },
+    "menu": {
+      "label": "Actions for {row}",
+      "open": "Open",
+      "copyLink": "Copy link",
+      "select": "Select",
+      "deselect": "Deselect"
+    },
+    "undo": {
+      "notifications": "Undo notifications",
+      "undone": "Undone: {label}",
+      "redone": "Redone: {label}",
+      "failed": "Could not undo or redo that: {message}",
+      "failedPlain": "Could not undo or redo that. Try again.",
+      "nothingToUndo": "Nothing to undo.",
+      "nothingToRedo": "Nothing to redo.",
+      "dismiss": "Dismiss"
+    }
   }
 }
