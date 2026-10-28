@@ -1,6 +1,7 @@
 import { transitionAiSuggestion } from "@xos/data/ai";
 import type { XosClient } from "@xos/data";
 import { SUGGESTION_FIELD } from "./suggestion-field";
+import { observability } from "@/lib/observability";
 
 /**
  * Closing Aurora's extraction suggestions when the form they filled is saved (A95, Section 4.7).
@@ -50,7 +51,10 @@ export async function applySuggestions(
       : confirmed;
     if (!applied.ok) {
       open += 1;
-      console.error("An Aurora suggestion stays open after its form was saved", id, applied.error);
+      observability.logger.error("An Aurora suggestion stays open after its form was saved", {
+        suggestionId: id,
+        error: applied.error,
+      });
     }
   }
   return open;

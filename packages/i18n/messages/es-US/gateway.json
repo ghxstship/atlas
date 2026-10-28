@@ -1801,13 +1801,13 @@
     "certifyingBody": "Certificada por",
     "certifyingBodyHelp": "Por ejemplo, un programa DBE estatal o la SBA. Escriba Autodeclarada si nadie la certificó.",
     "number": "Número de certificado",
-    "numberHelp": "Opcional. Se guarda como dato restringido: aquí solo se muestran sus últimos cuatro caracteres.",
+    "numberHelp": "Opcional. Se cifra y se guarda como dato restringido: aquí solo se muestran sus últimos cuatro caracteres, y una organización con la que lo comparta solo ve el número completo después de indicar un motivo.",
     "issuedOn": "Emitida",
     "expiresOn": "Vence",
     "errors": {
       "kind": "Elija el tipo de certificación.",
       "certifyingBody": "Indique quién la certificó, o Autodeclarada.",
-      "certificateNumber": "El número de certificado debe tener menos de 100 caracteres.",
+      "certificateNumber": "Escriba el número de certificado en 100 caracteres o menos, con al menos una letra o un dígito.",
       "issuedOn": "Escriba la fecha de emisión como una fecha.",
       "expiresOn": "Elija una fecha de vencimiento igual o posterior a la de emisión.",
       "orgId": "Elija la organización con la que compartirá."

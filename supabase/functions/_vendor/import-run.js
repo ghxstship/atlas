@@ -380,6 +380,8 @@ async function readGoogleSheet(fetchImpl, token, link) {
  * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed.
  * A spreadsheet is parsed only once its virus scan is Clean (owner decision 10, migration 1240): the
  * database queues detection on the Clean verdict, and every step checks again before reading.
+ * When validation or a commit finishes, the person who started or committed the import is sent import.finished
+ * (A104, migration 2051) with a link to review it in Atlas; the database counts the rows.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 var IMPORT_JOB_KINDS = ["import.fetch", "import.detect", "import.validate", "import.commit"];
@@ -651,6 +653,31 @@ async function detect(store, jobId) {
   );
   await store.setStatus(job.id, "Mapped");
 }
+/** Where an import is reviewed in Atlas: the import wizard opened at that import (`/{org}/import?import={id}`). */
+function importReviewUrl(appUrl, orgSlug, jobId) {
+  const url = new URL(`/${encodeURIComponent(orgSlug)}/import`, appUrl);
+  url.searchParams.set("import", jobId);
+  return url.toString();
+}
+/**
+ * Tells the person an import finished validating (no batch) or committing (import.finished). The step's own work is
+ * done by then, so a notice that cannot be sent never fails or repeats it: the error comes back with the result.
+ */
+async function notifyFinished(store, job, batchId, options) {
+  if (!options.appUrl) return void 0;
+  try {
+    const slug = await store.orgSlug(job.orgId);
+    if (slug === null) return { noticeError: `The org of import ${job.id} has no slug.` };
+    await store.notifyFinished({
+      jobId: job.id,
+      batchId,
+      url: importReviewUrl(options.appUrl, slug, job.id),
+    });
+    return;
+  } catch (error) {
+    return { noticeError: error instanceof Error ? error.message : String(error) };
+  }
+}
 /** import.fetch: reads a Google Sheets link through the org's Drive connection and saves it for scanning. */
 async function fetchSheet(store, jobId, options) {
   const job = await store.job(jobId);
@@ -682,7 +709,7 @@ async function fetchSheet(store, jobId, options) {
   }
   await store.saveUpload(job.path, await writeWorkbook(workbook));
 }
-async function validate(store, jobId) {
+async function validate(store, jobId, options) {
   const job = await store.job(jobId);
   if (!job || job.status !== "Mapped") return;
   const sheet = await readUpload(store, job);
@@ -717,8 +744,9 @@ async function validate(store, jobId) {
     }
   }
   await store.setStatus(job.id, "Validated");
+  return notifyFinished(store, job, null, options);
 }
-async function commit(store, batchId) {
+async function commit(store, batchId, options) {
   const jobId = await store.batchJob(batchId);
   const job = jobId ? await store.job(jobId) : null;
   if (!job || job.status !== "Committing") return;
@@ -773,6 +801,7 @@ async function commit(store, batchId) {
     }
   }
   await store.finishBatch(batchId);
+  return notifyFinished(store, job, batchId, options);
 }
 /** A row the database refused to write; the row is marked Refused with the reason and the batch goes on. */
 var ImportWriteError = class extends Error {
@@ -793,13 +822,14 @@ async function runImportJobs(store, worker, limit = 10, options = {}) {
   for (const kind of IMPORT_JOB_KINDS)
     for (const claimed of await store.claim(kind, worker, limit))
       try {
-        await STEPS[kind](store, claimed.subjectId, options);
+        const note = await STEPS[kind](store, claimed.subjectId, options);
         await store.finishJob(claimed.jobId, true, null);
         results.push({
           kind,
           jobId: claimed.jobId,
           subjectId: claimed.subjectId,
           status: "Succeeded",
+          ...(note ? { noticeError: note.noticeError } : {}),
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -1321,6 +1351,20 @@ function supabaseImportStore(client) {
     },
     async finishBatch(batchId) {
       await call("finish_import_batch", { p_import_batch_id: batchId });
+    },
+    async orgSlug(orgId) {
+      const row = await one(
+        app.from("organizations").select("slug").eq("id", orgId),
+        "organizations",
+      );
+      return typeof row?.["slug"] === "string" ? row["slug"] : null;
+    },
+    async notifyFinished(input) {
+      await call("notify_import_finished", {
+        p_import_job_id: input.jobId,
+        p_import_batch_id: input.batchId,
+        p_review_url: input.url,
+      });
     },
   };
 }

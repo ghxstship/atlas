@@ -1287,7 +1287,7 @@ describe("texts held by quiet hours go out as one summary", () => {
       bounced: 0,
     });
     expect(provider.sent[0]?.body).toBe(
-      "Northwind Live: 3 updates came in during your quiet hours. Most important: A security setting on your account changed: password. If this was not you, reset your password now. https://atlas.xos.test/northwind-live/inbox Reply STOP to opt out.",
+      "Northwind Live: 3 updates came in during your quiet hours. Most important: Your password was changed. If this was not you, reset your password now. https://atlas.xos.test/northwind-live/inbox Reply STOP to opt out.",
     );
     expect(provider.sent[1]?.body).toMatch(
       /^Northwind Live: 2 novedades llegaron durante tus horas de silencio\./,

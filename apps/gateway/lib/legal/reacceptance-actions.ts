@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { clientIp } from "@/lib/auth/legal";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { observability } from "@/lib/observability";
 
 /**
  * Accepts an announced change to a personal legal document such as the Worker Terms (Section 14.4,
@@ -27,6 +28,7 @@ export async function acceptPersonalLegalChangeAction(form: FormData): Promise<v
     documents: [{ slug, version }],
     clientIp: clientIp(await headers()),
   });
-  if (!recorded.ok) console.error("legal acceptance was not recorded", recorded.error);
+  if (!recorded.ok)
+    observability.logger.error("legal acceptance was not recorded", { error: recorded.error });
   revalidatePath("/", "layout");
 }

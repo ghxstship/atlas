@@ -197,6 +197,10 @@ test("every Schedule, Work and Show page passes axe in the light theme and answe
   await sheet.getByLabel("Due").fill("2027-03-13T10:00");
   await sheet.getByRole("button", { name: "Create record" }).click();
   await page.waitForURL(/peek=SHW-1/);
+  // The peek renders after the URL changes; axe would sample it mid-fade.
+  await expect(
+    page.getByRole("dialog").filter({ has: page.getByRole("heading", { name: "Hang the truss" }) }),
+  ).toBeVisible();
   await expectAccessible(page);
   for (const path of [
     `/${slug}/schedule`,

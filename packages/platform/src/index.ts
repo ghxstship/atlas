@@ -356,10 +356,12 @@ export {
 } from "./wallet/handler.ts";
 export {
   CLAMAV_DEFAULT_PORT,
+  clamdTls,
   isLocalDevelopment,
   passThroughScanner,
   scannerChoice,
   selectVirusScanner,
+  type ClamdTls,
   type ScannerChoice,
   type ScannerEnv,
   type SelectedScanner,

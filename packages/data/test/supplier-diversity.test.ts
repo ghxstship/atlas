@@ -5,13 +5,14 @@ import {
   listSharedSupplierDiversity,
   listSupplierDiversityPrograms,
   removeSupplierDiversity,
+  revealSharedSupplierDiversityNumber,
   revokeSupplierDiversityShare,
   shareSupplierDiversity,
   SUPPLIER_DIVERSITY_KINDS,
 } from "../src/supplier-diversity.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
-describe("supplier diversity (A89, migration 1464)", () => {
+describe("supplier diversity (A89, migrations 1464 and 2011)", () => {
   it("lists the owner's certifications with their shares, the number reduced to four characters", async () => {
     const { db, calls } = fakeClient({
       "rpc:my_supplier_diversity": [
@@ -75,7 +76,6 @@ describe("supplier diversity (A89, migration 1464)", () => {
           account_id: null,
           diversity_kind: "Veteran-Owned",
           certifying_body: "Self-declared",
-          certificate_number: null,
           issued_on: null,
           expires_on: null,
         },
@@ -88,6 +88,46 @@ describe("supplier diversity (A89, migration 1464)", () => {
     });
     expect((await addSupplierDiversity(db, input)).ok).toBe(false);
     expect((await removeSupplierDiversity(db, "c1")).ok).toBe(true);
+  });
+
+  it("sets a certificate number through the encrypting RPC, never in the insert", async () => {
+    const { db, calls } = fakeClient({
+      "from:supplier_diversity_certifications": [
+        okResponse({ id: "c1" }),
+        okResponse({ id: "c2" }),
+      ],
+      "rpc:set_supplier_diversity_certificate_number": [
+        okResponse(null),
+        errorResponse("XR001", "certificate_number_format: No.", "certificate_number_format"),
+      ],
+    });
+    const input = {
+      personId: "me",
+      accountId: null,
+      kind: "Women-Owned" as const,
+      certifyingBody: "Florida OSD",
+      certificateNumber: " FL-WBE-2026-118842 ",
+      issuedOn: null,
+      expiresOn: null,
+    };
+    expect(await addSupplierDiversity(db, input)).toEqual({ ok: true, data: { id: "c1" } });
+    expect((calls[0]?.steps[0]?.[1] as Record<string, unknown>[])[0]).not.toHaveProperty(
+      "certificate_number",
+    );
+    expect(calls[1]?.target).toBe("rpc:set_supplier_diversity_certificate_number");
+    expect(calls[1]?.steps[0]).toEqual([
+      "args",
+      [{ p_certification_id: "c1", p_certificate_number: "FL-WBE-2026-118842" }],
+    ]);
+    expect(await addSupplierDiversity(db, input)).toEqual({
+      ok: false,
+      error: { kind: "refusal", rule: "certificate_number_format", message: "No." },
+    });
+    expect(await addSupplierDiversity(db, { ...input, certificateNumber: "--" })).toEqual({
+      ok: false,
+      error: { kind: "invalid", message: "certificate_number" },
+    });
+    expect(calls).toHaveLength(4);
   });
 
   it("offers the orgs that run a program, shares and revokes", async () => {
@@ -117,7 +157,7 @@ describe("supplier diversity (A89, migration 1464)", () => {
     expect((await revokeSupplierDiversityShare(db, "s1")).ok).toBe(true);
   });
 
-  it("reads what was shared with an org, masked without the capability", async () => {
+  it("reads what was shared with an org, the number reduced to its last four", async () => {
     const { db } = fakeClient({
       "rpc:shared_supplier_diversity": [
         okResponse([
@@ -130,8 +170,7 @@ describe("supplier diversity (A89, migration 1464)", () => {
             account_name: null,
             diversity_kind: "Women-Owned",
             certifying_body: "Florida OSD",
-            certificate_number: null,
-            certificate_number_masked: true,
+            certificate_number_last4: "8842",
             issued_on: null,
             expires_on: null,
             shared_at: "2026-10-01T00:00:00Z",
@@ -144,9 +183,30 @@ describe("supplier diversity (A89, migration 1464)", () => {
     expect(shared.ok && shared.data[0]).toMatchObject({
       ownerName: "Ivy Marchetti",
       ownerKind: "person",
-      numberMasked: true,
+      numberLast4: "8842",
     });
     expect((await listSharedSupplierDiversity(db, "o1")).ok).toBe(false);
+  });
+
+  it("reveals a shared number with a reason, and passes step-up refusals through", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:reveal_shared_supplier_diversity_number": [
+        okResponse("FLWBE2026118842"),
+        errorResponse("XR001", "step_up_required: Confirm it is you.", "step_up_required"),
+      ],
+    });
+    expect(await revealSharedSupplierDiversityNumber(db, "s1", "Annual program audit.")).toEqual({
+      ok: true,
+      data: "FLWBE2026118842",
+    });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_share_id: "s1", p_reason: "Annual program audit." }],
+    ]);
+    expect(await revealSharedSupplierDiversityNumber(db, "s1", "Annual program audit.")).toEqual({
+      ok: false,
+      error: { kind: "refusal", rule: "step_up_required", message: "Confirm it is you." },
+    });
   });
 
   it("knows every kind", () => {

@@ -752,6 +752,7 @@ async function NotificationsSection(props: SectionProps) {
             timeZone={quiet.data?.timeZone ?? zone ?? ""}
             start={quiet.data?.start ?? ""}
             end={quiet.data?.end ?? ""}
+            zones={Intl.supportedValuesOf("timeZone")}
           />
         ) : (
           <RegionError />

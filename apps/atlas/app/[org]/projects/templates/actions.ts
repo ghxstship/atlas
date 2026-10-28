@@ -16,7 +16,8 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
-import { fromDataError, type WorkflowActionState } from "@/lib/workflow/state";
+import { type WorkflowActionState } from "@/lib/workflow/state";
+import { fromDataError } from "@/lib/workflow/data-error";
 
 /**
  * Projects > Templates actions (A33): create and edit templates, their draft versions and items,

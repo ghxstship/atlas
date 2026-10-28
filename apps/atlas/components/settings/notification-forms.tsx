@@ -17,7 +17,8 @@ import { ChoiceDisclosure } from "./choice-disclosure";
  * digest (Personal settings, Notifications), and the org's defaults with mandatory categories
  * (Settings, Notifications). Each page has one form and its one primary action. Each category is a
  * closed group naming the channels it is on for, opened to change them: fifteen categories by four
- * channels would put 60 boxes on the page, past gate 27's seven fields (Section 18).
+ * channels would put 60 boxes on the page, past gate 27's seven fields (Section 18). A group offers only
+ * the channels its category's kinds reach (A104).
  */
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;

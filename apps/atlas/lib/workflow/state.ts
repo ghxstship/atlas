@@ -1,5 +1,3 @@
-import type { DataError } from "@xos/data";
-
 /**
  * Outcomes of A33's server actions (approvals, Trash, templates, state labels and the report
  * builder). Forms show catalog copy under `workflow.refusals` and `workflow.errors`, never a raw
@@ -17,20 +15,3 @@ export interface WorkflowActionState {
 }
 
 export const INITIAL_STATE: WorkflowActionState = {};
-
-export function fromDataError(error: DataError): WorkflowActionState {
-  const at = Date.now();
-  switch (error.kind) {
-    case "refusal":
-      return { rule: error.rule, at };
-    case "not-found":
-      return { error: "notFound", at };
-    case "conflict":
-      return { error: "conflict", at };
-    case "invalid":
-      return { error: "invalid", at };
-    case "unexpected":
-      console.error("workflow action failed", error);
-      return { error: "unexpected", at };
-  }
-}
