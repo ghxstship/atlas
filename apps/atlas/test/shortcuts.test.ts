@@ -1,3 +1,4 @@
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { getMessages } from "@xos/i18n";
 import { getNode, routeParams, type ATLAS_ROLES } from "@xos/ia";
@@ -162,7 +163,8 @@ describe("Create menu (Section 4.10)", () => {
     const items = (role: Role, disabledModules: string[] = []) =>
       createItems(sitemap, {
         nav: { role, conditions: ["desktop"], disabledModules },
-        capabilities: new Set(byRole[role].keys()),
+        // Registry codes, typed as strings because grantsByRole also reads hand-written registries.
+        capabilities: new Set(byRole[role].keys()) as ReadonlySet<CapabilityCode>,
         params: { org: "acme" },
         t,
       }).map((i) => i.id);

@@ -13,7 +13,7 @@ import {
 
 /**
  * Compass Settings lists the person's own sections (A110, ADR 0006 item 11, ADR 0070): the sitemap's 14, Keyboard
- * Shortcuts left out, the identity group native and the rest opening the same section in Gateway.
+ * Shortcuts left out, every one drawn natively (A110, A111 and A112).
  */
 
 const audiences: readonly Audience[] = [...INTERNAL_AUDIENCES, ...EXTERNAL_AUDIENCES];
@@ -58,7 +58,7 @@ describe("Compass settings sections (A110)", () => {
     expect(settingsSections("crew", urls, { personalTokens: false })).toHaveLength(13);
   });
 
-  it("opens the identity and preference groups and Work Details natively, and every other section in Gateway", () => {
+  it("opens every section natively", () => {
     const sections = settingsSections("field", urls, { personalTokens: true });
     const native = sections.filter((s) => s.target.kind === "native").map((s) => s.id);
     expect(native).toEqual([
@@ -72,6 +72,10 @@ describe("Compass settings sections (A110)", () => {
       "settings.notifications",
       "settings.out-of-office",
       "settings.work-details",
+      "settings.payout-and-tax",
+      "settings.calendar-feeds",
+      "settings.connected-apps",
+      "settings.developer",
     ]);
     expect(new Set(native)).toEqual(NATIVE_SECTIONS);
     expect(sections.find((s) => s.id === "settings.profile")?.target).toEqual({
@@ -83,12 +87,12 @@ describe("Compass settings sections (A110)", () => {
       route: "/settings/notifications",
     });
     expect(sections.find((s) => s.id === "settings.payout-and-tax")?.target).toEqual({
-      kind: "gateway",
-      url: "https://gateway.example.test/settings/payout-and-tax",
+      kind: "native",
+      route: "/settings/payout-and-tax",
     });
     expect(sections.find((s) => s.id === "settings.developer")?.target).toEqual({
-      kind: "gateway",
-      url: "https://gateway.example.test/settings/developer",
+      kind: "native",
+      route: "/settings/developer",
     });
   });
 

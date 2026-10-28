@@ -41,6 +41,8 @@ Funcionan en todas partes en una computadora. Mod es Cmd en una Mac y Ctrl en lo
 - **A**: Abrir el menú de la cuenta
 - **O**: Cambiar de organización
 - **Esc**: Cerrar un menú, diálogo o panel
+- **Mod+Z**: Deshacer el último cambio
+- **Mod+Shift+Z**: Rehacer el cambio que deshizo
 
 <!-- /shortcuts -->
 

@@ -2,13 +2,14 @@
   "name": "@xos/schemas",
   "version": "0.0.0",
   "private": true,
-  "description": "Single-source registries for XOS: the capability, plan, settings, notification kind and shortcut registries, with Zod schemas and generated contracts alongside.",
+  "description": "Single-source registries for XOS: the capability, plan, settings, notification kind and shortcut registries and the denormalization register, with Zod schemas and generated contracts alongside.",
   "license": "MIT",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
     "./capabilities": "./src/capabilities/index.ts",
     "./capabilities.yaml": "./capabilities.yaml",
+    "./capabilities/codes": "./src/capabilities/codes.generated.ts",
     "./plans": "./src/plans/index.ts",
     "./plans.yaml": "./plans.yaml",
     "./settings": "./src/settings/index.ts",
@@ -41,7 +42,9 @@
     "generate:views": "node --experimental-strip-types --no-warnings src/views/generate-cli.ts",
     "check:views": "node --experimental-strip-types --no-warnings src/views/generate-cli.ts --check",
     "generate:automations": "node --experimental-strip-types --no-warnings src/automations/generate-cli.ts",
-    "check:automations": "node --experimental-strip-types --no-warnings src/automations/generate-cli.ts --check"
+    "check:automations": "node --experimental-strip-types --no-warnings src/automations/generate-cli.ts --check",
+    "generate:denormalization": "node --experimental-strip-types --no-warnings src/denormalization/generate-cli.ts",
+    "check:denormalization": "node --experimental-strip-types --no-warnings src/denormalization/generate-cli.ts --check"
   },
   "dependencies": {
     "yaml": "2.9.1",

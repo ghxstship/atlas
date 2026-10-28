@@ -114,7 +114,8 @@
         "rateCards": "Rate Cards",
         "payPeriods": "Pay Periods",
         "payrollExports": "Payroll Exports",
-        "timeOff": "Time Off"
+        "timeOff": "Time Off",
+        "perDiems": "Per Diems"
       },
       "finance": {
         "budgets": "Budgets",
@@ -534,6 +535,7 @@
     "group": "Operator Console",
     "tenants": "Tenants",
     "tenant": "Tenant",
+    "metrics": "Metrics",
     "flags": "Feature Flags",
     "support": "Support Sessions",
     "supportSession": "Support Session",

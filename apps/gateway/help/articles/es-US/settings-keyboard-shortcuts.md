@@ -15,6 +15,8 @@ En una computadora, Gateway atiende estos atajos en todas partes. Mod es Cmd en 
 - **A**: Abrir el menú de la cuenta
 - **O**: Cambiar de organización
 - **Esc**: Cerrar un menú, diálogo o panel
+- **Mod+Z**: Deshacer el último cambio
+- **Mod+Shift+Z**: Rehacer el cambio que deshizo
 
 <!-- /shortcuts -->
 

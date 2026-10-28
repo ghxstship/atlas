@@ -18,6 +18,7 @@ import { RecordCollab } from "./record-collab";
 import { isRowId, partyLabel, pickView, withQuery, type Search } from "./shared";
 import { PageHeader, StateChip, Tag } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS = ["list", "table"] as const;
 
@@ -86,24 +87,28 @@ export async function GuestList({
   });
 
   return (
-    <div className="flex flex-col gap-12 min-w-0">
-      <PageHeader
-        title={title}
-        count={guests.data.length}
-        views={<ViewSwitcher views={VIEWS} current={view} />}
-        {...(can.rider
-          ? {
-              actions: (
-                <AddGuestDialog
-                  org={ctx.org.slug}
-                  projectId={project.id}
-                  scopes={scopeOptions}
-                  canApprove={can.review}
-                />
-              ),
-            }
-          : {})}
-      />
+    <CollectionPage
+      gap={12}
+      header={
+        <PageHeader
+          title={title}
+          count={guests.data.length}
+          views={<ViewSwitcher views={VIEWS} current={view} />}
+          {...(can.rider
+            ? {
+                actions: (
+                  <AddGuestDialog
+                    org={ctx.org.slug}
+                    projectId={project.id}
+                    scopes={scopeOptions}
+                    canApprove={can.review}
+                  />
+                ),
+              }
+            : {})}
+        />
+      }
+    >
       <div className="flex flex-wrap items-end gap-8">
         <SelectFilter
           id="guests-state"
@@ -137,8 +142,29 @@ export async function GuestList({
             { key: "from", label: t("advancing.guests.columns.from") },
             { key: "state", label: t("advancing.common.state") },
           ]}
+          full={false}
+          bulk={
+            can.rider
+              ? {
+                  org: ctx.org.slug,
+                  resource: "guest_list_entries",
+                  // The guest list guard decides each move: review authority, never the requester.
+                  fields: [
+                    {
+                      key: "entry_state",
+                      label: t("advancing.common.state"),
+                      options: GUEST_STATES.filter((s) => s !== "Requested").map((s) => ({
+                        value: s,
+                        label: label(s),
+                      })),
+                    },
+                  ],
+                }
+              : null
+          }
           rows={guests.data.map((g) => ({
             id: g.id,
+            label: g.guestName,
             guest: g.guestName,
             plusOnes: g.plusOnes,
             show: scopeName(g.scopeNodeId),
@@ -212,6 +238,6 @@ export async function GuestList({
           </PeekPanel>
         ) : null,
       )}
-    </div>
+    </CollectionPage>
   );
 }

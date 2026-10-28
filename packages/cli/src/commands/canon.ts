@@ -8,8 +8,8 @@
  */
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import type { OperationSpec } from "@xos/sdk";
-import { OPERATIONS } from "@xos/sdk";
+import type { OperationSpec } from "@ghxstship/xos-sdk";
+import { OPERATIONS } from "@ghxstship/xos-sdk";
 import { parsePairs, toCamel } from "../args.ts";
 import type { Context } from "../context.ts";
 import { parseRows } from "../csv.ts";

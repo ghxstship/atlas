@@ -2118,6 +2118,14 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Esc" },
             { t: "text", v: ": Close a menu, dialog or peek" },
           ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Undo the last change" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Redo the change you undid" },
+          ],
         ],
       },
       { t: "p", c: [{ t: "text", v: "Two keys, one after the other, go to a destination:" }] },
@@ -2964,6 +2972,14 @@ export const HELP_BODIES: HelpBodies = {
           [
             { t: "strong", v: "Esc" },
             { t: "text", v: ": Close a menu, dialog or peek" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Undo the last change" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Redo the change you undid" },
           ],
         ],
       },
@@ -5773,6 +5789,14 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Esc" },
             { t: "text", v: ": Cerrar un menú, diálogo o panel" },
           ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Deshacer el último cambio" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Rehacer el cambio que deshizo" },
+          ],
         ],
       },
       { t: "p", c: [{ t: "text", v: "Dos teclas, una después de la otra, llevan a un destino:" }] },
@@ -6647,6 +6671,14 @@ export const HELP_BODIES: HelpBodies = {
           [
             { t: "strong", v: "Esc" },
             { t: "text", v: ": Cerrar un menú, diálogo o panel" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Deshacer el último cambio" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Rehacer el cambio que deshizo" },
           ],
         ],
       },

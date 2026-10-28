@@ -4,8 +4,8 @@
  * reachable; the operation table comes from the generated SDK.
  */
 import { parseArgs } from "node:util";
-import type { OperationSpec, RequestInput } from "@xos/sdk";
-import { OPERATIONS, RESOURCES, TAGS } from "@xos/sdk";
+import type { OperationSpec, RequestInput } from "@ghxstship/xos-sdk";
+import { OPERATIONS, RESOURCES, TAGS } from "@ghxstship/xos-sdk";
 import {
   findOperation,
   operationById,

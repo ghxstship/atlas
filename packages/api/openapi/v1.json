@@ -2752,6 +2752,261 @@
         "required": ["expected_state", "to_state"],
         "description": "Request to move a record to another state."
       },
+      "RecordBulkEditResult": {
+        "type": "object",
+        "properties": {
+          "preview": {
+            "type": "boolean",
+            "description": "True for a preview, which never changes anything.",
+            "example": false
+          },
+          "committed": {
+            "type": "boolean",
+            "description": "True only when every row passed and the change was applied. Any refused row means nothing changed.",
+            "example": true
+          },
+          "changed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows the change alters, or would alter in a preview.",
+            "example": 1
+          },
+          "unchanged": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows that already hold the values.",
+            "example": 0
+          },
+          "refused": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/BulkEditRefusal" },
+            "description": "Rows that cannot change, each with its rule; empty when every row passed."
+          },
+          "inverse": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RecordBulkRow" },
+            "description": "Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change."
+          }
+        },
+        "required": ["preview", "committed", "changed", "unchanged", "refused", "inverse"],
+        "description": "What a bulk change of records did, or would do in a preview.",
+        "example": {
+          "preview": false,
+          "committed": true,
+          "changed": 1,
+          "unchanged": 0,
+          "refused": [],
+          "inverse": [
+            {
+              "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+              "set": { "record_state": "Ready" },
+              "expect": { "record_state": "Scheduled" }
+            }
+          ]
+        }
+      },
+      "BulkEditRefusal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Row the refusal is about; null when the row named no valid id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "rule": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Why the row cannot change: the database's refusal rule (for example bulk_stale or transition_not_allowed), not_allowed, invalid, invalid_reference or conflict.",
+            "example": "bulk_stale"
+          },
+          "message": {
+            "type": "string",
+            "description": "The database's sentence for the refusal.",
+            "example": "Someone changed this row after you loaded it; reload to see the change."
+          }
+        },
+        "required": ["id", "rule", "message"],
+        "description": "A row of a bulk change that cannot change."
+      },
+      "RecordBulkRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Row to change.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "set": { "$ref": "#/components/schemas/RecordBulkValues" },
+          "expect": { "$ref": "#/components/schemas/RecordBulkValues" }
+        },
+        "required": ["id", "set"],
+        "description": "One of the records in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00).",
+        "example": {
+          "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+          "set": { "record_state": "Scheduled" },
+          "expect": { "record_state": "Ready" }
+        }
+      },
+      "RecordBulkValues": {
+        "type": "object",
+        "properties": {
+          "record_state": { "$ref": "#/components/schemas/RecordState" },
+          "owner_party_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Owning person or organization.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "accountable_party_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Accountable person or organization.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "due_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Due instant.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "phase_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/PhaseCode" }, { "type": "null" }]
+          },
+          "blocker_text": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "The named blocker, for a move to Blocked.",
+            "example": "Waiting on the rigging plot."
+          },
+          "replan_reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Replan reason, for a move to Deferred.",
+            "example": "Moved to the second weekend."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Fields of one of the records in a bulk change. Only these fields change in bulk.",
+        "example": { "record_state": "Scheduled" }
+      },
+      "RecordBulkEditRequest": {
+        "type": "object",
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RecordBulkRow" },
+            "minItems": 1,
+            "maxItems": 500,
+            "description": "The rows to change, each once; at most 500."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.",
+            "example": "Client moved the load-in by a day."
+          }
+        },
+        "required": ["rows"],
+        "description": "A bulk change of records."
+      },
+      "FieldHistoryEventPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FieldHistoryEvent" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "FieldHistoryEvent": {
+        "type": "object",
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Audit event of the change.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "changed_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the change was made.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "actor_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person who made the change; null for a system change.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "actor_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Name of that person.",
+            "example": "Carol Nguyen"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["insert", "update", "delete"],
+            "description": "Created, changed or deleted the row.",
+            "example": "update"
+          },
+          "changes": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/FieldHistoryChange" },
+            "description": "The fields an update changed; empty for a creation or deletion."
+          }
+        },
+        "required": [
+          "event_id",
+          "changed_at",
+          "actor_person_id",
+          "actor_name",
+          "operation",
+          "changes"
+        ],
+        "description": "One change to a row from the audit ledger (Section 4.10): who made it, when, and from what to what. Actor IP addresses and user agents are never returned."
+      },
+      "FieldHistoryChange": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Column that changed.",
+            "example": "due_at"
+          },
+          "old_value": {
+            "description": "Stored value before the change, as JSON; null when masked or empty.",
+            "example": "2026-10-08T14:30:00+00:00"
+          },
+          "new_value": {
+            "description": "Stored value after the change, as JSON; null when masked or emptied.",
+            "example": "2026-10-09T14:30:00+00:00"
+          },
+          "masked": {
+            "type": "boolean",
+            "description": "True for a Restricted field the caller may not read: neither value is returned.",
+            "example": false
+          }
+        },
+        "required": ["field", "masked"],
+        "description": "One field changed by an event."
+      },
       "RecordStateTransitionPage": {
         "type": "object",
         "properties": {
@@ -4794,6 +5049,43 @@
           }
         },
         "description": "Fields accepted when updating a Document. Omitted fields are unchanged."
+      },
+      "DocumentNotes": {
+        "type": "object",
+        "properties": {
+          "document_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the document.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "text": {
+            "type": ["string", "null"],
+            "maxLength": 200000,
+            "description": "Plain text of the notes as last saved, at most 200,000 characters; null before anyone wrote any.",
+            "example": "Bring two copies of the site plan."
+          },
+          "generation": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Raised when the notes are reloaded from scratch; 0 before anyone opened them.",
+            "example": 1
+          },
+          "saved_through": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Last edit folded into `text`.",
+            "example": 12
+          },
+          "latest_edit": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Last edit made. Greater than `saved_through` while an editor's latest changes are not yet saved into `text`, a few seconds after they type.",
+            "example": 12
+          }
+        },
+        "required": ["document_id", "text", "generation", "saved_through", "latest_edit"],
+        "description": "A document's notes, edited together live in Atlas (Section 5), as plain text. Edits arrive over Realtime and are saved into the text when the editor pauses."
       },
       "DocumentVersionPage": {
         "type": "object",
@@ -10033,6 +10325,136 @@
         "required": ["event_id", "code", "action"],
         "description": "One custody move scanned on a device."
       },
+      "AssetUnitBulkEditResult": {
+        "type": "object",
+        "properties": {
+          "preview": {
+            "type": "boolean",
+            "description": "True for a preview, which never changes anything.",
+            "example": false
+          },
+          "committed": {
+            "type": "boolean",
+            "description": "True only when every row passed and the change was applied. Any refused row means nothing changed.",
+            "example": true
+          },
+          "changed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows the change alters, or would alter in a preview.",
+            "example": 1
+          },
+          "unchanged": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows that already hold the values.",
+            "example": 0
+          },
+          "refused": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/BulkEditRefusal" },
+            "description": "Rows that cannot change, each with its rule; empty when every row passed."
+          },
+          "inverse": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetUnitBulkRow" },
+            "description": "Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change."
+          }
+        },
+        "required": ["preview", "committed", "changed", "unchanged", "refused", "inverse"],
+        "description": "What a bulk change of asset units did, or would do in a preview.",
+        "example": {
+          "preview": false,
+          "committed": true,
+          "changed": 1,
+          "unchanged": 0,
+          "refused": [],
+          "inverse": [
+            {
+              "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+              "set": { "asset_state": "Available" },
+              "expect": { "asset_state": "In Maintenance" }
+            }
+          ]
+        }
+      },
+      "AssetUnitBulkRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Row to change.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "set": { "$ref": "#/components/schemas/AssetUnitBulkValues" },
+          "expect": { "$ref": "#/components/schemas/AssetUnitBulkValues" }
+        },
+        "required": ["id", "set"],
+        "description": "One of the asset units in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00).",
+        "example": {
+          "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+          "set": { "asset_state": "In Maintenance" },
+          "expect": { "asset_state": "Available" }
+        }
+      },
+      "AssetUnitBulkValues": {
+        "type": "object",
+        "properties": {
+          "asset_state": {
+            "type": "string",
+            "enum": [
+              "Proposed",
+              "Received",
+              "Available",
+              "Reserved",
+              "Deployed",
+              "In Maintenance",
+              "Damaged",
+              "Lost",
+              "Retired"
+            ],
+            "description": "Asset lifecycle state.",
+            "example": "In Maintenance"
+          },
+          "home_venue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Venue the unit returns to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "condition_enum_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Condition: a row of the canon Asset Condition enumeration.",
+            "example": "ENM-017"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Fields of one of the asset units in a bulk change. Only these fields change in bulk.",
+        "example": { "asset_state": "In Maintenance" }
+      },
+      "AssetUnitBulkEditRequest": {
+        "type": "object",
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetUnitBulkRow" },
+            "minItems": 1,
+            "maxItems": 500,
+            "description": "The rows to change, each once; at most 500."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.",
+            "example": "Client moved the load-in by a day."
+          }
+        },
+        "required": ["rows"],
+        "description": "A bulk change of asset units."
+      },
       "AssetLotPage": {
         "type": "object",
         "properties": {
@@ -12489,6 +12911,120 @@
           "scheduled_break_minutes": 30,
           "claim": { "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f", "claim_state": "Requested" }
         }
+      },
+      "ShiftBulkEditResult": {
+        "type": "object",
+        "properties": {
+          "preview": {
+            "type": "boolean",
+            "description": "True for a preview, which never changes anything.",
+            "example": false
+          },
+          "committed": {
+            "type": "boolean",
+            "description": "True only when every row passed and the change was applied. Any refused row means nothing changed.",
+            "example": true
+          },
+          "changed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows the change alters, or would alter in a preview.",
+            "example": 1
+          },
+          "unchanged": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows that already hold the values.",
+            "example": 0
+          },
+          "refused": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/BulkEditRefusal" },
+            "description": "Rows that cannot change, each with its rule; empty when every row passed."
+          },
+          "inverse": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ShiftBulkRow" },
+            "description": "Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change."
+          }
+        },
+        "required": ["preview", "committed", "changed", "unchanged", "refused", "inverse"],
+        "description": "What a bulk change of shifts did, or would do in a preview.",
+        "example": {
+          "preview": false,
+          "committed": true,
+          "changed": 1,
+          "unchanged": 0,
+          "refused": [],
+          "inverse": [
+            {
+              "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+              "set": { "shift_state": "Draft" },
+              "expect": { "shift_state": "Published" }
+            }
+          ]
+        }
+      },
+      "ShiftBulkRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Row to change.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "set": { "$ref": "#/components/schemas/ShiftBulkValues" },
+          "expect": { "$ref": "#/components/schemas/ShiftBulkValues" }
+        },
+        "required": ["id", "set"],
+        "description": "One of the shifts in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00).",
+        "example": {
+          "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+          "set": { "shift_state": "Published" },
+          "expect": { "shift_state": "Draft" }
+        }
+      },
+      "ShiftBulkValues": {
+        "type": "object",
+        "properties": {
+          "shift_state": {
+            "type": "string",
+            "enum": ["Draft", "Published", "Accepted", "Canceled"],
+            "description": "Shift state.",
+            "example": "Published"
+          },
+          "membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Member the shift is assigned to; null opens the shift.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Fields of one of the shifts in a bulk change. Only these fields change in bulk.",
+        "example": { "shift_state": "Published" }
+      },
+      "ShiftBulkEditRequest": {
+        "type": "object",
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ShiftBulkRow" },
+            "minItems": 1,
+            "maxItems": 500,
+            "description": "The rows to change, each once; at most 500."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.",
+            "example": "Client moved the load-in by a day."
+          }
+        },
+        "required": ["rows"],
+        "description": "A bulk change of shifts."
       },
       "ShiftSwapPage": {
         "type": "object",
@@ -18841,6 +19377,114 @@
         },
         "required": ["paid_on"],
         "description": "A payment made on the org's own rails, recorded against an invoice."
+      },
+      "InvoiceBulkEditResult": {
+        "type": "object",
+        "properties": {
+          "preview": {
+            "type": "boolean",
+            "description": "True for a preview, which never changes anything.",
+            "example": false
+          },
+          "committed": {
+            "type": "boolean",
+            "description": "True only when every row passed and the change was applied. Any refused row means nothing changed.",
+            "example": true
+          },
+          "changed": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows the change alters, or would alter in a preview.",
+            "example": 1
+          },
+          "unchanged": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows that already hold the values.",
+            "example": 0
+          },
+          "refused": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/BulkEditRefusal" },
+            "description": "Rows that cannot change, each with its rule; empty when every row passed."
+          },
+          "inverse": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/InvoiceBulkRow" },
+            "description": "Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change."
+          }
+        },
+        "required": ["preview", "committed", "changed", "unchanged", "refused", "inverse"],
+        "description": "What a bulk change of invoices did, or would do in a preview.",
+        "example": {
+          "preview": false,
+          "committed": true,
+          "changed": 1,
+          "unchanged": 0,
+          "refused": [],
+          "inverse": [
+            {
+              "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+              "set": { "invoice_state": "Proposed" },
+              "expect": { "invoice_state": "Approved" }
+            }
+          ]
+        }
+      },
+      "InvoiceBulkRow": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Row to change.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "set": { "$ref": "#/components/schemas/InvoiceBulkValues" },
+          "expect": { "$ref": "#/components/schemas/InvoiceBulkValues" }
+        },
+        "required": ["id", "set"],
+        "description": "One of the invoices in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00).",
+        "example": {
+          "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+          "set": { "invoice_state": "Approved" },
+          "expect": { "invoice_state": "Proposed" }
+        }
+      },
+      "InvoiceBulkValues": {
+        "type": "object",
+        "properties": {
+          "invoice_state": {
+            "type": "string",
+            "enum": ["Proposed", "Issued", "Approved", "Disputed", "Canceled"],
+            "description": "Invoice state.",
+            "example": "Approved"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Fields of one of the invoices in a bulk change. Only these fields change in bulk.",
+        "example": { "invoice_state": "Approved" }
+      },
+      "InvoiceBulkEditRequest": {
+        "type": "object",
+        "properties": {
+          "rows": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/InvoiceBulkRow" },
+            "minItems": 1,
+            "maxItems": 500,
+            "description": "The rows to change, each once; at most 500."
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.",
+            "example": "Client moved the load-in by a day."
+          }
+        },
+        "required": ["rows"],
+        "description": "A bulk change of invoices."
       },
       "InvoiceLinePage": {
         "type": "object",
@@ -66353,6 +66997,215 @@
         }
       }
     },
+    "/records/bulk-preview": {
+      "post": {
+        "operationId": "records.bulkPreview",
+        "tags": ["Work"],
+        "x-xos-table": "app.records",
+        "x-xos-capability": "work.record.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["work"] }],
+        "x-xos-rpc": "app.bulk_update_records",
+        "summary": "Preview a bulk change of records",
+        "description": "Changes the state, owner, accountable party, due time or phase of records (Section 11.7). A state change goes through the record lifecycle, so Blocked needs `blocker_text` and Deferred `replan_reason`; a due time moved from Scheduled onward is logged as a replan. Rows are `{id, set, expect}`; every row runs the checks a single change runs (capability, lifecycle rules, separation of duties), each in its own subtransaction. Runs the whole change and always undoes it: the counts and refusals are exactly what `bulkUpdate` would answer, and nothing changes. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "rows": [
+                  {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "set": { "record_state": "Scheduled" },
+                    "expect": { "record_state": "Ready" }
+                  }
+                ],
+                "reason": "Client moved the load-in by a day."
+              },
+              "schema": { "$ref": "#/components/schemas/RecordBulkEditRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "preview": false,
+                  "committed": true,
+                  "changed": 1,
+                  "unchanged": 0,
+                  "refused": [],
+                  "inverse": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "set": { "record_state": "Ready" },
+                      "expect": { "record_state": "Scheduled" }
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/RecordBulkEditResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/records/bulk-update": {
+      "post": {
+        "operationId": "records.bulkUpdate",
+        "tags": ["Work"],
+        "x-xos-table": "app.records",
+        "x-xos-capability": "work.record.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["work"] }],
+        "x-xos-rpc": "app.bulk_update_records",
+        "summary": "Change records in bulk",
+        "description": "Changes the state, owner, accountable party, due time or phase of records (Section 11.7). A state change goes through the record lifecycle, so Blocked needs `blocker_text` and Deferred `replan_reason`; a due time moved from Scheduled onward is logged as a replan. Rows are `{id, set, expect}`; every row runs the checks a single change runs (capability, lifecycle rules, separation of duties), each in its own subtransaction. All or nothing, in one transaction: when any row is refused nothing changes, `committed` is false and `refused` names each row with its rule. A committed change writes one bulk audit event per org and answers the `inverse` rows that undo it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "rows": [
+                  {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "set": { "record_state": "Scheduled" },
+                    "expect": { "record_state": "Ready" }
+                  }
+                ],
+                "reason": "Client moved the load-in by a day."
+              },
+              "schema": { "$ref": "#/components/schemas/RecordBulkEditRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "preview": false,
+                  "committed": true,
+                  "changed": 1,
+                  "unchanged": 0,
+                  "refused": [],
+                  "inverse": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "set": { "record_state": "Ready" },
+                      "expect": { "record_state": "Scheduled" }
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/RecordBulkEditResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/records/{id}/field-history": {
+      "get": {
+        "operationId": "records.fieldHistory",
+        "tags": ["Work"],
+        "x-xos-table": "app.records",
+        "x-xos-capability": "work.record.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["work"] }],
+        "x-xos-rpc": "app.field_history_events",
+        "summary": "Field history of a record",
+        "description": "Who changed which field of the record, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the record: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the record.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the record.",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+              "example": 50
+            },
+            "required": false,
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "changed_at": "2026-10-08T14:30:00Z",
+                      "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "actor_name": "Carol Nguyen",
+                      "operation": "update",
+                      "changes": [
+                        {
+                          "field": "due_at",
+                          "old_value": "2026-10-08T14:30:00+00:00",
+                          "new_value": "2026-10-09T14:30:00+00:00",
+                          "masked": false
+                        }
+                      ]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/FieldHistoryEventPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/record-state-transitions": {
       "get": {
         "operationId": "recordStateTransitions.list",
@@ -69359,6 +70212,85 @@
         }
       }
     },
+    "/sops/{id}/field-history": {
+      "get": {
+        "operationId": "sops.fieldHistory",
+        "tags": ["Knowledge"],
+        "x-xos-table": "app.sops",
+        "x-xos-capability": "knowledge.sop.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "x-xos-rpc": "app.field_history_events",
+        "summary": "Field history of a SOP",
+        "description": "Who changed which field of the SOP, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the SOP: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the sop.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the sop.",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+              "example": 50
+            },
+            "required": false,
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "changed_at": "2026-10-08T14:30:00Z",
+                      "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "actor_name": "Carol Nguyen",
+                      "operation": "update",
+                      "changes": [
+                        {
+                          "field": "due_at",
+                          "old_value": "2026-10-08T14:30:00+00:00",
+                          "new_value": "2026-10-09T14:30:00+00:00",
+                          "masked": false
+                        }
+                      ]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/FieldHistoryEventPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/sop-acknowledgments": {
       "get": {
         "operationId": "sopAcknowledgments.list",
@@ -69776,6 +70708,137 @@
         ],
         "responses": {
           "204": { "description": "The document moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/documents/{id}/field-history": {
+      "get": {
+        "operationId": "documents.fieldHistory",
+        "tags": ["Knowledge"],
+        "x-xos-table": "app.documents",
+        "x-xos-capability": "knowledge.document.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "x-xos-rpc": "app.field_history_events",
+        "summary": "Field history of a document",
+        "description": "Who changed which field of the document, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the document: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the document.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the document.",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+              "example": 50
+            },
+            "required": false,
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "changed_at": "2026-10-08T14:30:00Z",
+                      "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "actor_name": "Carol Nguyen",
+                      "operation": "update",
+                      "changes": [
+                        {
+                          "field": "due_at",
+                          "old_value": "2026-10-08T14:30:00+00:00",
+                          "new_value": "2026-10-09T14:30:00+00:00",
+                          "masked": false
+                        }
+                      ]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/FieldHistoryEventPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/documents/{id}/notes": {
+      "get": {
+        "operationId": "documents.notes",
+        "tags": ["Knowledge"],
+        "x-xos-table": "app.documents",
+        "x-xos-capability": "knowledge.document.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "summary": "Read a document's notes",
+        "description": "The document's co-edited notes as plain text, as last saved (app.doc_snapshots). Answers whoever can read the document, and 404 otherwise. Writing goes through the live editor: notes are a Yjs document whose edits travel over Realtime (ADR 0044). A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the document.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the document.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "text": "Bring two copies of the site plan.",
+                  "generation": 1,
+                  "saved_through": 12,
+                  "latest_edit": 12
+                },
+                "schema": { "$ref": "#/components/schemas/DocumentNotes" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
@@ -78061,6 +79124,215 @@
         }
       }
     },
+    "/asset-units/bulk-preview": {
+      "post": {
+        "operationId": "assetUnits.bulkPreview",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_units",
+        "x-xos-capability": "assets.asset.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "x-xos-rpc": "app.bulk_update_asset_units",
+        "summary": "Preview a bulk change of asset units",
+        "description": "Moves asset units along their lifecycle or changes their home venue or condition (Section 11.7). Retiring needs assets.write_off.approve, as a single retirement does. Rows are `{id, set, expect}`; every row runs the checks a single change runs (capability, lifecycle rules, separation of duties), each in its own subtransaction. Runs the whole change and always undoes it: the counts and refusals are exactly what `bulkUpdate` would answer, and nothing changes. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "rows": [
+                  {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "set": { "asset_state": "In Maintenance" },
+                    "expect": { "asset_state": "Available" }
+                  }
+                ],
+                "reason": "Client moved the load-in by a day."
+              },
+              "schema": { "$ref": "#/components/schemas/AssetUnitBulkEditRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "preview": false,
+                  "committed": true,
+                  "changed": 1,
+                  "unchanged": 0,
+                  "refused": [],
+                  "inverse": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "set": { "asset_state": "Available" },
+                      "expect": { "asset_state": "In Maintenance" }
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AssetUnitBulkEditResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/asset-units/bulk-update": {
+      "post": {
+        "operationId": "assetUnits.bulkUpdate",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_units",
+        "x-xos-capability": "assets.asset.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "x-xos-rpc": "app.bulk_update_asset_units",
+        "summary": "Change asset units in bulk",
+        "description": "Moves asset units along their lifecycle or changes their home venue or condition (Section 11.7). Retiring needs assets.write_off.approve, as a single retirement does. Rows are `{id, set, expect}`; every row runs the checks a single change runs (capability, lifecycle rules, separation of duties), each in its own subtransaction. All or nothing, in one transaction: when any row is refused nothing changes, `committed` is false and `refused` names each row with its rule. A committed change writes one bulk audit event per org and answers the `inverse` rows that undo it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "rows": [
+                  {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "set": { "asset_state": "In Maintenance" },
+                    "expect": { "asset_state": "Available" }
+                  }
+                ],
+                "reason": "Client moved the load-in by a day."
+              },
+              "schema": { "$ref": "#/components/schemas/AssetUnitBulkEditRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "preview": false,
+                  "committed": true,
+                  "changed": 1,
+                  "unchanged": 0,
+                  "refused": [],
+                  "inverse": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "set": { "asset_state": "Available" },
+                      "expect": { "asset_state": "In Maintenance" }
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/AssetUnitBulkEditResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/asset-units/{id}/field-history": {
+      "get": {
+        "operationId": "assetUnits.fieldHistory",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_units",
+        "x-xos-capability": "assets.asset.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "x-xos-rpc": "app.field_history_events",
+        "summary": "Field history of a asset unit",
+        "description": "Who changed which field of the asset unit, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the asset unit: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the asset unit.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the asset unit.",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+              "example": 50
+            },
+            "required": false,
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "changed_at": "2026-10-08T14:30:00Z",
+                      "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "actor_name": "Carol Nguyen",
+                      "operation": "update",
+                      "changes": [
+                        {
+                          "field": "due_at",
+                          "old_value": "2026-10-08T14:30:00+00:00",
+                          "new_value": "2026-10-09T14:30:00+00:00",
+                          "masked": false
+                        }
+                      ]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/FieldHistoryEventPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/asset-lots": {
       "get": {
         "operationId": "assetLots.list",
@@ -81547,6 +82819,215 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/shifts/bulk-preview": {
+      "post": {
+        "operationId": "shifts.bulkPreview",
+        "tags": ["Crew"],
+        "x-xos-table": "app.shifts",
+        "x-xos-capability": "crew.shift.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["crew"] }],
+        "x-xos-rpc": "app.bulk_update_shifts",
+        "summary": "Preview a bulk change of shifts",
+        "description": "Publishes, returns to draft or cancels shifts, or assigns or opens them (Section 11.7). A reassigned accepted shift returns to Published, as a single reassignment does. Rows are `{id, set, expect}`; every row runs the checks a single change runs (capability, lifecycle rules, separation of duties), each in its own subtransaction. Runs the whole change and always undoes it: the counts and refusals are exactly what `bulkUpdate` would answer, and nothing changes. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "rows": [
+                  {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "set": { "shift_state": "Published" },
+                    "expect": { "shift_state": "Draft" }
+                  }
+                ],
+                "reason": "Client moved the load-in by a day."
+              },
+              "schema": { "$ref": "#/components/schemas/ShiftBulkEditRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "preview": false,
+                  "committed": true,
+                  "changed": 1,
+                  "unchanged": 0,
+                  "refused": [],
+                  "inverse": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "set": { "shift_state": "Draft" },
+                      "expect": { "shift_state": "Published" }
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/ShiftBulkEditResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/shifts/bulk-update": {
+      "post": {
+        "operationId": "shifts.bulkUpdate",
+        "tags": ["Crew"],
+        "x-xos-table": "app.shifts",
+        "x-xos-capability": "crew.shift.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["crew"] }],
+        "x-xos-rpc": "app.bulk_update_shifts",
+        "summary": "Change shifts in bulk",
+        "description": "Publishes, returns to draft or cancels shifts, or assigns or opens them (Section 11.7). A reassigned accepted shift returns to Published, as a single reassignment does. Rows are `{id, set, expect}`; every row runs the checks a single change runs (capability, lifecycle rules, separation of duties), each in its own subtransaction. All or nothing, in one transaction: when any row is refused nothing changes, `committed` is false and `refused` names each row with its rule. A committed change writes one bulk audit event per org and answers the `inverse` rows that undo it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "rows": [
+                  {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "set": { "shift_state": "Published" },
+                    "expect": { "shift_state": "Draft" }
+                  }
+                ],
+                "reason": "Client moved the load-in by a day."
+              },
+              "schema": { "$ref": "#/components/schemas/ShiftBulkEditRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "preview": false,
+                  "committed": true,
+                  "changed": 1,
+                  "unchanged": 0,
+                  "refused": [],
+                  "inverse": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "set": { "shift_state": "Draft" },
+                      "expect": { "shift_state": "Published" }
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/ShiftBulkEditResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/shifts/{id}/field-history": {
+      "get": {
+        "operationId": "shifts.fieldHistory",
+        "tags": ["Crew"],
+        "x-xos-table": "app.shifts",
+        "x-xos-capability": "crew.shift.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["crew"] }],
+        "x-xos-rpc": "app.field_history_events",
+        "summary": "Field history of a shift",
+        "description": "Who changed which field of the shift, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the shift: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the shift.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the shift.",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+              "example": 50
+            },
+            "required": false,
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "changed_at": "2026-10-08T14:30:00Z",
+                      "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "actor_name": "Carol Nguyen",
+                      "operation": "update",
+                      "changes": [
+                        {
+                          "field": "due_at",
+                          "old_value": "2026-10-08T14:30:00+00:00",
+                          "new_value": "2026-10-09T14:30:00+00:00",
+                          "masked": false
+                        }
+                      ]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/FieldHistoryEventPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
@@ -91760,6 +93241,215 @@
         }
       }
     },
+    "/invoices/bulk-preview": {
+      "post": {
+        "operationId": "invoices.bulkPreview",
+        "tags": ["Finance"],
+        "x-xos-table": "app.invoices",
+        "x-xos-capability": "finance.invoice.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["finance"] }],
+        "x-xos-rpc": "app.bulk_update_invoices",
+        "summary": "Preview a bulk change of invoices",
+        "description": "Approves, disputes or cancels invoices (Section 11.7). An approval keeps every rule of a single approval (finance.invoice.approve, separation of duties, spend authority); one that needs another approver is refused (bulk_needs_further_approval). Invoices are issued one at a time. Rows are `{id, set, expect}`; every row runs the checks a single change runs (capability, lifecycle rules, separation of duties), each in its own subtransaction. Runs the whole change and always undoes it: the counts and refusals are exactly what `bulkUpdate` would answer, and nothing changes. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "rows": [
+                  {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "set": { "invoice_state": "Approved" },
+                    "expect": { "invoice_state": "Proposed" }
+                  }
+                ],
+                "reason": "Client moved the load-in by a day."
+              },
+              "schema": { "$ref": "#/components/schemas/InvoiceBulkEditRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "preview": false,
+                  "committed": true,
+                  "changed": 1,
+                  "unchanged": 0,
+                  "refused": [],
+                  "inverse": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "set": { "invoice_state": "Proposed" },
+                      "expect": { "invoice_state": "Approved" }
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/InvoiceBulkEditResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/invoices/bulk-update": {
+      "post": {
+        "operationId": "invoices.bulkUpdate",
+        "tags": ["Finance"],
+        "x-xos-table": "app.invoices",
+        "x-xos-capability": "finance.invoice.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["finance"] }],
+        "x-xos-rpc": "app.bulk_update_invoices",
+        "summary": "Change invoices in bulk",
+        "description": "Approves, disputes or cancels invoices (Section 11.7). An approval keeps every rule of a single approval (finance.invoice.approve, separation of duties, spend authority); one that needs another approver is refused (bulk_needs_further_approval). Invoices are issued one at a time. Rows are `{id, set, expect}`; every row runs the checks a single change runs (capability, lifecycle rules, separation of duties), each in its own subtransaction. All or nothing, in one transaction: when any row is refused nothing changes, `committed` is false and `refused` names each row with its rule. A committed change writes one bulk audit event per org and answers the `inverse` rows that undo it. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "rows": [
+                  {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "set": { "invoice_state": "Approved" },
+                    "expect": { "invoice_state": "Proposed" }
+                  }
+                ],
+                "reason": "Client moved the load-in by a day."
+              },
+              "schema": { "$ref": "#/components/schemas/InvoiceBulkEditRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "preview": false,
+                  "committed": true,
+                  "changed": 1,
+                  "unchanged": 0,
+                  "refused": [],
+                  "inverse": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "set": { "invoice_state": "Proposed" },
+                      "expect": { "invoice_state": "Approved" }
+                    }
+                  ]
+                },
+                "schema": { "$ref": "#/components/schemas/InvoiceBulkEditResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/invoices/{id}/field-history": {
+      "get": {
+        "operationId": "invoices.fieldHistory",
+        "tags": ["Finance"],
+        "x-xos-table": "app.invoices",
+        "x-xos-capability": "finance.invoice.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["finance"] }],
+        "x-xos-rpc": "app.field_history_events",
+        "summary": "Field history of a invoice",
+        "description": "Who changed which field of the invoice, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the invoice: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the invoice.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the invoice.",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+              "example": 50
+            },
+            "required": false,
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "changed_at": "2026-10-08T14:30:00Z",
+                      "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "actor_name": "Carol Nguyen",
+                      "operation": "update",
+                      "changes": [
+                        {
+                          "field": "due_at",
+                          "old_value": "2026-10-08T14:30:00+00:00",
+                          "new_value": "2026-10-09T14:30:00+00:00",
+                          "masked": false
+                        }
+                      ]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/FieldHistoryEventPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/invoice-lines": {
       "get": {
         "operationId": "invoiceLines.list",
@@ -95186,6 +96876,85 @@
         }
       }
     },
+    "/purchase-orders/{id}/field-history": {
+      "get": {
+        "operationId": "purchaseOrders.fieldHistory",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.purchase_orders",
+        "x-xos-capability": "procurement.po.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-rpc": "app.field_history_events",
+        "summary": "Field history of a purchase order",
+        "description": "Who changed which field of the purchase order, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the purchase order: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the purchase order.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the purchase order.",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+              "example": 50
+            },
+            "required": false,
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "changed_at": "2026-10-08T14:30:00Z",
+                      "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "actor_name": "Carol Nguyen",
+                      "operation": "update",
+                      "changes": [
+                        {
+                          "field": "due_at",
+                          "old_value": "2026-10-08T14:30:00+00:00",
+                          "new_value": "2026-10-09T14:30:00+00:00",
+                          "masked": false
+                        }
+                      ]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/FieldHistoryEventPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/po-lines": {
       "get": {
         "operationId": "poLines.list",
@@ -97372,6 +99141,85 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/vendors/{id}/field-history": {
+      "get": {
+        "operationId": "vendors.fieldHistory",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.vendors",
+        "x-xos-capability": "vendors.vendor.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "x-xos-rpc": "app.field_history_events",
+        "summary": "Field history of a vendor",
+        "description": "Who changed which field of the vendor, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the vendor: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the vendor.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the vendor.",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+              "example": 50
+            },
+            "required": false,
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "changed_at": "2026-10-08T14:30:00Z",
+                      "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "actor_name": "Carol Nguyen",
+                      "operation": "update",
+                      "changes": [
+                        {
+                          "field": "due_at",
+                          "old_value": "2026-10-08T14:30:00+00:00",
+                          "new_value": "2026-10-09T14:30:00+00:00",
+                          "masked": false
+                        }
+                      ]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/FieldHistoryEventPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
@@ -146517,7 +148365,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
         "x-xos-rpc": "create_share_link",
         "summary": "Create a share link",
-        "description": "Makes a link to the current clean version of a file the caller can read, through app.create_share_link. The database applies Section 8.6: Public files may omit `expires_at`; Internal files need one within 90 days; Confidential files need `data.export.confidential`, `expires_at` within 30 days and `recipient_email`, and always get an access code; Restricted files are refused (422 `share_link_restricted`). A Confidential PDF, or an image other than PNG or JPEG, cannot carry the viewer watermark and is refused (422 `share_link_watermark_unsupported`). Answers 201 with the token and access code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Makes a link to the current clean version of a file the caller can read, through app.create_share_link. The database applies Section 8.6: Public files may omit `expires_at`; Internal files need one within 90 days; Confidential files need `data.export.confidential`, `expires_at` within 30 days and `recipient_email`, and always get an access code; Restricted files are refused (422 `share_link_restricted`). A Confidential image other than PNG or JPEG cannot carry the viewer watermark and is refused (422 `share_link_watermark_unsupported`); a Confidential PDF is shared and downloads with the recipient's email and the time on every page. Answers 201 with the token and access code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,

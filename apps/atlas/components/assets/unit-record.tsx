@@ -4,11 +4,12 @@ import { assetStateKey, scanActionsFor } from "@xos/data/assets";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import { Money, PropertyList, StateIcon, TemplateRecord } from "@/components/assets/ui";
-import type { AssetCapabilities, AssetPickers } from "@/lib/assets/context";
+import { custodianName, type AssetCapabilities, type AssetPickers } from "@/lib/assets/context";
 import { majorUnits } from "@/lib/assets/money";
 import { ASSET_STATE_TONE } from "@/lib/assets/views";
 import type { Translate } from "@/lib/shell/translate";
 import { AssetCollab } from "./collab";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { AddIdentifier, RemoveIdentifier, UnitActions } from "./unit-actions";
 
 /**
@@ -47,7 +48,9 @@ export async function UnitRecord({
   const stateLabel = (s: AssetUnitDetail["state"]) => t(`assets.states.${assetStateKey(s)}`);
   const condition = pickers.conditions.find((c) => c.value === unit.conditionEnumId)?.label;
   const custodian = unit.custody
-    ? (unit.custody.custodianName ?? unit.custody.venueName ?? t("assets.common.notRecorded"))
+    ? (custodianName(pickers, unit.custody) ??
+      unit.custody.venueName ??
+      t("assets.common.notRecorded"))
     : t("assets.units.noCustody");
   const next = (pickers.transitions.get(unit.state) ?? [])
     .filter((s) => s !== "Retired" || can.writeOff)
@@ -114,7 +117,12 @@ export async function UnitRecord({
         nextStates={next}
         scanActions={scanActionsFor(unit.state)}
         conditions={pickers.conditions}
-        pickers={{ members: pickers.members, projects: pickers.projects, venues: pickers.venues }}
+        pickers={{
+          members: pickers.members,
+          engagements: pickers.engagements,
+          projects: pickers.projects,
+          venues: pickers.venues,
+        }}
         currency={currency}
         today={today}
         can={can}
@@ -132,7 +140,7 @@ export async function UnitRecord({
             {unit.custodyHistory.map((c) => (
               <li key={c.custodyId} className="flex flex-col gap-2 text-text-13">
                 <span className="font-medium">
-                  {c.custodianName ?? c.venueName ?? t("assets.common.notRecorded")}
+                  {custodianName(pickers, c) ?? c.venueName ?? t("assets.common.notRecorded")}
                   {c.projectKey ? ` · ${c.projectKey}` : ""}
                 </span>
                 <span className="text-text-12 text-text-secondary">
@@ -228,6 +236,7 @@ export async function UnitRecord({
           </ul>
         )}
       </Section>
+      <CustomFieldsPanel org={org} table="app.asset_units" id={unit.id} />
       <AssetCollab db={db} org={org} table="app.asset_units" id={unit.id} me={me} />
     </>
   );

@@ -5,22 +5,31 @@ import { buildGatewayKeys } from "../lib/shell/shell-keys";
 
 /**
  * Gateway's shortcuts come from the registry (packages/schemas/shortcuts.yaml): the help panel's sheet
- * reads it. Gateway's frame answers search, help and Esc itself (`?` for help, Mod+K for the command
- * menu), so a change to these defaults must change the frame too; the letter keys reach the frame from
- * the server (lib/shell/shell-keys.ts), so they follow the registry by construction.
+ * reads it. Gateway's frame answers search, help, Esc, undo and redo itself (`?` for help, Mod+K for
+ * the command menu, Mod+Z and Mod+Shift+Z for undo and redo), so a change to these defaults must change
+ * the frame too; the letter keys reach the frame from the server (lib/shell/shell-keys.ts), so they
+ * follow the registry by construction.
  */
 describe("Gateway shortcuts", () => {
   it("are the keys the frame answers", () => {
     const defaults = Object.fromEntries(
       SHORTCUT_REGISTRY.shells.gateway.shortcuts.map((s) => [s.id, s.keys]),
     );
-    expect(defaults).toMatchObject({ "command-menu": "Mod+K", help: "?", close: "Escape" });
+    expect(defaults).toMatchObject({
+      "command-menu": "Mod+K",
+      help: "?",
+      close: "Escape",
+      undo: "Mod+Z",
+      redo: "Mod+Shift+Z",
+    });
     const frame = readFileSync(
       new URL("../components/shell/gateway-frame.tsx", import.meta.url),
       "utf8",
     );
     expect(frame).toContain('event.key === "?"');
     expect(frame).toContain('event.key.toLowerCase() === "k"');
+    expect(frame).toContain('event.key.toLowerCase() === "z"');
+    expect(frame).toContain("event.shiftKey ? undoStack.redo() : undoStack.undo()");
     // Every other default is a letter or G then a letter, which the frame's letter handler answers.
     const own = new Set(["command-menu", "help", "close", "undo", "redo"]);
     for (const s of SHORTCUT_REGISTRY.shells.gateway.shortcuts) {
@@ -46,6 +55,8 @@ describe("Gateway shortcuts", () => {
       "go.work",
       "go.settings",
       "close",
+      "undo",
+      "redo",
     ]);
     const platform = buildGatewayKeys(SHORTCUT_REGISTRY, hrefs, new Set(["account", "switch-org"]));
     expect(platform.commands).toEqual({ A: "account", O: "switch-org" });

@@ -15,6 +15,8 @@ On a computer, Gateway answers these shortcuts everywhere. Mod is Cmd on a Mac a
 - **A**: Open the account menu
 - **O**: Switch organization
 - **Esc**: Close a menu, dialog or peek
+- **Mod+Z**: Undo the last change
+- **Mod+Shift+Z**: Redo the change you undid
 
 <!-- /shortcuts -->
 

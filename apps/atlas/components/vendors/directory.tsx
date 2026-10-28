@@ -42,8 +42,12 @@ import { PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { PresenceFor } from "@/components/presence/presence-for";
 import { orgToday } from "@/lib/shell/time-zone";
 import { EmptyStateLink } from "@/components/ui";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
+import { customFieldList } from "@/lib/custom-fields/server";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "gallery"];
 const REFUSALS = "vendors.refusals";
@@ -64,19 +68,19 @@ export async function VendorDirectory({
 }) {
   const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
-  const [t, vendors, classes, rules] = await Promise.all([
+  const [t, vendors, classes, rules, custom] = await Promise.all([
     getCopy("vendors"),
     listVendors(db, ctx.org.id),
     listVendorClasses(db, ctx.org.id),
     listTransitionRules<VendorState>(db, "vendor"),
+    customFieldList(ctx, "app.vendors", search),
   ]);
   const title = t("directory.title");
   if (!vendors.ok || !classes.ok || !rules.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("directory.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canWrite = ctx.capabilities.has("vendors.vendor.write");
@@ -96,7 +100,8 @@ export async function VendorDirectory({
     );
   }
 
-  const rows: KitRow[] = vendors.data.map((v) => ({
+  const shown = vendors.data.filter((v) => custom.keep(v.id));
+  const rows: KitRow[] = shown.map((v) => ({
     id: v.id,
     key: v.counterpartyType ?? t("directory.untyped"),
     title: v.name ?? t("directory.unnamed"),
@@ -149,7 +154,10 @@ export async function VendorDirectory({
               />
             ) : null
           }
-        />
+        >
+          <VendorCustomFields org={ctx.org.slug} vendor={vendor} />
+          <PresenceFor table="vendors" id={vendor.id} />
+        </PeekDrawer>
       );
     }
   }
@@ -168,6 +176,7 @@ export async function VendorDirectory({
         { key: "classes", label: t("fields.classes"), wrap: true },
       ]}
       rows={rows}
+      customFields={await custom.view(rows.map((r) => r.id))}
       actions={
         canWrite ? (
           <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">
@@ -250,6 +259,7 @@ async function CreateVendor({
         refusals={REFUSALS}
         submitLabel={t("directory.create")}
         successHref={`${path}?peek={id}`}
+        customFields="app.vendors"
         fields={[
           {
             kind: "select",
@@ -364,6 +374,7 @@ async function VendorRecord({
         ) : null
       }
     >
+      <PresenceFor table="vendors" id={v.id} />
       {canWrite ? (
         <KitSection id="vendor-terms" title={t("directory.terms")}>
           <EntityForm
@@ -529,8 +540,19 @@ async function VendorRecord({
         )}
       </KitSection>
 
+      <VendorCustomFields org={ctx.org.slug} vendor={v} />
       <StateHistory ctx={ctx} ledger="vendor" id={v.id} stateLabel={stateLabel} />
       <CollabPanels ctx={ctx} table="app.vendors" id={v.id} />
     </RecordPage>
+  );
+}
+
+/** The vendor's own custom fields, then its company's (a vendor is the vendor facet of a counterparty). */
+function VendorCustomFields({ org, vendor }: { org: string; vendor: Vendor }) {
+  return (
+    <>
+      <CustomFieldsPanel org={org} table="app.vendors" id={vendor.id} />
+      <CustomFieldsPanel org={org} table="app.counterparties" id={vendor.counterpartyId} />
+    </>
   );
 }

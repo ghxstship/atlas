@@ -55,6 +55,8 @@ export interface ListQuery {
   readonly q?: string;
   readonly peek?: string;
   readonly full?: string;
+  /** The Add filter control's conditions (`f.*`, `cf.*`, A117), as a query string. */
+  readonly conditions?: string;
 }
 
 export function readQuery(search: Record<string, string | string[] | undefined>): ListQuery {
@@ -67,6 +69,12 @@ export function readQuery(search: Record<string, string | string[] | undefined>)
     const value = one(key);
     if (value !== undefined) query[key] = value;
   }
+  const conditions = new URLSearchParams();
+  for (const key of Object.keys(search)) {
+    const value = one(key);
+    if (value !== undefined && /^c?f\./.test(key)) conditions.set(key, value);
+  }
+  if (conditions.size > 0) query["conditions"] = conditions.toString();
   return query;
 }
 

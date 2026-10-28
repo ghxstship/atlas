@@ -105,6 +105,8 @@ describe("shortcut registry", () => {
       "go.documents",
       "go.settings",
       "close",
+      "undo",
+      "redo",
     ]);
   });
 

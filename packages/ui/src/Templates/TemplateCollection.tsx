@@ -14,7 +14,7 @@ export function TemplateCollection({
   bulk,
 }: TemplateCollectionProps): ReactElement {
   return (
-    <div data-shortcut-scope="view" className="flex flex-col gap-12 min-w-0">
+    <div data-template="collection" data-shortcut-scope="view" className="flex flex-col gap-12 min-w-0">
       {header}
       {filters ? (
         <div

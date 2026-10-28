@@ -41,6 +41,8 @@ These work everywhere on a computer. Mod is Cmd on a Mac and Ctrl elsewhere.
 - **A**: Open the account menu
 - **O**: Switch organization
 - **Esc**: Close a menu, dialog or peek
+- **Mod+Z**: Undo the last change
+- **Mod+Shift+Z**: Redo the change you undid
 
 <!-- /shortcuts -->
 
