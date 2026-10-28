@@ -175,7 +175,7 @@ function CellValue({
   }
   if (value === null || value === undefined) return null;
   if (column.type === "code")
-    return <span className="font-mono text-text-12">{String(value)}</span>;
+    return <code className="font-mono text-text-12">{String(value)}</code>;
   if (column.type === "number") return <span className="tabular-nums">{String(value)}</span>;
   return String(value);
 }
