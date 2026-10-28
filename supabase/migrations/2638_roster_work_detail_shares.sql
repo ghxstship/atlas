@@ -5,7 +5,8 @@
 -- 1340_work_details.sql.
 --
 --   * app.work_detail_shares.roster_entry_id (added in 2637) is backfilled from the engagement's self entry; one live
---     share per entry replaces one per engagement. private.guard_work_detail_share_entry refuses a new share without an
+--     share per entry replaces one per engagement. A live share with no self entry to key on (a Client or Sponsor
+--     engagement, or one closed before R4) is closed as a logged revocation. private.guard_work_detail_share_entry refuses a new share without an
 --     entry and any row whose engagement or person differs from the entry's. engagement_id and person_id stay, as
 --     registered derived values written from the entry by app.share_work_details (the frozen WorkDetailShare resource
 --     keeps them; ADR 0103, contract in R6b).
@@ -197,6 +198,45 @@ $$;
 
 comment on function private.close_work_detail_share(app.work_detail_shares, text) is 'Revokes a live share, withdraws the org''s work_details_sharing consent when no other live share uses it, and logs the act with its roster entry.';
 revoke all on function private.close_work_detail_share(app.work_detail_shares, text) from public, anon, authenticated;
+
+-- Shares the backfill could not key: Client and Sponsor engagements carry no roster entry, nor do engagements that were
+-- Complete or Canceled before R4 (2634). Nothing reads such a share any more and its person could no longer see or revoke
+-- it, so each is closed as a revocation, logged in the person's access log with the reason, and the org's
+-- work_details_sharing consent is withdrawn with its last live share. POST /work-detail-shares now answers 422
+-- work_detail_share_not_yours to the person of a Client or Sponsor engagement (recorded on the WorkDetailShare resource).
+create or replace function private.close_unkeyed_work_detail_shares()
+returns integer
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_share app.work_detail_shares;
+  v_count integer := 0;
+begin
+  for v_share in
+    select * from app.work_detail_shares s where s.roster_entry_id is null and s.revoked_at is null and s.deleted_at is null
+    order by s.shared_at, s.id
+    for update
+  loop
+    update app.work_detail_shares s set revoked_at = now() where s.id = v_share.id;
+    if not exists (select 1 from app.work_detail_shares s
+                   where s.consent_record_id = v_share.consent_record_id and s.revoked_at is null and s.deleted_at is null) then
+      update app.consent_records r set withdrawn_at = now() where r.id = v_share.consent_record_id and r.withdrawn_at is null;
+    end if;
+    perform private.log_work_detail_event(v_share.person_id, 'work_details.share_revoked', v_share.org_id, v_share.engagement_id,
+      v_share.categories, '{}', 'Closed when shares moved to roster entries: this engagement carries none.');
+    v_count := v_count + 1;
+  end loop;
+  return v_count;
+end;
+$$;
+
+comment on function private.close_unkeyed_work_detail_shares() is 'R4 (2638): closes every live work details share that names no roster entry (a Client or Sponsor engagement, or one closed before roster entries existed) as a logged revocation, withdrawing the org''s consent with its last live share. Returns how many it closed. Run once by 2638; kept so pgTAP can exercise it.';
+revoke all on function private.close_unkeyed_work_detail_shares() from public, anon, authenticated;
+
+select private.close_unkeyed_work_detail_shares();
 
 create or replace function app.my_work_detail_sharing()
 returns table (
