@@ -94,20 +94,23 @@ test("a purchase order preview names the orders a change refuses, and applies no
     .getByRole("button", { name: "Change State" })
     .click();
   const dialog = page.getByRole("dialog", { name: /Change State on 2 rows/ });
-  await dialog.getByLabel("New State").selectOption({ label: "Closed" });
-  await dialog.getByLabel("Reason").fill("Delivered in full.");
+
+  // Only a Sent order closes and only an Approved order is sent, so whatever states the demo
+  // orders are in, one of the two moves refuses at least one of them.
+  const [target, from] = states.every((s) => s === "Sent")
+    ? ["Sent", "Approved"]
+    : ["Closed", "Sent"];
+  const refused = keys.filter((_, i) => states[i] !== from);
+  expect(refused.length).toBeGreaterThan(0);
+  await dialog.getByLabel("New State").selectOption({ label: target });
+  await dialog.getByLabel("Reason").fill("Weekly procurement review.");
   await dialog.getByRole("button", { name: "Preview" }).click();
 
-  // Only a Sent order closes; any other selected order is named with the lifecycle's reason.
-  const refused = keys.filter((_, i) => states[i] !== "Sent");
-  if (refused.length > 0) {
-    await expect(dialog.getByText(/rows? can't change/)).toBeVisible();
-    for (const key of refused)
-      await expect(dialog.getByText(`${key}: `, { exact: false })).toBeVisible();
-    await expect(dialog.getByRole("button", { name: /Apply to/ })).toHaveCount(0);
-  } else {
-    await expect(dialog.getByText("2 rows will change.")).toBeVisible();
-  }
+  // Each refused order is named with the lifecycle's reason, and nothing can be applied.
+  await expect(dialog.getByText(/rows? can't change/)).toBeVisible();
+  for (const key of refused)
+    await expect(dialog.getByText(`${key}: `, { exact: false })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: /Apply to/ })).toHaveCount(0);
   await expectAccessible(page);
   await dialog.getByRole("button", { name: "Cancel" }).click();
   await expect(dialog).toBeHidden();
