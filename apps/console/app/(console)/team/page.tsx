@@ -74,7 +74,7 @@ export default async function TeamPage() {
                     submitLabel={t("team.revoke")}
                     successLabel={t("team.revoked")}
                     variant="danger"
-                    label={`${t("team.revoke")} ${g.email ?? ""}`}
+                    label={t("team.revokeFor", { email: g.email ?? "" })}
                   >
                     <ReasonField t={t} id={`revoke-${g.id}`} />
                   </ActionForm>
