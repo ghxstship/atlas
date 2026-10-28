@@ -201,7 +201,7 @@ const WorkDetailShare = editDefinition(
     name: "WorkDetailShare",
     table: "app.work_detail_shares",
     description:
-      "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them.",
+      "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged.",
     serverSet: ["person_id", "consent_record_id", "shared_at", "revoked_at", "roster_entry_id"],
     immutable: ["engagement_id"],
     fields: {
@@ -222,7 +222,7 @@ const WorkDetailShare = editDefinition(
       revoked_at: orNull(fields.instant("When the person revoked it; null while it stands.")),
       roster_entry_id: orNull(
         fields.ref(
-          "roster entry the share serves (R4): the caller's own entry on the engagement, the self entry for its person; null only on shares made before roster entries existed",
+          "roster entry the share serves (R4): the caller's own entry on the engagement, the self entry for its person; null only on shares revoked before roster entries existed",
         ),
       ),
     },
