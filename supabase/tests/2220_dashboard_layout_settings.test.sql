@@ -32,7 +32,7 @@ select is((select value_text from app.resolve_settings(pg_temp.id('org_a')) wher
 
 select pg_temp.as_user('alice');
 select throws_ok($$select app.set_setting(pg_temp.id('org_a'), 'me.dashboard_layout.home', 'Organization', pg_temp.id('org_a'),
-  p_value_text => 'plan:12')$$, 'XR001', null, 'an Owner cannot set a dashboard layout for the whole org');
+  p_value_text => 'plan:12')$$, '42501', null, 'an Owner cannot set a dashboard layout for the whole org');
 
 select * from finish();
 rollback;
