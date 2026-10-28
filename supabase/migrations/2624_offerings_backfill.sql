@@ -8,7 +8,8 @@
 --     a live value for that setting or the org locked it (a locked org value wins and refuses lower values):
 --       offerings.travel      a live travel segment (0442) or Travel fulfillment (0351)
 --       offerings.lodging     a live accommodation block (0440) or Lodging fulfillment
---       offerings.catering    a live Catering fulfillment or BEO (0351)
+--       offerings.catering    a live Catering or Amenity fulfillment or BEO (0351); Amenity lines show on the
+--                             Hospitality tab, which only catering, lodging or travel opens
 --       offerings.per_diem    a live per diem (0341)
 --       offerings.guest_list  a live guest list entry (0431)
 --     Parking, uniforms, radios and carts have no records to read yet and stay Not Offered. Returns the number of
@@ -47,7 +48,7 @@ begin
                    where f.project_id = p.id and f.fulfillment_kind = 'Lodging' and f.deleted_at is null)
       when 'offerings.catering' then
         exists (select 1 from app.fulfillments f
-                where f.project_id = p.id and f.fulfillment_kind = 'Catering' and f.deleted_at is null)
+                where f.project_id = p.id and f.fulfillment_kind in ('Catering', 'Amenity') and f.deleted_at is null)
         or exists (select 1 from app.beos b where b.project_id = p.id and b.deleted_at is null)
       when 'offerings.per_diem' then
         exists (select 1 from app.per_diems d where d.project_id = p.id and d.deleted_at is null)
@@ -60,7 +61,7 @@ begin
 end;
 $$;
 
-comment on function private.backfill_offerings() is 'Owner decision 7 backfill (R3): writes the Project value ''provided'' of offerings.travel, offerings.lodging, offerings.catering, offerings.per_diem and offerings.guest_list on every live project (not deleted, not archived, not Complete or Canceled) that already has records of that offering (travel segments or Travel fulfillments; accommodation blocks or Lodging fulfillments; Catering fulfillments or BEOs; per diems; guest list entries), unless the project has a live value for the setting or the org locked it. Returns the number of values written.';
+comment on function private.backfill_offerings() is 'Owner decision 7 backfill (R3): writes the Project value ''provided'' of offerings.travel, offerings.lodging, offerings.catering, offerings.per_diem and offerings.guest_list on every live project (not deleted, not archived, not Complete or Canceled) that already has records of that offering (travel segments or Travel fulfillments; accommodation blocks or Lodging fulfillments; Catering or Amenity fulfillments or BEOs; per diems; guest list entries), unless the project has a live value for the setting or the org locked it. Returns the number of values written.';
 revoke all on function private.backfill_offerings() from public, anon, authenticated;
 grant execute on function private.backfill_offerings() to service_role;
 

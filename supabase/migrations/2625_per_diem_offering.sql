@@ -4,6 +4,10 @@
 --
 --   * app.add_per_diems (from 2603, unchanged otherwise) refuses offering_not_offered in its engagement branch when per
 --     diem resolves Not Offered on the engagement. Per diems for members of the org are not subject to offerings.
+--   * t41_guard_per_diem_offered holds the same rule on every other path to app.per_diems: a direct insert under the
+--     table's write policy (0981) or the v1 API's perDiems create and update. It checks a new engagement per diem and
+--     a row moved to another engagement; a row whose engagement stays the same is left alone, so turning per diem off
+--     later never blocks edits to per diems already recorded.
 
 create or replace function app.add_per_diems(
   p_project_id uuid,
@@ -72,3 +76,24 @@ $$;
 comment on function app.add_per_diems(uuid, uuid, uuid, date, date, bigint, char) is 'Atlas Crew > Per Diems (R1): adds one per diem a day from p_from to p_to (at most 62 days) for one member of the project''s org or one engagement, with org_id from the project. Needs crew.time_entry.write on the project. Refusals: per_diem_one_worker, per_diem_range, per_diem_member_org, offering_not_offered for an engagement whose project does not offer per diem (R3, private.assert_offered; members are not subject to offerings), and per_diem_day_taken naming the first day already recorded; the table''s triggers refuse a closed production and an engagement that names no person or is not Active or Closing. Returns the number of days added.';
 revoke all on function app.add_per_diems(uuid, uuid, uuid, date, date, bigint, char) from public, anon;
 grant execute on function app.add_per_diems(uuid, uuid, uuid, date, date, bigint, char) to authenticated, service_role;
+
+create or replace function private.guard_per_diem_offered()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if tg_op = 'UPDATE' and new.engagement_id is not distinct from old.engagement_id then
+    return new;
+  end if;
+  perform private.assert_offered(new.engagement_id, 'Per Diem');
+  return new;
+end;
+$$;
+
+comment on function private.guard_per_diem_offered() is 'Per diems paid through an engagement (R3): refuses offering_not_offered when per diem resolves Not Offered on the engagement (private.assert_offered), on insert and when a row moves to another engagement. Per diems for members are not subject to offerings.';
+revoke all on function private.guard_per_diem_offered() from public, anon, authenticated;
+
+create trigger t41_guard_per_diem_offered before insert or update of engagement_id on app.per_diems
+  for each row when (new.engagement_id is not null) execute function private.guard_per_diem_offered();
