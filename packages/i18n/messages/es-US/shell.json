@@ -1058,7 +1058,7 @@
     "favoritesEmpty": "Fija proyectos, vistas guardadas y registros para tenerlos aquí.",
     "favoriteOrder": {
       "move": "Mover {item}",
-      "moveHelp": "Arrastra un favorito, o presiona Espacio en su botón de mover para tomarlo, las flechas para moverlo, Espacio para soltarlo y Esc para cancelar.",
+      "moveHelp": "Arrastra un favorito por su botón de mover, o presiona Espacio en ese botón para tomarlo, las flechas para moverlo, Espacio para soltarlo y Esc para cancelar.",
       "picked": "{item} tomado, posición {position} de {count}. Usa las flechas para moverlo y Espacio para soltarlo.",
       "moved": "{item} movido a la posición {position} de {count}.",
       "dropped": "{item} soltado en la posición {position} de {count}.",

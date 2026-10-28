@@ -1058,7 +1058,7 @@
     "favoritesEmpty": "Pin projects, saved views and records to keep them here.",
     "favoriteOrder": {
       "move": "Move {item}",
-      "moveHelp": "Drag a favorite, or press Space on its move button to pick it up, the arrow keys to move it, Space to drop it and Esc to cancel.",
+      "moveHelp": "Drag a favorite by its move button, or press Space on that button to pick it up, the arrow keys to move it, Space to drop it and Esc to cancel.",
       "picked": "{item} picked up, position {position} of {count}. Use the arrow keys to move it, Space to drop it.",
       "moved": "{item} moved to position {position} of {count}.",
       "dropped": "{item} dropped at position {position} of {count}.",
