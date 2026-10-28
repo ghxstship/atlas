@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import type { HomeTilesData } from "@/lib/home/data";
 import { ActivityLine } from "@/components/activity/activity-line";
 import { collapseRepeats, useDescribe } from "@/components/activity/describe";
+import { Region } from "@/components/shell/region";
 
 function Tile({
   id,
@@ -17,7 +18,8 @@ function Tile({
   id: string;
   title: string;
   href: string | null;
-  children: React.ReactNode;
+  /** Called inside the tile's Region, so an error while building the content stays in the tile. */
+  children: () => React.ReactNode;
 }) {
   const t = useTranslations("home.dashboard");
   return (
@@ -36,9 +38,16 @@ function Tile({
           </Link>
         ) : null}
       </header>
-      {children}
+      {/* A tile that fails shows Retry in its own place; the other tiles stay (A143). */}
+      <Region>
+        <TileBody render={children} />
+      </Region>
     </section>
   );
+}
+
+function TileBody({ render }: { render: () => React.ReactNode }) {
+  return render();
 }
 
 /**
@@ -80,58 +89,66 @@ export function HomeTiles({
       </div>
       <div className="grid grid-cols-1 gap-16 lg:grid-cols-3">
         <Tile id="home-readiness" title={t("readinessTitle")} href={links.readiness}>
-          {tiles.readiness.length === 0 ? (
-            <p className="m-0 text-text-13 text-text-secondary">{t("noReadiness")}</p>
-          ) : (
-            <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
-              {tiles.readiness.map((x) => (
-                <li key={x.project.id} className="flex flex-col gap-2 py-8">
-                  <Link
-                    href={`/${org}/p/${x.project.key}/gates` as Route}
-                    className="text-text-14 text-accent-text underline"
-                  >
-                    {x.project.key} {x.project.name}
-                  </Link>
-                  <span className="text-text-12 text-text-secondary">
-                    {x.closed || !x.phase
-                      ? r("closed")
-                      : `${p("gates.gate", { gate: x.phase.gate })} · ${r("met", {
-                          met: x.blockingMet,
-                          total: x.blockingTotal,
-                        })}`}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+          {() =>
+            tiles.readiness.length === 0 ? (
+              <p className="m-0 text-text-13 text-text-secondary">{t("noReadiness")}</p>
+            ) : (
+              <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
+                {tiles.readiness.map((x) => (
+                  <li key={x.project.id} className="flex flex-col gap-2 py-8">
+                    <Link
+                      href={`/${org}/p/${x.project.key}/gates` as Route}
+                      className="text-text-14 text-accent-text underline"
+                    >
+                      {x.project.key} {x.project.name}
+                    </Link>
+                    <span className="text-text-12 text-text-secondary">
+                      {x.closed || !x.phase
+                        ? r("closed")
+                        : `${p("gates.gate", { gate: x.phase.gate })} · ${r("met", {
+                            met: x.blockingMet,
+                            total: x.blockingTotal,
+                          })}`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )
+          }
         </Tile>
         <Tile id="home-alerts" title={t("alertsTitle")} href={links.alerts}>
-          {tiles.alerts.length === 0 ? (
-            <p className="m-0 text-text-13 text-text-secondary">{t("noAlerts")}</p>
-          ) : (
-            <ul className="m-0 flex list-none flex-col gap-8 p-0 text-text-13">
-              {tiles.alerts.map((a) => (
-                <li key={a.id}>{text.alerts[a.id]}</li>
-              ))}
-            </ul>
-          )}
+          {() =>
+            tiles.alerts.length === 0 ? (
+              <p className="m-0 text-text-13 text-text-secondary">{t("noAlerts")}</p>
+            ) : (
+              <ul className="m-0 flex list-none flex-col gap-8 p-0 text-text-13">
+                {tiles.alerts.map((a) => (
+                  <li key={a.id}>{text.alerts[a.id]}</li>
+                ))}
+              </ul>
+            )
+          }
         </Tile>
         <Tile id="home-activity" title={t("recentTitle")} href={links.activity}>
-          {tiles.activity.length === 0 ? (
-            <p className="m-0 text-text-13 text-text-secondary">{t("noActivity")}</p>
-          ) : (
-            <ol className="m-0 flex list-none flex-col gap-4 p-0">
-              {collapseRepeats(tiles.activity, describe).map(({ entry: e, description, count }) => (
-                <li key={e.id}>
-                  <ActivityLine
-                    description={description}
-                    count={count}
-                    time={text.times[e.id] ?? ""}
-                  />
-                </li>
-              ))}
-            </ol>
-          )}
+          {() =>
+            tiles.activity.length === 0 ? (
+              <p className="m-0 text-text-13 text-text-secondary">{t("noActivity")}</p>
+            ) : (
+              <ol className="m-0 flex list-none flex-col gap-4 p-0">
+                {collapseRepeats(tiles.activity, describe).map(
+                  ({ entry: e, description, count }) => (
+                    <li key={e.id}>
+                      <ActivityLine
+                        description={description}
+                        count={count}
+                        time={text.times[e.id] ?? ""}
+                      />
+                    </li>
+                  ),
+                )}
+              </ol>
+            )
+          }
         </Tile>
       </div>
     </div>

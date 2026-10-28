@@ -34,6 +34,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { rememberView } from "@/lib/shell/recents";
 import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
+import { Region } from "@/components/shell/region";
 import { formatScheduleTime, scheduleViewOf, slipAmount, type ScheduleView } from "./format";
 import { getShellSettings } from "@/lib/shell/org-settings";
 import { PresenceFor } from "@/components/presence/presence-for";
@@ -250,7 +251,10 @@ const RECORD_FIELD_LABELS: Readonly<Record<string, string>> = {
   replan_reason: "work.fields.replanReason",
 };
 
-/** The content column: state moves, editing, the kind's attributes, work, schedule and history. */
+/**
+ * The content column: state moves, editing, the kind's attributes, work, schedule and history. Each
+ * panel below the record's own fields fails alone, with Retry in its place (Region, A143).
+ */
 export async function RecordBody({
   org,
   detail,
@@ -306,11 +310,13 @@ export async function RecordBody({
     <div className="flex flex-col gap-24">
       {/* Who else has the record open, here or in a peek (Section 11.7). */}
       <PresenceFor table="records" id={record.id} />
-      <SummaryEntryRow
-        subject={{ collection: "records", id: record.id, label: recordLabel }}
-        kinds={["record_activity"]}
-        items={{ record_activity: activity }}
-      />
+      <Region>
+        <SummaryEntryRow
+          subject={{ collection: "records", id: record.id, label: recordLabel }}
+          kinds={["record_activity"]}
+          items={{ record_activity: activity }}
+        />
+      </Region>
       {record.state === "Blocked" && record.blockerText ? (
         <InlineAlert tone="warning" title={t("work.record.blockedBy")}>
           {record.blockerText}
@@ -338,61 +344,73 @@ export async function RecordBody({
           logsReplans={logsReplans}
         />
       ) : null}
-      <ExtensionForm
-        org={org}
-        record={record}
-        fields={detail.fields}
-        values={detail.extension}
-        people={meta.people}
-        currencies={detail.currencies}
-        canEdit={detail.canWrite}
-      />
-      <ChecklistEditor
-        org={org}
-        recordId={record.id}
-        items={detail.checklist}
-        canEdit={detail.canWrite}
-      />
-      <AssignmentsEditor
-        org={org}
-        recordId={record.id}
-        assignments={detail.assignments}
-        people={meta.people}
-        canEdit={detail.canWrite}
-      />
+      <Region>
+        <ExtensionForm
+          org={org}
+          record={record}
+          fields={detail.fields}
+          values={detail.extension}
+          people={meta.people}
+          currencies={detail.currencies}
+          canEdit={detail.canWrite}
+        />
+      </Region>
+      <Region>
+        <ChecklistEditor
+          org={org}
+          recordId={record.id}
+          items={detail.checklist}
+          canEdit={detail.canWrite}
+        />
+      </Region>
+      <Region>
+        <AssignmentsEditor
+          org={org}
+          recordId={record.id}
+          assignments={detail.assignments}
+          people={meta.people}
+          canEdit={detail.canWrite}
+        />
+      </Region>
       {record.deletedAt ? null : (
         <WatchButton org={org} recordId={record.id} watchId={detail.watchId} />
       )}
-      <RelatedRecords
-        org={org}
-        recordId={record.id}
-        relations={detail.relations}
-        dependencies={
-          detail.canSchedule ? (
-            <DependencyEditor
-              org={org}
-              record={record}
-              dependencies={detail.dependencies}
-              candidates={detail.siblings}
-              canEdit
-            />
-          ) : undefined
-        }
-      />
+      <Region>
+        <RelatedRecords
+          org={org}
+          recordId={record.id}
+          relations={detail.relations}
+          dependencies={
+            detail.canSchedule ? (
+              <DependencyEditor
+                org={org}
+                record={record}
+                dependencies={detail.dependencies}
+                candidates={detail.siblings}
+                canEdit
+              />
+            ) : undefined
+          }
+        />
+      </Region>
       {dated ? (
-        <ActualsForm
+        <Region>
+          <ActualsForm
+            org={org}
+            record={record}
+            actual={detail.actual}
+            canEdit={detail.canSchedule}
+          />
+        </Region>
+      ) : null}
+      <Region>
+        <RecurrenceForm
           org={org}
           record={record}
-          actual={detail.actual}
-          canEdit={detail.canSchedule}
+          recurrence={detail.recurrence}
+          canEdit={detail.canRecur}
         />
-      ) : null}
-      <RecurrenceForm
-        org={org}
-        record={record}
-        recurrence={detail.recurrence}
-        canEdit={detail.canRecur}
-      />
+      </Region>
       <section aria-labelledby={`history-${record.id}`} className="flex flex-col gap-8">
         <h3 id={`history-${record.id}`} className="m-0 text-label-13 font-semibold">
           {t("work.history.title")}
@@ -418,34 +436,36 @@ export async function RecordBody({
         </ol>
       </section>
       {detail.fieldHistory ? (
-        <FieldHistoryList
-          id={record.id}
-          title={t("collab.history.title")}
-          empty={t("collab.history.empty")}
-          items={historyItems(detail.fieldHistory, {
-            t,
-            when: (iso) =>
-              format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
-            label: (field) => {
-              const key = RECORD_FIELD_LABELS[field];
-              return field === "deleted_at" ? t("collab.history.trash") : key ? t(key) : null;
-            },
-            value: (field, v) => {
-              const text = typeof v === "string" ? v : JSON.stringify(v);
-              if (field === "owner_party_id" || field === "accountable_party_id") {
-                return names[text] ?? t("work.values.unnamed");
-              }
-              if (field === "record_state") return t(`work.states.${text}`);
-              if (field === "phase_code") {
-                return meta.phases.find((p) => p.value === text)?.label ?? text;
-              }
-              if (field === "deleted_at") return when(text);
-              if (field === "starts_at" || field === "ends_at" || field === "due_at")
-                return when(text);
-              return text;
-            },
-          })}
-        />
+        <Region>
+          <FieldHistoryList
+            id={record.id}
+            title={t("collab.history.title")}
+            empty={t("collab.history.empty")}
+            items={historyItems(detail.fieldHistory, {
+              t,
+              when: (iso) =>
+                format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }),
+              label: (field) => {
+                const key = RECORD_FIELD_LABELS[field];
+                return field === "deleted_at" ? t("collab.history.trash") : key ? t(key) : null;
+              },
+              value: (field, v) => {
+                const text = typeof v === "string" ? v : JSON.stringify(v);
+                if (field === "owner_party_id" || field === "accountable_party_id") {
+                  return names[text] ?? t("work.values.unnamed");
+                }
+                if (field === "record_state") return t(`work.states.${text}`);
+                if (field === "phase_code") {
+                  return meta.phases.find((p) => p.value === text)?.label ?? text;
+                }
+                if (field === "deleted_at") return when(text);
+                if (field === "starts_at" || field === "ends_at" || field === "due_at")
+                  return when(text);
+                return text;
+              },
+            })}
+          />
+        </Region>
       ) : null}
       <section aria-labelledby={`replans-${record.id}`} className="flex flex-col gap-8">
         <h3 id={`replans-${record.id}`} className="m-0 text-label-13 font-semibold">
@@ -496,15 +516,17 @@ export async function RecordBody({
           </ol>
         )}
       </section>
-      <CollabPanels
-        org={org}
-        subject={{ table: "app.records", id: record.id }}
-        threads={detail.conversation.threads}
-        attachments={detail.conversation.attachments}
-        names={{ ...names, ...detail.conversation.names }}
-        me={me}
-        canPost={!record.deletedAt}
-      />
+      <Region>
+        <CollabPanels
+          org={org}
+          subject={{ table: "app.records", id: record.id }}
+          threads={detail.conversation.threads}
+          attachments={detail.conversation.attachments}
+          names={{ ...names, ...detail.conversation.names }}
+          me={me}
+          canPost={!record.deletedAt}
+        />
+      </Region>
       {detail.canWrite ? <DuplicateButton org={org} recordId={record.id} /> : null}
       {detail.canWrite || record.deletedAt ? <TrashControls org={org} record={record} /> : null}
     </div>
