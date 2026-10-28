@@ -42,7 +42,7 @@ import { AuroraCenter, openAurora } from "@/components/aurora/aurora-center";
 import { HelpCenter, openHelpArticle } from "@/components/help/help-center";
 import { atlasLiveSource } from "@/components/live/live-source";
 import { UndoCenter } from "@/components/undo/undo-center";
-import { undoStack } from "@/components/undo/undo-stack";
+import { undoStack } from "@xos/ui/undo";
 import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
 import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";

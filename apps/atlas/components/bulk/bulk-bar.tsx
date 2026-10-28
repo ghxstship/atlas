@@ -5,7 +5,7 @@ import { BulkActionBar, Button, Dialog, InlineAlert, Input, Select } from "@xos/
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
+import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { bulkUpdateAction, type BulkActionResult } from "@/lib/bulk/actions";
 import type { BulkConfig, BulkField, BulkRowRef } from "./types";
 

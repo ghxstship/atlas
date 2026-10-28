@@ -3,7 +3,7 @@
 import { Toast, ToastRegion, UndoToast } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
-import { undoStack, type UndoEntry } from "./undo-stack";
+import { undoStack, type UndoEntry } from "@xos/ui/undo";
 
 type Translate = (key: string, values?: Record<string, string>) => string;
 
