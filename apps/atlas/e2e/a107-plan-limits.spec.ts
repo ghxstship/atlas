@@ -67,8 +67,9 @@ test("after the trial ends on Access, projects past the limit are read-only with
   await expect(page.getByTestId("over-limit-banner")).toContainText(
     "The organization is over the Access plan's limits, so 2 projects are read-only.",
   );
-  await expect(page.getByText("Summer Fair")).toBeVisible();
-  await expect(page.getByText("Winter Gala")).toBeVisible();
+  // The sidebar lists recent projects too (A113), so the names are looked for in the page's own list.
+  await expect(page.getByRole("main").getByText("Summer Fair")).toBeVisible();
+  await expect(page.getByRole("main").getByText("Winter Gala")).toBeVisible();
   await expectAccessible(page);
 
   // The oldest project stays writable; the newer two say why they are read-only, and refuse an edit.
