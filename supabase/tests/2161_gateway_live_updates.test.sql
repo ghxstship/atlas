@@ -105,7 +105,7 @@ language sql as $$
 $$;
 
 -- Messages are partitioned by day, and Realtime makes the partitions. Where no partition covers today, no ping can be
--- stored (the write goes on without it), so these checks are skipped, as 1710's are.
+-- stored (the write goes on without it), so these checks are skipped, as 2060's are.
 create function pg_temp.pings_applied() returns setof text
 language plpgsql as $$
 begin

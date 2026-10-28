@@ -86,7 +86,7 @@ This is A88's `useRowMenu`, ported with Gateway copy.
   leaking anything. That avoids restating the Section 8.7 helpers in reverse, which would drift.
 - **The channel rule.** A policy on `realtime.messages` lets each person receive only on their own channel:
   `realtime.topic()` must equal `gateway:<their person id>`. Nothing but the triggers sends on it.
-  - Where A106's registry of channel rules (`private.realtime_channel_policies`, 1710) exists, the rule is
+  - Where A106's registry of channel rules (`private.realtime_channel_policies`, 2060) exists, the rule is
     registered there, so it is restored on every environment.
   - Otherwise 2161 creates it when Realtime's table exists, as 1453 did.
 - **Pings never fail a write.** Without Realtime, or without a partition of `realtime.messages` for today, the
@@ -115,5 +115,5 @@ This is A88's `useRowMenu`, ported with Gateway copy.
   List and card views (Explore, Messages) do not select, though A115's `RecordList` selection would allow it: Save
   and Pass stay one at a time (above), and a thread is marked read by opening it.
 - The recall rule is new: a worker can take back a submitted timesheet until it is decided.
-- Once A106 merges, the rule `xos_gateway_channel_read` belongs in its registry. On an environment that ran 2161
-  before 1710, one insert into `private.realtime_channel_policies` registers it.
+- Once A106 merges, its 2060 sorts before 2161, so the rule `xos_gateway_channel_read` lands in its registry wherever
+  both run.

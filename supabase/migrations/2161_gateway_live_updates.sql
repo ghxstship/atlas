@@ -16,7 +16,7 @@
 --     person join only their own channel, so a ping reaches no one else.
 --   * Pinging never fails a write: without Realtime (a database it has not started on yet, or no partition of
 --     realtime.messages for today) the ping is skipped and the list rereads on its next visit, as before.
---   * The channel rule is a policy on realtime.messages, which Realtime creates as its own. Where 1710's registry of
+--   * The channel rule is a policy on realtime.messages, which Realtime creates as its own. Where 2060's registry of
 --     channel rules exists it is registered there, so it is kept on every environment; otherwise it is created here
 --     when the table exists, as 1453 did.
 
