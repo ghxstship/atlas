@@ -23,6 +23,8 @@ order: 51
 
 Los turnos se abren como un programa de recursos en Atlas, con personas a un lado y el tiempo a lo largo. Publique turnos para que el equipo los acepte en Compass. Los intercambios requieren aprobación.
 
+Quien planifica puede crear un turno en borrador con una línea en el campo de agregar rápido, como "#tramoyista @dana ~NWS-S01 viernes 8am-4pm": `#` nombra el rol, `@` la persona (sin ella, el turno queda abierto), `~` el alcance y la fecha su llamada y su fin. Sin hora de fin, un turno dura ocho horas.
+
 ## Registros de tiempo y hojas de horas
 
 El equipo marca entrada y salida en Compass, dentro de la geocerca de la sede. Una segunda entrada en otro dispositivo se rechaza. Si cambian las horas después de aprobar una hoja, la aprobación se anula.

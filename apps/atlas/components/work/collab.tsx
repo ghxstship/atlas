@@ -17,8 +17,10 @@ import {
 } from "./collab-actions";
 
 /**
- * Comments and attachments on one Schedule, Work or Show row (Section 19.6, chat native in
- * Section 11.10 item 8): the main thread with a composer, and files with versions and scan status.
+ * Comments and attachments on one Schedule, Work or Show row or custom object record (Section 19.6,
+ * chat native in Section 11.10 item 8): the main thread with a composer, and files with versions and
+ * scan status. A panel whose data the server page does not render again after an action (the shell's
+ * peek loads its record itself) passes `onChange` to read it again.
  */
 export function CollabPanels({
   org,
@@ -28,6 +30,7 @@ export function CollabPanels({
   names,
   me,
   canPost,
+  onChange,
 }: {
   org: string;
   subject: CollabSubject;
@@ -36,6 +39,7 @@ export function CollabPanels({
   names: Readonly<Record<string, string>>;
   me: string | null;
   canPost: boolean;
+  onChange?: () => void;
 }) {
   return (
     <div className="flex flex-col gap-24">
@@ -46,6 +50,7 @@ export function CollabPanels({
         names={names}
         me={me}
         canPost={canPost}
+        {...(onChange ? { onChange } : {})}
       />
       <AttachmentsPanel
         org={org}
@@ -53,6 +58,7 @@ export function CollabPanels({
         attachments={attachments}
         me={me}
         canPost={canPost}
+        {...(onChange ? { onChange } : {})}
       />
     </div>
   );
@@ -65,6 +71,7 @@ function CommentsPanel({
   names,
   me,
   canPost,
+  onChange,
 }: {
   org: string;
   subject: CollabSubject;
@@ -72,6 +79,7 @@ function CommentsPanel({
   names: Readonly<Record<string, string>>;
   me: string | null;
   canPost: boolean;
+  onChange?: () => void;
 }) {
   const t = useCopy("work");
   const format = useFormatter();
@@ -115,7 +123,7 @@ function CommentsPanel({
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => run(() => deleteCommentAction(org, c.id))}
+                    onClick={() => run(() => deleteCommentAction(org, c.id), onChange)}
                   >
                     {t("collab.delete")}
                   </Button>
@@ -132,7 +140,10 @@ function CommentsPanel({
             e.preventDefault();
             run(
               () => postCommentAction(org, subject, body),
-              () => setBody(""),
+              () => {
+                setBody("");
+                onChange?.();
+              },
             );
           }}
         >
@@ -161,12 +172,14 @@ function AttachmentsPanel({
   attachments,
   me,
   canPost,
+  onChange,
 }: {
   org: string;
   subject: CollabSubject;
   attachments: readonly Attachment[];
   me: string | null;
   canPost: boolean;
+  onChange?: () => void;
 }) {
   const t = useCopy("work");
   const format = useFormatter();
@@ -221,7 +234,7 @@ function AttachmentsPanel({
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => run(() => removeAttachmentAction(org, a.id))}
+                    onClick={() => run(() => removeAttachmentAction(org, a.id), onChange)}
                   >
                     {t("collab.remove")}
                   </Button>
@@ -244,6 +257,7 @@ function AttachmentsPanel({
               () => uploadAttachmentAction(form),
               () => {
                 if (fileRef.current) fileRef.current.value = "";
+                onChange?.();
               },
             );
           }}

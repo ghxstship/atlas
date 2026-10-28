@@ -1,0 +1,48 @@
+appId: pro.ghxstship.compass
+# Settings, Account edits natively (A110): a given name saves, then clears again; the sign-in email shows, and
+# Delete Account opens the deletion screen, which this flow leaves without deleting anything.
+# Named after its file: config.yaml orders flows by name.
+name: settings-identity-account
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/account
+- extendedWaitUntil:
+    visible:
+      id: "settings-account-given-name"
+    timeout: 30000
+- assertVisible: "field@example.com"
+- tapOn:
+    id: "settings-account-given-name"
+- inputText: "Demo"
+- hideKeyboard
+- tapOn:
+    id: "settings-account-save"
+- extendedWaitUntil:
+    visible: "Saved."
+    timeout: 30000
+- tapOn:
+    id: "settings-account-given-name"
+- eraseText: 20
+- hideKeyboard
+- tapOn:
+    id: "settings-account-save"
+- extendedWaitUntil:
+    visible: "Saved."
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "settings-account-delete-open"
+    direction: DOWN
+- tapOn:
+    id: "settings-account-delete-open"
+- extendedWaitUntil:
+    visible:
+      id: "account"
+    timeout: 20000
+- assertVisible: "What is kept, and why"

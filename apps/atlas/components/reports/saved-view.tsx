@@ -113,6 +113,8 @@ export async function SavedReportsView({ page }: { page: FinancePage }) {
             title={peek.name}
             state={peek.shared ? "active" : "ready"}
             stateLabel={peek.shared ? t("reports.saved.shared") : t("reports.saved.private")}
+            // A saved report opens in its peek only; it has no full page to offer.
+            fullPage={false}
             properties={[
               {
                 label: t("reports.saved.source"),
@@ -186,6 +188,7 @@ export async function SavedReportsView({ page }: { page: FinancePage }) {
           ) : page.view === "table" ? (
             <CollectionTable
               label={t("reports.saved.definitions")}
+              fullPage={false}
               columns={[
                 { key: "name", label: t("reports.saved.name"), wrap: true },
                 { key: "source", label: t("reports.saved.source") },

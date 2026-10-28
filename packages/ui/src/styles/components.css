@@ -249,12 +249,14 @@
 /* RecordList and RecordRow. Rows reflow by the width of their own list, not the viewport, so a list
    in a half-width column reflows too (decision D18): state, title and owner on the first line; key,
    chips, next date and action wrap beneath, indented under the title. Only the visual order
-   changes; focus order stays the source order. */
+   changes; focus order stays the source order. A row of a selectable list leads with its checkbox. */
 .xos-rlist {
   container: xos-rlist / inline-size;
 }
 
 .xos-rrow {
+  --xos-rrow-lead: var(--space-20);
+
   display: grid;
   grid-template-columns:
     var(--space-20) calc(var(--space-64) + var(--space-8)) minmax(0, 1fr) auto
@@ -263,6 +265,14 @@
   gap: var(--space-8);
   min-block-size: var(--density-row-default);
   padding-inline: var(--space-12);
+}
+
+.xos-rrow[data-selectable] {
+  --xos-rrow-lead: calc(var(--space-20) * 2 + var(--space-8));
+
+  grid-template-columns:
+    var(--space-20) var(--space-20) calc(var(--space-64) + var(--space-8)) minmax(0, 1fr) auto
+    calc(var(--space-40) * 4 + var(--space-16)) var(--density-control-md) calc(var(--space-40) * 3);
 }
 
 .xos-rrow-action {
@@ -289,19 +299,20 @@
     padding-block: var(--space-8);
   }
 
-  .xos-rrow > :nth-child(1) {
+  .xos-rrow-select,
+  .xos-rrow-state {
     order: 1;
     flex: none;
     inline-size: var(--space-20);
   }
 
-  .xos-rrow > :nth-child(3) {
+  .xos-rrow-title {
     order: 2;
     flex: 1 1 0;
     min-inline-size: 0;
   }
 
-  .xos-rrow > :nth-child(6) {
+  .xos-rrow-owner {
     order: 3;
     flex: none;
   }
@@ -312,17 +323,17 @@
     flex-basis: 100%;
   }
 
-  .xos-rrow > :nth-child(2),
-  .xos-rrow > :nth-child(4),
-  .xos-rrow > :nth-child(5) {
+  .xos-rrow-key,
+  .xos-rrow-chips,
+  .xos-rrow-next {
     order: 4;
   }
 
-  .xos-rrow > :nth-child(2) {
-    margin-inline-start: calc(var(--space-20) + var(--space-8));
+  .xos-rrow-key {
+    margin-inline-start: calc(var(--xos-rrow-lead) + var(--space-8));
   }
 
-  .xos-rrow > :nth-child(7) {
+  .xos-rrow-action {
     order: 5;
     margin-inline-start: auto;
   }

@@ -2,13 +2,16 @@
 
 import {
   asDbClient,
+  clientCredentialSecret,
   createConnection,
   enqueueSync,
+  getConnection,
   isProviderCode,
   SYNC_SCOPES,
   scopesFor,
   storeCredential,
   transitionConnection,
+  usesClientCredentials,
 } from "@xos/integrations";
 import type { IntegrationActionState } from "@xos/integrations/settings";
 import type { DataError } from "@xos/data";
@@ -87,29 +90,59 @@ export async function createIntegrationAction(
   return result.ok ? done(ctx.org.slug) : failure(result.error);
 }
 
+/**
+ * UPS and FedEx connections send their developer app's client ID and secret as two fields; they are stored
+ * as one JSON credential (an API key kind) that the connector mints short-lived access tokens from.
+ */
+const clientPair = z.object({
+  clientId: z.string().trim().max(1024),
+  clientSecret: z.string().trim().max(1024),
+});
+
+const pastedSecret = z.object({
+  secret: z.string().max(16384),
+  kind: z.enum(["OAuth Token", "API Key", "Service Account"]),
+});
+
+/**
+ * Stores a connection's credential in Vault. The connection's provider, read under row level security, picks the
+ * form: a client ID and secret for providers that mint their own tokens (`usesClientCredentials`), the pasted
+ * secret and its kind for every other provider. A post with the other form's fields is refused.
+ */
 export async function storeIntegrationCredentialAction(
   _: IntegrationActionState,
   form: FormData,
 ): Promise<IntegrationActionState> {
   const ctx = await contextFor(form);
-  const parsed = z
-    .object({
-      connectionId: z.uuid(),
-      secret: z.string().max(16384),
-      kind: z.enum(["OAuth Token", "API Key", "Service Account"]),
-    })
-    .safeParse({
-      connectionId: form.get("connectionId"),
+  const connectionId = z.uuid().safeParse(form.get("connectionId"));
+  if (!connectionId.success) return invalid();
+  const db = asDbClient(ctx.viewer.db);
+  const connection = await getConnection(db, connectionId.data);
+  if (!connection.ok) return failure(connection.error);
+  let credential: { secret: string; kind: z.infer<typeof pastedSecret>["kind"] };
+  if (usesClientCredentials(connection.data.provider_code)) {
+    const parsed = clientPair.safeParse({
+      clientId: form.get("clientId"),
+      clientSecret: form.get("clientSecret"),
+    });
+    if (!parsed.success) return invalid();
+    if (parsed.data.clientId.length === 0 || parsed.data.clientSecret.length === 0) {
+      const t = await getTranslate();
+      return { error: t("integrations.errors.clientCredentialsIncomplete") };
+    }
+    credential = {
+      secret: clientCredentialSecret(parsed.data.clientId, parsed.data.clientSecret),
+      kind: "API Key",
+    };
+  } else {
+    const parsed = pastedSecret.safeParse({
       secret: form.get("secret") ?? "",
       kind: form.get("kind"),
     });
-  if (!parsed.success) return invalid();
-  const result = await storeCredential(
-    asDbClient(ctx.viewer.db),
-    parsed.data.connectionId,
-    parsed.data.secret.trim(),
-    parsed.data.kind,
-  );
+    if (!parsed.success) return invalid();
+    credential = { ...parsed.data, secret: parsed.data.secret.trim() };
+  }
+  const result = await storeCredential(db, connectionId.data, credential.secret, credential.kind);
   return result.ok ? done(ctx.org.slug) : failure(result.error);
 }
 
