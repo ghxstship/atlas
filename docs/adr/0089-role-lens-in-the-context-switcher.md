@@ -1,4 +1,4 @@
-# ADR 0086: The Role Lens in the Context Switcher
+# ADR 0089: The Role Lens in the Context Switcher
 
 - Status: Accepted
 - Date: 2026-10-27
@@ -14,7 +14,7 @@ Producer who is also a Member sees both roles' navigation, Inbox and controls at
 personal lens and is closed to most members. Gateway has no org roles at all: an external person's roles
 there are the role types of their engagements (Crew, Artist, Vendor and the rest, Section 4.4.2).
 
-The plan named this ADR 0062. That number was never used; it is recorded as 0086, the next free number
+The plan named this ADR 0062. That number was never used; it is recorded as 0089, the next free number
 after every package branch, so no two packages share one.
 
 ## Decisions

@@ -74,6 +74,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0080](0080-operations-bulk-edit-and-undo.md)                       | Operations Bulk Edit, Undo for Their Deletes and Day Sheet Drafts                | Accepted |
 | [0082](0082-gateway-power-editing.md)                               | Power Editing in Gateway                                                         | Accepted |
 | [0083](0083-live-lists-dispatch-board-and-presence.md)              | Live Lists, a Realtime Dispatch Board, and Presence on Records                   | Proposed |
-| [0086](0086-role-lens-in-the-context-switcher.md)                   | The Role Lens in the Context Switcher                                            | Accepted |
+| [0089](0089-role-lens-in-the-context-switcher.md)                   | The Role Lens in the Context Switcher                                            | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).

@@ -1,5 +1,5 @@
 appId: pro.ghxstship.compass
-# The role lens in the org switcher (Section 4.8.1, A128, ADR 0086). Seed 1080_a38 makes Demo Multi-Role
+# The role lens in the org switcher (Section 4.8.1, A128, ADR 0089). Seed 1080_a38 makes Demo Multi-Role
 # (multi@example.com) a Producer (Manager) and a Member of Demo Productions; seed 2210_a128 gives them a timesheet
 # approval request, which only the Manager role brings, and a mention, which is addressed to them. Choosing the
 # Member role hides the approval request from the Inbox and keeps the mention; All roles brings it back.

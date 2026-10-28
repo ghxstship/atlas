@@ -1,5 +1,5 @@
 -- 2210_a128.sql
--- A128 the role lens (RRR-173, S4.8.1-06, ADR 0086). Demo Multi-Role (multi@example.com, 1080_a38) is a Producer
+-- A128 the role lens (RRR-173, S4.8.1-06, ADR 0089). Demo Multi-Role (multi@example.com, 1080_a38) is a Producer
 -- (Manager) and a Member of the demo org, Admin of Demo Bayside Studios, crew for Demo Harbor Events and an artist
 -- for Demo Night Festival. So the role lens journeys can see things leave and come back, this seed:
 --   * gives the person two Inbox items in the demo org: a timesheet approval request, which reaches them through

@@ -3,7 +3,7 @@ import { expect, settle, test } from "./engine-test";
 import { expectAccessible, signIn } from "./support";
 
 /**
- * Gateway's role lens (Section 4.8.1, A128, ADR 0086), in the Switch org dialog. Demo Multi-Role
+ * Gateway's role lens (Section 4.8.1, A128, ADR 0089), in the Switch org dialog. Demo Multi-Role
  * (multi@example.com, seed 1080_a38) is crew for Demo Harbor Events and an artist for Demo Night Festival.
  * Choosing Artist narrows Work and the switcher's orgs to the artist engagement; All roles restores both.
  */

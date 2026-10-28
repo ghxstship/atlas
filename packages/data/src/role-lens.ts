@@ -4,7 +4,7 @@ import { rpc, str, type Raw } from "./platform-common.ts";
 import type { Reach } from "./access.ts";
 
 /**
- * The role lens of the context switcher (Section 4.8.1, ADR 0086): All roles, or one role the person holds in
+ * The role lens of the context switcher (Section 4.8.1, ADR 0089): All roles, or one role the person holds in
  * the org. A lens narrows what the shell shows (Home, My Work, Inbox, navigation and which controls appear) to
  * that role's capabilities, intersected with the person's own, so it never shows more than the person may already
  * do. Row level security and the RPCs decide every read and write with the person's full standing, as before.

@@ -2,7 +2,7 @@ import type { ApplicationWithOpportunity, Engagement, Representation } from "@xo
 import { GATEWAY_LENS_SCOPE, parseRoleLensCookie } from "@xos/data/role-lens";
 
 /**
- * Gateway's role lens (Section 4.8.1, A128, ADR 0086). In Gateway a person's roles are the role types of their
+ * Gateway's role lens (Section 4.8.1, A128, ADR 0089). In Gateway a person's roles are the role types of their
  * engagements (Crew, Artist, Vendor and the rest, Section 4.4.2). A person with two or more narrows Home, Work and
  * the navigation to one of them for the browser session; All roles shows everything. The lens only filters what
  * the person can already see; row level security decides every read and write as before.

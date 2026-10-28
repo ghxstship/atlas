@@ -1,5 +1,5 @@
 -- 2210_role_lens.sql
--- A128 (RRR-173, S4.8.1-06, ADR 0086): the role lens of the context switcher. A person who holds several roles in
+-- A128 (RRR-173, S4.8.1-06, ADR 0089): the role lens of the context switcher. A person who holds several roles in
 -- an org can narrow Atlas, Gateway and Compass to one of them. The lens only shapes what the shells show; row
 -- level security and every RPC still decide with the person's full standing.
 --
@@ -38,6 +38,6 @@ begin
 end;
 $$;
 
-comment on function app.role_lens_capabilities(uuid, uuid) is 'The role lens (Section 4.8.1, ADR 0086) for a member who holds the role in the org: every capability of the role with the role''s reach, the member''s own reach and the lens reach, the lesser of the two. A capability the member does not reach (an API key or app session outside its scope) is left out, so a lens never shows more than the member already holds. A role the member does not hold is refused (role_lens_role_not_held).';
+comment on function app.role_lens_capabilities(uuid, uuid) is 'The role lens (Section 4.8.1, ADR 0089) for a member who holds the role in the org: every capability of the role with the role''s reach, the member''s own reach and the lens reach, the lesser of the two. A capability the member does not reach (an API key or app session outside its scope) is left out, so a lens never shows more than the member already holds. A role the member does not hold is refused (role_lens_role_not_held).';
 revoke all on function app.role_lens_capabilities(uuid, uuid) from public, anon;
 grant execute on function app.role_lens_capabilities(uuid, uuid) to authenticated, service_role;
