@@ -6,8 +6,13 @@ import { errorKey, expiryFrom, failed, field, fromResult, IDLE } from "../lib/ac
 import { secondFactorErrorKey, shownError, signInErrorKey } from "../lib/auth/errors";
 import { safeNext } from "../lib/auth/redirect";
 import { EnvError, parseEnv, passwordSignIn, secureSite } from "../lib/env";
-import { negotiateLocale, parseAcceptLanguage } from "../i18n/negotiate";
-import { CLIENT_NAMESPACES } from "../i18n/request";
+import {
+  formattingLocale,
+  localeDirection,
+  negotiateLocale,
+  parseAcceptLanguage,
+} from "../i18n/negotiate";
+import { CLIENT_NAMESPACES, sourceMessagesFor, uiMessages } from "../i18n/request";
 import { authCookieName, authCookieOptions } from "../lib/supabase/cookies";
 import { buildCsp, isCrossSiteMutation, securityHeaders } from "../lib/security/headers";
 
@@ -155,13 +160,29 @@ describe("console action states", () => {
 
 describe("locale", () => {
   it("negotiates en-US and es-US from the cookie or the browser", () => {
-    expect(negotiateLocale({ cookie: "es-US" })).toBe("es-US");
-    expect(negotiateLocale({ acceptLanguage: "es-MX,es;q=0.9,en;q=0.5" })).toBe("es-US");
-    expect(negotiateLocale({ cookie: "en-XA", acceptLanguage: "fr" })).toBe("en-US");
+    const production = true;
+    expect(negotiateLocale({ cookie: "es-US", production })).toBe("es-US");
+    expect(negotiateLocale({ acceptLanguage: "es-MX,es;q=0.9,en;q=0.5", production })).toBe(
+      "es-US",
+    );
+    expect(negotiateLocale({ cookie: "en-XA", acceptLanguage: "fr", production })).toBe("en-US");
     // Beta locales come from the person's choice only (ADR 0053).
-    expect(negotiateLocale({ cookie: "fr-FR" })).toBe("fr-FR");
-    expect(negotiateLocale({ acceptLanguage: "fr-FR,fr;q=0.9" })).toBe("en-US");
+    expect(negotiateLocale({ cookie: "fr-FR", production })).toBe("fr-FR");
+    expect(negotiateLocale({ acceptLanguage: "fr-FR,fr;q=0.9", production })).toBe("en-US");
     expect(parseAcceptLanguage("en;q=0.1, es")).toEqual(["es", "en"]);
+  });
+
+  it("offers the pseudo-locales from the cookie outside production only", () => {
+    expect(negotiateLocale({ cookie: "en-XA", production: false })).toBe("en-XA");
+    expect(negotiateLocale({ cookie: "ar-XB", production: false })).toBe("ar-XB");
+    expect(negotiateLocale({ cookie: "ar-XB", production: true })).toBe("en-US");
+    expect(localeDirection("ar-XB")).toBe("rtl");
+    expect(localeDirection("en-XA")).toBe("ltr");
+    // Dates and numbers format as en-US while the messages stay pseudo.
+    expect(formattingLocale("en-XA")).toBe("en-US");
+    expect(formattingLocale("es-US")).toBe("es-US");
+    expect(sourceMessagesFor("en-XA").console.name).toMatch(/^\[.+ ·+\]$/);
+    expect(uiMessages("en-XA")?.["action.cancel"]).toMatch(/^\[Çàñçéļ ·+\]$/);
   });
 });
 

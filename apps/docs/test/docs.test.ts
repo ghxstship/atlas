@@ -12,7 +12,15 @@ import {
   searchPages,
   whatsNew,
 } from "../lib/content.ts";
-import { LOCALES, negotiate, translator } from "../lib/i18n.ts";
+import {
+  LOCALES,
+  PUBLISHED_LOCALES,
+  contentLocale,
+  localeDirection,
+  negotiate,
+  translator,
+  uiMessages,
+} from "../lib/i18n.ts";
 import {
   linksIn,
   parseBody,
@@ -139,10 +147,10 @@ describe("markdown", () => {
 
 describe("guides", () => {
   it("exist in every locale with the same slugs, sections and order", () => {
-    const shape = (locale: (typeof LOCALES)[number]) =>
+    const shape = (locale: (typeof PUBLISHED_LOCALES)[number]) =>
       guides(locale).map((g) => [g.slug, g.section, g.order]);
     expect(guides("en-US").length).toBeGreaterThanOrEqual(11);
-    for (const locale of LOCALES) expect(shape(locale)).toEqual(shape("en-US"));
+    for (const locale of PUBLISHED_LOCALES) expect(shape(locale)).toEqual(shape("en-US"));
   });
 
   it("include the self-hosting guide with the Supabase CLI and Docker Compose", () => {
@@ -153,7 +161,7 @@ describe("guides", () => {
 
   it("only link to pages that exist", () => {
     const reference = loadReference();
-    for (const locale of LOCALES) {
+    for (const locale of PUBLISHED_LOCALES) {
       const guideSlugs = new Set(guides(locale).map((g) => g.slug));
       const helpSlugs = new Set(helpArticles(locale).map((a) => a.slug));
       for (const page of [...guides(locale), ...helpArticles(locale)]) {
@@ -187,7 +195,7 @@ describe("help center", () => {
   it("reads A31's articles in every locale", () => {
     const en = helpArticles("en-US");
     expect(en.length).toBeGreaterThan(20);
-    for (const locale of LOCALES)
+    for (const locale of PUBLISHED_LOCALES)
       expect(helpArticles(locale).map((a) => a.slug)).toEqual(en.map((a) => a.slug));
     expect(en.every((a) => ["guide", "page", "workflow", "glossary"].includes(a.kind))).toBe(true);
   });
@@ -196,7 +204,7 @@ describe("help center", () => {
     for (const shell of ["gateway", "compass"] as const) {
       const en = helpArticles("en-US", shell);
       expect(en.length, shell).toBeGreaterThan(30);
-      for (const locale of LOCALES) {
+      for (const locale of PUBLISHED_LOCALES) {
         const articles = helpArticles(locale, shell);
         expect(articles.map((a) => a.slug)).toEqual(en.map((a) => a.slug));
         const slugs = new Set(articles.map((a) => a.slug));
@@ -224,7 +232,7 @@ describe("help center", () => {
   });
 
   it("has copy for every What's New entry and article kind", () => {
-    for (const locale of LOCALES) {
+    for (const locale of PUBLISHED_LOCALES) {
       const th = translator(locale, "help");
       for (const entry of whatsNew()) {
         expect(th(`whatsNew.${entry.key}.title`)).not.toBe("");
@@ -248,7 +256,7 @@ describe("help center", () => {
     expect(existsSync(join(APP, "../atlas/help/whats-new.yaml"))).toBe(true);
     for (const shell of HELP_SHELLS) {
       expect(patterns, shell).toContain(`../${shell}/help/articles/**/*.md`);
-      for (const locale of LOCALES) {
+      for (const locale of PUBLISHED_LOCALES) {
         const articles = helpArticles(locale, shell);
         expect(articles.length, `${shell} ${locale}`).toBeGreaterThan(0);
         for (const article of articles) {
@@ -274,6 +282,25 @@ describe("copy", () => {
     expect(negotiate("fr-FR, de;q=0")).toBe("en-US");
     expect(negotiate(null)).toBe("en-US");
     expect(negotiate("es-US;q=0.2, en-US;q=0.8")).toBe("en-US");
+    // A pseudo-locale is never guessed from the browser.
+    expect(negotiate("en-XA, ar-XB")).toBe("en-US");
+  });
+
+  it("serves the pseudo-locales outside production from the en-US source", () => {
+    // Vitest runs with NODE_ENV=test, so the pseudo-locales are served; a production build serves the
+    // published locales only.
+    expect(LOCALES).toEqual([...PUBLISHED_LOCALES, "en-XA", "ar-XB"]);
+    expect(contentLocale("en-XA")).toBe("en-US");
+    expect(contentLocale("es-US")).toBe("es-US");
+    expect(localeDirection("ar-XB")).toBe("rtl");
+    expect(localeDirection("en-XA")).toBe("ltr");
+    expect(translator("en-XA")("reference.operations", { count: 3 })).toMatch(
+      /^\[3 öþéŕàţîöñš ·+\]$/,
+    );
+    expect(translator("ar-XB")("nav.home")).toMatch(/^\u202e.+\u202c$/);
+    expect(uiMessages("en-XA")?.["action.cancel"]).toMatch(/^\[Çàñçéļ ·+\]$/);
+    expect(guides("en-XA").map((g) => g.slug)).toEqual(guides("en-US").map((g) => g.slug));
+    expect(helpArticles("ar-XB", "gateway").length).toBe(helpArticles("en-US", "gateway").length);
   });
 });
 
@@ -340,7 +367,7 @@ describe("API reference", () => {
 
   // After `next build`, every operation page exists as prerendered HTML in both locales.
   it.runIf(FRESH_BUILD)("prerenders every operation page in every locale", () => {
-    const missing = LOCALES.flatMap((locale) =>
+    const missing = PUBLISHED_LOCALES.flatMap((locale) =>
       operationPages()
         .map((p) => `${locale}/reference/${p.resource}/${p.operation}.html`)
         .filter((file) => !existsSync(join(BUILT_PAGES, "..", "..", file))),
