@@ -60,7 +60,7 @@ select pg_temp.as_worker();
 create temporary table claimed as select * from app.claim_export_renders('worker-1', 20);
 grant select on claimed to public;
 select is((select count(*)::int from claimed where export_job_id = pg_temp.id('exp_my_work')), 1, 'the worker claims the My Work export');
-select results_eq($$select r ->> 'title' from app.export_job_rows((select id from world where key = 'exp_my_work'), 100) r$$,
+select results_eq($$select r ->> 'title' from jsonb_array_elements(app.export_job_rows((select id from world where key = 'exp_my_work'), 100)) r$$,
   $$values ('Order the generator'::text)$$, 'an Owner''s My Work export carries their own records, not every assignment in the org');
 
 -- Activity with its project ----------------------------------------------------------------------------------------
