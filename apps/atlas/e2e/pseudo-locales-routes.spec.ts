@@ -58,7 +58,9 @@ function sessionFor(browser: Browser, baseURL: string, role: SweepRole, email: s
     session = (async () => {
       const context = await browser.newContext({ baseURL });
       const page = await context.newPage();
-      await page.goto(`/auth/sign-in?next=${encodeURIComponent(`/${DEMO_ORG}/home`)}`);
+      await page.goto(`/auth/sign-in?next=${encodeURIComponent(`/${DEMO_ORG}/home`)}`, {
+        timeout: 120_000,
+      });
       await page.locator("#signin-email").fill(email);
       await page.locator("#signin-password").fill(DEMO_PASSWORD);
       await page.getByRole("button", { name: "Sign in with password" }).click();
@@ -70,6 +72,8 @@ function sessionFor(browser: Browser, baseURL: string, role: SweepRole, email: s
       return state;
     })();
     sessions.set(role, session);
+    // A failed sign-in (a slow first compile) is tried again by the next test, not cached.
+    session.catch(() => sessions.delete(role));
   }
   return session;
 }

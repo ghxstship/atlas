@@ -306,13 +306,19 @@ export async function hardCodedText(page: Page, data: KnownText): Promise<Found[
 export async function untilDrawn(page: Page): Promise<void> {
   await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
-  // React marks each node it has hydrated; the last node of the page is among the last to be.
+  // React marks each node it has hydrated. A Suspense boundary hydrates on its own, later, so
+  // every landmark and the last node of the page must be marked.
   await page
     .waitForFunction(
       () => {
         const nodes = document.body.querySelectorAll("main *, nav *");
         const last = nodes[nodes.length - 1] ?? document.body.firstElementChild;
-        return last !== null && Object.keys(last).some((key) => key.startsWith("__reactFiber$"));
+        const hydrated = (el: Element | null | undefined) =>
+          !!el && Object.keys(el).some((key) => key.startsWith("__reactFiber$"));
+        const landmarks = document.body.querySelectorAll(
+          "main, nav, [role='grid'], [role='tablist']",
+        );
+        return hydrated(last) && [...landmarks].every(hydrated);
       },
       undefined,
       { timeout: 15_000 },

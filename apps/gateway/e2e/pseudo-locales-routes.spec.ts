@@ -49,7 +49,9 @@ function sessionFor(browser: Browser, baseURL: string, person: Person) {
     session = (async () => {
       const context = await browser.newContext({ baseURL });
       const page = await context.newPage();
-      await page.goto(`/auth/sign-in?next=${encodeURIComponent("/home")}`);
+      await page.goto(`/auth/sign-in?next=${encodeURIComponent("/home")}`, {
+        timeout: 120_000,
+      });
       await page.locator("#signin-email").fill(person.email);
       // The password field appears on request: the sign-in link is the first choice (A59-025).
       await page.getByRole("button", { name: "Use a password" }).click();
@@ -61,6 +63,8 @@ function sessionFor(browser: Browser, baseURL: string, person: Person) {
       return state;
     })();
     sessions.set(person.person, session);
+    // A failed sign-in (a slow first compile) is tried again by the next test, not cached.
+    session.catch(() => sessions.delete(person.person));
   }
   return session;
 }
