@@ -510,6 +510,15 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     select: "id,engagement_id,document_kind,title,expires_on,engagement_document_state",
     audiences: ["sponsor"],
   },
+  {
+    // Proof photos on the sponsor's engagements while capture is open (A140, 2332).
+    table: "proof_of_performance_photos",
+    schema: "api_external",
+    relation: "proof_of_performance_photos",
+    select: "id,engagement_id,sponsor_entitlement_id,project_id,media_uri,captured_at,created_at",
+    projectColumn: "project_id",
+    audiences: ["sponsor"],
+  },
 ];
 
 /** Canon reference rows every device caches for offline use (Section 13: reference available offline). */

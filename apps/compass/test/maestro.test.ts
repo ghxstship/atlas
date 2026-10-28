@@ -46,6 +46,8 @@ const DYNAMIC = [
   "setting-",
   "notify-",
   "work-",
+  // A140: a sponsor's proof photo button, by entitlement.
+  "proof-photo-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {
