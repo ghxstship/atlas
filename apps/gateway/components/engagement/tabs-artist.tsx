@@ -29,11 +29,23 @@ import type { TabProps } from "./tab-context";
  * list and settlement, and the representative's roster of artists.
  */
 
+/**
+ * Riders of this engagement: one Atlas assigned to the engagement itself (an artist booked as a
+ * person, R2), or the rider of the account that supplies it. The view holds every rider the viewer
+ * may read on the project, so another engagement's rider is filtered out here.
+ */
 export async function RiderTab({ view, t, engagementKey }: TabProps) {
-  const riders = await readView(view.ctx.db, "riders", {
+  const read = await readView(view.ctx.db, "riders", {
     eq: { project_id: view.engagement.projectId },
   });
-  if (!riders.ok) return <RegionError />;
+  if (!read.ok) return <RegionError />;
+  const riders = {
+    data: read.data.filter(
+      (r) =>
+        r.engagement_id === view.engagement.id ||
+        (r.account_id !== null && r.account_id === view.engagement.accountId),
+    ),
+  };
   const ids = riders.data.flatMap((r) => (r.id ? [r.id] : []));
   const lines = await readView(view.ctx.db, "rider_lines", { in: ["rider_id", ids] });
   if (!lines.ok) return <RegionError />;

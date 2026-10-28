@@ -203,6 +203,12 @@ export const CONDITIONS = [
   // Gateway: the person does paid work (not only client or sponsor engagements), so payout, tax
   // and work details apply to them (finding A59-033).
   "paid-work",
+  // Gateway, per engagement, from api_external.engagement_offerings (R3, owner decision 7): the producing org offers
+  // travel or lodging, per diem, hospitality (catering, lodging or travel) or a guest list on the engagement.
+  "offered-travel-or-lodging",
+  "offered-per-diem",
+  "offered-hospitality",
+  "offered-guest-list",
 ] as const;
 export type Condition = (typeof CONDITIONS)[number];
 
