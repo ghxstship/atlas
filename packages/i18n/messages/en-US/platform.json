@@ -122,7 +122,12 @@
     "integration_disconnected": "That connection is disconnected and cannot change.",
     "moderation_appeal_window": "Appeals are accepted for six months after a decision; this one is older.",
     "moderation_appeal_grounds": "Say why the decision is wrong, in up to 4,000 characters.",
-    "moderation_appeal_exists": "This decision has already been appealed."
+    "moderation_appeal_exists": "This decision has already been appealed.",
+    "import_destination_required": "Choose the running order or project the rows go into.",
+    "import_destination_unexpected": "This kind of import goes into the whole organization; it names no running order or project.",
+    "import_destination_unknown": "That running order or project no longer exists.",
+    "import_target_outside_destination": "A row would have landed outside the running order or project this import names, so it was not written.",
+    "import_paste_empty": "Paste a header row and at least one row below it."
   },
   "partner": {
     "sections": "Partner console sections",
@@ -263,13 +268,14 @@
     "notFound": "This import no longer exists or you cannot see it. Start a new import.",
     "back": "All imports",
     "fileLine": "{file} into {target}",
+    "destinationLine": "Into {destination}",
     "cancel": "Cancel this import",
     "canceled": "This import was canceled. Nothing was written.",
     "newAnother": "Start another import",
     "new": {
       "title": "New import",
       "intro": "Upload a spreadsheet, confirm how its columns map, review problems and possible duplicates, then commit. You can undo the whole batch for 7 days.",
-      "noTargets": "You cannot import into anything yet. Ask an Admin for write access to venues, vendors or assets.",
+      "noTargets": "You cannot import into anything yet. Ask an Admin for write access to venues, vendors or assets, or ask a project lead for access to a running order or guest list.",
       "target": "Import into",
       "targetHelp": "Each row becomes one record of this kind.",
       "file": "Spreadsheet",
@@ -281,7 +287,19 @@
       "link": "Google Sheets link",
       "linkHelp": "Paste the link of a spreadsheet shared with the Google account that connected Google Drive in Settings, Integrations.",
       "linkSubmit": "Read the sheet",
-      "linkInvalid": "Paste a link that starts with https://docs.google.com/spreadsheets/d/."
+      "linkInvalid": "Paste a link that starts with https://docs.google.com/spreadsheets/d/.",
+      "destinationRun": "Running order",
+      "destinationProject": "Project",
+      "destinationHelp": "Rows are added to this running order or project.",
+      "sourcePaste": "Pasted rows"
+    },
+    "paste": {
+      "label": "Rows",
+      "help": "Copy cells from Excel, Google Sheets or Shoflo, header row first.",
+      "preview": "First {count} rows",
+      "previewEmpty": "Paste a header row and at least one row to see them here.",
+      "submit": "Read the rows",
+      "filename": "Pasted rows {date}"
     },
     "past": {
       "title": "Recent imports",
@@ -296,7 +314,9 @@
       "venues": "Venues",
       "counterparties": "Customers and other companies",
       "vendor_products": "Vendor products",
-      "asset_units": "Asset units"
+      "asset_units": "Asset units",
+      "cues": "Run of show cues",
+      "guest_list_entries": "Guest list"
     },
     "steps": {
       "upload": "Upload",
@@ -355,7 +375,12 @@
         "Playbook": "From the Playbook column map",
         "Header": "From the column name",
         "Assistant": "Suggested by Aurora"
-      }
+      },
+      "samples": "Sample values",
+      "samplesOf": "Sample values of {header}",
+      "preview": "Preview",
+      "previewIntro": "The first rows as they will be read with the current choices.",
+      "previewRow": "Row {row}"
     },
     "fields": {
       "name": "Name",
@@ -373,7 +398,19 @@
       "lead_time_days": "Lead time in days",
       "asset_tag": "Asset tag",
       "asset_class_id": "Asset class",
-      "home_venue_id": "Home venue"
+      "home_venue_id": "Home venue",
+      "position": "Cue number",
+      "label": "Cue",
+      "segment": "Segment",
+      "description": "Description",
+      "planned_at": "Planned time",
+      "duration": "Duration",
+      "space_id": "Space",
+      "guest_name": "Guest name",
+      "plus_ones": "Plus-ones",
+      "note": "Note for the door",
+      "scope_node_id": "Show",
+      "counterparty_id": "On the list of"
     },
     "dryRun": {
       "title": "Dry run",
@@ -423,6 +460,15 @@
       "unknown_asset_class": "no asset class has this name",
       "unknown_venue": "no venue has this name",
       "target_not_importable": "this kind of record cannot be imported",
+      "invalid_position": "not a whole cue number",
+      "invalid_time": "not a time",
+      "invalid_duration": "not a duration",
+      "unknown_space": "no space at this venue has this name",
+      "invalid_plus_ones": "not 0 to 20",
+      "unknown_show": "no show of this project has this name",
+      "unknown_party": "no company of this org has this name",
+      "too_long": "too long",
+      "duplicate_in_file": "repeats an earlier row",
       "other": "not accepted"
     },
     "commit": {
@@ -454,7 +500,8 @@
       "importIt": "Import this sheet",
       "importLabel": "Import the sheet {sheet}",
       "target": "Import {sheet} into",
-      "summary": "{rows, plural, =0 {No rows} one {# row} other {# rows}}. Proposed target: {target}."
+      "summary": "{rows, plural, =0 {No rows} one {# row} other {# rows}}. Proposed target: {target}.",
+      "destination": "Where the rows of {sheet} go"
     },
     "aurora": {
       "button": "Suggest with Aurora",

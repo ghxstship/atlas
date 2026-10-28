@@ -11,7 +11,7 @@ import {
   listRunsOfShow,
 } from "@xos/data/show";
 import { listScopeNodeRefs, type ProjectRef, type ScopeNodeRef } from "@xos/data/work";
-import { getNode } from "@xos/ia";
+import { getNode, isNodeVisible } from "@xos/ia";
 import type { ReactNode } from "react";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollabPanels } from "@/components/work/collab";
@@ -131,6 +131,11 @@ export async function RunsPage({
             canCall={caps.has("show.cue.call")}
             setTimes={setTimes.ok ? setTimes.data : []}
             artists={artists}
+            importHref={
+              canEdit && isNodeVisible(sitemap, "import", ctx.nav)
+                ? `/${ctx.org.slug}/import?target=cues&runOfShow=${run.data.id}`
+                : null
+            }
           >
             {param(search, "live") === "1" ? null : (
               <>
