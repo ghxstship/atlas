@@ -3,6 +3,7 @@ import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { requireNode } from "@/lib/shell/require-node";
 import { EmptyStateLink, PageHeader } from "@/components/ui";
+import { TemplateCollection } from "@/components/platform/client/template-collection";
 import {
   emptyStateHref,
   navigableChildren,
@@ -17,7 +18,8 @@ type Params = Readonly<Record<string, string>>;
 /**
  * A page generated from the sitemap (Section 3.15). A node with child pages renders an index of
  * the pages the viewer may open; a page whose module agent has not implemented it yet renders its
- * empty state from the catalog: one sentence and the next action (Section 11.10, rule 10).
+ * empty state from the catalog: one sentence and the next action (Section 11.10, rule 10). Both are
+ * lists, so both stand on the Collection template (Section 11.6).
  */
 export async function SitemapPage({ node, params }: { node: string; params: Params }) {
   const ctx = await requireNode(node, params);
@@ -28,8 +30,7 @@ export async function SitemapPage({ node, params }: { node: string; params: Para
 
   if (children.length > 0) {
     return (
-      <>
-        <PageHeader title={title} />
+      <TemplateCollection header={<PageHeader title={title} />}>
         <nav aria-label={t("shell.page.sections", { section: title })}>
           <ul className="flex max-w-layout-form flex-col divide-y divide-border-subtle rounded-card border border-border-subtle">
             {children.map((child) => {
@@ -51,20 +52,19 @@ export async function SitemapPage({ node, params }: { node: string; params: Para
             })}
           </ul>
         </nav>
-      </>
+      </TemplateCollection>
     );
   }
 
   const copy = pageCopyKey(node);
   return (
-    <>
-      <PageHeader title={title} />
+    <TemplateCollection header={<PageHeader title={title} />}>
       <EmptyStateLink
         icon="Inbox"
         sentence={t(`${copy}.empty`)}
         actionLabel={t(`${copy}.action`)}
         href={emptyStateHref(node, params, ctx.nav)}
       />
-    </>
+    </TemplateCollection>
   );
 }
