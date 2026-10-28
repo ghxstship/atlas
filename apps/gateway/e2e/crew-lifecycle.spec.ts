@@ -4,6 +4,7 @@ import { atlasAs, ORG } from "./atlas";
 import {
   asPerson,
   newSignIn,
+  offer,
   offerToApplication,
   PEOPLE,
   projectToday,
@@ -164,7 +165,8 @@ test("journey 41: requisition to credential loss, one crew person through every 
     await expect(page.getByRole("listitem").filter({ hasText: credential.number })).toContainText(
       "Valid",
     );
-    // The flight Atlas booked shows on Travel and Lodging.
+    // The flight Atlas booked shows on Travel and Lodging, which opens where travel is offered (R3).
+    await offer("offerings.travel");
     await page.goto(`/work/engagements/${key}/travel-and-lodging`);
     await expect(page.getByText("Newark to Miami")).toBeVisible();
     const { timesheetId } = await workedShift(id, shift.id, person);

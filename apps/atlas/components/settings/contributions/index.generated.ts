@@ -24,6 +24,7 @@ import { contributions as from_a90 } from "./a90";
 import { contributions as from_a91 } from "./a91";
 import { contributions as from_a96 } from "./a96";
 import { contributions as from_a99 } from "./a99";
+import { contributions as from_r3 } from "./r3";
 import { contributions as from_wp18 } from "./wp18";
 
 export const CONTRIBUTIONS: readonly SettingsContribution[] = [
@@ -50,5 +51,6 @@ export const CONTRIBUTIONS: readonly SettingsContribution[] = [
   ...from_a91,
   ...from_a96,
   ...from_a99,
+  ...from_r3,
   ...from_wp18,
 ];

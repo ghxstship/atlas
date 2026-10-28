@@ -33,6 +33,7 @@ import {
   submitAdvance,
   submitAdvanceAnswer,
   submitDeliverable,
+  submitEngagedSubmittal,
   submitEngagementInvoice,
   submitTimesheet,
   toDisplayKey,
@@ -104,6 +105,11 @@ describe("party RPCs", () => {
     ["rpc:accept_engaged_shift", (db) => acceptEngagedShift(db, "s1")],
     ["rpc:acknowledge_purchase_order", (db) => acknowledgePurchaseOrder(db, "po1")],
     [
+      "rpc:submit_engaged_submittal",
+      (db) =>
+        submitEngagedSubmittal(db, { submittalId: "s1", expected: "Proposed", note: "Rev A" }),
+    ],
+    [
       "rpc:submit_engaged_advance_answer",
       (db) => submitAdvanceAnswer(db, { recipientId: "r1", sectionId: "s1", body: "Two risers" }),
     ],
@@ -125,6 +131,21 @@ describe("party RPCs", () => {
     });
     expect((await run(db as never)).ok).toBe(true);
     expect((await run(db as never)).ok).toBe(false);
+  });
+
+  it("submits a submittal with the expected state and the note", async () => {
+    const { db, calls } = gatewayClient({ "rpc:submit_engaged_submittal": [okResponse("t1")] });
+    expect(
+      await submitEngagedSubmittal(db, {
+        submittalId: "s1",
+        expected: "Returned",
+        note: "Bridle points added",
+      }),
+    ).toEqual({ ok: true, data: { id: "t1" } });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [{ p_submittal_id: "s1", p_expected: "Returned", p_note: "Bridle points added" }],
+    ]);
   });
 
   it("claims token submissions", async () => {

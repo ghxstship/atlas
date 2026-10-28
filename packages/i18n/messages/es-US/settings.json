@@ -30,7 +30,10 @@
     "workspaceWorkspace": "Definido para este espacio de trabajo.",
     "workspaceTeam": "Definido para un equipo.",
     "workspaceProject": "Definido para un proyecto.",
-    "workspaceDefault": "Valor de la plataforma. Al guardar se reemplaza para este espacio de trabajo."
+    "workspaceDefault": "Valor de la plataforma. Al guardar se reemplaza para este espacio de trabajo.",
+    "projectProject": "Definido para este proyecto.",
+    "projectOrganization": "Heredado de la organización. Al guardar se reemplaza para este proyecto.",
+    "projectDefault": "Valor de la plataforma. Al guardar se reemplaza para este proyecto."
   },
   "errors": {
     "setting_locked": "Tu organización bloqueó este ajuste. Pide a un administrador que lo desbloquee.",
@@ -285,6 +288,42 @@
     "supplierDiversityProgram": {
       "label": "Programa de diversidad de proveedores",
       "help": "Permite que proveedores y profesionales independientes compartan sus certificaciones de diversidad de proveedores con su organización. Cada uno comparte con un consentimiento aparte y puede revocarlo en cualquier momento. Desactivado, no se puede compartir nada y las certificaciones compartidas quedan ocultas."
+    },
+    "offeringsTravel": {
+      "label": "Viajes",
+      "help": "Vuelos y transporte terrestre para las personas que contratas. Si se ofrece, las pestañas Viajes y alojamiento y Hospitalidad aparecen en sus contrataciones de Gateway."
+    },
+    "offeringsLodging": {
+      "label": "Alojamiento",
+      "help": "Habitaciones de hotel para las personas que contratas. Si se ofrece, las pestañas Viajes y alojamiento y Hospitalidad aparecen en sus contrataciones de Gateway."
+    },
+    "offeringsCatering": {
+      "label": "Catering",
+      "help": "Comidas para las personas que contratas. Si se ofrece, la pestaña Hospitalidad aparece en las contrataciones de artistas en Gateway."
+    },
+    "offeringsParking": {
+      "label": "Estacionamiento",
+      "help": "Pases de estacionamiento para las personas que contratas."
+    },
+    "offeringsUniforms": {
+      "label": "Uniformes",
+      "help": "Uniformes para las personas que contratas."
+    },
+    "offeringsPerDiem": {
+      "label": "Viáticos",
+      "help": "Asignaciones diarias para las personas que contratas. Si se ofrece, la pestaña Viáticos aparece en las contrataciones de equipo en Gateway y se pueden agregar viáticos para ellas."
+    },
+    "offeringsRadios": {
+      "label": "Radios",
+      "help": "Radios entregados a las personas que contratas."
+    },
+    "offeringsCarts": {
+      "label": "Carritos",
+      "help": "Carritos entregados a las personas que contratas."
+    },
+    "offeringsGuestList": {
+      "label": "Lista de invitados",
+      "help": "Lugares en la lista de invitados para las personas que contratas. Si se ofrece, la pestaña Lista de invitados aparece en las contrataciones de artistas en Gateway."
     }
   },
   "choices": {
@@ -375,6 +414,60 @@
       "system": "Igual que el dispositivo",
       "reduce": "Reducir el movimiento",
       "full": "Movimiento completo"
+    },
+    "offerings_travel": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_lodging": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_catering": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_parking": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_uniforms": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_per_diem": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_radios": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_carts": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_guest_list": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
     }
   },
   "brand": {
