@@ -43,10 +43,16 @@ Two things differ from the first four tables. Some changes apply only to some ro
 ### 5. Deleting a Draft work order can be undone
 
 - Delete draft still moves the work order to Trash (a soft delete; the database refuses it for any other state), now only while the row is live. The delete goes on the session's undo stack: the shell shows its 8-second Undo toast, Undo or Cmd or Ctrl+Z restores the work order through `app.restore_trash_item`, as the Trash page does, and redo deletes it again.
-- `app.restore_trash_item` (1031) restores the rows deleted with its subject by updating every referencing table with a `deleted_at`. The state ledgers of records and work orders have one but refuse every update, so restoring a record or a work order failed with permission denied. The walk now visits only referencing tables whose `deleted_at` the caller may update (2131). A118's 1772 makes the same function skip tables without the table-level update privilege; a column privilege check includes it, so whichever migration runs last keeps both fixes.
+- `app.restore_trash_item` (1031) restores the rows deleted with its subject by updating every referencing table with a `deleted_at`. The state ledgers of records and work orders have one but refuse every update, so restoring a record or a work order failed with permission denied. The walk now visits only referencing tables whose `deleted_at` the caller may update (2131). A118's 2122 makes the same function skip tables without the table-level update privilege; a column privilege check includes it, so whichever migration runs last keeps both fixes.
+
+### 6. The Projects page stays in its route budget
+
+- Projects sat 32 bytes under its 200 KB gzip budget, and selection with a row menu took it past. The views other than the default table (list, board, gallery, timeline, calendar) and the peek move to `components/projects/project-views.tsx`, loaded with next/dynamic when shown, as their @xos/ui components already were. The labels both use (gate, phase, state and dates) live in `project-labels.ts`.
+- The Projects table's row menu comes through `useRowMenuOnDemand` (`components/menus/row-menu-on-demand.tsx`): the same `open` and `menu` as `useRowMenu`, with the code that builds the menu fetched on the first right-click. The page is about 1.2 KB under its budget; the budget is unchanged.
+- Alternative: raise the budget. Rejected; the budget is a ceiling, not a target.
 
 ## Consequences
 
 - No API operation changes: the bulk RPCs are Atlas paths, as in ADR 0044.
-- A118's versioned bulk saves (1770) apply to these resources unchanged once both land; these pages do not send row versions yet, so a stale row is refused by the values it expected, as before.
+- A118's versioned bulk saves (2120) apply to these resources unchanged once both land; these pages do not send row versions yet, so a stale row is refused by the values it expected, as before.
 - Purchase orders and vendors (A120), the Show, Places and Logistics collections (A121), Gateway (A122), and the list, board and calendar views (A115) are outside this decision.

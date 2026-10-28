@@ -40,6 +40,13 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/components/menus/use-row-menu", () => ({
   useRowMenu: () => ({ open: (actions: RowActions) => seen.menus.push(actions), menu: null }),
 }));
+// Projects load the same menu on demand; its `open` takes the same actions.
+vi.mock("@/components/menus/row-menu-on-demand", () => ({
+  useRowMenuOnDemand: () => ({
+    open: (actions: RowActions) => seen.menus.push(actions),
+    menu: null,
+  }),
+}));
 
 // Server actions never run here; the collections only hand them to buttons.
 vi.mock("@/components/work/work-order-actions", () => {
