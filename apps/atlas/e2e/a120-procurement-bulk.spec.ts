@@ -125,8 +125,9 @@ test("RFQ and receipt rows open their menus", async ({ page }) => {
   await rfqs.nth(1).locator('td[data-column="title"]').click({ button: "right" });
   const menu = page.getByRole("menu", { name: `Actions for ${key}` });
   await expect(menu).toBeVisible();
-  for (const item of ["Open", "Select", "Change State"]) {
-    await expect(menu.getByRole("menuitem", { name: item, exact: true })).toBeVisible();
+  // Select carries its X shortcut in its accessible name.
+  for (const item of [/^Open$/, /^Select\b/, /^Change State$/]) {
+    await expect(menu.getByRole("menuitem", { name: item })).toBeVisible();
   }
   await page.keyboard.press("Escape");
   await expect(menu).toBeHidden();
@@ -141,6 +142,6 @@ test("RFQ and receipt rows open their menus", async ({ page }) => {
   await receipts.nth(1).locator('td[data-column="vendor"]').click({ button: "right" });
   const receiptMenu = page.getByRole("menu", { name: `Actions for ${order}` });
   await expect(receiptMenu.getByRole("menuitem", { name: "Open", exact: true })).toBeVisible();
-  await expect(receiptMenu.getByRole("menuitem", { name: "Select", exact: true })).toHaveCount(0);
+  await expect(receiptMenu.getByRole("menuitem", { name: /^Select\b/ })).toHaveCount(0);
   await page.keyboard.press("Escape");
 });
