@@ -36,6 +36,8 @@ export type ParsedValue =
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const CURRENCY = /^[A-Z]{3}$/;
+/** A phone setting arrives here already read into E.164 by the saving action (toE164, A139). */
+const E164 = /^\+[1-9]\d{7,14}$/;
 
 function validUrl(value: string): boolean {
   return URL.canParse(value) && /^https?:$/.test(new URL(value).protocol);
@@ -78,7 +80,9 @@ export function parseSettingValue(def: SettingDefinition, raw: string | null): P
                 ? CURRENCY.test(text)
                 : def.input === "time_zone"
                   ? validTimeZone(text)
-                  : true;
+                  : def.input === "phone"
+                    ? E164.test(text)
+                    : true;
       return valid ? { ok: true, value: text } : { ok: false, error: def.input };
     }
   }

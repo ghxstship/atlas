@@ -1,6 +1,8 @@
 "use server";
 
 import { clearPersonalSetting, setPersonalSetting } from "@xos/data/settings";
+import { regionFromLocale, toE164 } from "@xos/i18n/formats";
+import { getLocale } from "next-intl/server";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { parseSettingValue, settingByKey } from "@/lib/settings";
 import { setLocale } from "@/lib/shell/actions";
@@ -30,10 +32,14 @@ export async function savePersonalSettingAction(
     const cleared = await clearPersonalSetting(db, { key: def.key });
     return cleared.ok ? { saved: (prev.saved ?? 0) + 1 } : { error: errorKey(cleared.error) };
   }
-  const parsed = parseSettingValue(
-    def,
-    typeof form.get("value") === "string" ? (form.get("value") as string) : null,
-  );
+  const raw = typeof form.get("value") === "string" ? (form.get("value") as string) : null;
+  // A phone is stored in E.164 (A139): what the person typed is read in their region.
+  let typed = raw;
+  if (def.input === "phone" && raw !== null && raw.trim() !== "") {
+    typed = toE164(raw, regionFromLocale(await getLocale()));
+    if (typed === null) return { error: "phone" };
+  }
+  const parsed = parseSettingValue(def, typed);
   if (!parsed.ok) return { error: parsed.error };
   const result = await setPersonalSetting(db, { key: def.key, value: parsed.value });
   if (!result.ok) {

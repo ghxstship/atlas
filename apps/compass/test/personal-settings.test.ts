@@ -1,6 +1,7 @@
 import type { XosClient } from "@xos/data";
 import { clearPersonalSetting, setPersonalSetting } from "@xos/data/settings";
 import { getMessages } from "@xos/i18n";
+import { toE164 } from "@xos/i18n/formats";
 import { SETTINGS, type SettingDefinition } from "@xos/schemas/settings";
 import type { Mutation } from "@xos/sync";
 import { describe, expect, it } from "vitest";
@@ -249,15 +250,31 @@ describe("a typed value", () => {
 
   it("is text no longer than the registry allows, blank meaning none", () => {
     const phone = def("workforce.work_phone");
-    expect(checkSettingValue(phone, " +1 305 555 0142 ")).toEqual({
+    expect(checkSettingValue(phone, " +13055550142 ")).toEqual({
       ok: true,
-      value: "+1 305 555 0142",
+      value: "+13055550142",
     });
     expect(checkSettingValue(phone, "  ")).toEqual({ ok: true, value: null });
     expect(checkSettingValue(phone, "5".repeat(33))).toEqual({
       ok: false,
       problem: "setting_too_long",
     });
+  });
+
+  it("is a phone read into E.164 in the person's region, refusing anything else (A139)", () => {
+    const phone = def("workforce.work_phone");
+    const inUs = (input: string) => toE164(input, "US");
+    expect(phone.input).toBe("phone");
+    expect(checkSettingValue(phone, "(305) 555-0142", inUs)).toEqual({
+      ok: true,
+      value: "+13055550142",
+    });
+    expect(checkSettingValue(phone, "+44 20 7946 0958", inUs)).toEqual({
+      ok: true,
+      value: "+442079460958",
+    });
+    expect(checkSettingValue(phone, "desk 4412", inUs)).toEqual({ ok: false, problem: "phone" });
+    expect(checkSettingValue(phone, "+1 305 555 0142")).toEqual({ ok: false, problem: "phone" });
   });
 
   it("is a zone the phone knows", () => {

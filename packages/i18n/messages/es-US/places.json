@@ -66,7 +66,8 @@
     "commentRequired": "Escriba algo antes de publicar.",
     "fileRequired": "Elija un archivo para subir.",
     "fileTooLarge": "Los archivos pueden pesar como máximo 50 MB. Elija un archivo más pequeño.",
-    "fileScanning": "Este archivo todavía se está analizando. Intente descargarlo de nuevo en un minuto."
+    "fileScanning": "Este archivo todavía se está analizando. Intente descargarlo de nuevo en un minuto.",
+    "postal_code_invalid": "Ese código postal no corresponde al país del recinto. Compárelo con la dirección o elija la jurisdicción correcta."
   },
   "fields": {
     "name": "Ingrese un nombre de 1 a 200 caracteres.",
@@ -97,7 +98,10 @@
     "replanReason": "Indique el motivo de replanificación.",
     "template": "Elija una plantilla.",
     "result": "Elija un resultado.",
-    "prompt": "Describa qué se revisa en 1 a 500 caracteres."
+    "prompt": "Describa qué se revisa en 1 a 500 caracteres.",
+    "addressRequired": "Las direcciones de este país lo necesitan. Complételo o borre toda la dirección.",
+    "postalCode": "Ese no es un código postal de este país. Compárelo con la dirección.",
+    "addressTooLong": "Acorte esta parte de la dirección."
   },
   "venues": {
     "title": "Recintos",
@@ -133,7 +137,8 @@
       "location": "Ubicación",
       "locationHelp": "Opcional. Deje ambos en blanco si el recinto no se ha ubicado; no aparecerá en el mapa.",
       "latitude": "Latitud",
-      "longitude": "Longitud"
+      "longitude": "Longitud",
+      "administrativeArea": "Estado o provincia"
     }
   },
   "collab": {

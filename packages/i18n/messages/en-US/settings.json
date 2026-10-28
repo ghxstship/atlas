@@ -72,7 +72,9 @@
     "ip_allowlist_self_lockout": "Your current address is outside every listed network. Add it first, or you would lose access.",
     "ip_allowlist_empty": "Add at least one network before turning the allow-list on.",
     "plan_feature_ip_allowlist": "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
-    "setting_fixed": "This setting is fixed and cannot be changed."
+    "setting_fixed": "This setting is fixed and cannot be changed.",
+    "phone": "Enter a phone number with its area code. Add the country code, such as +44, for a number outside your country.",
+    "work_phone_e164": "Enter the work phone with its country code, for example +1 305 555 0199."
   },
   "fields": {
     "legalName": {
@@ -503,7 +505,10 @@
     "fieldErrors": {
       "invalid": "Check this value and try again.",
       "cidr": "Enter an address or a network like 203.0.113.0/24.",
-      "reason": "Write why you need emergency access, in at least 20 characters."
+      "reason": "Write why you need emergency access, in at least 20 characters.",
+      "addressRequired": "Addresses in this country need this. Fill it in, or clear the whole address.",
+      "postalCode": "That is not a postal code in this country. Check it against the address.",
+      "addressTooLong": "Shorten this part of the address."
     },
     "errors": {
       "legal_entity_primary": "Mark another legal entity primary first. The organization always keeps one primary entity.",
@@ -533,7 +538,8 @@
       "project_member_ended": "This person is no longer on the project.",
       "sod_self_grant": "You cannot give yourself a role.",
       "project_share_own_org": "A project is shared with another organization, never your own.",
-      "project_share_deleted_project": "A deleted project cannot be shared."
+      "project_share_deleted_project": "A deleted project cannot be shared.",
+      "postal_code_invalid": "That postal code does not fit the entity's country. Check it against the address."
     },
     "legalEntities": {
       "title": "Legal entities",
@@ -556,7 +562,16 @@
       "makePrimary": "Make primary",
       "makePrimaryNamed": "Make {name} the primary legal entity",
       "remove": "Remove",
-      "removeNamed": "Remove {name}"
+      "removeNamed": "Remove {name}",
+      "addressNone": "No registered address",
+      "addAddress": "Add registered address",
+      "editAddress": "Edit registered address",
+      "addressLabel": "Registered address of {name}",
+      "streetAddress": "Street address",
+      "locality": "City",
+      "administrativeArea": "State or province",
+      "postalCode": "Postal code",
+      "saveAddress": "Save address"
     },
     "network": {
       "title": "Allowed networks",

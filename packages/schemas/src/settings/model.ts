@@ -21,6 +21,7 @@ export const TEXT_INPUTS = [
   "currency",
   "date",
   "workspace",
+  "phone",
 ] as const;
 export type TextInput = (typeof TEXT_INPUTS)[number];
 

@@ -409,7 +409,12 @@
       "sopCode": "Use SOP- y de tres a cinco dígitos, por ejemplo SOP-007.",
       "lineFormat": "Revisa el formato: una entrada por línea, como indica la ayuda debajo del campo.",
       "quizCorrect": "Escribe el número de la opción correcta, del 1 a la cantidad de opciones.",
-      "httpsUrl": "Escribe una dirección web que empiece con https://."
+      "httpsUrl": "Escribe una dirección web que empiece con https://.",
+      "addressRequired": "Las direcciones de este país lo necesitan. Complételo o borre toda la dirección.",
+      "postalCode": "Ese no es un código postal de este país. Compárelo con la dirección.",
+      "addressTooLong": "Acorte esta parte de la dirección.",
+      "country": "Ingrese un código de país de dos letras, por ejemplo US.",
+      "countryNeeded": "Ingrese el país de esta dirección."
     },
     "loadError": {
       "title": "No se pudo cargar",

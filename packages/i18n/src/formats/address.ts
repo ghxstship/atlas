@@ -120,6 +120,44 @@ export function requiredAddressFields(country: string): AddressField[] {
   return [...rules.require].map((c) => CODE[c] as AddressField);
 }
 
+/**
+ * The countries with a postal code pattern. Migration 2320 (private.postal_code_pattern) holds the same patterns, so
+ * the database refuses what these forms refuse; a test keeps the two lists equal.
+ */
+export const POSTAL_CODE_COUNTRIES: readonly string[] = Object.keys(RULES)
+  .filter((c) => RULES[c]?.zip)
+  .sort();
+
+/** Google's postal code pattern for the country, without anchors, or null when it has none. */
+export function postalCodePattern(country: string): string | null {
+  return RULES[upper(country)]?.zip ?? null;
+}
+
+/**
+ * The postal code as the country writes it: trimmed, in capitals, with the separator the country's post uses when
+ * the typed code left it out or used another (94104 1234 becomes 94104-1234, k1a0b1 becomes K1A 0B1, sw1a1aa becomes
+ * SW1A 1AA, 1012ab becomes 1012 AB). A code that does not fit is returned trimmed and in capitals.
+ */
+export function normalizePostalCode(country: string, postalCode: string): string {
+  const code = postalCode.trim().replace(/\s+/g, " ").toUpperCase();
+  const compact = code.replace(/[\s-]/g, "");
+  let shaped = code;
+  switch (upper(country)) {
+    case "US":
+      if (/^\d{9}$/.test(compact)) shaped = `${compact.slice(0, 5)}-${compact.slice(5)}`;
+      else if (/^\d{5}$/.test(compact)) shaped = compact;
+      break;
+    case "CA":
+    case "GB":
+      if (/^[A-Z\d]{5,7}$/.test(compact)) shaped = `${compact.slice(0, -3)} ${compact.slice(-3)}`;
+      break;
+    case "NL":
+      if (/^\d{4}[A-Z]{2}$/.test(compact)) shaped = `${compact.slice(0, 4)} ${compact.slice(4)}`;
+      break;
+  }
+  return isValidPostalCode(country, shaped) ? shaped : code;
+}
+
 /** True when the postal code fits the country's pattern; countries without one take 1 to 12 characters. */
 export function isValidPostalCode(country: string, postalCode: string): boolean {
   const code = postalCode.trim();

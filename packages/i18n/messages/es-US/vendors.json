@@ -12,7 +12,13 @@
     "chooseVendor": "Elija un proveedor",
     "project": "Proyecto",
     "chooseProject": "Elija un proyecto",
-    "description": "Descripción"
+    "description": "Descripción",
+    "address": "Dirección postal",
+    "country": "País",
+    "streetAddress": "Dirección",
+    "locality": "Ciudad",
+    "administrativeArea": "Estado o provincia",
+    "postalCode": "Código postal"
   },
   "states": {
     "Prospect": "Prospecto",
@@ -69,7 +75,11 @@
     "prequalLine": "Precalificación para {scope}: {decision}",
     "scoreLine": "Período que termina el {period}: promedio {average}",
     "products": "Productos",
-    "noProducts": "No hay productos registrados para este proveedor. Agréguelos desde el catálogo de compras."
+    "noProducts": "No hay productos registrados para este proveedor. Agréguelos desde el catálogo de compras.",
+    "address": "Dirección postal",
+    "noAddress": "Sin dirección",
+    "saveAddress": "Guardar dirección",
+    "countryHelp": "Código de país de dos letras, por ejemplo US o CA. Al guardar, los campos siguen el formato de dirección de ese país."
   },
   "bank": {
     "title": "Cuentas bancarias",
@@ -267,7 +277,8 @@
     "review_decide_rpc": "Apruebe o devuelva recursos con los botones de revisión.",
     "cross_org_reference": "Ese elemento pertenece a otra organización.",
     "insureds_none_required": "La organización no exige asegurados adicionales para este proyecto. Agréguelos primero en Asegurados exigidos.",
-    "insureds_vendor_only": "Los asegurados adicionales se verifican para proveedores. Esta parte no es proveedor de la organización."
+    "insureds_vendor_only": "Los asegurados adicionales se verifican para proveedores. Esta parte no es proveedor de la organización.",
+    "postal_code_invalid": "Ese código postal no corresponde al país. Compárelo con la dirección o corrija el país."
   },
   "insureds": {
     "what": "asegurados adicionales",

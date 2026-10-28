@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   addressLayout,
@@ -11,7 +12,10 @@ import {
   formatPostalAddress,
   isValidPostalCode,
   nameSortKey,
+  normalizePostalCode,
   phoneCountry,
+  POSTAL_CODE_COUNTRIES,
+  postalCodePattern,
   phoneHref,
   regionFromLocale,
   requiredAddressFields,
@@ -152,6 +156,40 @@ describe("postal addresses (Section 15)", () => {
       "administrativeArea",
       "postalCode",
     ]);
+  });
+});
+
+describe("postal codes as each country writes them (A139)", () => {
+  it("adds the separator the country's post uses", () => {
+    expect(normalizePostalCode("US", " 94104 1234 ")).toBe("94104-1234");
+    expect(normalizePostalCode("US", "941041234")).toBe("94104-1234");
+    expect(normalizePostalCode("us", "94104")).toBe("94104");
+    expect(normalizePostalCode("CA", "k1a0b1")).toBe("K1A 0B1");
+    expect(normalizePostalCode("GB", "sw1a1aa")).toBe("SW1A 1AA");
+    expect(normalizePostalCode("GB", "bfpo123")).toBe("BFPO 123");
+    expect(normalizePostalCode("NL", "1012ab")).toBe("1012 AB");
+    expect(normalizePostalCode("DE", " 10115 ")).toBe("10115");
+  });
+
+  it("leaves a code that does not fit as typed, trimmed and in capitals", () => {
+    expect(normalizePostalCode("US", "9410")).toBe("9410");
+    expect(normalizePostalCode("CA", "abc  12")).toBe("ABC 12");
+    expect(isValidPostalCode("US", normalizePostalCode("US", "9410"))).toBe(false);
+  });
+
+  it("holds the same patterns as the database check (migration 2320)", () => {
+    const sql = readFileSync(
+      new URL("../../../supabase/migrations/2320_postal_codes_by_country.sql", import.meta.url),
+      "utf8",
+    );
+    const inSql = Object.fromEntries(
+      [...sql.matchAll(/when '([A-Z]{2})' then '([^']+)'/g)].map((m) => [m[1], m[2]]),
+    );
+    expect(Object.keys(inSql).sort()).toEqual([...POSTAL_CODE_COUNTRIES]);
+    for (const country of POSTAL_CODE_COUNTRIES) {
+      expect(inSql[country], country).toBe(postalCodePattern(country));
+    }
+    expect(postalCodePattern("ZZ")).toBeNull();
   });
 });
 

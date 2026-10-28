@@ -99,7 +99,7 @@ export const SETTINGS: readonly SettingDefinition[] = [
     min: null,
     max: null,
     maxLength: 32,
-    input: "text",
+    input: "phone",
     label: "workforce.settings.workPhone.label",
     help: "workforce.settings.workPhone.help",
     pages: {
