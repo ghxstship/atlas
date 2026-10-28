@@ -118,6 +118,11 @@ bytes over, all of it shell code every signed-in page loads. Measured the same w
 - The platform system banners (A90) show nothing until a fetch made once the page is idle returns
   one, so their code now loads after the page (`deferred-system-banners.tsx`), about 1 KB.
 
+After the review fixes (the favorites drag by their move button with pointer events), merged with
+batch-c 8ca5ac3d: Projects 202,299 (2,501 under), Inbox 202,188 (2,612 under), project overview
+198,424 and Home 186,115. The drag code is in `favorites-reorder.tsx`, which loads on demand, so
+the shell carries none of it.
+
 ## Lighthouse against the gate 10 budgets
 
 | App     | Page                              | Before | Route JS (build, A41) | Route JS (build, A46) | Lighthouse JS (A37) | Verdict                                                |
