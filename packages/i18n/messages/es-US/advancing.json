@@ -66,7 +66,9 @@
     "guest_entry_transition": "Ese cambio no está permitido. Aprueba al invitado antes de registrar su llegada.",
     "guest_entry_state": "Agrega un invitado como solicitado, o como aprobado si revisas invitados.",
     "guest_entry_stamped": "Las horas de decisión y de llegada se registran automáticamente.",
-    "sod_guest_requester": "Tú solicitaste este invitado, así que otra persona debe aprobarlo o rechazarlo."
+    "sod_guest_requester": "Tú solicitaste este invitado, así que otra persona debe aprobarlo o rechazarlo.",
+    "rider_engagement_artist": "Un rider puede ser de un artista contratado como persona cuya contratación sigue abierta. Elige otro artista o una organización.",
+    "same_project": "Ese artista está contratado en otro proyecto. Elige un artista del proyecto de este rider."
   },
   "projectTab": {
     "scope": "Avances de {key} · {name}.",
@@ -257,22 +259,25 @@
       "projectError": "Elige el proyecto al que pertenece este rider.",
       "name": "Nombre del rider",
       "nameHelp": "Por ejemplo, Rider técnico o Rider de hospitalidad.",
-      "nameError": "Ingresa un nombre de 1 a 200 caracteres.",
-      "party": "De",
-      "noParty": "Sin organización"
+      "nameError": "Ingresa un nombre de 1 a 200 caracteres."
     },
     "details": {
       "title": "Detalles",
       "name": "Nombre del rider",
-      "nameError": "Ingresa un nombre de 1 a 200 caracteres.",
-      "party": "De",
-      "noParty": "Sin organización"
+      "nameError": "Ingresa un nombre de 1 a 200 caracteres."
     },
     "archive": {
       "action": "Archivar",
       "confirmTitle": "¿Archivar {title}?",
       "confirmSentence": "El rider sale de todas las listas. Sus solicitudes y su cumplimiento quedan en el registro."
-    }
+    },
+    "fields": {
+      "party": "De quién es el rider"
+    },
+    "partyNone": "De nadie aún",
+    "partyError": "Elige de la lista de quién es este rider.",
+    "artist": "Artista",
+    "engagementOption": "{name} · artista en {project}"
   },
   "lines": {
     "title": "Solicitudes",

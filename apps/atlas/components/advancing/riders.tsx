@@ -14,6 +14,7 @@ import { RiderExtraction } from "@/components/aurora/rider-extraction";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { EmptyStateLink } from "@/components/ui";
 import { peekRowMissing } from "@/lib/shell/peek-handoff";
+import { engagementOptions } from "@/lib/people/project-people";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
 import { RecordCollab } from "./record-collab";
@@ -43,9 +44,51 @@ function riderState(r: RiderSummary): {
 }
 
 function partyName(r: RiderSummary, t: Translate): string {
+  if (r.engagementId) return r.engagementName ?? t("advancing.riders.artist");
   return r.counterpartyId
     ? (r.counterpartyName ?? t("advancing.common.counterparty"))
     : t("advancing.riders.noParty");
+}
+
+/** The 'Whose rider' value of a rider: "", "c:<counterparty id>" or "e:<engagement id>" (R2). */
+function partyValue(r: RiderSummary): string {
+  if (r.engagementId) return `e:${r.engagementId}`;
+  return r.counterpartyId ? `c:${r.counterpartyId}` : "";
+}
+
+type PartyOption = { value: string; label: string; projectId?: string };
+
+/**
+ * 'Whose rider' options: counterparties, then the Artist engagements that name a person on the
+ * reachable projects (R1's engagement options), labelled with the artist and the project key.
+ */
+async function riderParties(actx: AdvancingContext, t: Translate): Promise<PartyOption[]> {
+  const { ctx, project } = actx;
+  const [parties, engagements] = await Promise.all([
+    listAdvanceParties(ctx.viewer.db, ctx.org.id),
+    engagementOptions(ctx, project?.id),
+  ]);
+  if (!parties.ok) throw new Error(`Cannot list parties: ${JSON.stringify(parties.error)}`);
+  return [
+    ...parties.data
+      .filter((p) => p.kind === "counterparty")
+      .map((p) => ({ value: `c:${p.id}`, label: p.name ?? t("advancing.common.counterparty") })),
+    ...engagements
+      .filter((e) => e.roleType === "Artist" && e.personId !== null)
+      .map((e) => ({
+        value: `e:${e.engagementId}`,
+        label: t("advancing.riders.engagementOption", {
+          name: e.personName ?? t("advancing.riders.artist"),
+          project: e.projectKey,
+        }),
+        projectId: e.projectId,
+      })),
+  ];
+}
+
+/** Options without the project they belong to, as the selects take them. */
+function asOptions(parties: readonly PartyOption[]): { value: string; label: string }[] {
+  return parties.map((p) => ({ value: p.value, label: p.label }));
 }
 
 /**
@@ -66,12 +109,7 @@ export async function RidersCollection({
   const { ctx, can, projects, project } = actx;
   const t = await getTranslate();
   const peekId = search["peek"];
-  const parties = can.rider ? await listAdvanceParties(ctx.viewer.db, ctx.org.id) : null;
-  if (parties && !parties.ok)
-    throw new Error(`Cannot list parties: ${JSON.stringify(parties.error)}`);
-  const counterpartyOptions = (parties?.ok ? parties.data : [])
-    .filter((p) => p.kind === "counterparty")
-    .map((p) => ({ value: p.id, label: p.name ?? t("advancing.common.counterparty") }));
+  const parties = can.rider ? await riderParties(actx, t) : [];
 
   if (peekId && search["full"] === "1") {
     return (
@@ -79,7 +117,7 @@ export async function RidersCollection({
         actx={actx}
         riderId={peekId}
         backHref={withQuery(path, search, { peek: null, full: null })}
-        parties={counterpartyOptions}
+        parties={parties}
       />
     );
   }
@@ -112,7 +150,7 @@ export async function RidersCollection({
                 <CreateRiderDialog
                   org={ctx.org.slug}
                   projects={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
-                  parties={counterpartyOptions}
+                  parties={asOptions(parties)}
                   defaultProjectId={project?.id ?? null}
                   defaultOpen={search["create"] === "1"}
                 />
@@ -245,10 +283,12 @@ async function RiderPage({
   actx: AdvancingContext;
   riderId: string;
   backHref: string;
-  parties: readonly { value: string; label: string }[];
+  parties: readonly PartyOption[];
 }) {
   const { ctx, can } = actx;
   const rider = await loadRider(actx, riderId);
+  // An artist's engagement is offered only on the rider's own project.
+  const own = parties.filter((p) => p.projectId === undefined || p.projectId === rider.projectId);
   const t = await getTranslate();
   const format = await getFormatter();
   const org = ctx.org.slug;
@@ -312,8 +352,8 @@ async function RiderPage({
           org={org}
           riderId={rider.id}
           title={rider.title}
-          counterpartyId={rider.counterpartyId}
-          parties={parties}
+          party={partyValue(rider)}
+          parties={asOptions(own)}
           disabled={!can.rider}
         />
       </Panel>
