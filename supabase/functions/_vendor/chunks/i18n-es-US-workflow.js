@@ -71,6 +71,10 @@ var refusals = {
   state_label_state_immutable: "Borre esta etiqueta y etiquete el otro estado.",
   projects_key_format: "Use de 2 a 5 letras para la clave del proyecto.",
   scope_node_code_format: "Use mayúsculas, dígitos y guiones para el sufijo del código.",
+  sod_document_creator:
+    "Usted creó este documento, y su organización no permite que quien lo creó decida un paso. Otra persona lo decide.",
+  sod_change_order_requester_steps:
+    "Usted solicitó esta orden de cambio, y su organización no permite que quien la solicita decida un paso. Otra persona lo decide.",
 };
 var documentTypes = {
   "Purchase Order": "Orden de compra",

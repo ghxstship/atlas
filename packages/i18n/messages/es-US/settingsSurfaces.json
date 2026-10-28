@@ -174,7 +174,28 @@
     "title": "Reglas que cumple toda organización",
     "description": "Separación de funciones: una misma persona nunca realiza las dos mitades de estos actos. La base de datos aplica cada regla, para toda organización.",
     "enforcedOn": "Se comprueba en {where}",
-    "tighten": "Ninguna regla se puede flexibilizar. Las políticas de aprobación agregan más aprobadores donde los necesite."
+    "tighten": "Ninguna regla se puede desactivar. Las políticas de aprobación agregan más aprobadores donde los necesite, y las opciones más estrictas de abajo agregan comprobaciones.",
+    "alwaysOn": "Siempre activa",
+    "options": {
+      "title": "Opciones más estrictas",
+      "description": "Su organización puede hacer más estricta la separación de funciones, nunca más flexible. Cada opción que active agrega una comprobación a las reglas que cumple toda organización.",
+      "on": "Activada",
+      "off": "Desactivada",
+      "turnOn": "Activar",
+      "turnOff": "Desactivar",
+      "tightens": "Hace más estricta la regla {rule}",
+      "readOnly": "Solo quien puede hacer más estricta la separación de funciones activa o desactiva estas opciones.",
+      "offConfirm": {
+        "title": "¿Desactivar esta opción?",
+        "body": "{option} Las reglas que cumple toda organización siguen activas.",
+        "confirm": "Desactivar"
+      },
+      "names": {
+        "sod_change_order_requester_steps": "Quien solicita una orden de cambio no puede decidir ningún paso de su aprobación.",
+        "sod_document_creator": "Quien creó una orden de compra, orden de cambio, factura, requisición, gasto, nómina o liquidación no puede aprobarla ni decidir un paso de su aprobación.",
+        "sod_receiver_po_approver": "La mercancía la recibe una persona distinta de quien aprobó la orden de compra o un cambio en ella."
+      }
+    }
   },
   "customFields": {
     "title": "Campos personalizados",
@@ -483,7 +504,8 @@
     "discipline_unknown": "Una de las disciplinas no está en el canon.",
     "discipline_department_not_in_use": "Elija también el departamento de cada disciplina.",
     "jurisdiction_unknown": "Elija una jurisdicción del canon.",
-    "time_zone_unknown": "Elija una zona horaria de la lista."
+    "time_zone_unknown": "Elija una zona horaria de la lista.",
+    "separation_option_unknown": "Solo se puede activar o desactivar una opción más estricta. Las reglas que cumple toda organización siempre están activas."
   },
   "fieldErrors": {
     "name": "Ingrese un nombre de hasta 200 caracteres.",
