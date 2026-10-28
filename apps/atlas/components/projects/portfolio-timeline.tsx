@@ -4,7 +4,7 @@ import type { ProjectSummary } from "@xos/data/projects";
 import { EmptyState } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { stateIcon } from "@/lib/projects/format";
-import { Timeline } from "@/components/lazy-ui";
+import { Timeline } from "@/components/lazy-ui/timeline";
 
 const DAY = 86_400_000;
 
