@@ -65,9 +65,13 @@ test("two people on one record see each other's presence", async ({ browser }) =
 });
 
 test("two people on one SOP peek see each other there", async ({ browser }) => {
+  const id = uniqueId();
   const owner = await asPerson(browser, "owner@example.com");
-  await owner.goto(`/${DEMO_ORG}/knowledge/sops?view=list`);
-  await owner.getByRole("main").getByRole("link").filter({ hasText: /SOP/ }).first().click();
+  // A new SOP opens in its peek once saved.
+  await owner.goto(`/${DEMO_ORG}/knowledge/sops?create=1`);
+  await owner.getByLabel("Title", { exact: true }).fill(`Crowd Barrier Checks ${id}`);
+  await owner.getByLabel("Procedure", { exact: true }).fill(`Walk the barrier line ${id}.`);
+  await owner.getByRole("button", { name: "New SOP" }).last().click();
   await owner.waitForURL(/peek=/);
   const peek = owner.getByRole("dialog");
   await expect(peek).toBeVisible();
