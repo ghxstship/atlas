@@ -19,6 +19,10 @@ import {
   googleSheetsLinkId,
   importDetectedSheet,
   importFlags,
+  checkPastedRows,
+  createPastedImport,
+  importColumnSamples,
+  listImportDestinations,
 } from "../src/imports.ts";
 import {
   dataRows,
@@ -118,9 +122,139 @@ describe("import repository", () => {
           code: "venues",
           writeCapability: "places.venue.write",
           fuzzyMatch: true,
+          destination: null,
           fields: [{ name: "name", required: true, strongKey: false }],
         },
       ],
+    });
+  });
+
+  it("reads a target's destination (P3)", async () => {
+    const { db } = moduleClient({
+      "from:import_targets": [
+        ok([
+          {
+            code: "cues",
+            write_capability: "show.run_of_show.write",
+            fuzzy_match: false,
+            sort_order: 5,
+            destination: "run_of_show_id",
+          },
+          {
+            code: "guest_list_entries",
+            write_capability: "advancing.rider.write",
+            fuzzy_match: true,
+            sort_order: 6,
+            destination: "project_id",
+          },
+        ]),
+      ],
+      "from:import_target_fields": [ok([])],
+    });
+    const result = await listImportTargets(db);
+    expect(result.ok && result.data.map((t) => [t.code, t.destination])).toEqual([
+      ["cues", "run_of_show_id"],
+      ["guest_list_entries", "project_id"],
+    ]);
+  });
+
+  it("creates an import with its destination and lists destinations and samples (P3)", async () => {
+    const base = moduleClient({
+      "from:import_jobs": [ok([{ id: "j2" }])],
+      "rpc:import_destinations": [
+        ok([
+          {
+            destination_id: "ros1",
+            project_id: "prj1",
+            label: "NWL · Opening Night",
+            show_date: "2026-11-14",
+          },
+        ]),
+      ],
+      "rpc:import_column_samples": [
+        ok([{ import_job_column_id: "c1", sample_index: 1, sample_value: "Q1" }]),
+      ],
+      "rpc:import_detected_sheet": [ok("j3")],
+    });
+    const { db } = withStorage(base.db);
+    await createImport(db, {
+      orgId: "o",
+      targetCode: "cues",
+      filename: "r.csv",
+      objectPath: "p/r.csv",
+      source: "CSV",
+      body: new Uint8Array([1]),
+      contentType: "text/csv",
+      runOfShowId: "ros1",
+    });
+    expect(stepsOf(base.calls[0], "insert")[0]?.[0]).toMatchObject({
+      target_code: "cues",
+      run_of_show_id: "ros1",
+    });
+    expect(stepsOf(base.calls[0], "insert")[0]?.[0]).not.toHaveProperty("project_id");
+    expect(
+      await listImportDestinations(db, { orgId: "o", targetCode: "cues", include: "ros1" }),
+    ).toEqual({
+      ok: true,
+      data: [
+        { id: "ros1", projectId: "prj1", label: "NWL · Opening Night", showDate: "2026-11-14" },
+      ],
+    });
+    expect(stepsOf(base.calls[1], "args")[0]?.[0]).toEqual({
+      p_org_id: "o",
+      p_target_code: "cues",
+      p_include: "ros1",
+    });
+    expect(await importColumnSamples(db, "j2")).toEqual({
+      ok: true,
+      data: [{ columnId: "c1", index: 1, value: "Q1" }],
+    });
+    await importDetectedSheet(db, {
+      sheetId: "s1",
+      targetCode: "guest_list_entries",
+      projectId: "prj1",
+    });
+    expect(stepsOf(base.calls[3], "args")[0]?.[0]).toEqual({
+      p_sheet_id: "s1",
+      p_target_code: "guest_list_entries",
+      p_project_id: "prj1",
+      p_run_of_show_id: null,
+    });
+  });
+
+  it("turns pasted rows into a CSV upload, refusing an empty or oversized paste (P3)", async () => {
+    expect(checkPastedRows("Cue\tScene\n")).toEqual({ ok: false, rule: "import_paste_empty" });
+    expect(checkPastedRows("   \n\n")).toEqual({ ok: false, rule: "import_paste_empty" });
+    expect(checkPastedRows(`Cue\tScene\n1\t${"x".repeat(IMPORT_MAX_BYTES)}`)).toEqual({
+      ok: false,
+      rule: "import_file_size",
+    });
+    expect(checkPastedRows('Cue\tScene\n1\t"House\nto half"\n')).toEqual({
+      ok: true,
+      csv: 'Cue,Scene\r\n1,"House\nto half"',
+    });
+    const base = moduleClient({ "from:import_jobs": [ok([{ id: "j4" }])] });
+    const { db, uploads } = withStorage(base.db);
+    const input = {
+      orgId: "o",
+      targetCode: "guest_list_entries",
+      projectId: "prj1",
+      filename: "Pasted rows 2026-11-02",
+      objectPath: "p/u.csv",
+    };
+    expect(
+      await createPastedImport(db, { ...input, text: "Guest\tPlus\nJordan Pike\t1\n" }),
+    ).toEqual({ ok: true, data: "j4" });
+    expect(uploads).toEqual([{ path: "p/u.csv", type: "text/csv" }]);
+    expect(stepsOf(base.calls[0], "insert")[0]?.[0]).toMatchObject({
+      source: "CSV",
+      original_filename: "Pasted rows 2026-11-02",
+      project_id: "prj1",
+    });
+    const empty = await createPastedImport(db, { ...input, text: "Guest\n" });
+    expect(empty.ok === false && empty.error).toMatchObject({
+      kind: "refusal",
+      rule: "import_paste_empty",
     });
   });
 
