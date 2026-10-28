@@ -1,15 +1,15 @@
-# @xos/sdk
+# @ghxstship/xos-sdk
 
 The TypeScript SDK for the XOS public API. Models, method signatures and the operation table are generated from the OpenAPI v1 document, so every operation in the API reference is a typed method. It runs on Node.js 22.12 or later, in browsers and on edge runtimes, and has no dependencies.
 
 ```sh
-npm install @xos/sdk
+npm install @ghxstship/xos-sdk
 ```
 
 ## Use
 
 ```ts
-import { XosClient } from "@xos/sdk";
+import { XosClient } from "@ghxstship/xos-sdk";
 
 const xos = new XosClient({
   baseUrl: "https://api.ghxstship.tech/v1",
@@ -29,10 +29,10 @@ for await (const po of xos.purchaseOrders.listAll({ filter: { po_state: { eq: "A
 - Problem responses are raised as typed `XosApiError` subclasses, such as `XosValidationError` and `XosNotFoundError`.
 - Rate limits and `Retry-After` are honored, with `maxRetries` (default 2) and `timeoutMs` (default 30000).
 
-Verify webhook signatures with the `@xos/sdk/webhooks` entry point:
+Verify webhook signatures with the `@ghxstship/xos-sdk/webhooks` entry point:
 
 ```ts
-import { verifyWebhookSignature } from "@xos/sdk/webhooks";
+import { verifyWebhookSignature } from "@ghxstship/xos-sdk/webhooks";
 
 const result = await verifyWebhookSignature({
   payload: rawBody, // the body exactly as received

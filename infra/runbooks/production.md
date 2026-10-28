@@ -306,7 +306,7 @@ See Compass releases below. Compass ships on its own cadence; a web release neve
 | Edge Functions         | Check out the previous tag and redeploy the functions: `git switch --detach vPREV`, then `supabase functions deploy --project-ref <production-ref>`, then return to `main`                      | Minutes         |
 | A migration            | Never run a down migration. Ship a forward fix as a new migration. The previous app build keeps working on the new schema (expand and contract)                                                 | One deploy      |
 | Lost or corrupted data | Restore to a new project and switch traffic (`backup-and-restore.md`, Restoring production). Declare a SEV1 first                                                                               | Under 4 h (RTO) |
-| A published package    | Never unpublish. Publish the next patch; `npm deprecate @xos/sdk@X.Y.Z "<reason>"` and yank on PyPI                                                                                             | Minutes         |
+| A published package    | Never unpublish. Publish the next patch; `npm deprecate @ghxstship/xos-sdk@X.Y.Z "<reason>"` and yank on PyPI                                                                                   | Minutes         |
 | A Compass build        | Expire the build in TestFlight, or halt the Play rollout; testers keep the previous build                                                                                                       | Minutes         |
 
 ## Environment variables

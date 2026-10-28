@@ -59,3 +59,7 @@ The following are still open:
   - the verifier schedules
 - The OAuth 2.1 authorization and token endpoints. Only the app registry and consent grants exist.
 - Publishing to npm and PyPI waits for Wave 7.
+
+## Amendment (2026-10-28): the npm scope (A151)
+
+`@xos` on npm belongs to someone else, so the two npm packages publish under the owner's scope: `@xos/sdk` is `@ghxstship/xos-sdk` and `@xos/cli` is `@ghxstship/xos-cli`. The names in item 1 and item 5 read accordingly, and the generator runs as `pnpm --filter @ghxstship/xos-sdk generate`. The other workspace packages keep `@xos/*`, because they are private and never published. The PyPI package stays `xos-sdk`.

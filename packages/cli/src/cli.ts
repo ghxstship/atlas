@@ -6,7 +6,7 @@ import {
   XosError,
   XosNotFoundError,
   XosRefusalError,
-} from "@xos/sdk";
+} from "@ghxstship/xos-sdk";
 import { orgCurrent, orgList, orgUse, login, logout, status } from "./commands/auth.ts";
 import { canonCommand } from "./commands/canon.ts";
 import { call, listOperations, listResources, resourceCommand } from "./commands/resources.ts";

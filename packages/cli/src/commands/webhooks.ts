@@ -11,7 +11,7 @@
  */
 import { readFileSync } from "node:fs";
 import { parseArgs } from "node:util";
-import { SIGNATURE_HEADER, signWebhookPayload, verifyWebhookSignature } from "@xos/sdk";
+import { SIGNATURE_HEADER, signWebhookPayload, verifyWebhookSignature } from "@ghxstship/xos-sdk";
 import type { Context } from "../context.ts";
 import { UsageError } from "../io.ts";
 import { render } from "../output.ts";
