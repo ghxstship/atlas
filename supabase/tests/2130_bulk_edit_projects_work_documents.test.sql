@@ -1,4 +1,4 @@
--- pgTAP: 1780, bulk edit of projects, work orders, punch items and documents (A119, RRR-164, Section 11.7). For each
+-- pgTAP: 2130, bulk edit of projects, work orders, punch items and documents (A119, RRR-164, Section 11.7). For each
 -- resource: a preview that changes nothing, a committed call with its inverse rows, one refused row undoing the whole
 -- call with the refusal naming that row, another org refused, and the capability checked on every row.
 begin;

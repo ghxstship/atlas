@@ -1,4 +1,4 @@
--- 1781_trash_restore_skips_ledgers.sql
+-- 2131_trash_restore_skips_ledgers.sql
 -- A119 (RRR-164, A65-006, ADR 0078). Restoring from Trash skips the append-only ledgers that reference a row.
 --
 --   * app.restore_trash_item restores a row's soft-deleted children with it by updating every app table that
@@ -8,8 +8,10 @@
 --     was deleted, and a record or a work order could not be restored from Trash, Activity or a work order's Undo.
 --   * The walk now visits only the referencing tables whose deleted_at the caller may update. A ledger row is never
 --     deleted with its subject, so nothing that came back before is left behind.
---   * Redefined from 1031, its only earlier definition; security invoker, search_path, grants and the comment are
---     restated, the comment naming the rule.
+--   * Redefined from 1031, its only earlier definition on batch-c; security invoker, search_path, grants and the
+--     comment are restated, the comment naming the rule. A118's 2122 (in review alongside) skips the same tables by
+--     table privilege; the column check here admits every table that test does and also one that grants UPDATE on
+--     deleted_at alone, so this later definition keeps A118's behavior when both land.
 
 create or replace function app.restore_trash_item(p_subject_table text, p_subject_id uuid)
 returns integer

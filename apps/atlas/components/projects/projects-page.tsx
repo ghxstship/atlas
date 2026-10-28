@@ -121,7 +121,7 @@ async function projectBulkConfig(
     });
   }
   if (caps.has("projects.project.archive")) {
-    // true archives now; null restores (migration 1780).
+    // true archives now; null restores (migration 2130).
     fields.push({
       key: "archived_at",
       label: t("projects.fields.archiveStatus"),

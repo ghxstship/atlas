@@ -313,7 +313,7 @@ export async function deleteWorkOrder(db: XosClient, id: string): Promise<Result
 }
 
 /**
- * Restores a work order from Trash through app.restore_trash_item (1031, 1781), as the Trash page
+ * Restores a work order from Trash through app.restore_trash_item (1031, 2131), as the Trash page
  * does: the work order's own update rule decides, and bids deleted with it come back with it.
  */
 export async function restoreWorkOrder(db: XosClient, id: string): Promise<Result<null>> {

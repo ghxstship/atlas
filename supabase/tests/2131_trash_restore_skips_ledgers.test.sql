@@ -1,4 +1,4 @@
--- pgTAP: 1781, restoring from Trash skips append-only ledgers (A119, RRR-164, Section 11.7). A record and a work order,
+-- pgTAP: 2131, restoring from Trash skips append-only ledgers (A119, RRR-164, Section 11.7). A record and a work order,
 -- each referenced by a state ledger, restore as the person who may edit them, and a child deleted with its subject
 -- still comes back with it.
 begin;

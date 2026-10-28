@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-24
 - Decider: A119 (RRR-164), trace rows S11.7-02, S11.7-03, S11.7-04 and S11.7-09
-- Migrations: 1780 and 1781
+- Migrations: 2130 and 2131
 
 ## Context
 
@@ -43,7 +43,7 @@ Two things differ from the first four tables. Some changes apply only to some ro
 ### 5. Deleting a Draft work order can be undone
 
 - Delete draft still moves the work order to Trash (a soft delete; the database refuses it for any other state), now only while the row is live. The delete goes on the session's undo stack: the shell shows its 8-second Undo toast, Undo or Cmd or Ctrl+Z restores the work order through `app.restore_trash_item`, as the Trash page does, and redo deletes it again.
-- `app.restore_trash_item` (1031) restores the rows deleted with its subject by updating every referencing table with a `deleted_at`. The state ledgers of records and work orders have one but refuse every update, so restoring a record or a work order failed with permission denied. The walk now visits only referencing tables whose `deleted_at` the caller may update (1781). A118's 1772 makes the same function skip tables without the table-level update privilege; a column privilege check includes it, so whichever migration runs last keeps both fixes.
+- `app.restore_trash_item` (1031) restores the rows deleted with its subject by updating every referencing table with a `deleted_at`. The state ledgers of records and work orders have one but refuse every update, so restoring a record or a work order failed with permission denied. The walk now visits only referencing tables whose `deleted_at` the caller may update (2131). A118's 1772 makes the same function skip tables without the table-level update privilege; a column privilege check includes it, so whichever migration runs last keeps both fixes.
 
 ## Consequences
 
