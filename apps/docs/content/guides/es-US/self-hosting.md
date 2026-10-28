@@ -85,24 +85,25 @@ El archivo `infra/runbooks/hosted-security-settings.md` del repositorio enumera 
 
 Atlas y Gateway validan su entorno al iniciar y nombran cada variable faltante o mal formada. Copia `apps/atlas/.env.example` y `apps/gateway/.env.example` para el desarrollo local.
 
-| Variable                      | Atlas       | Gateway     | Valor                                                                                                     |
-| ----------------------------- | ----------- | ----------- | --------------------------------------------------------------------------------------------------------- |
-| `SUPABASE_URL`                | Obligatoria | Obligatoria | La URL de la API de Supabase                                                                              |
-| `SUPABASE_ANON_KEY`           | Obligatoria | Obligatoria | La clave anónima (publicable); la seguridad a nivel de fila protege cada fila                             |
-| `ATLAS_SITE_URL`              | Obligatoria |             | El origen público de Atlas, para los enlaces de inicio de sesión y la comprobación CSRF                   |
-| `GATEWAY_SITE_URL`            | Opcional    | Obligatoria | El origen público de Gateway; Atlas lo usa para los enlaces de avance y de firma                          |
-| `GATEWAY_PLATFORM_HOSTS`      |             | Opcional    | Los hosts que sirven el Gateway de la plataforma; cualquier otro es un dominio personalizado              |
-| `XOS_API_HOST`                | Opcional    |             | Un nombre de host, como `api.example.com`, en el que Atlas sirve solo la API, en `/v1`                    |
-| `DOCS_SITE_URL`               | Opcional    | Opcional    | El origen público de este sitio de documentación, para los enlaces al centro de ayuda                     |
-| `NEXT_PUBLIC_SENTRY_DSN`      | Opcional    | Opcional    | Reporte de errores; sin DSN no se envía nada a Sentry                                                     |
-| `XOS_TRACES_SAMPLE_RATE`      | Opcional    | Opcional    | Tasa de muestreo de trazas, `0.05` por defecto                                                            |
-| `XOS_LOG_LEVEL`               | Opcional    | Opcional    | `info` en producción                                                                                      |
-| `COMPASS_APPLE_TEAM_IDS`      | Opcional    | Opcional    | Identificadores de equipo de Apple, para que Compass abra los enlaces como enlaces universales            |
-| `COMPASS_ANDROID_CERT_SHA256` | Opcional    | Opcional    | Huellas del certificado de firma de Compass, para Android App Links                                       |
-| `XOS_TRUSTED_PROXY_HOPS`      | Opcional    | Opcional    | Proxies de confianza delante del que añade la dirección del cliente; `0` por defecto                      |
-| `XOS_INBOUND_DOMAIN`          | Opcional    |             | El dominio en el que se recibe el correo de las bandejas de proyecto, para mostrar direcciones completas  |
-| `XOS_READ_REPLICA_URL`        | Opcional    |             | El origen de la Data API de una réplica de lectura; la exportación completa lee allí y luego la principal |
-| `STRIPE_SECRET_KEY`           | Opcional    |             | Tu clave secreta de Stripe, para Checkout y el portal de clientes; sin ella, la facturación sigue cerrada |
+| Variable                      | Atlas       | Gateway     | Valor                                                                                                                                    |
+| ----------------------------- | ----------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `SUPABASE_URL`                | Obligatoria | Obligatoria | La URL de la API de Supabase                                                                                                             |
+| `SUPABASE_ANON_KEY`           | Obligatoria | Obligatoria | La clave anónima (publicable); la seguridad a nivel de fila protege cada fila                                                            |
+| `ATLAS_SITE_URL`              | Obligatoria |             | El origen público de Atlas, para los enlaces de inicio de sesión y la comprobación CSRF                                                  |
+| `GATEWAY_SITE_URL`            | Opcional    | Obligatoria | El origen público de Gateway; Atlas lo usa para los enlaces de avance y de firma                                                         |
+| `GATEWAY_PLATFORM_HOSTS`      |             | Opcional    | Los hosts que sirven el Gateway de la plataforma; cualquier otro es un dominio personalizado                                             |
+| `XOS_API_HOST`                | Opcional    |             | Un nombre de host, como `api.example.com`, en el que Atlas sirve solo la API, en `/v1`                                                   |
+| `DOCS_SITE_URL`               | Opcional    | Opcional    | El origen público de este sitio de documentación, para los enlaces al centro de ayuda                                                    |
+| `NEXT_PUBLIC_SENTRY_DSN`      | Opcional    | Opcional    | Reporte de errores; sin DSN no se envía nada a Sentry                                                                                    |
+| `XOS_TRACES_SAMPLE_RATE`      | Opcional    | Opcional    | Tasa de muestreo de trazas, `0.05` por defecto                                                                                           |
+| `XOS_LOG_LEVEL`               | Opcional    | Opcional    | `info` en producción                                                                                                                     |
+| `COMPASS_APPLE_TEAM_IDS`      | Opcional    | Opcional    | Identificadores de equipo de Apple, para que Compass abra los enlaces como enlaces universales                                           |
+| `COMPASS_ANDROID_CERT_SHA256` | Opcional    | Opcional    | Huellas del certificado de firma de Compass, para Android App Links                                                                      |
+| `XOS_TRUSTED_PROXY_HOPS`      | Opcional    | Opcional    | Proxies de confianza delante del que añade la dirección del cliente; `0` por defecto                                                     |
+| `XOS_INBOUND_DOMAIN`          | Opcional    |             | El dominio en el que se recibe el correo de las bandejas de proyecto, para mostrar direcciones completas                                 |
+| `XOS_READ_REPLICA_URL`        | Opcional    |             | El origen de la Data API de una réplica de lectura; la exportación completa lee allí y luego la principal                                |
+| `STRIPE_SECRET_KEY`           | Opcional    |             | Tu clave secreta de Stripe, para Checkout y el portal de clientes; sin ella, la facturación sigue cerrada                                |
+| `XOS_FILE_HANDOVER_SECRET`    | Opcional    |             | El secreto de entrega de la función `file-download`; sin él, los PDF y las imágenes confidenciales y restringidos no se pueden descargar |
 
 Ninguna de las dos aplicaciones recibe la clave de rol de servicio. Cada llamada a Supabase se ejecuta en el servidor con la sesión de la persona que inició sesión.
 
@@ -117,19 +118,20 @@ supabase secrets set --env-file ./functions.env
 
 En una pila autoalojada, monta `supabase/functions` en el servicio de funciones de Compose. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token`, `integration-inbound` y `file-download` autentican a quien las llama por sí mismas y se despliegan sin verificación de JWT, como declara `supabase/config.toml`.
 
-| Secreto                                                     | Lo usa                                                                                                                                             |
-| ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`                                   | `api-token`, `integration-worker` y `automation-run`, que firman tokens de corta duración; usa el secreto JWT del proyecto                         |
-| `SUPABASE_SERVICE_ROLE_KEY`                                 | Las funciones de trabajo (Supabase alojado la proporciona automáticamente)                                                                         |
-| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`      | Los enlaces y la dirección postal de los correos                                                                                                   |
-| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`   | El correo saliente mediante Resend (`XOS_EMAIL_TRANSPORT=resend`); sin ellos, el correo se registra y no se envía                                  |
-| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`           | Quién puede recibir correo; usa `XOS_EMAIL_DELIVER_TO_ANY=true` solo en producción                                                                 |
-| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                  | `inbound-email`, para las respuestas por correo y las bandejas de proyecto                                                                         |
-| `RESEND_INBOUND_WEBHOOK_SECRET`, `RESEND_RECEIVING_API_KEY` | `inbound-email`, cuando Resend recibe el correo: el secreto de firma del webhook y una clave con acceso completo, en lugar de `XOS_INBOUND_SECRET` |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`                | `stripe-webhook`, solo si cobras mediante Stripe                                                                                                   |
-| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                        | `upload-scan`, el demonio de ClamAV; el puerto predeterminado es 3310 (consulta Análisis de archivos subidos)                                      |
-| `XOS_READ_REPLICA_URL`                                      | `report-run`, que lee las definiciones y filas de informes de una réplica de lectura y luego de la principal                                       |
-| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`            | Reporte de errores y nivel de registro opcionales                                                                                                  |
+| Secreto                                                     | Lo usa                                                                                                                                                                                |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `XOS_API_JWT_SIGNING_KEY`                                   | `api-token`, `integration-worker` y `automation-run`, que firman tokens de corta duración; usa el secreto JWT del proyecto                                                            |
+| `SUPABASE_SERVICE_ROLE_KEY`                                 | Las funciones de trabajo (Supabase alojado la proporciona automáticamente)                                                                                                            |
+| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`      | Los enlaces y la dirección postal de los correos                                                                                                                                      |
+| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY`   | El correo saliente mediante Resend (`XOS_EMAIL_TRANSPORT=resend`); sin ellos, el correo se registra y no se envía                                                                     |
+| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`           | Quién puede recibir correo; usa `XOS_EMAIL_DELIVER_TO_ANY=true` solo en producción                                                                                                    |
+| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                  | `inbound-email`, para las respuestas por correo y las bandejas de proyecto                                                                                                            |
+| `RESEND_INBOUND_WEBHOOK_SECRET`, `RESEND_RECEIVING_API_KEY` | `inbound-email`, cuando Resend recibe el correo: el secreto de firma del webhook y una clave con acceso completo, en lugar de `XOS_INBOUND_SECRET`                                    |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`                | `stripe-webhook`, solo si cobras mediante Stripe                                                                                                                                      |
+| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                        | `upload-scan`, el demonio de ClamAV; el puerto predeterminado es 3310 (consulta Análisis de archivos subidos)                                                                         |
+| `XOS_READ_REPLICA_URL`                                      | `report-run`, que lee las definiciones y filas de informes de una réplica de lectura y luego de la principal                                                                          |
+| `XOS_FILE_HANDOVER_SECRET`                                  | `file-download`, que entrega los PDF y las imágenes confidenciales y restringidos solo a Atlas, para la marca de agua; al menos 32 caracteres aleatorios, el mismo valor que en Atlas |
+| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`            | Reporte de errores y nivel de registro opcionales                                                                                                                                     |
 
 ### Programa las funciones de trabajo
 

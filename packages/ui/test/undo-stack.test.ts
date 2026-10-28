@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createUndoStack, UNDO_LIMIT, type UndoEvent } from "../components/undo/undo-stack";
+import { createUndoStack, UNDO_LIMIT, type UndoEvent } from "../src/lib/undo-stack.ts";
 
 function recorder() {
   const log: string[] = [];

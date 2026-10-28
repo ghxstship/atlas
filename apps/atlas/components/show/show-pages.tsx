@@ -190,6 +190,7 @@ export async function DaySheetsPage({
       projects={meta.projects}
       canWrite={caps.has("show.day_sheet.write")}
       open={param(search, "create") === "1"}
+      {...(open ? { openId: open.id } : {})}
       peek={collectionPeek(
         peekId,
         open ? (
@@ -262,6 +263,7 @@ export async function CallSheetsPage({
       projects={meta.projects}
       canWrite={caps.has("show.call_sheet.publish")}
       open={param(search, "create") === "1"}
+      {...(open ? { openId: open.id } : {})}
       peek={collectionPeek(peekId, peek)}
     />
   );
