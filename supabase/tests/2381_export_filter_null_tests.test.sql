@@ -60,13 +60,13 @@ select throws_ok($$select app.request_export(pg_temp.id('org_a'), 'CSV', 'Rates'
 select pg_temp.as_platform();
 select set_config('role', 'service_role', true);
 create temporary table claimed as select * from app.claim_export_renders('worker-1', 20);
-select results_eq($$select array_agg(r ->> 'project_key' order by r ->> 'project_key') from app.export_job_rows((select id from k where key = 'live'), 100) r
+select results_eq($$select array_agg(r ->> 'project_key' order by r ->> 'project_key') from jsonb_array_elements(app.export_job_rows((select id from k where key = 'live'), 100)) r
     where r ->> 'project_key' in ('NWL', 'NWX')$$,
   $$values (array['NWL'])$$, 'is_null leaves out the archived project, as the Projects page does');
-select results_eq($$select array_agg(r ->> 'project_key' order by r ->> 'project_key') from app.export_job_rows((select id from k where key = 'archived'), 100) r
+select results_eq($$select array_agg(r ->> 'project_key' order by r ->> 'project_key') from jsonb_array_elements(app.export_job_rows((select id from k where key = 'archived'), 100)) r
     where r ->> 'project_key' in ('NWL', 'NWX')$$,
   $$values (array['NWX'])$$, 'not_null keeps only the archived project');
-select results_eq($$select array_agg(r ->> 'project_key' order by r ->> 'project_key') from app.export_job_rows((select id from k where key = 'all'), 100) r
+select results_eq($$select array_agg(r ->> 'project_key' order by r ->> 'project_key') from jsonb_array_elements(app.export_job_rows((select id from k where key = 'all'), 100)) r
     where r ->> 'project_key' in ('NWL', 'NWX')$$,
   $$values (array['NWL', 'NWX'])$$, 'without one, both are exported (Projects with ?archived=1)');
 

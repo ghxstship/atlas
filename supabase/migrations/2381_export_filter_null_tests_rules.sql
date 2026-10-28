@@ -9,7 +9,7 @@
 --   * recreates app.request_export (the overload with headers and filters) from 2030 with every rule and refusal
 --     message kept, accepting is_null and not_null with a column of the source and no value. Their column counts
 --     toward the classification like any filtered column, since the null test discloses whether it is set;
---   * recreates app.export_job_rows from 2030 with every rule kept, rendering is_null and not_null as
+--   * recreates app.export_job_rows from its latest definition (2360: the rows as one jsonb array) with every rule kept, rendering is_null and not_null as
 --     "<column> is null" and "<column> is not null" after the same check that the column still exists. Before this, a
 --     filter that was not eq or in fell through to the search branch.
 
@@ -164,7 +164,7 @@ grant execute on function app.request_export(uuid, app.export_format, text, text
  * org; canon has neither), without soft-deleted rows, with its eq, in and null-test filters and its search across the exported columns.
  */
 create or replace function app.export_job_rows(p_export_job_id uuid, p_limit integer)
-returns setof jsonb
+returns jsonb
 language plpgsql
 stable
 set search_path = ''
@@ -183,6 +183,7 @@ declare
   v_role text := current_user;
   v_claims text := current_setting('request.jwt.claims', true);
   v_sql text;
+  v_rows jsonb;
 begin
   select * into v_export from app.export_jobs e where e.id = p_export_job_id and e.deleted_at is null;
   if v_export.id is null then
@@ -259,10 +260,20 @@ begin
   from pg_catalog.pg_attribute a join pg_catalog.pg_type t on t.oid = a.atttypid
   where a.attrelid = v_class and a.attname::text = any (v_columns) and a.attnum > 0 and not a.attisdropped
     and t.typcategory in ('B', 'D', 'E', 'N', 'S');
+  -- Then by the source's id when it has one, so rows that tie on every exported column keep one order.
+  if exists (select 1 from pg_catalog.pg_attribute a join pg_catalog.pg_type t on t.oid = a.atttypid
+             where a.attrelid = v_class and a.attname = 'id' and a.attnum > 0 and not a.attisdropped
+               and t.typcategory in ('N', 'S', 'U')) then
+    v_order := coalesce(v_order || ', ', '') || 's.id';
+  end if;
+  -- One jsonb array, numbered in the sort order and aggregated in it: PostgREST caps a set-returning function at
+  -- max_rows (1,000), so the rows leave as one value.
   v_sql := format(
-    'select to_jsonb(q) from (select %s from %s s where %s%s limit %s) q',
-    (select string_agg(format('s.%I', c), ', ' order by n) from unnest(v_columns) with ordinality as x (c, n)),
+    'select coalesce(jsonb_agg(w.r order by w.n), ''[]''::jsonb) from (select to_jsonb(c) as r, row_number() over (%s) as n'
+      || ' from %s s cross join lateral (select %s) c where %s%s limit %s) w',
+    case when v_order is null then '' else 'order by ' || v_order end,
     v_class::text,
+    (select string_agg(format('s.%I', c), ', ' order by n) from unnest(v_columns) with ordinality as x (c, n)),
     coalesce(nullif(array_to_string(v_where, ' and '), ''), 'true'),
     case when v_order is null then '' else ' order by ' || v_order end,
     least(greatest(coalesce(p_limit, 1), 1), 100001)
@@ -270,12 +281,13 @@ begin
 
   perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
   perform set_config('role', 'authenticated', true);
-  return query execute v_sql;
+  execute v_sql into v_rows;
   perform set_config('role', v_role, true);
   perform set_config('request.jwt.claims', coalesce(v_claims, ''), true);
+  return v_rows;
 end;
 $$;
 
-comment on function app.export_job_rows(uuid, integer) is 'Worker API (service role): the rows of an export being rendered, read as the person who asked for it (their row level security and grants): its recorded columns in order, scoped to its org, without deleted rows, with its eq, in, is_null, not_null and search filters, sorted by its columns, at most p_limit rows. Stable, so a read replica serves it.';
+comment on function app.export_job_rows(uuid, integer) is 'Worker API (service role): the rows of an export being rendered, read as the person who asked for it (their row level security and grants): its recorded columns in order, scoped to its org, without deleted rows, with its eq, in, is_null, not_null and search filters, sorted by its columns (then its id), at most p_limit rows, as one jsonb array so PostgREST''s max_rows never cuts it. Stable, so a read replica serves it.';
 revoke all on function app.export_job_rows(uuid, integer) from public, anon, authenticated;
 grant execute on function app.export_job_rows(uuid, integer) to service_role;
