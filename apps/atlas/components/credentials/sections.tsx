@@ -17,7 +17,6 @@ import {
   type OperationsProject,
   type Zone,
 } from "@xos/data/credentials";
-import { listMembers } from "@xos/data";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -46,6 +45,7 @@ import {
   type Column,
 } from "@/components/operations/kit";
 import { RecordCollab } from "@/components/operations/record-collab";
+import { projectPeople, projectPersonLabel } from "@/lib/people/project-people";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   archiveCategoryAction,
@@ -502,9 +502,9 @@ async function IssueForm({
       />
     );
   }
-  const members = unwrap(await listMembers(page.ctx.viewer.db, page.ctx.org.id), "members");
+  // Members and the people engaged on the project (R1); a badge under an engagement names its person.
   const me = page.ctx.viewer.person?.id;
-  const holders = members.filter((m) => m.personId !== me);
+  const holders = (await projectPeople(page.ctx, project.id)).filter((p) => p.personId !== me);
   return (
     <RecordSection id="issue-credential" title={t("credentials.issued.new")}>
       <ActionForm
@@ -527,9 +527,9 @@ async function IssueForm({
           name="holderPersonId"
           label={t("credentials.issued.holder")}
           help={t("credentials.issued.holderHelp")}
-          options={holders.map((m) => ({
-            value: m.personId,
-            label: m.fullName ?? t("credentials.common.unnamed"),
+          options={holders.map((p) => ({
+            value: p.personId,
+            label: projectPersonLabel(t, p, t("credentials.common.unnamed")),
           }))}
           required
         />
