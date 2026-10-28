@@ -9,11 +9,13 @@
 --     merges, and only a field both people changed is refused as bulk_stale. A version with nothing else expected
 --     refuses any later change.
 --   * Values compare by meaning: two spellings of one instant are equal whatever offset or precision the client
---     sent, so a time read through the API never conflicts with the same time in the row.
+--     sent, by 2062's private.bulk_same_instant (A106, ADR 0044), so a time read through the API never conflicts with
+--     the same time in the row. A date alone or a timestamp without an offset is still never an instant.
 --   * A bulk_stale refusal carries current: the row's values now for every field the row set or expected, and its
 --     updated_at. It is read after the row function's own capability checks passed, so it shows nothing the caller
 --     could not read. A "keep mine" resend expects the version in current.
---   * Each function is redefined from 1451, its only earlier definition; the inverse rows of a committed call are
+--   * bulk_check_expect is redefined from 2062, its latest definition, and keeps its instant test; bulk_check_fields
+--     and run_bulk are redefined from 1451, their only earlier definition. The inverse rows of a committed call are
 --     unchanged, so an undo still expects the values after, field by field.
 
 -- Fields -------------------------------------------------------------------------------------------------------------
@@ -59,21 +61,12 @@ begin
   if coalesce(p_a, 'null'::jsonb) = 'null'::jsonb and coalesce(p_b, 'null'::jsonb) = 'null'::jsonb then
     return true;
   end if;
-  -- Two spellings of one instant: 2027-06-05T18:00:00Z and 2027-06-05T18:00:00.000+00:00.
-  if jsonb_typeof(p_a) = 'string' and jsonb_typeof(p_b) = 'string'
-     and (p_a #>> '{}') ~ '^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}'
-     and (p_b #>> '{}') ~ '^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}' then
-    begin
-      return (p_a #>> '{}')::timestamptz = (p_b #>> '{}')::timestamptz;
-    exception when others then
-      return false;
-    end;
-  end if;
-  return false;
+  -- Two spellings of one instant: 2027-06-05T18:00:00Z and 2027-06-05T18:00:00.000+00:00 (2062).
+  return private.bulk_same_instant(p_a, p_b);
 end;
 $$;
 
-comment on function private.bulk_same_value(jsonb, jsonb) is 'Whether two field values of a bulk row are the same: equal JSON, both unset, or two spellings of one instant.';
+comment on function private.bulk_same_value(jsonb, jsonb) is 'Whether two field values of a bulk row are the same: equal JSON, both unset, or two spellings of one instant with an offset (private.bulk_same_instant).';
 revoke all on function private.bulk_same_value(jsonb, jsonb) from public, anon, authenticated;
 
 -- Compare-and-set with the version -------------------------------------------------------------------------------------
@@ -106,7 +99,7 @@ begin
 end;
 $$;
 
-comment on function private.bulk_check_expect(jsonb, jsonb) is 'Compare-and-set for a bulk row: passes when expect.updated_at is the row''s version; otherwise refuses with bulk_stale when a field no longer holds the value the caller started from, or when the version was all the caller expected.';
+comment on function private.bulk_check_expect(jsonb, jsonb) is 'Compare-and-set for a bulk row: passes when expect.updated_at is the row''s version; otherwise refuses with bulk_stale when a field no longer holds the value the caller started from, or when the version was all the caller expected. An instant matches in any ISO 8601 form with an offset (Z or +00:00).';
 revoke all on function private.bulk_check_expect(jsonb, jsonb) from public, anon, authenticated;
 
 -- The driver -----------------------------------------------------------------------------------------------------------
