@@ -29408,6 +29408,76 @@ export type Database = {
           },
         ];
       };
+      org_separation_of_duties_options: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          rule_code: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          rule_code: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          rule_code?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "org_separation_of_duties_options_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_separation_of_duties_options_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_separation_of_duties_options_rule_code_fkey";
+            columns: ["rule_code"];
+            isOneToOne: false;
+            referencedRelation: "separation_of_duties_options";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "org_separation_of_duties_options_rule_code_fkey";
+            columns: ["rule_code"];
+            isOneToOne: false;
+            referencedRelation: "separation_of_duties_rules";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "org_separation_of_duties_options_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       org_state_labels: {
         Row: {
           created_at: string;
@@ -59699,6 +59769,28 @@ export type Database = {
         };
         Relationships: [];
       };
+      separation_of_duties_options: {
+        Row: {
+          code: string | null;
+          description: string | null;
+          enforced_on: string | null;
+          tightens: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code?: string | null;
+          description?: string | null;
+          enforced_on?: string | null;
+          tightens?: string | null;
+        };
+        Update: {
+          code?: string | null;
+          description?: string | null;
+          enforced_on?: string | null;
+          tightens?: string | null;
+        };
+        Relationships: [];
+      };
       separation_of_duties_rules: {
         Row: {
           code: string | null;
@@ -63855,6 +63947,10 @@ export type Database = {
         Returns: string;
       };
       set_saved_view_default: { Args: { p_saved_view_id: string }; Returns: string };
+      set_separation_of_duties_option: {
+        Args: { p_on: boolean; p_org_id: string; p_rule_code: string };
+        Returns: boolean;
+      };
       set_setting: {
         Args: {
           p_locked?: boolean;
