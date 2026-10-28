@@ -252,6 +252,34 @@ export interface NotificationStoreOptions {
    * (1131), and its email links there instead of Atlas.
    */
   readonly gatewayUrl?: string | null;
+  /**
+   * Public base URL of the org-brand bucket (`<SUPABASE_URL>/storage/v1/object/public/org-brand`),
+   * for the logo of a white-label org's email (A138). Without it the email carries no logo.
+   */
+  readonly brandAssetUrl?: string | null;
+}
+
+/**
+ * Kinds sent as the platform rather than the org (A138, Section 12): the org's XOS billing, trial and
+ * white label plan notices. Their email keeps the platform brand while white label is in force.
+ */
+export function isPlatformEmailKind(kind: string): boolean {
+  return kind.startsWith("billing.") || kind.startsWith("organization.white_label_");
+}
+
+/**
+ * A From header: the display name without control characters, quoted when it holds a character
+ * RFC 5322 reserves (an org's sender name may hold a comma or a parenthesis).
+ */
+export function mailbox(name: string, address: string): string {
+  const clean = Array.from(name, (c) => {
+    const code = c.charCodeAt(0);
+    return code < 0x20 || code === 0x7f ? " " : c;
+  })
+    .join("")
+    .trim();
+  const display = /[()<>[\]:;@\\,."]/.test(clean) ? `"${clean.replace(/["\\]/g, "\\$&")}"` : clean;
+  return `${display} <${address}>`;
 }
 
 /** The Gateway link of a notification for an external party, or null. */
@@ -317,16 +345,39 @@ export function notificationStore(
         subjectId: optionalText(row, "subject_id"),
       }));
     },
-    async senderFor(orgId, personId) {
+    async senderFor(orgId, personId, kind) {
       const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? undefined;
       const slug = text(org, "slug");
       const name = text(org, "name");
+      // While white label is in force (2310), the org's brand name, sender name, support address,
+      // logo and accent; platform notices keep the platform brand.
+      const brand =
+        kind !== undefined && isPlatformEmailKind(kind)
+          ? undefined
+          : rows(await db.rpc("email_brand_for_org", { p_org_id: orgId }))[0];
+      const logoPath = optionalText(brand, "logo_path");
+      const accentHex = optionalText(brand, "accent_hex");
+      const replyTo = optionalText(brand, "reply_to");
+      const assets = options.brandAssetUrl?.replace(/\/$/, "");
       return {
-        orgName: name,
+        orgName: optionalText(brand, "brand_name") ?? name,
         postalAddress: options.postalAddress,
         preferencesUrl: `${options.appUrl}/${slug}/me/notifications`,
         unsubscribeUrl: await options.unsubscribeUrl(orgId, personId, "notification"),
-        from: `${name} <${options.fromAddress}>`,
+        from: mailbox(optionalText(brand, "sender_name") ?? name, options.fromAddress),
+        ...(replyTo === null ? {} : { replyTo }),
+        ...(brand === undefined
+          ? {}
+          : {
+              brand: {
+                ...(logoPath === null || !assets
+                  ? {}
+                  : {
+                      logoUrl: `${assets}/${logoPath.split("/").map(encodeURIComponent).join("/")}`,
+                    }),
+                ...(accentHex === null ? {} : { accentHex }),
+              },
+            }),
       };
     },
     recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
