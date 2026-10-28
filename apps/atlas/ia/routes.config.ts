@@ -70,6 +70,14 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Auth template: opens a share link with its access code; no session needed (Section 8.6, A82).",
   "/share/{token}/file":
     "Route handler: opens a share link and sends the file, watermarked when Confidential (Section 8.6).",
+  "/share/view/{token}":
+    "Public frame: a saved view live link with its access code and device grant; no session needed (P1, ADR 0130).",
+  "/share/view/{token}/open":
+    "Route handler: opens a saved view live link with its access code and sets the device grant (P1, ADR 0130).",
+  "/share/screen/{token}":
+    "Display screen: a running order as a room clock, presenter timer or backstage screen; no session needed (P1, ADR 0130).",
+  "/share/screen/{token}/open":
+    "Route handler: opens a display screen link with its access code and sets the device grant (P1, ADR 0130).",
   "/files/{version}":
     "Route handler: a Confidential or Restricted file, logged, held to the export capability and watermarked (Section 8.6).",
   "/api/v1/openapi.json": "Public API: the generated OpenAPI document (A04, ADR 0005 item 3).",

@@ -1670,6 +1670,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Share a view live" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A saved Schedule, Show, Run of show or Day sheets view can be shared with people who have no account, such as a venue or a vendor.",
+          },
+        ],
+      },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Open the saved view, then choose " },
+            { t: "strong", v: "Share live" },
+            { t: "text", v: " in the Saved views menu." },
+          ],
+          [
+            {
+              t: "text",
+              v: "On an organization page, pick the project the link shows. Pick when the link expires, at most 90 days ahead, and add a note for your team if you like.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Copy the link and the 6-digit access code. They are shown only once; send the code separately from the link.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The person opens the link, enters the code once on their device, and sees the view update while they watch. The page shows only the columns a public page may show: never owners, accountable people, blockers, notes, costs or custom fields. A view that filters, sorts or groups by anything else cannot be shared live, and a link stops when its view is deleted or changed that way, or when you lose access to the project.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Regenerate" },
+          {
+            t: "text",
+            v: " gives the link a new address and code, and every device must enter the new code. ",
+          },
+          { t: "strong", v: "Revoke" },
+          {
+            t: "text",
+            v: " stops it for good. Five wrong codes lock a link; regenerate it to open it again.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -1968,6 +2024,59 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "The run of show is the ordered list of segments and cues for a show. Build it ahead of time, then run it live: the current cue advances in real time for everyone watching, in Atlas and in Compass.",
+          },
+        ],
+      },
+      { t: "h3", v: "Display screens" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Put the running order on any TV or laptop with no sign-in. Open the running order, choose ",
+          },
+          { t: "strong", v: "Display screens" },
+          {
+            t: "text",
+            v: ", pick the mode the screen opens in and when the link expires (by default the end of the day after the show), and copy the link and its 6-digit access code, shown only once. You need permission to edit the run of show.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Room clock" },
+            { t: "text", v: " shows the local time, the running cue and its time left." },
+          ],
+          [
+            { t: "strong", v: "Presenter timer" },
+            { t: "text", v: " counts the current cue down, or up when it has no duration." },
+          ],
+          [
+            { t: "strong", v: "Backstage" },
+            {
+              t: "text",
+              v: " shows the cue on now, the next cue with its planned time, the three after it, and whether the show is running late.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "When a cue runs past its duration the timer turns red and reads " },
+          { t: "strong", v: "Over by" },
+          {
+            t: "text",
+            v: " the time, until the next cue is called. On the screen, keys 1, 2 and 3 switch modes, ",
+          },
+          { t: "strong", v: "Open in new window" },
+          { t: "text", v: " pops the screen out to a second display, and " },
+          { t: "strong", v: "Fullscreen" },
+          {
+            t: "text",
+            v: " fills the screen. The screen follows cues within a few seconds of them being called. Revoke the link to take it off every screen.",
           },
         ],
       },
@@ -3852,6 +3961,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Comparta una vista en vivo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Una vista guardada de Calendario, Espectáculo, Guion del espectáculo u Hojas del día se puede compartir con personas sin cuenta, como un recinto o un proveedor.",
+          },
+        ],
+      },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Abra la vista guardada y elija " },
+            { t: "strong", v: "Compartir en vivo" },
+            { t: "text", v: " en el menú de vistas guardadas." },
+          ],
+          [
+            {
+              t: "text",
+              v: "En una página de la organización, elija el proyecto que muestra el enlace. Elija cuándo vence el enlace, como máximo en 90 días, y agregue una nota para su equipo si lo desea.",
+            },
+          ],
+          [
+            {
+              t: "text",
+              v: "Copie el enlace y el código de acceso de 6 dígitos. Se muestran una sola vez; envíe el código por separado del enlace.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La persona abre el enlace, escribe el código una vez en su dispositivo y ve la vista actualizarse mientras la mira. La página muestra solo las columnas que una página pública puede mostrar: nunca responsables, personas a cargo, bloqueos, notas, costos ni campos personalizados. Una vista que filtra, ordena o agrupa por otra cosa no se puede compartir en vivo, y un enlace se detiene cuando su vista se elimina o cambia así, o cuando usted pierde acceso al proyecto.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Regenerar" },
+          {
+            t: "text",
+            v: " da al enlace una dirección y un código nuevos, y cada dispositivo debe escribir el código nuevo. ",
+          },
+          { t: "strong", v: "Revocar" },
+          {
+            t: "text",
+            v: " lo detiene para siempre. Cinco códigos incorrectos bloquean un enlace; regenérelo para abrirlo de nuevo.",
+          },
+        ],
+      },
     ],
     schedule: [
       { t: "h2", v: "Línea de tiempo" },
@@ -4145,6 +4310,65 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Es la lista ordenada de segmentos y señales de un espectáculo. Prepárela con anticipación y ejecútela en vivo: la señal actual avanza en tiempo real para todos, en Atlas y en Compass.",
+          },
+        ],
+      },
+      { t: "h3", v: "Pantallas" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Muestre el guion en cualquier televisor o laptop sin iniciar sesión. Abra el guion, elija ",
+          },
+          { t: "strong", v: "Pantallas" },
+          {
+            t: "text",
+            v: ", elija el modo con el que abre la pantalla y cuándo vence el enlace (por defecto, al final del día siguiente al espectáculo), y copie el enlace y su código de acceso de 6 dígitos, que se muestran una sola vez. Necesita permiso para editar el guion.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Reloj de sala" },
+            { t: "text", v: " muestra la hora local, la señal en curso y el tiempo que le queda." },
+          ],
+          [
+            { t: "strong", v: "Temporizador de presentador" },
+            {
+              t: "text",
+              v: " cuenta hacia atrás la señal actual, o hacia adelante cuando no tiene duración.",
+            },
+          ],
+          [
+            { t: "strong", v: "Backstage" },
+            {
+              t: "text",
+              v: " muestra la señal en curso, la siguiente con su hora prevista, las tres que siguen y si el espectáculo va atrasado.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cuando una señal excede su duración, el temporizador se pone rojo y dice ",
+          },
+          { t: "strong", v: "Excedido por" },
+          {
+            t: "text",
+            v: " el tiempo, hasta que se llama la siguiente señal. En la pantalla, las teclas 1, 2 y 3 cambian de modo, ",
+          },
+          { t: "strong", v: "Abrir en una ventana nueva" },
+          { t: "text", v: " lleva la pantalla a un segundo monitor y " },
+          { t: "strong", v: "Pantalla completa" },
+          {
+            t: "text",
+            v: " la llena. La pantalla sigue las señales a los pocos segundos de llamarse. Revoque el enlace para quitarlo de todas las pantallas.",
           },
         ],
       },
