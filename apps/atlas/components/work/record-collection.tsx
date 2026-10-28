@@ -32,6 +32,7 @@ import { useScheduleView } from "./use-schedule-view";
 import { displayTimeZone } from "@xos/ui/preferences";
 import { TransitionDialog } from "./record-panels";
 import { CollectionViews } from "@/components/views/collection-views";
+import { isConditionParam } from "@/lib/views/query";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { useHoverCards } from "@/components/hover/use-hover-cards";
@@ -284,11 +285,14 @@ export function RecordCollection({
     </>
   );
 
+  // The Add filter control's conditions (A117) count as filters, and Clear removes them too.
+  const conditions = [...params.keys()].filter(isConditionParam);
   const filtered =
     filters.q !== "" ||
     filters.kinds.length > 0 ||
     filters.states.length > 0 ||
-    filters.project !== "";
+    filters.project !== "" ||
+    conditions.length > 0;
 
   let body: ReactNode;
   if (total === 0 && !filtered) {
@@ -308,7 +312,13 @@ export function RecordCollection({
         actionLabel={t("collection.clear")}
         onAction={() => {
           setSearch("");
-          go({ q: null, kind: null, state: null, project: null });
+          go({
+            q: null,
+            kind: null,
+            state: null,
+            project: null,
+            ...Object.fromEntries(conditions.map((name) => [name, null])),
+          });
         }}
       />
     );

@@ -28,6 +28,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useAssetsCopy } from "./copy";
 import { CreateDialogContext } from "./dialog";
 import { CollectionViews } from "@/components/views/collection-views";
+import { isConditionParam } from "@/lib/views/query";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import type { CustomFieldColumns } from "@/components/custom-fields/columns";
 import type { CustomFieldListView } from "@/lib/custom-fields/types";
@@ -136,7 +137,13 @@ export function AssetsCollection(props: CollectionProps) {
   };
   const byKey = new Map(props.rows.map((r) => [r.key, r]));
   const byItem = new Map(props.rows.map((r) => [itemOf(r), r]));
-  const filtered = Boolean(search.get("q") || search.get("filter"));
+  // The Add filter control's conditions (A117) count as filters, and Clear removes them too.
+  const conditions = [...search.keys()].filter(isConditionParam);
+  const filtered = Boolean(search.get("q") || search.get("filter") || conditions.length > 0);
+  const clear = () => {
+    setQ("");
+    go({ q: null, filter: null, ...Object.fromEntries(conditions.map((name) => [name, null])) });
+  };
   const refs = useMemo(
     () => props.rows.flatMap((r) => (r.id ? [{ id: r.id, label: r.title }] : [])),
     [props.rows],
@@ -235,14 +242,7 @@ export function AssetsCollection(props: CollectionProps) {
           {t("collection.apply")}
         </Button>
         {filtered ? (
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => {
-              setQ("");
-              go({ q: null, filter: null });
-            }}
-          >
+          <Button type="button" variant="ghost" onClick={clear}>
             {t("collection.clear")}
           </Button>
         ) : null}
@@ -269,10 +269,7 @@ export function AssetsCollection(props: CollectionProps) {
         icon="SearchX"
         sentence={t("collection.noMatches")}
         actionLabel={t("collection.clear")}
-        onAction={() => {
-          setQ("");
-          go({ q: null, filter: null });
-        }}
+        onAction={clear}
       />
     );
   } else {
