@@ -15,6 +15,7 @@ import {
   chordOf,
   displayKeys,
   effectiveBindings,
+  isCharacterKey,
   isModifierChord,
   isValidKeys,
   keysClash,
@@ -98,6 +99,40 @@ describe("shortcut registry", () => {
       "undo",
       "redo",
     ]);
+  });
+
+  it("gives the showcaller console a keyboard family and a Stream Deck family (ADR 0131)", () => {
+    const atlas = registry.shells.atlas;
+    expect(atlas.scopes).toContain("show");
+    expect(atlas.groups.map((g) => g.id)).toEqual(expect.arrayContaining(["show", "show-deck"]));
+    const keysOf = (group: string) =>
+      Object.fromEntries(atlas.shortcuts.filter((x) => x.group === group).map((x) => [x.id, x.keys]));
+    expect(keysOf("show")).toEqual({
+      "show.go": "Space",
+      "show.next": "J",
+      "show.previous": "K",
+      "show.standby": "S",
+      "show.jump": "T",
+      "show.nudge-later": "]",
+      "show.nudge-earlier": "[",
+      "show.department": "D",
+    });
+    expect(keysOf("show-deck")).toEqual({
+      "show.deck.go": "F13",
+      "show.deck.standby": "F14",
+      "show.deck.previous": "F15",
+      "show.deck.next": "F16",
+      "show.deck.nudge-later": "F17",
+      "show.deck.nudge-earlier": "F18",
+      "show.deck.jump": "F19",
+      "show.deck.department": "F20",
+    });
+    expect(atlas.shortcuts.find((x) => x.id === "show.go")?.fixed).toBe(true);
+    for (const x of atlas.shortcuts.filter((y) => y.scope === "show")) {
+      expect(x.scope).toBe("show");
+      expect(scopesMeet("show", "list")).toBe(false);
+      expect(scopesMeet("show", "inbox")).toBe(false);
+    }
   });
 
   it("refuses defaults that clash where their scopes meet", () => {
@@ -212,6 +247,41 @@ describe("key grammar", () => {
     expect(isModifierChord("Shift+K")).toBe(false);
     expect(isModifierChord("G H")).toBe(false);
     expect(isModifierChord("nope")).toBe(false);
+  });
+
+  it("accepts F13 to F20, which are not reserved, and tells character keys from function keys", () => {
+    for (let n = 13; n <= 20; n += 1) {
+      const key = `F${n}`;
+      expect(isValidKeys(key), key).toBe(true);
+      expect(isValidKeys(`Shift+${key}`), key).toBe(true);
+      expect(chordOf(press(key), "mac")).toBe(key);
+      expect(chordOf(press(key), "other")).toBe(key);
+      for (const r of registry.reserved) {
+        for (const platform of ["mac", "other"] as const) {
+          if (r.platform === undefined || r.platform === platform) {
+            expect(matchesReserved(key, r.keys, platform), `${key} ${r.keys}`).toBe(false);
+          }
+        }
+      }
+    }
+    expect(isValidKeys("F21")).toBe(false);
+    expect(isCharacterKey("J")).toBe(true);
+    expect(isCharacterKey("Shift+J")).toBe(true);
+    expect(isCharacterKey("]")).toBe(true);
+    expect(isCharacterKey("G H")).toBe(true);
+    expect(isCharacterKey("F13")).toBe(false);
+    expect(isCharacterKey("Space")).toBe(false);
+    expect(isCharacterKey("Mod+K")).toBe(false);
+    expect(isCharacterKey("nope")).toBe(false);
+  });
+
+  it("lets a person bind a show key to a function key", () => {
+    const current = (platform: Platform) => effectiveBindings(registry.shells.atlas, {}, platform);
+    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "Shift+F13")).toBeNull();
+    expect(bindingProblem(registry, "atlas", current, "show.next", "F15")).toMatchObject({ kind: "conflict" });
+    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F21")).toEqual({ kind: "invalid" });
+    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F12")).toMatchObject({ kind: "reserved" });
+    expect(bindingProblem(registry, "atlas", current, "show.deck.go", "F14")).toMatchObject({ kind: "conflict" });
   });
 
   it("turns key presses into chords on each platform", () => {

@@ -27,7 +27,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { transitionRecordAction } from "./actions";
-import { formatScheduleTime, formatWhen, stateToken, withQuery } from "./format";
+import { formatScheduleTime, formatStartTime, formatWhen, stateToken, withQuery } from "./format";
 import { useScheduleView } from "./use-schedule-view";
 import { displayTimeZone } from "@xos/ui/preferences";
 import { TransitionDialog } from "./record-panels";
@@ -158,7 +158,12 @@ export function RecordCollection({
       r.startsAt && r.startsAt > new Date().toISOString()
         ? r.startsAt
         : (r.dueAt ?? r.endsAt ?? r.startsAt);
-    return when(at, r.timeZone ?? r.projectTimeZone);
+    // A start to be confirmed reads "TBC · est. <time>" (G-40); it still sorts by the estimate.
+    return at === r.startsAt
+      ? formatStartTime(at, r.startTbc, locale, r.timeZone ?? r.projectTimeZone, zoneView, "dateTime", (time) =>
+          t("values.tbcEstimate", { time }),
+        )
+      : when(at, r.timeZone ?? r.projectTimeZone);
   };
   const byId = new Map(records.map((r) => [r.id, r]));
   // A record's menu, the same in every view (Section 11.7).

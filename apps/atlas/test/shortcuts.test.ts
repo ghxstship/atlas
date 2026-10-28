@@ -6,6 +6,7 @@ import { allCapabilities, grantsByRole, loadCapabilityRegistry } from "@xos/sche
 import { SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
 import { sitemap } from "../ia/sitemap.generated";
 import { installShellKeys, type KeyState } from "../components/shell/key-dispatch";
+import { showActionOf, showKeyAction } from "../components/show/show-keys";
 import { CREATE_KINDS, createItems } from "../lib/shell/create-menu";
 import { orderForPage, type CreateItem } from "../lib/shell/create-order";
 import { buildShellNav, orderByLayout, sidebarNodeIds } from "../lib/shell/nav-model";
@@ -120,6 +121,63 @@ describe("shell keys for one person", () => {
     expect(viewer.go).not.toHaveProperty("go.finance");
     expect(viewer.go).not.toHaveProperty("go.logistics");
     expect(viewer.go).toHaveProperty("go.home");
+  });
+});
+
+describe("showcaller console keys (ADR 0131)", () => {
+  const scoped = buildShellKeys(SHORTCUT_REGISTRY, {
+    platform: "other",
+    custom: {},
+    goTargets: goTargets("owner"),
+  }).scoped;
+
+  it("gives the console the show scope's keyboard and Stream Deck keys", () => {
+    expect(scoped["show.next"]).toBe("J");
+    expect(scoped["show.deck.go"]).toBe("F13");
+    expect(scoped["show.deck.department"]).toBe("F20");
+    const actions: [string, string][] = [
+      ["F13", "go"],
+      ["F14", "standby"],
+      ["F15", "previous"],
+      ["F16", "next"],
+      ["F17", "nudge-later"],
+      ["F18", "nudge-earlier"],
+      ["F19", "jump"],
+      ["F20", "department"],
+      ["J", "next"],
+      ["K", "previous"],
+      ["S", "standby"],
+      ["T", "jump"],
+      ["]", "nudge-later"],
+      ["[", "nudge-earlier"],
+      ["D", "department"],
+    ];
+    for (const [chord, action] of actions) expect(showKeyAction(chord, scoped, true), chord).toBe(action);
+  });
+
+  it("answers function keys with single-key shortcuts off, and leaves letters and symbols alone", () => {
+    expect(showKeyAction("J", scoped, false)).toBeNull();
+    expect(showKeyAction("]", scoped, false)).toBeNull();
+    expect(showKeyAction("F15", scoped, false)).toBe("previous");
+    expect(showKeyAction("F16", scoped, false)).toBe("next");
+  });
+
+  it("leaves Space to RunOfShowLive and ignores keys of other scopes", () => {
+    expect(showKeyAction("Space", scoped, true)).toBeNull();
+    expect(showKeyAction("A", scoped, true)).toBeNull();
+    expect(showKeyAction("X", scoped, true)).toBeNull();
+    expect(showActionOf("inbox.approve")).toBeNull();
+    expect(showActionOf("show.deck.jump")).toBe("jump");
+  });
+
+  it("follows the person's own bindings", () => {
+    const custom = buildShellKeys(SHORTCUT_REGISTRY, {
+      platform: "other",
+      custom: { "show.deck.go": "Shift+F13" },
+      goTargets: goTargets("owner"),
+    }).scoped;
+    expect(showKeyAction("F13", custom, true)).toBeNull();
+    expect(showKeyAction("Shift+F13", custom, false)).toBe("go");
   });
 });
 

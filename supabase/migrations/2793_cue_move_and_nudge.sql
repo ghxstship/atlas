@@ -10,6 +10,8 @@
 --     an hour either way. The showcaller (show.cue.call) may nudge as well as an editor (show.run_of_show.write);
 --     capabilities.yaml describes show.cue.call accordingly. A later cue bump extends this function rather than adding
 --     a second one.
+--   * The description of show.cue.call says so. The generator rewrites 0203 for a fresh database; this update brings
+--     a database where 0203 already ran to the same text.
 
 create or replace function app.move_cue(p_cue_id uuid, p_to_position integer)
 returns integer
@@ -107,3 +109,7 @@ comment on function app.shift_cue_plan(uuid, integer) is 'Nudges the planned tim
 
 revoke all on function app.shift_cue_plan(uuid, integer) from public, anon;
 grant execute on function app.shift_cue_plan(uuid, integer) to authenticated, service_role;
+
+update app.capabilities
+set description = 'Call cues live during a show: go, standby and nudging the remaining planned times.'
+where code = 'show.cue.call';

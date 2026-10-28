@@ -10,7 +10,7 @@ import { Constants, type Database } from "./database.types.ts";
 export type CueCallKind = Database["app"]["Enums"]["cue_call_kind"];
 
 /** The departments, in enum order: the order a cue's calls are listed in. */
-export const CUE_CALL_KINDS: readonly CueCallKind[] = Constants.app.Enums.cue_call_kind;
+export const CUE_CALL_KINDS = Constants.app.Enums.cue_call_kind;
 
 /** Catalog slug of each department, for copy keys and the `dept=` URL parameter. */
 export const CUE_CALL_SLUGS: Readonly<Record<CueCallKind, string>> = {

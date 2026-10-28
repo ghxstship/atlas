@@ -27,6 +27,8 @@ export interface ShellPeekRecord {
   readonly ownerName: string | null;
   readonly phaseCode: string | null;
   readonly startsAt: string | null;
+  /** True while the start is an estimate to be confirmed (TBC). */
+  readonly startTbc: boolean;
   readonly endsAt: string | null;
   readonly dueAt: string | null;
   readonly timeZone: string | null;
@@ -98,6 +100,7 @@ export async function loadShellPeekAction(
       ownerName: r.ownerName,
       phaseCode: r.phaseCode,
       startsAt: r.startsAt,
+      startTbc: r.startTbc,
       endsAt: r.endsAt,
       dueAt: r.dueAt,
       timeZone: r.timeZone ?? r.projectTimeZone,
