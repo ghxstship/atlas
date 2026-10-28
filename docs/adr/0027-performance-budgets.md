@@ -91,3 +91,54 @@ The next reductions, if a page needs them: the root error and not-found boundari
 own copy of Button, Icon and Kbd (about 5 KB on every page), because Turbopack does not share
 modules between boundaries above the org layout; and the collection view switcher's Radix toggle
 group (6 KB).
+
+## Amendment (2026-10-28): measured as Lighthouse measures, on every signed-in route (A144)
+
+The nightly Lighthouse run failed Atlas Projects, Inbox and project overview at 207 to 212 KB of
+script (RRR-120) while `budget:js` passed them at 198 KB. The two counted different things, and
+the gate caught the regression a night late. Decision 1 now reads:
+
+1. **Route JavaScript is counted in bytes on the wire, as Lighthouse counts it.** `budget:js`
+   gzips each chunk at zlib's default level, as `next start` sends it, and adds each response's
+   headers and chunked framing (395 bytes plus about 12 per 16 KiB): within 6 bytes of Lighthouse's
+   `transferSize` for each script. Level-9 gzip without headers had read 3 to 6 KB low on a
+   signed-in page of 10 to 13 chunks. A chunk now costs its headers too, so fewer chunks weigh
+   less.
+2. **The journeys jobs also measure the served pages.** `budget:js -- --served` loads each key
+   page cold in Chromium, signed in as its demo person, and counts every script fetched until the
+   network is quiet for a second. That includes what manifests cannot show: the shell's key handler,
+   fetched after hydration on every signed-in page (3 KB), and a module a page renders open (Crew
+   Shifts' quick add, 21 KB, which read 187 KB in the manifests and 220 KB in Lighthouse).
+3. **The nightly visits every signed-in route, and `budget:js` reads every one.** The routes come
+   from the generated sitemaps, each visited once by the first demo person who may open it, with
+   seeded rows in its params (`packages/testing/src/lighthouse-routes.ts`), plus the public key
+   pages, one app per runner. Every page carries the gate 10 budgets. A route measured over 200 KB
+   of script holds a ceiling in `bundle-ceilings.json` (measured plus 3 KB, by decision 1), which
+   lhci asserts for that URL alone and `budget:js` checks on every push; a ceiling only moves down,
+   and the key pages hold none. The routes over budget and their causes are in
+   `legal/qa/performance-results.md`.
+4. **What loads with a page is what the page shows.** Code for something a page shows only after an
+   interaction or in some states loads then, and a server component never imports such a client
+   component directly, since the client reference manifest ships every client component a server
+   component imports, rendered or not:
+   - The server shell builds the first page's breadcrumbs and help node from the full sitemap. The
+     client sitemap loads with the first pointer press, key or focus, ahead of any client
+     navigation (`components/shell/route-trail.ts`).
+   - The shell's peek loads when the URL has `?peek` (`shell-peek-gate.tsx`); the activity feeds
+     link a peek without the sitemap (`lib/shell/peek-link.ts`).
+   - Not-found and loading boundaries render on the server from `@xos/ui/static`, hook-free
+     components (TemplateSystemLink, Skeleton), and send no JavaScript.
+   - The ownership offer's actions load on the banner that shows them, and the quick add's date
+     parser (chrono-node, English and Spanish) with the field's focus or first character.
+5. **The browser target is the latest two major versions** of Chrome, Edge, Firefox, Safari and
+   Safari on iOS and iPadOS: the root `package.json` browserslist, which every Next.js build reads
+   (Section 4.10). The Playwright configs name `ios-safari` and `ipados-safari`, WebKit's iPhone and
+   iPad, for the phone and tablet journeys.
+6. **10,000 rows scroll at 60 fps, checked in Chromium.** `packages/ui/test/visual/frame-timing.spec.ts`
+   scrolls a 10,000-row DataTable story by 48 px a frame for 240 frames and holds the p95 frame
+   time to 16.7 ms, with 1 ms for timestamp rounding and jitter (never a missed frame). It runs
+   with the visual suite on every push.
+
+Data stays out of this: the en-US `ui` catalog and the client sitemap are not moved into the page
+payload to pass the script budget, since script chunks are cached as immutable and page payloads are
+sent again on every full load.
