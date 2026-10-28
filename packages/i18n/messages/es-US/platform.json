@@ -663,6 +663,11 @@
       },
       "content": {
         "removed": "Se eliminó tu contenido"
+      },
+      "roster_entry": {
+        "invited": "Incluido en una lista de equipo",
+        "returned": "Entrada de la lista devuelta",
+        "declined": "Entrada de la lista rechazada"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

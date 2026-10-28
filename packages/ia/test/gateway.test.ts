@@ -21,7 +21,9 @@ const label = (id: string) => labelOf(indexSitemap(gateway).byId.get(id)?.node.l
 
 /**
  * Section 4.5.8 engagement tabs by role type, in order. Crew and Staff add Invoices after Timesheets
- * (A43, finding A38-007), where an individual agrees to self-billing and follows pay.
+ * (A43, finding A38-007), where an individual agrees to self-billing and follows pay. The crew roster tab
+ * Crew (R4, ADR 0100) follows Advance, Deliverables, Onboarding or Activation Schedule; it renders only for
+ * roster managers (condition roster-manager).
  */
 const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, string[]> = {
   client: [
@@ -42,13 +44,14 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Deliveries",
     "Submittals",
     "Advance",
+    "Crew",
     "Credentials",
     "Invoices",
     "Compliance",
     "Documents",
     "Messages",
   ],
-  contractor: ["Overview", "Scope", "Deliverables", "Time", "Invoices", "Documents", "Messages"],
+  contractor: ["Overview", "Scope", "Deliverables", "Crew", "Time", "Invoices", "Documents", "Messages"],
   crew: [
     "Overview",
     "Offer",
@@ -66,6 +69,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Overview",
     "Offer",
     "Onboarding",
+    "Crew",
     "Training",
     "Positions",
     "Shifts",
@@ -79,6 +83,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Overview",
     "Offer",
     "Advance",
+    "Crew",
     "Rider",
     "Set Times",
     "Hospitality",
@@ -93,6 +98,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Entitlements",
     "Asset Approvals",
     "Activation Schedule",
+    "Crew",
     "Proof of Performance",
     "Invoices",
     "Documents",
@@ -240,6 +246,7 @@ describe("gateway engagement tabs (Section 4.5.8)", () => {
       "Roster",
       "Overview",
       "Advance",
+      "Crew",
       "Rider",
       "Set Times",
       "Hospitality",

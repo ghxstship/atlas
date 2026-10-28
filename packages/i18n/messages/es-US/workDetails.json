@@ -221,5 +221,7 @@
     "offline": "Tus datos de trabajo se cargan cuando tienes conexión.",
     "failed": "Tus datos de trabajo no se cargaron. Vuelve a abrir tu perfil para reintentar.",
     "noSizes": "Aún no hay tallas de uniforme."
-  }
+  },
+  "allergiesOnFile": "Registradas",
+  "allergiesMasked": "Hay alergias registradas. Solo las ven quienes tienen el permiso médico."
 }

@@ -209,6 +209,10 @@ export const CONDITIONS = [
   "offered-per-diem",
   "offered-hospitality",
   "offered-guest-list",
+  // Gateway, per engagement (R4, ADR 0101): the caller manages the engagement's crew roster: its roster area is open to
+  // them (the engaged person, the account's Owner or Admin, an Advancing Lead, an Advance representative) and it is
+  // rosterable.
+  "roster-manager",
 ] as const;
 export type Condition = (typeof CONDITIONS)[number];
 

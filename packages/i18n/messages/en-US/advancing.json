@@ -68,7 +68,11 @@
     "guest_entry_stamped": "Decision and check-in times are set automatically.",
     "sod_guest_requester": "You requested this guest, so someone else must approve or decline them.",
     "rider_engagement_artist": "A rider can belong to an artist booked as a person whose engagement is still open. Choose another artist or an organization.",
-    "same_project": "That artist is engaged on another project. Choose an artist on this rider's project."
+    "same_project": "That artist is engaged on another project. Choose an artist on this rider's project.",
+    "sod_roster_reviewer": "Someone other than the person who added or submitted an entry reviews it.",
+    "roster_entry_not_submitted": "Only a submitted entry is reviewed. Reload to see its current state.",
+    "roster_review_reason": "Say what to change, in 1 to 500 characters.",
+    "roster_review_outcome": "Accept or return the entry."
   },
   "projectTab": {
     "scope": "Advancing for {key} · {name}.",
@@ -409,5 +413,41 @@
       "edit": "Edit {name}",
       "remove": "Remove {name}"
     }
+  },
+  "crew": {
+    "sentence": "The people each party puts on its engagements. Accept or return each submitted entry.",
+    "empty": "No party has put anyone on a roster yet.",
+    "columns": {
+      "person": "Person",
+      "party": "Party",
+      "role": "Role",
+      "arrival": "Arrival",
+      "state": "Entry state",
+      "response": "Response",
+      "shared": "Profile shared"
+    },
+    "responses": {
+      "pending": "Not answered",
+      "accepted": "Accepted",
+      "declined": "Declined"
+    },
+    "states": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "accepted": "Accepted",
+      "returned": "Returned",
+      "withdrawn": "Withdrawn"
+    },
+    "invited": "Invited: {email}",
+    "self": "Engaged person",
+    "shared": "{n, plural, =0 {None} one {# category} other {# categories}}",
+    "accept": "Accept",
+    "return": "Return",
+    "returnTitle": "Return {name}",
+    "returnReason": "What should change",
+    "returnSubmit": "Return entry",
+    "cancel": "Cancel",
+    "profileTitle": "Shared profile",
+    "noArrival": "Not set"
   }
 }

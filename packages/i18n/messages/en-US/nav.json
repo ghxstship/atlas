@@ -41,7 +41,8 @@
         "packets": "Packets",
         "submissions": "Submissions",
         "riders": "Riders",
-        "reconciliation": "Reconciliation"
+        "reconciliation": "Reconciliation",
+        "crew": "Crew Roster"
       },
       "places": {
         "venues": "Venues",
@@ -398,7 +399,8 @@
       "reports": "Reports",
       "invoices": "Invoices",
       "documents": "Documents",
-      "messages": "Messages"
+      "messages": "Messages",
+      "crew": "Crew"
     },
     "avatar": {
       "settings": "Settings",
