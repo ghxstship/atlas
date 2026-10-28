@@ -39671,7 +39671,7 @@
           "type": "timestamp with time zone"
         }
       ],
-      "comment": "A stricter separation of duties option the org switched on (Section 8.2, ADR 0107). Only options can have a row; the built-in rules hold for every org and are never switched. Switching an option off soft-deletes its row. Set in Settings, Separation of Duties.",
+      "comment": "A stricter separation of duties option the org switched on (Section 8.2, ADR 0113). Only options can have a row; the built-in rules hold for every org and are never switched. Switching an option off soft-deletes its row. Set in Settings, Separation of Duties.",
       "kind": "table",
       "name": "org_separation_of_duties_options",
       "partitioned": false,
@@ -58421,7 +58421,7 @@
           "type": "text"
         }
       ],
-      "comment": "The stricter separation of duties options an org may switch on (Section 8.2, ADR 0107). Which are on is app.org_separation_of_duties_options.",
+      "comment": "The stricter separation of duties options an org may switch on (Section 8.2, ADR 0113). Which are on is app.org_separation_of_duties_options.",
       "kind": "view",
       "name": "separation_of_duties_options",
       "partitioned": false,
