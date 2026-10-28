@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   access,
   certificationsUrl,
+  documentsUrl,
   elsewhereLink,
   moreMenu,
   moreSections,
@@ -221,6 +222,8 @@ describe("navigation from the sitemap", () => {
     });
     expect(certificationsUrl("crew", urls)).toBe("https://gateway.test/profile");
     expect(certificationsUrl("field", urls)).toBe("https://atlas.test/");
+    expect(documentsUrl("vendor", urls)).toBe("https://gateway.test/documents");
+    expect(documentsUrl("field", urls)).toBe("https://atlas.test/");
   });
 
   it("reads scan modes and Today blocks per role", () => {

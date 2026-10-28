@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
-import { expect, test } from "./engine-test";
+import { apiPost, DEMO_ORG, signInAs } from "./a36-support";
+import { expect, settle, test } from "./engine-test";
 import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
 
 /**
@@ -9,6 +10,10 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
  * default (4.5.2). Each journey signs up a new person with their own org, so nothing it changes
  * reaches another journey. Keys are pressed only once html[data-shell-ready] says the shell's key
  * handler listens.
+ *
+ * A115 (RRR-160, Section 11.2 and 11.7) adds J and K in tables, X and Shift+X selection in lists,
+ * boards and the Inbox, and record menus by keyboard, on the demo tenant: it selects but changes
+ * nothing it did not create, and withdraws what it created.
  */
 test.use({ reducedMotion: "reduce" });
 // Sign-up, a new org and a first visit to each page take a while under next dev.
@@ -197,4 +202,147 @@ test("a person hides a sidebar item and moves a group by keyboard, then resets t
   );
   await expect(main.locator("h2 button").first()).toHaveText("Production");
   await expect(main.locator(`a[href="/${slug}/advancing"]`)).toHaveCount(1);
+});
+
+test("J and K move through a table, X and Shift+X select list rows and board cards, and Esc clears", async ({
+  page,
+}) => {
+  await signInAs(page, "owner@example.com", DEMO_ORG);
+  const records = `/${DEMO_ORG}/work/all-records`;
+
+  // A table moves between rows with J and K as with the arrow keys.
+  await page.goto(`${records}?view=table`);
+  await settle(page);
+  const keys = page.getByRole("grid").locator('td[data-column="key"]');
+  await keys.first().focus();
+  await page.keyboard.press("j");
+  await expect(keys.nth(1)).toBeFocused();
+  await page.keyboard.press("j");
+  await expect(keys.nth(2)).toBeFocused();
+  await page.keyboard.press("k");
+  await expect(keys.nth(1)).toBeFocused();
+
+  // A list selects with X and Shift+X and shows the bulk bar with the count.
+  await page.goto(`${records}?view=list`);
+  await settle(page);
+  const list = page.getByRole("grid").first();
+  const rows = list.locator("[data-row]");
+  await list.focus();
+  await expect(rows.first()).toBeFocused();
+  await page.keyboard.press("x");
+  const bar = page.getByRole("toolbar", { name: "Bulk actions" });
+  await expect(bar).toContainText("1 selected");
+  await page.keyboard.press("j");
+  await page.keyboard.press("j");
+  await page.keyboard.press("Shift+X");
+  await expect(bar).toContainText("3 selected");
+  await expect(rows.nth(1)).toHaveAttribute("aria-selected", "true");
+  await expect(rows.nth(1).getByRole("checkbox")).toBeChecked();
+  await expect(bar.getByRole("button", { name: "Change State" })).toBeVisible();
+  await expectAccessible(page);
+  // A row's menu opens by Shift+F10 and offers to deselect it.
+  await page.keyboard.press("Shift+F10");
+  const menu = page.getByRole("menu", { name: /^Actions for / });
+  await expect(menu).toBeVisible();
+  await expect(menu.getByRole("menuitem", { name: /Deselect/ })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(menu).toBeHidden();
+  await expect(rows.nth(2)).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(bar).toBeHidden();
+
+  // A board card selects with X too.
+  await page.goto(`${records}?view=board`);
+  await settle(page);
+  const card = page.locator("article[data-item]").first();
+  await card.focus();
+  await page.keyboard.press("x");
+  await expect(bar).toContainText("1 selected");
+  await expect(card).toContainText("Selected");
+  await card.click({ button: "right" });
+  await expect(menu.getByRole("menuitem", { name: /Deselect/ })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await card.focus();
+  await page.keyboard.press("Escape");
+  await expect(bar).toBeHidden();
+});
+
+test("the Inbox selects with X and snoozes the selection at once", async ({ browser, baseURL }) => {
+  const base = baseURL as string;
+  // The Producer asks the Admin to approve two purchase orders of unusual amounts.
+  const producer = await (await browser.newContext()).newPage();
+  await signInAs(producer, "producer@example.com", DEMO_ORG);
+  const vendors = (await (await producer.request.get("/api/v1/vendors?limit=50")).json()) as {
+    data: { id: string; vendor_state: string }[];
+  };
+  const vendor = vendors.data.find((v) => v.vendor_state === "Active");
+  expect(vendor, "an Active demo vendor").toBeTruthy();
+  const approvals: string[] = [];
+  const cents = 31_400 + (Date.now() % 50) * 2;
+  try {
+    for (const price of [cents, cents + 1]) {
+      const po = await apiPost(producer.request, base, "/purchase-orders", {
+        project_id: "01920000-0000-7000-8000-000000001001",
+        vendor_id: vendor?.id,
+        currency_code: "USD",
+      });
+      await apiPost(producer.request, base, "/po-lines", {
+        purchase_order_id: po["id"],
+        description: "Inbox selection",
+        quantity: 1,
+        unit_price_minor: price,
+      });
+      const approval = await apiPost(producer.request, base, "/approval-instances", {
+        document_type: "Purchase Order",
+        document_id: po["id"],
+      });
+      approvals.push(String(approval["id"]));
+    }
+
+    const admin = await (await browser.newContext()).newPage();
+    await signInAs(admin, "admin@example.com", DEMO_ORG);
+    await admin.goto(`/${DEMO_ORG}/inbox`);
+    await settle(admin);
+    const amount = (c: number) => `$${(c / 100).toFixed(2)}`;
+    const first = admin.locator("[data-inbox-item]").filter({ hasText: amount(cents) });
+    const second = admin.locator("[data-inbox-item]").filter({ hasText: amount(cents + 1) });
+    await expect(first).toBeVisible();
+    await first.focus();
+    await admin.keyboard.press("x");
+    const bar = admin.getByRole("toolbar", { name: "Bulk actions" });
+    await expect(bar).toContainText("1 selected");
+    await second.focus();
+    await admin.keyboard.press("x");
+    await expect(bar).toContainText("2 selected");
+    await expect(first.getByRole("checkbox")).toBeChecked();
+    await expectAccessible(admin);
+    // Esc clears; Cmd or Ctrl+click selects again.
+    await admin.keyboard.press("Escape");
+    await expect(bar).toBeHidden();
+    await first
+      .locator("p")
+      .first()
+      .click({ modifiers: ["ControlOrMeta"] });
+    await second
+      .locator("p")
+      .first()
+      .click({ modifiers: ["ControlOrMeta"] });
+    await expect(bar).toContainText("2 selected");
+    await bar.getByRole("button", { name: /Snooze/ }).click();
+    await expect(admin.getByText("2 items handled this visit.")).toBeVisible();
+    await expect(first).toHaveCount(0);
+    await expect(second).toHaveCount(0);
+    await admin.context().close();
+  } finally {
+    // Leave the demo tenant as it was: the requester withdraws the approvals this run opened.
+    for (const approval of approvals) {
+      await producer.request
+        .post(`/api/v1/approval-instances/${approval}/cancel`, {
+          data: { reason: "A115 Inbox selection test data withdrawn." },
+          headers: { Origin: base, "Idempotency-Key": `a115-withdraw-${approval}` },
+        })
+        .catch(() => undefined);
+    }
+    await producer.context().close();
+  }
 });

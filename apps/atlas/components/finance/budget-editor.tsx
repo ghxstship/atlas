@@ -36,7 +36,7 @@ import {
 } from "@/app/[org]/finance/actions";
 import { parsePastedLines } from "@/lib/finance/paste";
 import { propertyEdit, softDelete } from "@/components/undo/entries";
-import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
+import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { ActionFeedback } from "./kit-action-feedback";
 import { fieldError } from "./kit-field-error";
 import { useFinanceT } from "./kit-use-finance-t";

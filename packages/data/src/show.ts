@@ -1,4 +1,4 @@
-import type { XosClient } from "./client.ts";
+import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -296,6 +296,79 @@ export async function callCue(db: XosClient, cueId: string): Promise<Result<{ ca
   return ok({ calledAt: String(data) });
 }
 
+// Set times: cues linked to artist engagements (migration 0760) ------------------------------------------
+
+/** A cue marked as an artist's set time (app.engagement_cues). */
+export interface CueEngagement {
+  readonly id: string;
+  readonly cueId: string;
+  readonly engagementId: string;
+  /** The artist's name; null when the person row is hidden. */
+  readonly personName: string | null;
+}
+
+/** The set times of one running order's cues. */
+export async function listCueEngagements(
+  db: XosClient,
+  runOfShowId: string,
+): Promise<Result<CueEngagement[]>> {
+  const { data, error } = await db
+    .from("engagement_cues")
+    .select(
+      "id, cue_id, engagement_id, cue:cues!engagement_cues_cue_id_fkey!inner(run_of_show_id), engagement:engagements!engagement_cues_engagement_id_fkey(person:people!engagements_person_id_fkey(full_name))",
+    )
+    .eq("cue.run_of_show_id", runOfShowId)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data as unknown as CueEngagementRow[]).map((r) => ({
+      id: r.id,
+      cueId: r.cue_id,
+      engagementId: r.engagement_id,
+      personName: r.engagement?.person?.full_name ?? null,
+    })),
+  );
+}
+
+/** org_id comes from the engagement (ADR 0002 tenant guards). */
+type EngagementCueInsert = Database["app"]["Tables"]["engagement_cues"]["Insert"];
+
+interface CueEngagementRow {
+  id: string;
+  cue_id: string;
+  engagement_id: string;
+  engagement: { person: { full_name: string | null } | null } | null;
+}
+
+/**
+ * Marks a cue as an artist's set time. Only (engagement_id, cue_id) are written, as the column grant
+ * allows; the database refuses engagement_cue_artist_only and engagement_cue_project_mismatch, and a
+ * cue already linked to the engagement comes back as a conflict.
+ */
+export async function linkCueToEngagement(
+  db: XosClient,
+  input: { readonly cueId: string; readonly engagementId: string },
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await db
+    .from("engagement_cues")
+    .insert({ engagement_id: input.engagementId, cue_id: input.cueId } as EngagementCueInsert)
+    .select("id")
+    .single();
+  if (error) return fail(toDataError(error));
+  return ok({ id: data.id });
+}
+
+/** Removes a set time (soft delete). */
+export async function unlinkCueEngagement(db: XosClient, id: string): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("engagement_cues")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
 export interface CueProgress {
   /** Index of the last called cue, or -1 before the first call. */
   readonly current: number;
@@ -438,6 +511,7 @@ export async function publishSheet(
   return (data as unknown[]).length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
+/** Moves a day sheet or call sheet to Trash (a soft delete, restorable for its retention period). */
 export async function deleteSheet(
   db: XosClient,
   table: "day_sheets" | "call_sheets",
@@ -447,6 +521,25 @@ export async function deleteSheet(
     .from(table)
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/**
+ * Restores a sheet from Trash: the Undo of deleteSheet (Section 11.7). A live sheet for the same
+ * project day, saved since, is refused by the one-sheet-a-day index as a conflict.
+ */
+export async function restoreSheet(
+  db: XosClient,
+  table: "day_sheets" | "call_sheets",
+  id: string,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from(table)
+    .update({ deleted_at: null })
+    .eq("id", id)
+    .not("deleted_at", "is", null)
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });

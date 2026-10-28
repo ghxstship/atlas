@@ -4,6 +4,7 @@ import { connectorRegistry } from "../src/framework/connector.ts";
 import { IntegrationError } from "../src/framework/errors.ts";
 import { runIntegrationJobs, supabaseJobQueue, type JobQueue } from "../src/framework/runner.ts";
 import { supabaseIntegrationStore } from "../src/framework/store.ts";
+import { clientCredentialSecret } from "../src/framework/support.ts";
 import { dbError, okData, recordingDb, scriptedHttp } from "./doubles.ts";
 
 const runRow = (overrides: Record<string, unknown> = {}) => ({
@@ -218,6 +219,59 @@ describe("integration job runner", () => {
       { jobId: "job-1", runId: "run-1", result: "failed", code: "runner_error" },
     ]);
     expect(finished).toEqual([{ id: "job-1", succeeded: false, error: "connection lost" }]);
+  });
+
+  it("hands UPS its stored client pair, and fails an OAuth connection that stored one", async () => {
+    const pair = clientCredentialSecret("ups-cid", "ups-sec1");
+    const seen: unknown[] = [];
+    const connector = (provider: "ups" | "xero", scope: "Tracking Refresh" | "Ledger Export") =>
+      ({
+        provider,
+        scopes: [scope],
+        async sync(context) {
+          seen.push(context.credential);
+          return { counts: { read: 0, written: 0, skipped: 0, failed: 0 }, cursorAfter: null };
+        },
+      }) satisfies Connector;
+    const ups = recordingDb({
+      "rpc:claim_integration_sync": [okData(runRow({ sync_scope: "Tracking Refresh" }))],
+      "from:integration_connections": [okData(connectionRow("ups"))],
+      "rpc:read_integration_credential": [okData(pair)],
+      "from:integration_sync_runs": [okData([])],
+      "rpc:complete_integration_sync": [okData(null)],
+    });
+    const upsOutcomes = await runIntegrationJobs({
+      queue: queueWith([{ id: "job-1", subjectId: "run-1" }]).queue,
+      store: supabaseIntegrationStore(ups.db),
+      connectors: connectorRegistry([connector("ups", "Tracking Refresh")]),
+      http: scriptedHttp([]).http,
+      worker: "w",
+    });
+    expect(upsOutcomes).toEqual([{ jobId: "job-1", runId: "run-1", result: "succeeded" }]);
+    expect(seen).toEqual([
+      { token: "", fields: { client_id: "ups-cid", client_secret: "ups-sec1" } },
+    ]);
+
+    const xero = recordingDb({
+      "rpc:claim_integration_sync": [okData(runRow())],
+      "from:integration_connections": [okData(connectionRow("xero"))],
+      "rpc:read_integration_credential": [okData(pair)],
+      "rpc:fail_integration_sync": [okData("Failed")],
+    });
+    const xeroOutcomes = await runIntegrationJobs({
+      queue: queueWith([{ id: "job-2", subjectId: "run-1" }]).queue,
+      store: supabaseIntegrationStore(xero.db),
+      connectors: connectorRegistry([connector("xero", "Ledger Export")]),
+      http: scriptedHttp([]).http,
+      worker: "w",
+    });
+    expect(xeroOutcomes).toEqual([
+      { jobId: "job-2", runId: "run-1", result: "failed", code: "credential_malformed" },
+    ]);
+    expect(seen).toHaveLength(1);
+    expect(
+      xero.calls.find((c) => c.target === "rpc:fail_integration_sync")?.steps[0]?.[1],
+    ).toMatchObject([{ p_error_code: "credential_malformed", p_connection_error: true }]);
   });
 
   it("runs a credential-free connector without reading Vault", async () => {

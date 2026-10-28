@@ -27,6 +27,7 @@ import type { Route } from "next";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { ConflictDialog } from "@/components/undo/conflict-dialog";
 import {
   changedFields,
@@ -35,7 +36,6 @@ import {
   toggle,
   type FieldValue,
 } from "@/components/undo/entries";
-import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
 import type { ActionResult } from "./action-result";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import {

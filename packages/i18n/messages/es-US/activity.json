@@ -219,6 +219,7 @@
     "journal_entry": "un asiento contable",
     "journal_line": "una línea de asiento",
     "credential_category": "una categoría de credencial",
+    "custom_object_record": "un registro de objeto personalizado",
     "subscription": "una suscripción",
     "purchase_order": "una orden de compra",
     "po_line": "una línea de orden de compra",

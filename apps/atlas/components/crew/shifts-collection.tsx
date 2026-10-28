@@ -62,7 +62,7 @@ import { ScheduleGrid } from "./schedule-grid";
 import { InlineAlert } from "./ui";
 import { FilterSelect } from "./views-filter-select";
 // The table and calendar views and the drawers render only in some states (A24-009).
-import { DrawerForm, PeekCalendar, PeekTable } from "./lazy";
+import { DrawerForm, PeekCalendar, PeekTable, ShiftQuickAdd } from "./lazy";
 import { LiveRefresh } from "@/components/live/live-refresh";
 
 /**
@@ -151,6 +151,17 @@ export async function ShiftsCollection(props: {
         timeZoneName: "short",
       }),
     });
+
+  // A shift's hover card (Section 11.7): role and person, its project, state and time.
+  const preview = (s: Shift) => ({
+    recordKey: s.projectKey,
+    recordKind: "Shift" as const,
+    title: t("crew.common.pair", { a: roleName(s.roleCode), b: personName(s) }),
+    state: stateIcon("shift", s.state),
+    stateLabel: t(`crew.states.shift.${s.state}`),
+    owner: personName(s),
+    next: when(s),
+  });
 
   // Peek and full record page.
   let peek = null;
@@ -654,6 +665,7 @@ export async function ShiftsCollection(props: {
           date: dayIn(s.startsAt, shown(s)),
           label: `${format.dateTime(new Date(s.startsAt), { timeZone: shown(s), hour: "numeric", minute: "2-digit", timeZoneName: "short" })} ${personName(s)}`,
           state: stateIcon("shift", s.state),
+          preview: preview(s),
         }))}
       />
     );
@@ -679,6 +691,7 @@ export async function ShiftsCollection(props: {
           when: when(s),
           hours: hoursFromMinutes(shiftMinutes(s)),
           state: { state: stateIcon("shift", s.state), label: t(`crew.states.shift.${s.state}`) },
+          preview: preview(s),
         }))}
         bulk={
           canWrite
@@ -766,6 +779,10 @@ export async function ShiftsCollection(props: {
         <InlineAlert tone="warning" title={t("crew.shifts.clashTitle", { count: clashes.length })}>
           {t("crew.shifts.clashBody")}
         </InlineAlert>
+      ) : null}
+      {/* Quick add (Section 11.7): planners plan a shift from one line, in the filtered project. */}
+      {canWrite && projects.length > 0 ? (
+        <ShiftQuickAdd org={crew.slug} timeZone={zone} projectId={projectFilter?.id ?? null} />
       ) : null}
       {body}
     </CrewFrame>

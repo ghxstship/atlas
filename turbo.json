@@ -25,6 +25,7 @@
         "$TURBO_ROOT$/infra/**",
         "$TURBO_ROOT$/packages/i18n/messages/**",
         "$TURBO_ROOT$/packages/schemas/*.yaml",
+        "$TURBO_ROOT$/docs/adr/denormalization-register.*",
         "$TURBO_ROOT$/apps/compass/ia/**"
       ],
       "outputs": []

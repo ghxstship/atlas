@@ -1,7 +1,8 @@
 import { useRef, useState, type DragEvent, type KeyboardEvent, type ReactElement } from "react";
 import { Direction } from "radix-ui";
 import { cx } from "../lib/cx.ts";
-import { useT } from "../lib/context.tsx";
+import { useFormat, useT } from "../lib/context.tsx";
+import { isMenuKey, useItemSelection } from "../lib/selection.ts";
 import { Icon } from "../Icon/Icon.tsx";
 import { buttonClass } from "../Button/Button.tsx";
 import { Avatar } from "../Avatar/Avatar.tsx";
@@ -10,24 +11,37 @@ import { StateIcon } from "../StateIcon/StateIcon.tsx";
 import { ScrollRegion } from "../Layout/ScrollRegion.tsx";
 import { type BoardProps, type Card } from "./Views.types.ts";
 
+/** How the selection and menus name a card. */
+const idOf = (card: Card) => card.id ?? card.key;
+
 /**
  * Records grouped into columns by state. Cards move by drag or by keyboard: Space picks a card up,
- * Arrow Left and Right carry it across columns, Space drops it and Esc puts it back.
+ * Arrow Left and Right carry it across columns, Space drops it and Esc puts it back. With
+ * `selection`, cards select as rows of a list do (X and Shift+X, Cmd or Ctrl+click, Shift+click,
+ * Cmd or Ctrl+A, Esc), in reading order down each column. Right-click, Shift+F10 or the Context Menu
+ * key on a card calls `onItemContextMenu`. A card's key and title carry `data-column`, and the card
+ * its `data-item` id, so a page can preview them (hover cards).
  */
 export function Board({
   addLabel,
   readOnly = false,
   columns,
+  selection,
+  onItemContextMenu,
   onMove,
   onAdd,
   onOpen,
 }: BoardProps): ReactElement {
   const t = useT();
+  const fmt = useFormat();
   const dir = Direction.useDirection();
   const [cols, setCols] = useState(columns);
   const [held, setHeld] = useState<{ key: string; origin: number; at: number } | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const cardRefs = useRef(new Map<string, HTMLElement>());
+  const ids = () => cols.flatMap((col) => col.cards.map(idOf));
+  const select = useItemSelection(selection, ids);
+  const selectedCount = selection ? ids().filter(select.isSelected).length : 0;
 
   const move = (key: string, from: number, to: number) => {
     if (from === to) return;
@@ -46,6 +60,14 @@ export function Board({
   };
 
   const onCardKey = (e: KeyboardEvent<HTMLElement>, card: Card, colIndex: number) => {
+    if (held === null && e.target === e.currentTarget) {
+      if (onItemContextMenu && isMenuKey(e)) {
+        e.preventDefault();
+        onItemContextMenu(idOf(card), null, e.currentTarget);
+        return;
+      }
+      if (select.onKey(e, idOf(card))) return;
+    }
     if (readOnly) {
       if (e.key === "Enter") onOpen?.(card.key);
       return;
@@ -114,43 +136,73 @@ export function Board({
               <h3 className="m-0 text-text-13 font-semibold">{col.label}</h3>
               <span className="text-text-secondary tabular-nums">{col.cards.length}</span>
             </header>
-            {col.cards.map((card) => (
-              <article
-                key={card.key}
-                ref={(el) => {
-                  if (el) cardRefs.current.set(card.key, el);
-                  else cardRefs.current.delete(card.key);
-                }}
-                role="button"
-                tabIndex={0}
-                aria-pressed={held?.key === card.key ? true : undefined}
-                draggable={!readOnly}
-                onDragStart={(e) => e.dataTransfer.setData("text/plain", `${card.key}|${ci}`)}
-                onKeyDown={(e) => onCardKey(e, card, ci)}
-                onDoubleClick={() => onOpen?.(card.key)}
-                className={cx(
-                  "flex flex-col gap-8 p-12 rounded-card border border-border-subtle bg-bg-raised",
-                  "hover:border-border-strong aria-pressed:border-accent aria-pressed:ring-(length:--stroke-width-focus) aria-pressed:ring-accent",
-                  readOnly ? "cursor-pointer" : "cursor-grab",
-                  "forced-colors:border-[CanvasText]",
-                )}
-              >
-                <div className="flex items-center justify-between gap-6">
-                  <span className="font-mono text-text-12 text-text-secondary">{card.key}</span>
-                  {card.owner ? <Avatar name={card.owner} /> : null}
-                </div>
-                <span>{card.title}</span>
-                {card.meta ? (
-                  <span className="text-text-12 text-text-secondary">{card.meta}</span>
-                ) : null}
-                {card.kind || card.due ? (
-                  <div className="flex flex-wrap items-center gap-4">
-                    {card.kind ? <RecordKindChip kind={card.kind} /> : null}
-                    {card.due ? <PropertyChip icon="Calendar" value={card.due} /> : null}
+            {col.cards.map((card) => {
+              const selected = select.isSelected(idOf(card));
+              return (
+                <article
+                  key={card.key}
+                  ref={(el) => {
+                    if (el) cardRefs.current.set(card.key, el);
+                    else cardRefs.current.delete(card.key);
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={held?.key === card.key ? true : undefined}
+                  data-item={idOf(card)}
+                  data-selected={selected ? "" : undefined}
+                  draggable={!readOnly}
+                  onDragStart={(e) => e.dataTransfer.setData("text/plain", `${card.key}|${ci}`)}
+                  onKeyDown={(e) => onCardKey(e, card, ci)}
+                  onDoubleClick={() => onOpen?.(card.key)}
+                  {...(selection
+                    ? {
+                        onClick: (e) => select.onClick(e, idOf(card)),
+                        onMouseDown: (e) => {
+                          // Shift+click selects a range, not the text between.
+                          if (e.shiftKey) e.preventDefault();
+                        },
+                      }
+                    : {})}
+                  {...(onItemContextMenu
+                    ? {
+                        onContextMenu: (e) => {
+                          e.preventDefault();
+                          onItemContextMenu(
+                            idOf(card),
+                            { x: e.clientX, y: e.clientY },
+                            e.currentTarget,
+                          );
+                        },
+                      }
+                    : {})}
+                  className={cx(
+                    "flex flex-col gap-8 p-12 rounded-card border border-border-subtle bg-bg-raised",
+                    "hover:border-border-strong aria-pressed:border-accent aria-pressed:ring-(length:--stroke-width-focus) aria-pressed:ring-accent",
+                    "data-selected:border-accent data-selected:bg-bg-hover",
+                    readOnly ? "cursor-pointer" : "cursor-grab",
+                    "forced-colors:border-[CanvasText]",
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-6">
+                    <span data-column="key" className="font-mono text-text-12 text-text-secondary">
+                      {card.key}
+                    </span>
+                    {card.owner ? <Avatar name={card.owner} /> : null}
                   </div>
-                ) : null}
-              </article>
-            ))}
+                  <span data-column="title">{card.title}</span>
+                  {selected ? <span className="sr-only">{t("bulk.itemSelected")}</span> : null}
+                  {card.meta ? (
+                    <span className="text-text-12 text-text-secondary">{card.meta}</span>
+                  ) : null}
+                  {card.kind || card.due ? (
+                    <div className="flex flex-wrap items-center gap-4">
+                      {card.kind ? <RecordKindChip kind={card.kind} /> : null}
+                      {card.due ? <PropertyChip icon="Calendar" value={card.due} /> : null}
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
             {readOnly ? null : (
               <button
                 type="button"
@@ -167,6 +219,11 @@ export function Board({
       <span aria-live="assertive" className="sr-only">
         {announcement}
       </span>
+      {selection ? (
+        <span role="status" className="sr-only">
+          {selectedCount > 0 ? t("bulk.selected", { n: fmt.number(selectedCount) }) : ""}
+        </span>
+      ) : null}
     </ScrollRegion>
   );
 }

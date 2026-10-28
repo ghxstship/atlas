@@ -28,6 +28,7 @@ import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import { StateHistory } from "@/components/collection-kit/history";
+import { PresenceFor } from "@/components/presence/presence-for";
 import {
   ActionButton,
   EntityForm,
@@ -231,7 +232,9 @@ export async function PurchaseOrdersSection({
         fullHref={withQuery(path, state, { peek: selected.id, full: "1" })}
         properties={properties(selected)}
         actions={controls(selected)}
-      />
+      >
+        <PresenceFor table="purchase_orders" id={selected.id} />
+      </PeekDrawer>
     );
   }
 
@@ -323,6 +326,7 @@ async function PurchaseOrderRecord({
         </>
       }
     >
+      <PresenceFor table="purchase_orders" id={order.id} />
       <KitSection id="po-lines" title={t("orders.lines")}>
         {lines.data.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">{t("orders.noLines")}</p>

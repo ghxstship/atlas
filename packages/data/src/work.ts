@@ -328,6 +328,8 @@ export interface RecordQuery {
   readonly states?: readonly string[];
   readonly ownerId?: string;
   readonly ids?: readonly string[];
+  /** Only the sub-records of this record (the records whose parent it is). */
+  readonly parentId?: string;
   /** Case-insensitive match on the title. */
   readonly search?: string;
   /** Only records whose window, or due time, touches [from, to). */
@@ -363,6 +365,7 @@ export async function listRecords(
   if (query.states && query.states.length > 0) q = q.in("record_state", [...query.states]);
   if (query.ownerId) q = q.eq("owner_party_id", query.ownerId);
   if (query.ids) q = q.in("id", [...query.ids]);
+  if (query.parentId) q = q.eq("parent_record_id", query.parentId);
   if (query.search && query.search.trim() !== "") {
     q = q.ilike("title", `%${query.search.trim().replace(/[%_\\]/g, (c) => `\\${c}`)}%`);
   }
@@ -446,6 +449,36 @@ export function groupRecords<K extends "kind" | "state" | "projectKey">(
     groups.set(value, [...(groups.get(value) ?? []), r]);
   }
   return [...groups.entries()].map(([group, list]) => ({ group, records: list }));
+}
+
+/** A record's place in its work breakdown (parent_record_id, 1180), as far as the viewer reads it. */
+export interface RecordFamily {
+  /** The summary record this one rolls up to, or null when it has none or the viewer cannot read it. */
+  readonly parent: RecordSummary | null;
+  /** True when the record has a parent the viewer cannot read. */
+  readonly parentHidden: boolean;
+  /** The records that roll up to this one, outside Trash. */
+  readonly children: readonly RecordSummary[];
+}
+
+/** The parent and sub-records of a record, read as the viewer (invariant 2). */
+export async function getRecordFamily(
+  db: XosClient,
+  orgId: string,
+  recordId: string,
+): Promise<Result<RecordFamily>> {
+  const [own, children] = await Promise.all([
+    db.from("records").select("parent_record_id").eq("id", recordId).maybeSingle(),
+    listRecords(db, { orgId, parentId: recordId, limit: 100 }),
+  ]);
+  if (own.error) return fail(toDataError(own.error));
+  if (!children.ok) return children;
+  const parentId = own.data?.parent_record_id ?? null;
+  if (!parentId) return ok({ parent: null, parentHidden: false, children: children.data });
+  const parent = await listRecords(db, { orgId, ids: [parentId] });
+  if (!parent.ok) return parent;
+  const found = parent.data[0] ?? null;
+  return ok({ parent: found, parentHidden: found === null, children: children.data });
 }
 
 /** One record by display key, including soft-deleted ones (Trash), or not-found. */

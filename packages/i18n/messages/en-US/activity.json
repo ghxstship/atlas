@@ -219,6 +219,7 @@
     "journal_entry": "a journal entry",
     "journal_line": "a journal line",
     "credential_category": "a credential category",
+    "custom_object_record": "a custom object record",
     "subscription": "a subscription",
     "purchase_order": "a purchase order",
     "po_line": "a purchase order line",

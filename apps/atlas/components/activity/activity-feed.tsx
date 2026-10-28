@@ -8,7 +8,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { CollectionViews } from "@/components/views/collection-views";
 // The table is an alternative to the feed (A24-009).
-import { DataTable } from "@/components/lazy-ui";
+import { DataTable } from "@/components/lazy-ui/data-table";
 import { ActivityLine, ActivityTarget } from "./activity-line";
 import { collapseRepeats, useDescribe } from "./describe";
 import { RestoreButton } from "./restore-button";

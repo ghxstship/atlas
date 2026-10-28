@@ -21,7 +21,7 @@ import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { OperationsCalendar, OperationsList, OperationsTable, ViewSwitcher } from "./client";
 import { ActionButton, FormDrawer, InlineForm, type FieldSpec } from "./forms";
-import { currencyOptions, guestOptions } from "./fulfillments";
+import { currencyOptions, guestNames, guestOptions } from "./fulfillments";
 import {
   calendarMonth,
   getZonedFormat,
@@ -213,7 +213,12 @@ export async function BlocksSection({
       const full = param(search, "full") === "1";
       const org = scope.ctx.org.slug;
       const canWrite = scope.access.can(b.projectId, "hospitality.accommodation.write");
-      const guests = await guestOptions(scope);
+      const [guests, names] = await Promise.all([
+        guestOptions(scope, b.projectId),
+        guestNames(scope, b.projectId),
+      ]);
+      const guestName = (a: { personId: string; personName: string | null }) =>
+        a.personName ?? names.get(a.personId) ?? tc("unnamed");
       record = (
         <>
           <RecordView
@@ -332,7 +337,7 @@ export async function BlocksSection({
                       className="flex flex-wrap items-center justify-between gap-8 py-8"
                     >
                       <span className="flex flex-col gap-2">
-                        <span className="text-text-14">{a.personName ?? tc("unnamed")}</span>
+                        <span className="text-text-14">{guestName(a)}</span>
                         <span className="text-text-12 text-text-secondary">
                           {t("blocks.assignments.stay", {
                             from: format.date(a.checkInOn) ?? "",
@@ -343,7 +348,7 @@ export async function BlocksSection({
                       {canWrite ? (
                         <ActionButton
                           label={t("blocks.assignments.remove", {
-                            name: a.personName ?? tc("unnamed"),
+                            name: guestName(a),
                           })}
                           variant="ghost"
                           run={removeRoomAssignmentAction.bind(null, org, a.id)}
@@ -484,8 +489,41 @@ export async function BlocksSection({
               b.contractTotal.currencyCode,
               exponents.get(b.contractTotal.currencyCode ?? "") ?? 2,
             ) ?? tc("unpriced"),
+          id: b.id,
+          label: b.key,
           href: peekHref(b.key),
+          fullHref: hrefWith(base, search, { peek: b.key, full: "1", edit: null }),
+          ...(scope.access.can(b.projectId, "hospitality.accommodation.write")
+            ? { trashMessage: tc("deleted", { key: b.key }) }
+            : {}),
         }))}
+        bulk={
+          writable.length > 0
+            ? {
+                org: scope.ctx.org.slug,
+                resource: "accommodation_blocks",
+                fields: [
+                  {
+                    key: "counterparty_id",
+                    label: t("blocks.fields.hotel"),
+                    options: [
+                      { value: null, label: tc("none") },
+                      ...hotels.data.map((c) => ({
+                        value: c.id,
+                        label: c.name ?? tc("notSet"),
+                      })),
+                    ],
+                  },
+                ],
+              }
+            : null
+        }
+        trash={{
+          org: scope.ctx.org.slug,
+          label: tc("delete"),
+          run: deleteBlockAction,
+          restore: restoreBlockAction,
+        }}
       />
     );
   } else if (view === "calendar") {

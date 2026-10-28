@@ -15,6 +15,8 @@ import { queryToView } from "./query";
  * - `project` scopes a project tab to the project in its path; `objectType` scopes a custom object page
  *   to the object type in its path.
  * - `fixed` holds the filters the page itself applies, such as Milestones showing Milestone records.
+ * - `presence` holds the filters on whether a column is set that the page applies by default and a
+ *   query key changes, such as Projects hiding archived projects unless `?archived=1`.
  * - `sections` picks the source by a query key when a page switches between collections in place,
  *   such as a project's Procurement tab (`?section=rfqs`).
  *
@@ -56,11 +58,26 @@ export interface ExportFilterSpec {
   readonly resolve?: "project";
 }
 
+/** Which rows a page shows by whether a column is set: those where it is unset, set, or either. */
+export type ExportPresence = "unset" | "set" | "any";
+
+/**
+ * A filter on whether a column is set that a page applies by default and a query key changes: the
+ * rows each value of the key shows, and those the page shows without it (or with a value it does not know).
+ */
+export interface ExportPresenceSpec {
+  readonly column: string;
+  readonly param: string;
+  readonly options: Readonly<Record<string, ExportPresence>>;
+  readonly fallback: ExportPresence;
+}
+
 export interface ExportSource {
   readonly relation: ExportRelation;
   readonly columns: readonly string[];
   readonly filters: Readonly<Record<string, ExportFilterSpec>>;
   readonly fixed: Readonly<Record<string, string>>;
+  readonly presence: readonly ExportPresenceSpec[];
   readonly project: boolean;
   readonly objectType: boolean;
 }
@@ -80,6 +97,7 @@ interface SourceOptions<C extends string> {
     Record<string, C | { readonly column: C; readonly resolve: "project" }>
   >;
   readonly fixed?: Readonly<Partial<Record<C, string>>>;
+  readonly presence?: readonly (ExportPresenceSpec & { readonly column: C })[];
   readonly project?: boolean;
   readonly objectType?: boolean;
 }
@@ -108,6 +126,7 @@ function source<R extends ExportRelation>(
     columns,
     filters,
     fixed,
+    presence: options.presence ?? [],
     project: options.project ?? false,
     objectType: options.objectType ?? false,
   };
@@ -128,10 +147,12 @@ function inProject(of: ExportSource): ExportSource {
 
 // Shared sources ------------------------------------------------------------------------------------------------------
 
-const activity = source("app.activity_events", [
+// The feed with each entry's project (2370): org-wide on the Activity page, the project's on a project tab.
+const activity = source("app.activity_export", [
   "created_at",
   "actor_person_id",
   "domain_event_id",
+  "project_id",
 ]);
 
 const records = source(
@@ -172,18 +193,27 @@ const gateCriteria = source("app.gate_criteria_status", [
   "gate_passed",
 ]);
 
-const projects = source("app.projects", [
-  "project_key",
-  "name",
-  "project_state",
-  "production_state",
-  "current_phase_code",
-  "jurisdiction_id",
-  "venue_id",
-  "tier_code",
-  "starts_on",
-  "ends_on",
-]);
+// The Projects page lists archived projects only with `?archived=1` (components/projects/projects-page.tsx).
+const projects = source(
+  "app.projects",
+  [
+    "project_key",
+    "name",
+    "project_state",
+    "production_state",
+    "current_phase_code",
+    "jurisdiction_id",
+    "venue_id",
+    "tier_code",
+    "starts_on",
+    "ends_on",
+  ],
+  {
+    presence: [
+      { column: "archived_at", param: "archived", options: { "1": "any" }, fallback: "unset" },
+    ],
+  },
+);
 
 const packets = source(
   "app.advance_packets",
@@ -338,11 +368,13 @@ const purchaseOrders = source("app.purchase_orders", [
   "tax_minor",
   "shipping_minor",
 ]);
-const receipts = source("app.goods_receipts", [
+// Goods receipts with their purchase order's project (2370), so a project tab exports its own.
+const receipts = source("app.goods_receipt_export", [
   "purchase_order_id",
   "received_at",
   "received_by",
   "note",
+  "project_id",
 ]);
 const rfqs = source("app.rfqs", [
   "rfq_number",
@@ -548,6 +580,14 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "provider",
     "checksum_sha256",
   ]),
+  "crew/per_diems": source("app.per_diems", [
+    "project_id",
+    "membership_id",
+    "engagement_id",
+    "day",
+    "amount_minor",
+    "currency_code",
+  ]),
   // The rate is Restricted (Section 8.3): the masked view shows it only to holders of the payroll read
   // capability, and exporting it asks for the restricted export capability and step-up.
   "crew/rate_cards": source(
@@ -699,14 +739,25 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "logistics/marshalling_yard_log": yard,
   "logistics/shipments": shipments,
 
-  my_work: source("app.record_assignments", ["record_id", "membership_id", "created_at"]),
+  // The reader's own open records (2370), as the page lists them; never the org's assignments.
+  my_work: source("app.my_work_export", [
+    "record_number",
+    "title",
+    "record_kind",
+    "record_state",
+    "due_at",
+    "starts_at",
+    "ends_at",
+    "updated_at",
+    "project_id",
+  ]),
 
   // Custom objects: every page under /objects/<key> shares this source (exportSourceFor).
   "objects/*": source("app.custom_object_records", ["title", "created_at", "updated_at"], {
     objectType: true,
   }),
 
-  "project/activity": activity,
+  "project/activity": inProject(activity),
   "project/advancing": sections("section", "packets", {
     packets: inProject(packets),
     riders: inProject(riders),
@@ -735,10 +786,10 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     dock: inProject(dockSlots),
     yard: inProject(yard),
   }),
-  "project/overview": activity,
+  "project/overview": inProject(activity),
   "project/procurement": sections("section", "purchase-orders", {
     "purchase-orders": inProject(purchaseOrders),
-    receipts,
+    receipts: inProject(receipts),
     rfqs: inProject(rfqs),
     submittals: inProject(submittals),
   }),
@@ -1091,7 +1142,8 @@ export function allExportSources(): readonly ExportSource[] {
 
 /**
  * A filter of an export before its values are resolved: an equality or list of values on a column (a
- * project key in a `resolve: "project"` filter becomes the project's id), or the search box.
+ * project key in a `resolve: "project"` filter becomes the project's id), whether a column is unset or
+ * set, or the search box.
  */
 export type PlannedFilter =
   | {
@@ -1100,6 +1152,7 @@ export type PlannedFilter =
       readonly value: string;
       readonly resolve?: "project";
     }
+  | { readonly operator: "is_null" | "not_null"; readonly column: string }
   | { readonly operator: "search"; readonly value: string };
 
 export interface ExportPlan {
@@ -1111,9 +1164,10 @@ export interface ExportPlan {
 }
 
 /**
- * What an export of the page reads besides its columns: the filters the page applies itself, the
- * project or object in its path, the URL's filters the source names (a comma-separated value is a list)
- * and the search box. Null when the path lacks the project or object the source is scoped to.
+ * What an export of the page reads besides its columns: the filters the page applies itself (those on
+ * whether a column is set as the query asks, else as the page does by default), the project or
+ * object in its path, the URL's filters the source names (a comma-separated value is a list) and the
+ * search box. Null when the path lacks the project or object the source is scoped to.
  */
 export function planExport(
   source: ExportSource,
@@ -1133,6 +1187,15 @@ export function planExport(
     column,
     value,
   }));
+  for (const spec of source.presence) {
+    const asked = search.get(spec.param);
+    const shown =
+      asked !== null && Object.hasOwn(spec.options, asked)
+        ? (spec.options[asked] ?? spec.fallback)
+        : spec.fallback;
+    if (shown === "unset") filters.push({ operator: "is_null", column: spec.column });
+    else if (shown === "set") filters.push({ operator: "not_null", column: spec.column });
+  }
   for (const filter of queryToView(search, search.get("view") ?? "").filters) {
     const spec = source.filters[filter.field];
     if (!spec) continue;

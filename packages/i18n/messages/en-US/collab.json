@@ -89,5 +89,9 @@
     "theirsColumn": "Saved by someone else",
     "mine": "Keep mine",
     "theirs": "Take theirs"
+  },
+  "presence": {
+    "label": "Also viewing",
+    "viewing": "{count, plural, one {# other person here} other {# other people here}}"
   }
 }

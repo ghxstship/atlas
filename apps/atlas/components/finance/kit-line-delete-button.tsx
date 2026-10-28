@@ -4,7 +4,7 @@ import { Button } from "@xos/ui";
 import { useState, useTransition } from "react";
 import { type ActionState } from "@/app/[org]/finance/actions";
 import { softDelete } from "@/components/undo/entries";
-import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
+import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { ActionFeedback } from "./kit-action-feedback";
 import { useFinanceT } from "./kit-use-finance-t";
 

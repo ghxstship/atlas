@@ -7,7 +7,7 @@ import {
   sameValue,
   type FieldValues,
 } from "@/components/undo/entries";
-import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
+import { undoStack, type UndoResult } from "@xos/ui/undo";
 import type { ActionError, VersionedResult } from "./action-result";
 import { useCopy } from "./action-ui";
 

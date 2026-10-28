@@ -5,7 +5,7 @@ import { BulkActionBar, Button, Dialog, InlineAlert, Input, Select } from "@xos/
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
+import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { bulkUpdateAction, type BulkActionResult } from "@/lib/bulk/actions";
 import type { BulkConfig, BulkField, BulkRowRef } from "./types";
 
@@ -30,6 +30,7 @@ export function BulkBar({
   field,
   onField: setField,
   onClear,
+  toolbar = true,
 }: {
   config: BulkConfig;
   rows: readonly BulkRowRef[];
@@ -38,6 +39,8 @@ export function BulkBar({
   field: BulkField | null;
   onField: (field: BulkField | null) => void;
   onClear: () => void;
+  /** False where the page shows no bar, only the change dialog a row's menu opens. */
+  toolbar?: boolean;
 }) {
   const t = useTranslations("collab.bulk") as unknown as Translate;
   const router = useRouter();
@@ -74,7 +77,7 @@ export function BulkBar({
 
   return (
     <>
-      {selected.size > 0 ? (
+      {toolbar && selected.size > 0 ? (
         <div className="pointer-events-none sticky bottom-16 z-sticky flex justify-center print:hidden">
           <div className="pointer-events-auto">
             <BulkActionBar

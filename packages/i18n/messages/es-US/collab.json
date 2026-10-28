@@ -89,5 +89,9 @@
     "theirsColumn": "Guardado por otra persona",
     "mine": "Conservar el mío",
     "theirs": "Tomar el suyo"
+  },
+  "presence": {
+    "label": "También están viendo",
+    "viewing": "{count, plural, one {# persona más aquí} other {# personas más aquí}}"
   }
 }

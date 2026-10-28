@@ -390,8 +390,10 @@ function DataTableCards({
 
 /**
  * The table inside a ScrollRegion, virtualized with TanStack Virtual: a keyboard grid (arrow keys,
- * Home and End, Ctrl+Home and Ctrl+End, Page Up and Page Down, Enter activates the row), with
- * column pinning and resizing. Null money renders Unpriced; long text columns wrap.
+ * J and K between rows, Home and End, Ctrl+Home and Ctrl+End, Page Up and Page Down, Enter activates
+ * the row), with column pinning and resizing. Null money renders Unpriced; long text columns wrap.
+ * Each row carries its id as `data-item` and each cell its column as `data-column`, so a page can
+ * preview them (hover cards).
  *
  * The grid lays its columns out from its own column state. Keyboard resizing and reset change that
  * state directly. A pointer drag on a resize handle runs on TanStack Table, which loads when a
@@ -638,9 +640,13 @@ export function DataTable({
       if (row) onRowContextMenu(row, r, null, e.currentTarget);
       return;
     }
+    // J and K move between rows as in every list (list.next and list.previous), as single keys.
+    const letters = !ctrl && !e.altKey && singleKeyShortcutsEnabled();
     const moves: Record<string, [number, number] | undefined> = {
       ArrowDown: [r + 1, c],
       ArrowUp: [r - 1, c],
+      j: letters ? [r + 1, c] : undefined,
+      k: letters ? [r - 1, c] : undefined,
       [forward]: [r, c + 1],
       [back]: [r, c - 1],
       Home: ctrl ? [0, -lead] : [r, -lead],
@@ -806,6 +812,7 @@ export function DataTable({
               <tr
                 key={item.index}
                 aria-rowindex={item.index + 2}
+                data-item={idOf(row, item.index)}
                 aria-selected={select ? selected : undefined}
                 className={cx(
                   ROW_CLASS[density],
