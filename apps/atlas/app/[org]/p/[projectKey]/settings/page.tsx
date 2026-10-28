@@ -13,6 +13,7 @@ import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { loadTransitions, must } from "@/lib/projects/loaders";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 /**
  * Project Settings (Section 4.5.4): key, jurisdiction, region, tier, members, lifecycle, archive, and
@@ -42,8 +43,7 @@ export default async function SettingsPage({
     .filter((m) => !onProject.has(m.membershipId) && m.personId !== me)
     .map((m) => ({ value: m.membershipId, label: m.fullName ?? m.membershipId }));
   return (
-    <>
-      <PageHeader title={t("settings.title")} />
+    <CollectionPage header={<PageHeader title={t("settings.title")} />}>
       <ProjectSettings
         org={ctx.org.org.slug}
         project={ctx.project}
@@ -65,6 +65,6 @@ export default async function SettingsPage({
       <ProjectAccess ctx={ctx} members={current} roles={PROJECT_ROLE_ORDER} />
       <ProjectInboxSettings ctx={ctx} />
       <ProjectOfferings ctx={ctx} />
-    </>
+    </CollectionPage>
   );
 }

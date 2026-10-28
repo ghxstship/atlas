@@ -83,6 +83,7 @@ import { rememberView } from "@/lib/shell/recents";
 import { instantToLocal } from "@/lib/operations/time";
 import { IncidentOshaPanel } from "@/components/compliance/osha-panels";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 /**
  * Safety incidents (Section 4.2: incidents with dispatch, emergency codes, radio): the incident
@@ -245,26 +246,29 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
   }
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={incidents.length}
-        views={views}
-        view={view}
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={incidents.length}
+          views={views}
+          view={view}
 
-        action={
-          canReport ? (
-            <ButtonLink
-              href={sectionHref(page, { create: "1", peek: undefined, section })}
-              variant="primary"
-            >
-              {t("incidents.report")}
-            </ButtonLink>
-          ) : undefined
-        }
-      />
+          action={
+            canReport ? (
+              <ButtonLink
+                href={sectionHref(page, { create: "1", peek: undefined, section })}
+                variant="primary"
+              >
+                {t("incidents.report")}
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+      }
+    >
       <ProjectFilter
         page={page}
         section={section}
@@ -303,7 +307,7 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
       {peekId ? (
         <IncidentRecord page={page} id={peekId} section={section} severities={severities} />
       ) : null}
-    </>
+    </CollectionPage>
   );
 }
 
@@ -914,7 +918,31 @@ export async function DispatchBoardSection({ page }: { page: ModulePage }) {
   });
 
   return (
-    <>
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={open.length}
+          views={views}
+          view={view}
+
+          action={
+            can(page, "safety.incident.write") ? (
+              <ButtonLink
+                href={
+                  `/${page.ctx.org.slug}/safety/incidents?create=1${page.project ? `&project=${page.project.key}` : ""}` as Route
+                }
+                variant="primary"
+              >
+                {t("incidents.report")}
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+      }
+    >
       {/* Realtime, not polling: incidents and dispatches of the org stream to the board (0470, ADR 0083). */}
       <LiveRefresh
         topics={[
@@ -922,27 +950,6 @@ export async function DispatchBoardSection({ page }: { page: ModulePage }) {
           { table: "dispatch_assignments", filter: `org_id=eq.${page.ctx.org.id}` },
         ]}
         pacing={DISPATCH_PACING}
-      />
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={open.length}
-        views={views}
-        view={view}
-
-        action={
-          can(page, "safety.incident.write") ? (
-            <ButtonLink
-              href={
-                `/${page.ctx.org.slug}/safety/incidents?create=1${page.project ? `&project=${page.project.key}` : ""}` as Route
-              }
-              variant="primary"
-            >
-              {t("incidents.report")}
-            </ButtonLink>
-          ) : undefined
-        }
       />
       <ProjectFilter page={page} section={section} />
       <p className="m-0 text-text-12 text-text-secondary" aria-live="polite">
@@ -977,7 +984,7 @@ export async function DispatchBoardSection({ page }: { page: ModulePage }) {
       {peekId ? (
         <IncidentRecord page={page} id={peekId} section={section} severities={severities} />
       ) : null}
-    </>
+    </CollectionPage>
   );
 }
 
@@ -1038,15 +1045,18 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
   ];
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={codes.length}
-        views={views}
-        view={view}
-      />
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={codes.length}
+          views={views}
+          view={view}
+        />
+      }
+    >
       <ProjectFilter page={page} section={section} />
       <p className="m-0 text-text-13 text-text-secondary">{t("incidents.codes.explain")}</p>
       {codes.length > 0 && codes.every((c) => c.id === undefined) ? (
@@ -1076,7 +1086,7 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
         />
       )}
       {peek ? <CodeRecord page={page} code={codes.find((c) => c.code === peek)} /> : null}
-    </>
+    </CollectionPage>
   );
 }
 
@@ -1340,26 +1350,29 @@ export async function RadioChannelsSection({ page }: { page: ModulePage }) {
   ];
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={channels.length}
-        views={views}
-        view={view}
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={channels.length}
+          views={views}
+          view={view}
 
-        action={
-          canWrite ? (
-            <ButtonLink
-              href={sectionHref(page, { create: "1", peek: undefined, section: undefined })}
-              variant="primary"
-            >
-              {t("incidents.radio.new")}
-            </ButtonLink>
-          ) : undefined
-        }
-      />
+          action={
+            canWrite ? (
+              <ButtonLink
+                href={sectionHref(page, { create: "1", peek: undefined, section: undefined })}
+                variant="primary"
+              >
+                {t("incidents.radio.new")}
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+      }
+    >
       <ProjectFilter page={page} section={section} />
       {creating && canWrite ? (
         page.project ? (
@@ -1451,7 +1464,7 @@ export async function RadioChannelsSection({ page }: { page: ModulePage }) {
           canWrite={canWrite}
         />
       ) : null}
-    </>
+    </CollectionPage>
   );
 }
 
