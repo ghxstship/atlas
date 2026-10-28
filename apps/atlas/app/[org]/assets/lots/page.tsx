@@ -74,6 +74,7 @@ export default async function LotsPage({ params, searchParams }: PageProps<"/[or
               onHand={selected.onHand}
               pickers={{
                 members: pickers.members,
+                engagements: pickers.engagements,
                 projects: pickers.projects,
                 venues: pickers.venues,
               }}

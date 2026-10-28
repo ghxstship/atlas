@@ -65,7 +65,12 @@ export default async function CustodyLedgerPage({
       before={
         <CustodyDesk
           org={ctx.org.slug}
-          pickers={{ members: pickers.members, projects: pickers.projects, venues: pickers.venues }}
+          pickers={{
+            members: pickers.members,
+            engagements: pickers.engagements,
+            projects: pickers.projects,
+            venues: pickers.venues,
+          }}
           canMove={can.custody}
         />
       }

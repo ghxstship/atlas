@@ -70,7 +70,9 @@
       "accommodation_assignment_duplicate": "This guest already has a room in the block on those nights.",
       "fileScanning": "The file is still being scanned. Try again in a minute.",
       "travel_fulfillment_kind": "A travel segment belongs to a Travel fulfillment. Pick one of those.",
-      "time_zone_unknown": "That time zone is not recognized. Pick a zone from the list."
+      "time_zone_unknown": "That time zone is not recognized. Pick a zone from the list.",
+      "same_project": "That choice belongs to another project. Choose one from this project.",
+      "person_not_on_project": "That person is neither a member nor engaged on this project. Choose someone from the list."
     },
     "fieldErrors": {
       "required": "Fill in this field.",
@@ -217,8 +219,10 @@
       "shipment": "Shipment",
       "startsAt": "Starts",
       "endsAt": "Ends",
-      "checkedIn": "Check-in"
-    }
+      "checkedIn": "Check-in",
+      "vendor": "Vendor"
+    },
+    "noVendor": "No vendor"
   },
   "yard": {
     "title": "Marshalling yard log",

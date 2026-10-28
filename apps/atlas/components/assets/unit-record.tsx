@@ -114,7 +114,12 @@ export async function UnitRecord({
         nextStates={next}
         scanActions={scanActionsFor(unit.state)}
         conditions={pickers.conditions}
-        pickers={{ members: pickers.members, projects: pickers.projects, venues: pickers.venues }}
+        pickers={{
+          members: pickers.members,
+          engagements: pickers.engagements,
+          projects: pickers.projects,
+          venues: pickers.venues,
+        }}
         currency={currency}
         today={today}
         can={can}

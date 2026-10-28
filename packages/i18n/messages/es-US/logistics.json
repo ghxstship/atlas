@@ -70,7 +70,9 @@
       "accommodation_assignment_duplicate": "Este huésped ya tiene una habitación en el bloque esas noches.",
       "fileScanning": "El archivo todavía se está analizando. Inténtalo de nuevo en un minuto.",
       "travel_fulfillment_kind": "Un tramo de viaje pertenece a un servicio de viaje. Elige uno de esos.",
-      "time_zone_unknown": "Esa zona horaria no se reconoce. Elige una zona de la lista."
+      "time_zone_unknown": "Esa zona horaria no se reconoce. Elige una zona de la lista.",
+      "same_project": "Esa opción pertenece a otro proyecto. Elige una de este proyecto.",
+      "person_not_on_project": "Esa persona no es miembro ni está contratada en este proyecto. Elige a alguien de la lista."
     },
     "fieldErrors": {
       "required": "Completa este campo.",
@@ -217,8 +219,10 @@
       "shipment": "Envío",
       "startsAt": "Empieza",
       "endsAt": "Termina",
-      "checkedIn": "Registro de llegada"
-    }
+      "checkedIn": "Registro de llegada",
+      "vendor": "Proveedor"
+    },
+    "noVendor": "Sin proveedor"
   },
   "yard": {
     "title": "Registro del patio de maniobras",

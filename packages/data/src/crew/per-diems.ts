@@ -117,3 +117,17 @@ export async function removePerDiem(db: XosClient, id: string): Promise<Result<n
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
+
+/** The project's currency (app.projects.currency, migration 0950), the default for new per diems. */
+export async function getProjectCurrency(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<string | null>> {
+  const { data, error } = await db
+    .from("projects")
+    .select("currency")
+    .eq("id", projectId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  return ok(data?.currency ?? null);
+}

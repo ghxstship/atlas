@@ -8,6 +8,7 @@ import {
   type Shipment,
   type ZoneOption,
 } from "@xos/data/logistics";
+import type { EngagementOption } from "@xos/data/project-people";
 import type { RecordState } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
@@ -20,6 +21,7 @@ import {
   restoreDockSlotAction,
 } from "@/app/[org]/logistics/actions";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
+import { engagementOptions } from "@/lib/people/project-people";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { OperationsCalendar, OperationsList, OperationsTable, ViewSwitcher } from "./client";
 import { ActionButton, FormDrawer, type FieldSpec } from "./forms";
@@ -115,6 +117,10 @@ export async function DockSection({
       ? t("shipments.titleWithCarrier", { direction: s.direction, carrier: s.carrierName })
       : t("shipments.titleNoCarrier", { direction: s.direction });
   const writable = writableProjects(scope, "logistics.dock_slot.write");
+  // Vendor engagements a slot can serve (R1, app.engagement_options).
+  const vendors = (await engagementOptions(scope.ctx)).filter((e) => e.roleType === "Vendor");
+  const vendorLabel = (e: EngagementOption) =>
+    `${e.projectKey} ${e.accountName ?? e.personName ?? ""}`.trim();
   const listHref = hrefWith(base, search, { peek: null, full: null, edit: null, create: null });
   const peekHref = (id: string) => hrefWith(base, search, { peek: id, full: null, edit: null });
   const slotLabel = (slot: DockSlot) => {
@@ -138,6 +144,7 @@ export async function DockSection({
     );
     const zoneLabel = (z: ZoneOption) => `${z.code} ${z.name}`;
     const tz = project?.timeZone ?? timeZone;
+    const chosenProject = slot?.projectId ?? param(search, "project") ?? scope.project?.id;
     return [
       ...(slot
         ? []
@@ -169,6 +176,18 @@ export async function DockSection({
           ...shipments.data
             .filter((s) => !project || s.projectId === project.id)
             .map((s) => ({ value: s.id, label: `${s.key} ${shipmentTitle(s)}` })),
+        ],
+      },
+      {
+        name: "engagementId",
+        label: t("dock.fields.vendor"),
+        kind: "select",
+        defaultValue: slot?.engagementId ?? "",
+        options: [
+          { value: "", label: t("dock.noVendor") },
+          ...vendors
+            .filter((e) => !chosenProject || e.projectId === chosenProject)
+            .map((e) => ({ value: e.engagementId, label: vendorLabel(e) })),
         ],
       },
       {
@@ -258,6 +277,15 @@ export async function DockSection({
                   ) : (
                     t("dock.noShipment")
                   ),
+              },
+              {
+                label: t("dock.fields.vendor"),
+                value: slot.engagementId
+                  ? (() => {
+                      const vendor = vendors.find((e) => e.engagementId === slot.engagementId);
+                      return vendor ? vendorLabel(vendor) : t("common.notSet");
+                    })()
+                  : t("dock.noVendor"),
               },
               {
                 label: t("dock.fields.startsAt"),

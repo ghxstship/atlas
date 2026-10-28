@@ -1,6 +1,6 @@
 "use client";
 
-import type { Cue, CueProgress, RunOfShow } from "@xos/data/show";
+import type { Cue, CueEngagement, CueProgress, RunOfShow } from "@xos/data/show";
 import type { ProjectRef, ScopeNodeRef } from "@xos/data/work";
 import {
   Button,
@@ -31,8 +31,10 @@ import {
   callCueAction,
   createRunAction,
   deleteRunAction,
+  linkCueAction,
   moveCueAction,
   removeCueAction,
+  unlinkCueAction,
   updateRunAction,
 } from "./actions";
 import { CollectionViews } from "@/components/views/collection-views";
@@ -408,6 +410,51 @@ function LiveCues({ runId }: { runId: string }) {
   return null;
 }
 
+/**
+ * A cue's Set for control in edit mode: the linked artist with an unlink button, or a select of the
+ * project's Artist engagements. Gateway Set Times shows the linked cue to the artist (Section 4.4.4).
+ */
+function SetFor({
+  org,
+  cue,
+  link,
+  artists,
+  action,
+}: {
+  org: string;
+  cue: Cue;
+  link: CueEngagement | undefined;
+  artists: readonly { value: string; label: string }[];
+  action: ReturnType<typeof useAction>;
+}) {
+  const t = useCopy("show");
+  if (link) {
+    return (
+      <span className="flex items-center gap-4 text-text-12">
+        {t("cues.setForName", { name: link.personName ?? t("cues.setForNone") })}
+        <IconButton
+          icon="X"
+          label={t("cues.unlink", { label: cue.label })}
+          onClick={() => action.run(() => unlinkCueAction(org, link.id))}
+        />
+      </span>
+    );
+  }
+  if (artists.length === 0) return null;
+  return (
+    <Select
+      id={`set-for-${cue.id}`}
+      label={t("cues.setFor")}
+      value=""
+      options={[{ value: "", label: t("cues.setForNone") }, ...artists]}
+      onChange={(e) => {
+        const engagementId = e.target.value;
+        if (engagementId) action.run(() => linkCueAction(org, cue.id, engagementId));
+      }}
+    />
+  );
+}
+
 /** Seconds as m:ss, or h:mm:ss past an hour. */
 function clock(total: number): string {
   const s = Math.abs(Math.round(total));
@@ -426,6 +473,8 @@ export function RunBody({
   live,
   canEdit,
   canCall,
+  setTimes = [],
+  artists = [],
   children,
 }: {
   org: string;
@@ -435,6 +484,10 @@ export function RunBody({
   live: boolean;
   canEdit: boolean;
   canCall: boolean;
+  /** Cues marked as an artist's set time (app.engagement_cues), for the Set for control. */
+  setTimes?: readonly CueEngagement[];
+  /** The run's project's Artist engagements a cue can be set for. */
+  artists?: readonly { value: string; label: string }[];
   children?: ReactNode;
 }) {
   const t = useCopy("show");
@@ -585,6 +638,15 @@ export function RunBody({
                   </span>
                 </span>
                 <span className="flex items-center gap-4">
+                  {canEdit ? (
+                    <SetFor
+                      org={org}
+                      cue={c}
+                      link={setTimes.find((s) => s.cueId === c.id)}
+                      artists={artists}
+                      action={cueAction}
+                    />
+                  ) : null}
                   <span className="text-text-12 text-text-secondary">
                     {c.calledAt
                       ? c.calledByName
