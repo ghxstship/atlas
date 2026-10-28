@@ -4,12 +4,14 @@
  */
 import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
+import { archivedListQuery } from "./parts/archived-filter.ts";
 import { all, editShape, orNull, putActions } from "../correct.ts";
 import { itemAction } from "../define.ts";
 
 const SINCE = "1.0.0-draft.2";
 
 export const additions = defineAdditions("Knowledge", {
+  listQuery: { documents: archivedListQuery },
   corrections: [
     {
       id: "sop-code-version",

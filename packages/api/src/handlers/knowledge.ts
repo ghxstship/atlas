@@ -25,7 +25,7 @@ export const handlers = defineHandlers("Knowledge", {
       },
     }),
   ),
-  ...handlersFor("Knowledge", tableResource("documents")),
+  ...handlersFor("Knowledge", tableResource("documents", { archivable: true })),
   ...handlersFor("Knowledge", tableResource("documentVersions")),
   ...handlersFor("Knowledge", tableResource("verbiageTerms")),
 

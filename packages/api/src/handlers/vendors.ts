@@ -15,6 +15,7 @@ import { mergeBy } from "./support/enrich.ts";
 import { from, groupBy, handlersFor, keysOf, run, tableResource, unwrap } from "./support/table.ts";
 
 const vendors = tableResource("vendors", {
+  archivable: true,
   derived: ["counterparty_type", "bank_account_last4"],
   // The last four digits of the vendor's most recent bank account, through the masked view (A54-002).
   enrich: async (rows, { db }) =>

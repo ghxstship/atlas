@@ -8,6 +8,7 @@
 import { z } from "@hono/zod-openapi";
 import { canonCodes, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
+import { archivedListQuery } from "./parts/archived-filter.ts";
 import { all, editShape, orNull, setTable } from "../correct.ts";
 import { placesFieldHomes } from "./parts/playbook-field-homes.ts";
 
@@ -36,6 +37,7 @@ const GeoJsonPolygon = z
   });
 
 export const additions = defineAdditions("Places", {
+  listQuery: { venues: archivedListQuery },
   corrections: [
     {
       id: "venue-address-and-location",

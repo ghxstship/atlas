@@ -16,6 +16,7 @@
  * derived field passes `extraColumns` and `toContract`.
  */
 import type { DataError, XosClient } from "@xos/data";
+import { applyArchived, parseArchived } from "@xos/data/archive";
 import { atlasResources } from "../../catalog/atlas.ts";
 import { canonResources } from "../../catalog/canon.ts";
 import { marketplaceResources } from "../../catalog/marketplace.ts";
@@ -91,6 +92,7 @@ export interface Query extends PromiseLike<{ data: unknown; error: unknown }> {
   eq(column: string, value: unknown): Query;
   neq(column: string, value: unknown): Query;
   is(column: string, value: null | boolean): Query;
+  not(column: string, operator: string, value: unknown): Query;
   in(column: string, values: readonly unknown[]): Query;
   gt(column: string, value: unknown): Query;
   gte(column: string, value: unknown): Query;
@@ -291,6 +293,11 @@ export interface TableOptions {
   readonly key?: string;
   /** Sortable and filterable fields; defaults to every stored read field. */
   readonly sortable?: readonly string[];
+  /**
+   * The table keeps `archived_at` (A124, 2180): lists leave archived rows out unless the request's
+   * `archived` parameter asks for them; reads by key return them either way.
+   */
+  readonly archivable?: boolean;
 }
 
 /** The table handlers of a resource, plus helpers its custom actions reuse. */
@@ -357,7 +364,10 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
             const all = [...new Set([...columns.split(","), ...extra])].filter(
               (c) => c !== "" && !derived.has(c.split(":")[0] as string),
             );
-            return scoped(context, source(context).select(all.join(",")));
+            const q = scoped(context, source(context).select(all.join(",")));
+            return options.archivable === true
+              ? applyArchived(q, parseArchived(query.archived))
+              : q;
           },
         }),
         aliases,
