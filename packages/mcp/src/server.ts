@@ -1,6 +1,6 @@
 /** Wires the SDK client, the tools and the protocol session together, and runs them over stdio. */
 import { createInterface } from "node:readline";
-import { API_VERSION, XosClient } from "@xos/sdk";
+import { API_VERSION, XosClient } from "@ghxstship/xos-sdk";
 import type { WriteScope } from "./tools.ts";
 import { createTools, parseWriteScope } from "./tools.ts";
 import { McpSession } from "./protocol.ts";

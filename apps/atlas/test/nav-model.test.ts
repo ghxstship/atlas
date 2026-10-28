@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
-import type { ATLAS_ROLES } from "@xos/ia";
+import { ATLAS_ROLES, type Sitemap, type SitemapNode } from "@xos/ia";
 import { sitemap } from "../ia/sitemap.generated";
-import { buildShellNav, NAV_ICONS, ROLE_PERSONA } from "../lib/shell/nav-model";
+import {
+  buildShellNav,
+  NAV_ICONS,
+  type RecentProjectModel,
+  recentProjectLinks,
+  ROLE_PERSONA,
+} from "../lib/shell/nav-model";
 
 const t = (key: string) => key;
 const build = (role: (typeof ATLAS_ROLES)[number], extra: { disabledModules?: string[] } = {}) =>
@@ -91,5 +97,85 @@ describe("shell navigation model (Section 4.5.2)", () => {
     expect(hrefs.every((h) => h.startsWith("/acme/"))).toBe(true);
     expect(new Set(hrefs).size).toBe(hrefs.length);
     expect(Object.keys(NAV_ICONS)).toContain("finance");
+  });
+});
+
+describe("recent projects under Projects (Section 4.5.2)", () => {
+  const opened: RecentProjectModel[] = [
+    { key: "NWX", name: "Northwind Winter Gala" },
+    { key: "NWL", name: "Northwind Summer Series" },
+    { key: "NWX", name: "Northwind Winter Gala" },
+    { key: "HLP", name: "Harbor Lights Pier Nights" },
+    { key: "BAY", name: "Bayfront Countdown" },
+    { key: "KEY", name: "Key Biscayne Regatta" },
+    { key: "SUN", name: "Sunset Sessions" },
+  ];
+  const projectsEntry = (nav: ReturnType<typeof buildShellNav>) =>
+    nav.pinned.find((l) => l.id === "projects");
+  const withRecent = (map: Sitemap, role: (typeof ATLAS_ROLES)[number] | null) =>
+    buildShellNav(map, {
+      nav: { role, conditions: ["desktop"] },
+      role,
+      params: { org: "acme" },
+      t,
+      recentProjects: opened,
+    });
+  /** The sitemap with one node hidden from one role. */
+  const hiding = (id: string, role: string): Sitemap => {
+    const hide = (node: SitemapNode): SitemapNode =>
+      node.id === id
+        ? {
+            ...node,
+            visibility: {
+              ...Object.fromEntries(ATLAS_ROLES.map((r) => [r, "full" as const])),
+              [role]: "hidden" as const,
+            },
+          }
+        : { ...node, ...(node.children ? { children: node.children.map(hide) } : {}) };
+    return { ...sitemap, nodes: sitemap.nodes.map(hide) };
+  };
+
+  it("lists the five most recent projects, once each and newest first, then All Projects", () => {
+    const children = projectsEntry(withRecent(sitemap, "member"))?.children ?? [];
+    expect(children.map((l) => l.label)).toEqual([
+      "Northwind Winter Gala",
+      "Northwind Summer Series",
+      "Harbor Lights Pier Nights",
+      "Bayfront Countdown",
+      "Key Biscayne Regatta",
+      "nav.atlas.pages.projects.all",
+    ]);
+    expect(children.map((l) => l.href)).toEqual([
+      "/acme/p/NWX",
+      "/acme/p/NWL",
+      "/acme/p/HLP",
+      "/acme/p/BAY",
+      "/acme/p/KEY",
+      "/acme/projects/all",
+    ]);
+    expect(new Set(children.map((l) => l.id)).size).toBe(children.length);
+  });
+
+  it("lists nothing under Projects before the person opens a project", () => {
+    expect(projectsEntry(build("member"))?.children).toBeUndefined();
+    expect(
+      recentProjectLinks(sitemap, [], { nav: { role: "member" }, params: { org: "acme" }, t }),
+    ).toEqual([]);
+  });
+
+  it("respects what the role may open", () => {
+    // Without project pages there is nothing to list; Projects itself stays.
+    const noProjectPages = withRecent(hiding("project", "viewer"), "viewer");
+    expect(projectsEntry(noProjectPages)).toBeDefined();
+    expect(projectsEntry(noProjectPages)?.children).toBeUndefined();
+    expect(projectsEntry(withRecent(hiding("project", "viewer"), "member"))?.children).toHaveLength(
+      6,
+    );
+    // Without the All Projects page the recent projects stand alone.
+    const noAll = projectsEntry(withRecent(hiding("projects.all", "field"), "field"))?.children;
+    expect(noAll?.map((l) => l.href)).not.toContain("/acme/projects/all");
+    expect(noAll).toHaveLength(5);
+    // Someone with no role in the org sees no Projects entry at all.
+    expect(withRecent(sitemap, null).pinned).toEqual([]);
   });
 });
