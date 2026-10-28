@@ -108,7 +108,7 @@ async function Agenda({ rows, timeZone }: { rows: readonly LiveRecordRow[]; time
           <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
             {list.map((r) => (
               <li key={r.key} className="flex flex-wrap items-baseline gap-8 py-8 text-text-13">
-                <span className="w-[5rem] shrink-0 text-text-secondary">
+                <span className="w-80 shrink-0 text-text-secondary">
                   {r.startsAt
                     ? format.dateTime(new Date(r.startsAt), { timeStyle: "short", timeZone })
                     : r.dueAt

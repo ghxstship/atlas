@@ -252,7 +252,7 @@ export function DisplayScreen({
                 <ol className="m-0 flex list-none flex-col gap-4 p-0">
                   {frame.upcoming.map((c) => (
                     <li key={c.position} className="flex gap-12 text-text-16">
-                      <span className="w-[4rem] shrink-0 tabular-nums text-text-secondary">
+                      <span className="w-64 shrink-0 tabular-nums text-text-secondary">
                         {time(c.plannedAt)}
                       </span>
                       <span>{c.label}</span>

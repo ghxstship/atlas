@@ -44,11 +44,11 @@ export default async function DisplayScreenPage({
     typeof reasonParam === "string" ? parseRefusal(reasonParam) : null;
   const t = await getTranslations("compliance.liveLinks");
   const grant = (await cookies()).get(GRANT_COOKIE)?.value ?? null;
-  const action = `/share/screen/${token}/open`;
+  const path = `/share/screen/${token}`;
   const form = (reason: LiveLinkRefusal | null) => (
     <div className="flex min-h-dvh flex-col justify-center gap-16 p-24">
       <h1 className="m-0 text-center text-heading-24 font-semibold">{t("screenTitle")}</h1>
-      <LiveCodeForm action={action} intro={t("screenIntro")} reason={reason} tone="dark" />
+      <LiveCodeForm path={path} intro={t("screenIntro")} reason={reason} tone="dark" />
     </div>
   );
 
@@ -78,7 +78,7 @@ export default async function DisplayScreenPage({
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-12 p-24 text-center">
         <h1 className="m-0 text-heading-24 font-semibold">{t("notAvailable")}</h1>
-        <p className="m-0 max-w-[36rem] text-text-16 text-text-secondary">
+        <p className="m-0 max-w-layout-reading text-text-16 text-text-secondary">
           {t(`refusals.${reason}`)}
         </p>
       </div>

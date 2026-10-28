@@ -46,13 +46,13 @@ export default async function LiveViewPage({
     typeof reasonParam === "string" ? parseRefusal(reasonParam) : null;
   const t = await getTranslations("compliance.liveLinks");
   const grant = (await cookies()).get(GRANT_COOKIE)?.value ?? null;
-  const action = `/share/view/${token}/open`;
+  const path = `/share/view/${token}`;
 
   if (grant === null || asked !== null) {
     return (
       <>
         <h1 className="m-0 text-heading-24 font-semibold">{t("viewTitle")}</h1>
-        <LiveCodeForm action={action} intro={t("intro")} reason={asked} />
+        <LiveCodeForm path={path} intro={t("intro")} reason={asked} />
       </>
     );
   }
@@ -79,7 +79,7 @@ export default async function LiveViewPage({
       <>
         <h1 className="m-0 text-heading-24 font-semibold">{t("viewTitle")}</h1>
         {code ? (
-          <LiveCodeForm action={action} intro={t("intro")} reason={reason} />
+          <LiveCodeForm path={path} intro={t("intro")} reason={reason} />
         ) : (
           <InlineAlert tone="danger">{t(`refusals.${reason}`)}</InlineAlert>
         )}

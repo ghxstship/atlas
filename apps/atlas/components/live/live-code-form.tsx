@@ -8,12 +8,13 @@ import { Button, InlineAlert, Input } from "@/components/ui";
  * device grant and comes back. A refusal shows above the form.
  */
 export async function LiveCodeForm({
-  action,
+  path,
   intro,
   reason,
   tone = "light",
 }: {
-  action: string;
+  /** The link's page, /share/view/{token} or /share/screen/{token}; the form posts to its /open. */
+  path: string;
   intro: string;
   reason: LiveLinkRefusal | null;
   tone?: "light" | "dark";
@@ -28,8 +29,8 @@ export async function LiveCodeForm({
     <div
       className={
         tone === "dark"
-          ? "mx-auto flex max-w-[28rem] flex-col gap-16 rounded-lg bg-bg-surface p-24 text-text-primary"
-          : "mx-auto flex max-w-[28rem] flex-col gap-16"
+          ? "mx-auto flex max-w-layout-form flex-col gap-16 rounded-lg bg-bg-surface p-24 text-text-primary"
+          : "mx-auto flex max-w-layout-form flex-col gap-16"
       }
     >
       <p className="m-0 text-text-14 text-text-secondary">{intro}</p>
@@ -37,7 +38,7 @@ export async function LiveCodeForm({
         <InlineAlert tone={asks ? "warning" : "danger"}>{t(`refusals.${reason}`)}</InlineAlert>
       ) : null}
       {asks || reason === "live_link_rate_limited" ? (
-        <form method="post" action={action} className="flex flex-col gap-12">
+        <form method="post" action={`${path}/open`} className="flex flex-col gap-12">
           <Input
             width="100%"
             id="live-access-code"
