@@ -45,7 +45,7 @@ async function createProject(page: Page, slug: string, key: string, name: string
   await page.waitForURL(`**/${slug}/p/${key}/overview`);
 }
 
-test("a person reorders favorites by keyboard, hears each step, and the order survives a reload", async ({
+test("a person reorders favorites by keyboard and by mouse, hears each step, and the order survives a reload", async ({
   page,
 }) => {
   const slug = await newOrg(page, "favorites");
@@ -91,6 +91,18 @@ test("a person reorders favorites by keyboard, hears each step, and the order su
   await first.focus();
   await expect(favorites.getByRole("button", { name: "Move My Work" })).toBeVisible();
   await expect(first).toBeFocused();
+
+  // By mouse: a favorite dropped on another takes its place, a screen reader hears it, and the order is saved.
+  const dropped = nextAction(page);
+  await favorites
+    .getByRole("listitem")
+    .filter({ hasText: "Inbox" })
+    .dragTo(favorites.getByRole("listitem").filter({ hasText: "My Work" }));
+  await expect(page.getByText("Inbox dropped at position 1 of 3.")).toBeAttached();
+  await dropped;
+  await expect(favorites.getByRole("link")).toHaveText(["Inbox", "My Work", "Home"]);
+  await page.reload();
+  await expect(favorites.getByRole("link")).toHaveText(["Inbox", "My Work", "Home"]);
 });
 
 test("the projects a person opens appear under Projects, newest first, then All Projects", async ({
