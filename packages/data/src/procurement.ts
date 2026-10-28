@@ -785,12 +785,12 @@ export interface GoodsReceipt {
   readonly receivedBy: string | null;
   readonly receiverName: string | null;
   readonly note: string | null;
-  readonly lines: readonly { poLineId: string; quantityReceived: number }[];
+  readonly lines: readonly { id: string; poLineId: string; quantityReceived: number }[];
   readonly matched: boolean;
 }
 
 const RECEIPT_COLUMNS =
-  "id, purchase_order_id, received_at, received_by, note, receiver:people!goods_receipts_received_by_fkey(full_name), purchase_order:purchase_orders!inner(po_number, project:projects(project_key, name), vendor:vendors(counterparty:counterparties(counterparty_name))), receipt_lines(po_line_id, quantity_received, deleted_at), invoice_matches(id, deleted_at)" as const;
+  "id, purchase_order_id, received_at, received_by, note, receiver:people!goods_receipts_received_by_fkey(full_name), purchase_order:purchase_orders!inner(po_number, project:projects(project_key, name), vendor:vendors(counterparty:counterparties(counterparty_name))), receipt_lines(id, po_line_id, quantity_received, deleted_at), invoice_matches(id, deleted_at)" as const;
 
 interface ReceiptRow {
   id: string;
@@ -801,7 +801,8 @@ interface ReceiptRow {
   receiver: { full_name: string | null } | null;
   purchase_order: (ProjectEmbed & VendorEmbed & { po_number: number }) | null;
   receipt_lines:
-    { po_line_id: string; quantity_received: number; deleted_at: string | null }[] | null;
+    | { id: string; po_line_id: string; quantity_received: number; deleted_at: string | null }[]
+    | null;
   invoice_matches: { id: string; deleted_at: string | null }[] | null;
 }
 
@@ -820,7 +821,7 @@ function toReceipt(row: ReceiptRow): GoodsReceipt {
     note: row.note,
     lines: (row.receipt_lines ?? [])
       .filter((l) => l.deleted_at === null)
-      .map((l) => ({ poLineId: l.po_line_id, quantityReceived: l.quantity_received })),
+      .map((l) => ({ id: l.id, poLineId: l.po_line_id, quantityReceived: l.quantity_received })),
     matched: (row.invoice_matches ?? []).some((m) => m.deleted_at === null),
   };
 }
@@ -1588,4 +1589,13 @@ export async function transitionSubmittal(
     }),
   );
   return result.ok ? ok(null) : result;
+}
+
+/**
+ * The IANA time zone a project's local times are typed in (app.projects.time_zone), so a hire typed as
+ * `datetime-local` becomes an instant in the project's zone; UTC when the project is not readable.
+ */
+export async function getProjectTimeZone(db: XosClient, projectId: string): Promise<string> {
+  const { data } = await db.from("projects").select("time_zone").eq("id", projectId).maybeSingle();
+  return data?.time_zone ?? "UTC";
 }

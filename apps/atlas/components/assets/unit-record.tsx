@@ -1,6 +1,10 @@
 import type { XosClient } from "@xos/data";
 import type { AssetUnitDetail } from "@xos/data/assets";
-import { assetStateKey, scanActionsFor } from "@xos/data/assets";
+import { assetStateKey, getAssetUnitProvenance, scanActionsFor } from "@xos/data/assets";
+import { getPurchaseOrder } from "@xos/data/procurement";
+import { Tag } from "@xos/ui";
+import Link from "next/link";
+import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import { Money, PropertyList, StateIcon, TemplateRecord } from "@/components/assets/ui";
@@ -130,8 +134,11 @@ export async function UnitRecord({
     </div>
   );
 
+  const provenance = await Provenance({ db, org, unitId: unit.id, t, when });
+
   const content = (
     <>
+      {provenance}
       <Section title={t("assets.units.sections.custody")}>
         {unit.custodyHistory.length === 0 ? (
           <Empty>{t("assets.units.none.custody")}</Empty>
@@ -258,6 +265,63 @@ export async function UnitRecord({
     >
       {content}
     </TemplateRecord>
+  );
+}
+
+/**
+ * Where the unit came from (R7a): the order it arrived on, the vendor, when it was received and, for a hire, when
+ * it goes back. app.asset_unit_provenance runs as the reader, so the section is left out for anyone who cannot
+ * read the order (procurement.po.read) and cost never reaches an asset-only reader.
+ */
+async function Provenance({
+  db,
+  org,
+  unitId,
+  t,
+  when,
+}: {
+  db: XosClient;
+  org: string;
+  unitId: string;
+  t: Translate;
+  when: (iso: string) => string;
+}) {
+  const provenance = await getAssetUnitProvenance(db, unitId);
+  if (!provenance.ok || provenance.data === null) return null;
+  const p = provenance.data;
+  const order = await getPurchaseOrder(db, p.purchaseOrderId);
+  const orderLabel = order.ok ? order.data.key : t("assets.provenance.order");
+  return (
+    <Section title={t("assets.provenance.title")}>
+      <dl className="m-0 grid grid-cols-[auto_minmax(0,1fr)] gap-x-12 gap-y-4 text-text-13">
+        <dt className="text-text-secondary">{t("assets.provenance.order")}</dt>
+        <dd className="m-0">
+          <Link
+            href={`/${org}/procurement/purchase-orders?peek=${p.purchaseOrderId}&full=1` as Route}
+            className="font-mono text-accent-text underline"
+          >
+            {orderLabel}
+          </Link>
+          {p.acquisitionKind === "Rental" ? (
+            <span className="ms-8">
+              <Tag tone="accent">{t("assets.provenance.rental")}</Tag>
+            </span>
+          ) : null}
+        </dd>
+        <dt className="text-text-secondary">{t("assets.provenance.vendor")}</dt>
+        <dd className="m-0">
+          {(order.ok ? order.data.vendorName : null) ?? t("assets.common.notRecorded")}
+        </dd>
+        <dt className="text-text-secondary">{t("assets.provenance.receivedAt")}</dt>
+        <dd className="m-0">{when(p.receivedAt)}</dd>
+        {p.hireEndsAt ? (
+          <>
+            <dt className="text-text-secondary">{t("assets.provenance.hireEnds")}</dt>
+            <dd className="m-0">{when(p.hireEndsAt)}</dd>
+          </>
+        ) : null}
+      </dl>
+    </Section>
   );
 }
 

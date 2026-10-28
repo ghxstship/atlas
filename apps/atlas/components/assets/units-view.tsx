@@ -5,8 +5,10 @@ import {
   isAssetState,
   listAssetClasses,
   listAssetCustody,
+  listAssetUnitHire,
   listAssetUnits,
   type AssetUnit,
+  type AssetUnitHire,
   type CustodyLedgerEntry,
 } from "@xos/data/assets";
 import { getFormatter } from "next-intl/server";
@@ -18,7 +20,15 @@ import { Breadcrumbs, PageHeader } from "@/components/assets/ui";
 import { UnitRecord } from "@/components/assets/unit-record";
 import { assetCapabilities, loadPickers, must } from "@/lib/assets/context";
 import { DEFAULT_CURRENCY, pageViews } from "@/lib/assets/page";
-import { ASSET_STATE_TONE, matches, type ListQuery } from "@/lib/assets/views";
+import {
+  ASSET_STATE_TONE,
+  BUILT_IN_UNIT_VIEWS,
+  BUILT_IN_UNIT_VIEW_KEY,
+  inBuiltInUnitView,
+  isBuiltInUnitView,
+  matches,
+  type ListQuery,
+} from "@/lib/assets/views";
 import type { OrgContext } from "@/lib/shell/context";
 import { customFieldList } from "@/lib/custom-fields/server";
 import { orgToday } from "@/lib/shell/time-zone";
@@ -106,9 +116,22 @@ export async function UnitsView({
   }
 
   const filter = query.filter && isAssetState(query.filter) ? query.filter : undefined;
+  // Built-in views (G-96): Hired in reads app.asset_unit_hire, which shows no vendor or cost.
+  const preset = isBuiltInUnitView(query.filter) ? query.filter : undefined;
+  const hire = new Map<string, AssetUnitHire>(
+    preset === "view:hired-in"
+      ? must(await listAssetUnitHire(db, ctx.org.id), "unit hire").map((h) => [h.assetUnitId, h])
+      : [],
+  );
+  const hiredIn = preset === "view:hired-in";
   const visible = units.filter(
     (u) =>
       (!filter || u.state === filter) &&
+      (!preset ||
+        inBuiltInUnitView(preset, {
+          state: u.state,
+          acquisitionKind: hire.get(u.id)?.acquisitionKind ?? "Purchase",
+        })) &&
       custom.keep(u.id) &&
       matches(query.q, u.assetTag, u.className, custodianOf(u), u.homeVenueName),
   );
@@ -130,6 +153,7 @@ export async function UnitsView({
       custodian: custodianOf(u) || null,
       project: u.custody?.projectKey ?? null,
       homeVenue: u.homeVenueName,
+      ...(hiredIn ? hireCells(hire.get(u.id), format, t) : {}),
     },
   }));
 
@@ -162,8 +186,26 @@ export async function UnitsView({
           { key: "custodian", label: t("assets.fields.custodian") },
           { key: "project", label: t("assets.fields.projectId"), type: "code" },
           { key: "homeVenue", label: t("assets.fields.homeVenueId") },
+          ...(hiredIn
+            ? [
+                { key: "hireEnds", label: t("assets.hire.endsAt") },
+                { key: "offHire", label: t("assets.hire.offHire"), type: "state" as const },
+              ]
+            : []),
         ]}
-        {...(units.length > 0 ? { filterOptions: stateOptions(t) } : {})}
+        {...(units.length > 0
+          ? {
+              filterOptions: stateOptions(t),
+              presets: {
+                label: t("assets.views.builtIn.label"),
+                allLabel: t("assets.views.builtIn.all"),
+                options: BUILT_IN_UNIT_VIEWS.map((v) => ({
+                  value: v,
+                  label: t(`assets.views.builtIn.${BUILT_IN_UNIT_VIEW_KEY[v]}`),
+                })),
+              },
+            }
+          : {})}
         bulk={
           can.write
             ? {
@@ -240,6 +282,22 @@ export async function UnitsView({
       />
     </>
   );
+}
+
+/** The Hired in view's columns: when the hire ends, and whether its off-hire is due. */
+function hireCells(
+  hire: AssetUnitHire | undefined,
+  format: Awaited<ReturnType<typeof getFormatter>>,
+  t: (key: string) => string,
+) {
+  return {
+    hireEnds: hire?.hireEndsAt
+      ? format.dateTime(new Date(hire.hireEndsAt), { dateStyle: "medium", timeStyle: "short" })
+      : null,
+    offHire: hire?.offHireDue
+      ? { state: "blocked" as const, label: t("assets.hire.offHireDue") }
+      : null,
+  };
 }
 
 function stateOptions(t: (key: string) => string) {

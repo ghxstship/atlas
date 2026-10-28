@@ -8,7 +8,8 @@
     "inMaintenance": "In Maintenance",
     "damaged": "Damaged",
     "lost": "Lost",
-    "retired": "Retired"
+    "retired": "Retired",
+    "returned": "Returned"
   },
   "actions": {
     "checkOut": "Check out",
@@ -21,7 +22,14 @@
     "board": "Board",
     "gallery": "Gallery",
     "calendar": "Calendar",
-    "resource-schedule": "Schedule"
+    "resource-schedule": "Schedule",
+    "builtIn": {
+      "label": "Built-in views",
+      "all": "All units",
+      "damaged": "Damaged",
+      "hiredIn": "Hired in",
+      "unavailable": "Unavailable"
+    }
   },
   "collection": {
     "view": "View",
@@ -118,7 +126,11 @@
     "asset_scan_unavailable": "This asset is not in service, so it cannot be checked out or in. Move it back to Available first.",
     "asset_scan_event_reused": "That scan was already used for another item. Close this window and scan again.",
     "asset_scan_engagement_closed": "That engagement is Complete or Canceled. Gear goes to an engagement that is still open.",
-    "asset_scan_engagement_project": "That engagement belongs to another project. Choose its project, or keep the current one."
+    "asset_scan_engagement_project": "That engagement belongs to another project. Choose its project, or keep the current one.",
+    "asset_returned_through_goods_return": "A unit goes back to its vendor through a return on its purchase order, not by changing its state.",
+    "unit_receipt_element": "The unit’s class is not the item that receipt line ordered.",
+    "unit_receipt_exceeds": "That receipt line already brought in as many units as it received.",
+    "unit_receipt_immutable": "A unit keeps the receipt line it arrived on."
   },
   "load": {
     "loading": "Loading assets",
@@ -334,5 +346,18 @@
     "unitsTitle": "Assets on {project}",
     "empty": "No gear is checked out to {project} yet. Check units out to this project from the custody ledger.",
     "emptyAction": "Open the custody ledger"
+  },
+  "hire": {
+    "endsAt": "Hire ends",
+    "offHire": "Off-hire",
+    "offHireDue": "Off-hire due"
+  },
+  "provenance": {
+    "title": "Provenance",
+    "order": "Purchase order",
+    "rental": "Rental",
+    "vendor": "Vendor",
+    "receivedAt": "Received",
+    "hireEnds": "Hire ends"
   }
 }

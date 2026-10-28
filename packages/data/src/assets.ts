@@ -1325,3 +1325,33 @@ export async function listAssetUnitHire(
     ),
   );
 }
+
+export interface ReceiptUnit {
+  readonly id: string;
+  readonly assetTag: string;
+  readonly receiptLineId: string;
+  readonly state: AssetState;
+}
+
+/** The units that arrived on some receipt lines (R7a), by tag, for the receipt page and the return dialog. */
+export async function listReceiptUnits(
+  db: XosClient,
+  receiptLineIds: readonly string[],
+): Promise<Result<ReceiptUnit[]>> {
+  if (receiptLineIds.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("asset_units")
+    .select("id, asset_tag, receipt_line_id, asset_state")
+    .in("receipt_line_id", [...receiptLineIds])
+    .is("deleted_at", null)
+    .order("asset_tag");
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((u) => ({
+      id: u.id,
+      assetTag: u.asset_tag,
+      receiptLineId: u.receipt_line_id ?? "",
+      state: u.asset_state,
+    })),
+  );
+}

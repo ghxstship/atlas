@@ -1,11 +1,16 @@
+import { listAssetClasses, listAssetVenues, listReceiptUnits } from "@xos/data/assets";
 import {
   listGoodsReceipts,
+  listGoodsReturns,
   listPoLines,
   listPurchaseOrders,
   type GoodsReceipt,
 } from "@xos/data/procurement";
 import { getFormatter } from "next-intl/server";
-import { recordReceiptAction } from "@/app/[org]/procurement/actions";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import type { Route } from "next";
+import { recordReceiptAction, recordReturnAction } from "@/app/[org]/procurement/actions";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { PresenceFor } from "@/components/presence/presence-for";
 import { CollectionView } from "@/components/collection-kit/collection-view";
@@ -30,6 +35,9 @@ import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list"];
 
+/** The Return to vendor dialog loads when it opens (R7a). */
+const ReturnForm = dynamic(() => import("./supply-forms").then((m) => m.ReturnForm));
+
 function matchState(r: GoodsReceipt, t: Copy): KitState {
   return r.matched
     ? { state: "complete", label: t("receipts.matched") }
@@ -39,8 +47,9 @@ function matchState(r: GoodsReceipt, t: Copy): KitState {
 /**
  * Procurement > Receipts (journey 5): goods received against approved or sent purchase orders.
  * Cumulative receipts never exceed the quantity ordered (the database refuses a duplicate or excess
- * receipt); the receiver comes from the session. Compass records receipts by scan through the same
- * tables.
+ * receipt); the receiver comes from the session. A receipt is one app.receive_goods event (R7a): lines
+ * of an item with an asset class bring units in by tag or stock in at a venue, and a receipt's goods go
+ * back to the vendor through Return to vendor. Compass receives against an order through the same RPC.
  */
 export async function ReceiptsSection({
   ctx,
@@ -53,7 +62,11 @@ export async function ReceiptsSection({
   search: SearchParams;
   projectId?: string;
 }) {
-  const state = collectionState(search, VIEWS, await orgToday(ctx));
+  const loaded = collectionState(search, VIEWS, await orgToday(ctx));
+  // `return=1` opens the Return to vendor dialog; no other link keeps it.
+  const kept = new URLSearchParams(loaded.baseQuery);
+  kept.delete("return");
+  const state = { ...loaded, baseQuery: kept.toString() };
   const db = ctx.viewer.db;
   const [t, format, all, orders] = await Promise.all([
     getCopy("procurement"),
@@ -85,25 +98,101 @@ export async function ReceiptsSection({
     { label: t("receipts.note"), value: r.note ?? t("receipts.noNote") },
   ];
   const lineTable = async (r: GoodsReceipt) => {
-    const lines = await listPoLines(db, r.purchaseOrderId);
+    const [lines, units] = await Promise.all([
+      listPoLines(db, r.purchaseOrderId),
+      listReceiptUnits(
+        db,
+        r.lines.map((l) => l.id),
+      ),
+    ]);
     if (!lines.ok) return <ErrorPanel what={t("receipts.what")} />;
     const byId = new Map(lines.data.map((l) => [l.id, l]));
+    const received = units.ok ? units.data : [];
     return (
-      <DataTable
-        caption={t("receipts.lines")}
-        columns={[
-          { key: "line", label: t("lines.descriptionLabel"), wrap: true },
-          { key: "received", label: t("lines.received"), type: "number" },
-          { key: "ordered", label: t("lines.quantity"), type: "number" },
-        ]}
-        rows={r.lines.map((l) => ({
-          line: byId.get(l.poLineId)?.description ?? t("receipts.unknownLine"),
-          received: l.quantityReceived,
-          ordered: byId.get(l.poLineId)?.quantity ?? null,
-        }))}
+      <>
+        <DataTable
+          caption={t("receipts.lines")}
+          columns={[
+            { key: "line", label: t("lines.descriptionLabel"), wrap: true },
+            { key: "received", label: t("lines.received"), type: "number" },
+            { key: "ordered", label: t("lines.quantity"), type: "number" },
+          ]}
+          rows={r.lines.map((l) => ({
+            line: byId.get(l.poLineId)?.description ?? t("receipts.unknownLine"),
+            received: l.quantityReceived,
+            ordered: byId.get(l.poLineId)?.quantity ?? null,
+          }))}
+        />
+        {received.length > 0 ? (
+          <div className="flex flex-col gap-4">
+            <h3 className="m-0 text-heading-14 font-semibold">{t("receipts.unitsReceived")}</h3>
+            <ul className="m-0 flex list-none flex-wrap gap-8 p-0 text-text-13">
+              {received.map((u) => (
+                <li key={u.id}>
+                  <Link
+                    href={
+                      `/${ctx.org.slug}/assets/units?peek=${encodeURIComponent(u.assetTag)}` as Route
+                    }
+                    className="font-mono text-accent-text underline"
+                  >
+                    {u.assetTag}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </>
+    );
+  };
+  /** Return to vendor: the receipt's lines with what can still go back, and their units still here. */
+  const returnDrawer = async (r: GoodsReceipt) => {
+    const [lines, units, returns, venues] = await Promise.all([
+      listPoLines(db, r.purchaseOrderId),
+      listReceiptUnits(
+        db,
+        r.lines.map((l) => l.id),
+      ),
+      listGoodsReturns(db, ctx.org.id, r.purchaseOrderId),
+      listAssetVenues(db, ctx.org.id),
+    ]);
+    if (!lines.ok || !units.ok || !returns.ok || !venues.ok) {
+      return <ErrorPanel what={t("returns.what")} />;
+    }
+    const byId = new Map(lines.data.map((l) => [l.id, l]));
+    const returned = new Map<string, number>();
+    for (const g of returns.data)
+      for (const l of g.lines)
+        returned.set(l.receiptLineId, (returned.get(l.receiptLineId) ?? 0) + l.quantityReturned);
+    const back = ["Available", "Damaged", "In Maintenance"];
+    return (
+      <ReturnForm
+        org={ctx.org.slug}
+        purchaseOrderId={r.purchaseOrderId}
+        action={recordReturnAction}
+        successHref={withQuery(path, state, { peek: r.id })}
+        venues={venues.data.map((v) => ({ value: v.id, label: v.name }))}
+        lines={r.lines.map((l) => {
+          const line = byId.get(l.poLineId);
+          return {
+            receiptLineId: l.id,
+            label: line?.description ?? t("receipts.unknownLine"),
+            returnable: Math.max(0, l.quantityReceived - (returned.get(l.id) ?? 0)),
+            rental: line?.acquisitionKind === "Rental",
+            units: units.data
+              .filter((u) => u.receiptLineId === l.id && back.includes(u.state))
+              .map((u) => ({ id: u.id, tag: u.assetTag })),
+          };
+        })}
       />
     );
   };
+  const returnLink = (r: GoodsReceipt) =>
+    canWrite ? (
+      <KitLink href={withQuery(path, state, { peek: r.id, return: "1" })} size="sm">
+        {t("returns.open")}
+      </KitLink>
+    ) : null;
 
   if (selected && state.full) {
     return (
@@ -114,6 +203,7 @@ export async function ReceiptsSection({
         title={t("receipts.recordTitle", { when: when(selected.receivedAt) })}
         state={matchState(selected, t)}
         properties={properties(selected)}
+        actions={returnLink(selected)}
       >
         <PresenceFor table="goods_receipts" id={selected.id} />
         <KitSection id="receipt-lines" title={t("receipts.lines")}>
@@ -184,7 +274,14 @@ export async function ReceiptsSection({
           </form>
         );
     } else {
-      const lines = await listPoLines(db, chosen.id);
+      const [lines, classes, venues] = await Promise.all([
+        listPoLines(db, chosen.id),
+        listAssetClasses(db, ctx.org.id),
+        listAssetVenues(db, ctx.org.id),
+      ]);
+      // Lines of an element with an asset class can bring units or stock in; a reader of orders who
+      // cannot read assets sees plain receipt lines.
+      const stocked = new Set(classes.ok ? classes.data.map((c) => c.elementId) : []);
       body = !lines.ok ? (
         <ErrorPanel what={t("receipts.what")} />
       ) : (
@@ -193,11 +290,13 @@ export async function ReceiptsSection({
           purchaseOrderId={chosen.id}
           action={recordReceiptAction}
           successHref={withQuery(path, state, { peek: "{id}" })}
+          venues={venues.ok ? venues.data.map((v) => ({ value: v.id, label: v.name })) : []}
           lines={lines.data.map((l) => ({
             id: l.id,
             label: `${l.lineNumber}. ${l.description}`,
             ordered: l.quantity,
             received: l.receivedQuantity,
+            stocked: l.elementId !== null && stocked.has(l.elementId),
           }))}
         />
       );
@@ -210,6 +309,15 @@ export async function ReceiptsSection({
         {body}
       </FormDrawer>
     );
+  } else if (selected && search["return"] === "1" && canWrite) {
+    drawer = (
+      <FormDrawer
+        title={t("returns.title", { order: selected.purchaseOrderKey })}
+        closeHref={withQuery(path, state, { peek: selected.id })}
+      >
+        {await returnDrawer(selected)}
+      </FormDrawer>
+    );
   } else if (selected) {
     drawer = (
       <PeekDrawer
@@ -219,6 +327,7 @@ export async function ReceiptsSection({
         closeHref={withQuery(path, state)}
         fullHref={withQuery(path, state, { peek: selected.id, full: "1" })}
         properties={properties(selected)}
+        actions={returnLink(selected)}
       >
         <PresenceFor table="goods_receipts" id={selected.id} />
         {await lineTable(selected)}

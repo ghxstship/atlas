@@ -8,7 +8,8 @@
     "inMaintenance": "En mantenimiento",
     "damaged": "Dañado",
     "lost": "Perdido",
-    "retired": "Dado de baja"
+    "retired": "Dado de baja",
+    "returned": "Devuelto"
   },
   "actions": {
     "checkOut": "Entregar",
@@ -21,7 +22,14 @@
     "board": "Tablero",
     "gallery": "Galería",
     "calendar": "Calendario",
-    "resource-schedule": "Programación"
+    "resource-schedule": "Programación",
+    "builtIn": {
+      "label": "Vistas integradas",
+      "all": "Todas las unidades",
+      "damaged": "Dañadas",
+      "hiredIn": "Alquiladas",
+      "unavailable": "No disponibles"
+    }
   },
   "collection": {
     "view": "Vista",
@@ -118,7 +126,11 @@
     "asset_scan_unavailable": "Este activo no está en servicio, así que no se puede entregar ni devolver. Primero pásalo a Disponible.",
     "asset_scan_event_reused": "Ese escaneo ya se usó para otro elemento. Cierra esta ventana y escanea de nuevo.",
     "asset_scan_engagement_closed": "Esa contratación está Completa o Cancelada. El equipo se entrega a una contratación que siga abierta.",
-    "asset_scan_engagement_project": "Esa contratación pertenece a otro proyecto. Elige su proyecto o mantén el actual."
+    "asset_scan_engagement_project": "Esa contratación pertenece a otro proyecto. Elige su proyecto o mantén el actual.",
+    "asset_returned_through_goods_return": "Una unidad vuelve a su proveedor mediante una devolución en su orden de compra, no cambiando su estado.",
+    "unit_receipt_element": "La clase de la unidad no es el artículo que pidió esa línea de recepción.",
+    "unit_receipt_exceeds": "Esa línea de recepción ya ingresó tantas unidades como recibió.",
+    "unit_receipt_immutable": "Una unidad conserva la línea de recepción con la que llegó."
   },
   "load": {
     "loading": "Cargando activos",
@@ -334,5 +346,18 @@
     "unitsTitle": "Activos en {project}",
     "empty": "Aún no hay equipo entregado a {project}. Entrega unidades a este proyecto desde el registro de custodia.",
     "emptyAction": "Abrir el registro de custodia"
+  },
+  "hire": {
+    "endsAt": "Fin del alquiler",
+    "offHire": "Devolución",
+    "offHireDue": "Devolución pendiente"
+  },
+  "provenance": {
+    "title": "Procedencia",
+    "order": "Orden de compra",
+    "rental": "Alquiler",
+    "vendor": "Proveedor",
+    "receivedAt": "Recibida",
+    "hireEnds": "Fin del alquiler"
   }
 }

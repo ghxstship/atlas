@@ -78,6 +78,15 @@ export interface CollectionProps {
   readonly today?: string;
   /** Options of the state filter, when the page has one. */
   readonly filterOptions?: readonly ViewOption[];
+  /**
+   * Built-in views listed first, before the state filter (R7a, G-96): filter presets (`filter=view:<name>`) no one
+   * edits or deletes. Saving the page while one is chosen keeps a copy as the person's own saved view.
+   */
+  readonly presets?: {
+    readonly label: string;
+    readonly allLabel: string;
+    readonly options: readonly ViewOption[];
+  };
   /** The one primary action: its label and the dialog it opens (a form using CreateDialogContext). */
   readonly create?: { label: string; dialog: ReactNode } | null;
   /**
@@ -226,11 +235,33 @@ export function AssetsCollection(props: CollectionProps) {
           onChange={(e) => setQ(e.target.value)}
           width={240}
         />
+        {props.presets ? (
+          <Select
+            key={`preset-${search.get("filter") ?? ""}`}
+            id="assets-preset"
+            label={props.presets.label}
+            value={
+              props.presets.options.some((o) => o.value === search.get("filter"))
+                ? (search.get("filter") ?? "")
+                : ""
+            }
+            options={[
+              { value: "", label: props.presets.allLabel },
+              ...props.presets.options.map((o) => ({ value: o.value, label: o.label })),
+            ]}
+            onChange={(e) => go({ filter: e.target.value || null })}
+          />
+        ) : null}
         {props.filterOptions ? (
           <Select
+            key={`state-${search.get("filter") ?? ""}`}
             id="assets-filter"
             label={t("collection.state")}
-            value={search.get("filter") ?? ""}
+            value={
+              props.filterOptions.some((o) => o.value === search.get("filter"))
+                ? (search.get("filter") ?? "")
+                : ""
+            }
             options={[
               { value: "", label: t("collection.allStates") },
               ...props.filterOptions.map((o) => ({ value: o.value, label: o.label })),
