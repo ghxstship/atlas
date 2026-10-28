@@ -1064,7 +1064,6 @@
       "when": "Cuándo",
       "kind": "Qué",
       "state": "Estado",
-      "call": "Llamado",
       "callKind": {
         "shift": "Turno",
         "dockSlot": "Horario de muelle",

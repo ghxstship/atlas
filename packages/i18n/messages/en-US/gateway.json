@@ -1064,7 +1064,6 @@
       "when": "When",
       "kind": "What",
       "state": "State",
-      "call": "Call",
       "callKind": {
         "shift": "Shift",
         "dockSlot": "Dock slot",
