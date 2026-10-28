@@ -129,7 +129,9 @@ describe("the Overview shows each role type what applies to it (A59-033)", () =>
   it("gives vendors, artists and the representative's advance scope a Credentials tab (R2)", () => {
     // ADR 0100 anchors: R2 puts credentials before invoices (vendor); R4's crew follows advance.
     const vendor = tabs("vendor");
-    expect(vendor.indexOf("engagement.credentials")).toBe(vendor.indexOf("engagement.invoices") - 1);
+    expect(vendor.indexOf("engagement.credentials")).toBe(
+      vendor.indexOf("engagement.invoices") - 1,
+    );
     const artist = tabs("artist");
     expect(artist.indexOf("engagement.credentials")).toBe(
       artist.indexOf("engagement.guest-list") + 1,

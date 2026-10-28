@@ -461,13 +461,16 @@ export const additions = defineAdditions("Identity", {
       id: "account-membership-accepted-at",
       since: A50,
       resources: ["accountMemberships"],
-      change: "Adds the server-set `accepted_at`: when the person confirmed the membership, null until they do.",
+      change:
+        "Adds the server-set `accepted_at`: when the person confirmed the membership, null until they do.",
       reason:
         "app.account_memberships gains accepted_at (2630, R4, ADR 0101, owner decisions 0/1). A membership app.add_account_member opens stays unconfirmed, keeps its account access and is never rostered, assigned or listed in the talent pool until the person confirms it with app.accept_account_membership.",
       apply: editShape({
         add: {
           accepted_at: {
-            schema: orNull(fields.instant("When the person confirmed the membership; null until they do.")),
+            schema: orNull(
+              fields.instant("When the person confirmed the membership; null until they do."),
+            ),
           },
         },
         serverSet: ["accepted_at"],

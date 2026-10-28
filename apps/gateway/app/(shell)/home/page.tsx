@@ -109,22 +109,22 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     memberships,
     rosterEntries,
   ] = await Promise.all([
-      listSharedRecords(ctx.db, {
-        projectIds: [...new Set(current.map((e) => e.projectId))],
-        kinds: [...UP_NEXT_KINDS],
-      }),
-      listEngagementDocuments(ctx.db),
-      listOnboardingItems(ctx.db),
-      listMyApplications(ctx.db),
-      listRepresentations(ctx.db),
-      searchMarketplace(ctx.db, {
-        limit: 6,
-        ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
-      }),
-      myPendingInvitations(ctx.db),
-      listMyUnconfirmedMemberships(ctx.db, ctx.personId),
-      listMyRosterEntries(ctx.db),
-    ]);
+    listSharedRecords(ctx.db, {
+      projectIds: [...new Set(current.map((e) => e.projectId))],
+      kinds: [...UP_NEXT_KINDS],
+    }),
+    listEngagementDocuments(ctx.db),
+    listOnboardingItems(ctx.db),
+    listMyApplications(ctx.db),
+    listRepresentations(ctx.db),
+    searchMarketplace(ctx.db, {
+      limit: 6,
+      ...(ctx.brand.kind === "org" ? { orgId: ctx.brand.org.orgId } : {}),
+    }),
+    myPendingInvitations(ctx.db),
+    listMyUnconfirmedMemberships(ctx.db, ctx.personId),
+    listMyRosterEntries(ctx.db),
+  ]);
   const upNext = records.ok ? pickUpNext(records.data, current, now) : null;
   const details = upNext?.engagement ? await loadUpNextDetails(ctx, upNext.engagement) : null;
   const feed = needsYou({
@@ -540,9 +540,14 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
         "Mail",
         i.kind === "account"
           ? t("gateway.home.feed.invitation.account", { account: i.accountName ?? "" })
-          : t("gateway.home.feed.invitation.roster", { party: i.partyName ?? "", project: i.projectName ?? "" }),
+          : t("gateway.home.feed.invitation.roster", {
+              party: i.partyName ?? "",
+              project: i.projectName ?? "",
+            }),
         [
-          i.kind === "account" && i.accountRole ? t(enumLabelKey("accountRole", i.accountRole)) : i.jobTitle,
+          i.kind === "account" && i.accountRole
+            ? t(enumLabelKey("accountRole", i.accountRole))
+            : i.jobTitle,
           i.kind === "roster" ? t("gateway.home.feed.invitation.consent") : null,
           i.inviterName ? t("gateway.home.feed.invitation.from", { name: i.inviterName }) : null,
           t("gateway.home.feed.invitation.expires", { date: formatDate(locale, i.expiresAt) }),
@@ -577,7 +582,9 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
           <ConfirmButton
             action={leaveAccountMembershipAction.bind(null, item.membership.accountMembershipId)}
             label={t("gateway.home.feed.membership.leave")}
-            title={t("gateway.home.feed.membership.leaveTitle", { account: item.membership.accountName })}
+            title={t("gateway.home.feed.membership.leaveTitle", {
+              account: item.membership.accountName,
+            })}
             sentence={t("gateway.home.feed.membership.leaveSentence")}
             confirm={t("gateway.home.feed.membership.leaveConfirm")}
             cancel={t("gateway.common.cancel")}
@@ -588,7 +595,10 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
       const e = item.entry;
       return row(
         "Users",
-        t("gateway.home.feed.roster.title", { party: e.partyName ?? e.orgName ?? "", project: e.projectName ?? "" }),
+        t("gateway.home.feed.roster.title", {
+          party: e.partyName ?? e.orgName ?? "",
+          project: e.projectName ?? "",
+        }),
         [e.jobTitle, t("gateway.home.feed.roster.consent")].filter(Boolean).join(" · "),
         <span className="flex flex-wrap items-center gap-8">
           <ActionButton

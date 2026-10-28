@@ -13,7 +13,10 @@ import { inviteAccountMemberAction } from "@/lib/actions/roster";
  */
 export function TeamInviteForm({ accountId, owner }: { accountId: string; owner: boolean }) {
   const t = useCopy();
-  const [state, action, pending] = useActionState<FormResult, FormData>(inviteAccountMemberAction, {});
+  const [state, action, pending] = useActionState<FormResult, FormData>(
+    inviteAccountMemberAction,
+    {},
+  );
   const roles = [
     ...(owner ? [{ value: "Account Owner", label: t("teamInvite.roleOwner") }] : []),
     { value: "Account Admin", label: t("teamInvite.roleAdmin") },
@@ -40,7 +43,13 @@ export function TeamInviteForm({ accountId, owner }: { accountId: string; owner:
         label={t("teamInvite.email")}
         help={t("teamInvite.emailHelp")}
       />
-      <Select id="team-invite-role" name="role" label={t("teamInvite.role")} value="Account Member" options={roles} />
+      <Select
+        id="team-invite-role"
+        name="role"
+        label={t("teamInvite.role")}
+        value="Account Member"
+        options={roles}
+      />
     </FormShell>
   );
 }

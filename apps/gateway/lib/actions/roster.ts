@@ -39,9 +39,12 @@ const entryFields = z
   })
   .transform((f) => ({
     roleCode: f.roleCode === "" ? null : f.roleCode,
-    arrivalStartsAt: f.arrivalStartsAt === "" ? null : localToInstant(f.arrivalStartsAt, f.arrivalTimeZone),
-    arrivalEndsAt: f.arrivalEndsAt === "" ? null : localToInstant(f.arrivalEndsAt, f.arrivalTimeZone),
-    arrivalTimeZone: f.arrivalStartsAt === "" && f.arrivalEndsAt === "" ? null : f.arrivalTimeZone || null,
+    arrivalStartsAt:
+      f.arrivalStartsAt === "" ? null : localToInstant(f.arrivalStartsAt, f.arrivalTimeZone),
+    arrivalEndsAt:
+      f.arrivalEndsAt === "" ? null : localToInstant(f.arrivalEndsAt, f.arrivalTimeZone),
+    arrivalTimeZone:
+      f.arrivalStartsAt === "" && f.arrivalEndsAt === "" ? null : f.arrivalTimeZone || null,
   }));
 
 function fieldsOf(form: FormData) {
@@ -112,7 +115,10 @@ export async function submitRosterAction(engagementId: string): Promise<ActionRe
   return toAction(await submitRoster(await createServerSupabase(), engagementId));
 }
 
-export async function withdrawRosterEntryAction(rosterEntryId: string, reason: string): Promise<ActionResult> {
+export async function withdrawRosterEntryAction(
+  rosterEntryId: string,
+  reason: string,
+): Promise<ActionResult> {
   return toAction(await withdrawRosterEntry(await createServerSupabase(), rosterEntryId, reason));
 }
 
@@ -130,9 +136,14 @@ export async function respondRosterEntryAction(
 /** The profile a roster manager opens: one logged read per open, never on list load. */
 export async function viewRosterProfileAction(
   rosterEntryId: string,
-): Promise<{ readonly ok: true; readonly details: SharedWorkDetails } | { readonly ok: false; readonly outcome: string }> {
+): Promise<
+  | { readonly ok: true; readonly details: SharedWorkDetails }
+  | { readonly ok: false; readonly outcome: string }
+> {
   const result = await rosterSharedWorkDetails(await createServerSupabase(), rosterEntryId);
-  return result.ok ? { ok: true, details: result.data } : { ok: false, outcome: outcomeFor(result.error) };
+  return result.ok
+    ? { ok: true, details: result.data }
+    : { ok: false, outcome: outcomeFor(result.error) };
 }
 
 // Invitations and membership ----------------------------------------------------------------------------
@@ -142,18 +153,27 @@ export async function respondPartyInvitationAction(
   invitationId: string,
   accept: boolean,
 ): Promise<ActionResult> {
-  return toAction(await respondPartyInvitation(await createServerSupabase(), kind, invitationId, accept));
+  return toAction(
+    await respondPartyInvitation(await createServerSupabase(), kind, invitationId, accept),
+  );
 }
 
-export async function acceptAccountMembershipAction(accountMembershipId: string): Promise<ActionResult> {
+export async function acceptAccountMembershipAction(
+  accountMembershipId: string,
+): Promise<ActionResult> {
   return toAction(await acceptAccountMembership(await createServerSupabase(), accountMembershipId));
 }
 
-export async function leaveAccountMembershipAction(accountMembershipId: string): Promise<ActionResult> {
+export async function leaveAccountMembershipAction(
+  accountMembershipId: string,
+): Promise<ActionResult> {
   return toAction(await endAccountMembership(await createServerSupabase(), accountMembershipId));
 }
 
-export async function inviteAccountMemberAction(_: FormResult, form: FormData): Promise<FormResult> {
+export async function inviteAccountMemberAction(
+  _: FormResult,
+  form: FormData,
+): Promise<FormResult> {
   const parsed = z
     .object({
       accountId: z.uuid(),
@@ -181,7 +201,10 @@ export async function revokeAccountInvitationAction(invitationId: string): Promi
 
 // Account team on an engagement ----------------------------------------------------------------------------
 
-export async function assignEngagementMemberAction(_: FormResult, form: FormData): Promise<FormResult> {
+export async function assignEngagementMemberAction(
+  _: FormResult,
+  form: FormData,
+): Promise<FormResult> {
   const parsed = z
     .object({
       engagementId: z.uuid(),

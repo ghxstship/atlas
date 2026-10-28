@@ -70,11 +70,17 @@ function profileItems(d: SharedWorkDetails, t: Translate, none: string) {
     const u = d.uniform;
     items.push({
       label: t("roster.profile.uniform"),
-      value: [u.shirtSize, u.jacketSize, u.pantsSize, u.shoeSize, u.gloveSize, u.hatSize].filter(Boolean).join(" · ") || none,
+      value:
+        [u.shirtSize, u.jacketSize, u.pantsSize, u.shoeSize, u.gloveSize, u.hatSize]
+          .filter(Boolean)
+          .join(" · ") || none,
     });
   }
   if (d.dietary) {
-    items.push({ label: t("roster.profile.dietary"), value: d.dietary.dietaryNeeds.join(", ") || none });
+    items.push({
+      label: t("roster.profile.dietary"),
+      value: d.dietary.dietaryNeeds.join(", ") || none,
+    });
     items.push({
       label: t("roster.profile.allergies"),
       value: d.dietary.allergies ?? (d.dietary.allergiesOnFile ? t("roster.profile.onFile") : none),

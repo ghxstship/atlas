@@ -652,7 +652,9 @@ export async function listAccountMembers(
 ): Promise<Result<AccountMember[]>> {
   const { data, error } = await external(db)
     .from("account_members")
-    .select("account_membership_id, account_id, person_id, full_name, valid_from, valid_to, roles, accepted_at")
+    .select(
+      "account_membership_id, account_id, person_id, full_name, valid_from, valid_to, roles, accepted_at",
+    )
     .eq("account_id", accountId);
   if (error) return fail(toDataError(error));
   const members = data.map((row) => ({

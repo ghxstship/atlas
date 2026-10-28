@@ -166,7 +166,9 @@ export const workDetailHandlers = {
     const share = await shares.read(context, params.id, ["id", "engagement_id", "roster_entry_id"]);
     const details = await run<Components["SharedWorkDetails"]>(
       share["roster_entry_id"]
-        ? rpc(context.db, "roster_shared_work_details", { p_roster_entry_id: share["roster_entry_id"] })
+        ? rpc(context.db, "roster_shared_work_details", {
+            p_roster_entry_id: share["roster_entry_id"],
+          })
         : rpc(context.db, "shared_work_details", { p_engagement_id: share["engagement_id"] }),
     );
     return ok(details);

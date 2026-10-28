@@ -42,7 +42,10 @@ export default async function ClaimPage() {
                 <span className="min-w-0 flex-1 text-text-14">
                   {i.kind === "account"
                     ? t("invitationAccount", { account: i.accountName ?? "" })
-                    : t("invitationRoster", { party: i.partyName ?? "", project: i.projectName ?? "" })}
+                    : t("invitationRoster", {
+                        party: i.partyName ?? "",
+                        project: i.projectName ?? "",
+                      })}
                 </span>
                 <ActionButton
                   action={respondPartyInvitationAction.bind(null, i.kind, i.id, true)}

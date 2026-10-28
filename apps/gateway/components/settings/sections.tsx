@@ -873,7 +873,12 @@ async function TeamSection(props: SectionProps) {
             ],
             // R4: a member an admin added confirms before they can be rostered or assigned.
             ...(m.acceptedAt === null
-              ? { tag: { label: t("gateway.settings.company.notConfirmed"), tone: "warning" as const } }
+              ? {
+                  tag: {
+                    label: t("gateway.settings.company.notConfirmed"),
+                    tone: "warning" as const,
+                  },
+                }
               : {}),
             ...(admin && m.personId !== ctx.personId
               ? {
@@ -897,7 +902,9 @@ async function TeamSection(props: SectionProps) {
             title: i.email,
             meta: [
               t(enumLabelKey("accountRole", i.accountRole)),
-              t("gateway.settings.company.invitationExpires", { date: formatDate(locale, i.expiresAt) }),
+              t("gateway.settings.company.invitationExpires", {
+                date: formatDate(locale, i.expiresAt),
+              }),
             ],
             tag: { label: t("gateway.settings.company.invited"), tone: "accent" as const },
             action: (
@@ -911,7 +918,10 @@ async function TeamSection(props: SectionProps) {
         />
       ) : null}
       {admin ? (
-        <TeamInviteForm accountId={ctx.acting.id} owner={ctx.acting.roles.includes("Account Owner")} />
+        <TeamInviteForm
+          accountId={ctx.acting.id}
+          owner={ctx.acting.roles.includes("Account Owner")}
+        />
       ) : null}
       <p className="m-0 text-text-13 text-text-secondary">
         {t("gateway.settings.company.inviteNote")}

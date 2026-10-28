@@ -310,7 +310,9 @@ const SharedWorkDetails = z
     person_id: orNull(fields.uuid("Person the engagement names, or the roster entry's person.")),
     org_id: fields.uuid("Engaging org."),
     roster_entry_id: orNull(
-      fields.uuid("Roster entry read (R4): the engaged person's self entry; null when there is none."),
+      fields.uuid(
+        "Roster entry read (R4): the engaged person's self entry; null when there is none.",
+      ),
     ),
     reader: z.enum(["org", "company"]).meta({
       description:
@@ -353,7 +355,10 @@ const SharedWorkDetails = z
         .object({
           dietary_needs: z.array(DietaryNeed),
           allergies: orNull(
-            str("Allergies; null when masked for the reader (a company reader never reads them).", "Peanuts, severe"),
+            str(
+              "Allergies; null when masked for the reader (a company reader never reads them).",
+              "Peanuts, severe",
+            ),
           ),
           allergies_on_file: fields.bool("Whether allergies are recorded, even when masked.", true),
           dietary_notes: orNull(str("Other dietary notes.", "No pork.")),

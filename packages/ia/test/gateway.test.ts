@@ -51,7 +51,16 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Documents",
     "Messages",
   ],
-  contractor: ["Overview", "Scope", "Deliverables", "Crew", "Time", "Invoices", "Documents", "Messages"],
+  contractor: [
+    "Overview",
+    "Scope",
+    "Deliverables",
+    "Crew",
+    "Time",
+    "Invoices",
+    "Documents",
+    "Messages",
+  ],
   crew: [
     "Overview",
     "Offer",

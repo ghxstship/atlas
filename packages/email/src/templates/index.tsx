@@ -335,7 +335,10 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
     compose: (p, ctx) => {
       const subject =
         p.kind === "account"
-          ? ctx.t("party_invitation.accountSubject", { inviterName: p.inviterName, accountName: p.accountName })
+          ? ctx.t("party_invitation.accountSubject", {
+              inviterName: p.inviterName,
+              accountName: p.accountName,
+            })
           : ctx.t("party_invitation.rosterSubject", {
               inviterName: p.inviterName,
               partyName: p.partyName,

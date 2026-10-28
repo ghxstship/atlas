@@ -147,7 +147,10 @@ export function EditRosterEntryForm(props: {
   entryTimeZone: string | null;
 }) {
   const t = useCopy();
-  const [state, action, pending] = useActionState<FormResult, FormData>(updateRosterEntryAction, {});
+  const [state, action, pending] = useActionState<FormResult, FormData>(
+    updateRosterEntryAction,
+    {},
+  );
   return (
     <FormShell
       row
@@ -176,7 +179,10 @@ export function EditRosterEntryForm(props: {
 
 export function AssignMemberForm(props: { engagementId: string; members: readonly Option[] }) {
   const t = useCopy();
-  const [state, action, pending] = useActionState<FormResult, FormData>(assignEngagementMemberAction, {});
+  const [state, action, pending] = useActionState<FormResult, FormData>(
+    assignEngagementMemberAction,
+    {},
+  );
   return (
     <FormShell
       row

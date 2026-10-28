@@ -2,7 +2,11 @@ import { bulkUpdate, sameValueRows, type BulkOutcome } from "./bulk.ts";
 import type { Database, XosClient } from "./client.ts";
 import { Constants, type Json } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
-import { parseSharedWorkDetails, type SharedWorkDetails, type WorkDetailCategory } from "./work-details.ts";
+import {
+  parseSharedWorkDetails,
+  type SharedWorkDetails,
+  type WorkDetailCategory,
+} from "./work-details.ts";
 
 /**
  * The crew roster (R4, migrations 2630 to 2642, ADR 0101), imported as `@xos/data/roster`. A party
@@ -22,7 +26,8 @@ export type AccountEngagementDuty = Enums["account_engagement_duty"];
 export type AccountRole = Enums["account_role"];
 export type ExternalRoleType = Enums["external_role_type"];
 
-export const ROSTER_ENTRY_STATES: readonly RosterEntryState[] = Constants.app.Enums.roster_entry_state;
+export const ROSTER_ENTRY_STATES: readonly RosterEntryState[] =
+  Constants.app.Enums.roster_entry_state;
 export const ROSTER_PERSON_RESPONSES: readonly RosterPersonResponse[] =
   Constants.app.Enums.roster_person_response;
 export const ACCOUNT_ENGAGEMENT_DUTIES: readonly AccountEngagementDuty[] =
@@ -205,7 +210,9 @@ export async function listMyRosterEntries(db: XosClient): Promise<Result<MyRoste
 
 /** Entries waiting for the person's own answer: not their self entry, not withdrawn. */
 export function pendingRosterAnswers(rows: readonly MyRosterEntry[]): MyRosterEntry[] {
-  return rows.filter((r) => !r.isSelf && r.personResponse === "Pending" && r.entryState !== "Withdrawn");
+  return rows.filter(
+    (r) => !r.isSelf && r.personResponse === "Pending" && r.entryState !== "Withdrawn",
+  );
 }
 
 /** Someone the caller may roster (ADR 0101 decision 6). */
@@ -220,7 +227,10 @@ export async function listAccountTalent(
   db: XosClient,
   accountId?: string | null,
 ): Promise<Result<TalentMember[]>> {
-  let query = db.schema("api_external").from("my_account_talent").select("account_id, person_id, full_name, source");
+  let query = db
+    .schema("api_external")
+    .from("my_account_talent")
+    .select("account_id, person_id, full_name, source");
   if (accountId) query = query.eq("account_id", accountId);
   const { data, error } = await query.order("full_name", { ascending: true });
   if (error) return fail(toDataError(error));
@@ -329,7 +339,9 @@ export async function reissueRosterInvitation(
   db: XosClient,
   rosterEntryId: string,
 ): Promise<Result<string>> {
-  const { data, error } = await db.rpc("reissue_roster_invitation", { p_roster_entry_id: rosterEntryId });
+  const { data, error } = await db.rpc("reissue_roster_invitation", {
+    p_roster_entry_id: rosterEntryId,
+  });
   if (error) return fail(toDataError(error));
   return ok(data);
 }
@@ -353,7 +365,9 @@ export async function rosterSharedWorkDetails(
   db: XosClient,
   rosterEntryId: string,
 ): Promise<Result<SharedWorkDetails>> {
-  const { data, error } = await db.rpc("roster_shared_work_details", { p_roster_entry_id: rosterEntryId });
+  const { data, error } = await db.rpc("roster_shared_work_details", {
+    p_roster_entry_id: rosterEntryId,
+  });
   if (error) return fail(toDataError(error));
   return ok(parseSharedWorkDetails(data));
 }
@@ -412,7 +426,11 @@ export async function listEngagementAssignments(
   if (error) return fail(toDataError(error));
   return ok(
     (data ?? []).flatMap((r) =>
-      r.id === null || r.engagement_id === null || r.account_membership_id === null || r.person_id === null || r.duty === null
+      r.id === null ||
+      r.engagement_id === null ||
+      r.account_membership_id === null ||
+      r.person_id === null ||
+      r.duty === null
         ? []
         : [
             {
@@ -443,7 +461,10 @@ export async function assignEngagementMember(
   return ok(data);
 }
 
-export async function unassignEngagementMember(db: XosClient, assignmentId: string): Promise<Result<null>> {
+export async function unassignEngagementMember(
+  db: XosClient,
+  assignmentId: string,
+): Promise<Result<null>> {
   const { error } = await db.rpc("unassign_engagement_member", { p_assignment_id: assignmentId });
   if (error) return fail(toDataError(error));
   return ok(null);
@@ -475,8 +496,13 @@ export async function inviteAccountMember(
   return ok(data);
 }
 
-export async function revokeAccountInvitation(db: XosClient, invitationId: string): Promise<Result<null>> {
-  const { error } = await db.rpc("revoke_account_invitation", { p_account_invitation_id: invitationId });
+export async function revokeAccountInvitation(
+  db: XosClient,
+  invitationId: string,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("revoke_account_invitation", {
+    p_account_invitation_id: invitationId,
+  });
   if (error) return fail(toDataError(error));
   return ok(null);
 }
@@ -494,7 +520,11 @@ export async function listAccountInvitations(
   if (error) return fail(toDataError(error));
   return ok(
     (data ?? []).flatMap((r) =>
-      r.id === null || r.account_id === null || r.email === null || r.account_role === null || r.expires_at === null
+      r.id === null ||
+      r.account_id === null ||
+      r.email === null ||
+      r.account_role === null ||
+      r.expires_at === null
         ? []
         : [
             {
@@ -528,23 +558,24 @@ export async function myPendingInvitations(db: XosClient): Promise<Result<Pendin
   const { data, error } = await db.rpc("my_pending_invitations");
   if (error) return fail(toDataError(error));
   return ok(
-    ((data ?? []) as Database["app"]["Functions"]["my_pending_invitations"]["Returns"]).flatMap((r) =>
-      (r.invitation_kind !== "account" && r.invitation_kind !== "roster") || !r.invitation_id
-        ? []
-        : [
-            {
-              kind: r.invitation_kind,
-              id: r.invitation_id,
-              accountName: r.account_name,
-              orgName: r.org_name,
-              projectName: r.project_name,
-              partyName: r.party_name,
-              jobTitle: r.job_title,
-              accountRole: r.account_role,
-              inviterName: r.inviter_name,
-              expiresAt: r.expires_at,
-            },
-          ],
+    ((data ?? []) as Database["app"]["Functions"]["my_pending_invitations"]["Returns"]).flatMap(
+      (r) =>
+        (r.invitation_kind !== "account" && r.invitation_kind !== "roster") || !r.invitation_id
+          ? []
+          : [
+              {
+                kind: r.invitation_kind,
+                id: r.invitation_id,
+                accountName: r.account_name,
+                orgName: r.org_name,
+                projectName: r.project_name,
+                partyName: r.party_name,
+                jobTitle: r.job_title,
+                accountRole: r.account_role,
+                inviterName: r.inviter_name,
+                expiresAt: r.expires_at,
+              },
+            ],
     ),
   );
 }
@@ -565,7 +596,10 @@ export async function respondPartyInvitation(
   return ok((data as Json as string | null) ?? null);
 }
 
-export async function acceptAccountMembership(db: XosClient, accountMembershipId: string): Promise<Result<null>> {
+export async function acceptAccountMembership(
+  db: XosClient,
+  accountMembershipId: string,
+): Promise<Result<null>> {
   const { error } = await db.rpc("accept_account_membership", {
     p_account_membership_id: accountMembershipId,
   });
@@ -592,7 +626,9 @@ export async function listMyUnconfirmedMemberships(
     .is("accepted_at", null);
   if (error) return fail(toDataError(error));
   const rows = (data ?? []).flatMap((r) =>
-    r.account_membership_id === null || r.account_id === null ? [] : [{ id: r.account_membership_id, accountId: r.account_id }],
+    r.account_membership_id === null || r.account_id === null
+      ? []
+      : [{ id: r.account_membership_id, accountId: r.account_id }],
   );
   if (rows.length === 0) return ok([]);
   const accounts = await db
@@ -605,7 +641,13 @@ export async function listMyUnconfirmedMemberships(
     );
   if (accounts.error) return fail(toDataError(accounts.error));
   const names = new Map((accounts.data ?? []).map((a) => [a.account_id, a.name ?? ""]));
-  return ok(rows.map((r) => ({ accountMembershipId: r.id, accountId: r.accountId, accountName: names.get(r.accountId) ?? "" })));
+  return ok(
+    rows.map((r) => ({
+      accountMembershipId: r.id,
+      accountId: r.accountId,
+      accountName: names.get(r.accountId) ?? "",
+    })),
+  );
 }
 
 /** A role from the Roles Library, for the roster's role picker. */

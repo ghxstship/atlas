@@ -17,7 +17,12 @@ import {
 import { formatDateTime } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
-import { AddFromTeamForm, AssignMemberForm, EditRosterEntryForm, InviteToRosterForm } from "./roster-forms";
+import {
+  AddFromTeamForm,
+  AssignMemberForm,
+  EditRosterEntryForm,
+  InviteToRosterForm,
+} from "./roster-forms";
 import { RosterProfileButton } from "./roster-profile";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
@@ -39,7 +44,10 @@ export async function CrewTab({ view, t, locale }: TabProps) {
   if (!roster.ok || !talent.ok || !roles.ok) return <RegionError />;
   const entries = roster.data.filter((e) => e.entryState !== "Withdrawn");
   const onRoster = new Set(entries.map((e) => e.personId).filter(Boolean));
-  const roleOptions = roles.data.map((r) => ({ value: r.roleCode, label: `${r.jobTitle} (${r.roleCode})` }));
+  const roleOptions = roles.data.map((r) => ({
+    value: r.roleCode,
+    label: `${r.jobTitle} (${r.roleCode})`,
+  }));
   const talentOptions = talent.data
     .filter((p) => !onRoster.has(p.personId) && p.personId !== engagement.personId)
     .map((p) => ({
@@ -51,7 +59,8 @@ export async function CrewTab({ view, t, locale }: TabProps) {
     }));
   const timeZone = engagement.projectTimeZone;
   const toSubmit = entries.filter(
-    (e) => !e.isSelf && e.personId !== null && (e.entryState === "Draft" || e.entryState === "Returned"),
+    (e) =>
+      !e.isSelf && e.personId !== null && (e.entryState === "Draft" || e.entryState === "Returned"),
   );
   const local = (iso: string | null) =>
     iso
@@ -99,7 +108,8 @@ export async function CrewTab({ view, t, locale }: TabProps) {
         <RowList
           label={t("gateway.engagement.crew.listLabel")}
           items={entries.map((e) => {
-            const title = e.fullName ?? e.invitedEmail ?? t("gateway.engagement.crew.invitedSomeone");
+            const title =
+              e.fullName ?? e.invitedEmail ?? t("gateway.engagement.crew.invitedSomeone");
             const editable = e.isSelf || e.entryState === "Draft" || e.entryState === "Returned";
             return {
               id: e.id,
@@ -110,7 +120,9 @@ export async function CrewTab({ view, t, locale }: TabProps) {
                 arrival(e),
                 e.personId === null
                   ? t("gateway.engagement.crew.invitation", {
-                      date: e.invitationExpiresAt ? formatDateTime(locale, e.invitationExpiresAt) : "",
+                      date: e.invitationExpiresAt
+                        ? formatDateTime(locale, e.invitationExpiresAt)
+                        : "",
                     })
                   : t(enumLabelKey("rosterPersonResponse", e.personResponse)),
                 e.shareCategories.length > 0
@@ -120,7 +132,10 @@ export async function CrewTab({ view, t, locale }: TabProps) {
                   ? t("gateway.engagement.crew.returned", { reason: e.returnReason })
                   : null,
               ],
-              tag: { label: t(enumLabelKey("rosterEntryState", e.entryState)), tone: toneFor(e.entryState) },
+              tag: {
+                label: t(enumLabelKey("rosterEntryState", e.entryState)),
+                tone: toneFor(e.entryState),
+              },
               action: (
                 <span className="flex flex-wrap gap-8">
                   {e.personId !== null && e.personId !== view.ctx.personId ? (
@@ -171,7 +186,9 @@ export async function CrewTab({ view, t, locale }: TabProps) {
             timeZone={timeZone}
           />
         ) : (
-          <p className="m-0 text-text-14 text-text-secondary">{t("gateway.engagement.crew.noTalent")}</p>
+          <p className="m-0 text-text-14 text-text-secondary">
+            {t("gateway.engagement.crew.noTalent")}
+          </p>
         )}
       </Section>
       <Section id="crew-invite" title={t("gateway.engagement.crew.inviteTitle")}>
@@ -200,18 +217,26 @@ export async function AccountTeamSection({ view, t }: Pick<TabProps, "view" | "t
   if (!assignments.ok || !members.ok) return <RegionError />;
   const assigned = new Set(assignments.data.map((a) => a.accountMembershipId));
   const candidates = members.data
-    .filter((m) => m.acceptedAt !== null && m.personId !== view.ctx.personId && !assigned.has(m.membershipId))
+    .filter(
+      (m) =>
+        m.acceptedAt !== null && m.personId !== view.ctx.personId && !assigned.has(m.membershipId),
+    )
     .map((m) => ({ value: m.membershipId, label: m.fullName ?? "" }));
   return (
     <Section title={t("gateway.engagement.accountTeam.title")}>
-      <p className="m-0 text-text-14 text-text-secondary">{t("gateway.engagement.accountTeam.sentence")}</p>
+      <p className="m-0 text-text-14 text-text-secondary">
+        {t("gateway.engagement.accountTeam.sentence")}
+      </p>
       {assignments.data.length > 0 ? (
         <RowList
           label={t("gateway.engagement.accountTeam.title")}
           items={assignments.data.map((a) => ({
             id: a.id,
             title: a.fullName,
-            tag: { label: t(enumLabelKey("accountEngagementDuty", a.duty)), tone: "neutral" as const },
+            tag: {
+              label: t(enumLabelKey("accountEngagementDuty", a.duty)),
+              tone: "neutral" as const,
+            },
             action: (
               <ActionButton
                 action={unassignEngagementMemberAction.bind(null, a.id)}
@@ -222,7 +247,9 @@ export async function AccountTeamSection({ view, t }: Pick<TabProps, "view" | "t
           }))}
         />
       ) : (
-        <p className="m-0 text-text-14 text-text-secondary">{t("gateway.engagement.accountTeam.none")}</p>
+        <p className="m-0 text-text-14 text-text-secondary">
+          {t("gateway.engagement.accountTeam.none")}
+        </p>
       )}
       {candidates.length > 0 ? (
         <AssignMemberForm engagementId={view.engagement.id} members={candidates} />

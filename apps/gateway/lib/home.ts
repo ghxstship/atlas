@@ -121,7 +121,8 @@ export function needsYou(input: {
   const items: FeedItem[] = [];
   for (const invitation of input.invitations ?? []) items.push({ kind: "invitation", invitation });
   for (const membership of input.memberships ?? []) items.push({ kind: "membership", membership });
-  for (const entry of pendingRosterAnswers(input.rosterEntries ?? [])) items.push({ kind: "roster", entry });
+  for (const entry of pendingRosterAnswers(input.rosterEntries ?? []))
+    items.push({ kind: "roster", entry });
   for (const document of awaitingSignature(input.documents)) {
     const engagement = byId.get(document.engagementId);
     if (engagement) items.push({ kind: "sign", document, engagement });

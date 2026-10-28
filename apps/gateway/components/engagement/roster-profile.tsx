@@ -13,7 +13,13 @@ const RosterProfileDialog = dynamic(() =>
   import("./roster-profile-dialog").then((m) => m.RosterProfileDialog),
 );
 
-export function RosterProfileButton({ rosterEntryId, name }: { rosterEntryId: string; name: string }) {
+export function RosterProfileButton({
+  rosterEntryId,
+  name,
+}: {
+  rosterEntryId: string;
+  name: string;
+}) {
   const t = useCopy();
   const [open, setOpen] = useState(false);
   return (
@@ -28,7 +34,11 @@ export function RosterProfileButton({ rosterEntryId, name }: { rosterEntryId: st
         {t("roster.viewProfile")}
       </Button>
       {open ? (
-        <RosterProfileDialog rosterEntryId={rosterEntryId} name={name} onClose={() => setOpen(false)} />
+        <RosterProfileDialog
+          rosterEntryId={rosterEntryId}
+          name={name}
+          onClose={() => setOpen(false)}
+        />
       ) : null}
     </>
   );

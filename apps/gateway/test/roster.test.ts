@@ -14,7 +14,12 @@ import { navContext } from "../lib/shell/standing";
  * asks the person to answer invitations, memberships and roster entries first.
  */
 const sitemap = loadSitemapFile(new URL("../ia/sitemap.yaml", import.meta.url));
-const nav = navContext({ standing: "individual", companyAccount: false, platformDomain: true, desktop: true });
+const nav = navContext({
+  standing: "individual",
+  companyAccount: false,
+  platformDomain: true,
+  desktop: true,
+});
 
 const engagement = (over: Partial<Engagement>): Engagement => ({
   id: "e1",
@@ -57,8 +62,11 @@ describe("roster manager", () => {
     expect(rosterConditions(engagement({ roleType: "Client" }))).toEqual([]);
   });
 
-  const tabs = (roleType: Parameters<typeof visibleEngagementTabs>[2], manager: boolean, scopes: string[] = []) =>
-    visibleEngagementTabs(sitemap, nav, roleType, scopes, manager ? ["roster-manager"] : []);
+  const tabs = (
+    roleType: Parameters<typeof visibleEngagementTabs>[2],
+    manager: boolean,
+    scopes: string[] = [],
+  ) => visibleEngagementTabs(sitemap, nav, roleType, scopes, manager ? ["roster-manager"] : []);
   const after = (list: string[], tab: string) => list[list.indexOf(tab) + 1];
 
   it("places Crew after Advance, Deliverables, Onboarding or the activation schedule, for managers only", () => {

@@ -9,7 +9,9 @@ import type { Condition } from "@xos/ia";
  * ADR 0101 decision 8: an Artist engagement, or a company engagement (an account supplies it) of a
  * Vendor, Contractor, Staff or Sponsor, carries a roster beyond the engaged person's own entry.
  */
-export function engagementRosterable(engagement: Pick<Engagement, "roleType" | "accountId">): boolean {
+export function engagementRosterable(
+  engagement: Pick<Engagement, "roleType" | "accountId">,
+): boolean {
   if (engagement.roleType === "Artist") return true;
   return (
     engagement.accountId !== null &&
