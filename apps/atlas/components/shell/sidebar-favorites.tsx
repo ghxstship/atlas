@@ -43,20 +43,22 @@ export function SidebarFavorites({
 }) {
   const t = useTranslations() as unknown as (key: string) => string;
   const [error, setError] = useState<string | null>(null);
-  // Null until the pointer or focus reaches the Favorites; then the address of the favorite focused, if any.
+  // Null until the pointer or focus reaches the Favorites; then the address of the favorite focused, if any, kept
+  // up to date until the list that moves takes over, so the favorite focused at that moment keeps the focus.
   const [reached, setReached] = useState<{ readonly focus: string | null } | null>(null);
   const loaded = useOnDemand(reorder, reached !== null);
-  const reach = (event?: FocusEvent) => {
-    if (reached === null) {
-      setReached({
-        focus: (event?.target as HTMLElement | undefined)?.getAttribute("href") ?? null,
-      });
-    }
+  const point = () => {
+    if (reached === null) setReached({ focus: null });
+  };
+  const reach = (event: FocusEvent) => {
+    if (loaded && reached) return;
+    const focus = (event.target as HTMLElement).getAttribute("href");
+    if (reached?.focus !== focus) setReached({ focus });
   };
 
   return (
     // The sidebar's own column and spacing (packages/ui AppShell), as if the two parts sat in it directly.
-    <div className="flex flex-col gap-4" onPointerEnter={() => reach()} onFocus={reach}>
+    <div className="flex flex-col gap-4" onPointerEnter={point} onFocus={reach}>
       <section aria-labelledby="favorites-heading" className="px-8">
         <div className="flex items-center justify-between gap-8">
           <h2 id="favorites-heading" className="m-0 text-text-11 font-medium text-text-secondary">
