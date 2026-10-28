@@ -51,13 +51,16 @@ Gateway differs from Atlas in two ways that shape this:
 
 ### 3. One undo stack module for both shells
 
-- `createUndoStack` moves from Atlas to `@xos/ui/undo`. Atlas keeps `components/undo/undo-stack.ts` as a
-  re-export, so its imports, and A118's, keep working. Each app bundle holds its own stack.
+- `createUndoStack` moves from Atlas to `@xos/ui/undo`. Atlas's components import it from there; Atlas keeps
+  `components/undo/undo-stack.ts` as a re-export for code that still names that path, such as A118's. Each app
+  bundle holds its own stack.
 - Gateway's frame answers Mod+Z and Mod+Shift+Z outside text fields. The shortcut registry lists both for
   Gateway, and an `UndoCenter` shows the 8-second Undo toast and the outcome notices.
 - Explore's swipe actions that hide a row (Pass, Remove from Saved, removing a saved search) also go on the stack,
   so the keys work there too. Saved's Remove now removes by listing, which makes redo after undo safe.
-- `UndoToast` now leaves Shift+Mod+Z to redo and Mod+Z inside a text field to the field. This fixes Atlas too.
+- `UndoToast` now leaves Shift+Mod+Z to redo and Mod+Z inside a text field to the field. This fixes Atlas too. It
+  tells a field by `:read-write` (editable inputs, text areas and content-editable elements), which costs a few
+  bytes on Atlas's Projects page, then 5 bytes under its 200 KB budget.
 
 ### 4. Row menus
 
@@ -91,6 +94,9 @@ This is A88's `useRowMenu`, ported with Gateway copy.
 - **The client.** Gateway ports Atlas's `/auth/realtime` route, hub loader and `LiveRefresh`. Its Content Security
   Policy allows the Realtime socket's origin. Channel pings are paced like the hub's batches (300 ms to gather, at
   most one reread every 2 s), and a rejoined channel rereads once.
+- **`in` filters.** `useLive` keyed its topics by joining them with commas, which split an
+  `engagement_id=in.(…)` filter of more than one engagement into broken topics. Topics are now joined by a line
+  break, which no filter holds.
 
 ## Alternatives considered
 
