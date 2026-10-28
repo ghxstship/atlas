@@ -44,6 +44,9 @@ export const FORMATTED: readonly RegExp[] = [
 /** Never human text even when the data holds it: an event type or enum key shown raw. */
 const RAW_KEY = /^[a-z][a-z0-9]*(?:[._][a-z0-9]+)+$/;
 
+/** A host name with a common top-level domain (example.com, docs.ghxstship.tech). */
+const HOST = /^([a-z0-9-]+\.)+(com|org|net|io|dev|app|co|us|tech|pro|edu|gov)(\/\S*)?$/i;
+
 /** Separators code puts between data values ("NWS · Northwind Summer Series", "Lee, Jordan"). */
 const SEPARATORS = /\s*(?:·|•|—|–|\||\/|,|:|›|>|\(|\)|\+)\s*|\s+-\s+/;
 
@@ -55,6 +58,8 @@ export function isData(raw: string, data: KnownText): boolean {
   // Punctuation code puts between values ("· NWS") belongs to neither side.
   const text = raw.replace(/^[\s·•.,:;|/()–—-]+|[\s·•.,:;|/()–—-]+$/g, "");
   if (!/[A-Za-z]{2,}/.test(text)) return true;
+  // A site shown by its host name; a raw key never ends in a top-level domain.
+  if (HOST.test(text)) return true;
   if (RAW_KEY.test(text) && !data.identifiers) return false;
   if (data.has(raw.trim()) || data.has(text)) return true;
   if (CODE.test(text)) return true;

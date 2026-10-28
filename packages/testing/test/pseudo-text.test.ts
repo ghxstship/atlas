@@ -31,6 +31,7 @@ suite("pseudo-locale text", () => {
     expect(isData("10:30 AM", data)).toBe(true);
     expect(isData("owner@example.com", data)).toBe(true);
     expect(isData("https://docs.example.com/guides", data)).toBe(true);
+    expect(isData("example.com", data)).toBe(true);
     expect(isData("JL", data)).toBe(true);
     expect(isData("NWS · Northwind Summer Series", data)).toBe(true);
     expect(isData("Jordan Lee, Mar 4", data)).toBe(true);
