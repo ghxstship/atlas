@@ -82,6 +82,20 @@ describe("environment", () => {
       parseEnv({ ...valid, XOS_READ_REPLICA_URL: "postgres://replica:5432/postgres" }),
     ).toThrow(/XOS_READ_REPLICA_URL/);
   });
+
+  it("takes an optional file handover secret of at least 32 characters (A103)", () => {
+    const secret = "f".repeat(64);
+    expect(parseEnv({ ...valid, XOS_FILE_HANDOVER_SECRET: secret }).XOS_FILE_HANDOVER_SECRET).toBe(
+      secret,
+    );
+    expect(parseEnv(valid).XOS_FILE_HANDOVER_SECRET).toBeUndefined();
+    expect(() => parseEnv({ ...valid, XOS_FILE_HANDOVER_SECRET: "short" })).toThrow(
+      /XOS_FILE_HANDOVER_SECRET/,
+    );
+    expect(() =>
+      parseEnv({ ...valid, XOS_FILE_HANDOVER_SECRET: `${"f".repeat(32)} ${"f".repeat(8)}` }),
+    ).toThrow(/XOS_FILE_HANDOVER_SECRET/);
+  });
 });
 
 describe("auth cookies", () => {

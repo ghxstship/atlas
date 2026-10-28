@@ -106,6 +106,9 @@ var catalogs = {
       kindOAuth: "OAuth token",
       kindKey: "API key",
       kindServiceAccount: "Service account",
+      clientId: "Client ID",
+      clientSecret: "Client secret",
+      clientSecretHelp: "Stored encrypted and never shown again.",
       storeCredential: "Store credential",
       connect: "Connect",
       pause: "Pause",
@@ -122,6 +125,11 @@ var catalogs = {
       reasonResume: "Resumed from Atlas settings.",
       reasonDisconnect: "Disconnected from Atlas settings.",
     },
+    clientCredentialHelp: {
+      ups: "Create an app at developer.ups.com with the Tracking API, then copy its Client ID and Client Secret here. Atlas uses them to get a new access token whenever the current one is about to expire.",
+      fedex:
+        "Create a project at developer.fedex.com with the Track API, then copy its API key into Client ID and its secret key into Client secret. Atlas uses them to get a new access token whenever the current one is about to expire.",
+    },
     errors: {
       integration_plan_feature:
         "Your plan does not include this service. Upgrade the plan in Billing to connect it.",
@@ -129,6 +137,7 @@ var catalogs = {
       integration_credential_expired:
         "That credential has expired. Get a new one from the service and store it.",
       integration_credential_empty: "Paste the credential before storing it.",
+      clientCredentialsIncomplete: "Enter both the client ID and the client secret.",
       integration_credential_too_large:
         "That credential is too long. Check that you pasted only the token or key.",
       integration_not_connected: "Connect the integration before syncing it.",
@@ -242,6 +251,9 @@ var catalogs = {
       kindOAuth: "Token OAuth",
       kindKey: "Clave de API",
       kindServiceAccount: "Cuenta de servicio",
+      clientId: "ID de cliente",
+      clientSecret: "Secreto de cliente",
+      clientSecretHelp: "Se guarda cifrado y no se vuelve a mostrar.",
       storeCredential: "Guardar credencial",
       connect: "Conectar",
       pause: "Pausar",
@@ -259,6 +271,11 @@ var catalogs = {
       reasonResume: "Reanudada desde la configuración de Atlas.",
       reasonDisconnect: "Desconectada desde la configuración de Atlas.",
     },
+    clientCredentialHelp: {
+      ups: "Crea una app en developer.ups.com con la Tracking API y copia aquí su Client ID y su Client Secret. Atlas los usa para obtener un token de acceso nuevo cuando el actual está por vencer.",
+      fedex:
+        "Crea un proyecto en developer.fedex.com con la Track API y copia su API key en ID de cliente y su secret key en Secreto de cliente. Atlas los usa para obtener un token de acceso nuevo cuando el actual está por vencer.",
+    },
     errors: {
       integration_plan_feature:
         "Tu plan no incluye este servicio. Mejora el plan en Facturación para conectarlo.",
@@ -266,6 +283,7 @@ var catalogs = {
       integration_credential_expired:
         "Esa credencial venció. Obtén una nueva del servicio y guárdala.",
       integration_credential_empty: "Pega la credencial antes de guardarla.",
+      clientCredentialsIncomplete: "Ingresa el ID de cliente y el secreto de cliente.",
       integration_credential_too_large:
         "Esa credencial es demasiado larga. Revisa que pegaste solo el token o la clave.",
       integration_not_connected: "Conecta la integración antes de sincronizarla.",
@@ -308,8 +326,190 @@ function integrationsTranslator(locale) {
   };
 }
 //#endregion
+//#region ../integrations/src/framework/catalog.ts
+var PROVIDERS = [
+  {
+    code: "xero",
+    category: "Accounting",
+    sortOrder: 10,
+    requiredFeature: "upl_export",
+    needsCredential: true,
+  },
+  {
+    code: "quickbooks_online",
+    category: "Accounting",
+    sortOrder: 11,
+    requiredFeature: "upl_export",
+    needsCredential: true,
+  },
+  {
+    code: "netsuite",
+    category: "Accounting",
+    sortOrder: 12,
+    requiredFeature: "upl_export",
+    needsCredential: true,
+  },
+  {
+    code: "ramp",
+    category: "Accounting",
+    sortOrder: 13,
+    requiredFeature: "upl_export",
+    needsCredential: true,
+  },
+  {
+    code: "google_calendar",
+    category: "Calendar",
+    sortOrder: 20,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "microsoft_365",
+    category: "Calendar",
+    sortOrder: 21,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "google_drive",
+    category: "Storage",
+    sortOrder: 30,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "onedrive_sharepoint",
+    category: "Storage",
+    sortOrder: 31,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "dropbox",
+    category: "Storage",
+    sortOrder: 32,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "slack",
+    category: "Communication",
+    sortOrder: 40,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "microsoft_teams",
+    category: "Communication",
+    sortOrder: 41,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "gusto",
+    category: "Payroll",
+    sortOrder: 50,
+    requiredFeature: "payroll_export",
+    needsCredential: true,
+  },
+  {
+    code: "adp",
+    category: "Payroll",
+    sortOrder: 51,
+    requiredFeature: "payroll_export",
+    needsCredential: true,
+  },
+  {
+    code: "rippling",
+    category: "Payroll",
+    sortOrder: 52,
+    requiredFeature: "payroll_export",
+    needsCredential: true,
+  },
+  {
+    code: "ups",
+    category: "Shipping",
+    sortOrder: 60,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "fedex",
+    category: "Shipping",
+    sortOrder: 61,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "dhl",
+    category: "Shipping",
+    sortOrder: 62,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "ticketing_csv",
+    category: "Ticketing",
+    sortOrder: 70,
+    requiredFeature: null,
+    needsCredential: false,
+  },
+  {
+    code: "ticketing_api",
+    category: "Ticketing",
+    sortOrder: 71,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+];
+var SYNC_SCOPES = [
+  "Ledger Export",
+  "Payment Sync",
+  "Calendar Sync",
+  "File Import",
+  "Notification Delivery",
+  "Payroll Export",
+  "Tracking Refresh",
+  "Attendance Import",
+];
+/** The category a sync scope belongs to (mirrors `private.integration_scope_category`). */
+var SCOPE_CATEGORY = {
+  "Ledger Export": "Accounting",
+  "Payment Sync": "Accounting",
+  "Calendar Sync": "Calendar",
+  "File Import": "Storage",
+  "Notification Delivery": "Communication",
+  "Payroll Export": "Payroll",
+  "Tracking Refresh": "Shipping",
+  "Attendance Import": "Ticketing",
+};
+function providerEntry(code) {
+  return PROVIDERS.find((p) => p.code === code);
+}
+function isProviderCode(code) {
+  return providerEntry(code) !== void 0;
+}
+var CLIENT_CREDENTIAL_PROVIDERS = ["ups", "fedex"];
+/**
+ * Whether the provider's connection stores a developer app's client ID and secret instead of a token (UPS and
+ * FedEx, ADR 0065): the connector mints its access tokens from the pair with the client-credentials grant.
+ */
+function usesClientCredentials(code) {
+  return CLIENT_CREDENTIAL_PROVIDERS.includes(code);
+}
+/** Scopes a provider can run, by its category. */
+function scopesFor(code) {
+  const entry = providerEntry(code);
+  return SYNC_SCOPES.filter((scope) => SCOPE_CATEGORY[scope] === entry?.category);
+}
+//#endregion
 //#region ../integrations/src/framework/support.ts
-function parseCredential(secret) {
+/**
+ * Reads a stored credential. `providerCode` names the connection's provider: only a provider that mints its own
+ * tokens (`usesClientCredentials`) may store a client ID and secret without a token, so an OAuth or key-based
+ * provider given such a pair fails here as malformed, not later with an empty bearer token.
+ */
+function parseCredential(secret, providerCode) {
   if (secret === null || secret.length === 0)
     throw new IntegrationError("credential_required", "The connection has no stored credential.", {
       connectionError: true,
@@ -333,11 +533,19 @@ function parseCredential(secret) {
   const fields = {};
   for (const [key, value] of Object.entries(parsed))
     if (typeof value === "string") fields[key] = value;
-  const token = fields["access_token"] ?? fields["api_key"] ?? fields["token"];
+  const mintsTokens = providerCode !== void 0 && usesClientCredentials(providerCode);
+  const clientPair = fields["client_id"] !== void 0 && fields["client_secret"] !== void 0;
+  const token =
+    fields["access_token"] ??
+    fields["api_key"] ??
+    fields["token"] ??
+    (mintsTokens && clientPair ? "" : void 0);
   if (token === void 0)
     throw new IntegrationError(
       "credential_malformed",
-      "The stored credential has no access token or key.",
+      mintsTokens
+        ? "The stored credential has no client ID and secret."
+        : "The stored credential has no access token or key.",
       { connectionError: true },
     );
   return {
@@ -794,6 +1002,7 @@ async function mintChatSession(
 //#endregion
 export {
   ItemTally,
+  SYNC_SCOPES,
   chatConnectors,
   connectorRegistry,
   contentHash,
@@ -801,9 +1010,12 @@ export {
   decimalToMinor,
   handleSlashCommand,
   integrationsTranslator,
+  isProviderCode,
   minorToDecimal,
   mintChatSession,
   parseCredential,
+  providerEntry,
+  scopesFor,
   sha256Hex,
   slackFailure,
   supabaseCommunicationSource,

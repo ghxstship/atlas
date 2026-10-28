@@ -148,7 +148,7 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
   if (!hasArea(view, "operational")) {
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
-  const [hospitality, lodging] = await Promise.all([
+  const [hospitality, lodging, travel] = await Promise.all([
     readView(view.ctx.db, "hospitality", {
       eq: { project_id: view.engagement.projectId },
       order: ["starts_at", "asc"],
@@ -157,9 +157,38 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
       eq: { project_id: view.engagement.projectId },
       order: ["check_in_on", "asc"],
     }),
+    // Flights and ground transport booked under the engagement (R1), as the crew Travel tab reads them.
+    readView(view.ctx.db, "travel", {
+      eq: { engagement_id: view.engagement.id },
+      order: ["departs_at", "asc"],
+    }),
   ]);
-  if (!hospitality.ok || !lodging.ok) return <RegionError />;
+  if (!hospitality.ok || !lodging.ok || !travel.ok) return <RegionError />;
   const rows = [
+    ...travel.data.map((s) => ({
+      id: `travel-${s.id}`,
+      title: t("gateway.engagement.travel.route", {
+        from: s.departs_from ?? "",
+        to: s.arrives_at_place ?? "",
+      }),
+      meta: [
+        [s.operator_name, s.service_identifier].filter(Boolean).join(" "),
+        s.travel_mode ? t(enumLabelKey("travelMode", s.travel_mode)) : null,
+        s.departs_at
+          ? t("gateway.engagement.travel.departs", {
+              time: formatDateTime(locale, s.departs_at, s.departs_time_zone),
+            })
+          : null,
+        s.arrives_at
+          ? t("gateway.engagement.travel.arrives", {
+              time: formatDateTime(locale, s.arrives_at, s.arrives_time_zone),
+            })
+          : null,
+        s.confirmation_identifier
+          ? t("gateway.engagement.travel.confirmation", { code: s.confirmation_identifier })
+          : null,
+      ],
+    })),
     ...lodging.data.map((l) => ({
       id: `lodging-${l.id}`,
       title: l.hotel_name ?? l.block_title ?? "",

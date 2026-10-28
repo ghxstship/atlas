@@ -1,0 +1,1669 @@
+# Denormalization register (Section 3.15, ADR 0002, ADR 0068, gate 29). This file is the source: the pgTAP catalog
+# lints read it through supabase/tests/1282_denormalization_register.psql, and docs/adr/denormalization-register.md is
+# its human view. Both are generated; after editing this file run `pnpm --filter @xos/schemas generate:denormalization`.
+#
+# Lists are sorted by name. Each allow-list entry has a kind and a note saying why the column is allowed; kind
+# `finding` marks a violation with an open finding under legal/qa/findings/, named in `finding`.
+version: 1
+
+# Stored derived values and materialized views kept for measured performance: objects, source, refresh rule, reason.
+derived:
+  - objects:
+      - app.cues.project_id
+    source: "`app.run_of_show.project_id`"
+    refresh: Stamped by trigger on insert; never updated (migration 0412)
+    reason: Compass PowerSync filters rows by project without a join (Section 13)
+    adr: "0022"
+  - objects:
+      - app.inspection_results.project_id
+    source: "`app.inspections.project_id`"
+    refresh: Stamped by trigger on insert (0420)
+    reason: PowerSync project filter, as above
+    adr: "0022"
+  - objects:
+      - app.shift_swaps.project_id
+    source: "`app.shifts.project_id`"
+    refresh: Stamped by trigger on insert (0462)
+    reason: PowerSync project filter, as above
+    adr: "0022"
+  - objects:
+      - app.credentials.project_id
+    source: "`app.credential_categories.project_id`"
+    refresh: Stamped by trigger; changing it is refused (0470)
+    reason: PowerSync project filter, as above
+    adr: "0022"
+  - objects:
+      - app.access_grid.project_id
+    source: "`app.credential_categories.project_id`"
+    refresh: Stamped by trigger; changing it is refused (0470)
+    reason: PowerSync project filter, as above
+    adr: "0022"
+  - objects:
+      - app.access_scans.project_id
+    source: "`app.credentials.project_id`"
+    refresh: Stamped by trigger; changing it is refused (0470)
+    reason: PowerSync project filter, as above
+    adr: "0022"
+  - objects:
+      - app.incident_media.project_id
+    source: "`app.incidents.project_id`"
+    refresh: Stamped by trigger; changing it is refused (0470)
+    reason: PowerSync project filter, as above
+    adr: "0022"
+  - objects:
+      - app.usage_rollups
+    source: "`app.usage_events`"
+    refresh: Written once per closed month by the monthly rollup job (0510)
+    reason: Billing reads closed months without scanning partitioned usage events
+    adr: "0021"
+  - objects:
+      - private.sync_scope_grants
+    source: Membership, assignment, shift and engagement tables through the RLS helpers
+    refresh: Triggers on each source table plus a nightly full refresh (0942)
+    reason: PowerSync parameter queries cannot call RLS helpers or join (gate 17 benchmark, A03F)
+    adr: "0022"
+  - objects:
+      - app.occupancy_counters.alert_level_percent
+      - app.occupancy_counters.current_count
+    source: Sum of `app.occupancy_counts.delta` for the counter, and the highest of the 80, 90 and 100 percent alert levels that sum meets
+    refresh: Written only by `app.record_occupancy_count` while it holds the counter row lock; the ledger is append-only (`t95_append_only`) with no caller write grants, so neither value can drift. pgTAP 1042 checks both against the ledger (A22-007)
+    reason: "Every door tap compares the count with the 80, 90 and 100 percent alert levels under that lock; summing a ledger that grows through a long event would lengthen the lock on every tap. Not yet measured: if a benchmark shows the sum is cheap, replace both with a security_invoker view"
+    adr: "0016"
+  - objects:
+      - app.occupancy_counts.count_after
+    source: Running sum of `delta` over the counter's ledger, in id order
+    refresh: Set once on insert by `app.record_occupancy_count` under the same lock; append-only afterwards (A22-007)
+    reason: The door counter screen and the incident record show the count at each entry without a window function over the whole ledger
+    adr: "0016"
+  - objects:
+      - app.form_templates.fields
+      - app.form_template_versions.fields
+    source: The form definition itself (document-shaped by design)
+    refresh: "`form_templates.fields` is the working draft; publishing copies it into an append-only version (`t95_append_only`), so a definition never changes under its submissions (A22-008)"
+    reason: Forms are designed and versioned as whole documents with nested choices, scoring and `show_if` conditions; the builder, Compass offline rendering and the PDF export read one document per version
+    adr: "0002"
+  - objects:
+      - app.form_submissions.answers
+      - app.form_submissions.max_score
+      - app.form_submissions.score
+    source: Answers to the fields of the submission's `form_template_version_id`, keyed by field key
+    refresh: Validated against that immutable version by the submit RPC; the version never changes, so the field keys stay valid (A22-008)
+    reason: An answer set is the filled-in copy of one document version, stored and exported whole; `max_score` and `score` are fixed by the same immutable version and answers at submission
+    adr: "0002"
+  - objects:
+      - app.training_quiz_questions.options
+      - app.training_quiz_keys.correct_option
+    source: The answer options of one question, a short ordered list (2 to 6 distinct labels)
+    refresh: Options are distinct, and when they change each live key moves to its option's new position; removing the keyed option is refused (migration 1042, pgTAP 1042). Questions and keys change only while the course is a draft (A22-008)
+    reason: A question's options are read, shown and graded together; the key stays in its own table so learners never read it
+    adr: "0002"
+  - objects:
+      - app.survey_questions.choices
+      - app.survey_answers.choice
+    source: The choice labels of one survey question; an answer stores the label chosen
+    refresh: Survey questions take no updates from callers once created, and `app.respond_to_survey` accepts only a listed label, so a stored choice always names a current option (A22-008)
+    reason: Results count answers per label in one pass, and an anonymous answer stays meaningful without joining back to a choice row
+    adr: "0002"
+  - objects:
+      - app.api_keys.scopes
+      - app.oauth_grants.scopes
+    source: Capability groups, the first segments of the codes in `packages/schemas/capabilities.yaml` (a small closed set)
+    refresh: Guard triggers (`guard_api_key`, `guard_oauth_grant`) refuse any value that is not a registry group on every write; the group set changes only by ADR under the contract freeze (ADR 0014), and such a migration rewrites the arrays (A22-009)
+    reason: The api-token exchange copies a key's scopes into the JWT claim in one row read, and `private.person_capability_reach` tests membership per request (A22-001)
+    adr: "0014"
+  - objects:
+      - app.scim_identities.groups
+    source: Group display names in the identity provider's last SCIM payload
+    refresh: Replaced whole on every SCIM sync by `app.scim_provision`; roles and teams are re-derived from `app.scim_group_mappings` on each sync, so the array is a payload snapshot, never edited (A22-009)
+    reason: The provider owns group membership; storing its last answer lets support see what the provider sent without a junction table that would only mirror it
+    adr: "0002"
+  - objects:
+      - app.org_legal_entities.tax_identifier_last4
+      - app.person_work_details.passport_number_last4
+      - app.supplier_diversity_certifications.certificate_number_last4
+      - app.vendor_bank_accounts.account_last4
+    source: The last four letters or digits of the number encrypted in the same row (`tax_identifier`, `passport_number`, `certificate_number`, `account_number`)
+    refresh: Written only with the ciphertext, by the encrypting RPC (`app.set_org_legal_entity_tax_identifier`, `app.set_my_passport_number`, `app.set_supplier_diversity_certificate_number`, `app.set_vendor_bank_account`); each table's guard trigger refuses a write of either outside it (1200, 1340, 2010, 2011)
+    reason: The number is Restricted and encrypted under a Vault key no signed-in caller holds, so the last four cannot be computed when a row is read; readers tell records apart by it, as the v1 API's `account_last4` does (ADR 0057)
+    adr: "0057"
+  - objects:
+      - app.over_limit_objects
+    source: Objects each object limit counts, ranked against `private.org_plan_limits` and `app.plan_limit_choices`
+    refresh: Rewritten by `private.recompute_over_limit` from triggers on subscriptions, projects, memberships, roles and plan limits, by the Owner's choice and by the hourly lifecycle job; a row goes as soon as its object is writable (2070)
+    reason: The row guard runs on every write to every org table and asks one indexed question instead of ranking an org's projects and members per write; the banner call counts without ranking
+    adr: "0081"
+
+# Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
+# never follows a foreign key made only of them.
+own_names:
+  - name: body
+    note: The row's own text.
+  - name: created_at
+    note: ADR 0002 row stamp.
+  - name: created_by
+    note: ADR 0002 row stamp.
+  - name: deleted_at
+    note: ADR 0002 row stamp.
+  - name: description
+    note: The row's own text.
+  - name: id
+    note: The row's own key.
+  - name: label
+    note: The row's own text.
+  - name: name
+    note: The row's own name. A child named under a project, venue or org shares only the column name.
+  - name: note
+    note: The row's own text.
+  - name: notes
+    note: The row's own text.
+  - name: ordinal
+    note: The row's place among its siblings.
+  - name: org_id
+    note: ADR 0002 tenant key, derived by trigger on every tenant table and never accepted from the caller.
+  - name: position
+    note: The row's place among its siblings.
+  - name: sort_order
+    note: The row's place among its siblings.
+  - name: source_created_at
+    note: Canon provenance stamp of the source workbook row (xpms).
+  - name: source_created_by
+    note: Canon provenance stamp of the source workbook row (xpms).
+  - name: source_row
+    note: Canon provenance stamp of the source workbook row (xpms).
+  - name: source_status
+    note: Canon provenance stamp of the source workbook row (xpms).
+  - name: source_updated_at
+    note: Canon provenance stamp of the source workbook row (xpms).
+  - name: title
+    note: The row's own text.
+  - name: updated_at
+    note: ADR 0002 row stamp.
+  - name: updated_by
+    note: ADR 0002 row stamp.
+
+# Every json and jsonb column of an app, private or xpms table, with its ADR 0002 exception: rich-text, audit-diff,
+# provider-payload, or registered (a derived entry above carries the reason).
+json:
+  - column: app.ai_suggestion_fields.proposed_value
+    kind: provider-payload
+    note: A field value the AI model proposed, kept as it answered until a person accepts or edits it.
+  - column: app.audit_events.diff
+    kind: audit-diff
+    note: The audit ledger's diff of each write.
+  - column: app.automation_run_steps.request_body
+    kind: provider-payload
+    note: Body sent to the operation (migration 1481).
+  - column: app.automation_run_steps.response_body
+    kind: provider-payload
+    note: The operation's answer, trimmed to its identifying fields (migration 1481).
+  - column: app.automation_runs.event_payload
+    kind: provider-payload
+    note: The event as webhooks send it, the run's input (migration 1481).
+  - column: app.domain_events.data
+    kind: provider-payload
+    note: Outbound webhook payload.
+  - column: app.form_submissions.answers
+    kind: registered
+    note: Answers to one immutable form version (A22-008).
+  - column: app.form_template_versions.fields
+    kind: registered
+    note: Published form definition (A22-008).
+  - column: app.form_templates.fields
+    kind: registered
+    note: Draft form definition (A22-008).
+  - column: app.idempotency_keys.response_body
+    kind: provider-payload
+    note: The API response returned verbatim on replay.
+  - column: app.import_row_results.before_image
+    kind: audit-diff
+    note: The target's changed columns before an import wrote them, used to undo it.
+  - column: app.integration_connections.provider_settings
+    kind: provider-payload
+    note: Provider configuration the connector validates, such as calendar ids and default accounts. Never secrets.
+  - column: app.integration_inbound_events.payload
+    kind: provider-payload
+    note: The part of the provider's payload the worker needs, at most 64 KB (migration 1400).
+  - column: app.notifications.message_args
+    kind: provider-payload
+    note: Display arguments the catalog messages render for every channel; never relational.
+  - column: app.org_domains.dns_records
+    kind: provider-payload
+    note: DNS records as the email or hosting provider gave them (migration 1355).
+  - column: app.platform_operator_actions.details
+    kind: audit-diff
+    note: What an operator action changed, as display values (migration 1470).
+  - column: app.stripe_events.payload
+    kind: provider-payload
+    note: Stripe event as sent, after signature verification.
+  - column: app.sync_mutations.result
+    kind: provider-payload
+    note: The result returned to every replay of a Compass mutation.
+  - column: app.time_entry_audit.new_values
+    kind: audit-diff
+    note: Clock times after a change.
+  - column: app.time_entry_audit.old_values
+    kind: audit-diff
+    note: Clock times before a change.
+  - column: private.account_deletions.result
+    kind: audit-diff
+    note: What an account deletion erased and kept, as returned to the person (migration 1112).
+  - column: private.account_security_events.detail
+    kind: audit-diff
+    note: Facts of a security event in the person's own log (migration 1560).
+  - column: private.platform_emails.args
+    kind: provider-payload
+    note: Template arguments for the email provider, cleared once sent (migration 1382).
+
+# Every array column of an app, private or xpms table. Arrays of uuids are refused outright (pgTAP 1280).
+arrays:
+  - column: app.api_keys.scopes
+    kind: reviewed
+    note: Capability groups checked against the registry on every write (A22-009).
+  - column: app.oauth_grants.scopes
+    kind: reviewed
+    note: Capability groups checked against the registry on every write (A22-009).
+  - column: app.person_work_details.accessibility_needs
+    kind: reviewed
+    note: A set of fixed enum values a person picks, never joined on; a free-text note carries the rest (migration 1340).
+  - column: app.person_work_details.dietary_needs
+    kind: reviewed
+    note: A set of fixed enum values a person picks, never joined on; a free-text note carries the rest (migration 1340).
+  - column: app.scim_identities.groups
+    kind: reviewed
+    note: Group names in the identity provider's last SCIM payload, replaced whole on each sync (A22-009).
+  - column: app.survey_questions.choices
+    kind: reviewed
+    note: The ordered answer texts of one question (A22-008).
+  - column: app.training_quiz_questions.options
+    kind: reviewed
+    note: The ordered answer texts of one question; the quiz key follows its option (A22-008, migration 1042).
+  - column: app.work_detail_events.categories
+    kind: reviewed
+    note: The set of work detail categories an access touched, in the person's append-only log (migration 1340).
+  - column: app.work_detail_events.changed_columns
+    kind: reviewed
+    note: Column names an edit changed, in the person's append-only log; a log payload, never a relationship (migration 1340).
+  - column: app.work_detail_shares.categories
+    kind: reviewed
+    note: The set of work detail categories a share grants, read whole (migration 1340).
+
+# Every column with the same name and type as a non-key column of the table one of its foreign keys references (own
+# names left out): registered (a derived entry above), fact (kept as it was when written while the parent can
+# change), own (the row's own value: it can differ from the parent's, or the row needs it without the link, which is
+# optional) or finding.
+restated:
+  - column: app.access_grid.project_id
+    parent: app.credential_categories.project_id
+    kind: registered
+    note: Copied from the category by `private.copy_parent_project` (derived entry).
+  - column: app.access_scans.project_id
+    parent: app.credentials.project_id
+    kind: registered
+    note: Copied from the credential by `private.copy_parent_project` (derived entry).
+  - column: app.accommodation_assignments.check_in_on
+    parent: app.accommodation_blocks.check_in_on
+    kind: own
+    note: The guest's first night, inside the block's dates.
+  - column: app.accommodation_assignments.check_out_on
+    parent: app.accommodation_blocks.check_out_on
+    kind: own
+    note: The guest's departure, inside the block's dates.
+  - column: app.advance_submissions.advance_recipient_id
+    parent: app.advance_recipient_tokens.advance_recipient_id
+    kind: own
+    note: Who answered, required on every answer; for an answer through a token, `private.guard_advance_submission` requires the token's recipient.
+  - column: app.api_keys.expires_at
+    parent: app.service_accounts.expires_at
+    kind: own
+    note: The key's own expiry, at most a year ahead (`private.guard_api_key`); the service account has its own.
+  - column: app.applications.currency_code
+    parent: app.opportunities.currency_code
+    kind: own
+    note: Currency of the fee the applicant proposes; the posting's pay currency is a separate fact.
+  - column: app.approval_decisions.decided_at
+    parent: app.approval_instances.decided_at
+    kind: own
+    note: When one approver decided; the instance's is when the whole approval ended.
+  - column: app.approval_instances.currency_code
+    parent: app.approval_policies.currency_code
+    kind: fact
+    note: Currency of the amount submitted, fixed with the instance; the policy's is the currency of its threshold.
+  - column: app.approval_instances.document_type
+    parent: app.approval_policies.document_type
+    kind: fact
+    note: Type of the document submitted, fixed with the instance; the policy's is the type it gates.
+  - column: app.asset_custody.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project the asset is out for; the custodian's engagement can be for another project or for none.
+  - column: app.asset_custody.venue_id
+    parent: app.projects.venue_id
+    kind: own
+    note: Where the asset is kept, not the project's primary venue.
+  - column: app.asset_lot_movements.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project the quantity is out for; the custodian's engagement can be for another project or for none.
+  - column: app.attachment_versions.checksum_sha256
+    parent: app.document_versions.checksum_sha256
+    kind: own
+    note: Hash of the attachment's own stored file, set when its upload completes.
+  - column: app.attachment_versions.version_number
+    parent: app.document_versions.version_number
+    kind: own
+    note: Numbered within the attachment by the database.
+  - column: app.attendance_counts.integration_connection_id
+    parent: app.integration_sync_runs.integration_connection_id
+    kind: own
+    note: Connection the figures came from, required; the optional sync run is one of its runs.
+  - column: app.attendance_counts.project_id
+    parent: app.integration_sync_runs.project_id
+    kind: own
+    note: Project measured; a run can cover every project of its connection.
+  - column: app.attendance_counts.project_id
+    parent: app.scope_nodes.project_id
+    kind: own
+    note: Project measured; the optional scope node narrows it.
+  - column: app.automation_run_steps.action_type
+    parent: app.automation_actions.action_type
+    kind: fact
+    note: What the step ran, kept as it ran; the action can be edited later.
+  - column: app.automation_run_steps.duration_ms
+    parent: app.automation_runs.duration_ms
+    kind: own
+    note: The step's own duration; the run's spans every step.
+  - column: app.automation_run_steps.error_code
+    parent: app.automation_runs.error_code
+    kind: own
+    note: The step's own failure; the run's is why the run failed or was skipped.
+  - column: app.automation_run_steps.error_message
+    parent: app.automation_runs.error_message
+    kind: own
+    note: The step's own failure message.
+  - column: app.automation_run_steps.finished_at
+    parent: app.automation_runs.finished_at
+    kind: own
+    note: When the step ended.
+  - column: app.automation_run_steps.started_at
+    parent: app.automation_runs.started_at
+    kind: own
+    note: When the step started.
+  - column: app.automation_runs.attempts
+    parent: app.job_queue.attempts
+    kind: fact
+    note: The run's record of its attempts; the queue row is working state.
+  - column: app.automation_runs.finished_at
+    parent: app.job_queue.finished_at
+    kind: fact
+    note: When the run ended, kept on the run; the queue row is working state.
+  - column: app.automation_runs.owner_person_id
+    parent: app.automations.owner_person_id
+    kind: fact
+    note: Person the run acted as, fixed when it started; the automation's owner changes when someone edits it.
+  - column: app.beos.project_id
+    parent: app.fulfillments.project_id
+    kind: own
+    note: The order's project, which numbers it; the fulfillment link is optional.
+  - column: app.bids.currency_code
+    parent: app.applications.currency_code
+    kind: own
+    note: Currency the bid's lines are priced in; the application's proposed fee is optional and separate.
+  - column: app.billing_draws.currency_code
+    parent: app.invoices.currency_code
+    kind: own
+    note: A draw is planned before its invoice exists; the invoice link is optional.
+  - column: app.billing_draws.project_id
+    parent: app.invoices.project_id
+    kind: own
+    note: A draw is planned before its invoice exists; the invoice link is optional.
+  - column: app.budget_lines.xyz
+    parent: xpms.elements.xyz
+    kind: own
+    note: The line's XYZ tag; `private.guard_budget_line` requires its category's tag, and the element is optional.
+  - column: app.calendars.time_zone
+    parent: app.projects.time_zone
+    kind: own
+    note: Zone the calendar's days are read in, set per calendar.
+  - column: app.capability_statements.venue_id
+    parent: app.projects.venue_id
+    kind: own
+    note: A venue that provides a capability, not necessarily the primary venue.
+  - column: app.change_order_lines.quantity
+    parent: app.budget_lines.quantity
+    kind: own
+    note: Quantity of the change, not of the budget line.
+  - column: app.change_order_lines.unit_price_minor
+    parent: app.budget_lines.unit_price_minor
+    kind: own
+    note: Price of the change, not of the budget line.
+  - column: app.change_order_lines.urid
+    parent: app.budget_lines.urid
+    kind: own
+    note: Category of the change, which can differ from the line's.
+  - column: app.change_order_state_transitions.reason
+    parent: app.change_orders.reason
+    kind: own
+    note: Why the state changed; the change order's reason is why the change is needed.
+  - column: app.change_orders.project_id
+    parent: app.budgets.project_id
+    kind: finding
+    note: The budget is required and belongs to one project, which `private.guard_change_order` requires here.
+    finding: A108-003
+  - column: app.client_approval_requests.requested_by
+    parent: app.change_orders.requested_by
+    kind: own
+    note: Member who asked the client, from the session; not who requested the change.
+  - column: app.clock_punches.engagement_id
+    parent: app.shifts.engagement_id
+    kind: own
+    note: Who punched; the shift link is optional.
+  - column: app.clock_punches.engagement_id
+    parent: app.time_entries.engagement_id
+    kind: own
+    note: Who punched; the time entry built from punches is linked later.
+  - column: app.clock_punches.kiosk_device_id
+    parent: app.time_entries.kiosk_device_id
+    kind: own
+    note: Kiosk the punch came from.
+  - column: app.clock_punches.membership_id
+    parent: app.shifts.membership_id
+    kind: own
+    note: Who punched; the shift link is optional.
+  - column: app.clock_punches.membership_id
+    parent: app.time_entries.membership_id
+    kind: own
+    note: Who punched; the time entry built from punches is linked later.
+  - column: app.clock_punches.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project worked; the engagement link is optional.
+  - column: app.clock_punches.project_id
+    parent: app.kiosk_devices.project_id
+    kind: own
+    note: Project worked; a kiosk can serve every project.
+  - column: app.clock_punches.project_id
+    parent: app.shifts.project_id
+    kind: own
+    note: Project worked; the shift link is optional.
+  - column: app.clock_punches.project_id
+    parent: app.time_entries.project_id
+    kind: own
+    note: Project worked; the time entry is linked later.
+  - column: app.clock_punches.shift_id
+    parent: app.time_entries.shift_id
+    kind: own
+    note: Shift worked, when there is one; the time entry is linked later.
+  - column: app.content_reports.author_person_id
+    parent: app.comments.author_person_id
+    kind: fact
+    note: "Author of the item as reported, the one column naming the author of a post (through its membership), a comment or a message alike; `app.report_content` sets it from the item, the comment's author never changes (`private.guard_comment`), and the report goes with the item. The policies and `content_reports_not_own` read it so an author never sees a report about their own content (1630)."
+  - column: app.content_reports.author_person_id
+    parent: app.content_moderation_decisions.author_person_id
+    kind: own
+    note: The report names the author when it is filed; the decision link is optional and set only once a moderator decides.
+  - column: app.content_reports.chat_message_id
+    parent: app.content_moderation_decisions.chat_message_id
+    kind: own
+    note: The message reported, needed before any decision; the decision names it by id without a foreign key, so it outlives the message.
+  - column: app.content_reports.comment_id
+    parent: app.content_moderation_decisions.comment_id
+    kind: own
+    note: The comment reported, needed before any decision; the decision names it by id without a foreign key.
+  - column: app.content_reports.feed_post_id
+    parent: app.content_moderation_decisions.feed_post_id
+    kind: own
+    note: The post reported, needed before any decision; the decision names it by id without a foreign key.
+  - column: app.content_reports.subject_kind
+    parent: app.content_moderation_decisions.subject_kind
+    kind: own
+    note: What was reported, needed before any decision; the decision link is optional.
+  - column: app.correction_state_transitions.reason
+    parent: app.time_entry_corrections.reason
+    kind: own
+    note: Why the state changed; the correction's reason is why the entry is wrong.
+  - column: app.credentials.project_id
+    parent: app.credential_categories.project_id
+    kind: registered
+    note: Copied from the category by `private.copy_parent_project` (derived entry).
+  - column: app.credentials.project_id
+    parent: app.engagements.project_id
+    kind: registered
+    note: Copied from the category (derived entry); the optional engagement is the holder's.
+  - column: app.cues.project_id
+    parent: app.run_of_show.project_id
+    kind: registered
+    note: Stamped from the running order by `private.stamp_cue_project` (derived entry).
+  - column: app.custom_field_values.custom_field_definition_id
+    parent: app.custom_field_choices.custom_field_definition_id
+    kind: own
+    note: Field the value is for; `private.guard_custom_field_value` requires a chosen choice to be one of the field's.
+  - column: app.custom_object_values.custom_object_field_id
+    parent: app.custom_object_field_choices.custom_object_field_id
+    kind: own
+    note: Field the value is for; `private.guard_custom_object_value` requires a chosen choice to be one of the field's.
+  - column: app.delegations.valid_from
+    parent: app.memberships.valid_from
+    kind: own
+    note: When the delegation starts.
+  - column: app.delegations.valid_to
+    parent: app.memberships.valid_to
+    kind: own
+    note: When the delegation ends.
+  - column: app.doc_updates.generation
+    parent: app.doc_snapshots.generation
+    kind: fact
+    note: Generation the update was made against, kept so updates from before a reseed are discarded.
+  - column: app.dock_slots.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: The slot's project; the engagement link is optional.
+  - column: app.dock_slots.project_id
+    parent: app.shipments.project_id
+    kind: own
+    note: The slot's project; the shipment link is optional.
+  - column: app.email_digest_queue.sent_at
+    parent: app.notification_deliveries.sent_at
+    kind: own
+    note: When the digest went out; the delivery's is when the provider accepted the message.
+  - column: app.engagements.currency_code
+    parent: app.applications.currency_code
+    kind: fact
+    note: Currency agreed, fixed in the engagement; the application keeps what was proposed.
+  - column: app.enumerations.is_default
+    parent: xpms.std_enumeration.is_default
+    kind: own
+    note: The org's default for the domain; copied from the Standard Library value when the org adopts it, then the org's to change (migration 1612).
+  - column: app.feed_posts.department_code
+    parent: app.groups.department_code
+    kind: own
+    note: Department a Department post reaches; the group link is optional.
+  - column: app.feed_posts.project_id
+    parent: app.groups.project_id
+    kind: own
+    note: Project of the post; the group link is optional.
+  - column: app.form_submissions.form_template_id
+    parent: app.form_template_versions.form_template_id
+    kind: finding
+    note: The submission's version is required and belongs to one template, so the template is the version's.
+    finding: A108-003
+  - column: app.form_submissions.project_id
+    parent: app.records.project_id
+    kind: own
+    note: Project of the submission; the record link is optional.
+  - column: app.form_template_versions.fields
+    parent: app.form_templates.fields
+    kind: registered
+    note: The version freezes the draft's fields when published (derived entry).
+  - column: app.form_template_versions.pass_score
+    parent: app.form_templates.pass_score
+    kind: fact
+    note: Passing score of the published version, frozen when published.
+  - column: app.form_template_versions.requires_location
+    parent: app.form_templates.requires_location
+    kind: fact
+    note: Whether the published version needs a GPS stamp, frozen when published.
+  - column: app.form_template_versions.requires_signature
+    parent: app.form_templates.requires_signature
+    kind: fact
+    note: Whether the published version needs a signature, frozen when published.
+  - column: app.gate_evidence.project_id
+    parent: app.records.project_id
+    kind: own
+    note: Project the evidence is for; `private.guard_gate_evidence` requires the optional record to be of the same project.
+  - column: app.gate_queue.project_id
+    parent: app.shipments.project_id
+    kind: own
+    note: The queue entry's project; the shipment link is optional.
+  - column: app.geofences.venue_id
+    parent: app.zones.venue_id
+    kind: own
+    note: The geofence's venue; the zone link is optional.
+  - column: app.groups.archived_at
+    parent: app.projects.archived_at
+    kind: own
+    note: When the group was archived.
+  - column: app.guest_list_entries.counterparty_id
+    parent: app.engagements.counterparty_id
+    kind: own
+    note: Organization whose list the guest is on; the engagement link is optional.
+  - column: app.guest_list_entries.person_id
+    parent: app.engagements.person_id
+    kind: own
+    note: Person whose list the guest is on; the engagement link is optional.
+  - column: app.guest_list_entries.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: The entry's project; the engagement link is optional.
+  - column: app.guest_list_entries.project_id
+    parent: app.scope_nodes.project_id
+    kind: own
+    note: The entry's project; the optional scope node narrows it.
+  - column: app.import_job_columns.sheet_name
+    parent: app.import_jobs.sheet_name
+    kind: finding
+    note: Since migration 1402 an import reads one sheet (`app.import_jobs.sheet_name`), so the column's sheet is the import's.
+    finding: A108-003
+  - column: app.import_job_sheets.sheet_name
+    parent: app.import_jobs.sheet_name
+    kind: own
+    note: One row per sheet of the workbook; the import's is the sheet it reads.
+  - column: app.import_jobs.sheet_name
+    parent: app.import_job_sheets.sheet_name
+    kind: own
+    note: Sheet the import reads, for every source; started from a detected sheet, it is that sheet's name, and neither changes after.
+  - column: app.import_jobs.target_code
+    parent: app.import_mapping_profiles.target_code
+    kind: own
+    note: Target of the import; a saved profile is optional.
+  - column: app.import_row_matches.target_id
+    parent: app.import_row_results.target_id
+    kind: own
+    note: Existing row the source row matched; the result's target is the row written, which a merge can change.
+  - column: app.import_row_results.import_job_id
+    parent: app.import_batches.import_job_id
+    kind: own
+    note: Import the row belongs to; the batch link is set when the batch commits.
+  - column: app.import_row_results.sheet_name
+    parent: app.import_jobs.sheet_name
+    kind: finding
+    note: Since migration 1402 an import reads one sheet (`app.import_jobs.sheet_name`), so the row's sheet is the import's.
+    finding: A108-003
+  - column: app.import_row_results.undo_reason
+    parent: app.import_batches.undo_reason
+    kind: own
+    note: Why this row was kept when its batch was undone.
+  - column: app.incident_media.project_id
+    parent: app.incidents.project_id
+    kind: registered
+    note: Copied from the incident by `private.copy_parent_project` (derived entry).
+  - column: app.inspection_results.project_id
+    parent: app.inspections.project_id
+    kind: registered
+    note: Kept from the inspection by `private.derive_inspection_result_project` (derived entry).
+  - column: app.inspections.project_id
+    parent: app.records.project_id
+    kind: own
+    note: The inspection's project; the record link is optional.
+  - column: app.inspections.urid
+    parent: app.records.urid
+    kind: own
+    note: Category the inspection covers; the record link is optional.
+  - column: app.integration_account_mappings.external_account_id
+    parent: app.integration_connections.external_account_id
+    kind: own
+    note: A provider account code mapped, not the connection's tenant identifier.
+  - column: app.integration_external_ids.last_synced_at
+    parent: app.integration_connections.last_synced_at
+    kind: own
+    note: When this pair last synced; the connection's is its last successful run.
+  - column: app.integration_file_links.attachment_id
+    parent: app.attachment_versions.attachment_id
+    kind: own
+    note: Attachment the runner files imported versions under; the last version link is optional.
+  - column: app.integration_file_links.size_bytes
+    parent: app.attachment_versions.size_bytes
+    kind: own
+    note: Size as the provider reports it.
+  - column: app.integration_inbound_events.provider_code
+    parent: app.integration_connections.provider_code
+    kind: finding
+    note: The connection is required and its provider is fixed after insert, so the event's provider is the connection's.
+    finding: A108-003
+  - column: app.integration_sync_errors.attempt
+    parent: app.integration_sync_runs.attempt
+    kind: fact
+    note: Attempt the error happened on; the run's count keeps rising.
+  - column: app.integration_sync_errors.error_code
+    parent: app.integration_sync_runs.error_code
+    kind: own
+    note: This error's code; the run's is its last attempt's failure.
+  - column: app.integration_sync_errors.error_message
+    parent: app.integration_sync_runs.error_message
+    kind: own
+    note: This error's message; the run's is its last attempt's failure.
+  - column: app.invoice_lines.line_number
+    parent: app.budget_lines.line_number
+    kind: own
+    note: Order within the invoice.
+  - column: app.invoice_lines.quantity
+    parent: app.budget_lines.quantity
+    kind: own
+    note: Quantity billed, not budgeted.
+  - column: app.invoice_lines.unit_price_minor
+    parent: app.budget_lines.unit_price_minor
+    kind: own
+    note: Price billed, in the invoice currency.
+  - column: app.invoice_lines.urid
+    parent: app.budget_lines.urid
+    kind: own
+    note: Category billed, set when it differs from the budget line's.
+  - column: app.invoice_matches.purchase_order_id
+    parent: app.goods_receipts.purchase_order_id
+    kind: finding
+    note: The goods receipt is required and belongs to one purchase order, which `private.guard_invoice_match` requires here.
+    finding: A108-003
+  - column: app.invoices.counterparty_id
+    parent: app.engagements.counterparty_id
+    kind: own
+    note: Party billed; `private.guard_invoice` requires the optional engagement's.
+  - column: app.invoices.currency_code
+    parent: app.engagements.currency_code
+    kind: own
+    note: Currency of the invoice; the engagement link is optional.
+  - column: app.invoices.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project of the invoice; `private.guard_invoice` requires the optional engagement's.
+  - column: app.legal_acceptances.user_id
+    parent: app.people.user_id
+    kind: fact
+    note: Sign-in used, kept as evidence after the sign-in is deleted.
+  - column: app.marshalling_log.project_id
+    parent: app.shipments.project_id
+    kind: own
+    note: The log entry's project; the shipment link is optional.
+  - column: app.marshalling_log.urid
+    parent: app.shipments.urid
+    kind: fact
+    note: Category the logged movement served, kept as logged.
+  - column: app.moderation_actions.decided_at
+    parent: app.moderation_appeals.decided_at
+    kind: own
+    note: When this decision was made; the appeal is decided separately.
+  - column: app.moderation_actions.decided_by
+    parent: app.moderation_appeals.decided_by
+    kind: own
+    note: Operator who made this decision.
+  - column: app.moderation_actions.opportunity_id
+    parent: app.listing_reports.opportunity_id
+    kind: own
+    note: Opportunity decided on; the report link is optional.
+  - column: app.moderation_appeals.decided_at
+    parent: app.moderation_actions.decided_at
+    kind: own
+    note: When the appeal was decided.
+  - column: app.moderation_appeals.decided_by
+    parent: app.moderation_actions.decided_by
+    kind: own
+    note: Operator who decided the appeal, never the one who made the decision appealed.
+  - column: app.notifications.archived_at
+    parent: app.projects.archived_at
+    kind: own
+    note: When the recipient archived the notification.
+  - column: app.offboardings.person_id
+    parent: app.memberships.person_id
+    kind: finding
+    note: The membership is required and names one person, so the person who left is the membership's.
+    finding: A108-003
+  - column: app.opportunities.currency_code
+    parent: app.requisitions.currency_code
+    kind: own
+    note: Currency of the posted pay; the requisition link is optional.
+  - column: app.opportunities.ends_on
+    parent: app.projects.ends_on
+    kind: own
+    note: Last day of the work, not of the production.
+  - column: app.opportunities.ends_on
+    parent: app.requisitions.ends_on
+    kind: own
+    note: Last day of the posting's work; the requisition link is optional.
+  - column: app.opportunities.jurisdiction_id
+    parent: app.projects.jurisdiction_id
+    kind: own
+    note: Set only when the work's jurisdiction differs from the venue's and the project's.
+  - column: app.opportunities.jurisdiction_id
+    parent: app.venues.jurisdiction_id
+    kind: own
+    note: Set only when the work's jurisdiction differs from the venue's and the project's.
+  - column: app.opportunities.project_id
+    parent: app.requisitions.project_id
+    kind: own
+    note: Project of the work; `private.guard_opportunity` requires the optional requisition's.
+  - column: app.opportunities.project_id
+    parent: app.scope_nodes.project_id
+    kind: own
+    note: Project of the work; the optional scope node narrows it.
+  - column: app.opportunities.role_code
+    parent: app.requisitions.role_code
+    kind: own
+    note: Role sought; `private.guard_opportunity` requires the optional requisition's.
+  - column: app.opportunities.role_type
+    parent: app.requisitions.role_type
+    kind: own
+    note: Role type sought; the requisition link is optional.
+  - column: app.opportunities.scope_node_id
+    parent: app.requisitions.scope_node_id
+    kind: own
+    note: Scope node of the work; the requisition link is optional.
+  - column: app.opportunities.starts_on
+    parent: app.projects.starts_on
+    kind: own
+    note: First day of the work, not of the production.
+  - column: app.opportunities.starts_on
+    parent: app.requisitions.starts_on
+    kind: own
+    note: First day of the posting's work; the requisition link is optional.
+  - column: app.opportunities.venue_id
+    parent: app.projects.venue_id
+    kind: own
+    note: Venue of the work, not necessarily the project's primary venue.
+  - column: app.opportunities.venue_id
+    parent: app.scope_nodes.venue_id
+    kind: own
+    note: Venue of the work; the scope node link is optional.
+  - column: app.opportunity_requirements.currency_code
+    parent: app.opportunities.currency_code
+    kind: own
+    note: Currency of the insurance minimum, not of the pay.
+  - column: app.partner_standing_grants.capability_code
+    parent: app.record_grants.capability_code
+    kind: finding
+    note: The record grant is required and carries the same capability.
+    finding: A108-003
+  - column: app.partner_standing_grants.valid_from
+    parent: app.record_grants.valid_from
+    kind: finding
+    note: The record grant is required and carries the same start.
+    finding: A108-003
+  - column: app.partner_standing_grants.valid_to
+    parent: app.record_grants.valid_to
+    kind: finding
+    note: The record grant is required and carries the same end.
+    finding: A108-003
+  - column: app.payment_applications.amount_minor
+    parent: app.payments.amount_minor
+    kind: own
+    note: Part of the payment applied to one invoice; a payment can be split.
+  - column: app.per_diems.currency_code
+    parent: app.engagements.currency_code
+    kind: own
+    note: Currency of the per diem.
+  - column: app.per_diems.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project of the per diem; the engagement link is optional.
+  - column: app.permit_requirements.project_id
+    parent: app.records.project_id
+    kind: own
+    note: Project of the requirement; the record link is optional.
+  - column: app.person_certifications.expires_on
+    parent: app.certification_holders.expires_on
+    kind: fact
+    note: Copied when the person carries an org's verified record to their profile (ADR 0019 carry-over); the copy is theirs.
+  - column: app.person_certifications.issued_on
+    parent: app.certification_holders.issued_on
+    kind: fact
+    note: Copied when the person carries an org's verified record to their profile (ADR 0019 carry-over); the copy is theirs.
+  - column: app.person_certifications.person_id
+    parent: app.certification_holders.person_id
+    kind: own
+    note: Owner of the profile row; the source record is optional.
+  - column: app.person_emergency_contacts.full_name
+    parent: app.people.full_name
+    kind: own
+    note: The contact's name, not the person's.
+  - column: app.po_lines.element_id
+    parent: app.budget_lines.element_id
+    kind: own
+    note: Element ordered; the budget line is optional.
+  - column: app.po_lines.line_number
+    parent: app.budget_lines.line_number
+    kind: own
+    note: Order within the purchase order.
+  - column: app.po_lines.quantity
+    parent: app.budget_lines.quantity
+    kind: own
+    note: Quantity ordered, not budgeted.
+  - column: app.po_lines.unit_basis
+    parent: app.budget_lines.unit_basis
+    kind: own
+    note: Unit ordered; the budget line is optional.
+  - column: app.po_lines.unit_price_minor
+    parent: app.budget_lines.unit_price_minor
+    kind: own
+    note: Price ordered, in the order currency.
+  - column: app.poll_votes.poll_id
+    parent: app.poll_options.poll_id
+    kind: finding
+    note: The option is required and belongs to one poll, so the vote's poll is the option's.
+    finding: A108-003
+  - column: app.profile_shares.person_id
+    parent: app.engagements.person_id
+    kind: own
+    note: Person sharing; the engagement link is optional.
+  - column: app.project_measurement_corrections.measured_on
+    parent: app.project_measurements.measured_on
+    kind: fact
+    note: The day after this correction; the measurement holds the latest.
+  - column: app.project_measurement_corrections.unit_code
+    parent: app.project_measurements.unit_code
+    kind: fact
+    note: The unit after this correction; the measurement holds the latest.
+  - column: app.project_measurement_corrections.value
+    parent: app.project_measurements.value
+    kind: fact
+    note: The value after this correction; the measurement holds the latest.
+  - column: app.project_member_roles.project_role
+    parent: app.project_members.project_role
+    kind: own
+    note: Each role the assignment carries; the assignment's own is its lead role (migration 1204).
+  - column: app.project_members.valid_from
+    parent: app.memberships.valid_from
+    kind: own
+    note: When project access starts.
+  - column: app.project_members.valid_to
+    parent: app.memberships.valid_to
+    kind: own
+    note: When project access ends.
+  - column: app.projects.jurisdiction_id
+    parent: app.venues.jurisdiction_id
+    kind: own
+    note: Resolved for the project at gate 1, which can be finer than the venue's.
+  - column: app.projects.time_zone
+    parent: app.venues.time_zone
+    kind: own
+    note: The project's zone; the venue link is optional.
+  - column: app.punch_items.record_id
+    parent: app.site_plan_pins.record_id
+    kind: own
+    note: Task that carries the correction; the pin link is optional.
+  - column: app.punch_items.zone_id
+    parent: app.site_plan_pins.zone_id
+    kind: own
+    note: Zone of the item; the pin link is optional.
+  - column: app.purchase_orders.payment_terms_days
+    parent: app.vendors.payment_terms_days
+    kind: own
+    note: The order's terms; the vendor's are the default.
+  - column: app.purchase_orders.vendor_id
+    parent: app.rfq_responses.vendor_id
+    kind: own
+    note: Vendor supplying; the RFQ response link is optional.
+  - column: app.push_tickets.message_status
+    parent: app.notification_deliveries.message_status
+    kind: own
+    note: Status of one push ticket; the delivery's covers the whole delivery.
+  - column: app.recognitions.project_id
+    parent: app.feed_posts.project_id
+    kind: own
+    note: Project of the recognition; the post link is optional.
+  - column: app.recognitions.project_id
+    parent: app.shifts.project_id
+    kind: own
+    note: Project of the recognition; the shift link is optional.
+  - column: app.record_recurrences.time_zone
+    parent: app.records.time_zone
+    kind: own
+    note: Zone the rule is evaluated in, set even when the record follows the project's zone.
+  - column: app.records.project_id
+    parent: app.scope_nodes.project_id
+    kind: own
+    note: The record's project; the optional scope node narrows it.
+  - column: app.records.time_zone
+    parent: app.projects.time_zone
+    kind: own
+    note: The record's zone, NULL to follow the project's.
+  - column: app.records.xyz
+    parent: xpms.dim_category.xyz
+    kind: own
+    note: The record's XYZ tag; `private.guard_record` requires its category's tag when it has one.
+  - column: app.report_deliveries.last_error
+    parent: app.report_runs.last_error
+    kind: own
+    note: Why the delivery failed; the run's is why the run failed.
+  - column: app.requisitions.ends_on
+    parent: app.projects.ends_on
+    kind: own
+    note: Last day of the work, not of the production.
+  - column: app.requisitions.project_id
+    parent: app.scope_nodes.project_id
+    kind: own
+    note: Project to staff; the optional scope node narrows it.
+  - column: app.requisitions.starts_on
+    parent: app.projects.starts_on
+    kind: own
+    note: First day of the work, not of the production.
+  - column: app.role_assignments.ends_on
+    parent: app.projects.ends_on
+    kind: own
+    note: Last day in the role, not of the production.
+  - column: app.role_assignments.ends_on
+    parent: app.requisitions.ends_on
+    kind: own
+    note: Last day in the role; the requisition link is optional.
+  - column: app.role_assignments.project_id
+    parent: app.requisitions.project_id
+    kind: own
+    note: Project of the role; `private.guard_role_assignment` requires the optional requisition's.
+  - column: app.role_assignments.project_id
+    parent: app.scope_nodes.project_id
+    kind: own
+    note: Project of the role; the optional scope node narrows it.
+  - column: app.role_assignments.role_code
+    parent: app.requisitions.role_code
+    kind: own
+    note: Role worked; the requisition link is optional.
+  - column: app.role_assignments.scope_node_id
+    parent: app.requisitions.scope_node_id
+    kind: own
+    note: Scope node of the role; the requisition link is optional.
+  - column: app.role_assignments.starts_on
+    parent: app.projects.starts_on
+    kind: own
+    note: First day in the role, not of the production.
+  - column: app.role_assignments.starts_on
+    parent: app.requisitions.starts_on
+    kind: own
+    note: First day in the role; the requisition link is optional.
+  - column: app.run_of_show.project_id
+    parent: app.records.project_id
+    kind: own
+    note: The running order's project; the record link is optional.
+  - column: app.run_of_show.project_id
+    parent: app.scope_nodes.project_id
+    kind: own
+    note: The running order's project; the optional scope node narrows it.
+  - column: app.run_of_show.scope_node_id
+    parent: app.records.scope_node_id
+    kind: own
+    note: Show node of the running order; the record link is optional.
+  - column: app.saved_view_defaults.collection_key
+    parent: app.saved_views.collection_key
+    kind: finding
+    note: The saved view is required and shows one collection, which `private.guard_saved_view_default` requires here.
+    finding: A108-003
+  - column: app.saved_view_defaults.membership_id
+    parent: app.saved_views.membership_id
+    kind: own
+    note: Member whose default it is, who can use a view shared by someone else.
+  - column: app.scope_nodes.venue_id
+    parent: app.projects.venue_id
+    kind: own
+    note: Venue of a standing venue or show node, not the project's primary venue.
+  - column: app.service_accounts.person_id
+    parent: app.memberships.person_id
+    kind: finding
+    note: The membership is required and names one person, so the service account's person is the membership's.
+    finding: A108-003
+  - column: app.service_accounts.user_id
+    parent: app.people.user_id
+    kind: finding
+    note: The person is required and has one sign-in, so the service account's sign-in is the person's.
+    finding: A108-003
+  - column: app.settlements.currency_code
+    parent: app.engagements.currency_code
+    kind: own
+    note: Currency the settlement's lines are in, set when it is drafted.
+  - column: app.settlements.project_id
+    parent: app.engagements.project_id
+    kind: finding
+    note: The engagement is required; `private.guard_settlement` copies its project on insert.
+    finding: A108-003
+  - column: app.share_links.attachment_id
+    parent: app.attachment_versions.attachment_id
+    kind: own
+    note: File the link shares; the version, set by the database, is one of its versions.
+  - column: app.share_links.classification
+    parent: app.attachments.classification
+    kind: fact
+    note: Classification of the file when the link was created; an open is refused once the file is raised above it.
+  - column: app.shared_reports.project_id
+    parent: app.engagements.project_id
+    kind: finding
+    note: The engagement is required, so the shared report's project is the engagement's.
+    finding: A108-003
+  - column: app.shift_claims.membership_id
+    parent: app.shifts.membership_id
+    kind: own
+    note: Membership claiming the shift; the shift's is who is assigned.
+  - column: app.shift_claims.project_id
+    parent: app.shifts.project_id
+    kind: finding
+    note: The shift is required, so the claim's project is the shift's.
+    finding: A108-003
+  - column: app.shift_swaps.project_id
+    parent: app.shifts.project_id
+    kind: registered
+    note: Kept from the shift by `private.set_shift_swap_project` (derived entry).
+  - column: app.shifts.ends_at
+    parent: app.records.ends_at
+    kind: own
+    note: End of the shift; the record link is optional.
+  - column: app.shifts.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project of the shift; the engagement link is optional.
+  - column: app.shifts.project_id
+    parent: app.records.project_id
+    kind: own
+    note: Project of the shift; `private.guard_shift` requires the optional record's.
+  - column: app.shifts.project_id
+    parent: app.scope_nodes.project_id
+    kind: own
+    note: Project of the shift; the optional scope node narrows it.
+  - column: app.shifts.role_code
+    parent: app.engagements.role_code
+    kind: own
+    note: Role worked; the engagement link is optional.
+  - column: app.shifts.scope_node_id
+    parent: app.records.scope_node_id
+    kind: own
+    note: Scope node of the shift; the record link is optional.
+  - column: app.shifts.starts_at
+    parent: app.records.starts_at
+    kind: own
+    note: Call time; the record link is optional.
+  - column: app.shifts.time_zone
+    parent: app.projects.time_zone
+    kind: own
+    note: Zone the shift's times were typed in.
+  - column: app.shifts.time_zone
+    parent: app.records.time_zone
+    kind: own
+    note: Zone the shift's times were typed in; the record link is optional.
+  - column: app.shipment_tracking_events.tracking_status
+    parent: app.shipment_trackers.tracking_status
+    kind: fact
+    note: Status of this scan; the tracker holds the latest.
+  - column: app.shortlists.opportunity_id
+    parent: app.applications.opportunity_id
+    kind: finding
+    note: The application is required and is for one opportunity, so the shortlist's opportunity is the application's.
+    finding: A108-003
+  - column: app.site_plans.venue_id
+    parent: app.projects.venue_id
+    kind: own
+    note: Venue drawn, not necessarily the project's primary venue.
+  - column: app.sms_summary_queue.sent_at
+    parent: app.notification_deliveries.sent_at
+    kind: own
+    note: When the summary carrying this delivery was sent.
+  - column: app.spend_approvals.currency_code
+    parent: app.spend_authorities.currency_code
+    kind: fact
+    note: Currency of the amount approved, kept as approved.
+  - column: app.spend_approvals.document_type
+    parent: app.spend_authorities.document_type
+    kind: fact
+    note: Type of the document approved, kept as approved.
+  - column: app.spend_authorities.valid_from
+    parent: app.memberships.valid_from
+    kind: own
+    note: When the spend limit starts.
+  - column: app.spend_authorities.valid_to
+    parent: app.memberships.valid_to
+    kind: own
+    note: When the spend limit ends.
+  - column: app.sponsor_assets.due_on
+    parent: app.sponsor_entitlements.due_on
+    kind: own
+    note: When the asset is needed; the entitlement's date is when it is owed.
+  - column: app.submittals.project_id
+    parent: app.purchase_orders.project_id
+    kind: own
+    note: Project of the submittal; `private.guard_submittal_order` requires the optional order's.
+  - column: app.submittals.vendor_id
+    parent: app.purchase_orders.vendor_id
+    kind: own
+    note: Vendor submitting; the order link is optional.
+  - column: app.supplier_diversity_events.account_id
+    parent: app.supplier_diversity_certifications.account_id
+    kind: finding
+    note: The certification is required and has one owner, so the event's owner is the certification's.
+    finding: A108-003
+  - column: app.supplier_diversity_events.person_id
+    parent: app.supplier_diversity_certifications.person_id
+    kind: finding
+    note: The certification is required and has one owner, so the event's owner is the certification's.
+    finding: A108-003
+  - column: app.surveys.project_id
+    parent: app.groups.project_id
+    kind: own
+    note: Project audience; the group link is optional.
+  - column: app.template_applications.template_id
+    parent: app.template_versions.template_id
+    kind: finding
+    note: The version is required and belongs to one template, so the application's template is the version's.
+    finding: A108-003
+  - column: app.time_entries.engagement_id
+    parent: app.shifts.engagement_id
+    kind: own
+    note: Who worked; the shift link is optional.
+  - column: app.time_entries.membership_id
+    parent: app.shifts.membership_id
+    kind: own
+    note: Who worked; the shift link is optional.
+  - column: app.time_entries.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project worked; `private.guard_time_entry` requires the optional engagement's.
+  - column: app.time_entries.project_id
+    parent: app.kiosk_devices.project_id
+    kind: own
+    note: Project worked; a kiosk can serve every project.
+  - column: app.time_entries.project_id
+    parent: app.shifts.project_id
+    kind: own
+    note: Project worked; `private.guard_time_entry` requires the optional shift's.
+  - column: app.timesheets.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project of the timesheet; the engagement link is optional.
+  - column: app.travel_segments.currency_code
+    parent: app.engagements.currency_code
+    kind: own
+    note: Currency of the fare.
+  - column: app.travel_segments.person_id
+    parent: app.engagements.person_id
+    kind: own
+    note: Traveler; the engagement link is optional.
+  - column: app.travel_segments.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: Project of the segment; the engagement link is optional.
+  - column: app.travel_segments.project_id
+    parent: app.fulfillments.project_id
+    kind: own
+    note: Project of the segment; the fulfillment link is optional.
+  - column: app.user_capability_grants.valid_from
+    parent: app.memberships.valid_from
+    kind: own
+    note: When the grant starts.
+  - column: app.user_capability_grants.valid_to
+    parent: app.memberships.valid_to
+    kind: own
+    note: When the grant ends.
+  - column: app.vendor_bank_detail_changes.vendor_id
+    parent: app.vendor_bank_accounts.vendor_id
+    kind: finding
+    note: The bank account is required and belongs to one vendor, so the change's vendor is the account's.
+    finding: A108-003
+  - column: app.vendor_products.currency_code
+    parent: app.catalog_bindings.currency_code
+    kind: own
+    note: Currency of the vendor's price.
+  - column: app.vendor_products.element_id
+    parent: app.catalog_bindings.element_id
+    kind: own
+    note: Element of a product bound directly; the binding link is optional.
+  - column: app.warehouse_deliveries.file_format
+    parent: app.warehouse_destinations.file_format
+    kind: fact
+    note: Format of this delivery, fixed when it is queued.
+  - column: app.warehouse_deliveries.include_confidential
+    parent: app.warehouse_destinations.include_confidential
+    kind: fact
+    note: Whether this delivery carries Confidential columns, fixed when it is queued.
+  - column: app.weather_alerts.hazard
+    parent: app.weather_readings.hazard
+    kind: finding
+    note: The reading is required and names one hazard, so the alert's hazard is the reading's.
+    finding: A108-003
+  - column: app.weather_alerts.project_id
+    parent: app.weather_readings.project_id
+    kind: finding
+    note: The reading is required and is for one project, so the alert's project is the reading's.
+    finding: A108-003
+  - column: app.work_detail_events.person_id
+    parent: app.engagements.person_id
+    kind: own
+    note: Person whose details were touched; the engagement link is optional.
+  - column: app.work_detail_shares.person_id
+    parent: app.consent_records.person_id
+    kind: finding
+    note: The consent record is required and names one person, so the share's person is the consent's.
+    finding: A108-003
+  - column: app.work_detail_shares.person_id
+    parent: app.engagements.person_id
+    kind: finding
+    note: The engagement is required and names one person, so the share's person is the engagement's.
+    finding: A108-003
+  - column: app.work_order_bids.currency_code
+    parent: app.work_orders.currency_code
+    kind: own
+    note: Currency of the bid's amount.
+  - column: app.work_order_bids.estimated_hours
+    parent: app.work_orders.estimated_hours
+    kind: own
+    note: Hours the bidder estimates.
+  - column: app.work_orders.currency_code
+    parent: app.work_order_bids.currency_code
+    kind: own
+    note: Currency of the work order's budget, the project's when none is given.
+  - column: app.work_orders.estimated_hours
+    parent: app.work_order_bids.estimated_hours
+    kind: own
+    note: Hours estimated for the work order.
+  - column: app.work_orders.project_id
+    parent: app.records.project_id
+    kind: own
+    note: Project of the work order; `private.guard_work_order` requires the optional record's.
+  - column: app.work_orders.project_id
+    parent: app.scope_nodes.project_id
+    kind: own
+    note: Project of the work order; the optional scope node narrows it.
+  - column: app.work_orders.scope_node_id
+    parent: app.records.scope_node_id
+    kind: own
+    note: Scope node of the work; the record link is optional.
+  - column: app.work_orders.urid
+    parent: app.records.urid
+    kind: own
+    note: Category of the work; the record link is optional.
+  - column: app.workforce_events.project_id
+    parent: app.groups.project_id
+    kind: own
+    note: Project of the event; the group link is optional.
+  - column: app.workforce_events.venue_id
+    parent: app.projects.venue_id
+    kind: own
+    note: Venue of the event, not necessarily the project's primary venue.
+  - column: app.workforce_events.venue_id
+    parent: app.spaces.venue_id
+    kind: own
+    note: Venue of the event; the space link is optional.
+  - column: app.zones.venue_id
+    parent: app.spaces.venue_id
+    kind: own
+    note: Venue of the zone; the space link is optional.
+  - column: private.account_deletions.user_id
+    parent: app.people.user_id
+    kind: fact
+    note: Deleted sign-in, kept after the sign-in is gone.
+  - column: private.age_confirmations.user_id
+    parent: app.people.user_id
+    kind: fact
+    note: Sign-in used, kept as evidence.
+  - column: private.auth_factor_labels.user_id
+    parent: auth.mfa_factors.user_id
+    kind: finding
+    note: The factor is required and belongs to one sign-in, so the label's sign-in is the factor's.
+    finding: A108-003
+  - column: private.file_download_tickets.attachment_version_id
+    parent: app.share_links.attachment_version_id
+    kind: fact
+    note: Version handed over, fixed when the ticket was issued.
+  - column: private.file_download_tickets.expires_at
+    parent: app.share_links.expires_at
+    kind: own
+    note: When the ticket stops working, two minutes after it was issued.
+  - column: private.session_devices.user_agent
+    parent: auth.sessions.user_agent
+    kind: finding
+    note: The session is required and records its own user agent.
+    finding: A108-003
+  - column: private.session_devices.user_id
+    parent: auth.sessions.user_id
+    kind: finding
+    note: The session is required and belongs to one sign-in, so the device's sign-in is the session's.
+    finding: A108-003
+  - column: xpms.bridge_element_metric.item
+    parent: xpms.elements.item
+    kind: own
+    note: The metric's item, not the element's name.
+  - column: xpms.dim_category.is_extension
+    parent: xpms.dim_discipline.is_extension
+    kind: own
+    note: Whether the category's own segment is an extension.
+  - column: xpms.dim_category.source
+    parent: xpms.dim_discipline.source
+    kind: own
+    note: Origin of the category, which can differ from its discipline's.
+  - column: xpms.dim_discipline.source
+    parent: xpms.dim_department.source
+    kind: own
+    note: Origin of the discipline, which can differ from its department's.
+  - column: xpms.dim_phase.definition
+    parent: xpms.dim_act.definition
+    kind: own
+    note: What the phase covers, not the act.
+  - column: xpms.elements.source
+    parent: xpms.dim_category.source
+    kind: own
+    note: Where the element entered canon.
+  - column: xpms.elements.xyz
+    parent: xpms.dim_category.xyz
+    kind: fact
+    note: The Playbook element sheet states the tag; canon rows are read-only after import.
+  - column: xpms.rate_card.flag
+    parent: xpms.role.flag
+    kind: own
+    note: Flag from the rate card sheet, not the roles sheet.
+
+# Every non-generated column named like a total, count, sum, balance, score, percent or readiness: registered, fact
+# (fixed when something happened; later rows cannot reproduce it), input (set by a person, a provider or the canon) or
+# finding.
+stored:
+  - column: app.addon_purchases.amount_total_minor
+    kind: input
+    note: Amount paid as Stripe reports it (migration 1250).
+  - column: app.beos.guest_count
+    kind: input
+    note: Guests the client guarantees.
+  - column: app.export_jobs.row_count
+    kind: fact
+    note: Rows a run exported; not derivable later (A22 review).
+  - column: app.form_submissions.max_score
+    kind: registered
+    note: Fixed by the immutable form version at submission.
+  - column: app.form_submissions.score
+    kind: registered
+    note: Fixed by the immutable form version and answers at submission.
+  - column: app.form_template_versions.pass_score
+    kind: input
+    note: Passing score the author set, frozen in the version.
+  - column: app.form_templates.pass_score
+    kind: input
+    note: Passing score the author sets.
+  - column: app.import_job_sheets.column_count
+    kind: fact
+    note: Counted from the uploaded workbook at detection; its cells are not stored (migration 1402).
+  - column: app.import_job_sheets.data_row_count
+    kind: fact
+    note: Counted from the uploaded workbook at detection; its cells are not stored (migration 1402).
+  - column: app.invite_links.use_count
+    kind: fact
+    note: Memberships do not record the link they came from (A22 review).
+  - column: app.notification_deliveries.attempt_count
+    kind: fact
+    note: No attempts table exists, so the count is the only record (A22 review).
+  - column: app.occupancy_counters.alert_level_percent
+    kind: registered
+    note: Set with the count under the counter's lock, so each alert level fires once.
+  - column: app.occupancy_counters.current_count
+    kind: registered
+    note: Kept by the door counts (A22-007).
+  - column: app.occupancy_counts.count_after
+    kind: registered
+    note: Running count at each entry (A22-007).
+  - column: app.org_exports.file_count
+    kind: fact
+    note: Counted when the archive was built; the archive is a file (migration 1063).
+  - column: app.org_exports.row_count
+    kind: fact
+    note: Counted when the archive was built; the archive is a file (migration 1063).
+  - column: app.org_exports.table_count
+    kind: fact
+    note: Counted when the archive was built; the archive is a file (migration 1063).
+  - column: app.osha_annual_summaries.total_hours_worked
+    kind: input
+    note: The establishment's Form 300A figure; `app.osha_employment_estimate` only suggests one from time entries (migration 1385).
+  - column: app.ratings.score
+    kind: input
+    note: A rating of 1 to 5.
+  - column: app.report_runs.row_count
+    kind: fact
+    note: Rows a run returned; not derivable later (A22 review).
+  - column: app.report_runs.unpriced_count
+    kind: fact
+    note: Unpriced rows of a run; not derivable later (A22 review).
+  - column: app.share_links.open_count
+    kind: fact
+    note: Opens are logged by file, not by link, so the count is the only per-link record (migration 1380).
+  - column: app.shipments.pallet_count
+    kind: input
+    note: Pallets shipped (migration 1180).
+  - column: app.shipments.piece_count
+    kind: input
+    note: Pieces shipped (migration 1180).
+  - column: app.tax_rates.rate_percent
+    kind: input
+    note: A tax rate.
+  - column: app.training_completions.score_percent
+    kind: fact
+    note: Quiz answers are graded and not kept, so the score is the only record.
+  - column: app.training_courses.pass_percent
+    kind: input
+    note: Passing score the author sets.
+  - column: app.vendor_scorecards.delivery_score
+    kind: input
+    note: A rating of 1 to 5.
+  - column: app.vendor_scorecards.quality_score
+    kind: input
+    note: A rating of 1 to 5.
+  - column: app.vendor_scorecards.safety_score
+    kind: input
+    note: A rating of 1 to 5.
+  - column: app.warehouse_delivery_files.byte_count
+    kind: fact
+    note: Size of the file delivered to the warehouse (migration 1401).
+  - column: app.warehouse_delivery_files.row_count
+    kind: fact
+    note: Rows in the file delivered to the warehouse (migration 1401).
+  - column: app.webhook_deliveries.attempt_count
+    kind: fact
+    note: No attempts table exists, so the count is the only record (A22 review).
+  - column: app.wholesale_statements.client_count
+    kind: finding
+    note: Count of the statement's lines (migration 1060).
+    finding: A108-002
+  - column: app.wholesale_statements.list_total_minor
+    kind: finding
+    note: Sum of the statement's priced lines (migration 1060).
+    finding: A108-002
+  - column: app.wholesale_statements.unpriced_count
+    kind: finding
+    note: Count of the statement's unpriced lines (migration 1060).
+    finding: A108-002
+  - column: app.wholesale_statements.wholesale_total_minor
+    kind: finding
+    note: Sum of the statement's priced lines (migration 1060).
+    finding: A108-002
+  - column: private.api_rate_windows.request_count
+    kind: fact
+    note: Requests are not logged, so the count is the only record of the window (migration 1040).
+  - column: private.subprocessor_notices.recipient_count
+    kind: fact
+    note: Queued emails do not name the notice, so the count is the only record (migration 1382).
+  - column: xpms.dim_gl_account_type.normal_balance
+    kind: input
+    note: Debit or Credit, a canon value, not a balance.
+  - column: xpms.dim_grain.counts
+    kind: input
+    note: Canon text saying what the grain counts.
+  - column: xpms.playbook_sheet.data_row_count
+    kind: fact
+    note: Rows in the source workbook sheet, recorded at import.
+
+# Every app table without the ADR 0002 tenant columns (org_id and the five audit columns), read by pgTAP 0202:
+# identity (Section 4.8.1), person-owned (ADR 0019 item 10, accepted by ADR 0033 decision 69) or platform.
+tenant_exceptions:
+  - table: app.active_org_selections
+    kind: person-owned
+    note: One row per sign-in, keyed by user_id (ADR 0007 item 1, migration 0920).
+  - table: app.blocks
+    kind: person-owned
+    note: Blocks keyed by person_id, readable only by the blocker (A52, migration 1206).
+  - table: app.capabilities
+    kind: platform
+    note: Capability registry rows generated from capabilities.yaml.
+  - table: app.capability_modules
+    kind: platform
+    note: Capability modules generated from capabilities.yaml.
+  - table: app.deletion_certificates
+    kind: platform
+    note: The record of an org's deletion, kept after the org and its members are gone (A79, migration 1351).
+  - table: app.feedback_submissions
+    kind: person-owned
+    note: Feedback a person sends the platform team, keyed by person_id, read by the sender and staff (A96, migration 1531).
+  - table: app.organizations
+    kind: identity
+    note: The tenant itself (Section 4.8.1).
+  - table: app.people
+    kind: identity
+    note: One human across orgs (Section 4.8.1).
+  - table: app.person_calendar_feeds
+    kind: person-owned
+    note: A person's own calendar feed across their engagements, keyed by person_id (A84, migration 1410).
+  - table: app.person_certifications
+    kind: person-owned
+    note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.person_emergency_contacts
+    kind: person-owned
+    note: Work Details keyed by person_id, readable only by the person (A78, migration 1340).
+  - table: app.person_languages
+    kind: person-owned
+    note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.person_links
+    kind: person-owned
+    note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.person_loyalty_programs
+    kind: person-owned
+    note: Work Details keyed by person_id, readable only by the person (A78, migration 1340).
+  - table: app.person_notification_preferences
+    kind: person-owned
+    note: Notification choices of external parties, keyed by person_id (A44, migration 1131).
+  - table: app.person_notification_settings
+    kind: person-owned
+    note: A person's own quiet hours for orgs they are not a member of, keyed by person_id (A89, migration 1461).
+  - table: app.person_profiles
+    kind: person-owned
+    note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.person_push_devices
+    kind: person-owned
+    note: A person's own push devices, keyed by person_id, which carry an org's push only through the claim (A101, migration 1670).
+  - table: app.person_references
+    kind: person-owned
+    note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.person_skills
+    kind: person-owned
+    note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.person_work_details
+    kind: person-owned
+    note: Work Details keyed by person_id, readable only by the person (A78, migration 1340).
+  - table: app.plans
+    kind: platform
+    note: Subscription plans generated from plans.yaml.
+  - table: app.platform_operator_actions
+    kind: platform
+    note: Append-only ledger of the operator console; target_org_id names the tenant an action touched (A90, migration 1470).
+  - table: app.platform_operators
+    kind: platform
+    note: The platform team, owned by no tenant (A90, migration 1470).
+  - table: app.portfolio_items
+    kind: person-owned
+    note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.product_events
+    kind: platform
+    note: Consent-gated product analytics events, which by design name no person and no org (A96, migration 1532).
+  - table: app.profile_section_visibility
+    kind: person-owned
+    note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).
+  - table: app.shortcut_bindings
+    kind: person-owned
+    note: Keyboard shortcut bindings keyed by person_id, readable only by the person (A81, migration 1370).
+  - table: app.subscription_state_transition_rules
+    kind: platform
+    note: Allowed subscription state transitions, the same for every org.
+  - table: app.supplier_diversity_certifications
+    kind: person-owned
+    note: Owned by a person or an external account and read only by the owner (A89, migration 1464).
+  - table: app.supplier_diversity_events
+    kind: person-owned
+    note: The certifications' access log, written only by the database; org_id names an org's read (A89, migration 1464).
+  - table: app.system_banners
+    kind: platform
+    note: Platform-wide banners (A90, migration 1474).
+  - table: app.work_detail_events
+    kind: person-owned
+    note: The person's Work Details access log, written only by the database; org_id names an org's act (A78, migration 1340).

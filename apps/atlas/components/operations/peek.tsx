@@ -90,21 +90,3 @@ export function PeekPanel({
     </aside>
   );
 }
-
-/**
- * Refreshes the server-rendered page on an interval while it is visible. Atlas keeps the Supabase
- * session in httpOnly cookies, so the browser holds no client to subscribe with; the dispatch board
- * re-renders on the server every two seconds instead (Section 11.11: a new incident visible to
- * dispatch in under 2 s).
- */
-export function LiveRefresh({ seconds }: { seconds: number }) {
-  const router = useRouter();
-  useEffect(() => {
-    const tick = () => {
-      if (document.visibilityState === "visible") router.refresh();
-    };
-    const timer = window.setInterval(tick, seconds * 1000);
-    return () => window.clearInterval(timer);
-  }, [router, seconds]);
-  return null;
-}

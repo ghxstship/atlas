@@ -215,6 +215,16 @@ export function isProviderCode(code: string): code is ProviderCode {
   return providerEntry(code) !== undefined;
 }
 
+const CLIENT_CREDENTIAL_PROVIDERS: readonly string[] = ["ups", "fedex"] satisfies ProviderCode[];
+
+/**
+ * Whether the provider's connection stores a developer app's client ID and secret instead of a token (UPS and
+ * FedEx, ADR 0065): the connector mints its access tokens from the pair with the client-credentials grant.
+ */
+export function usesClientCredentials(code: string): boolean {
+  return CLIENT_CREDENTIAL_PROVIDERS.includes(code);
+}
+
 /** Scopes a provider can run, by its category. */
 export function scopesFor(code: ProviderCode): readonly SyncScope[] {
   const entry = providerEntry(code);

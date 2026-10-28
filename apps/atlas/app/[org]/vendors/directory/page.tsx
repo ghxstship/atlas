@@ -2,6 +2,7 @@ import { requireNode } from "@/lib/shell/require-node";
 import { VendorDirectory } from "@/components/vendors/directory";
 import { SharedSupplierDiversity } from "@/components/vendors/supplier-diversity";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { LiveList } from "@/components/live/live-list";
 
 /**
  * Vendors > Directory (Section 4.5.5), with the supplier diversity certifications vendors and
@@ -16,6 +17,7 @@ export default async function Page({
   const search = await searchParams;
   return (
     <>
+      <LiveList org={routeParams.org} tables={["vendors"]} />
       <VendorDirectory
         ctx={ctx}
         path={nodeHref("vendors.directory", routeParams) ?? "/"}

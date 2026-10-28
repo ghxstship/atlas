@@ -8,12 +8,14 @@ import { getNode } from "@xos/ia";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { LinkBoard, LinkTable } from "@/components/page/collections";
 import { PageTitle, pickView, RegionError, Section, ViewSwitcher } from "@/components/page/page";
 import { DestinationTabs } from "@/components/page/work-tabs";
 import { BrandMark, EmptyStateLink, InlineAlert, Tag } from "@/components/ui";
 import { inBrandScope } from "@/lib/brand/brand";
 import { formatDateRange } from "@/lib/format";
+import { personalChannel } from "@/lib/live/topics";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 import { engagementTitle } from "@/lib/engagement-state";
@@ -62,6 +64,7 @@ function Row({ e, locale, t }: { e: Engagement; locale: string; t: Translate }) 
  * by org and project, as a list, a table or a board by state. Groups follow the state, not the
  * dates, so a future-dated engagement that closed early is never called past (finding A59-021). An
  * Account Member sees only the engagements assigned to them; the api_external view decides that.
+ * The list updates live: the person's private channel says when an engagement of theirs changed.
  */
 export default async function EngagementsPage({ searchParams }: PageProps<"/work/engagements">) {
   const ctx = await requireNode("work.engagements");
@@ -80,6 +83,7 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
   const closed = shown.filter((e) => !isCurrentEngagement(e));
   return (
     <>
+      <LiveRefresh channel={personalChannel(ctx.personId)} />
       <PageTitle
         title={t("nav.gateway.primary.work")}
         action={
@@ -130,6 +134,7 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
             { key: "state", label: t("gateway.work.engagements.state") },
           ]}
           rows={shown.map((e) => ({
+            id: e.id,
             href: href(e),
             role: engagementTitle(e, (r) => t(enumLabelKey("externalRoleType", r))),
             org: e.orgName,

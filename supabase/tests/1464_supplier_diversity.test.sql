@@ -12,11 +12,11 @@ select plan(23);
 
 -- ivy declares one for herself; victor (Account Owner) one for the vendor account acct_v.
 select pg_temp.as_user('ivy');
-select lives_ok($$insert into app.supplier_diversity_certifications (person_id, diversity_kind, certifying_body, issued_on, expires_on)
-  values (pg_temp.id('ivy'), 'Women-Owned', 'Florida Office of Supplier Diversity', '2026-01-15', '2028-01-15')$$,
-  'a person declares a supplier diversity certification for herself');
+select lives_ok($$select app.add_supplier_diversity_certification('Women-Owned', 'Florida Office of Supplier Diversity',
+  p_person_id => pg_temp.id('ivy'), p_certificate_number => 'FL-WBE-2026-118842', p_issued_on => '2026-01-15',
+  p_expires_on => '2028-01-15')$$,
+  'a person declares a supplier diversity certification for herself, with its number (2350)');
 select id as v_ivy_cert from app.supplier_diversity_certifications where person_id = pg_temp.id('ivy') \gset
-select app.set_supplier_diversity_certificate_number(:'v_ivy_cert', 'FL-WBE-2026-118842');
 select throws_ok($$select certificate_number from app.supplier_diversity_certifications$$, '42501', null,
   'the certificate number is Restricted: nobody signed in selects it, the owner included');
 select is((select certificate_number_last4 from app.my_supplier_diversity()), '8842', 'the owner sees its last four characters');
@@ -71,8 +71,8 @@ select ok(exists (select 1 from app.audit_events a where a.org_id = pg_temp.id('
   'and in the org''s audit ledger');
 select pg_temp.as_user('ivy');
 select set_eq($$select action from app.supplier_diversity_events$$,
-  $$values ('supplier_diversity.created'), ('supplier_diversity.updated'), ('supplier_diversity.shared'), ('supplier_diversity.viewed')$$,
-  'ivy sees every change, share and read in her own log');
+  $$values ('supplier_diversity.created'), ('supplier_diversity.shared'), ('supplier_diversity.viewed')$$,
+  'ivy sees every change, share and read in her own log, the declaration with its number once as created');
 
 -- Turning the program off hides it; revoking ends it.
 select pg_temp.as_user('alice');

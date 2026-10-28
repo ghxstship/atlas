@@ -7,6 +7,7 @@ import {
 import { getFormatter } from "next-intl/server";
 import { recordReceiptAction } from "@/app/[org]/procurement/actions";
 import { CollabPanels } from "@/components/collection-kit/collab";
+import { PresenceFor } from "@/components/presence/presence-for";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import {
@@ -114,6 +115,7 @@ export async function ReceiptsSection({
         state={matchState(selected, t)}
         properties={properties(selected)}
       >
+        <PresenceFor table="goods_receipts" id={selected.id} />
         <KitSection id="receipt-lines" title={t("receipts.lines")}>
           {await lineTable(selected)}
         </KitSection>
@@ -218,6 +220,7 @@ export async function ReceiptsSection({
         fullHref={withQuery(path, state, { peek: selected.id, full: "1" })}
         properties={properties(selected)}
       >
+        <PresenceFor table="goods_receipts" id={selected.id} />
         {await lineTable(selected)}
       </PeekDrawer>
     );
