@@ -229,19 +229,24 @@ export function ImportList({
                 {t("imports.paste.previewEmpty")}
               </p>
             ) : (
-              <DataTable
-                caption={t("imports.paste.preview", { count: preview.length - 1 })}
-                label={t("imports.paste.preview", { count: preview.length - 1 })}
-                height="auto"
-                columns={(preview[0] ?? []).map((header, i) => ({
-                  key: `c${i}`,
-                  label: header || t("imports.map.untitled", { index: i + 1 }),
-                }))}
-                rows={preview.slice(1).map((row, r) => ({
-                  id: `r${r}`,
-                  ...Object.fromEntries((preview[0] ?? []).map((_h, i) => [`c${i}`, row[i] ?? ""])),
-                }))}
-              />
+              // The pasted cells are data, not copy; the caption still comes from the catalog.
+              <div data-pseudo-exempt>
+                <DataTable
+                  caption={t("imports.paste.preview", { count: preview.length - 1 })}
+                  label={t("imports.paste.preview", { count: preview.length - 1 })}
+                  height="auto"
+                  columns={(preview[0] ?? []).map((header, i) => ({
+                    key: `c${i}`,
+                    label: header || t("imports.map.untitled", { index: i + 1 }),
+                  }))}
+                  rows={preview.slice(1).map((row, r) => ({
+                    id: `r${r}`,
+                    ...Object.fromEntries(
+                      (preview[0] ?? []).map((_h, i) => [`c${i}`, row[i] ?? ""]),
+                    ),
+                  }))}
+                />
+              </div>
             )}
           </ActionForm>
         ) : source === "sheets" && googleSheets ? (
@@ -690,18 +695,16 @@ function MappingStep({
                       : t("imports.map.suggested")}
                   </span>
                 ) : null}
-                {sampleRows.length > 0 ? (
-                  <p
-                    className="m-0 w-full text-text-12 text-text-secondary"
-                    aria-label={t("imports.map.samplesOf", {
-                      header: c.header || t("imports.map.untitled", { index: c.index + 1 }),
-                    })}
-                  >
-                    {t("imports.map.samples")}:{" "}
-                    {sampleRows
-                      .map((n) => sampleOf(c.id, n))
-                      .filter(Boolean)
-                      .join(" · ") || "—"}
+                {sampleRows.some((n) => sampleOf(c.id, n) !== "") ? (
+                  <p className="m-0 w-full text-text-12 text-text-secondary">
+                    <span>{t("imports.map.samples")}</span>{" "}
+                    {/* Cells of the uploaded spreadsheet: data, not copy. */}
+                    <span data-pseudo-exempt>
+                      {sampleRows
+                        .map((n) => sampleOf(c.id, n))
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
                   </p>
                 ) : null}
               </li>

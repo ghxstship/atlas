@@ -377,7 +377,6 @@
         "Assistant": "Sugerido por Aurora"
       },
       "samples": "Valores de ejemplo",
-      "samplesOf": "Valores de ejemplo de {header}",
       "preview": "Vista previa",
       "previewIntro": "Las primeras filas tal como se leerán con las opciones actuales.",
       "previewRow": "Fila {row}"

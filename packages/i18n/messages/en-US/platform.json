@@ -377,7 +377,6 @@
         "Assistant": "Suggested by Aurora"
       },
       "samples": "Sample values",
-      "samplesOf": "Sample values of {header}",
       "preview": "Preview",
       "previewIntro": "The first rows as they will be read with the current choices.",
       "previewRow": "Row {row}"
