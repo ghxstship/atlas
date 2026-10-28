@@ -8,10 +8,12 @@ import {
 } from "@xos/data/places";
 import { listCapabilityStatements, type CapabilityStatement } from "@xos/data/reconciliation";
 import type { XosClient } from "@xos/data";
-import { getLocationDefaults, NO_LOCATION_DEFAULTS } from "@xos/data/org-setup";
+import { getLocationDefaults, NO_LOCATION_DEFAULTS, venueStartValues } from "@xos/data/org-setup";
+import { regionFromLocale } from "@xos/i18n/formats";
 import type { Route } from "next";
 import Link from "next/link";
-import { getFormatter } from "next-intl/server";
+import { getFormatter, getLocale } from "next-intl/server";
+import { addressFormat, addressLines } from "@/lib/address";
 import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
@@ -44,9 +46,29 @@ function archiveOf(search: Search): ArchiveFilter {
   return value === "archived" || value === "all" ? value : "live";
 }
 
-function address(v: Venue): string | null {
-  const parts = [v.streetAddress, v.locality, v.postalCode].filter((p): p is string => !!p);
-  return parts.length > 0 ? parts.join(", ") : null;
+/**
+ * The venue's address in its country's format (Section 15), on one line. The country and state come from
+ * the jurisdiction (US-FL-MIAMI-DADE gives US and FL); a venue abroad also names its country.
+ */
+function address(v: Venue, locale: string): string | null {
+  if (!v.streetAddress && !v.locality && !v.postalCode) return null;
+  const country = v.jurisdictionId.slice(0, 2);
+  const lines = addressLines(
+    {
+      streetAddress: v.streetAddress,
+      locality: v.locality,
+      administrativeArea: v.jurisdictionId.split("-")[1] ?? null,
+      postalCode: v.postalCode,
+    },
+    country,
+    { locale, viewerCountry: regionFromLocale(locale) },
+  );
+  return lines ? lines.join(", ") : null;
+}
+
+/** The venue address form of a jurisdiction's country; the state is the jurisdiction's, so it is not asked. */
+export function venueAddressFormat(jurisdictionId: string) {
+  return addressFormat(jurisdictionId.slice(0, 2) || "US", ["administrativeArea"]);
 }
 
 /** Projects located venues into the drawing box; venues without a location are left out. */
@@ -86,11 +108,12 @@ export async function VenuesPage({
   const ctx = await requireNode(NODE, params);
   const db = ctx.viewer.db;
   const archive = archiveOf(search);
-  const [venues, jurisdictions, t, held] = await Promise.all([
+  const [venues, jurisdictions, t, held, locale] = await Promise.all([
     listVenues(db, ctx.org.id, archive),
     listJurisdictions(db),
     getTranslate(),
     heldCapabilities(ctx),
+    getLocale(),
   ]);
   if (!venues.ok) throw new Error(`Cannot list venues: ${JSON.stringify(venues.error)}`);
   if (!jurisdictions.ok) {
@@ -128,14 +151,17 @@ export async function VenuesPage({
 
   let overlay = null;
   if (param(search, "create") === "1" && canWrite) {
+    const defaults = await getLocationDefaults(db, ctx.org.id).then((d) =>
+      d.ok ? d.data : NO_LOCATION_DEFAULTS,
+    );
+    const start = venueStartValues(defaults, jurisdictions.data[0]?.id ?? null, "UTC");
     overlay = (
       <QueryDrawer title={t("places.venues.create")} closeKeys={["create"]}>
         <VenueForm
           org={ctx.org.slug}
           jurisdictions={jurisdictions.data}
-          defaults={await getLocationDefaults(db, ctx.org.id).then((d) =>
-            d.ok ? d.data : NO_LOCATION_DEFAULTS,
-          )}
+          defaults={defaults}
+          addressFormat={venueAddressFormat(start.jurisdictionId)}
         />
       </QueryDrawer>
     );
@@ -223,7 +249,7 @@ export async function VenuesPage({
         rows={rows.map((v) => ({
           id: v.id,
           title: v.name,
-          meta: [address(v), v.timeZone].filter(Boolean).join(" · "),
+          meta: [address(v, locale), v.timeZone].filter(Boolean).join(" · "),
           chips: (
             <>
               <Tag>{v.jurisdictionId}</Tag>
@@ -287,7 +313,7 @@ async function loadVenue(db: XosClient, id: string) {
 }
 
 async function VenueProperties({ venue, t }: { venue: Venue; t: Translate }) {
-  const format = await getFormatter();
+  const [format, locale] = await Promise.all([getFormatter(), getLocale()]);
   return (
     <PropertyList
       items={[
@@ -295,7 +321,7 @@ async function VenueProperties({ venue, t }: { venue: Venue; t: Translate }) {
         { label: t("places.venues.fields.timeZone"), value: venue.timeZone },
         {
           label: t("places.venues.fields.address"),
-          value: address(venue) ?? t("places.kit.notRecorded"),
+          value: address(venue, locale) ?? t("places.kit.notRecorded"),
         },
         {
           label: t("places.venues.fields.location"),
@@ -424,7 +450,12 @@ async function VenueDetail(props: DetailProps & { openFullHref: string }) {
       <ProvidedCapabilities statements={statements} t={t} />
       {canWrite ? (
         <RecordSection id="venue-edit" title={t("places.kit.edit")}>
-          <VenueForm org={org} venue={venue} jurisdictions={jurisdictions} />
+          <VenueForm
+            org={org}
+            venue={venue}
+            jurisdictions={jurisdictions}
+            addressFormat={venueAddressFormat(venue.jurisdictionId)}
+          />
           <ArchiveControl org={org} venue={venue} t={t} />
         </RecordSection>
       ) : null}
@@ -477,7 +508,12 @@ async function VenueRecord(props: DetailProps & { backHref: string }) {
         <ProvidedCapabilities statements={statements} t={t} />
         {canWrite ? (
           <RecordSection id="venue-edit" title={t("places.kit.edit")}>
-            <VenueForm org={org} venue={venue} jurisdictions={jurisdictions} />
+            <VenueForm
+              org={org}
+              venue={venue}
+              jurisdictions={jurisdictions}
+              addressFormat={venueAddressFormat(venue.jurisdictionId)}
+            />
           </RecordSection>
         ) : null}
         <Collaboration

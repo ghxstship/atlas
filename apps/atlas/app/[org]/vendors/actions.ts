@@ -24,6 +24,7 @@ import {
   updateScorecard,
   updateSponsorEntitlement,
   updateVendor,
+  updateVendorAddress,
   updateVendorClass,
   SPONSOR_ASSET_KINDS,
   VENDOR_STATES,
@@ -33,6 +34,7 @@ import {
   type ScorecardInput,
   type VendorState,
 } from "@xos/data/vendors";
+import { ADDRESS_ERROR, readAddress } from "@/lib/address";
 import { actionContext, finish } from "@/lib/collection-kit/actions";
 import {
   all,
@@ -106,6 +108,37 @@ export async function updateVendorAction(_: ActionState, form: FormData): Promis
     return finish(await setVendorClasses(ctx.viewer.db, id, all(form, "classIds")), ctx, MODULE);
   }
   return finish(updated, ctx, MODULE);
+}
+
+/**
+ * Records the vendor's mailing address (A139): the fields its country requires, a postal code that
+ * fits the country (written as the country writes it), or every field blank to clear it.
+ */
+export async function updateVendorAddressAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await actionContext(form);
+  const id = uuid(form, "id");
+  if (id === null) return { error: "notFound" };
+  const errors = new FieldErrors();
+  const typed = text(form, "countryCode")?.toUpperCase() ?? null;
+  const country = typed !== null && /^[A-Z]{2}$/.test(typed) ? typed : null;
+  if (typed !== null && country === null) errors.add("countryCode", "country");
+  const address = readAddress(form, country);
+  if (!address.ok) {
+    for (const [field, problem] of Object.entries(address.problems)) {
+      errors.add(field, ADDRESS_ERROR[problem]);
+    }
+  } else if (typed === null && Object.values(address.value).some((v) => v !== null)) {
+    errors.add("countryCode", "countryNeeded");
+  }
+  if (errors.any || !address.ok) return errors.state;
+  const result = await updateVendorAddress(ctx.viewer.db, id, {
+    countryCode: country,
+    ...address.value,
+  });
+  return finish(result, ctx, MODULE);
 }
 
 export async function transitionVendorAction(_: ActionState, form: FormData): Promise<ActionState> {

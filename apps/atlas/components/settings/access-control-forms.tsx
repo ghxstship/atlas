@@ -15,6 +15,7 @@ import {
   decideAccessReviewAction,
   endBreakGlassAction,
   legalEntityAction,
+  legalEntityAddressAction,
   openAccessReviewAction,
   removeNetworkAction,
   startBreakGlassAction,
@@ -23,6 +24,8 @@ import {
 } from "@/app/[org]/settings/access-control-actions";
 import { useStepUpForm } from "@/components/auth/security/step-up";
 import { useKeepInput } from "@/components/collection-kit/keep-input";
+import { AddressInputs } from "@/components/address/address-inputs";
+import type { AddressFormat, AddressValue } from "@/lib/address";
 
 /**
  * Client forms for the A52 settings panels (legal entities, IP allow-list, break-glass, access
@@ -228,6 +231,65 @@ export function LegalEntityActions({
         },
       ]}
     />
+  );
+}
+
+/**
+ * The registered address of one entity (A139), its fields in the format of the entity's country, which
+ * the server passes as `format`. Leaving every field blank clears it.
+ */
+export function LegalEntityAddressForm({
+  org,
+  id,
+  name,
+  format,
+  values,
+}: {
+  org: string;
+  id: string;
+  name: string;
+  format: AddressFormat;
+  values: AddressValue;
+}) {
+  const { state, dispatch, pending, keep, t } = useForm(legalEntityAddressAction);
+  const recorded = Object.values(values).some((v) => v !== null);
+  return (
+    <details className="text-text-13" open={Boolean(state.fieldErrors) || undefined}>
+      <summary className="cursor-pointer text-accent-text">
+        {recorded ? t("legalEntities.editAddress") : t("legalEntities.addAddress")}
+      </summary>
+      <form
+        action={dispatch}
+        {...keep}
+        aria-label={t("legalEntities.addressLabel", { name })}
+        className="flex max-w-layout-form flex-col gap-12 pt-8"
+        noValidate
+      >
+        <input type="hidden" name="org" value={org} />
+        <input type="hidden" name="legalEntityId" value={id} />
+        <Status state={state} />
+        <AddressInputs
+          idPrefix={`legal-entity-${id}`}
+          format={format}
+          values={values}
+          labels={{
+            streetAddress: t("legalEntities.streetAddress"),
+            locality: t("legalEntities.locality"),
+            administrativeArea: t("legalEntities.administrativeArea"),
+            postalCode: t("legalEntities.postalCode"),
+          }}
+          error={(field) => {
+            const key = state.fieldErrors?.[field];
+            return key ? t(`fieldErrors.${key}`) : undefined;
+          }}
+        />
+        <div>
+          <Button type="submit" size="sm" variant="secondary" loading={pending}>
+            {t("legalEntities.saveAddress")}
+          </Button>
+        </div>
+      </form>
+    </details>
   );
 }
 
