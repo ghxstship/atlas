@@ -452,6 +452,7 @@ export {
   type FilterBuilderProps,
   type QuickAddProps,
   type ColorPickerProps,
+  type ColorCheck,
   type DiffViewerProps,
   type QuickAddResult,
   type QuickAddToken,
