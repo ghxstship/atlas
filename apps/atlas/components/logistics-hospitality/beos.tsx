@@ -429,8 +429,36 @@ export async function BeosSection({
                 b.total.currencyCode,
                 exponents.get(b.total.currencyCode ?? "") ?? 2,
               ) ?? tc("unpriced")),
+          id: b.id,
+          label: b.key,
           href: peekHref(b.key),
+          fullHref: hrefWith(base, search, { peek: b.key, full: "1", edit: null }),
+          ...(!b.approvedAt && scope.access.can(b.projectId, "hospitality.beo.write")
+            ? { trashMessage: tc("deleted", { key: b.key }) }
+            : {}),
         }))}
+        bulk={
+          writableProjects(scope, "hospitality.beo.approve").length > 0
+            ? {
+                org: scope.ctx.org.slug,
+                resource: "beos",
+                // Approval is stamped once: the database refuses the author and any undo.
+                fields: [
+                  {
+                    key: "approved_at",
+                    label: t("beos.bulk.approval"),
+                    options: [{ value: true, label: t("beos.state.approved") }],
+                  },
+                ],
+              }
+            : null
+        }
+        trash={{
+          org: scope.ctx.org.slug,
+          label: tc("delete"),
+          run: deleteBeoAction,
+          restore: restoreBeoAction,
+        }}
       />
     );
   } else if (view === "calendar") {

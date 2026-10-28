@@ -31,11 +31,18 @@ export interface Bulk {
 }
 
 /**
- * Selection and bulk edit for a collection's DataTable (Section 11.7). The selection keeps only rows
- * the page still shows, so a filter or a live update never leaves a hidden row selected. Without a
- * config (a viewer who may not change the rows) nothing is selectable.
+ * Selection and bulk edit for a collection's views (Section 11.7): the selection prop of a DataTable,
+ * RecordList, Board or Calendar. The selection keeps only rows the page still shows, so a filter or
+ * a live update never leaves a hidden row selected. Without a config (a viewer who may not change the
+ * rows) nothing is selectable. With `toolbar: false` (a record's own page, where nothing else is
+ * selectable) no bar shows: a change opens from the menu, and closing its dialog clears the row.
  */
-export function useBulk(config: BulkConfig | null | undefined, rows: readonly BulkRowRef[]): Bulk {
+export function useBulk(
+  config: BulkConfig | null | undefined,
+  rows: readonly BulkRowRef[],
+  options: { readonly toolbar?: boolean } = {},
+): Bulk {
+  const toolbar = options.toolbar !== false;
   const [picked, setPicked] = useState<ReadonlySet<string>>(() => new Set());
   const [field, setField] = useState<BulkField | null>(null);
   const selected = useMemo(() => {
@@ -67,8 +74,12 @@ export function useBulk(config: BulkConfig | null | undefined, rows: readonly Bu
         rows={rows}
         selected={selected}
         field={field}
-        onField={setField}
+        onField={(next) => {
+          setField(next);
+          if (next === null && !toolbar) setPicked(new Set());
+        }}
         onClear={() => setPicked(new Set())}
+        toolbar={toolbar}
       />
     ) : null,
     fields: config.fields,

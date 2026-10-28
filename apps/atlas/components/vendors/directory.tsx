@@ -42,8 +42,10 @@ import { PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { PresenceFor } from "@/components/presence/presence-for";
 import { orgToday } from "@/lib/shell/time-zone";
 import { EmptyStateLink } from "@/components/ui";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "gallery"];
 const REFUSALS = "vendors.refusals";
@@ -73,10 +75,9 @@ export async function VendorDirectory({
   const title = t("directory.title");
   if (!vendors.ok || !classes.ok || !rules.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("directory.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canWrite = ctx.capabilities.has("vendors.vendor.write");
@@ -149,7 +150,9 @@ export async function VendorDirectory({
               />
             ) : null
           }
-        />
+        >
+          <PresenceFor table="vendors" id={vendor.id} />
+        </PeekDrawer>
       );
     }
   }
@@ -364,6 +367,7 @@ async function VendorRecord({
         ) : null
       }
     >
+      <PresenceFor table="vendors" id={v.id} />
       {canWrite ? (
         <KitSection id="vendor-terms" title={t("directory.terms")}>
           <EntityForm

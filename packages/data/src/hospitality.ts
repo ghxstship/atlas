@@ -1096,6 +1096,8 @@ export async function listTravelSegments(
 
 export interface TravelInput {
   readonly personId: string;
+  /** Engagement the person travels under when they are not a member (migration 0971); null for members. */
+  readonly engagementId?: string | null;
   readonly fulfillmentId: string | null;
   readonly mode: TravelMode;
   readonly operatorName: string | null;
@@ -1123,6 +1125,7 @@ export async function createTravelSegment(
   const row: Derived<Tables["travel_segments"]["Insert"]> = {
     project_id: projectId,
     person_id: input.personId,
+    engagement_id: input.engagementId ?? null,
     fulfillment_id: input.fulfillmentId,
     travel_mode: input.mode,
     operator_name: input.operatorName,

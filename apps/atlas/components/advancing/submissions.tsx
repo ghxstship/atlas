@@ -11,6 +11,7 @@ import { ReviewForm } from "./forms";
 import { isRowId, partyLabel, withQuery, type Search } from "./shared";
 import { PageHeader, Tag, TemplateSplitView } from "./ui";
 import { SelectFilter } from "./views";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const FILTERS: readonly SubmissionFilter[] = ["unreviewed", "reviewed", "all"];
 
@@ -53,8 +54,7 @@ export async function SubmissionsSplit({
   const fixedProject = actx.project !== null && search["project"] === undefined;
 
   return (
-    <div className="flex flex-col gap-12 min-w-0">
-      <PageHeader title={title} count={items.length} />
+    <CollectionPage gap={12} header={<PageHeader title={title} count={items.length} />}>
       <div className="flex flex-wrap items-end gap-8">
         {fixedProject ? null : (
           <SelectFilter
@@ -177,6 +177,6 @@ export async function SubmissionsSplit({
         />
       )}
       {peekId && !isRowId(peekId) ? <PeekHandoff recordKey={peekId} /> : null}
-    </div>
+    </CollectionPage>
   );
 }

@@ -2,7 +2,7 @@ import { listAuditEvents } from "@xos/data/activity";
 import { getTranslations } from "next-intl/server";
 import { AuditLog } from "@/components/activity/audit-log";
 import { LoadError } from "@/components/projects/load-error";
-import { PageHeader } from "@/components/projects/ui";
+import { PageHeader, TemplateCollection } from "@/components/projects/ui";
 import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref } from "@/lib/shell/sitemap";
 
@@ -20,8 +20,7 @@ export default async function Page({
   const page = await listAuditEvents(ctx.viewer.db, { orgId: ctx.org.id, before, limit: 50 });
   if (!page.ok) return <LoadError title={t("title")} />;
   return (
-    <>
-      <PageHeader title={t("title")} />
+    <TemplateCollection header={<PageHeader title={t("title")} />}>
       <p className="mb-12 mt-0 max-w-layout-form text-text-13 text-text-secondary">{t("lead")}</p>
       <AuditLog
         entries={page.data.entries}
@@ -29,6 +28,6 @@ export default async function Page({
         paged={before !== null}
         membersHref={nodeHref("settings.members", routeParams) ?? `/${ctx.org.slug}/settings`}
       />
-    </>
+    </TemplateCollection>
   );
 }

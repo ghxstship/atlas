@@ -20,7 +20,7 @@ Two things differ from the first four tables. Some changes apply only to some ro
   - Projects need `projects.project.write`. State goes through `app.transition_project` (`projects.settings.write`, the active project limit on reopening), the primary venue is set directly, and `archived_at` needs `projects.project.archive`. `archived_at` takes `true` to archive now, `null` to restore, or the time an undo puts back, so the bar never sends a client clock.
   - Work orders move through `app.transition_work_order` (`work.work_order.write`). Awarded stays with the award, which names a bid.
   - Punch items are addressed by punch item id. Each needs `work.punch_list.write` on its project and is then handed to `private.bulk_records_row` for its Task record, so the record's write rule, lifecycle and replan log apply. The inverse rows name the punch item.
-  - Documents change scope: a project of the org or org-wide. Moving one needs `knowledge.document.write` where it is and where it goes, so no one moves a document out of reach of the people who could read it, or into a project they cannot write.
+  - Documents change scope: a project of the org or org-wide. Moving one needs `knowledge.document.write` where it is and where it goes, so no one moves a document out of reach of the people who could read it, or into a project they cannot write. An org-wide document has no project, so both checks stand on the org's capability alone: `knowledge.document.write` on some project, such as a project-scoped grant, neither reads nor moves an org-wide document, and another org's document reads as not found.
 - Projects, work orders and punch items gain the audit trail records have (1451), so each row change and its undo reaches the field history.
 
 ### 2. The bar offers only the changes every selected row allows
@@ -47,8 +47,8 @@ Two things differ from the first four tables. Some changes apply only to some ro
 
 ### 6. The Projects page stays in its route budget
 
-- Projects sat 32 bytes under its 200 KB gzip budget, and selection with a row menu took it past. The views other than the default table (list, board, gallery, timeline, calendar) and the peek move to `components/projects/project-views.tsx`, loaded with next/dynamic when shown, as their @xos/ui components already were. The labels both use (gate, phase, state and dates) live in `project-labels.ts`.
-- The Projects table's row menu comes through `useRowMenuOnDemand` (`components/menus/row-menu-on-demand.tsx`): the same `open` and `menu` as `useRowMenu`, with the code that builds the menu fetched on the first right-click. The page is about 1.2 KB under its budget; the budget is unchanged.
+- Projects sat 32 bytes under its 200 KB gzip budget, and selection with a row menu took it past. The views other than the default table (list, board, gallery, timeline, calendar) and the peek load with next/dynamic when shown, from `components/projects/project-other-views.tsx` (RRR-160, which made the same split on its own branch); this package's earlier copy of that split was dropped when the two met.
+- The Projects table's row menu comes through `useRowMenuOnDemand` (`components/menus/row-menu-on-demand.tsx`): the same `open` and `menu` as `useRowMenu`, with the code that builds the menu fetched on the first right-click. The page stays under its budget, which is unchanged.
 - Alternative: raise the budget. Rejected; the budget is a ceiling, not a target.
 
 ## Consequences

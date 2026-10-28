@@ -28,4 +28,7 @@ export const KNOWN_ERRORS: ReadonlySet<string> = new Set([
   "guest_entry_state",
   "guest_entry_stamped",
   "sod_guest_requester",
+  // R2: a rider belongs to a live Artist engagement of its own project (migration 2611).
+  "rider_engagement_artist",
+  "same_project",
 ]);

@@ -13,8 +13,11 @@ import {
 } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { ReactNode } from "react";
+import { useCallback, useMemo, type ReactNode } from "react";
 import { useCopy } from "./use-copy";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 import { CollectionViews } from "@/components/views/collection-views";
 
 /**
@@ -100,24 +103,66 @@ export function PeekBoard({ columns }: { columns: readonly BoardColumn[] }) {
   );
 }
 
+/**
+ * The table view: Enter or a double click opens a row's peek. Right-click, Shift+F10 or the Context
+ * Menu key opens the row's menu; with `bulk`, rows select by click, Cmd or Ctrl+click, Shift+click, X
+ * and Cmd or Ctrl+A, and the bulk bar changes a property across the selection (Section 11.7).
+ */
 export function PeekTable({
   columns,
   rows,
   caption,
+  bulk,
+  full = true,
 }: {
   columns: DataTableColumn[];
-  rows: (Record<string, unknown> & { id: string })[];
+  /** Each row names itself in `label` for its menu and bulk refusals; the first column otherwise. */
+  rows: (Record<string, unknown> & { id: string; label?: string })[];
   caption: string;
+  bulk?: BulkConfig | null;
+  /** False for rows without a full page, such as guests. */
+  full?: boolean;
 }) {
   const router = useRouter();
   const href = useQueryHref();
+  const nameOf = useCallback(
+    (row: Record<string, unknown>) => {
+      const named = row["label"] ?? row[columns[0]?.key ?? "id"];
+      return typeof named === "string" || typeof named === "number"
+        ? String(named)
+        : String(row["id"]);
+    },
+    [columns],
+  );
+  const refs = useMemo(() => rows.map((r) => ({ id: r.id, label: nameOf(r) })), [rows, nameOf]);
+  const selection = useBulk(bulk, refs);
+  const rowMenu = useRowMenu();
   return (
-    <DataTable
-      columns={columns}
-      rows={rows}
-      caption={caption}
-      onRowActivate={(row) => router.push(href({ peek: String(row["id"]), full: null }))}
-    />
+    <>
+      <DataTable
+        columns={columns}
+        rows={rows}
+        caption={caption}
+        onRowActivate={(row) => router.push(href({ peek: String(row["id"]), full: null }))}
+        onRowContextMenu={(row, _index, at, cell) => {
+          const id = String(row["id"]);
+          rowMenu.open(
+            {
+              id,
+              label: nameOf(row),
+              open: () => router.push(href({ peek: id, full: null })),
+              ...(full ? { href: href({ peek: id, full: "1" }) } : {}),
+              bulk: selection,
+            },
+            at,
+            cell,
+          );
+        }}
+        {...(selection.selection ? { selection: selection.selection } : {})}
+      />
+      {selection.bar}
+      {rowMenu.menu}
+    </>
   );
 }
 

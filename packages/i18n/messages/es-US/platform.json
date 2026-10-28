@@ -142,7 +142,8 @@
       "sessionsCaption": "Clientes que puede leer ahora",
       "seats": "Puestos de clientes",
       "discount": "Descuento mayorista del {percent} por ciento",
-      "noDiscount": "Condiciones mayoristas aún no registradas"
+      "noDiscount": "Condiciones mayoristas aún no registradas",
+      "tiles": "Mosaicos de la consola de socios"
     },
     "plans": {
       "access": "Access",
@@ -680,12 +681,15 @@
     "reject": "Rechazar",
     "done": "Listo",
     "snooze": "Posponer",
+    "select": "Seleccionar {item}",
+    "selected": "Seleccionado",
     "rejectTitle": "Rechazar con un motivo",
     "rejectReason": "Motivo",
     "rejectSubmit": "Rechazar",
     "keys": {
       "title": "Teclas:",
       "move": "moverse",
+      "select": "seleccionar",
       "approve": "aprobar",
       "reject": "rechazar",
       "done": "listo",

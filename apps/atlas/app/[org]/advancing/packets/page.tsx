@@ -4,6 +4,7 @@ import { PacketsCollection } from "@/components/advancing/packets";
 import { flatSearch } from "@/components/advancing/shared";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import { LiveList } from "@/components/live/live-list";
 
 /** Advancing > Packets (Section 4.5.5): every packet across projects, with a project filter. */
 export default async function PacketsPage({
@@ -15,11 +16,14 @@ export default async function PacketsPage({
   const actx = await advancingPage("advancing.packets", routeParams, search["project"]);
   const t = await getTranslate();
   return (
-    <PacketsCollection
-      actx={actx}
-      path={`/${routeParams.org}/advancing/packets`}
-      search={search}
-      title={t(getNode(sitemap, "advancing.packets").node.label)}
-    />
+    <>
+      <LiveList org={routeParams.org} tables={["advance_packets"]} />
+      <PacketsCollection
+        actx={actx}
+        path={`/${routeParams.org}/advancing/packets`}
+        search={search}
+        title={t(getNode(sitemap, "advancing.packets").node.label)}
+      />
+    </>
   );
 }

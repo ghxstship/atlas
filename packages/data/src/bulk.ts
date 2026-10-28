@@ -3,9 +3,9 @@ import type { Json } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Bulk edit (Section 11.7, ADR 0044) over the transactional bulk RPCs (migrations 1451 and 2130):
- * one property across a selection, previewed, all or nothing, with the inverse rows that undo it.
- * Each resource has its own RPC; adding one is a row function, a registry row and a name here.
+ * Bulk edit (Section 11.7, ADR 0044) over the transactional bulk RPCs (migrations 1451, 2130, 2150
+ * and 2151): one property across a selection, previewed, all or nothing, with the inverse rows that
+ * undo it. Each resource has its own RPC; adding one is a row function, a registry row and a name here.
  */
 
 export const BULK_RESOURCES = [
@@ -17,6 +17,12 @@ export const BULK_RESOURCES = [
   "work_orders",
   "punch_items",
   "documents",
+  "shipments",
+  "dock_slots",
+  "fulfillments",
+  "beos",
+  "accommodation_blocks",
+  "guest_list_entries",
 ] as const;
 export type BulkResource = (typeof BULK_RESOURCES)[number];
 
@@ -106,6 +112,12 @@ const RPC = {
   work_orders: "bulk_update_work_orders",
   punch_items: "bulk_update_punch_items",
   documents: "bulk_update_documents",
+  shipments: "bulk_update_shipments",
+  dock_slots: "bulk_update_dock_slots",
+  fulfillments: "bulk_update_fulfillments",
+  beos: "bulk_update_beos",
+  accommodation_blocks: "bulk_update_accommodation_blocks",
+  guest_list_entries: "bulk_update_guest_list_entries",
 } as const satisfies Record<BulkResource, string>;
 
 /**

@@ -17,7 +17,6 @@ import {
   type OperationsProject,
   type Zone,
 } from "@xos/data/credentials";
-import { listMembers } from "@xos/data";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -46,6 +45,7 @@ import {
   type Column,
 } from "@/components/operations/kit";
 import { RecordCollab } from "@/components/operations/record-collab";
+import { projectPeople, projectPersonLabel } from "@/lib/people/project-people";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   archiveCategoryAction,
@@ -64,6 +64,7 @@ import { instantToLocal } from "@/lib/operations/time";
 import { AccessMatrixEditor, CredentialBadge } from "./client";
 import { ScanIntakeQueue } from "./scan-intake";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 /**
  * The Credentials module (Section 4.2: categories, issuance, the access grid and scans), one
@@ -118,25 +119,28 @@ export async function CategoriesSection({ page }: { page: ModulePage }) {
   ];
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={categories.length}
-        views={views}
-        view={view}
-        action={
-          canWrite ? (
-            <ButtonLink
-              href={sectionHref(page, { create: "1", peek: undefined, section })}
-              variant="primary"
-            >
-              {t("credentials.categories.new")}
-            </ButtonLink>
-          ) : undefined
-        }
-      />
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={categories.length}
+          views={views}
+          view={view}
+          action={
+            canWrite ? (
+              <ButtonLink
+                href={sectionHref(page, { create: "1", peek: undefined, section })}
+                variant="primary"
+              >
+                {t("credentials.categories.new")}
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+      }
+    >
       <ProjectFilter page={page} section={section} />
       {creating && canWrite ? (
         page.project ? (
@@ -200,7 +204,7 @@ export async function CategoriesSection({ page }: { page: ModulePage }) {
       {peekId ? (
         <CategoryRecord page={page} id={peekId} section={section} canWrite={canWrite} />
       ) : null}
-    </>
+    </CollectionPage>
   );
 }
 
@@ -430,25 +434,28 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
   }
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={issued.length}
-        views={views}
-        view={view}
-        action={
-          canIssue ? (
-            <ButtonLink
-              href={sectionHref(page, { create: "1", peek: undefined, section })}
-              variant="primary"
-            >
-              {t("credentials.issued.new")}
-            </ButtonLink>
-          ) : undefined
-        }
-      />
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={issued.length}
+          views={views}
+          view={view}
+          action={
+            canIssue ? (
+              <ButtonLink
+                href={sectionHref(page, { create: "1", peek: undefined, section })}
+                variant="primary"
+              >
+                {t("credentials.issued.new")}
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+      }
+    >
       <ProjectFilter
         page={page}
         section={section}
@@ -476,7 +483,7 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
       ) : null}
       {body}
       {peekId ? <CredentialRecord page={page} id={peekId} section={section} /> : null}
-    </>
+    </CollectionPage>
   );
 }
 
@@ -502,9 +509,9 @@ async function IssueForm({
       />
     );
   }
-  const members = unwrap(await listMembers(page.ctx.viewer.db, page.ctx.org.id), "members");
+  // Members and the people engaged on the project (R1); a badge under an engagement names its person.
   const me = page.ctx.viewer.person?.id;
-  const holders = members.filter((m) => m.personId !== me);
+  const holders = (await projectPeople(page.ctx, project.id)).filter((p) => p.personId !== me);
   return (
     <RecordSection id="issue-credential" title={t("credentials.issued.new")}>
       <ActionForm
@@ -527,9 +534,9 @@ async function IssueForm({
           name="holderPersonId"
           label={t("credentials.issued.holder")}
           help={t("credentials.issued.holderHelp")}
-          options={holders.map((m) => ({
-            value: m.personId,
-            label: m.fullName ?? t("credentials.common.unnamed"),
+          options={holders.map((p) => ({
+            value: p.personId,
+            label: projectPersonLabel(t, p, t("credentials.common.unnamed")),
           }))}
           required
         />
@@ -758,11 +765,10 @@ export async function AccessGridSection({ page }: { page: ModulePage }) {
   const project = page.project;
   if (!project) {
     return (
-      <>
-        {header}
+      <CollectionPage header={header}>
         <ProjectFilter page={page} section={section} />
         {chooseProjectNotice(page, section)}
-      </>
+      </CollectionPage>
     );
   }
   const db = page.ctx.viewer.db;
@@ -781,8 +787,7 @@ export async function AccessGridSection({ page }: { page: ModulePage }) {
 
   if (categories.length === 0 || zones.length === 0) {
     return (
-      <>
-        {header}
+      <CollectionPage header={header}>
         <ProjectFilter page={page} section={section} />
         {categories.length === 0 ? (
           <EmptyStateLink
@@ -801,7 +806,7 @@ export async function AccessGridSection({ page }: { page: ModulePage }) {
             href={`/${page.ctx.org.slug}/places`}
           />
         )}
-      </>
+      </CollectionPage>
     );
   }
 
@@ -861,8 +866,7 @@ export async function AccessGridSection({ page }: { page: ModulePage }) {
   );
 
   return (
-    <>
-      {header}
+    <CollectionPage header={header}>
       <ProjectFilter page={page} section={section} />
       <p className="m-0 text-text-13 text-text-secondary">{t("credentials.grid.explain")}</p>
       {view === "matrix" ? (
@@ -1039,7 +1043,7 @@ export async function AccessGridSection({ page }: { page: ModulePage }) {
           ) : null}
         </>
       )}
-    </>
+    </CollectionPage>
   );
 }
 
@@ -1105,15 +1109,18 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
   ];
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={scans.length}
-        views={views}
-        view={view}
-      />
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={scans.length}
+          views={views}
+          view={view}
+        />
+      }
+    >
       <ProjectFilter
         page={page}
         section={section}
@@ -1194,6 +1201,6 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
           }
         />
       )}
-    </>
+    </CollectionPage>
   );
 }

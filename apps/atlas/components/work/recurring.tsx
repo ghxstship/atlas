@@ -19,6 +19,7 @@ import { useMemo, type ReactNode } from "react";
 import { useCopy } from "./action-ui";
 import { formatWhen, stateToken, withQuery } from "./format";
 import { shiftMonth } from "./record-collection";
+import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
 import { CollectionViews } from "@/components/views/collection-views";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
@@ -61,6 +62,8 @@ export function RecurringCollection({
 }) {
   const t = useCopy("work");
   const router = useRouter();
+  // A recurring record's key, title or next occurrence previews it (Section 11.7).
+  const hover = useRecordKeyHovers(org);
   const pathname = usePathname();
   const params = useSearchParams();
   const go = (changes: Record<string, string | null>) =>
@@ -162,7 +165,7 @@ export function RecurringCollection({
         if (!date.startsWith(month.slice(0, 7))) return [];
         const label = `${i.record.key} ${i.record.title}`;
         byLabel.set(label, i.record.key);
-        return [{ date, label, state: stateToken(i.record.state) }];
+        return [{ id: i.record.key, date, label, state: stateToken(i.record.state) }];
       }),
     );
     body = (
@@ -192,6 +195,7 @@ export function RecurringCollection({
         {items.map((i) => (
           <RecordRow
             key={i.record.id}
+            id={i.record.key}
             state={stateToken(i.record.state)}
             stateLabel={t(`states.${i.record.state}`)}
             recordKey={i.record.key}
@@ -210,7 +214,8 @@ export function RecurringCollection({
 
   return (
     <TemplateCollection header={header} peek={peek}>
-      {body}
+      {items.length > 0 ? <div {...hover.hoverProps}>{body}</div> : body}
+      {hover.card}
     </TemplateCollection>
   );
 }

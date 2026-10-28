@@ -28,15 +28,22 @@ export interface RowActions {
   readonly open?: () => void;
   /** The row's full page, for Open as a page and Copy link. */
   readonly href?: string;
+  /**
+   * The menu opens on the record's own page (its title row): Copy link and the changes, without
+   * Open as a page or Select.
+   */
+  readonly onPage?: boolean;
   readonly bulk?: Bulk;
   /** The row's own actions after the changes, the ones its peek offers, such as Delete draft. */
   readonly more?: readonly MenuItem[];
 }
 
 /**
- * Context menus on rows (Section 11.7): right-click, Shift+F10 or the Context Menu key on a row of a
- * DataTable offers the row's actions, the same ones its peek and the bulk bar offer. Pass `open` to
- * the table's `onRowContextMenu` with the row's actions; render `menu` after the table.
+ * Context menus on records (Section 11.7): right-click, Shift+F10 or the Context Menu key on a
+ * DataTable row, a RecordList row, a Board card, a Calendar event or a record page's title row
+ * offers the record's actions, the same ones its peek and the bulk bar offer, whichever view shows
+ * it. Call `open` from the view's `onRowContextMenu` or `onItemContextMenu` with the record's
+ * actions; render `menu` after the view.
  */
 export function useRowMenu(): {
   open: (actions: RowActions, at: { x: number; y: number } | null, cell: HTMLElement) => void;
@@ -52,11 +59,13 @@ export function useRowMenu(): {
       if (actions.open) items.push({ label: t("open"), icon: "Eye", onSelect: actions.open });
       if (actions.href) {
         const href = actions.href;
-        items.push({
-          label: t("openFull"),
-          icon: "Maximize2",
-          onSelect: () => router.push(href as Route),
-        });
+        if (!actions.onPage) {
+          items.push({
+            label: t("openFull"),
+            icon: "Maximize2",
+            onSelect: () => router.push(href as Route),
+          });
+        }
         items.push({
           label: t("copyLink"),
           icon: "Link2",
@@ -67,12 +76,14 @@ export function useRowMenu(): {
       const bulk = actions.bulk;
       if (bulk?.selection) {
         items.push({ separator: true });
-        items.push({
-          label: bulk.isSelected(actions.id) ? t("deselect") : t("select"),
-          icon: "SquareCheck",
-          shortcut: "X",
-          onSelect: () => bulk.toggle(actions.id),
-        });
+        if (!actions.onPage) {
+          items.push({
+            label: bulk.isSelected(actions.id) ? t("deselect") : t("select"),
+            icon: "SquareCheck",
+            shortcut: "X",
+            onSelect: () => bulk.toggle(actions.id),
+          });
+        }
         for (const field of bulk.fieldsFor(actions.id).slice(0, 4)) {
           items.push({
             label: t("change", { field: field.label }),

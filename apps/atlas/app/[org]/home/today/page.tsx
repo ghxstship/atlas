@@ -3,7 +3,7 @@ import { listMyRecordsBetween } from "@xos/data/home";
 import { listProjects } from "@xos/data/projects";
 import { getTranslations } from "next-intl/server";
 import { TodayView } from "@/components/home/home-views";
-import { PageHeader } from "@/components/projects/ui";
+import { PageHeader, TemplateCollection } from "@/components/projects/ui";
 import { requireNode } from "@/lib/shell/require-node";
 import { pickView } from "@/lib/home/views";
 import { must } from "@/lib/projects/loaders";
@@ -35,8 +35,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/h
   ]);
   const { views, view } = pickView("home.today", await searchParams);
   return (
-    <>
-      <PageHeader title={t("title")} />
+    <TemplateCollection header={<PageHeader title={t("title")} />}>
       <TodayView
         org={ctx.org.slug}
         records={must(records, "today's records")}
@@ -45,6 +44,6 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/h
         view={view}
         projectsHref={nodeHref("projects", routeParams) ?? ""}
       />
-    </>
+    </TemplateCollection>
   );
 }

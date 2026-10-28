@@ -17,7 +17,7 @@ audience:
   dimension: operator-role
   roles: [administrator, support, trust-and-safety]
 chrome:
-  topBar: [tenants, flags, support, moderation, banners, team, activity]
+  topBar: [tenants, metrics, flags, support, moderation, banners, team, activity]
 nodes:
   - id: console
     kind: group
@@ -35,6 +35,10 @@ nodes:
             kind: record
             label: nav.console.tenant
             route: /tenants/{orgId}
+      - id: metrics
+        kind: page
+        label: nav.console.metrics
+        route: /metrics
       - id: flags
         kind: page
         label: nav.console.flags

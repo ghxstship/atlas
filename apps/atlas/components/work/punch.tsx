@@ -23,6 +23,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { formatWhen, fromLocalInput, stateToken, withQuery } from "./format";
 import { createPunchItemAction } from "./work-order-actions";
+import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
 import { CollectionViews } from "@/components/views/collection-views";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
@@ -69,6 +70,8 @@ export function PunchCollection({
   const t = useCopy("work");
   const locale = useLocale();
   const router = useRouter();
+  // A punch item's key or title previews its record (Section 11.7).
+  const hover = useRecordKeyHovers(org);
   const pathname = usePathname();
   const params = useSearchParams();
   const go = (changes: Record<string, string | null>) =>
@@ -209,6 +212,7 @@ export function PunchCollection({
         {items.map((i) => (
           <RecordRow
             key={i.id}
+            id={i.record.key}
             state={stateToken(i.record.state)}
             stateLabel={t(`states.${i.record.state}`)}
             recordKey={i.record.key}
@@ -228,7 +232,8 @@ export function PunchCollection({
 
   return (
     <TemplateCollection header={header} filters={filters} peek={peek}>
-      {body}
+      {items.length > 0 ? <div {...hover.hoverProps}>{body}</div> : body}
+      {hover.card}
     </TemplateCollection>
   );
 }

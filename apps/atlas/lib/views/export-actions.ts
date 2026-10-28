@@ -99,7 +99,9 @@ async function resolveFilters(
     filters.push({ operator: "eq", column: "custom_object_type_id", value: type.data.id });
   }
   for (const filter of plan.filters) {
-    if (filter.operator === "search") filters.push(filter);
+    // A null test (is_null, not_null) compares no value.
+    if (!("value" in filter)) filters.push({ operator: filter.operator, column: filter.column });
+    else if (filter.operator === "search") filters.push(filter);
     else if (filter.resolve === "project") {
       filters.push({ operator: "eq", column: filter.column, value: await projectId(filter.value) });
     } else filters.push({ operator: filter.operator, column: filter.column, value: filter.value });

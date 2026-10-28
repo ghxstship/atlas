@@ -3,27 +3,32 @@
 import { Checkbox, DataTable, EmptyState, Input, PageHeader, TemplateCollection } from "@xos/ui";
 import type { ProjectSummary } from "@xos/data/projects";
 import type { Route } from "next";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import dynamic from "next/dynamic";
-import { stateIcon } from "@/lib/projects/format";
+import { phaseCode, stateIcon } from "@/lib/projects/format";
 import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
-import { useProjectLabels, type PhaseInfo } from "./project-labels";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
+import dynamic from "next/dynamic";
+import type { ProjectViewHelpers } from "./project-other-views";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 // Its menu loads on the first right-click, keeping the page in its route budget.
 import { useRowMenuOnDemand } from "@/components/menus/row-menu-on-demand";
 
-export type { PhaseInfo } from "./project-labels";
-
 // Views other than the default table, and the peek, load when shown (A24-009).
-const ProjectAltView = dynamic(() => import("./project-views").then((m) => m.ProjectAltView));
-const ProjectPeek = dynamic(() => import("./project-views").then((m) => m.ProjectPeek));
+const ProjectOtherView = dynamic(() =>
+  import("./project-other-views").then((m) => m.ProjectOtherView),
+);
+const ProjectPeek = dynamic(() => import("./project-other-views").then((m) => m.ProjectPeek));
 
 export type ProjectView = "table" | "list" | "board" | "gallery" | "timeline" | "calendar";
+
+export interface PhaseInfo {
+  readonly code: string;
+  readonly gate: number;
+}
 
 /** Board by project state, or by phase (the gate board of Projects > By phase). */
 export type BoardMode = "state" | "phase";
@@ -70,6 +75,7 @@ export function ProjectCollection({
   bulk?: BulkConfig | null;
 }) {
   const t = useTranslations("projects");
+  const format = useFormatter();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -85,7 +91,7 @@ export function ProjectCollection({
     window.history.replaceState(null, "", qs ? `${pathname}?${qs}` : pathname);
   };
 
-  const { gateOf, phaseName, stateLabel, dates } = useProjectLabels(phases);
+  const gateOf = (code: string) => phases.find((p) => p.code === code)?.gate ?? 0;
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
     return q === ""
@@ -105,8 +111,29 @@ export function ProjectCollection({
     const qs = next.toString();
     router.replace((qs ? `${pathname}?${qs}` : pathname) as Route);
   };
-  const projectHref = (key: string, tab = "overview") => `/${org}/p/${key}/${tab}` as Route;
+  const date = (iso: string | null) =>
+    iso === null ? null : format.dateTime(new Date(`${iso}T00:00:00`), { dateStyle: "medium" });
+  const dates = (p: ProjectSummary) => {
+    const s = date(p.startsOn);
+    const e = date(p.endsOn);
+    if (s && e) return t("values.dateRange", { start: s, end: e });
+    if (s) return t("values.from", { start: s });
+    if (e) return t("values.until", { end: e });
+    return t("values.noDates");
+  };
+  const stateLabel = (p: ProjectSummary) => t(`states.${p.projectState}`);
+  const phaseName = (code: string) => t(`phases.${phaseCode(code)}`);
   const peek = projects.find((p) => p.key === peekKey) ?? null;
+  const helpers: ProjectViewHelpers = {
+    org,
+    phases,
+    gateOf,
+    dates,
+    stateLabel,
+    phaseName,
+    setPeekKey,
+    setParam,
+  };
 
   const header = (
     <PageHeader
@@ -217,7 +244,7 @@ export function ProjectCollection({
                 id: p.id,
                 label: p.key,
                 open: () => setPeekKey(p.key),
-                href: projectHref(p.key),
+                href: `/${org}/p/${p.key}/overview`,
                 bulk: bulkKit,
               },
               at,
@@ -232,16 +259,13 @@ export function ProjectCollection({
     );
   } else {
     body = (
-      <ProjectAltView
+      <ProjectOtherView
         view={view}
         shown={shown}
-        phases={phases}
         board={board}
         month={month}
         today={today}
-        onOpen={setPeekKey}
-        onMonth={(m) => setParam("month", m)}
-        onAddDates={(key) => router.push(projectHref(key, "settings"))}
+        h={helpers}
       />
     );
   }
@@ -252,12 +276,7 @@ export function ProjectCollection({
     <TemplateCollection
       header={header}
       filters={filters}
-      peek={collectionPeek(
-        peekKey,
-        peek ? (
-          <ProjectPeek org={org} project={peek} phases={phases} onClose={() => setPeekKey(null)} />
-        ) : undefined,
-      )}
+      peek={collectionPeek(peekKey, peek ? <ProjectPeek peek={peek} h={helpers} /> : undefined)}
     >
       {body}
       {(view === "timeline" || view === "calendar") && undated > 0 ? (

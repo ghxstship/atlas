@@ -35,6 +35,7 @@ import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { LiveList } from "@/components/live/live-list";
 
 /**
  * People > Agreements (Section 4.5.5): offer letters, contractor agreements, MSAs and NDAs. Drafted
@@ -410,6 +411,7 @@ export default async function Page({
         </>
       }
     >
+      <LiveList org={routeParams.org} tables={["agreements"]} />
       {body}
     </CrewFrame>
   );

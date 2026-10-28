@@ -4,6 +4,7 @@ import type { DataError, Result } from "@xos/data";
 import {
   acceptShift,
   acceptSwap,
+  addPerDiems,
   awardOpenShift,
   decideShiftClaim,
   withdrawShiftClaim,
@@ -29,6 +30,7 @@ import {
   producePayrollExport,
   publishShifts,
   recordPayRate,
+  removePerDiem,
   removeRateCardLine,
   requestCorrection,
   requestSwap,
@@ -820,4 +822,58 @@ export async function cancelTimeOffAction(_: State, form: FormData): Promise<Sta
     ),
     t,
   );
+}
+
+// Per diems ---------------------------------------------------------------------------------------------
+
+/**
+ * Adds one per diem a day for a member (m:<membership id>) or an engaged person (e:<engagement id>)
+ * through app.add_per_diems; the database checks crew.time_entry.write on the project, the range, the
+ * days already taken and the engagement's state.
+ */
+export async function addPerDiemsAction(_: State, form: FormData): Promise<State> {
+  const { db, ctx, t } = await context(form);
+  const parsed = z
+    .object({
+      projectId: uuid,
+      person: z.string().regex(/^[me]:[0-9a-f-]{36}$/),
+      from: isoDate,
+      to: isoDate,
+      currencyCode: z.string().regex(/^[A-Z]{3}$/),
+    })
+    .safeParse(Object.fromEntries(form));
+  if (!parsed.success) {
+    return invalid(t, {
+      person: "crew.errors.person",
+      from: "crew.errors.date",
+      to: "crew.errors.date",
+      currencyCode: "crew.errors.currency",
+    });
+  }
+  const p = parsed.data;
+  if (p.to < p.from) return invalid(t, { to: "crew.errors.endAfterStart" });
+  const amount = toMinor(text(form, "amount"), await exponentOf(form, p.currencyCode));
+  if (amount === null || amount === undefined) {
+    return invalid(t, { amount: "crew.errors.moneyRequired" });
+  }
+  const worker = p.person.slice(2);
+  const result = await addPerDiems(db, {
+    projectId: p.projectId,
+    membershipId: p.person.startsWith("m:") ? worker : null,
+    engagementId: p.person.startsWith("e:") ? worker : null,
+    from: p.from,
+    to: p.to,
+    amountMinor: amount,
+    currencyCode: p.currencyCode,
+  });
+  if (!result.ok) return failed(t, result.error);
+  return done(ctx.org.slug, result, t);
+}
+
+/** Removes one per diem (a soft delete under the per diem write policy). */
+export async function removePerDiemAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const id = uuid.safeParse(form.get("id"));
+  if (!id.success) return { error: t("crew.errors.notFound") };
+  return done(ctx.org.slug, await removePerDiem(db, id.data), t);
 }
