@@ -51,10 +51,11 @@ Orgs could define custom fields on nine built-in tables in Settings (A86, `app.c
 ### 7. What custom fields add loads on demand
 
 - List pages sit close to the 200 KB route budget (`/projects` was 32 bytes under), so nothing custom fields add rides on a list's first load when it can wait. The Add filter control loads on a page that has something to filter by (`next/dynamic`), and its condition editor when first opened. The custom fields section of a peek loads with the peek. New project's custom field inputs load with the drawer's fields.
-- To make room on `/projects` without raising its budget, the Projects peek and its Board, Gallery and Calendar views load when shown, as the Timeline already did (A24-009), and the saved view switcher's writes (save, update, share, set default, delete) load with its dialogs. The round trip of a saved view, which every collection loads, reads only the operator spelling in `lib/views/query.ts`; the rest of the condition grammar (`conditions.ts`) loads with the filter control and the loaders.
+- To make room without raising a budget, the saved view switcher's writes (save, update, share, set default, delete) load with its dialogs, and the Projects peek's custom fields load with the peek and the other views (`project-other-views.tsx`). The round trip of a saved view, which every collection loads, reads only the operator spelling in `lib/views/query.ts`; the rest of the condition grammar (`conditions.ts`) loads with the filter control and the loaders.
 
 ## Consequences
 
 - Saved views keep operators. `ViewDraft` accepts every operator the control writes, and older views reopen unchanged.
 - A list filtered by custom fields shows "Nothing here matches these filters" with Clear filters, not its empty state.
 - An import or the API can still create a row without its required custom fields. Only forms that show the fields require them, and the database refuses emptying a required value afterwards.
+- An export of a list (ADR 0060) applies the page's own filters but not yet its `cf.` and `f.` conditions, so an export of a list filtered by the Add filter control can hold rows the list hides.
