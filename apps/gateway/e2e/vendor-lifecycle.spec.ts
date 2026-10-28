@@ -188,14 +188,14 @@ async function vendorOnboardingToClose(
             to_char((w.at + interval '2 hours') at time zone p.time_zone, 'YYYY-MM-DD"T"HH24:00') as ends
        from app.projects p,
             (select date_trunc('hour', greatest(coalesce(max(ends_at), now()), now())) + interval '2 hours' as at
-               from app.dock_slots where zone_id = '01920000-0000-7000-8000-000000111011' and deleted_at is null) w
+               from app.dock_slots where zone_id = '01920000-0000-7000-8000-000000010923' and deleted_at is null) w
       where p.id = $1`,
     [DEMO.project],
   );
   const booking = await atlasAs(browser, "producer@example.com");
-  await booking.page.goto(`/${ORG}/logistics/dock?project=NWS&create=1`);
+  await booking.page.goto(`/${ORG}/logistics/dock-schedule?project=${DEMO.project}&create=1`);
   const drawer = booking.page.getByRole("dialog", { name: "Book dock slot" });
-  await drawer.getByLabel("Dock").selectOption({ label: "DOCK-A Loading Dock A" });
+  await drawer.getByLabel("Dock").selectOption({ label: "DOCK-1 Loading Dock" });
   await drawer.getByLabel("Vendor").selectOption(engagement.id);
   await drawer.getByLabel("Starts").fill(free?.starts ?? "");
   await drawer.getByLabel("Ends").fill(free?.ends ?? "");

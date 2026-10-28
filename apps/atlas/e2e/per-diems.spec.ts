@@ -54,6 +54,18 @@ test("per diems: three days for an engaged crew person, then one removed", async
     [PROJECT, CREW],
   );
   const id = engagement?.id as string;
+  // The demo seed's blocking Crew requirement (Certificate of Insurance) passes, as seed 1490 does for its
+  // crew engagement, so the engagement can go Active.
+  await localSql(
+    `update app.onboarding_items set submitted_at = now() where engagement_id = $1 and deleted_at is null`,
+    [id],
+  );
+  await localSql(
+    `insert into app.onboarding_verifications (onboarding_item_id, outcome, verified_at, expires_on, note)
+     select i.id, 'Passed', now(), date '2028-06-30', 'Checked by the per diem journey.'
+     from app.onboarding_items i where i.engagement_id = $1 and i.deleted_at is null`,
+    [id],
+  );
   await move(id, "Onboarding", "Active", "Per diem journey.");
   try {
     await signIn(page, "producer@example.com");
@@ -101,6 +113,11 @@ test("per diems: three days for an engaged crew person, then one removed", async
       )
       .toBe(2);
   } finally {
+    // The run's per diems go too, so the next run's person filter lists only its own days.
+    await localSql(
+      `update app.per_diems set deleted_at = now() where engagement_id = $1 and deleted_at is null`,
+      [id],
+    );
     await move(id, "Active", "Canceled", "Per diem journey finished.");
   }
 });
