@@ -1,3 +1,4 @@
+import { applyArchived, type ArchivedFilter } from "./archive.ts";
 import type { Database, XosClient } from "./client.ts";
 import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
@@ -253,10 +254,12 @@ export interface RecordSummary {
   readonly createdAt: string;
   readonly updatedAt: string;
   readonly deletedAt: string | null;
+  /** When the record was archived (A124); archived records leave lists unless asked for. */
+  readonly archivedAt: string | null;
 }
 
 const RECORD_COLUMNS =
-  "id, project_id, record_number, record_kind, record_subtype, record_state, title, phase_code, urid, xyz, owner_party_id, accountable_party_id, scope_node_id, starts_at, ends_at, due_at, time_zone, blocker_text, replan_reason, created_at, updated_at, deleted_at, project:projects!records_project_id_fkey!inner(project_key, name, time_zone), owner:people!records_owner_party_id_fkey(full_name)";
+  "id, project_id, record_number, record_kind, record_subtype, record_state, title, phase_code, urid, xyz, owner_party_id, accountable_party_id, scope_node_id, starts_at, ends_at, due_at, time_zone, blocker_text, replan_reason, created_at, updated_at, deleted_at, archived_at, project:projects!records_project_id_fkey!inner(project_key, name, time_zone), owner:people!records_owner_party_id_fkey(full_name)";
 
 interface RecordRow {
   id: string;
@@ -281,6 +284,7 @@ interface RecordRow {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  archived_at: string | null;
   project: { project_key: string; name: string; time_zone: string } | null;
   owner: { full_name: string | null } | null;
 }
@@ -315,6 +319,7 @@ export function toRecordSummary(row: RecordRow): RecordSummary {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,
+    archivedAt: row.archived_at,
   };
 }
 
@@ -336,6 +341,8 @@ export interface RecordQuery {
   readonly datedOnly?: boolean;
   /** Trash: only soft-deleted records. Otherwise soft-deleted records are left out. */
   readonly trashed?: boolean;
+  /** Archived records: left out by default, or every record, or only the archived ones (A124). */
+  readonly archived?: ArchivedFilter;
   readonly limit?: number;
 }
 
@@ -369,6 +376,8 @@ export async function listRecords(
   if (window) q = q.or(window);
   if (query.datedOnly) q = q.or("starts_at.not.is.null,ends_at.not.is.null,due_at.not.is.null");
   q = query.trashed ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
+  // Trash shows every trashed record, archived or not.
+  if (!query.trashed) q = applyArchived(q, query.archived);
   const { data, error } = await q
     .order("project_id")
     .order("record_number")

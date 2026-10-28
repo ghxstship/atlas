@@ -905,13 +905,14 @@ export async function listRegions(db: XosClient): Promise<Result<CodeLabel[]>> {
   return ok(data.map((r) => ({ code: r.region_code, label: r.region_code })));
 }
 
-/** Venues of the org the viewer may read. */
+/** Venues of the org the viewer may read, without archived ones (A124). */
 export async function listVenues(db: XosClient, orgId: string): Promise<Result<Venue[]>> {
   const { data, error } = await db
     .from("venues")
     .select("id, name, jurisdiction_id, time_zone")
     .eq("org_id", orgId)
     .is("deleted_at", null)
+    .is("archived_at", null)
     .order("name");
   if (error) return fail(toDataError(error));
   return ok(

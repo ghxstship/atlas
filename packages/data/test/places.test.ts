@@ -40,7 +40,7 @@ const venueRow = {
   postal_code: "33101",
   created_at: "2026-10-01T00:00:00Z",
   updated_at: "2026-10-02T00:00:00Z",
-  deleted_at: null,
+  archived_at: null,
   latitude: null,
   longitude: null,
   spaces: [{ count: 2 }],
@@ -106,10 +106,13 @@ describe("venues", () => {
       archivedAt: null,
     });
     expect(calls[0]?.steps).toContainEqual(["is", ["deleted_at", null]]);
+    expect(calls[0]?.steps).toContainEqual(["is", ["archived_at", null]]);
     await listVenues(db, "o1", "archived");
-    expect(calls[1]?.steps).toContainEqual(["not", ["deleted_at", "is", null]]);
+    expect(calls[1]?.steps).toContainEqual(["not", ["archived_at", "is", null]]);
     await listVenues(db, "o1", "all");
-    expect(calls[2]?.steps.some(([m]) => m === "is" || m === "not")).toBe(false);
+    expect(
+      calls[2]?.steps.some(([m, a]) => m === "not" || (m === "is" && a[0] === "archived_at")),
+    ).toBe(false);
     expect((await listVenues(db, "o1")).ok).toBe(false);
   });
 
@@ -190,6 +193,23 @@ describe("venues", () => {
     expect(calls[0]?.steps[0]).toEqual(["update", [{ deleted_at: at.toISOString() }]]);
     await setPlaceArchived(db, "zones", "z1", false);
     expect(calls[1]?.steps[0]).toEqual(["update", [{ deleted_at: null }]]);
+  });
+
+  it("archives and restores a venue through app.archive_row (2180)", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:archive_row": [okResponse("2026-10-14T00:00:00Z"), errorResponse("42501", "no")],
+      "rpc:unarchive_row": [okResponse(null)],
+    });
+    expect(await setPlaceArchived(db, "venues", "v1", true)).toEqual({
+      ok: true,
+      data: { id: "v1" },
+    });
+    expect(calls[0]?.steps[0]).toEqual(["args", [{ p_entity: "venues", p_id: "v1" }]]);
+    expect(await setPlaceArchived(db, "venues", "v1", false)).toEqual({
+      ok: true,
+      data: { id: "v1" },
+    });
+    expect((await setPlaceArchived(db, "venues", "v1", true)).ok).toBe(false);
   });
 
   it("surfaces an RPC transport failure as unexpected", async () => {

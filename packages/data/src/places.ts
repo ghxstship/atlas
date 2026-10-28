@@ -1,3 +1,4 @@
+import { setArchived } from "./archive.ts";
 import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
@@ -6,7 +7,8 @@ import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./re
  * documents, site plans and their pins. Reads go through row level security, so each function sees
  * exactly what the signed-in person may see; writes go through the table policies of migrations
  * 0301 and 0350 (places.venue.write, places.space.write, places.capability_document.write,
- * places.site_plan.write) and their guards. Rows are archived through deleted_at, never deleted.
+ * places.site_plan.write) and their guards. Venues archive through archived_at (2180), the other
+ * rows through deleted_at; nothing is hard deleted.
  * Canon (jurisdictions, URID categories) is read from xpms and never retyped here.
  */
 
@@ -139,7 +141,7 @@ export interface VenueInput {
 }
 
 const VENUE_COLUMNS =
-  "id, name, jurisdiction_id, time_zone, street_address, locality, postal_code, created_at, updated_at, deleted_at, latitude:venue_latitude, longitude:venue_longitude, spaces(count), zones(count), capability_documents(count)";
+  "id, name, jurisdiction_id, time_zone, street_address, locality, postal_code, created_at, updated_at, archived_at, latitude:venue_latitude, longitude:venue_longitude, spaces(count), zones(count), capability_documents(count)";
 
 interface VenueRow {
   id: string;
@@ -151,7 +153,7 @@ interface VenueRow {
   postal_code: string | null;
   created_at: string;
   updated_at: string;
-  deleted_at: string | null;
+  archived_at: string | null;
   latitude: number | null;
   longitude: number | null;
   spaces: { count: number }[];
@@ -170,7 +172,7 @@ function toVenue(row: VenueRow): Venue {
     postalCode: row.postal_code,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-    archivedAt: row.deleted_at,
+    archivedAt: row.archived_at,
     latitude: row.latitude,
     longitude: row.longitude,
     spaceCount: row.spaces[0]?.count ?? 0,
@@ -179,15 +181,18 @@ function toVenue(row: VenueRow): Venue {
   };
 }
 
-/** Venues of the org by name, filtered by archive state. */
+/**
+ * Venues of the org by name, filtered by archive state. A venue archives through archived_at
+ * (app.archive_row, 2180); deleted_at means deleted, so a deleted venue is never listed.
+ */
 export async function listVenues(
   db: XosClient,
   orgId: string,
   archive: ArchiveFilter = "live",
 ): Promise<Result<Venue[]>> {
-  let query = db.from("venues").select(VENUE_COLUMNS).eq("org_id", orgId);
-  if (archive === "live") query = query.is("deleted_at", null);
-  if (archive === "archived") query = query.not("deleted_at", "is", null);
+  let query = db.from("venues").select(VENUE_COLUMNS).eq("org_id", orgId).is("deleted_at", null);
+  if (archive === "live") query = query.is("archived_at", null);
+  if (archive === "archived") query = query.not("archived_at", "is", null);
   const { data, error } = await query.order("name");
   if (error) return fail(toDataError(error));
   return ok((data as unknown as VenueRow[]).map(toVenue));
@@ -195,7 +200,12 @@ export async function listVenues(
 
 /** One venue by id, or not-found when it does not exist or the caller may not see it. */
 export async function getVenue(db: XosClient, id: string): Promise<Result<Venue>> {
-  const { data, error } = await db.from("venues").select(VENUE_COLUMNS).eq("id", id).maybeSingle();
+  const { data, error } = await db
+    .from("venues")
+    .select(VENUE_COLUMNS)
+    .eq("id", id)
+    .is("deleted_at", null)
+    .maybeSingle();
   if (error) return fail(toDataError(error));
   return data ? ok(toVenue(data as unknown as VenueRow)) : fail({ kind: "not-found" });
 }
@@ -254,11 +264,14 @@ export async function setVenueLocation(
   return result.ok ? ok({ id: result.data }) : result;
 }
 
-/** The places tables that archive and restore through deleted_at. */
+/** The places tables that archive and restore: venues through archived_at, the rest through deleted_at. */
 export type PlacesTable =
   "venues" | "spaces" | "zones" | "capability_documents" | "site_plans" | "site_plan_pins";
 
-/** Archives (soft deletes) or restores a Places row. Rows are never hard deleted. */
+/**
+ * Archives or restores a Places row. A venue goes through app.archive_row (2180: capability checked
+ * and audited); the others soft delete and restore through deleted_at. Rows are never hard deleted.
+ */
 export async function setPlaceArchived(
   db: XosClient,
   table: PlacesTable,
@@ -266,6 +279,10 @@ export async function setPlaceArchived(
   archived: boolean,
   now: Date = new Date(),
 ): Promise<Result<{ id: string }>> {
+  if (table === "venues") {
+    const result = await setArchived(db, "venues", id, archived);
+    return result.ok ? ok({ id }) : result;
+  }
   const { data, error } = await db
     .from(table)
     .update({ deleted_at: archived ? now.toISOString() : null })

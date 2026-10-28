@@ -347,7 +347,22 @@ describe("records", () => {
       "and(starts_at.lt.2027-06-08,ends_at.gte.2027-06-01)",
     );
     expect(stepsOf(call, "limit")).toEqual([[10]]);
-    expect(stepsOf(call, "is")).toEqual([["deleted_at", null]]);
+    expect(stepsOf(call, "is")).toEqual([
+      ["deleted_at", null],
+      ["archived_at", null],
+    ]);
+  });
+
+  it("leaves archived records out unless the query asks for them (A124)", async () => {
+    const { db, calls } = moduleClient({
+      "from:records": [okResponse([]), okResponse([]), okResponse([])],
+    });
+    await listRecords(db, { orgId: "o1", archived: "only" });
+    expect(stepsOf(calls[0], "not")).toEqual([["archived_at", "is", null]]);
+    await listRecords(db, { orgId: "o1", archived: "include" });
+    expect(stepsOf(calls[1], "is")).toEqual([["deleted_at", null]]);
+    await listRecords(db, { orgId: "o1", trashed: true, archived: "only" });
+    expect(stepsOf(calls[2], "not")).toEqual([["deleted_at", "is", null]]);
   });
 
   it("reads Trash and open-ended windows", async () => {

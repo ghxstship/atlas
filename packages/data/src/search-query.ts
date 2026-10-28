@@ -21,7 +21,8 @@ import { addCalendarDays } from "./calendar.ts";
  *   phase: fase:                 phase code (ADV) or name
  *   urid:                        URID or its start (5000.01)
  *   dept: depto:                 department or discipline, by code or name
- *   is: es:                      blocked, open, closed, overdue, mine
+ *   is: es:                      blocked, open, closed, overdue, mine, archived (only archived
+ *                                records and documents, which are otherwise left out)
  *   before: antes:               on a day before the date
  *   after: despues: después:     on a day after the date
  *   due: vence:                  today, overdue, <date, >date or a date
@@ -129,8 +130,11 @@ const IS_WORDS: Readonly<Record<string, SearchIs>> = {
   mine: "mine",
   mio: "mine",
   mío: "mine",
+  archived: "archived",
+  archivado: "archived",
+  archivada: "archived",
 };
-export type SearchIs = "blocked" | "open" | "closed" | "overdue" | "mine";
+export type SearchIs = "blocked" | "open" | "closed" | "overdue" | "mine" | "archived";
 
 /** Limits that keep one query cheap: the RPC refuses nothing, it simply ignores what is past them. */
 export const SEARCH_LIMITS = {

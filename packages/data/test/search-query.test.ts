@@ -126,6 +126,11 @@ describe("parseSearchQuery: operators", () => {
     expect(q.tokens[4]).toMatchObject({ operator: "is", negated: true, valid: false });
   });
 
+  it("reads is:archived, in English or Spanish, for the archived records and documents (A124)", () => {
+    expect(parseSearchQuery("truss is:archived").is).toEqual(["archived"]);
+    expect(parseSearchQuery("es:archivado").is).toEqual(["archived"]);
+  });
+
   it("accepts Spanish operator names", () => {
     const q = parseSearchQuery(
       "estado:bloqueado proyecto:NWS antes:hoy después:ayer fase:ADV es:abierto",

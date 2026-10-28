@@ -1,3 +1,4 @@
+import { applyArchived, type ArchivedFilter } from "./archive.ts";
 import type { Database, XosClient } from "./client.ts";
 import {
   blankToNull,
@@ -265,16 +266,19 @@ export interface KnowledgeDocument {
   readonly updatedAt: string;
   readonly versions: readonly DocumentVersion[];
   readonly latestVersion: DocumentVersion | null;
+  /** When the document was archived (A124); archived documents leave lists unless asked for. */
+  readonly archivedAt: string | null;
 }
 
 const DOCUMENT_COLUMNS =
-  "id, title, project_id, updated_at, project:projects(project_key), document_versions(id, version_number, storage_uri, checksum_sha256, created_at, created_by, author:people!document_versions_created_by_fkey(full_name))" as const;
+  "id, title, project_id, updated_at, archived_at, project:projects(project_key), document_versions(id, version_number, storage_uri, checksum_sha256, created_at, created_by, author:people!document_versions_created_by_fkey(full_name))" as const;
 
 interface DocumentRow {
   id: string;
   title: string;
   project_id: string | null;
   updated_at: string;
+  archived_at: string | null;
   project: { project_key: string } | null;
   document_versions:
     | {
@@ -309,21 +313,24 @@ function toDocument(row: DocumentRow): KnowledgeDocument {
     updatedAt: row.updated_at,
     versions,
     latestVersion: versions[0] ?? null,
+    archivedAt: row.archived_at,
   };
 }
 
-/** Org-wide documents and documents of the projects the viewer can read, latest change first. */
+/**
+ * Org-wide documents and documents of the projects the viewer can read, latest change first;
+ * archived ones only when asked for (A124).
+ */
 export async function listDocuments(
   db: XosClient,
   orgId: string,
+  archived: ArchivedFilter = "exclude",
 ): Promise<Result<KnowledgeDocument[]>> {
   const result = await readRows(
-    db
-      .from("documents")
-      .select(DOCUMENT_COLUMNS)
-      .eq("org_id", orgId)
-      .is("deleted_at", null)
-      .order("updated_at", { ascending: false }),
+    applyArchived(
+      db.from("documents").select(DOCUMENT_COLUMNS).eq("org_id", orgId).is("deleted_at", null),
+      archived,
+    ).order("updated_at", { ascending: false }),
     (row) => toDocument(row),
   );
   return result.ok
