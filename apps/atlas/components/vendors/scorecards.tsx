@@ -25,6 +25,7 @@ import { getCopy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "chart"];
 const REFUSALS = "vendors.refusals";
@@ -55,10 +56,9 @@ export async function VendorScorecards({
   const title = t("scorecards.title");
   if (!cards.ok || !vendors.ok || !projects.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("scorecards.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canWrite = ctx.capabilities.has("vendors.scorecard.write");

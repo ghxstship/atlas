@@ -327,7 +327,9 @@
     "transition_reason_required": "Every state change needs a reason.",
     "display_number_immutable": "Display numbers never change.",
     "cross_org_reference": "That item belongs to another organization.",
-    "rfq_response_lines_required": "Add at least one quoted line to the response."
+    "rfq_response_lines_required": "Add at least one quoted line to the response.",
+    "sod_document_creator": "Separation of duties: your organization does not let the person who created this document approve it.",
+    "sod_receiver_po_approver": "Separation of duties: your organization does not let a person who approved this purchase order receive its goods. Ask someone else to receive them."
   },
   "kit": {
     "views": "View",
