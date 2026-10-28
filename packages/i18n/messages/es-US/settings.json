@@ -285,6 +285,18 @@
     "supplierDiversityProgram": {
       "label": "Programa de diversidad de proveedores",
       "help": "Permite que proveedores y profesionales independientes compartan sus certificaciones de diversidad de proveedores con su organización. Cada uno comparte con un consentimiento aparte y puede revocarlo en cualquier momento. Desactivado, no se puede compartir nada y las certificaciones compartidas quedan ocultas."
+    },
+    "availabilityRequired": {
+      "label": "Los miembros indican su disponibilidad",
+      "help": "Los miembros indican cuándo pueden trabajar en los próximos días, y su disponibilidad dentro del plazo de aviso queda bloqueada para que los planificadores puedan contar con ella."
+    },
+    "availabilityNoticeDays": {
+      "label": "Aviso de disponibilidad (días)",
+      "help": "Mientras la disponibilidad sea obligatoria, los miembros no pueden cambiarla para esta cantidad de días hacia adelante; un planificador sí puede."
+    },
+    "availabilityHorizonDays": {
+      "label": "Horizonte de disponibilidad (días)",
+      "help": "Cuántos días hacia adelante indican los miembros su disponibilidad. Los planificadores ven quién no la indicó para un turno dentro de este periodo."
     }
   },
   "choices": {
