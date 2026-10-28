@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  othersEditing,
   othersPresent,
   PRESENCE_TABLES,
   presenceState,
@@ -16,10 +17,16 @@ import {
 const atlas = fileURLToPath(new URL("../", import.meta.url));
 const migrations = join(atlas, "../../supabase/migrations");
 
-function migration(prefix: string): string {
-  const file = readdirSync(migrations).find((f) => f.startsWith(prefix));
-  if (!file) throw new Error(`No migration ${prefix}`);
-  return readFileSync(join(migrations, file), "utf8");
+/** Every table any migration inserts into private.presence_subjects (2170, then 2811 and later). */
+function presenceSubjects(): string[] {
+  const listed: string[] = [];
+  for (const file of readdirSync(migrations).filter((f) => f.endsWith(".sql"))) {
+    const sql = readFileSync(join(migrations, file), "utf8");
+    for (const m of sql.matchAll(/insert into private\.presence_subjects[^;]*;/g)) {
+      for (const n of m[0].matchAll(/'app\.([a-z_]+)'/g)) listed.push(n[1] ?? "");
+    }
+  }
+  return listed;
 }
 
 /** Every app table in the supabase_realtime publication, from the migrations that add them. */
@@ -84,6 +91,11 @@ describe("live lists", () => {
     }
   });
 
+  it("cover the finance budgets page and the project Budget tab", () => {
+    expect(pages.get("app/[org]/finance/budgets/page.tsx")).toEqual(["budgets"]);
+    expect(pages.get("app/[org]/p/[projectKey]/budget/page.tsx")).toEqual(["budgets"]);
+  });
+
   it("watch only tables in the Realtime publication", () => {
     const published = publishedTables();
     for (const [page, tables] of pages) {
@@ -93,14 +105,27 @@ describe("live lists", () => {
   });
 });
 
+describe("live budget grid", () => {
+  it("follows only published tables, narrowed to the budget and its project", () => {
+    const src = readFileSync(join(atlas, "components/finance/budget-editor.tsx"), "utf8");
+    const call = src.slice(src.indexOf("useLiveRefresh("), src.indexOf("useLiveRefresh(") + 600);
+    const topics = [...call.matchAll(/table: "([a-z_]+)", filter: `([a-z_]+)=eq\./g)].map((m) => [
+      m[1],
+      m[2],
+    ]);
+    expect(topics).toEqual([
+      ["budget_lines", "budget_id"],
+      ["purchase_orders", "project_id"],
+    ]);
+    const published = publishedTables();
+    for (const [table] of topics) expect(published).toContain(table);
+  });
+});
+
 describe("presence", () => {
-  it("joins only tables 2170 lists in private.presence_subjects", () => {
-    const sql = migration("2170_");
-    const block = sql.slice(sql.indexOf("insert into private.presence_subjects"));
-    const listed = [...block.slice(0, block.indexOf(";")).matchAll(/'app\.([a-z_]+)'/g)].map(
-      (m) => m[1],
-    );
-    expect([...PRESENCE_TABLES].sort()).toEqual(listed.sort());
+  it("joins only tables the migrations list in private.presence_subjects", () => {
+    expect([...PRESENCE_TABLES].sort()).toEqual(presenceSubjects().sort());
+    expect(PRESENCE_TABLES).toContain("budgets");
   });
 
   it("names a row's channel as the join rule reads it", () => {
@@ -121,6 +146,26 @@ describe("presence", () => {
       { key: "me", name: "Morgan Lee", presence_ref: "e" },
     ];
     expect(othersPresent(members, "me")).toEqual(["Ana Ruiz", "Ben Ortiz"]);
+  });
+
+  it("tracks the line a budget cell is open on, and lists who is editing which line", () => {
+    expect(presenceState({ key: "p1", name: "Ana Ruiz" }, { line: 12 })).toEqual({
+      key: "p1",
+      name: "Ana Ruiz",
+      line: 12,
+    });
+    const members = [
+      { key: "me", name: "Morgan Lee", line: 3 },
+      { key: "p2", name: "Ben Ortiz", presence_ref: "b" },
+      { key: "p3", name: "Ana Ruiz", line: 12 },
+      { key: "p2", name: "Ben Ortiz", line: 4 },
+      { key: "p4", name: "Cy Park", line: "7" },
+    ];
+    expect(othersEditing(members, "me")).toEqual([
+      { name: "Ana Ruiz", line: 12 },
+      { name: "Ben Ortiz", line: 4 },
+      { name: "Cy Park", line: null },
+    ]);
   });
 
   it("ignores members without a key or a name", () => {

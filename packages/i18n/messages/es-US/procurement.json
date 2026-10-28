@@ -84,7 +84,10 @@
     "unitBasisHelp": "Un alias de unidad del canon, como ea, day o m.",
     "extended": "Importe",
     "received": "Recibido",
-    "addRow": "Agregar otra línea"
+    "addRow": "Agregar otra línea",
+    "budgetLine": "Línea de presupuesto",
+    "budgetLineNone": "Ninguna",
+    "budgetLineOtherCurrency": "{label} (no se cuenta en Comprometido)"
   },
   "rfqs": {
     "title": "Solicitudes de cotización",
@@ -141,6 +144,7 @@
     "notAcknowledged": "Aún no",
     "lines": "Líneas",
     "noLines": "Aún no hay líneas. Agregue lo que se pide; una línea sin precio queda sin precio.",
+    "commitsLine": "Línea de presupuesto",
     "addLine": "Agregar línea",
     "removeLine": "Quitar línea {n}",
     "linesLocked": "Las líneas se bloquean tras la aprobación. Use una orden de cambio para modificar la orden.",

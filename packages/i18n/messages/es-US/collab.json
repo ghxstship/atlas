@@ -78,6 +78,7 @@
   },
   "presence": {
     "label": "También están viendo",
+    "editingLine": "{name} está editando la línea {line}",
     "viewing": "{count, plural, one {# persona más aquí} other {# personas más aquí}}"
   }
 }

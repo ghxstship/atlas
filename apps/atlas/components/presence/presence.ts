@@ -5,7 +5,10 @@
  * there in memory, never in the database.
  */
 
-/** Tables whose rows show presence: private.presence_subjects in 2170, without the `app.` prefix. */
+/**
+ * Tables whose rows show presence: private.presence_subjects (2170, and app.budgets from 2811),
+ * without the `app.` prefix.
+ */
 export const PRESENCE_TABLES = [
   "records",
   "documents",
@@ -15,6 +18,7 @@ export const PRESENCE_TABLES = [
   "goods_receipts",
   "rfqs",
   "vendors",
+  "budgets",
 ] as const;
 
 export type PresenceTable = (typeof PRESENCE_TABLES)[number];
@@ -30,9 +34,44 @@ export function presenceTopic(table: PresenceTable, id: string): string {
   return `presence:${table}:${id}`;
 }
 
-/** What a tab tracks on the channel. */
-export function presenceState(me: PresenceMe): Record<string, string> {
-  return { key: me.key, name: me.name };
+/**
+ * What a tab tracks on the channel. A budget grid adds the line number of the cell this tab has open,
+ * so the others see who is editing which line.
+ */
+export function presenceState(
+  me: PresenceMe,
+  extra?: { readonly line: number },
+): Record<string, string | number> {
+  return extra ? { key: me.key, name: me.name, line: extra.line } : { key: me.key, name: me.name };
+}
+
+/** Another person on a budget, and the line they have open (null while they only look). */
+export interface OtherEditor {
+  readonly name: string;
+  readonly line: number | null;
+}
+
+/**
+ * The other people present, once each by name order, with the line each has open: a person with two
+ * tabs shows the line of whichever tab has a cell open. This tab's person is left out.
+ */
+export function othersEditing(
+  members: readonly Record<string, unknown>[],
+  meKey: string,
+): readonly OtherEditor[] {
+  const people = new Map<string, OtherEditor>();
+  for (const member of members) {
+    const key = member["key"];
+    const name = member["name"];
+    if (typeof key !== "string" || key === meKey || typeof name !== "string" || !name.trim()) {
+      continue;
+    }
+    const raw = member["line"];
+    const line = typeof raw === "number" && Number.isInteger(raw) && raw > 0 ? raw : null;
+    const known = people.get(key);
+    people.set(key, { name: name.trim(), line: known?.line ?? line });
+  }
+  return [...people.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /**
