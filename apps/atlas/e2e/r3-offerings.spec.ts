@@ -1,57 +1,59 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import pg from "pg";
 import { DEMO_ORG, signInAs } from "./a36-support";
 
 /**
  * R3 (RRR-181, owner decision 7): offerings. On Settings > Gateway and marketplace the Owner sets the
  * org's parking offering and locks it, and the demo project's Offerings show it read-only; the
  * project overrides its lodging value; and an org rule for vendors is added with a cap and removed.
- * The values this journey changes are put back with the local service key afterwards, so the demo
- * project keeps the offerings its seed gave it for the Gateway journeys.
+ * The values this journey changes are put back afterwards as postgres on the local stack, so the
+ * demo project keeps the offerings its seed gave it for the Gateway journeys.
  */
 
 const DEMO_ORG_ID = "01920000-0000-7000-8000-000000000001";
 const DEMO_PROJECT_ID = "01920000-0000-7000-8000-000000001001";
 const DEMO_PROJECT_KEY = "NWS";
 
-function service(): SupabaseClient {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_SERVICE_KEY"];
-  if (!url || !key || !/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(url)) {
-    throw new Error("Set E2E_SUPABASE_URL and E2E_SUPABASE_SERVICE_KEY to the local stack.");
+/** One statement as postgres against the local stack only (E2E_DATABASE_URL). */
+async function localSql(text: string, args: unknown[] = []): Promise<void> {
+  const url =
+    process.env["E2E_DATABASE_URL"] ?? "postgresql://postgres:postgres@127.0.0.1:55422/postgres";
+  if (!/@(127\.0\.0\.1|localhost):/.test(url)) {
+    throw new Error("The offerings journey cleans up only a local Supabase stack.");
   }
-  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+  const client = new pg.Client({ connectionString: url });
+  await client.connect();
+  try {
+    await client.query(text, args);
+  } finally {
+    await client.end();
+  }
 }
 
-/** The settings list item that holds one labelled control. */
+/** The settings list item that holds one labelled control; `has` is matched inside each item. */
 function field(scope: Page | Locator, label: string): Locator {
-  return scope.getByRole("listitem").filter({ has: scope.getByLabel(label, { exact: true }) });
+  const page = "page" in scope ? scope.page() : scope;
+  return scope.getByRole("listitem").filter({ has: page.getByLabel(label, { exact: true }) });
 }
 
 test.describe.configure({ mode: "serial" });
 
 test.afterAll(async () => {
-  const db = service().schema("app");
-  await db
-    .from("setting_values")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("org_id", DEMO_ORG_ID)
-    .eq("setting_key", "offerings.parking")
-    .eq("scope_kind", "Organization")
-    .is("deleted_at", null);
-  await db
-    .from("setting_values")
-    .update({ value_text: "provided" })
-    .eq("setting_key", "offerings.lodging")
-    .eq("scope_kind", "Project")
-    .eq("scope_id", DEMO_PROJECT_ID)
-    .is("deleted_at", null);
-  await db
-    .from("offering_rules")
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("org_id", DEMO_ORG_ID)
-    .eq("offering", "Carts")
-    .is("deleted_at", null);
+  await localSql(
+    `update app.setting_values set deleted_at = now()
+      where org_id = $1 and setting_key = 'offerings.parking' and scope_kind = 'Organization' and deleted_at is null`,
+    [DEMO_ORG_ID],
+  );
+  await localSql(
+    `update app.setting_values set value_text = 'provided'
+      where setting_key = 'offerings.lodging' and scope_kind = 'Project' and scope_id = $1 and deleted_at is null`,
+    [DEMO_PROJECT_ID],
+  );
+  await localSql(
+    `update app.offering_rules set deleted_at = now()
+      where org_id = $1 and offering = 'Carts' and deleted_at is null`,
+    [DEMO_ORG_ID],
+  );
 });
 
 test("an org value locked on Gateway and marketplace is read-only on the project", async ({
