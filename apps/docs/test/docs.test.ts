@@ -159,6 +159,18 @@ describe("guides", () => {
     expect(textOf(guide?.body ?? [])).toMatch(/Docker Compose/);
   });
 
+  it("install the npm packages from the owner's @ghxstship scope, never @xos", () => {
+    for (const locale of LOCALES) {
+      const text = (slug: string) =>
+        textOf(guides(locale).find((g) => g.slug === slug)?.body ?? []);
+      expect(text("typescript-sdk")).toContain("npm install @ghxstship/xos-sdk");
+      expect(text("cli")).toContain("npm install --global @ghxstship/xos-cli");
+      expect(text("python-sdk")).toContain("pip install xos-sdk");
+      for (const guide of guides(locale))
+        expect(textOf(guide.body), `${locale}/${guide.slug}`).not.toMatch(/@xos\/(sdk|cli)\b/);
+    }
+  });
+
   it("only link to pages that exist", () => {
     const reference = loadReference();
     for (const locale of PUBLISHED_LOCALES) {

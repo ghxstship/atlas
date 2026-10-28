@@ -203,6 +203,8 @@ export {
   Breadcrumbs,
   Pagination,
   Sidebar,
+  sidebarClass,
+  sidebarItemClass,
   TopNav,
   TabBar,
   type NavItem,

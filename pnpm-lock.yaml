@@ -795,7 +795,7 @@ importers:
 
   packages/cli:
     dependencies:
-      '@xos/sdk':
+      '@ghxstship/xos-sdk':
         specifier: workspace:*
         version: link:../sdk-ts
     devDependencies:
@@ -1170,7 +1170,7 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@xos/sdk':
+      '@ghxstship/xos-sdk':
         specifier: workspace:*
         version: link:../sdk-ts
     devDependencies:
@@ -1284,7 +1284,7 @@ importers:
 
   packages/sdk-python:
     devDependencies:
-      '@xos/sdk':
+      '@ghxstship/xos-sdk':
         specifier: workspace:*
         version: link:../sdk-ts
 

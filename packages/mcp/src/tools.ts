@@ -4,8 +4,8 @@
  * masking, separation of duties and refusals. On top of that, write tools exist only when the
  * operator opts in, and only for the resources or modules named in the write scope.
  */
-import type { OperationSpec, XosClient } from "@xos/sdk";
-import { OPERATIONS, RESOURCES, TAGS, XosApiError, XosNetworkError } from "@xos/sdk";
+import type { OperationSpec, XosClient } from "@ghxstship/xos-sdk";
+import { OPERATIONS, RESOURCES, TAGS, XosApiError, XosNetworkError } from "@ghxstship/xos-sdk";
 import type { ToolDefinition, ToolProvider, ToolResult } from "./protocol.ts";
 import { InvalidParams } from "./protocol.ts";
 

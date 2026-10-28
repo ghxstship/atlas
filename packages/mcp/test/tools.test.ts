@@ -1,13 +1,13 @@
 /** The XOS tools against the contract test server: reads, scoped writes and error reporting. */
-import type { ContractServer } from "@xos/sdk/test-server";
-import { startContractServer } from "@xos/sdk/test-server";
+import type { ContractServer } from "@ghxstship/xos-sdk/test-server";
+import { startContractServer } from "@ghxstship/xos-sdk/test-server";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { JsonRpcResponse, ToolResult } from "../src/protocol.ts";
 import { ERROR, PROTOCOL_VERSION } from "../src/protocol.ts";
 import type { McpSession } from "../src/protocol.ts";
 import { createSession, optionsFromEnv } from "../src/server.ts";
 import { READ_ONLY, canWrite, parseWriteScope } from "../src/tools.ts";
-import { OPERATIONS } from "@xos/sdk";
+import { OPERATIONS } from "@ghxstship/xos-sdk";
 
 let server: ContractServer;
 let nextId = 1;

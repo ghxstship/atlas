@@ -4,10 +4,11 @@ import type { CanonOption, PersonRef, ProjectRef, RecordKindInfo } from "@xos/da
 import { Button, Drawer, Input, Select } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { createRecordAction } from "./actions";
 import { fromLocalInput, withQuery } from "./format";
+import { CustomFieldInputs, type CustomFieldInputsHandle } from "@/components/custom-fields/inputs";
 
 /** The XYZ family a new record starts with when no URID category gives one (proposed ADR, A08). */
 function defaultXyz(recordClass: string | undefined, tags: readonly string[]): string {
@@ -68,6 +69,7 @@ export function CreateRecordDialog({
   const [ends, setEnds] = useState("");
   const project = projects.find((p) => p.id === projectId);
   const tz = project?.timeZone ?? "UTC";
+  const custom = useRef<CustomFieldInputsHandle>(null);
 
   const setOpen = (value: boolean) => {
     clear();
@@ -77,6 +79,7 @@ export function CreateRecordDialog({
   };
 
   const submit = () =>
+    custom.current?.check() !== false &&
     run(
       () =>
         createRecordAction(org, {
@@ -91,6 +94,8 @@ export function CreateRecordDialog({
           startsAt: fromLocalInput(starts, tz),
           endsAt: fromLocalInput(ends, tz),
           dueAt: fromLocalInput(due, tz),
+          // The sheet always shows custom fields, so the action holds it to required ones.
+          customFields: custom.current?.inputs() ?? {},
         }),
       (data) => {
         setTitle("");
@@ -214,6 +219,7 @@ export function CreateRecordDialog({
               value={due}
               onChange={(e) => setDue(e.target.value)}
             />
+            <CustomFieldInputs table="app.records" ref={custom} />
             {more ? (
               <>
                 <Input
