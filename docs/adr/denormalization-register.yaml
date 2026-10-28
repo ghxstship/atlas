@@ -338,6 +338,10 @@ restated:
     parent: app.engagements.project_id
     kind: own
     note: Project the quantity is out for; the custodian's engagement can be for another project or for none.
+  - column: app.asset_lot_movements.receipt_line_id
+    parent: app.return_lines.receipt_line_id
+    kind: own
+    note: Set only on a Receipt movement, the receipt line the quantity came in on; a Vendor Return movement leaves it NULL and names its return line instead (asset_lot_movements_direction, migration 2681).
   - column: app.attachment_versions.checksum_sha256
     parent: app.document_versions.checksum_sha256
     kind: own
@@ -1017,6 +1021,10 @@ restated:
     parent: app.projects.starts_on
     kind: own
     note: First day of the work, not of the production.
+  - column: app.return_lines.receipt_line_id
+    parent: app.asset_units.receipt_line_id
+    kind: own
+    note: The receipt line the goods go back against, required on every return line, a quantity with no unit included; for a unit, `app.return_goods` requires the unit's own receipt line (migration 2681).
   - column: app.riders.counterparty_id
     parent: app.engagements.counterparty_id
     kind: own
