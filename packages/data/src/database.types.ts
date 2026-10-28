@@ -61160,6 +61160,7 @@ export type Database = {
         }[];
       };
       console_org_detail: { Args: { p_org_id: string }; Returns: Json };
+      console_platform_metrics: { Args: { p_weeks?: number }; Returns: Json };
       console_revoke_operator: {
         Args: { p_operator_id: string; p_reason: string };
         Returns: string;
