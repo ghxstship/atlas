@@ -124,13 +124,32 @@ test("R2: Up Next shows the call time, the venue and the contact", async ({ page
       DEMO.owner,
     );
   await move("Onboarding", "Active");
-  const [shift] = await sql<{ id: string }>(
+  const [shift] = await sql<{ id: string; starts_ms: number }>(
     `insert into app.shifts (project_id, engagement_id, role_code, starts_at, ends_at, time_zone)
      values ($1, $2, '5000.51.02', now() + interval '30 minutes', now() + interval '8 hours', 'America/New_York')
-     returning id`,
+     returning id, (extract(epoch from starts_at) * 1000)::float8 as starts_ms`,
     [DEMO.project, id],
     DEMO.owner,
   );
+  // What the card should say: the shift in its own zone (the default display), the project's venue
+  // and the member who set up the engagement.
+  const [place] = await sql<{ venue: string | null; contact: string | null }>(
+    `select v.name as venue, cp.full_name as contact
+       from app.engagements e join app.projects p on p.id = e.project_id
+       left join app.venues v on v.id = p.venue_id and v.deleted_at is null
+       left join app.people cp on cp.id = e.created_by
+      where e.id = $1`,
+    [id],
+  );
+  const callAt = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+    timeZoneName: "short",
+  }).format(new Date(shift?.starts_ms as number));
   await sql(
     `select private.transition_lifecycle('shift', 'app.shifts', 'shift_state', 'app.shift_state_transitions', 'shift_id',
        $1::uuid, 'Draft', 'Published', 'Published to the crew.')`,
@@ -140,9 +159,13 @@ test("R2: Up Next shows the call time, the venue and the contact", async ({ page
   try {
     await signIn(page, "crew@example.com", "/home");
     const card = page.getByRole("region", { name: "Up next" });
-    await expect(card.getByRole("term").filter({ hasText: /^Shift$/ })).toBeVisible();
-    await expect(card.getByRole("term").filter({ hasText: /^Where$/ })).toBeVisible();
-    await expect(card.getByRole("term").filter({ hasText: /^Contact$/ })).toBeVisible();
+    const value = (term: RegExp) =>
+      card.getByRole("term").filter({ hasText: term }).locator("xpath=following-sibling::dd[1]");
+    expect(place?.venue).toBeTruthy();
+    expect(place?.contact).toBeTruthy();
+    await expect(value(/^Shift$/)).toHaveText(callAt);
+    await expect(value(/^Where$/)).toContainText(place?.venue as string);
+    await expect(value(/^Contact$/)).toContainText(place?.contact as string);
     await expect(card.getByRole("link", { name: "Message" })).toHaveAttribute(
       "href",
       `/work/engagements/${toDisplayKey("engagement", id)}/messages`,
