@@ -34,6 +34,7 @@ import type { SearchParams } from "@/lib/collection-kit/page";
 import { nodeHref } from "@/lib/shell/sitemap";
 import type { OrgContext } from "@/lib/shell/context";
 import { ProjectPicker, REFUSALS, chosenProject, orgPickers, workforceCopy } from "./shared";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const LEVEL_STATE = { Monitor: "in-review", Restrict: "blocked", Evacuate: "blocked" } as const;
 
@@ -61,15 +62,14 @@ export async function WeatherSection({
   const project = chosenProject(pickers.projects, search);
   if (project === null) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <EmptyStateLink
           icon="FolderPlus"
           sentence={t("site.noProjects")}
           actionLabel={t("site.openProjects")}
           href={nodeHref("projects.all", { org: ctx.org.slug }) ?? "/"}
         />
-      </>
+      </CollectionPage>
     );
   }
   const db = ctx.viewer.db;
@@ -86,11 +86,10 @@ export async function WeatherSection({
   const picker = <ProjectPicker t={t} path={path} projects={pickers.projects} current={project} />;
   if (!board.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         {picker}
         <ErrorPanel what={t("weather.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canConfigure = ctx.capabilities.has("safety.emergency_code.write");
@@ -110,8 +109,7 @@ export async function WeatherSection({
     });
 
   return (
-    <div className="flex flex-col gap-16">
-      <PageHeader title={title} />
+    <CollectionPage header={<PageHeader title={title} />}>
       {picker}
       {active.length > 0 ? (
         <InlineAlert tone="danger" title={t("weather.activeTitle", { count: active.length })}>
@@ -335,6 +333,6 @@ export async function WeatherSection({
           </ul>
         ) : null}
       </KitSection>
-    </div>
+    </CollectionPage>
   );
 }

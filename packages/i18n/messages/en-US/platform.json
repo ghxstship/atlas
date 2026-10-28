@@ -142,7 +142,8 @@
       "sessionsCaption": "Clients you can read right now",
       "seats": "Client seats",
       "discount": "Wholesale discount {percent} percent",
-      "noDiscount": "Wholesale terms not recorded yet"
+      "noDiscount": "Wholesale terms not recorded yet",
+      "tiles": "Partner console tiles"
     },
     "plans": {
       "access": "Access",
