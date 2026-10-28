@@ -461,10 +461,13 @@ export async function PerDiemTab({ view, t, locale, engagementKey }: TabProps) {
   );
 }
 
+/**
+ * Badges issued under this engagement. A vendor's account supplies several people, each under an
+ * engagement of their own, so the vendor tab lists the badges of every engagement the account holds
+ * on the project; the view shows only those the viewer answers for (R1).
+ */
 export async function CredentialsTab({ view, t, locale, engagementKey }: TabProps) {
-  const credentials = await readView(view.ctx.db, "credentials", {
-    eq: { engagement_id: view.engagement.id },
-  });
+  const credentials = await vendorAwareCredentials(view);
   if (!credentials.ok) return <RegionError />;
   if (credentials.data.length === 0) {
     return (
@@ -505,6 +508,20 @@ export async function CredentialsTab({ view, t, locale, engagementKey }: TabProp
       }))}
     />
   );
+}
+
+async function vendorAwareCredentials(view: TabProps["view"]) {
+  const { engagement } = view;
+  if (engagement.roleType !== "Vendor" || engagement.accountId === null) {
+    return readView(view.ctx.db, "credentials", { eq: { engagement_id: engagement.id } });
+  }
+  const engagements = await readView(view.ctx.db, "engagements", {
+    eq: { project_id: engagement.projectId, account_id: engagement.accountId },
+  });
+  if (!engagements.ok) return engagements;
+  return readView(view.ctx.db, "credentials", {
+    in: ["engagement_id", engagements.data.flatMap((e) => (e.id ? [e.id] : []))],
+  });
 }
 
 /** Training and briefing acknowledgments (Section 4.4.4 Staff) plus shared training sessions. */

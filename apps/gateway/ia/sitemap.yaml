@@ -51,6 +51,7 @@ engagementTabs:
         - engagement.deliveries
         - engagement.submittals
         - engagement.advance
+        - engagement.credentials
         - engagement.invoices
         - engagement.compliance
         - engagement.documents
@@ -99,6 +100,7 @@ engagementTabs:
         - engagement.set-times
         - engagement.hospitality
         - engagement.guest-list
+        - engagement.credentials
         - engagement.settlement
         - engagement.documents
         - engagement.messages
@@ -114,6 +116,7 @@ engagementTabs:
           - engagement.set-times
           - engagement.hospitality
           - engagement.guest-list
+          - engagement.credentials
         settlement: [engagement.settlement]
         documents: [engagement.documents]
     sponsor:
