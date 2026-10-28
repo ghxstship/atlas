@@ -131,6 +131,7 @@ describe("atlas sitemap", () => {
       "Pay Periods",
       "Payroll Exports",
       "Time Off",
+      "Per Diems",
     ]);
     expect(pages("finance")).toHaveLength(11); // with Year-End (A43, A38-006)
     expect(pages("safety")).toHaveLength(7);

@@ -98,7 +98,7 @@ test("journey 19: check out and return a unit by scan and see the custody ledger
   await expect(page.getByText("It is Available now.")).toBeVisible();
   await page.getByRole("button", { name: "Check out" }).click();
   const out = page.getByRole("dialog", { name: `Check out ${tag}` });
-  await out.getByLabel("Member who takes it").selectOption({ label: "Demo Field Lead" });
+  await out.getByLabel("Held by").selectOption({ label: "Demo Field Lead" });
   await out.getByLabel("Project").selectOption({ label: "NWS · Northwind Summer Series" });
   await out.getByLabel("Note").fill("Stage left radio.");
   await settled(page);
@@ -128,6 +128,20 @@ test("journey 19: check out and return a unit by scan and see the custody ledger
   await expect(page.getByText("Checked out by scan.")).toBeVisible();
   await expect(page.getByText("Checked in by scan.")).toBeVisible();
   await expectAccessibleInBothThemes(page);
+
+  // External crew hold gear through their engagement (R1): the Held by select offers the chosen
+  // project's engagements next to the members.
+  await page.goto(`/${ORG}/assets/custody-ledger`);
+  await lookUp(page, tag);
+  await page.getByRole("button", { name: "Check out" }).click();
+  const toCrew = page.getByRole("dialog", { name: `Check out ${tag}` });
+  await toCrew.getByLabel("Project").selectOption({ label: "NWS · Northwind Summer Series" });
+  await toCrew.getByLabel("Held by").selectOption({ label: "NWS Demo Crew Member" });
+  await toCrew.getByRole("button", { name: "Check out" }).click();
+  await expect(toCrew).toBeHidden();
+  await expect(page.getByRole("row", { name: new RegExp(tag) }).first()).toContainText(
+    "Demo Crew Member",
+  );
 });
 
 test("journey 23: a damaged unit is written off by an approver, with a comment", async ({

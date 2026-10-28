@@ -36,7 +36,8 @@
       "sole_account_owner": "A company account keeps at least one Account Owner. Make someone else an Account Owner first.",
       "notification_channel_outside": "A company sets Email and Push only.",
       "supplier_diversity_no_program": "That organization does not run a supplier diversity program, so it takes no diversity certifications.",
-      "time_zone_unknown": "That time zone is not recognized. Choose one from the list, for example America/New_York."
+      "time_zone_unknown": "That time zone is not recognized. Choose one from the list, for example America/New_York.",
+      "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned."
     }
   },
   "common": {
@@ -1309,7 +1310,8 @@
       "section": "{n}. {title}",
       "submit": "Send answer",
       "sent": "Answer sent. The organization reviews it next.",
-      "done": "Your advance is complete"
+      "done": "Your advance is complete",
+      "returned": "The organization returned this answer: {reason}"
     },
     "sign": {
       "eyebrow": "Signing link",
@@ -1338,7 +1340,8 @@
       "document_token_validity": "This signing link is no longer valid. Ask the organization for a new one.",
       "document_not_awaiting_signature": "This document is not waiting for a signature anymore.",
       "document_signer_name": "Type your full name, at least two characters.",
-      "token_invalid": "This link is not valid. Use the latest link the organization sent."
+      "token_invalid": "This link is not valid. Use the latest link the organization sent.",
+      "advance_answer_pending": "This section is answered and waiting for review. Answer again only if it is returned."
     }
   },
   "settings": {

@@ -14,10 +14,9 @@ import {
   suffix,
   transition,
   vendorCertificate,
-  vendorDockSlot,
   vendorEngagement,
 } from "./role-fixtures";
-import { expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./support";
+import { DEMO, expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./support";
 
 /**
  * The vendor journeys across Atlas and Gateway (Section 20.2):
@@ -181,8 +180,43 @@ async function vendorOnboardingToClose(
       .getByText(`${INSURED}, Additional Insured`),
   ).toBeVisible();
 
-  // Dock: the slot shows on the vendor's Deliveries tab; the dock checks the truck in (Compass).
-  const slot = await vendorDockSlot(engagement.id);
+  // Dock: the Producer books the vendor's slot in Atlas Logistics > Dock with the Vendor select (R1);
+  // it shows on the vendor's Deliveries tab and the dock checks the truck in (Compass).
+  // An hour after the dock's last slot, in the project's time zone: slots at one dock never overlap.
+  const [free] = await sql<{ starts: string; ends: string }>(
+    `select to_char(w.at at time zone p.time_zone, 'YYYY-MM-DD"T"HH24:00') as starts,
+            to_char((w.at + interval '2 hours') at time zone p.time_zone, 'YYYY-MM-DD"T"HH24:00') as ends
+       from app.projects p,
+            (select date_trunc('hour', greatest(coalesce(max(ends_at), now()), now())) + interval '2 hours' as at
+               from app.dock_slots where zone_id = '01920000-0000-7000-8000-000000010923' and deleted_at is null) w
+      where p.id = $1`,
+    [DEMO.project],
+  );
+  const booking = await atlasAs(browser, "producer@example.com");
+  await booking.page.goto(`/${ORG}/logistics/dock-schedule?project=${DEMO.project}&create=1`);
+  const drawer = booking.page.getByRole("dialog", { name: "Book dock slot" });
+  await drawer.getByLabel("Dock").selectOption({ label: "DOCK-1 Loading Dock" });
+  await drawer.getByLabel("Vendor").selectOption(engagement.id);
+  await drawer.getByLabel("Starts").fill(free?.starts ?? "");
+  await drawer.getByLabel("Ends").fill(free?.ends ?? "");
+  await drawer.getByRole("button", { name: "Book dock slot" }).click();
+  await expect
+    .poll(
+      async () =>
+        (
+          await sql<{ id: string }>(
+            `select id from app.dock_slots where engagement_id = $1 and deleted_at is null`,
+            [engagement.id],
+          )
+        ).length,
+    )
+    .toBe(1);
+  const [slot] = await sql<{ id: string }>(
+    `select id from app.dock_slots where engagement_id = $1 and deleted_at is null`,
+    [engagement.id],
+  );
+  await booking.context.close();
+  if (!slot) throw new Error("The dock slot was not booked.");
   await page.goto(`/work/engagements/${engagement.key}/deliveries`);
   await expect(page.getByRole("heading", { name: "Dock slots" })).toBeVisible();
   await expectAccessible(page);

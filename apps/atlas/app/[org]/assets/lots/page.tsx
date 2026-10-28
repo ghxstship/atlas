@@ -11,7 +11,7 @@ import { NewLotForm } from "@/components/assets/forms";
 import { LotActions } from "@/components/assets/lot-actions";
 import { PropertyList } from "@/components/assets/ui";
 import { requireNode } from "@/lib/shell/require-node";
-import { assetCapabilities, loadPickers, must } from "@/lib/assets/context";
+import { assetCapabilities, custodianName, loadPickers, must } from "@/lib/assets/context";
 import { pageViews } from "@/lib/assets/page";
 import { matches, readQuery } from "@/lib/assets/views";
 import { getTranslate } from "@/lib/shell/translate";
@@ -74,6 +74,7 @@ export default async function LotsPage({ params, searchParams }: PageProps<"/[or
               onHand={selected.onHand}
               pickers={{
                 members: pickers.members,
+                engagements: pickers.engagements,
                 projects: pickers.projects,
                 venues: pickers.venues,
               }}
@@ -104,7 +105,7 @@ export default async function LotsPage({ params, searchParams }: PageProps<"/[or
                       <span className="font-medium">
                         {t(`assets.lots.kinds.${m.kind.replace(" ", "")}`, {
                           delta: Math.abs(m.delta),
-                          custodian: m.custodianName ?? t("assets.common.notRecorded"),
+                          custodian: custodianName(pickers, m) ?? t("assets.common.notRecorded"),
                         })}
                         {m.projectKey ? ` · ${m.projectKey}` : ""}
                       </span>

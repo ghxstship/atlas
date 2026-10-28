@@ -14,6 +14,7 @@ import {
   withdrawZoneAccess,
   CATEGORY_CODE,
 } from "@xos/data/credentials";
+import { resolveProjectPerson } from "@xos/data/project-people";
 import { resolveScanIntake } from "@xos/data/scan-intake";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
@@ -133,9 +134,19 @@ export async function issueCredentialAction(_: ActionState, form: FormData): Pro
   if (!ids.success) return { error: "issueInput" };
   const window = Window.safeParse(windowInput(form));
   if (!window.success) return { error: "window" };
+  // An engaged non-member's badge is issued under their engagement; a member's never is.
+  const person = await resolveProjectPerson(
+    ctx.viewer.db,
+    ids.data.projectId,
+    ids.data.holderPersonId,
+  );
+  if (!person.ok) return failed(person.error);
   const result = await issueCredential(ctx.viewer.db, {
     orgId: ctx.org.id,
     ...ids.data,
+    ...(person.data.membershipId === null && person.data.engagementId
+      ? { engagementId: person.data.engagementId }
+      : {}),
     ...(window.data.validFrom ? { validFrom: window.data.validFrom } : {}),
     validTo: window.data.validTo,
   });

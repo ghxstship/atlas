@@ -137,7 +137,8 @@ select is(pg_temp.n('ivy', 'select 1 from api_external.credentials'), 1, 'own en
 select is(pg_temp.n('art', 'select 1 from api_external.credentials'), 1, 'the artist reads their own badge');
 select is(pg_temp.n('rita', 'select 1 from api_external.credentials'), 1, 'representation: the Advance representative reads the artist''s badge');
 select is(pg_temp.n('sam', 'select 1 from api_external.credentials'), 1, 'the supplied technician reads his own badge');
-select is(pg_temp.n('victor', 'select 1 from api_external.credentials'), 0, 'denial: an account Owner never reads a supplied person''s badge');
+select is(pg_temp.n('victor', 'select 1 from api_external.credentials'), 1, 'the account Owner reads the badge of the person the account supplies (R1, migration 2601)');
+select is(pg_temp.n('fiona', 'select 1 from api_external.credentials'), 0, 'denial: Account Finance never reads a supplied person''s badge');
 select is(pg_temp.n('quinn', 'select 1 from api_external.credentials'), 0, 'denial: another party reads no badge');
 
 -- Complete closes the operational area -----------------------------------------------------------------------------------

@@ -1,10 +1,12 @@
 import { expect, test } from "./engine-test";
 import { issueAdvanceLink, issueSigningLink } from "./fixtures";
 import {
+  DEMO,
   DEMO_PASSWORD,
   expectAccessible,
   expectAccessibleInBothThemes,
   reloadSettled,
+  sql,
 } from "./support";
 
 /**
@@ -90,4 +92,58 @@ test("an advance link is answered section by section and claimed into the accoun
   ).toBeVisible();
   await page.getByRole("link", { name: "Go to Home" }).click();
   await expect(page).toHaveURL(/\/home$/);
+});
+
+test("an advance section takes one answer until it is returned, then shows why", async ({
+  page,
+}) => {
+  const link = await issueAdvanceLink();
+  const open = async () => {
+    await page.goto(`/advance/${link.token}`);
+    await page.getByLabel("Access code").fill(link.code);
+    await page.getByRole("button", { name: "Open", exact: true }).click();
+    await expect(page.getByRole("heading", { level: 1, name: link.title })).toBeVisible();
+  };
+  await open();
+  const equipment = () =>
+    page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "1. Equipment" }) });
+  await equipment().getByLabel("Your answer").fill("Two chain hoists.");
+  await equipment().getByRole("button", { name: "Send answer" }).click();
+  await expect(
+    equipment().getByText("Answer sent. The organization reviews it next."),
+  ).toBeVisible();
+
+  // A second answer while the first waits for review is refused (migration 2604).
+  const [section] = await sql<{ id: string }>(
+    `select s.id from app.advance_sections s join app.advance_packets p on p.id = s.advance_packet_id
+      where p.title = $1 and s.position = 1`,
+    [link.title],
+  );
+  const [again] = await sql<{ refusal: string | null; reason: string | null }>(
+    `select refusal, reason from api_public.submit_advance($1, $2, $3, 'Three chain hoists.')`,
+    [link.token, link.code, section?.id],
+  );
+  expect(again).toEqual({ refusal: "REFUSE", reason: "advance_answer_pending" });
+
+  // The organization returns the answer with a reason; the section shows it and takes an answer again.
+  await sql(
+    `update app.advance_submissions set reviewed_at = now(), reviewed_by = $2, review_outcome = 'Returned',
+       return_reason = 'Say how many spansets you bring.'
+     where advance_section_id = $1`,
+    [section?.id, DEMO.owner],
+    DEMO.owner,
+  );
+  await open();
+  await expect(page.getByText("2 sections left")).toBeVisible();
+  await expect(
+    equipment().getByText(
+      "The organization returned this answer: Say how many spansets you bring.",
+    ),
+  ).toBeVisible();
+  await expectAccessible(page);
+  await equipment().getByLabel("Your answer").fill("Two chain hoists and four spansets.");
+  await equipment().getByRole("button", { name: "Send answer" }).click();
+  await expect(
+    equipment().getByText("Answer sent. The organization reviews it next."),
+  ).toBeVisible();
 });

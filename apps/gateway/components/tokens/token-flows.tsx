@@ -1,6 +1,7 @@
 "use client";
 
 import type { AdvancePacket, TokenDocument } from "@xos/data/gateway";
+import { advanceSectionOpen } from "@xos/data/gateway-public";
 import { Button, InlineAlert, Input, Textarea, buttonClass } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
@@ -151,7 +152,8 @@ export function AdvanceTokenFlow({ token }: { token: string }) {
     );
   }
   const packet = opened.data;
-  const remaining = packet.sections.filter((s) => !s.answer && !sent[s.id]?.ok).length;
+  // A section takes an answer while it has none or its latest answer was returned (migration 2604).
+  const remaining = packet.sections.filter((s) => advanceSectionOpen(s) && !sent[s.id]?.ok).length;
   return (
     <div className="flex flex-col gap-16">
       <Header eyebrow={packet.orgName} title={packet.title}>
@@ -162,7 +164,7 @@ export function AdvanceTokenFlow({ token }: { token: string }) {
       <ol className="m-0 flex list-none flex-col gap-16 p-0">
         {packet.sections.map((s) => {
           const result = sent[s.id];
-          const answered = Boolean(s.answer) || result?.ok;
+          const answered = !advanceSectionOpen(s) || result?.ok;
           return (
             <li
               key={s.id}
@@ -176,6 +178,11 @@ export function AdvanceTokenFlow({ token }: { token: string }) {
                 <p className="m-0 whitespace-pre-line rounded-control bg-bg-surface p-8 text-text-13">
                   {s.answer}
                 </p>
+              ) : null}
+              {s.reviewOutcome === "Returned" && !result?.ok ? (
+                <InlineAlert tone="warning">
+                  {t("advance.returned", { reason: s.returnReason ?? "" })}
+                </InlineAlert>
               ) : null}
               {result?.ok ? <InlineAlert tone="success">{t("advance.sent")}</InlineAlert> : null}
               <Problem result={result ?? null} />

@@ -8,6 +8,7 @@ import {
   type Shipment,
   type ZoneOption,
 } from "@xos/data/logistics";
+import type { EngagementOption } from "@xos/data/project-people";
 import type { RecordState } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
@@ -20,6 +21,7 @@ import {
   restoreDockSlotAction,
 } from "@/app/[org]/logistics/actions";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
+import { engagementOptions } from "@/lib/people/project-people";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { OperationsCalendar, OperationsList, OperationsTable, ViewSwitcher } from "./client";
 import { ActionButton, FormDrawer, type FieldSpec } from "./forms";
@@ -115,6 +117,16 @@ export async function DockSection({
       ? t("shipments.titleWithCarrier", { direction: s.direction, carrier: s.carrierName })
       : t("shipments.titleNoCarrier", { direction: s.direction });
   const writable = writableProjects(scope, "logistics.dock_slot.write");
+  // Vendor engagements a slot can serve (R1, app.engagement_options).
+  const vendors = (await engagementOptions(scope.ctx)).filter((e) => e.roleType === "Vendor");
+  // The account and its contact: one vendor can hold several engagements on a project.
+  const vendorLabel = (e: EngagementOption) =>
+    [
+      `${e.projectKey} ${e.accountName ?? e.personName ?? ""}`.trim(),
+      e.accountName ? e.personName : null,
+    ]
+      .filter(Boolean)
+      .join(" · ");
   const listHref = hrefWith(base, search, { peek: null, full: null, edit: null, create: null });
   const peekHref = (id: string) => hrefWith(base, search, { peek: id, full: null, edit: null });
   const slotLabel = (slot: DockSlot) => {
@@ -169,6 +181,23 @@ export async function DockSection({
           ...shipments.data
             .filter((s) => !project || s.projectId === project.id)
             .map((s) => ({ value: s.id, label: `${s.key} ${shipmentTitle(s)}` })),
+        ],
+      },
+      {
+        name: "engagementId",
+        label: t("dock.fields.vendor"),
+        kind: "select",
+        defaultValue: slot?.engagementId ?? "",
+        options: [
+          { value: "", label: t("dock.noVendor") },
+          // engagement_options lists live engagements only; a slot whose vendor engagement has ended keeps it
+          // as an option, so saving other changes does not clear the vendor.
+          ...(slot?.engagementId && !vendors.some((e) => e.engagementId === slot.engagementId)
+            ? [{ value: slot.engagementId, label: t("dock.endedVendor") }]
+            : []),
+          ...vendors
+            .filter((e) => !project || e.projectId === project.id)
+            .map((e) => ({ value: e.engagementId, label: vendorLabel(e) })),
         ],
       },
       {
@@ -258,6 +287,20 @@ export async function DockSection({
                   ) : (
                     t("dock.noShipment")
                   ),
+              },
+              {
+                label: t("dock.fields.vendor"),
+                value: slot.engagementId
+                  ? (() => {
+                      const vendor = vendors.find((e) => e.engagementId === slot.engagementId);
+                      if (vendor) return vendorLabel(vendor);
+                      // Writers reach every live engagement of the project, so a missing one has ended; a
+                      // reader without a picker capability sees only that one is linked.
+                      return writable.some((p) => p.id === slot.projectId)
+                        ? t("dock.endedVendor")
+                        : t("dock.linkedVendor");
+                    })()
+                  : t("dock.noVendor"),
               },
               {
                 label: t("dock.fields.startsAt"),

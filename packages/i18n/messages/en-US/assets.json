@@ -110,13 +110,15 @@
     "transition_reason_required": "Every state change carries a reason. Say why the asset moves.",
     "asset_code_unknown": "No asset or lot in this organization carries that code. Check the label and scan again.",
     "asset_code_ambiguous": "More than one asset carries that identifier, so it cannot be told apart. Scan the asset tag instead.",
-    "asset_scan_custodian_required": "Choose the one member who takes the asset.",
+    "asset_scan_custodian_required": "Choose the one member or engagement that takes it.",
     "asset_scan_lot_transfer": "A lot quantity is not passed hand to hand. Check it in, then out to the next person.",
     "asset_scan_place_required": "This asset has no home venue. Choose the place it comes back to.",
     "asset_scan_quantity_required": "Enter how many of the lot move.",
     "asset_scan_state_conflict": "Someone moved this asset since you looked it up. Look it up again to see where it is now.",
     "asset_scan_unavailable": "This asset is not in service, so it cannot be checked out or in. Move it back to Available first.",
-    "asset_scan_event_reused": "That scan was already used for another item. Close this window and scan again."
+    "asset_scan_event_reused": "That scan was already used for another item. Close this window and scan again.",
+    "asset_scan_engagement_closed": "That engagement is Complete or Canceled. Gear goes to an engagement that is still open.",
+    "asset_scan_engagement_project": "That engagement belongs to another project. Choose its project, or keep the current one."
   },
   "load": {
     "loading": "Loading assets",

@@ -36,7 +36,8 @@
       "sole_account_owner": "Una cuenta de empresa conserva al menos un Propietario. Nombre primero a otra persona Propietario.",
       "notification_channel_outside": "Una empresa solo configura Correo electrónico y Push.",
       "supplier_diversity_no_program": "Esa organización no tiene un programa de diversidad de proveedores, así que no recibe certificaciones de diversidad.",
-      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York."
+      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
+      "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven."
     }
   },
   "common": {
@@ -1309,7 +1310,8 @@
       "section": "{n}. {title}",
       "submit": "Enviar respuesta",
       "sent": "Respuesta enviada. La organización la revisa después.",
-      "done": "Tu avance está completo"
+      "done": "Tu avance está completo",
+      "returned": "La organización devolvió esta respuesta: {reason}"
     },
     "sign": {
       "eyebrow": "Enlace de firma",
@@ -1338,7 +1340,8 @@
       "document_token_validity": "Este enlace de firma ya no es válido. Pide uno nuevo a la organización.",
       "document_not_awaiting_signature": "Este documento ya no espera una firma.",
       "document_signer_name": "Escribe tu nombre completo, de al menos dos caracteres.",
-      "token_invalid": "Este enlace no es válido. Usa el enlace más reciente que envió la organización."
+      "token_invalid": "Este enlace no es válido. Usa el enlace más reciente que envió la organización.",
+      "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven."
     }
   },
   "settings": {

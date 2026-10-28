@@ -114,7 +114,8 @@
         "rateCards": "Tarifarios",
         "payPeriods": "Periodos de pago",
         "payrollExports": "Exportaciones de nómina",
-        "timeOff": "Ausencias"
+        "timeOff": "Ausencias",
+        "perDiems": "Viáticos"
       },
       "finance": {
         "budgets": "Presupuestos",

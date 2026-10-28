@@ -8,6 +8,7 @@ crew.rate-cards
 crew.pay-periods
 crew.payroll-exports
 crew.time-off
+crew.per-diems
 project.crew
 people.directory
 people.roles

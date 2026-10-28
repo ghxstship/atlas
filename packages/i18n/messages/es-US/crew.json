@@ -141,7 +141,13 @@
     "shift_claim_none": "Nadie espera este turno.",
     "sod_shift_claim_self": "No puedes aprobar tu propio reclamo. Otro supervisor lo decide.",
     "punch_location_required": "Este proyecto necesita tu ubicación para fichar. Ficha en el lugar desde Compass con la ubicación activada.",
-    "punch_outside_geofence": "Estás fuera de la geocerca del proyecto. Ficha en el lugar."
+    "punch_outside_geofence": "Estás fuera de la geocerca del proyecto. Ficha en el lugar.",
+    "per_diem_one_worker": "Elija una persona para los viáticos.",
+    "per_diem_range": "Los viáticos cubren de 1 a 62 días. Revise el primer y el último día.",
+    "per_diem_member_org": "Ese miembro ya no pertenece a esta organización. Elija un miembro actual.",
+    "per_diem_day_taken": "Ya hay un viático registrado para un día de ese rango. Quítelo o elija otros días.",
+    "engagement_worker_person": "El tiempo, los turnos y los viáticos van a una contratación que nombra a una persona, no a una contratación de empresa. Elija una persona.",
+    "engagement_not_working": "El personal externo registra tiempo y recibe viáticos solo mientras su contratación está Activa o En cierre."
   },
   "states": {
     "shift": {
@@ -597,6 +603,28 @@
       "approval": "Un supervisor aprueba cada reclamo en este proyecto.",
       "seniority": "Los reclamos esperan y el turno es para quien tenga más antigüedad.",
       "first-come": "El turno es para la primera persona que lo reclama."
+    }
+  },
+  "perDiems": {
+    "title": "Viáticos",
+    "empty": "Aún no hay viáticos. Agregue viáticos para un miembro o para personal contratado.",
+    "chooseProject": "Elija un proyecto para ver y agregar sus viáticos.",
+    "add": "Agregar viáticos",
+    "removed": "Viático quitado.",
+    "confirmRemove": "¿Quitar este viático?",
+    "remove": "Quitar viático",
+    "removeHelp": "El viático deja de contar; su historial queda registrado.",
+    "kind": "Viático",
+    "recordTitle": "{name} · {day}",
+    "allProjects": "Todos los proyectos",
+    "allPeople": "Todas las personas",
+    "fields": {
+      "person": "Persona",
+      "from": "Primer día",
+      "to": "Último día",
+      "amount": "Monto por día",
+      "currency": "Moneda",
+      "day": "Día"
     }
   }
 }
