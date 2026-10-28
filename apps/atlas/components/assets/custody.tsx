@@ -79,8 +79,9 @@ export function CustodyMoveDialog({
       {...(onDone ? { onSuccess: () => onDone() } : {})}
     >
       {action === "check-in" ? null : (
+        // Not keyed by the project: changing the project keeps a chosen member, and the browser falls back
+        // to the first option only when the chosen engagement leaves the list.
         <Select
-          key={custodyProject}
           id="custody-custodian"
           name="custodian"
           label={t("fields.custodian")}

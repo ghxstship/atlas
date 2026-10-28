@@ -6,7 +6,7 @@ import { AssetsCollection, type CollectionRow } from "@/components/assets/collec
 import { CustodyDesk } from "@/components/assets/custody";
 import { PropertyList } from "@/components/assets/ui";
 import { requireNode } from "@/lib/shell/require-node";
-import { assetCapabilities, loadPickers, must } from "@/lib/assets/context";
+import { assetCapabilities, custodianName, loadPickers, must } from "@/lib/assets/context";
 import { pageViews } from "@/lib/assets/page";
 import { matches, readQuery } from "@/lib/assets/views";
 import { getTranslate } from "@/lib/shell/translate";
@@ -31,7 +31,7 @@ export default async function CustodyLedgerPage({
   ]);
   const ledger = must(ledgerResult, "custody ledger");
   const holder = (e: (typeof ledger)[number]) =>
-    e.custodianName ?? e.venueName ?? t("assets.common.notRecorded");
+    custodianName(pickers, e) ?? e.venueName ?? t("assets.common.notRecorded");
   const when = (iso: string) =>
     format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
   const visible = ledger.filter((e) =>

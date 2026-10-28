@@ -48,6 +48,11 @@ export interface EngagementPickerOption extends PickerOption {
 export interface AssetPickers {
   readonly members: PickerOption[];
   readonly engagements: EngagementPickerOption[];
+  /**
+   * The person's name by live engagement id (app.engagement_options): app.people hides people who are not
+   * members, so an engaged custodian's name comes from here when the custody row's embed is empty.
+   */
+  readonly engagementPeople: Readonly<Record<string, string>>;
   readonly projects: PickerOption[];
   readonly venues: PickerOption[];
   readonly conditions: PickerOption[];
@@ -80,16 +85,20 @@ export async function loadPickers(ctx: OrgContext, unnamed: string): Promise<Ass
     listAssetConditions(db),
     listAssetTransitions(db),
   ]);
+  const live = must(engagements, "engagements");
   return {
     members: must(members, "members").map((m) => ({
       value: m.membershipId,
       label: m.fullName ?? unnamed,
     })),
-    engagements: must(engagements, "engagements").map((e) => ({
+    engagements: live.map((e) => ({
       value: e.engagementId,
       label: `${e.projectKey} ${e.personName ?? e.accountName ?? unnamed}`,
       projectId: e.projectId,
     })),
+    engagementPeople: Object.fromEntries(
+      live.flatMap((e) => (e.personName ? [[e.engagementId, e.personName] as const] : [])),
+    ),
     projects: must(projects, "projects").map((p) => ({
       value: p.id,
       label: `${p.key} · ${p.name}`,
@@ -98,6 +107,20 @@ export async function loadPickers(ctx: OrgContext, unnamed: string): Promise<Ass
     conditions: must(conditions, "conditions").map((c) => ({ value: c.id, label: c.label })),
     transitions: must(transitions, "transitions"),
   };
+}
+
+/**
+ * Who holds a unit or lot quantity: the member's or engaged person's name from the row, else the engaged
+ * person's name from the pickers (R1), else null.
+ */
+export function custodianName(
+  pickers: Pick<AssetPickers, "engagementPeople">,
+  entry: { readonly custodianName: string | null; readonly engagementId: string | null },
+): string | null {
+  return (
+    entry.custodianName ??
+    (entry.engagementId ? (pickers.engagementPeople[entry.engagementId] ?? null) : null)
+  );
 }
 
 /** Catalog key of an asset state under `assets.states`. */
