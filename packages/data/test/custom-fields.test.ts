@@ -527,8 +527,16 @@ describe("filtering rows by their values", () => {
     expect(calls[0]?.steps).toContainEqual(["eq", ["value_boolean", true]]);
   });
 
+  const currencies = okResponse([
+    { currency_code: "USD", minor_unit_exponent: 2 },
+    { currency_code: "JPY", minor_unit_exponent: 0 },
+    { currency_code: "KWD", minor_unit_exponent: 3 },
+    { currency_code: "KRW", minor_unit_exponent: 0 },
+  ]);
+
   it("reads a timestamp filter's day on the org's calendar and money in major units", async () => {
     const { db, calls } = fakeClient({
+      "from:currencies": [currencies],
       "from:custom_field_values": [okResponse([]), okResponse([]), okResponse([]), okResponse([])],
     });
     await match(db, [
@@ -537,18 +545,52 @@ describe("filtering rows by their values", () => {
       { key: "opening", operator: "gte", value: "2026-11-02" },
       { key: "fee", operator: "lt", value: "2500.50" },
     ]);
-    expect(calls[0]?.steps).toContainEqual([
+    expect(calls[1]?.steps).toContainEqual([
       "gte",
       ["value_timestamp", "2026-11-02T05:00:00.000Z"],
     ]);
-    expect(calls[0]?.steps).toContainEqual(["lt", ["value_timestamp", "2026-11-03T05:00:00.000Z"]]);
     expect(calls[1]?.steps).toContainEqual(["lt", ["value_timestamp", "2026-11-03T05:00:00.000Z"]]);
-    expect(calls[2]?.steps).toContainEqual(["gte", ["value_date", "2026-11-02"]]);
-    expect(calls[3]?.steps).toContainEqual(["lt", ["value_money_minor", 250050]]);
+    expect(calls[2]?.steps).toContainEqual(["lt", ["value_timestamp", "2026-11-03T05:00:00.000Z"]]);
+    expect(calls[3]?.steps).toContainEqual(["gte", ["value_date", "2026-11-02"]]);
+    expect(calls[0]?.target).toBe("from:currencies");
+    expect(calls[4]?.steps).toContainEqual([
+      "or",
+      [
+        "and(value_currency.not.in.(JPY,KRW,KWD),value_money_minor.lt.250050)," +
+          "and(value_currency.in.(JPY,KRW),value_money_minor.lte.2500)," +
+          "and(value_currency.in.(KWD),value_money_minor.lt.2500500)",
+      ],
+    ]);
+  });
+
+  it("scales a money amount by each value's currency and rounds a finer bound down", async () => {
+    const { db, calls } = fakeClient({
+      "from:currencies": [currencies, currencies],
+      "from:custom_field_values": [okResponse([]), okResponse([])],
+    });
+    await match(db, [{ key: "fee", operator: "eq", value: "100" }]);
+    expect(calls[1]?.steps).toContainEqual([
+      "or",
+      [
+        "and(value_currency.not.in.(JPY,KRW,KWD),value_money_minor.eq.10000)," +
+          "and(value_currency.in.(JPY,KRW),value_money_minor.eq.100)," +
+          "and(value_currency.in.(KWD),value_money_minor.eq.100000)",
+      ],
+    ]);
+    // 0.555 is exact only in dinars; yen hold none of it, and dollars round down to 0.55.
+    await match(db, [{ key: "fee", operator: "gte", value: "-0.555" }]);
+    expect(calls[3]?.steps).toContainEqual([
+      "or",
+      [
+        "and(value_currency.not.in.(JPY,KRW,KWD),value_money_minor.gt.-56)," +
+          "and(value_currency.in.(JPY,KRW),value_money_minor.gt.-1)," +
+          "and(value_currency.in.(KWD),value_money_minor.gte.-555)",
+      ],
+    ]);
   });
 
   it("ignores unknown and unfilterable fields, and keeps no row for a value that cannot match", async () => {
-    const { db, calls } = fakeClient({});
+    const { db, calls } = fakeClient({ "from:currencies": [currencies] });
     expect(
       await match(db, [
         { key: "nope", operator: "eq", value: "x" },
@@ -569,7 +611,8 @@ describe("filtering rows by their values", () => {
       const result = await match(db, [condition]);
       expect(result.ok && result.data?.("anything"), condition.key).toBe(false);
     }
-    expect(calls).toHaveLength(0);
+    // Only the money condition read anything: the currencies' exponents.
+    expect(calls.map((c) => c.target)).toEqual(["from:currencies"]);
   });
 
   it("reports a failed read", async () => {

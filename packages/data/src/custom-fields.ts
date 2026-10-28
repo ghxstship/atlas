@@ -519,7 +519,66 @@ type Filterable = {
   lte(column: string, value: unknown): Filterable;
   ilike(column: string, pattern: string): Filterable;
   not(column: string, operator: string, value: unknown): Filterable;
+  or(filters: string): Filterable;
 };
+
+/** Each currency's minor unit exponent (private.currencies), which a money filter's amount is scaled by. */
+export type CurrencyExponents = ReadonlyMap<string, number>;
+
+/**
+ * A decimal in minor units of an exponent, rounded down when it has more places than the exponent keeps (2.5 is 2
+ * at exponent 0, -2.5 is -3), with whether it was exact; null when it is not a number.
+ */
+function minorFloor(text: string, exponent: number): { minor: number; exact: boolean } | null {
+  const match = /^(-?)([0-9]+)(?:\.([0-9]+))?$/.exec(text);
+  if (!match) return null;
+  const [, sign, whole = "0", fraction = ""] = match;
+  const kept = fraction.slice(0, exponent);
+  const exact = !/[1-9]/.test(fraction.slice(exponent));
+  const truncated = decimalToMinor(`${sign}${whole}${kept ? `.${kept}` : ""}`, exponent);
+  if (truncated === null) return null;
+  return { minor: sign === "-" && !exact ? truncated - 1 : truncated, exact };
+}
+
+/**
+ * A money comparison as one PostgREST `or` filter: the amount in each value's own currency, scaled by that
+ * currency's exponent (100 is 100 yen, 100.00 dollars, 100.000 dinars). Currencies are grouped by exponent, and
+ * the two-decimal group is every currency the others do not name, so an unlisted code reads as two decimals. An
+ * amount finer than a currency keeps (100.5 yen) matches no value equal to it; a bound rounds down to the nearest
+ * amount that currency can hold. Null when no currency can match.
+ */
+function moneyFilter(
+  operator: "eq" | "gt" | "gte" | "lt" | "lte",
+  value: string,
+  exponents: CurrencyExponents,
+): string | null {
+  const groups = new Map<number, string[]>();
+  for (const [code, exponent] of exponents) {
+    if (exponent !== 2 && /^[A-Z]{3}$/.test(code))
+      groups.set(exponent, [...(groups.get(exponent) ?? []), code]);
+  }
+  const others = [...groups.values()].flat().sort();
+  const clauses: string[] = [];
+  const scopes: [number, string][] = [
+    [2, others.length > 0 ? `value_currency.not.in.(${others.join(",")})` : ""],
+    ...[...groups].map(([e, codes]): [number, string] => [
+      e,
+      `value_currency.in.(${codes.sort().join(",")})`,
+    ]),
+  ];
+  for (const [exponent, scope] of scopes) {
+    const bound = minorFloor(value, exponent);
+    if (bound === null) return null;
+    let test: string;
+    if (bound.exact) test = `value_money_minor.${operator}.${bound.minor}`;
+    else if (operator === "eq") continue;
+    // Above a bound between two amounts is above the lower one; below it is at most the lower one.
+    else if (operator === "gt" || operator === "gte") test = `value_money_minor.gt.${bound.minor}`;
+    else test = `value_money_minor.lte.${bound.minor}`;
+    clauses.push(scope ? `and(${scope},${test})` : test);
+  }
+  return clauses.length > 0 ? clauses.join(",") : null;
+}
 
 function escapeLike(text: string): string {
   return text.replace(/[\\%_]/g, (c) => `\\${c}`);
@@ -535,6 +594,7 @@ function narrowing(
   field: CustomField,
   condition: CustomFieldCondition,
   timeZone: string,
+  exponents: CurrencyExponents,
 ): { scan: "include" | "exclude"; apply: (q: Filterable) => Filterable } | null {
   const column = valueColumn(field.dataType);
   const value = condition.value.trim();
@@ -543,7 +603,7 @@ function narrowing(
     return { scan: value === "false" ? "include" : "exclude", apply: hasValue };
   }
   if (condition.operator === "ne") {
-    const equal = narrowing(field, { ...condition, operator: "eq" }, timeZone);
+    const equal = narrowing(field, { ...condition, operator: "eq" }, timeZone, exponents);
     return equal ? { scan: "exclude", apply: equal.apply } : null;
   }
   const compare = (operand: unknown) => (q: Filterable) => {
@@ -578,10 +638,10 @@ function narrowing(
       return { scan: "include", apply: compare(Number(normalized)) };
     }
     case "Money": {
-      // Filters compare amounts in major units of two-decimal currencies, the money the org settles in.
-      const minor = decimalToMinor(value, 2);
-      if (minor === null || condition.operator === "contains") return null;
-      return { scan: "include", apply: compare(minor) };
+      // An amount in major units of each value's own currency; currencies are not converted.
+      if (condition.operator === "contains") return null;
+      const filter = moneyFilter(condition.operator, value.replace(/,/g, ""), exponents);
+      return filter === null ? null : { scan: "include", apply: (q) => q.or(filter) };
     }
     case "Date":
       if (!isRealDate(value) || !["eq", "gt", "gte", "lt", "lte"].includes(condition.operator))
@@ -627,7 +687,7 @@ function narrowing(
  * Which rows of a table pass every condition, judged on custom_field_values with the field's typed column (its
  * partial index when the field is filterable, 0540). Conditions on unknown or unfilterable fields are ignored;
  * a condition whose value cannot match leaves no row. The predicate answers for any row id; rows without values
- * pass "is not" and "is empty" and fail every other test.
+ * pass "is not" and "is empty" and fail every other test. A money condition reads each currency's exponent first.
  */
 export async function matchCustomFieldConditions(
   db: XosClient,
@@ -641,10 +701,25 @@ export async function matchCustomFieldConditions(
 ): Promise<Result<((targetId: string) => boolean) | null>> {
   const tests: { scan: "include" | "exclude"; ids: Set<string> }[] = [];
   let none = false;
+  const fieldOf = (condition: CustomFieldCondition) =>
+    input.fields.find((f) => f.key === condition.key && f.filterable);
+  let exponents: CurrencyExponents = new Map();
+  if (input.conditions.some((c) => fieldOf(c)?.dataType === "Money")) {
+    const { data, error } = await db
+      .from("currencies")
+      .select("currency_code, minor_unit_exponent");
+    if (error) return fail(toDataError(error));
+    exponents = new Map(
+      (data as { currency_code: string; minor_unit_exponent: number | null }[]).map((c) => [
+        c.currency_code,
+        c.minor_unit_exponent ?? 2,
+      ]),
+    );
+  }
   for (const condition of input.conditions) {
-    const field = input.fields.find((f) => f.key === condition.key && f.filterable);
+    const field = fieldOf(condition);
     if (!field) continue;
-    const narrow = narrowing(field, condition, input.timeZone);
+    const narrow = narrowing(field, condition, input.timeZone, exponents);
     if (!narrow) {
       none = true;
       continue;
