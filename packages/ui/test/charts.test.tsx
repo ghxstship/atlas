@@ -106,6 +106,9 @@ describe("Timeline", () => {
     const table = within(container).getByRole("table", { name: "Build schedule" });
     expect(within(table).getByText("Rig (critical path)")).toBeTruthy();
     expect(within(table).getByText("Sign-off (milestone)")).toBeTruthy();
+    // States read as labels, never as the raw state code.
+    expect(within(table).getByText("Blocked")).toBeTruthy();
+    expect(within(table).queryByText("blocked")).toBeNull();
     expect(container.querySelectorAll("svg path[marker-end]")).toHaveLength(2);
     await expectAccessible(container);
   });

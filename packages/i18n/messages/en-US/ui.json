@@ -542,5 +542,16 @@
       "owner": "Owner",
       "action": "Action"
     }
+  },
+  "recordStates": {
+    "proposed": "Proposed",
+    "ready": "Ready",
+    "scheduled": "Scheduled",
+    "active": "Active",
+    "blocked": "Blocked",
+    "inReview": "In Review",
+    "complete": "Complete",
+    "deferred": "Deferred",
+    "canceled": "Canceled"
   }
 }

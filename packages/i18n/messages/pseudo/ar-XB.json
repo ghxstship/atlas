@@ -543,6 +543,17 @@
         "owner": "‮Oʍuǝɹ‬",
         "action": "‮∀ɔʇıou‬"
       }
+    },
+    "recordStates": {
+      "proposed": "‮Þŕöþöšéð‬",
+      "ready": "‮Ŕéàðý‬",
+      "scheduled": "‮Šçĥéðûļéð‬",
+      "active": "‮Àçţîṽé‬",
+      "blocked": "‮Ɓļöçķéð‬",
+      "inReview": "‮Îñ Ŕéṽîéŵ‬",
+      "complete": "‮Çöɱþļéţé‬",
+      "deferred": "‮Ðéƒéŕŕéð‬",
+      "canceled": "‮Çàñçéļéð‬"
     }
   }
 }
