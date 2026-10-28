@@ -460,13 +460,6 @@ export type Database = {
             referencedRelation: "shifts";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "clock_punches_time_entry_id_fkey";
-            columns: ["time_entry_id"];
-            isOneToOne: false;
-            referencedRelation: "time_entries";
-            referencedColumns: ["id"];
-          },
         ];
       };
       credentials: {
@@ -11094,6 +11087,7 @@ export type Database = {
           shift_id: string | null;
           skew_flagged: boolean;
           source: Database["app"]["Enums"]["punch_source"];
+          time_entry_created_at: string | null;
           time_entry_id: string | null;
           updated_at: string;
           updated_by: string | null;
@@ -11123,6 +11117,7 @@ export type Database = {
           shift_id?: string | null;
           skew_flagged?: boolean;
           source: Database["app"]["Enums"]["punch_source"];
+          time_entry_created_at?: string | null;
           time_entry_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -11151,6 +11146,7 @@ export type Database = {
           shift_id?: string | null;
           skew_flagged?: boolean;
           source?: Database["app"]["Enums"]["punch_source"];
+          time_entry_created_at?: string | null;
           time_entry_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -11263,10 +11259,10 @@ export type Database = {
           },
           {
             foreignKeyName: "clock_punches_time_entry_id_fkey";
-            columns: ["time_entry_id"];
+            columns: ["time_entry_id", "time_entry_created_at"];
             isOneToOne: false;
             referencedRelation: "time_entries";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "created_at"];
           },
           {
             foreignKeyName: "clock_punches_updated_by_fkey";
@@ -51315,6 +51311,7 @@ export type Database = {
           new_values: NonNullable<Json>;
           old_values: Json | null;
           org_id: string;
+          time_entry_created_at: string;
           time_entry_id: string;
           updated_at: string;
           updated_by: string | null;
@@ -51328,6 +51325,7 @@ export type Database = {
           new_values: NonNullable<Json>;
           old_values?: Json | null;
           org_id: string;
+          time_entry_created_at?: string;
           time_entry_id: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -51340,6 +51338,7 @@ export type Database = {
           new_values?: NonNullable<Json>;
           old_values?: Json | null;
           org_id?: string;
+          time_entry_created_at?: string;
           time_entry_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -51361,10 +51360,10 @@ export type Database = {
           },
           {
             foreignKeyName: "time_entry_audit_time_entry_id_fkey";
-            columns: ["time_entry_id"];
+            columns: ["time_entry_id", "time_entry_created_at"];
             isOneToOne: false;
             referencedRelation: "time_entries";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "created_at"];
           },
           {
             foreignKeyName: "time_entry_audit_updated_by_fkey";
@@ -51388,6 +51387,7 @@ export type Database = {
           proposed_clock_out: string | null;
           reason: string;
           requested_by: string | null;
+          time_entry_created_at: string;
           time_entry_id: string;
           updated_at: string;
           updated_by: string | null;
@@ -51405,6 +51405,7 @@ export type Database = {
           proposed_clock_out?: string | null;
           reason: string;
           requested_by?: string | null;
+          time_entry_created_at?: string;
           time_entry_id: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -51421,6 +51422,7 @@ export type Database = {
           proposed_clock_out?: string | null;
           reason?: string;
           requested_by?: string | null;
+          time_entry_created_at?: string;
           time_entry_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -51449,10 +51451,10 @@ export type Database = {
           },
           {
             foreignKeyName: "time_entry_corrections_time_entry_id_fkey";
-            columns: ["time_entry_id"];
+            columns: ["time_entry_id", "time_entry_created_at"];
             isOneToOne: false;
             referencedRelation: "time_entries";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "created_at"];
           },
           {
             foreignKeyName: "time_entry_corrections_updated_by_fkey";
@@ -63105,6 +63107,7 @@ export type Database = {
           shift_id: string | null;
           skew_flagged: boolean;
           source: Database["app"]["Enums"]["punch_source"];
+          time_entry_created_at: string | null;
           time_entry_id: string | null;
           updated_at: string;
           updated_by: string | null;
