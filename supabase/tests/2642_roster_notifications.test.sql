@@ -1,6 +1,6 @@
--- pgTAP: migrations 2641 and 2642 (R4), roster notifications. roster_entry.invited reaches the person put on a roster or
--- claiming an invitation, never someone adding themselves; roster_entry.returned reaches the roster's managers with the
--- reason; roster_entry.declined reaches the managers. A rostered person with no engagement or account membership of their
+-- pgTAP: migrations 2641 and 2642 (R4), roster notifications. roster_entry.invited reaches the person someone else puts on
+-- a roster, never someone adding themselves or claiming their own invitation; roster_entry.returned reaches the roster's
+-- managers with the reason; roster_entry.declined reaches the managers; both open the Crew tab in Gateway. A rostered person with no engagement or account membership of their
 -- own is an external party of the producing org (2641), so private.notify reaches them.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -63,7 +63,7 @@ select is((select count(*)::int from app.notifications where subject_id = pg_tem
 select pg_temp.as_user('nell');
 select app.respond_party_invitation('roster', (select i.invitation_id from app.my_pending_invitations() i where i.invitation_kind = 'roster'), true);
 select pg_temp.as_platform();
-select is(pg_temp.notified('nell', 'roster_entry.invited', 'e_nell'), 1, 'claiming an invitation tells the person they are on the roster');
+select is(pg_temp.notified('nell', 'roster_entry.invited', 'e_nell'), 0, 'claiming one''s own invitation is not news to oneself');
 select ok(pg_temp.id('org_a') in (select private.party_org_ids(pg_temp.id('nell'))), 'a rostered person is an external party of the producing org');
 
 -- Returned ---------------------------------------------------------------------------------------------------------------------
@@ -75,6 +75,10 @@ select pg_temp.as_platform();
 select is(pg_temp.notified('victor', 'roster_entry.returned', 'e_kai'), 1, 'the account''s Owner is told of a return');
 select is(pg_temp.notified('pia', 'roster_entry.returned', 'e_kai'), 1, 'and the Advancing Lead');
 select is(pg_temp.notified('kai', 'roster_entry.returned', 'e_kai'), 0, 'not the rostered person');
+select is(pg_temp.notified('sam', 'roster_entry.returned', 'e_kai'), 0, 'nor the worker the engagement names, who manages nothing');
+select is((select message_args ->> 'gatewayPath' from app.notifications where kind = 'roster_entry.returned'
+  and recipient_person_id = pg_temp.id('victor') and subject_id = pg_temp.id('e_kai')),
+  '/work/engagements/' || private.gateway_display_key('ENG', pg_temp.id('eng_vendor_a')) || '/crew', 'opening the engagement''s Crew tab');
 select is((select message_args ->> 'reason' from app.notifications where kind = 'roster_entry.returned' and recipient_person_id = pg_temp.id('victor')
   and subject_id = pg_temp.id('e_kai')), 'Add the arrival window.', 'with the reason');
 select pg_temp.as_user('bob');
@@ -89,6 +93,8 @@ select app.respond_roster_entry(pg_temp.id('e_kai'), 'Declined');
 select pg_temp.as_platform();
 select is(pg_temp.notified('victor', 'roster_entry.declined', 'e_kai'), 1, 'the Owner is told the person declined');
 select is(pg_temp.notified('pia', 'roster_entry.declined', 'e_kai'), 1, 'and the Advancing Lead');
+select ok((select bool_and(message_args ->> 'gatewayPath' like '%/crew') from app.notifications where kind = 'roster_entry.declined'
+  and subject_id = pg_temp.id('e_kai')), 'each opening the Crew tab');
 select pg_temp.as_user('kai');
 select app.respond_roster_entry(pg_temp.id('e_kai'), 'Accepted');
 select pg_temp.as_platform();
