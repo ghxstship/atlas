@@ -348,6 +348,7 @@ from .resources import (
     EarnedMediaItemsResource,
     ProjectMeasurementSummaryResource,
     CueCallsResource,
+    RosterEntriesResource,
     GuestListEntriesResource,
     Form1099NecResource,
     InsuranceCertificateInsuredsResource,
@@ -778,6 +779,7 @@ class XosClient(XosClientCore):
     earned_media_items: EarnedMediaItemsResource
     project_measurement_summary: ProjectMeasurementSummaryResource
     cue_calls: CueCallsResource
+    roster_entries: RosterEntriesResource
     guest_list_entries: GuestListEntriesResource
     form1099_nec: Form1099NecResource
     insurance_certificate_insureds: InsuranceCertificateInsuredsResource
@@ -1196,6 +1198,7 @@ class XosClient(XosClientCore):
         self.earned_media_items = EarnedMediaItemsResource(self)
         self.project_measurement_summary = ProjectMeasurementSummaryResource(self)
         self.cue_calls = CueCallsResource(self)
+        self.roster_entries = RosterEntriesResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
         self.form1099_nec = Form1099NecResource(self)
         self.insurance_certificate_insureds = InsuranceCertificateInsuredsResource(self)
