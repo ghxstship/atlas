@@ -1,4 +1,11 @@
-import { PSEUDO_VIEWPORTS, pseudoProblems, type PseudoLocale } from "@xos/testing/pseudo";
+import { UPL_FIELDS } from "@xos/data/finance";
+import {
+  PSEUDO_VIEWPORTS,
+  navigationStatus,
+  pseudoProblems,
+  withText,
+  type PseudoLocale,
+} from "@xos/testing/pseudo";
 import { expect, test, type Browser, type BrowserContextOptions, type Page } from "./engine-test";
 import { activeRoles, DEMO_ORG, DEMO_PASSWORD, type SweepRole } from "./a11y/roles";
 import {
@@ -8,6 +15,7 @@ import {
   sweepRoutesFor,
   visibleOnPhone,
 } from "./a11y/routes";
+import { LEGAL_DOCUMENTS } from "../lib/legal.generated";
 import { databaseText } from "./pseudo-checks";
 
 /**
@@ -76,13 +84,19 @@ async function check(
   path: string,
   options: { readonly phone: boolean; readonly noAccess?: (status: number) => boolean },
 ): Promise<string[]> {
-  const data = await databaseText();
+  const data = withText(
+    await databaseText(),
+    // Legal documents are published in English only (legal/index.yaml); their titles are content.
+    LEGAL_DOCUMENTS.map((d) => d.title),
+    // The Universal Posting Line preview heads its columns with the file's own column names.
+    { asWritten: UPL_FIELDS },
+  );
   const problems: string[] = [];
   for (const locale of LOCALES) {
     await page.context().addCookies([{ name: "xos-locale", value: locale, url: baseURL }]);
     await page.setViewportSize(PSEUDO_VIEWPORTS[0]);
     const response = await page.goto(path);
-    const status = response?.status() ?? 0;
+    const status = await navigationStatus(page, response);
     if (options.noAccess?.(status)) {
       test.info().annotations.push({ type: "no-access", description: `${path} answered 404` });
       test.skip();

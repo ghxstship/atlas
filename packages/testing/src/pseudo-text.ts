@@ -25,10 +25,18 @@ export interface KnownText {
    * a name is a raw enum or event key shown instead of its label, even when the database holds it.
    */
   readonly identifiers?: boolean;
+  /**
+   * Names shown as written by design though they look like raw keys: the column names of an export
+   * file, which the file itself carries.
+   */
+  readonly shownAsWritten?: (text: string) => boolean;
 }
 
 /** Shapes en-US Intl formatting gives data: dates, times, relative times, numbers and money. */
 export const FORMATTED: readonly RegExp[] = [
+  /^(January|February|March|April|May|June|July|August|September|October|November|December)$/,
+  // An IANA time zone shown with spaces for its underscores (America/New York).
+  /^(Africa|America|Antarctica|Asia|Atlantic|Australia|Europe|Indian|Pacific|Etc)\/[A-Za-z_ /-]+$/,
   /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.? \d{1,2}(, \d{4})?/,
   /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*\b/,
   /^\d{1,2} (Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*$/,
@@ -60,12 +68,15 @@ export function isData(raw: string, data: KnownText): boolean {
   if (!/[A-Za-z]{2,}/.test(text)) return true;
   // A site shown by its host name; a raw key never ends in a top-level domain.
   if (HOST.test(text)) return true;
-  if (RAW_KEY.test(text) && !data.identifiers) return false;
-  if (data.has(raw.trim()) || data.has(text)) return true;
+  if (RAW_KEY.test(text) && !data.identifiers) return data.shownAsWritten?.(text) === true;
+  // A value keeps its own punctuation ("produces.", "(per brief)"): look it up with only the
+  // separators before it removed, too.
+  const leading = raw.replace(/^[\s·•,:;|/–—-]+/, "").trim();
+  if (data.has(raw.trim()) || data.has(text) || data.has(leading)) return true;
   if (CODE.test(text)) return true;
   if (FORMATTED.some((re) => re.test(text))) return true;
   // Emails, web addresses, paths and initials.
-  if (/^\S+@\S+\.\S+$/.test(text) || /^(https?:\/\/|\/)\S*$/.test(text)) return true;
+  if (/^\S+@\S+\.\S+$/.test(text) || /^(https?:\/\/|\/)\S*$/.test(raw.trim())) return true;
   if (/^[A-Z]{1,3}$/.test(text)) return true;
   const pieces = text.split(SEPARATORS).filter((p) => /[A-Za-z]{2,}/.test(p));
   if (
@@ -77,7 +88,7 @@ export function isData(raw: string, data: KnownText): boolean {
   ) {
     return true;
   }
-  return composed(text, data);
+  return composed(raw.trim(), data);
 }
 
 /** Punctuation code puts around and between values, which belongs to no value. */
@@ -96,9 +107,11 @@ function composed(text: string, data: KnownText): boolean {
     const bare = run.replace(EDGES, "");
     if (!/[A-Za-z]{2,}/.test(bare)) return true;
     if (RAW_KEY.test(bare) && !data.identifiers) return false;
+    // A sentence value shown without its closing period ("…is approved (G1.BUDGET_ENVELOPE)").
     return (
       data.has(run) ||
       data.has(bare) ||
+      data.has(`${bare}.`) ||
       CODE.test(bare) ||
       /^[A-Z]{1,3}$/.test(bare) ||
       FORMATTED.some((re) => re.test(bare))
@@ -142,11 +155,20 @@ export function contentText(
   };
 }
 
-/** Known text plus values a test wrote after it was loaded (a fixture's generated title). */
-export function withText(data: KnownText, values: Iterable<string>): KnownText {
+/**
+ * Known text plus values a test wrote after it was loaded (a fixture's generated title), and names
+ * the page shows as written by design (KnownText.shownAsWritten).
+ */
+export function withText(
+  data: KnownText,
+  values: Iterable<string>,
+  { asWritten = [] }: { readonly asWritten?: Iterable<string> } = {},
+): KnownText {
   const extra = new Set([...values].map((v) => v.trim()));
+  const written = new Set(asWritten);
   return {
     has: (text) => extra.has(text) || data.has(text),
+    shownAsWritten: (text) => written.has(text) || data.shownAsWritten?.(text) === true,
     ...(data.identifiers === undefined ? {} : { identifiers: data.identifiers }),
   };
 }

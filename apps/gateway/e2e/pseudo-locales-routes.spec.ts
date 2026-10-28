@@ -1,4 +1,10 @@
-import { PSEUDO_VIEWPORTS, pseudoProblems, withText, type PseudoLocale } from "@xos/testing/pseudo";
+import {
+  PSEUDO_VIEWPORTS,
+  navigationStatus,
+  pseudoProblems,
+  withText,
+  type PseudoLocale,
+} from "@xos/testing/pseudo";
 import { expect, test, type Browser, type BrowserContextOptions, type Page } from "./engine-test";
 import { DEMO_PASSWORD, PEOPLE } from "./a11y/roles";
 import { PUBLIC_PAGES, sweepRoutesFor, type Person } from "./a11y/routes";
@@ -76,7 +82,7 @@ async function check(
     ]);
     await page.setViewportSize(PSEUDO_VIEWPORTS[0]);
     const response = await page.goto(path);
-    const status = response?.status() ?? 0;
+    const status = await navigationStatus(page, response);
     if (status !== 200) problems.push(`${locale} status: ${path} answered ${status}`);
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     problems.push(...(await pseudoProblems(page, { locale, data })));

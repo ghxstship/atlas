@@ -4,6 +4,7 @@ import { expect, test } from "@playwright/test";
 import {
   contentText,
   jsonStrings,
+  navigationStatus,
   pseudoProblems,
   PSEUDO_VIEWPORTS,
   type KnownText,
@@ -99,7 +100,7 @@ for (const path of PATHS) {
       await page.setViewportSize(PSEUDO_VIEWPORTS[0]);
       const response = await page.goto(`/${locale}${path}`);
       const expected = path === "/does-not-exist" ? 404 : 200;
-      const status = response?.status() ?? 0;
+      const status = await navigationStatus(page, response);
       if (status !== expected) problems.push(`${locale} status: ${path} answered ${status}`);
       await expect(page.locator("html")).toHaveAttribute("lang", locale);
       problems.push(...(await pseudoProblems(page, { locale, data })));

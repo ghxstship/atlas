@@ -3,6 +3,7 @@ import { fillRoute, flattenRoutes } from "@xos/ia";
 import {
   databaseText,
   PSEUDO_VIEWPORTS,
+  navigationStatus,
   pseudoProblems,
   withText,
   type KnownText,
@@ -53,7 +54,7 @@ async function check(
     await page.context().addCookies([{ name: "xos-locale", value: locale, url: baseURL }]);
     await page.setViewportSize(PSEUDO_VIEWPORTS[0]);
     const response = path === null ? await page.reload() : await page.goto(path);
-    const status = response?.status() ?? 0;
+    const status = await navigationStatus(page, response);
     if (status !== 200) problems.push(`${locale} status: ${page.url()} answered ${status}`);
     await expect(page.locator("html")).toHaveAttribute("lang", locale);
     const at = new URL(page.url()).pathname;

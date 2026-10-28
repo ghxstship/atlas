@@ -1,4 +1,4 @@
-import type { Page } from "@playwright/test";
+import type { Page, Response } from "@playwright/test";
 import pg from "pg";
 import { describe, hardCoded, type Found, type KnownText } from "./pseudo-text.ts";
 
@@ -116,6 +116,9 @@ export async function unwrappedText(page: Page): Promise<Found[]> {
       for (const attribute of Object.keys(labelling)) {
         const value = el.getAttribute(attribute);
         if (!value?.trim()) continue;
+        // A title repeating the code it holds (a table cell's full text) is code too.
+        const code = el.querySelector("code, kbd")?.textContent?.trim();
+        if (code && code === value.trim()) continue;
         for (const run of runsOf(value, outside(value), 0)) {
           out.push({ text: run, where: `${path(el)} @${attribute}` });
         }
@@ -273,6 +276,21 @@ export function databaseText(url: string): Promise<Set<string>> {
   })();
   dataText.set(url, loaded);
   return loaded;
+}
+
+/**
+ * The HTTP status a navigation ended on. `page.goto` answers null when the page navigates again
+ * before it settles (a refresh right after load); the document's own navigation entry still holds
+ * the status then.
+ */
+export async function navigationStatus(page: Page, response: Response | null): Promise<number> {
+  if (response) return response.status();
+  await page.waitForLoadState("load").catch(() => undefined);
+  return page.evaluate(() => {
+    const entry = performance.getEntriesByType("navigation")[0] as
+      (PerformanceNavigationTiming & { responseStatus?: number }) | undefined;
+    return entry?.responseStatus ?? 0;
+  });
 }
 
 /** Unwrapped text that is neither data nor formatting: hard-coded or untranslated strings. */

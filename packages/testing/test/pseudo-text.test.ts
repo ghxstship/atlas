@@ -17,6 +17,11 @@ const data = new Set([
   "Power & Electrical",
   "House power, capacity not confirmed.",
   "State Fire Marshal + City",
+  "Plans and runs the shows the org produces.",
+  "City of Miami Building (critical path per brief)",
+  "A budget envelope exists and is approved.",
+  "Controlled access at every gate.",
+  "Security & Access Control",
 ]);
 
 suite("pseudo-locale text", () => {
@@ -45,6 +50,17 @@ suite("pseudo-locale text", () => {
       isData("Power & Electrical 5000.06.01: House power, capacity not confirmed. (1)", data),
     ).toBe(true);
     expect(isData("NWS · State Fire Marshal + City ·", data)).toBe(true);
+    expect(isData("· Plans and runs the shows the org produces.", data)).toBe(true);
+    expect(isData("NWS · City of Miami Building (critical path per brief) ·", data)).toBe(true);
+    expect(
+      isData("Security & Access Control 6000.04.01: Controlled access at every gate.", data),
+    ).toBe(true);
+    expect(isData("A budget envelope exists and is approved (G1.BUDGET_ENVELOPE)", data)).toBe(
+      true,
+    );
+    expect(isData("/api/v1/objects/gear_requests", data)).toBe(true);
+    expect(isData("January", data)).toBe(true);
+    expect(isData("America/New York", data)).toBe(true);
     expect(isData("Northwind Winter Gala starts soon", data)).toBe(false);
     expect(isData("NWS order.created", data)).toBe(false);
   });
@@ -94,6 +110,10 @@ suite("pseudo-locale text", () => {
     expect(more.has("Rigging Advance K2QX")).toBe(true);
     expect(more.has("Jordan Lee")).toBe(true);
     expect(more.has("Rigging Advance")).toBe(false);
+    const upl = withText(data, [], { asWritten: ["account_code"] });
+    expect(isData("account_code", upl)).toBe(true);
+    expect(isData("cost_center_id", upl)).toBe(false);
+    expect(isData("account_code", withText(upl, []))).toBe(true);
   });
 
   it("collects every string and key of a JSON document", () => {
