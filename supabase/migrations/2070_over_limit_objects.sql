@@ -24,9 +24,9 @@
 --     expired in the last two hours.
 --   * The guard: the read-only row guard of 1063 (t15_refuse_read_only_org, on every app table with org_id that is
 --     not exempt) now also refuses a person's write to a read-only project or to anything of it, however deep: a row
---     that carries the project's id, belongs to one of its records or engagements, is about one of its rows (a comment
---     thread, an attachment) or descends from one through the parent it takes its org from (a budget line, a comment,
---     a PO line). It also refuses every write of a person whose own seat is read-only. The personal tables of
+--     that carries the project's id, belongs to one of its records or engagements, grants access to it or its records,
+--     is about one of its rows (a comment thread, an attachment) or descends from one through the parent it takes its
+--     org from (a budget line, a comment, a PO line). It also refuses every write of a person whose own seat is read-only. The personal tables of
 --     private.over_limit_personal_tables (a person's membership, preferences, consents, follows and reading marks)
 --     stay writable, though a read-only seat only leaves or drops its own roles there. Archiving or deleting
 --     a read-only project stays allowed, since it brings the org back under the limit. Each refusal is
@@ -463,6 +463,12 @@ begin
   if v_project is null and p_row ? 'engagement_id' then
     select e.project_id into v_project from app.engagements e where e.id = private.as_uuid(p_row ->> 'engagement_id');
   end if;
+  -- An access grant names its target by kind: a grant on a project or one of its records shares that project.
+  if v_project is null and p_row ->> 'target_kind' = 'project' then
+    v_project := private.as_uuid(p_row ->> 'target_id');
+  elsif v_project is null and p_row ->> 'target_kind' = 'record' then
+    select r.project_id into v_project from app.records r where r.id = private.as_uuid(p_row ->> 'target_id');
+  end if;
   -- A row about another row names it by table and id: comment threads, attachments, imports.
   foreach v_pair slice 1 in array array[array['subject_table', 'subject_id'], array['target_table', 'target_id']] loop
     exit when v_project is not null;
@@ -495,7 +501,7 @@ begin
 end;
 $$;
 
-comment on function private.row_project_id(text, jsonb, integer) is 'The project a row belongs to, for the over-limit guard (ADR 0081): the project itself, the row''s project_id, the project of the record or engagement it names (record_id, engagement_id), of the row it is about (subject_table and subject_id, target_table and target_id), of the parent it takes its org from (a budget line''s budget, a comment''s thread, a custom field value''s subject), followed up to six levels, or of the record it extends (a table keyed by the record''s id). Null for org-level rows.';
+comment on function private.row_project_id(text, jsonb, integer) is 'The project a row belongs to, for the over-limit guard (ADR 0081): the project itself, the row''s project_id, the project of the record or engagement it names (record_id, engagement_id), the project or record an access grant targets (target_kind), of the row it is about (subject_table and subject_id, target_table and target_id), of the parent it takes its org from (a budget line''s budget, a comment''s thread, a custom field value''s subject), followed up to six levels, or of the record it extends (a table keyed by the record''s id). Null for org-level rows.';
 revoke all on function private.row_project_id(text, jsonb, integer) from public, anon, authenticated;
 
 create or replace function private.over_limit_refusal(p_org_id uuid, p_limit app.plan_limit_code)
@@ -554,14 +560,17 @@ begin
     -- drop its own roles, never add a role or change another member's, so it cannot win itself a seat past the Owner's
     -- choice by demoting someone.
     if v_personal and p_table = 'app.memberships' then
-      v_membership := private.as_uuid(coalesce(p_new, p_old) ->> 'id');
+      v_membership := private.as_uuid(p_old ->> 'id');
     elsif v_personal and p_table = 'app.membership_roles' then
-      v_membership := private.as_uuid(coalesce(p_new, p_old) ->> 'membership_id');
+      v_membership := private.as_uuid(p_old ->> 'membership_id');
     end if;
     if not v_personal
        or (p_table in ('app.memberships', 'app.membership_roles')
            and (p_old is null or not exists (select 1 from app.memberships m
-                                             where m.id = v_membership and m.person_id = private.current_person_id()))) then
+                                             where m.id = v_membership and m.person_id = private.current_person_id())))
+       -- On its own roles a read-only seat only drops one: no new role on the row, nothing changed but deleted_at.
+       or (p_table = 'app.membership_roles' and p_new is not null
+           and ((p_new - v_audit) <> (p_old - v_audit) or p_new ->> 'deleted_at' is null)) then
       perform private.refuse('plan_limit_read_only', private.over_limit_refusal(p_org_id, v_limit));
     end if;
   end if;
@@ -611,7 +620,11 @@ begin
     perform private.refuse('org_read_only', 'This organization is read-only because a payment is overdue. An Owner can update the payment method in Settings, Billing and plan; no data is deleted.');
   end if;
   if exists (select 1 from app.over_limit_objects x where x.org_id = v_org) then
-    perform private.refuse_over_limit_write(v_org, tg_table_schema || '.' || tg_table_name,
+    -- On a partitioned table the trigger runs on the month partition; the guard asks about the table it was declared on.
+    perform private.refuse_over_limit_write(v_org,
+      coalesce((select i.inhparent::regclass::text from pg_catalog.pg_inherits i
+                join pg_catalog.pg_class c on c.oid = i.inhrelid
+                where i.inhrelid = tg_relid and c.relispartition), tg_relid::regclass::text),
       case when tg_op = 'INSERT' then null else to_jsonb(old) end,
       case when tg_op = 'DELETE' then null else to_jsonb(new) end);
   end if;

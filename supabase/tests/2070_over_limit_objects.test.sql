@@ -11,7 +11,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(72);
+select plan(74);
 
 create function pg_temp.project(p_key text) returns uuid language sql stable as $$
   select p.id from app.projects p where p.org_id = pg_temp.id('lim_org') and p.project_key = p_key $$;
@@ -103,6 +103,12 @@ select throws_like($$select app.post_comment('app.projects', pg_temp.project('LR
 select lives_ok($$insert into app.budget_lines (budget_id, line_number, description, urid, quantity, xyz, xyz_basis)
   values (pg_temp.id('lra_budget'), 1, 'Stage deck rental.', '0000.01.01', 1, 'X', 'Declared')$$,
   'the writable project''s budget takes new lines');
+select throws_like($$insert into app.record_grants (target_kind, target_id, capability_code, grantee_person_id, valid_to, reason)
+  values ('project', pg_temp.project('LRB'), 'projects.project.read', pg_temp.id('rosa'), now() + interval '7 days', 'Covering the fair.')$$,
+  'plan_limit_read_only: This project is read-only:%', 'sharing a read-only project through an access grant is refused');
+select lives_ok($$insert into app.record_grants (target_kind, target_id, capability_code, grantee_person_id, valid_to, reason)
+  values ('project', pg_temp.project('LRA'), 'projects.project.read', pg_temp.id('rosa'), now() + interval '7 days', 'Covering the tour.')$$,
+  'the writable project can still be shared');
 
 select pg_temp.as_user('omar');
 select throws_like($$insert into app.workspaces (org_id, slug, name) values (pg_temp.id('lim_org'), 'north', 'North')$$,
