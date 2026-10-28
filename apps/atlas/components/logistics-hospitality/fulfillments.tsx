@@ -331,8 +331,51 @@ export async function FulfillmentsSection({
                 f.total.currencyCode,
                 exponents.get(f.total.currencyCode ?? "") ?? 2,
               ) ?? tc("unpriced")),
+          id: f.id,
+          label: f.key,
           href: peekHref(f.key),
+          fullHref: hrefWith(base, search, { peek: f.key, full: "1", edit: null }),
+          ...(scope.access.can(f.projectId, "hospitality.fulfillment.write")
+            ? { trashMessage: tc("deleted", { key: f.key }) }
+            : {}),
         }))}
+        bulk={
+          writable.length > 0
+            ? {
+                org: scope.ctx.org.slug,
+                resource: "fulfillments",
+                fields: [
+                  {
+                    key: "fulfillment_state",
+                    label: t("fulfillments.fields.state"),
+                    reason: true,
+                    // Proposed is where a fulfillment starts; no move returns to it.
+                    options: FULFILLMENT_STATES.filter((st) => st !== "Proposed").map((st) => ({
+                      value: st,
+                      label: stateLabel(st),
+                    })),
+                  },
+                  {
+                    key: "counterparty_id",
+                    label: t("fulfillments.fields.supplier"),
+                    options: [
+                      { value: null, label: tc("none") },
+                      ...suppliers.data.map((c) => ({
+                        value: c.id,
+                        label: c.name ?? tc("notSet"),
+                      })),
+                    ],
+                  },
+                ],
+              }
+            : null
+        }
+        trash={{
+          org: scope.ctx.org.slug,
+          label: tc("delete"),
+          run: deleteFulfillmentAction,
+          restore: restoreFulfillmentAction,
+        }}
       />
     );
   } else if (view === "board") {

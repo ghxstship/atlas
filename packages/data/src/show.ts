@@ -438,6 +438,7 @@ export async function publishSheet(
   return (data as unknown[]).length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
+/** Moves a day sheet or call sheet to Trash (a soft delete, restorable for its retention period). */
 export async function deleteSheet(
   db: XosClient,
   table: "day_sheets" | "call_sheets",
@@ -447,6 +448,25 @@ export async function deleteSheet(
     .from(table)
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/**
+ * Restores a sheet from Trash: the Undo of deleteSheet (Section 11.7). A live sheet for the same
+ * project day, saved since, is refused by the one-sheet-a-day index as a conflict.
+ */
+export async function restoreSheet(
+  db: XosClient,
+  table: "day_sheets" | "call_sheets",
+  id: string,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from(table)
+    .update({ deleted_at: null })
+    .eq("id", id)
+    .not("deleted_at", "is", null)
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });

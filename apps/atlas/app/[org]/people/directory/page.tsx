@@ -19,6 +19,7 @@ import { flatParams, getCrewContext, getProjects, withParams } from "@/lib/crew/
 import { workforceRoles } from "@/lib/people/roles";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import { LiveList } from "@/components/live/live-list";
 
 /**
  * People > Directory (Section 4.5.5): the org's members with their roles, role assignments and
@@ -314,6 +315,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/p
         </>
       }
     >
+      <LiveList org={routeParams.org} tables={["memberships", "role_assignments"]} />
       {crew.canAll("people.directory.read") ? (
         <InlineAlert
           tone="info"

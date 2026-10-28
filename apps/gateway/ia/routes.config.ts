@@ -13,6 +13,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/confirm": "Route handler: email link token verification.",
   "/auth/sign-out": "Route handler: ends the session (POST only).",
   "/auth/session": "Route handler: session expiry for the re-authentication dialog.",
+  "/auth/realtime":
+    "Route handler: the short-lived access token live updates authorize with (A122).",
   "/auth/claim": "Auth template: claim token submissions into the signed-in account.",
   "/auth/act/{token}":
     "Auth template: confirm a one-tap action from a notification email; opening it never acts (A127, ADR 0086).",

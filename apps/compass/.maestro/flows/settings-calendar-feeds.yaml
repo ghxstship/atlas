@@ -1,0 +1,60 @@
+appId: pro.ghxstship.compass
+# Settings, Calendar Feeds works natively (A112): the Demo Field Tech adds a feed and sees its link once, gets a new
+# link, then revokes the feed, which leaves the list empty again for the next run.
+# Named after its file: config.yaml orders flows by name.
+name: settings-calendar-feeds
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/calendar-feeds
+- extendedWaitUntil:
+    visible:
+      id: "settings-feeds-empty"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "settings-feeds-add"
+    direction: DOWN
+- tapOn:
+    id: "settings-feeds-add"
+- extendedWaitUntil:
+    visible:
+      id: "settings-feeds-link"
+    timeout: 30000
+# The link is on Gateway's origin and carries the token, shown this once.
+- assertVisible: ".*/ical/xcal_[0-9a-f]{64}\\.ics"
+- assertVisible:
+    id: "settings-feeds-link-share"
+- assertVisible:
+    id: "settings-feeds-link-open"
+- scrollUntilVisible:
+    element:
+      id: "settings-feed-rotate"
+    direction: DOWN
+- tapOn:
+    id: "settings-feed-rotate"
+- tapOn:
+    id: "settings-feed-confirm-confirm"
+- extendedWaitUntil:
+    visible:
+      id: "settings-feeds-done"
+    timeout: 30000
+- assertVisible: "New link issued.*"
+- scrollUntilVisible:
+    element:
+      id: "settings-feed-revoke"
+    direction: DOWN
+- tapOn:
+    id: "settings-feed-revoke"
+- tapOn:
+    id: "settings-feed-confirm-confirm"
+- extendedWaitUntil:
+    visible:
+      id: "settings-feeds-empty"
+    timeout: 30000
+- assertVisible: "Feed revoked.*"

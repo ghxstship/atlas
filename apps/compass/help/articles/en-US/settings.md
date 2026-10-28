@@ -15,7 +15,7 @@ order: 1
 - **Biometric Unlock**: Face ID, Touch ID or your passcode when Compass opens.
 - **Kiosk Mode**, if you run a shared clock-in device.
 
-**Your Settings** are the same in Atlas, Gateway and Compass. Under **You**, Profile, Profile Privacy, Account, Security and Organizations open here; so do every section under **Preferences**, and [Work Details](help:settings-work-details). A section marked **Opens in Gateway** opens in your browser.
+**Your Settings** are the same in Atlas, Gateway and Compass, and every section opens here: under **You**, Profile, Profile Privacy, Account, Security and Organizations; every section under **Preferences**; and under **Work**, [Work Details](help:settings-work-details), Payout and Tax, Calendar Feeds, Connected Apps and Developer. A step Compass leaves to Gateway, such as giving a tax form or creating an API token, says why and opens in your browser.
 
 - **Help**: articles and Contact Support.
 - **Delete Account**: see [Delete your account](help:delete-account).

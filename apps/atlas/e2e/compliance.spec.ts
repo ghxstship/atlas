@@ -1,9 +1,9 @@
-import { createClient } from "@supabase/supabase-js";
 import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
 import pg from "pg";
 import { expect, test, type Browser, type Page } from "./engine-test";
 import { ORG, signIn } from "./a16-support";
+import { openDocument, uploadAttachment } from "./attachment-support";
 import { createOrganization, expectAccessible, PASSWORD, testEmail, uniqueId } from "./support";
 
 /**
@@ -110,52 +110,8 @@ const PNG = Buffer.from(
   "base64",
 );
 
-/** Stands in for the upload-scan worker's local pass-through (ADR 0034) on attachment scans. */
-async function passAttachmentScans() {
-  const url = process.env["E2E_SUPABASE_URL"];
-  const key = process.env["E2E_SUPABASE_SERVICE_KEY"];
-  if (!url || !key)
-    throw new Error("Set E2E_SUPABASE_URL and E2E_SUPABASE_SERVICE_KEY to the local stack.");
-  if (!/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(url)) throw new Error("Local stack only.");
-  const app = createClient(url, key, { auth: { persistSession: false } }).schema("app");
-  const { data, error } = await app.rpc("claim_jobs", {
-    p_worker: "atlas-e2e-a82",
-    p_job_kind: "attachment.scan",
-    p_limit: 50,
-  });
-  if (error) throw new Error(`claim_jobs: ${error.message}`);
-  for (const job of (data as { id: string; subject_id: string }[] | null) ?? []) {
-    const scanned = await app.rpc("record_attachment_scan", {
-      p_attachment_version_id: job.subject_id,
-      p_clean: true,
-    });
-    if (scanned.error) throw new Error(`record_attachment_scan: ${scanned.error.message}`);
-    await app.rpc("finish_job", { p_job_id: job.id, p_succeeded: true, p_error: null });
-  }
-}
-
-/** Opens the first demo document's full record page, where files attach. */
-async function openDocument(page: Page) {
-  await page.goto(`/${ORG}/knowledge/documents?view=list`);
-  await page.getByRole("row").nth(1).getByRole("button", { name: "Open" }).click();
-  await page.waitForURL(/peek=/);
-  const url = new URL(page.url());
-  url.searchParams.set("full", "1");
-  await page.goto(url.toString());
-  await page.locator("html[data-shell-ready]").waitFor();
-}
-
 async function upload(page: Page, name: string, mimeType: string, buffer: Buffer) {
-  const files = page.locator("section", {
-    has: page.getByRole("heading", { name: "Attachments" }),
-  });
-  await files.locator('input[type="file"]').setInputFiles({ name, mimeType, buffer });
-  await files.getByRole("button", { name: "Upload" }).click();
-  await slow(files.getByText(name).first()).toBeVisible();
-  await passAttachmentScans();
-  await page.reload();
-  await page.locator("html[data-shell-ready]").waitFor();
-  return page.locator("li", { hasText: name }).first();
+  return uploadAttachment(page, { name, mimeType, buffer }, "atlas-e2e-a82");
 }
 
 test.describe("share links", () => {

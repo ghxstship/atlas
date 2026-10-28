@@ -75,5 +75,9 @@
     "offline": "Sin conexión. Sus cambios se quedan aquí y se envían al reconectarse.",
     "saved": "Guardado. Todas las personas en el documento ven los cambios mientras escribe.",
     "done": "Listo"
+  },
+  "presence": {
+    "label": "También están viendo",
+    "viewing": "{count, plural, one {# persona más aquí} other {# personas más aquí}}"
   }
 }
