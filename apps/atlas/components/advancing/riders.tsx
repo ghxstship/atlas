@@ -28,6 +28,7 @@ import {
 import { isRowId, pickView, Property, withQuery, type Search } from "./shared";
 import { PageHeader, ProgressBar, StateChip, Tag, TemplateRecord } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS = ["list", "table"] as const;
 
@@ -101,25 +102,29 @@ export async function RidersCollection({
   if (peekId && isRowId(peekId) && !peekRider) notFound();
 
   return (
-    <div className="flex flex-col gap-12 min-w-0">
-      <PageHeader
-        title={title}
-        count={riders.length}
-        views={<ViewSwitcher views={VIEWS} current={view} />}
-        {...(can.rider && projects.length > 0
-          ? {
-              actions: (
-                <CreateRiderDialog
-                  org={ctx.org.slug}
-                  projects={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
-                  parties={counterpartyOptions}
-                  defaultProjectId={project?.id ?? null}
-                  defaultOpen={search["create"] === "1"}
-                />
-              ),
-            }
-          : {})}
-      />
+    <CollectionPage
+      gap={12}
+      header={
+        <PageHeader
+          title={title}
+          count={riders.length}
+          views={<ViewSwitcher views={VIEWS} current={view} />}
+          {...(can.rider && projects.length > 0
+            ? {
+                actions: (
+                  <CreateRiderDialog
+                    org={ctx.org.slug}
+                    projects={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
+                    parties={counterpartyOptions}
+                    defaultProjectId={project?.id ?? null}
+                    defaultOpen={search["create"] === "1"}
+                  />
+                ),
+              }
+            : {})}
+        />
+      }
+    >
       {fixedProject ? null : (
         <div className="flex flex-wrap items-end gap-8">
           <SelectFilter
@@ -221,7 +226,7 @@ export async function RidersCollection({
           />
         ) : null,
       )}
-    </div>
+    </CollectionPage>
   );
 }
 

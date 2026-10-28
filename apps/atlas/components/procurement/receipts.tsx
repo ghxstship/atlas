@@ -25,6 +25,7 @@ import { collectionState, withQuery, type SearchParams } from "@/lib/collection-
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { ReceiptForm } from "./forms";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list"];
 
@@ -62,10 +63,9 @@ export async function ReceiptsSection({
   const title = t("receipts.title");
   if (!all.ok || !orders.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("receipts.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const projectOrders = new Set(

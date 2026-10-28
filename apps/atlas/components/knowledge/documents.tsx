@@ -30,6 +30,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { rememberView } from "@/lib/shell/recents";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["list", "table", "gallery"];
 const REFUSALS = "knowledge.refusals";
@@ -64,10 +65,9 @@ export async function DocumentsSection({
   const title = projectId ? t("documents.projectTitle") : t("documents.title");
   if (!all.ok || !projects.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("documents.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const docs = projectId ? all.data.filter((d) => d.projectId === projectId) : all.data;

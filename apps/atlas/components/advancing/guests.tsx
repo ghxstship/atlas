@@ -18,6 +18,7 @@ import { RecordCollab } from "./record-collab";
 import { isRowId, partyLabel, pickView, withQuery, type Search } from "./shared";
 import { PageHeader, StateChip, Tag } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS = ["list", "table"] as const;
 
@@ -86,24 +87,28 @@ export async function GuestList({
   });
 
   return (
-    <div className="flex flex-col gap-12 min-w-0">
-      <PageHeader
-        title={title}
-        count={guests.data.length}
-        views={<ViewSwitcher views={VIEWS} current={view} />}
-        {...(can.rider
-          ? {
-              actions: (
-                <AddGuestDialog
-                  org={ctx.org.slug}
-                  projectId={project.id}
-                  scopes={scopeOptions}
-                  canApprove={can.review}
-                />
-              ),
-            }
-          : {})}
-      />
+    <CollectionPage
+      gap={12}
+      header={
+        <PageHeader
+          title={title}
+          count={guests.data.length}
+          views={<ViewSwitcher views={VIEWS} current={view} />}
+          {...(can.rider
+            ? {
+                actions: (
+                  <AddGuestDialog
+                    org={ctx.org.slug}
+                    projectId={project.id}
+                    scopes={scopeOptions}
+                    canApprove={can.review}
+                  />
+                ),
+              }
+            : {})}
+        />
+      }
+    >
       <div className="flex flex-wrap items-end gap-8">
         <SelectFilter
           id="guests-state"
@@ -212,6 +217,6 @@ export async function GuestList({
           </PeekPanel>
         ) : null,
       )}
-    </div>
+    </CollectionPage>
   );
 }

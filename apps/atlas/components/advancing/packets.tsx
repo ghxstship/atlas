@@ -44,6 +44,7 @@ import {
 } from "./shared";
 import { PageHeader, ProgressBar, StateChip, Tag, TemplateRecord } from "./ui";
 import { PeekBoard, PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS = ["list", "table", "board"] as const;
 
@@ -108,24 +109,28 @@ export async function PacketsCollection({
   );
 
   return (
-    <div className="flex flex-col gap-12 min-w-0">
-      <PageHeader
-        title={title}
-        count={packets.length}
-        views={<ViewSwitcher views={VIEWS} current={view} />}
-        {...(can.write && projects.length > 0
-          ? {
-              actions: (
-                <CreatePacketDialog
-                  org={ctx.org.slug}
-                  projects={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
-                  defaultProjectId={project?.id ?? null}
-                  defaultOpen={search["create"] === "1"}
-                />
-              ),
-            }
-          : {})}
-      />
+    <CollectionPage
+      gap={12}
+      header={
+        <PageHeader
+          title={title}
+          count={packets.length}
+          views={<ViewSwitcher views={VIEWS} current={view} />}
+          {...(can.write && projects.length > 0
+            ? {
+                actions: (
+                  <CreatePacketDialog
+                    org={ctx.org.slug}
+                    projects={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
+                    defaultProjectId={project?.id ?? null}
+                    defaultOpen={search["create"] === "1"}
+                  />
+                ),
+              }
+            : {})}
+        />
+      }
+    >
       <div className="flex flex-wrap items-end gap-8">
         {fixedProject ? null : (
           <SelectFilter
@@ -249,7 +254,7 @@ export async function PacketsCollection({
         </ul>
       )}
       {peek}
-    </div>
+    </CollectionPage>
   );
 }
 

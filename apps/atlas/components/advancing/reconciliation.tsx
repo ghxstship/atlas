@@ -18,6 +18,7 @@ import { Panel, RunReconciliationForm } from "./forms";
 import { isRowId, pickView, Property, withQuery, type Search } from "./shared";
 import { InlineAlert, PageHeader, ReconciliationTable, StateChip, Tag, TemplateRecord } from "./ui";
 import { PeekPanel, PeekTable, SelectFilter, ViewSwitcher } from "./views";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS = ["table", "matrix"] as const;
 const RESULTS = ["met", "gap", "unknown"] as const;
@@ -89,12 +90,16 @@ export async function ReconciliationCollection({
     );
 
   return (
-    <div className="flex flex-col gap-12 min-w-0">
-      <PageHeader
-        title={title}
-        count={runs.length}
-        views={<ViewSwitcher views={VIEWS} current={view} />}
-      />
+    <CollectionPage
+      gap={12}
+      header={
+        <PageHeader
+          title={title}
+          count={runs.length}
+          views={<ViewSwitcher views={VIEWS} current={view} />}
+        />
+      }
+    >
       {fixedProject ? null : (
         <div className="flex flex-wrap items-end gap-8">
           <SelectFilter
@@ -222,7 +227,7 @@ export async function ReconciliationCollection({
           />
         ) : null,
       )}
-    </div>
+    </CollectionPage>
   );
 }
 

@@ -46,6 +46,7 @@ import {
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { ResponseForm } from "./forms";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
@@ -89,10 +90,9 @@ export async function RfqsSection({
   const title = t("rfqs.title");
   if (!all.ok || !projects.ok || !vendors.ok || !rules.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("rfqs.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const rfqs = projectId ? all.data.filter((r) => r.projectId === projectId) : all.data;
