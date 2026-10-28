@@ -51,8 +51,9 @@ import {
   type Column,
   type ListItem,
 } from "@/components/operations/kit";
-import { LiveRefresh } from "@/components/operations/peek";
 import { RecordCollab } from "@/components/operations/record-collab";
+import { LiveRefresh } from "@/components/live/live-refresh";
+import { PresenceFor } from "@/components/presence/presence-for";
 import { EmergencyCodeCard, TemplateSplitView } from "@/components/operations/ui";
 import { MapView } from "@/components/platform/client/map-view";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
@@ -82,6 +83,7 @@ import { rememberView } from "@/lib/shell/recents";
 import { instantToLocal } from "@/lib/operations/time";
 import { IncidentOshaPanel } from "@/components/compliance/osha-panels";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 /**
  * Safety incidents (Section 4.2: incidents with dispatch, emergency codes, radio): the incident
@@ -244,26 +246,29 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
   }
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={incidents.length}
-        views={views}
-        view={view}
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={incidents.length}
+          views={views}
+          view={view}
 
-        action={
-          canReport ? (
-            <ButtonLink
-              href={sectionHref(page, { create: "1", peek: undefined, section })}
-              variant="primary"
-            >
-              {t("incidents.report")}
-            </ButtonLink>
-          ) : undefined
-        }
-      />
+          action={
+            canReport ? (
+              <ButtonLink
+                href={sectionHref(page, { create: "1", peek: undefined, section })}
+                variant="primary"
+              >
+                {t("incidents.report")}
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+      }
+    >
       <ProjectFilter
         page={page}
         section={section}
@@ -302,7 +307,7 @@ export async function IncidentsSection({ page }: { page: ModulePage }) {
       {peekId ? (
         <IncidentRecord page={page} id={peekId} section={section} severities={severities} />
       ) : null}
-    </>
+    </CollectionPage>
   );
 }
 
@@ -524,6 +529,7 @@ async function IncidentRecord({
         />
       }
     >
+      <PresenceFor table="incidents" id={incident.id} />
       <DocumentActions org={page.ctx.org.slug} kind="incident-report" id={incident.id} />
       <IncidentOshaPanel ctx={page.ctx} incidentId={incident.id} members={memberList} />
       {moves.length > 0 && (canDispatch || canWrite) ? (
@@ -867,6 +873,12 @@ async function IncidentRecord({
 
 // Dispatch board ------------------------------------------------------------------------------------
 
+/**
+ * How fast the dispatch board follows incidents and dispatches (Section 11.11: a new incident visible
+ * to dispatch in under 2 s): a short batch and at most two rereads a second while changes keep coming.
+ */
+const DISPATCH_PACING = { batchMs: 100, minIntervalMs: 500, maxIntervalMs: 4_000 } as const;
+
 export async function DispatchBoardSection({ page }: { page: ModulePage }) {
   const t = page.t;
   const section = "dispatch";
@@ -906,28 +918,38 @@ export async function DispatchBoardSection({ page }: { page: ModulePage }) {
   });
 
   return (
-    <>
-      <LiveRefresh seconds={2} />
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={open.length}
-        views={views}
-        view={view}
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={open.length}
+          views={views}
+          view={view}
 
-        action={
-          can(page, "safety.incident.write") ? (
-            <ButtonLink
-              href={
-                `/${page.ctx.org.slug}/safety/incidents?create=1${page.project ? `&project=${page.project.key}` : ""}` as Route
-              }
-              variant="primary"
-            >
-              {t("incidents.report")}
-            </ButtonLink>
-          ) : undefined
-        }
+          action={
+            can(page, "safety.incident.write") ? (
+              <ButtonLink
+                href={
+                  `/${page.ctx.org.slug}/safety/incidents?create=1${page.project ? `&project=${page.project.key}` : ""}` as Route
+                }
+                variant="primary"
+              >
+                {t("incidents.report")}
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+      }
+    >
+      {/* Realtime, not polling: incidents and dispatches of the org stream to the board (0470, ADR 0083). */}
+      <LiveRefresh
+        topics={[
+          { table: "incidents", filter: `org_id=eq.${page.ctx.org.id}` },
+          { table: "dispatch_assignments", filter: `org_id=eq.${page.ctx.org.id}` },
+        ]}
+        pacing={DISPATCH_PACING}
       />
       <ProjectFilter page={page} section={section} />
       <p className="m-0 text-text-12 text-text-secondary" aria-live="polite">
@@ -962,7 +984,7 @@ export async function DispatchBoardSection({ page }: { page: ModulePage }) {
       {peekId ? (
         <IncidentRecord page={page} id={peekId} section={section} severities={severities} />
       ) : null}
-    </>
+    </CollectionPage>
   );
 }
 
@@ -1023,15 +1045,18 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
   ];
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={codes.length}
-        views={views}
-        view={view}
-      />
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={codes.length}
+          views={views}
+          view={view}
+        />
+      }
+    >
       <ProjectFilter page={page} section={section} />
       <p className="m-0 text-text-13 text-text-secondary">{t("incidents.codes.explain")}</p>
       {codes.length > 0 && codes.every((c) => c.id === undefined) ? (
@@ -1061,7 +1086,7 @@ export async function EmergencyCodesSection({ page }: { page: ModulePage }) {
         />
       )}
       {peek ? <CodeRecord page={page} code={codes.find((c) => c.code === peek)} /> : null}
-    </>
+    </CollectionPage>
   );
 }
 
@@ -1325,26 +1350,29 @@ export async function RadioChannelsSection({ page }: { page: ModulePage }) {
   ];
 
   return (
-    <>
-      <Header
-        page={page}
-        section={section}
-        title={title}
-        count={channels.length}
-        views={views}
-        view={view}
+    <CollectionPage
+      header={
+        <Header
+          page={page}
+          section={section}
+          title={title}
+          count={channels.length}
+          views={views}
+          view={view}
 
-        action={
-          canWrite ? (
-            <ButtonLink
-              href={sectionHref(page, { create: "1", peek: undefined, section: undefined })}
-              variant="primary"
-            >
-              {t("incidents.radio.new")}
-            </ButtonLink>
-          ) : undefined
-        }
-      />
+          action={
+            canWrite ? (
+              <ButtonLink
+                href={sectionHref(page, { create: "1", peek: undefined, section: undefined })}
+                variant="primary"
+              >
+                {t("incidents.radio.new")}
+              </ButtonLink>
+            ) : undefined
+          }
+        />
+      }
+    >
       <ProjectFilter page={page} section={section} />
       {creating && canWrite ? (
         page.project ? (
@@ -1436,7 +1464,7 @@ export async function RadioChannelsSection({ page }: { page: ModulePage }) {
           canWrite={canWrite}
         />
       ) : null}
-    </>
+    </CollectionPage>
   );
 }
 

@@ -28,6 +28,7 @@ import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import { StateHistory } from "@/components/collection-kit/history";
+import { PresenceFor } from "@/components/presence/presence-for";
 import {
   ActionButton,
   EntityForm,
@@ -52,6 +53,7 @@ import {
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
@@ -87,10 +89,9 @@ export async function PurchaseOrdersSection({
   const title = t("orders.title");
   if (!all.ok || !projects.ok || !vendors.ok || !rules.ok || !currencies.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("orders.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const orders = projectId ? all.data.filter((o) => o.projectId === projectId) : all.data;
@@ -231,7 +232,9 @@ export async function PurchaseOrdersSection({
         fullHref={withQuery(path, state, { peek: selected.id, full: "1" })}
         properties={properties(selected)}
         actions={controls(selected)}
-      />
+      >
+        <PresenceFor table="purchase_orders" id={selected.id} />
+      </PeekDrawer>
     );
   }
 
@@ -323,6 +326,7 @@ async function PurchaseOrderRecord({
         </>
       }
     >
+      <PresenceFor table="purchase_orders" id={order.id} />
       <KitSection id="po-lines" title={t("orders.lines")}>
         {lines.data.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">{t("orders.noLines")}</p>

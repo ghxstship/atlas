@@ -20,7 +20,7 @@ test("shipments, dock schedule and yard log render in every view", async ({ page
     await expect(page.getByRole("heading", { level: 1, name: "Shipments" })).toBeVisible();
     await expectAccessibleInBothThemes(page);
   }
-  for (const view of ["resource-schedule", "list", "calendar"]) {
+  for (const view of ["resource-schedule", "list", "calendar", "table"]) {
     await page.goto(`/${ORG}/logistics/dock-schedule?view=${view}&week=2027-03-08&month=2027-03`);
     await expect(page.getByRole("heading", { level: 1, name: "Dock schedule" })).toBeVisible();
     await expectAccessibleInBothThemes(page);

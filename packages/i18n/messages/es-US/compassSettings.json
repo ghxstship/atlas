@@ -115,5 +115,40 @@
     "leaveAccountBody": "Pierdes el acceso a la cuenta de empresa de {org} de inmediato. Tu perfil y tus documentos siguen siendo tuyos.",
     "accountsNone": "No perteneces a ninguna cuenta de empresa.",
     "createInGateway": "Abre Gateway, Ajustes, Organizaciones."
+  },
+  "payoutTax": {
+    "noPayouts": "Aún no hay destinos de pago. Cada organización configura dónde te paga con su proveedor de pagos, normalmente durante la incorporación.",
+    "signed": "Firmado el {date}",
+    "address": {
+      "needed": "Falta la dirección postal",
+      "complete": "Dirección postal registrada"
+    },
+    "addAddress": "Agregar dirección",
+    "editAddress": "Editar dirección",
+    "addressHelp": "Las organizaciones necesitan el nombre y la dirección postal de tu W-9 para el 1099-NEC que presentan al cierre del año. Sin conexión, se guarda en este teléfono y se sube cuando vuelvas a tener conexión.",
+    "addressIncomplete": "Indica la dirección, la ciudad y el código postal tal como aparecen en el formulario.",
+    "giveTaxForm": "Entregar un formulario fiscal",
+    "giveTaxFormReason": "Se abre en Gateway. El formulario fiscal se entrega a la organización que lo pide, desde la incorporación de esa contratación, y Compass no tiene una pantalla de contrataciones."
+  },
+  "calendarFeeds": {
+    "share": "Copiar o compartir el enlace",
+    "linkHelp": "Copia o comparte el enlace ahora. Se muestra solo una vez; después de salir de esta pantalla solo podrás obtener uno nuevo.",
+    "rotated": "Se emitió un enlace nuevo. El enlace anterior dejó de funcionar.",
+    "revoked": "Calendario revocado. Su enlace dejó de funcionar."
+  },
+  "connections": {
+    "gone": "Eso ya no está. La lista está al día.",
+    "disconnected": "{app} ya no puede actuar en tu nombre.",
+    "revokeConfirm": {
+      "title": "¿Desconectar {app}?",
+      "body": "La aplicación ya no podrá actuar en tu nombre. Vuelve a conectarla para darle acceso.",
+      "confirm": "Desconectar"
+    }
+  },
+  "developer": {
+    "description": "Los tokens permiten que tus propios scripts llamen a la API de XOS en tu nombre, cada uno en una organización y limitado a las áreas que elegiste. Revoca uno en cuanto dejes de usarlo o creas que otra persona lo tiene.",
+    "create": "Crear un token en Gateway",
+    "createReason": "Se abre en Gateway. Un token se muestra solo una vez y pertenece a la computadora que ejecuta tu script, así que créalo allí. Crearlo también pide tu segundo factor.",
+    "revoked": "{name} está revocado. Los scripts que lo usan dejan de funcionar de inmediato."
   }
 }

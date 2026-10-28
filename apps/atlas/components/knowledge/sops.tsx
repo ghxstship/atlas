@@ -26,6 +26,7 @@ import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import { LiveRefresh } from "@/components/live/live-refresh";
+import { PresenceFor } from "@/components/presence/presence-for";
 import {
   ActionButton,
   EntityForm,
@@ -43,6 +44,7 @@ import { collectionState, withQuery, type SearchParams } from "@/lib/collection-
 import type { OrgContext } from "@/lib/shell/context";
 import { rememberView } from "@/lib/shell/recents";
 import { orgToday } from "@/lib/shell/time-zone";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["list", "table"];
 
@@ -87,10 +89,9 @@ export async function SopsSection({
   const title = t("sops.title");
   if (!sops.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("sops.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canWrite = ctx.capabilities.has("knowledge.sop.write");
@@ -185,6 +186,7 @@ export async function SopsSection({
         actions={actions(sop)}
       >
         <LiveRefresh topics={[{ table: "sops", filter: `id=eq.${sop.id}` }]} />
+        <PresenceFor table="sops" id={sop.id} />
         {hasUnpublishedChanges(sop) ? (
           <InlineAlert tone="info" title={t("sops.changedTitle")}>
             {t("sops.changedBody")}
@@ -408,6 +410,7 @@ export async function SopsSection({
         properties={properties(selected)}
         actions={actions(selected)}
       >
+        <PresenceFor table="sops" id={selected.id} />
         {body(selected)}
       </PeekDrawer>
     );

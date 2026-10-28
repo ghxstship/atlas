@@ -53,7 +53,7 @@
   "historyReported": "Reportado",
   "key": "Clave",
   "kind": "Incidente",
-  "liveNotice": "Este tablero se actualiza cada dos segundos mientras está abierto.",
+  "liveNotice": "Este tablero se actualiza en vivo a medida que se reportan y despachan incidentes.",
   "location": "Ubicación",
   "mapAlternative": "Incidentes con ubicación",
   "mapLabel": "Ubicación de los incidentes",

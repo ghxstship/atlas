@@ -52,5 +52,9 @@ executionOrder:
     - settings-notifications
     - settings-out-of-office
     - settings-work-details
+    - settings-payout-and-tax
+    - settings-calendar-feeds
+    - settings-connected-apps
+    - settings-developer
     - account-delete
     - settings-sunlight-sign-out

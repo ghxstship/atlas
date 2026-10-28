@@ -134,6 +134,9 @@
     "approvedNoName": "Aprobada {time}",
     "notApproved": "Aún no aprobada",
     "authorHint": "Tú escribiste esta BEO, así que otra persona con permiso de aprobación debe aprobarla.",
+    "bulk": {
+      "approval": "Aprobación"
+    },
     "lines": {
       "title": "Menú y servicio",
       "empty": "Aún no hay líneas de menú. Agrega cada platillo y servicio con su cantidad.",

@@ -35,6 +35,7 @@ import { collectionState, withQuery, type SearchParams } from "@/lib/collection-
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { REFUSALS, workforceCopy } from "./shared";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const STATE_MAP = {
@@ -74,10 +75,9 @@ export async function HelpDeskSection({
   const title = t("helpDesk.title");
   if (!requests.ok || !teams.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("helpDesk.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const me = ctx.org.membershipId;

@@ -5,6 +5,7 @@ import {
   getRunOfShow,
   listCallSheets,
   listCalls,
+  listCueEngagements,
   listCues,
   listDaySheets,
   listRunsOfShow,
@@ -23,6 +24,7 @@ import {
   type RecordMeta,
   type SearchParams,
 } from "@/components/work/load";
+import { engagementOptions } from "@/lib/people/project-people";
 import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
@@ -103,9 +105,20 @@ export async function RunsPage({
   let peek: ReactNode = null;
   const peekId = param(search, "peek");
   if (peekId && UUID.test(peekId)) {
-    const [run, cues] = await Promise.all([getRunOfShow(db, peekId), listCues(db, peekId)]);
+    const [run, cues, setTimes] = await Promise.all([
+      getRunOfShow(db, peekId),
+      listCues(db, peekId),
+      listCueEngagements(db, peekId),
+    ]);
     if (run.ok) {
       const cueList = must(cues, "cues");
+      const canEdit = caps.has("show.run_of_show.write");
+      // Set for: the run's project's Artist engagements (R1), only where the viewer edits cues.
+      const artists = canEdit
+        ? (await engagementOptions(ctx, run.data.projectId))
+            .filter((e) => e.roleType === "Artist")
+            .map((e) => ({ value: e.engagementId, label: e.personName ?? e.accountName ?? "" }))
+        : [];
       peek = (
         <RunPeek title={`${run.data.projectKey} · ${run.data.name}`}>
           <RunBody
@@ -114,8 +127,10 @@ export async function RunsPage({
             cues={cueList}
             progress={cueProgress(cueList)}
             live={param(search, "live") === "1"}
-            canEdit={caps.has("show.run_of_show.write")}
+            canEdit={canEdit}
             canCall={caps.has("show.cue.call")}
+            setTimes={setTimes.ok ? setTimes.data : []}
+            artists={artists}
           >
             {param(search, "live") === "1" ? null : (
               <>
@@ -190,6 +205,7 @@ export async function DaySheetsPage({
       projects={meta.projects}
       canWrite={caps.has("show.day_sheet.write")}
       open={param(search, "create") === "1"}
+      {...(open ? { openId: open.id } : {})}
       peek={collectionPeek(
         peekId,
         open ? (
@@ -262,6 +278,7 @@ export async function CallSheetsPage({
       projects={meta.projects}
       canWrite={caps.has("show.call_sheet.publish")}
       open={param(search, "create") === "1"}
+      {...(open ? { openId: open.id } : {})}
       peek={collectionPeek(peekId, peek)}
     />
   );

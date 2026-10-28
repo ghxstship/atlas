@@ -36,7 +36,10 @@
       "sole_account_owner": "Una cuenta de empresa conserva al menos un Propietario. Nombre primero a otra persona Propietario.",
       "notification_channel_outside": "Una empresa solo configura Correo electrónico y Push.",
       "supplier_diversity_no_program": "Esa organización no tiene un programa de diversidad de proveedores, así que no recibe certificaciones de diversidad.",
-      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York."
+      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
+      "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
+      "submittal_response": "Este entregable técnico no está esperando tu respuesta. Recarga la página para ver en qué estado está.",
+      "submittal_note_length": "Escribe una nota de 1 a 500 caracteres."
     }
   },
   "common": {
@@ -117,7 +120,8 @@
       "approvalsCount": "{n, plural, =0 {Ninguna} other {#}}",
       "entitlements": "Beneficios",
       "entitlementsCount": "{done} de {total} entregados",
-      "rated": "Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días."
+      "rated": "Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días.",
+      "uploads": "Documentos por subir"
     },
     "documents": {
       "empty": "Aún no hay documentos. Los contratos y formularios que comparta la organización aparecen aquí.",
@@ -217,7 +221,15 @@
       "shipments": "Envíos"
     },
     "submittals": {
-      "empty": "Aún no hay entregables técnicos solicitados. Las solicitudes de planos y especificaciones aparecen aquí."
+      "empty": "Aún no se han solicitado entregables técnicos.",
+      "revision": "Revisión {n}",
+      "returned": "Devuelto: {reason}",
+      "awaiting": "Enviado. La organización lo está revisando.",
+      "note": "Nota",
+      "noteHelp": "Indica qué envías y dónde están los archivos, en hasta 500 caracteres.",
+      "submit": "Enviar",
+      "resubmit": "Volver a enviar",
+      "done": "Enviado para revisión."
     },
     "advance": {
       "empty": "Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.",
@@ -326,7 +338,8 @@
         "plusOnes": "Los acompañantes van de 0 a 20.",
         "settlementReason": "Escribe una nota o un motivo breve antes de responder.",
         "asset": "Elija aprobar, devolver o volver a enviar.",
-        "assetReason": "Indique qué cambiar para que la organización pueda revisar el recurso."
+        "assetReason": "Indique qué cambiar para que la organización pueda revisar el recurso.",
+        "submittalNote": "Escribe una nota de hasta 500 caracteres antes de enviar."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -785,6 +798,14 @@
       "smallDisadvantagedBusiness": "Pequeña empresa en desventaja",
       "hubzone": "Empresa HUBZone",
       "other": "Otra certificación"
+    },
+    "submittalKind": {
+      "shopDrawing": "Plano de taller",
+      "productData": "Datos de producto",
+      "sample": "Muestra",
+      "methodStatement": "Procedimiento de trabajo",
+      "certificate": "Certificado",
+      "other": "Otro"
     }
   },
   "explore": {
@@ -1040,7 +1061,17 @@
       "project": "Proyecto",
       "when": "Cuándo",
       "kind": "Qué",
-      "state": "Estado"
+      "state": "Estado",
+      "callKind": {
+        "shift": "Turno",
+        "dockSlot": "Horario de muelle",
+        "set": "Presentación"
+      },
+      "where": "Dónde",
+      "contact": "Contacto",
+      "message": "Mensaje",
+      "bring": "Qué llevar",
+      "bringMore": "Y {n} más"
     },
     "needsYou": {
       "title": "Te necesita",
@@ -1307,7 +1338,8 @@
       "section": "{n}. {title}",
       "submit": "Enviar respuesta",
       "sent": "Respuesta enviada. La organización la revisa después.",
-      "done": "Tu avance está completo"
+      "done": "Tu avance está completo",
+      "returned": "La organización devolvió esta respuesta: {reason}"
     },
     "sign": {
       "eyebrow": "Enlace de firma",
@@ -1336,7 +1368,8 @@
       "document_token_validity": "Este enlace de firma ya no es válido. Pide uno nuevo a la organización.",
       "document_not_awaiting_signature": "Este documento ya no espera una firma.",
       "document_signer_name": "Escribe tu nombre completo, de al menos dos caracteres.",
-      "token_invalid": "Este enlace no es válido. Usa el enlace más reciente que envió la organización."
+      "token_invalid": "Este enlace no es válido. Usa el enlace más reciente que envió la organización.",
+      "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven."
     }
   },
   "settings": {
@@ -1808,6 +1841,85 @@
       "issuedOn": "Escriba la fecha de emisión como una fecha.",
       "expiresOn": "Elija una fecha de vencimiento igual o posterior a la de emisión.",
       "orgId": "Elija la organización con la que compartirá."
+    }
+  },
+  "collections": {
+    "actions": {
+      "sign": {
+        "one": "Firmar",
+        "bulk": "{count, plural, =0 {Firmar} one {Firmar # documento} other {Firmar # documentos}}",
+        "title": "{count, plural, =0 {Firmar documentos} one {Firmar # documento} other {Firmar # documentos}}",
+        "apply": "{count, plural, one {Firmar # documento} other {Firmar # documentos}}",
+        "willChange": "{count, plural, one {Se firmará # documento a tu nombre.} other {Se firmarán # documentos a tu nombre.}}",
+        "unchanged": "{count, plural, one {# documento ya está firmado.} other {# documentos ya están firmados.}}",
+        "nothing": "Todos los documentos seleccionados ya están firmados.",
+        "none": "Ninguno de los documentos seleccionados espera tu firma.",
+        "skipped": "{count, plural, one {# documento seleccionado no espera tu firma, así que queda fuera.} other {# documentos seleccionados no esperan tu firma, así que quedan fuera.}}",
+        "final": "Una firma es definitiva y no se puede deshacer. Abre y lee cada documento antes de firmar.",
+        "done": "{count, plural, one {Firmaste # documento.} other {Firmaste # documentos.}}"
+      },
+      "submit": {
+        "one": "Enviar",
+        "bulk": "{count, plural, =0 {Enviar} one {Enviar # hoja de horas} other {Enviar # hojas de horas}}",
+        "title": "{count, plural, =0 {Enviar hojas de horas} one {Enviar # hoja de horas} other {Enviar # hojas de horas}}",
+        "apply": "{count, plural, one {Enviar # hoja de horas} other {Enviar # hojas de horas}}",
+        "willChange": "{count, plural, one {Se enviará # hoja de horas para aprobación.} other {Se enviarán # hojas de horas para aprobación.}}",
+        "unchanged": "{count, plural, one {# hoja de horas ya está enviada.} other {# hojas de horas ya están enviadas.}}",
+        "nothing": "Todas las hojas de horas seleccionadas ya están enviadas.",
+        "none": "Ninguna de las hojas de horas seleccionadas es un borrador o una rechazada tuya para enviar.",
+        "skipped": "{count, plural, one {# hoja de horas seleccionada no es tuya para enviar ahora, así que queda fuera.} other {# hojas de horas seleccionadas no son tuyas para enviar ahora, así que quedan fuera.}}",
+        "undoable": "Hasta que alguien las apruebe o rechace, Deshacer o Cmd o Ctrl+Z devuelve las hojas de horas a borrador.",
+        "done": "{count, plural, one {Enviaste # hoja de horas.} other {Enviaste # hojas de horas.}}"
+      },
+      "withdraw": {
+        "one": "Retirar",
+        "bulk": "{count, plural, =0 {Retirar} one {Retirar # postulación} other {Retirar # postulaciones}}",
+        "title": "{count, plural, =0 {Retirar postulaciones} one {Retirar # postulación} other {Retirar # postulaciones}}",
+        "apply": "{count, plural, one {Retirar # postulación} other {Retirar # postulaciones}}",
+        "willChange": "{count, plural, one {Se retirará # postulación.} other {Se retirarán # postulaciones.}}",
+        "unchanged": "{count, plural, one {# postulación ya está retirada.} other {# postulaciones ya están retiradas.}}",
+        "nothing": "Todas las postulaciones seleccionadas ya están retiradas.",
+        "none": "Ninguna de las postulaciones seleccionadas está abierta para retirarla. Responde cada oferta por separado.",
+        "skipped": "{count, plural, one {# postulación seleccionada está cerrada o tiene una oferta, así que queda fuera.} other {# postulaciones seleccionadas están cerradas o tienen una oferta, así que quedan fuera.}}",
+        "final": "Retirar es definitivo. Para que te consideren de nuevo, vuelve a postular mientras la oportunidad esté abierta.",
+        "done": "{count, plural, one {Retiraste # postulación.} other {Retiraste # postulaciones.}}"
+      }
+    },
+    "cancel": "Cancelar",
+    "checking": "Revisando las filas seleccionadas…",
+    "refusedTitle": "{count, plural, one {# fila no admite esta acción} other {# filas no admiten esta acción}}",
+    "refusedBody": "Nada cambia hasta que todas las filas puedan. Quita estas filas de la selección o resuelve lo que necesita cada una.",
+    "refusedRow": "{row}: {message}",
+    "failed": "No se pudo guardar. Inténtalo de nuevo.",
+    "refusals": {
+      "bulk_stale": "Alguien lo cambió después de que cargaste la página. Recarga para ver el cambio.",
+      "bulk_row_not_found": "Ya no está disponible para ti. Recarga la página para ver lo vigente.",
+      "bulk_field_not_editable": "Esta acción no se aplica a este elemento.",
+      "not_allowed": "Tu rol no permite hacer esto aquí.",
+      "timesheet_open_entry": "Primero registra la salida de cada registro de tiempo de su periodo.",
+      "timesheet_recall_not_submitter": "Solo quien la envió puede retirarla.",
+      "document_not_awaiting_signature": "No espera tu firma.",
+      "application_offered": "Tiene una oferta. Acéptala, recházala o haz una contraoferta por separado.",
+      "lifecycle_transition": "Ese paso no es posible desde el estado actual. Recarga para ver su estado actual.",
+      "lifecycle_conflict": "Alguien lo cambió hace un momento. Recarga para ver lo más reciente.",
+      "refused": "Las reglas de la organización no lo permiten para este elemento."
+    },
+    "menu": {
+      "label": "Acciones de {row}",
+      "open": "Abrir",
+      "copyLink": "Copiar enlace",
+      "select": "Seleccionar",
+      "deselect": "Quitar de la selección"
+    },
+    "undo": {
+      "notifications": "Avisos de deshacer",
+      "undone": "Deshecho: {label}",
+      "redone": "Rehecho: {label}",
+      "failed": "No se pudo deshacer ni rehacer: {message}",
+      "failedPlain": "No se pudo deshacer ni rehacer. Inténtalo de nuevo.",
+      "nothingToUndo": "No hay nada que deshacer.",
+      "nothingToRedo": "No hay nada que rehacer.",
+      "dismiss": "Descartar"
     }
   }
 }
