@@ -14,6 +14,7 @@ import { RiderExtraction } from "@/components/aurora/rider-extraction";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { EmptyStateLink } from "@/components/ui";
 import { peekRowMissing } from "@/lib/shell/peek-handoff";
+import { riderPartyChoices, riderPartyValue, type PartyChoice } from "@/lib/advancing/rider-party";
 import { engagementOptions } from "@/lib/people/project-people";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import type { AdvancingContext } from "./context";
@@ -50,19 +51,11 @@ function partyName(r: RiderSummary, t: Translate): string {
     : t("advancing.riders.noParty");
 }
 
-/** The 'Whose rider' value of a rider: "", "c:<counterparty id>" or "e:<engagement id>" (R2). */
-function partyValue(r: RiderSummary): string {
-  if (r.engagementId) return `e:${r.engagementId}`;
-  return r.counterpartyId ? `c:${r.counterpartyId}` : "";
-}
-
-type PartyOption = { value: string; label: string; projectId?: string };
-
 /**
  * 'Whose rider' options: counterparties, then the Artist engagements that name a person on the
  * reachable projects (R1's engagement options), labelled with the artist and the project key.
  */
-async function riderParties(actx: AdvancingContext, t: Translate): Promise<PartyOption[]> {
+async function riderParties(actx: AdvancingContext, t: Translate): Promise<PartyChoice[]> {
   const { ctx, project } = actx;
   const [parties, engagements] = await Promise.all([
     listAdvanceParties(ctx.viewer.db, ctx.org.id),
@@ -84,11 +77,6 @@ async function riderParties(actx: AdvancingContext, t: Translate): Promise<Party
         projectId: e.projectId,
       })),
   ];
-}
-
-/** Options without the project they belong to, as the selects take them. */
-function asOptions(parties: readonly PartyOption[]): { value: string; label: string }[] {
-  return parties.map((p) => ({ value: p.value, label: p.label }));
 }
 
 /**
@@ -150,7 +138,7 @@ export async function RidersCollection({
                 <CreateRiderDialog
                   org={ctx.org.slug}
                   projects={projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` }))}
-                  parties={asOptions(parties)}
+                  parties={parties}
                   defaultProjectId={project?.id ?? null}
                   defaultOpen={search["create"] === "1"}
                 />
@@ -283,13 +271,18 @@ async function RiderPage({
   actx: AdvancingContext;
   riderId: string;
   backHref: string;
-  parties: readonly PartyOption[];
+  parties: readonly PartyChoice[];
 }) {
   const { ctx, can } = actx;
   const rider = await loadRider(actx, riderId);
-  // An artist's engagement is offered only on the rider's own project.
-  const own = parties.filter((p) => p.projectId === undefined || p.projectId === rider.projectId);
   const t = await getTranslate();
+  // An artist's engagement is offered only on the rider's own project, and the rider's own party
+  // stays offered when the picker leaves it out, so saving a new title keeps it.
+  const current = riderPartyValue(rider);
+  const choices = riderPartyChoices(parties, rider.projectId, {
+    value: current,
+    label: partyName(rider, t),
+  });
   const format = await getFormatter();
   const org = ctx.org.slug;
   const project = actx.projects.find((p) => p.id === rider.projectId);
@@ -352,8 +345,8 @@ async function RiderPage({
           org={org}
           riderId={rider.id}
           title={rider.title}
-          party={partyValue(rider)}
-          parties={asOptions(own)}
+          party={current}
+          parties={choices}
           disabled={!can.rider}
         />
       </Panel>
