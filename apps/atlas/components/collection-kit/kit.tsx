@@ -16,6 +16,8 @@ import {
   buttonClass,
   type ButtonProps,
 } from "@xos/ui";
+import type { WorkflowSignal } from "@xos/data/product-workflows";
+import { signalOnSuccess } from "@xos/data/workflow-signal";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { keepInputOnSubmit, useResetOnSuccess } from "./keep-input";
@@ -540,6 +542,7 @@ export function ActionButton({
   confirm,
   refusals,
   extraFields,
+  signal,
 }: {
   action: ServerAction;
   hidden: Readonly<Record<string, string>>;
@@ -552,10 +555,15 @@ export function ActionButton({
   refusals: string;
   /** Extra fields shown in the dialog, for example a validity date. */
   extraFields?: FieldSpec[];
+  /** Workflow funnel signal sent when the act succeeds (A146). */
+  signal?: WorkflowSignal;
 }) {
   const t = useCopy("procurement.kit");
   const router = useRouter();
-  const [state, formAction, pending] = useActionState(action, INITIAL);
+  const [state, formAction, pending] = useActionState(
+    signal ? signalOnSuccess(action, signal, (s) => s.ok === true) : action,
+    INITIAL,
+  );
   const [open, setOpen] = useState(false);
   const done = useRef<ActionState | null>(null);
   useEffect(() => {

@@ -16,6 +16,7 @@ import {
   listMyLinks,
   listMySkills,
 } from "@xos/data/profiles";
+import { workflowMarker } from "@xos/data/workflow-signal";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
@@ -188,6 +189,15 @@ export default async function ProfilePage() {
       />
 
       <Card title={t("gateway.profile.strength.title")} meta={`${strength.percent}%`}>
+        {/* The Reputation funnel (A146): an incomplete profile starts it, following a missing step is its step, and a
+            complete profile completes it, counted only in a session that started it. */}
+        <span
+          key={strength.missing.length > 0 ? "start" : "done"}
+          hidden
+          {...workflowMarker(
+            strength.missing.length > 0 ? "gateway.reputation:start" : "gateway.reputation:done",
+          )}
+        />
         <ProgressBar
           label={
             strength.next
@@ -214,6 +224,7 @@ export default async function ProfilePage() {
                   {/* Stacked links four pixels apart, so each needs the minimum target itself (WCAG 2.5.8). */}
                   <Link
                     href={STRENGTH_LINKS[step] as Route}
+                    {...workflowMarker("gateway.reputation:step1")}
                     className="inline-flex min-h-target-fine items-center text-accent-text underline pointer-coarse:min-h-target-coarse"
                   >
                     {t(`gateway.profile.strength.missing.${step}`)}

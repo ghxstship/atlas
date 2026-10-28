@@ -1,5 +1,7 @@
 "use client";
 
+import type { WorkflowSignal } from "@xos/data/product-workflows";
+import { signalOnSuccess } from "@xos/data/workflow-signal";
 import { Button, Drawer, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -81,11 +83,16 @@ export function DrawerForm(props: {
   fields: readonly FieldSpec[];
   /** Query keys that open this drawer and are removed when it closes. */
   openKeys?: readonly string[];
+  /** Workflow funnel signal sent when the action succeeds (A146). */
+  signal?: WorkflowSignal;
 }) {
   const t = useTranslations("crew.form");
   const router = useRouter();
   const close = useCloseHref(props.openKeys ?? ["create", "edit"]);
-  const [state, action, pending] = useActionState(props.action, INITIAL);
+  const [state, action, pending] = useActionState(
+    props.signal ? signalOnSuccess(props.action, props.signal, (s) => s.ok === true) : props.action,
+    INITIAL,
+  );
   useEffect(() => {
     if (state.ok) {
       router.push((state.redirect as Route | undefined) ?? close);

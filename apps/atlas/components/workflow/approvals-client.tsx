@@ -1,5 +1,6 @@
 "use client";
 
+import { signalOnSuccess } from "@xos/data/workflow-signal";
 import { Button, Select, Textarea } from "@xos/ui";
 import { useId, useState } from "react";
 import {
@@ -9,14 +10,37 @@ import {
 } from "@/app/[org]/approvals/actions";
 import { ActionForm, useWorkflowT } from "./kit";
 
-/** Approve, or reject with a reason, the step an approval waits on. */
-export function DecisionForm({ org, id }: { org: string; id: string }) {
+// Each decision is the Finance funnel's step; the one that empties the person's queue completes it (A146).
+const decideAndSignal = signalOnSuccess(
+  decideApprovalAction,
+  "atlas.finance:step1",
+  (state) => state.ok === true,
+);
+const decideLastAndSignal = signalOnSuccess(
+  decideAndSignal,
+  "atlas.finance:done",
+  (state) => state.ok === true,
+);
+
+/**
+ * Approve, or reject with a reason, the step an approval waits on. `last` marks the only approval left waiting on the
+ * person.
+ */
+export function DecisionForm({
+  org,
+  id,
+  last = false,
+}: {
+  org: string;
+  id: string;
+  last?: boolean;
+}) {
   const t = useWorkflowT();
   const fieldId = useId();
   const [decision, setDecision] = useState<"approve" | "reject">("approve");
   return (
     <ActionForm
-      action={decideApprovalAction}
+      action={last ? decideLastAndSignal : decideAndSignal}
       hidden={{ org, id, decision }}
       label={t("approvals.decide.label")}
       submitLabel={

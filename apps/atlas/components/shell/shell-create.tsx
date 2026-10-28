@@ -1,5 +1,6 @@
 "use client";
 
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import {
   CommandMenu,
   QuickAddChips,
@@ -10,7 +11,7 @@ import {
 } from "@xos/ui";
 import { defaultFilter } from "cmdk";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { QuickAddAlert, quickAddResolver, useQuickAddCopy } from "@/components/quick-add/shared";
 import { quickAddRecordAction } from "@/lib/quick-add/actions";
 import { quickAddInput } from "@/lib/quick-add/fields";
@@ -74,6 +75,10 @@ export function ShellCreate({
       : {}),
   });
   const { here, rest } = orderForPage(items, pathname);
+  // Opening the menu starts the Work and records funnel; a quick add is its step and the saved record completes it.
+  useEffect(() => {
+    if (open) emitWorkflow("atlas.work_records:start");
+  }, [open]);
 
   const setOpen = (next: boolean) => {
     if (!next) {
@@ -100,6 +105,7 @@ export function ShellCreate({
 
   const add = async () => {
     if (!quickAdd || saving) return;
+    emitWorkflow("atlas.work_records:step1");
     setSaving(true);
     setError(null);
     try {
@@ -119,6 +125,7 @@ export function ShellCreate({
         setError(saved.error);
         return;
       }
+      emitWorkflow("atlas.work_records:done");
       setOpen(false);
       go(`/${quickAdd.org}/r/${encodeURIComponent(saved.data.key)}`);
     } finally {

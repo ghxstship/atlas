@@ -1,4 +1,5 @@
 import { addCalendarDays } from "@xos/data/calendar";
+import { workflowMarker } from "@xos/data/workflow-signal";
 import {
   APP_ENUMS,
   listEngagementDocuments,
@@ -273,8 +274,16 @@ export async function OnboardingTab({ view, t, locale, engagementKey }: TabProps
   }
   const today = view.today;
   const done = items.data.filter((i) => onboardingStanding(i, today) === "verified").length;
+  // The Onboard funnel (A146): a packet with something left to send starts it, and one with nothing left completes it,
+  // which counts only in a session that started it.
+  const toSend = items.data.some((i) => ["todo", "expired"].includes(onboardingStanding(i, today)));
   return (
     <div className="flex flex-col gap-16">
+      <span
+        key={toSend ? "start" : "done"}
+        hidden
+        {...workflowMarker(toSend ? "gateway.onboard:start" : "gateway.onboard:done")}
+      />
       <ProgressBar
         label={t("gateway.engagement.onboarding.progress", { n: done, total: items.data.length })}
         value={(done / items.data.length) * 100}

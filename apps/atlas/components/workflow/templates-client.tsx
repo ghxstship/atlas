@@ -1,5 +1,6 @@
 "use client";
 
+import { signalOnSuccess, workflowMarker } from "@xos/data/workflow-signal";
 import { Input, Select, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
@@ -17,6 +18,13 @@ import {
 } from "@/app/[org]/projects/templates/actions";
 import type { WorkflowActionState } from "@/lib/workflow/state";
 import { ActionForm, useWorkflowT } from "./kit";
+
+// A project created from a template completes the Projects and gates funnel (A146).
+const applyAndSignal = signalOnSuccess(
+  applyTemplateAction,
+  "atlas.projects_gates:done",
+  (state) => state.ok === true,
+);
 
 export interface Choice {
   readonly value: string;
@@ -151,8 +159,9 @@ export function ApplyTemplateForm({
   const [created, setCreated] = useState<string | null>(null);
   return (
     <div className="flex flex-col gap-8">
+      <span hidden {...workflowMarker("atlas.projects_gates:step1")} />
       <ActionForm
-        action={applyTemplateAction}
+        action={applyAndSignal}
         hidden={{ org, templateId, timeZone: zone }}
         label={t("templates.apply.label")}
         submitLabel={t("templates.apply.submit")}

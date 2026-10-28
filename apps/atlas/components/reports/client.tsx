@@ -1,6 +1,7 @@
 "use client";
 
 import { toCsv } from "@xos/data/finance";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import {
   Button,
   CoordinateMatrix,
@@ -82,7 +83,9 @@ export function MatrixWithDrill({
       cells={cells}
       onCellSelect={(dept: string, phase: string) => {
         const href = hrefFor[`${dept}|${phase}`];
-        if (href) router.push(href as Route);
+        if (!href) return;
+        emitWorkflow("atlas.reports:done");
+        router.push(href as Route);
       }}
     />
   );

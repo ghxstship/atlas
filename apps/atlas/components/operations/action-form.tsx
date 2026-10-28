@@ -1,5 +1,7 @@
 "use client";
 
+import type { WorkflowSignal } from "@xos/data/product-workflows";
+import { signalOnSuccess } from "@xos/data/workflow-signal";
 import { Button, InlineAlert } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { startTransition, useActionState, useEffect, useRef, type ReactNode } from "react";
@@ -28,6 +30,7 @@ export function ActionForm({
   variant = "primary",
   layout = "stack",
   resetOnSuccess = false,
+  signals,
   children,
 }: {
   action: FormAction;
@@ -38,9 +41,14 @@ export function ActionForm({
   variant?: "primary" | "secondary" | "danger" | "ghost";
   layout?: "stack" | "inline";
   resetOnSuccess?: boolean;
+  /** Workflow funnel signals (A146): when the form is submitted, and when the action succeeds. */
+  signals?: { readonly submit?: WorkflowSignal; readonly done?: WorkflowSignal };
   children?: ReactNode;
 }) {
-  const [state, run, pending] = useActionState(action, {});
+  const [state, run, pending] = useActionState(
+    signals?.done ? signalOnSuccess(action, signals.done, (s) => s.ok === true) : action,
+    {},
+  );
   const errors = useErrorCopy();
   const root = useTranslations() as unknown as Translate;
   const form = useRef<HTMLFormElement>(null);
@@ -61,6 +69,7 @@ export function ActionForm({
       }}
       noValidate
       className={layout === "inline" ? "flex flex-wrap items-end gap-8" : "flex flex-col gap-12"}
+      data-workflow={signals?.submit}
     >
       {Object.entries(hidden).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />

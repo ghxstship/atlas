@@ -1636,6 +1636,9 @@ tenant_exceptions:
   - table: app.product_events
     kind: platform
     note: Consent-gated product analytics events, which by design name no person and no org (A96, migration 1532).
+  - table: app.product_funnel_alerts
+    kind: platform
+    note: Regression alerts of the workflow funnels for the platform team, naming a workflow and counts, never an org (A146, migration 2340).
   - table: app.profile_section_visibility
     kind: person-owned
     note: Profile rows keyed by person_id, read by others only through api_public (A30, migration 0860).

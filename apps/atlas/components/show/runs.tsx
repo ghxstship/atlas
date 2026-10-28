@@ -2,6 +2,7 @@
 
 import type { Cue, CueProgress, RunOfShow } from "@xos/data/show";
 import type { ProjectRef, ScopeNodeRef } from "@xos/data/work";
+import { emitWorkflow, workflowMarker } from "@xos/data/workflow-signal";
 import {
   Button,
   DataTable,
@@ -38,6 +39,9 @@ import {
 import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
 import { useRowMenu } from "@/components/menus/use-row-menu";
+
+/** A called cue is the Show funnel's step (A146). */
+const cueCalled = () => emitWorkflow("atlas.show:step1");
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
@@ -498,15 +502,19 @@ export function RunBody({
               showMode
               onGo={(index) => {
                 const cue = cues[index];
-                if (cue && !cue.calledAt) calls.run(() => callCueAction(org, cue.id));
+                if (cue && !cue.calledAt) calls.run(() => callCueAction(org, cue.id), cueCalled);
               }}
             />
+            {/* Every cue called completes the Show funnel (A146). */}
+            {!next && cues.length > 0 ? (
+              <span hidden {...workflowMarker("atlas.show:done")} />
+            ) : null}
             {next ? (
               <div>
                 <Button
                   variant="primary"
                   loading={calls.pending}
-                  onClick={() => calls.run(() => callCueAction(org, next.id))}
+                  onClick={() => calls.run(() => callCueAction(org, next.id), cueCalled)}
                 >
                   {t("live.callNext")}
                 </Button>
@@ -552,9 +560,12 @@ export function RunBody({
           <Button
             variant="primary"
             icon="Play"
-            onClick={() =>
-              router.replace(withQuery(pathname, params, { live: "1" }) as Route, { scroll: false })
-            }
+            onClick={() => {
+              emitWorkflow("atlas.show:start");
+              router.replace(withQuery(pathname, params, { live: "1" }) as Route, {
+                scroll: false,
+              });
+            }}
           >
             {t("live.start")}
           </Button>

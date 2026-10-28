@@ -2,6 +2,7 @@
 
 import { Button, Dialog, IconButton, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import type { RiderLineProposal } from "@xos/data/advancing";
+import { signalOnSuccess } from "@xos/data/workflow-signal";
 import type { Route } from "next";
 import { useFormatter } from "next-intl";
 import { useRouter } from "next/navigation";
@@ -798,10 +799,17 @@ export function RevokeLinkButton({ org, linkId }: { org: string; linkId: string 
 
 // Submissions ---------------------------------------------------------------------------------------
 
+// A reviewed answer completes the Advancing funnel (A146); the reviewed row can leave the page with the result.
+const reviewAndSignal = signalOnSuccess(
+  reviewSubmissionAction,
+  "atlas.advancing:done",
+  (state) => state.ok === true,
+);
+
 /** Accept or return an answer; returning needs a reason the recipient will read. */
 export function ReviewForm({ org, submissionId }: { org: string; submissionId: string }) {
   const t = useCopy("advancing.review");
-  const [state, action, pending] = useActionState(reviewSubmissionAction, INITIAL);
+  const [state, action, pending] = useActionState(reviewAndSignal, INITIAL);
   const [returning, setReturning] = useState(false);
   const id = useId();
   return (
