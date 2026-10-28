@@ -194,3 +194,31 @@ describe("the Android ongoing notification", () => {
     expect(ongoingContent(snap({}), null, "", T0, t, formatTime, "UTC")).toBeNull();
   });
 });
+
+describe("a next cue to be confirmed (G-40, ADR 0131)", () => {
+  const tbc: GlanceCue = { ...cue, label: "Headliner · TBC", tbc: true };
+
+  it("shows its TBC label beside the shift with no time to count down to, and never alone", () => {
+    const content = activityContent(snap({ state: "on", onSince: T0 - 3600_000 }), T0, tbc);
+    expect(content).toMatchObject({ state: "on", nextCueLabel: "Headliner · TBC" });
+    expect(content).not.toHaveProperty("nextCueAt");
+    expect(cueDue(tbc, T0)).toBe(false);
+    expect(activityContent(snap({}), T0, tbc)).toBeNull();
+  });
+
+  it("gives the widgets its TBC label as text, not a cue to count down to", () => {
+    const payload = widgetPayload([], tbc, t, formatTime, "compass://today");
+    expect(payload.cue).toBeNull();
+    expect(payload.noCue).toBe("Headliner · TBC");
+  });
+
+  it("names it in the ongoing notification without a time", () => {
+    expect(
+      ongoingContent(snap({ state: "on", onSince: T0 - 3600_000 }), tbc, "Pier", T0, t, formatTime, "UTC")?.body,
+    ).toContain("compass.glance.cueTitle(cue=Headliner · TBC)");
+    expect(ongoingContent(snap({}), tbc, "", T0, t, formatTime, "UTC")).toEqual({
+      title: "compass.glance.cueTitle(cue=Headliner · TBC)",
+      body: "Pier Week",
+    });
+  });
+});

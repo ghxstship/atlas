@@ -20,6 +20,11 @@ export interface NextCue {
   readonly label: string;
   /** Its planned time, epoch milliseconds. */
   readonly at: number;
+  /**
+   * The planned time is an estimate to be confirmed (G-40): the label says TBC and nothing counts down to
+   * it, and a later cue is not counted down instead (ADR 0131).
+   */
+  readonly tbc?: boolean;
 }
 
 /**
@@ -48,7 +53,8 @@ export interface ActivityContent {
 
 /** True when a clocked-out person's next cue is close enough to start the activity for it alone. */
 export function cueDue(cue: NextCue | null | undefined, nowMs: number): cue is NextCue {
-  if (!cue) return false;
+  // A cue to be confirmed has no firm time to start the activity for.
+  if (!cue || cue.tbc) return false;
   const lead = cue.at - nowMs;
   return lead <= CUE_ACTIVITY_LEAD_MS && lead >= -CUE_ACTIVITY_LATE_MS;
 }
@@ -62,7 +68,12 @@ export function activityContent(
   nowMs: number,
   nextCue: NextCue | null = null,
 ): ActivityContent | null {
-  const cue = nextCue ? { nextCueLabel: nextCue.label, nextCueAt: nextCue.at } : {};
+  // A cue to be confirmed shows its TBC label with no time, so the activity never counts down to it.
+  const cue = nextCue
+    ? nextCue.tbc
+      ? { nextCueLabel: nextCue.label }
+      : { nextCueLabel: nextCue.label, nextCueAt: nextCue.at }
+    : {};
   if (snapshot.state === "out" || snapshot.onSince === null) {
     if (!cueDue(nextCue, nowMs)) return null;
     // The shift fields are unused in the cue state; they hold the cue's time so the record stays whole.

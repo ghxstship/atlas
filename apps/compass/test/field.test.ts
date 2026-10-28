@@ -31,12 +31,15 @@ import {
 } from "../src/domain/inspections";
 import {
   buildCallCue,
+  countdownAnnouncement,
+  cueCallLines,
   formatCountdown,
   showsCountdown,
   COUNTDOWN_HORIZON_MS,
   preCueHapticDue,
   PRE_CUE_WARNING_MS,
   showState,
+  storedDepartment,
   type Cue,
 } from "../src/domain/show";
 import {
@@ -428,6 +431,54 @@ describe("live run of show", () => {
     expect(showsCountdown(-5_000)).toBe(true);
     expect(showsCountdown(null)).toBe(false);
     expect(formatCountdown(-12_000)).toBe("+0:12");
+  });
+
+  it("takes the caller's standby as next, as Atlas does (show-timing, ADR 0131)", () => {
+    const s = showState(
+      [cue(1, -10, -10), cue(2, 2), { ...cue(3, 5), standby_at: new Date(now).toISOString() }, cue(4, 8)],
+      now,
+    );
+    // status keeps "standby" for before the first call; the caller's standby is onStandby.
+    expect(s).toMatchObject({ status: "running", onStandby: true, startTbc: false });
+    expect(s.current?.id).toBe("c1");
+    expect(s.next?.id).toBe("c3");
+    expect(s.upcoming.map((c) => c.id)).toEqual(["c4"]);
+    // A jump past cue 2: it stays uncalled behind the current cue and the show is not complete.
+    const jumped = showState([cue(1, -10, -10), cue(2, -5), cue(3, -1, -1), cue(4, 4)], now);
+    expect(jumped.current?.id).toBe("c3");
+    expect(jumped.next?.id).toBe("c4");
+    expect(showState([cue(1, -10, -10), cue(2, -5), cue(3, -1, -1)], now).status).toBe("complete");
+  });
+
+  it("never counts down, buzzes or speaks for a next cue to be confirmed", () => {
+    const s = showState([cue(1, -10, -10), { ...cue(2, -1), start_tbc: true }], now);
+    // Its estimate has passed, but a cue to be confirmed is not late.
+    expect(s).toMatchObject({ startTbc: true, status: "running" });
+    expect(preCueHapticDue(PRE_CUE_WARNING_MS + 500, PRE_CUE_WARNING_MS - 500, true)).toBe(false);
+    expect(countdownAnnouncement(61_000, 59_000, true)).toBeNull();
+    expect(countdownAnnouncement(61_000, 59_000)).toBe(60);
+  });
+
+  it("shows the chosen department's call, every call in enum order, or none", () => {
+    const calls = [
+      { id: "k3", cue_id: "c2", call_kind: "Stage", instruction: "Riser lock" },
+      { id: "k1", cue_id: "c2", call_kind: "Lighting", instruction: "LX 14 GO" },
+      { id: "k2", cue_id: "c2", call_kind: "Audio", instruction: "Host mic live" },
+      { id: "k4", cue_id: "c9", call_kind: "Lighting", instruction: "Other cue" },
+      { id: "k5", cue_id: "c2", call_kind: "Pyro", instruction: "Not a department" },
+    ];
+    expect(cueCallLines(calls, "c2", null).map((l) => l.kind)).toEqual(["Audio", "Lighting", "Stage"]);
+    expect(cueCallLines(calls, "c2", "Lighting")).toEqual([{ kind: "Lighting", instruction: "LX 14 GO" }]);
+    expect(cueCallLines(calls, "c2", "Video")).toEqual([]);
+    expect(cueCallLines(calls, undefined, null)).toEqual([]);
+  });
+
+  it("restores a remembered department, and reads one that is no longer a department as all", () => {
+    expect(storedDepartment("Lighting")).toBe("Lighting");
+    expect(storedDepartment("Special Effects")).toBe("Special Effects");
+    expect(storedDepartment("Pyro")).toBeNull();
+    expect(storedDepartment(undefined)).toBeNull();
+    expect(storedDepartment(3)).toBeNull();
   });
 
   it("calls a cue once; a second operator's call stands as applied", () => {
