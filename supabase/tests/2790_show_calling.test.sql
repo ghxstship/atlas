@@ -310,6 +310,9 @@ select is((select count(*)::int from app.cue_calls where cue_id = pg_temp.id('q4
 select pg_temp.as_platform();
 
 -- Trash and catalogs ---------------------------------------------------------------------------------------------------------------
+select is((select description from app.capabilities where code = 'show.cue.call'),
+  'Call cues live during a show: go, standby and nudging the remaining planned times.',
+  'show.cue.call says it covers standby and nudging the plan (2793)');
 select is(pg_temp.trash_set(), '', 'the Trash membership of cues, cue calls, running orders and records is unchanged (ADR 0110)');
 
 select * from finish();
