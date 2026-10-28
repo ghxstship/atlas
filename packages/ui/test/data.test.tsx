@@ -94,6 +94,17 @@ describe("DataTable", () => {
     await expectAccessible(container);
   });
 
+  // Pseudo-locale gate 16: a longer translation never hides text. Every cell that can be cut off
+  // carries its value as a title, a wrap column's too, which still keeps to one line.
+  it("gives each text cell, a wrap column's included, its value as a title", () => {
+    render(<DataTable caption="Audio" columns={columns} rows={rows} />);
+    const grid = screen.getByRole("grid");
+    const cell = (text: string) => within(grid).getByText(text).closest("td") as HTMLElement;
+    expect(cell("Flown").getAttribute("title")).toBe("Flown");
+    expect(cell("Line Array Package").getAttribute("title")).toBe("Line Array Package");
+    expect(cell("2").getAttribute("title")).toBeNull();
+  });
+
   it("moves through cells with the keyboard and activates a row with Enter", async () => {
     const onRowActivate = vi.fn();
     render(

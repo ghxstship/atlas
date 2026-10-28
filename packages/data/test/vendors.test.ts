@@ -632,39 +632,53 @@ describe("bank accounts", () => {
     expect(calls[0]?.target).toBe("from:vendor_bank_accounts_masked");
   });
 
-  it("derives the last four and refuses a number too short to have them", async () => {
+  it("adds through the encrypting RPC and refuses numbers the database would", async () => {
     const { db, calls } = commercialClient({
-      "from:vendor_bank_accounts": [okResponse({ id: "b1" })],
+      "rpc:set_vendor_bank_account": [
+        okResponse("b1"),
+        okResponse("b2"),
+        errorResponse("XR001", "bank_account_details: No.", "bank_account_details"),
+      ],
     });
-    expect(
-      (
-        await addVendorBankAccount(db, {
-          vendorId: "v1",
-          bankName: "Gulf",
-          accountHolder: "Atlas",
-          accountNumber: "0001-2345-6789",
-          routingNumber: "",
-        })
-      ).ok,
-    ).toBe(true);
-    expect(calls[0]?.steps[0]?.[1]).toEqual([
-      {
-        vendor_id: "v1",
-        bank_name: "Gulf",
-        account_holder: "Atlas",
-        account_number: "0001-2345-6789",
-        account_last4: "6789",
-        routing_number: null,
-      },
+    const input = {
+      vendorId: "v1",
+      bankName: " Gulf ",
+      accountHolder: "Atlas",
+      accountNumber: "0001-2345-6789",
+      routingNumber: "",
+    };
+    expect(await addVendorBankAccount(db, input)).toEqual({ ok: true, data: { id: "b1" } });
+    expect(calls[0]?.steps[0]).toEqual([
+      "args",
+      [
+        {
+          p_vendor_id: "v1",
+          p_bank_name: "Gulf",
+          p_account_holder: "Atlas",
+          p_account_number: "0001-2345-6789",
+        },
+      ],
     ]);
-    expect(
-      await addVendorBankAccount(db, {
-        vendorId: "v1",
-        bankName: "G",
-        accountHolder: "A",
-        accountNumber: "12-",
-        routingNumber: null,
-      }),
-    ).toEqual({ ok: false, error: { kind: "invalid", message: "account_number" } });
+    expect(await addVendorBankAccount(db, { ...input, routingNumber: " 063100277 " })).toEqual({
+      ok: true,
+      data: { id: "b2" },
+    });
+    expect((calls[1]?.steps[0]?.[1] as Record<string, unknown>[])[0]).toMatchObject({
+      p_routing_number: "063100277",
+    });
+    expect((await addVendorBankAccount(db, input)).ok).toBe(false);
+    expect(await addVendorBankAccount(db, { ...input, accountNumber: "12-" })).toEqual({
+      ok: false,
+      error: { kind: "invalid", message: "account_number" },
+    });
+    expect(await addVendorBankAccount(db, { ...input, accountNumber: "1".repeat(35) })).toEqual({
+      ok: false,
+      error: { kind: "invalid", message: "account_number" },
+    });
+    expect(await addVendorBankAccount(db, { ...input, routingNumber: "9".repeat(35) })).toEqual({
+      ok: false,
+      error: { kind: "invalid", message: "routing_number" },
+    });
+    expect(calls).toHaveLength(3);
   });
 });

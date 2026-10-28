@@ -1,3 +1,4 @@
+import { notificationCategoryChannels } from "@xos/schemas/notifications";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
@@ -15,6 +16,15 @@ export type PartyCategory = (typeof PARTY_CATEGORIES)[number];
 /** Outside channels an external party chooses; In App always shows. */
 export const PARTY_CHANNELS = ["Email", "Push"] as const;
 export type PartyChannel = (typeof PARTY_CHANNELS)[number];
+
+/**
+ * The party channels a category's kinds reach (A104): the only ones a person or a company is offered a switch for.
+ * A channel no kind of the category is delivered on could never send anything.
+ */
+export function partyChannels(category: PartyCategory): PartyChannel[] {
+  const reached = notificationCategoryChannels(category);
+  return PARTY_CHANNELS.filter((channel) => reached.includes(channel));
+}
 
 export interface PartyNotification {
   readonly id: string;
@@ -67,8 +77,9 @@ export interface PartyPreference {
 const DEFAULT_ON: Readonly<Record<PartyChannel, boolean>> = { Email: true, Push: true };
 
 /**
- * Every party category and channel with the person's choice, else the defaults of their company accounts (on
- * when any has it on, as private.person_channel_enabled resolves them since 1434), else the channel default.
+ * Every party category on each channel it reaches (partyChannels) with the person's choice, else the defaults of
+ * their company accounts (on when any has it on, as private.person_channel_enabled resolves them since 1434), else
+ * the channel default.
  */
 export async function listMyNotificationPreferences(
   db: XosClient,
@@ -86,7 +97,7 @@ export async function listMyNotificationPreferences(
   };
   return ok(
     PARTY_CATEGORIES.flatMap((category) =>
-      PARTY_CHANNELS.map((channel) => ({
+      partyChannels(category).map((channel) => ({
         category,
         channel,
         enabled:

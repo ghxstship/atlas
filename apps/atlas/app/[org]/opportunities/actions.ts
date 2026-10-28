@@ -9,6 +9,7 @@ import { errorState, type OpportunityActionState } from "@/lib/opportunities/act
 import { gatewayUrl } from "@/lib/gateway-url";
 import { parseMoney } from "@/lib/opportunities/format";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
+import { observability } from "@/lib/observability";
 
 /**
  * Opportunities server actions. Each one resolves the viewer's org context again (404 when it is gone), validates the
@@ -90,7 +91,8 @@ function action<S extends z.ZodType>(
     ) {
       const r = result as Result<unknown>;
       if (!r.ok) {
-        if (r.error.kind === "unexpected") console.error("Opportunities action failed", r.error);
+        if (r.error.kind === "unexpected")
+          observability.logger.error("Opportunities action failed", { error: r.error });
         return errorState(r.error, values);
       }
       revalidatePath(`/${ctx.org.slug}/opportunities`, "layout");

@@ -273,20 +273,26 @@ test("step-up on API key creation and on a role change", async ({ page, browser 
   await upgradeToPro(slug);
   await inviteMember(page, browser, slug, id);
 
-  // API key: the Owner has no second factor, so the dialog sets one up, then the key is created and shown once.
+  // API key: every key acts as a service account, so the Owner adds one first. The Owner has no second factor, so
+  // creating the key opens the dialog that sets one up; verifying it submits the form again, and the key shows once.
   await page.goto(`/${slug}/settings/api-keys-and-service-accounts`);
+  const account = page.getByRole("form", { name: "Add a service account" });
+  await account.getByLabel("Name").fill("Payroll robot");
+  await account.getByLabel("Role").selectOption({ label: "Manager" });
+  await account.getByRole("button", { name: "Add service account" }).click();
+  await expect(page.getByRole("listitem").filter({ hasText: "Payroll robot" })).toBeVisible();
   const keys = page.getByRole("region", { name: "API keys" });
-  await keys.getByLabel("Name", { exact: true }).fill("Payroll sync");
-  await openChoices(keys, "Areas this key can use");
-  await keys.getByLabel("Crew", { exact: true }).check();
-  await keys.getByRole("button", { name: "Create API key" }).click();
+  const create = keys.getByRole("form", { name: "Create an API key" });
+  await create.getByLabel("Name").fill("Payroll sync");
+  await openChoices(create, "Areas it may use");
+  await create.getByRole("checkbox", { name: "Crew", exact: true }).check();
+  await create.getByRole("button", { name: "Create key" }).click();
   const setUp = page.getByRole("dialog", { name: "Set up a second factor" });
   await expect(setUp).toBeVisible();
   await expectAccessible(page);
   const secret = await enrollAuthenticator(setUp);
   await expect(setUp).toBeHidden();
   await expect(keys.getByLabel("API key", { exact: true })).toHaveValue(/^xos_live_[0-9a-f]{48}$/);
-  await keys.getByRole("button", { name: "I saved it" }).click();
   await expect(keys.getByRole("list", { name: "API keys" })).toContainText("Payroll sync");
 
   // Role change, 15 minutes later in effect: the dialog asks for the app's code, then the change goes through.

@@ -3,6 +3,7 @@
 import { deleteMyAccount, type KeptCategory } from "@xos/data/account-deletion";
 import { untyped } from "@xos/data/untyped";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { observability } from "@/lib/observability";
 
 /** What the delete account form shows after a submit. */
 export interface DeleteAccountState {
@@ -30,7 +31,7 @@ export async function deleteAccountAction(
   if (!result.ok) {
     const error = result.error;
     if (error.kind === "refusal") return { refused: error.message };
-    console.error("delete_my_account failed", error);
+    observability.logger.error("delete_my_account failed", { error: error });
     return { failed: "message" in error ? error.message : error.kind };
   }
   // The confirmation shows first; its Done button posts to /auth/sign-out, which ends this

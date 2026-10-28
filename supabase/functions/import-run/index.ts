@@ -2,8 +2,9 @@
 // role. import.fetch reads a Google Sheets link through the org's Google Drive connection and saves it to the
 // imports bucket for scanning; import.detect reads every sheet of a Clean upload, records each with a proposed
 // target and suggests column mappings from saved profiles, the Playbook column map and header similarity;
-// import.validate and import.commit check and write the rows (packages/data/src/import-worker.ts). Called every
-// minute with the service key, like report-run.
+// import.validate and import.commit check and write the rows (packages/data/src/import-worker.ts), and when either
+// finishes, the person who started or committed the import is sent import.finished with a link to review it, built
+// on XOS_APP_URL (Atlas, A104; without it nobody is told). Called every minute with the service key, like report-run.
 import { createClient } from "@supabase/supabase-js";
 import { runImportJobs, supabaseImportStore } from "../_vendor/import-run.js";
 import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
@@ -15,11 +16,13 @@ serve(async (request) => {
   const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  const appUrl = Deno.env.get("XOS_APP_URL");
   const results = await runImportJobs(
     supabaseImportStore(client),
     `import-run:${crypto.randomUUID()}`,
     10,
     {
+      ...(appUrl ? { appUrl } : {}),
       sheetsFetch: (url, init) =>
         fetch(url, {
           headers: { ...init.headers },
