@@ -32,4 +32,5 @@ comment on column app.airports.is_active is 'False for an airport no longer offe
 alter table app.airports enable row level security;
 revoke all on app.airports from public, anon, authenticated;
 grant select on app.airports to authenticated, service_role;
-create policy airports_read on app.airports for select to authenticated using (is_active);
+-- Active rows only; the signed-in check keeps the policy in the shape invariant 5 requires (pgTAP 0205).
+create policy airports_read on app.airports for select to authenticated using ((select auth.uid()) is not null and is_active);
