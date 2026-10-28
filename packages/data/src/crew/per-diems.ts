@@ -108,6 +108,16 @@ export async function addPerDiems(
   return ok({ count: Number(data ?? 0) });
 }
 
+/**
+ * True when the viewer holds crew.time_entry.write on the project (app.can_add_per_diems), the check
+ * add_per_diems and the write policy apply. For showing Add and Remove only.
+ */
+export async function canAddPerDiems(db: XosClient, projectId: string): Promise<Result<boolean>> {
+  const { data, error } = await db.rpc("can_add_per_diems", { p_project_id: projectId });
+  if (error) return fail(toDataError(error));
+  return ok(data === true);
+}
+
 export async function removePerDiem(db: XosClient, id: string): Promise<Result<null>> {
   const { data, error } = await db
     .from("per_diems")

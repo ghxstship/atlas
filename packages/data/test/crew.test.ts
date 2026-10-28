@@ -6,6 +6,7 @@ import {
   approvePayrollRun,
   byCode,
   calculatePayrollRun,
+  canAddPerDiems,
   cancelSwap,
   cancelTimeOff,
   claimOpenShift,
@@ -1234,6 +1235,16 @@ describe("per diems", () => {
       "engagement_not_working",
     );
     expect(await addPerDiems(db, input)).toEqual({ ok: false, error: { kind: "not-found" } });
+  });
+
+  it("asks can_add_per_diems whether Add shows on a project", async () => {
+    const { db, calls } = client({
+      "rpc:can_add_per_diems": [okResponse(true), okResponse(false), denied()],
+    });
+    expect(await canAddPerDiems(db, "pr1")).toEqual({ ok: true, data: true });
+    expect(calls[0]?.steps[0]?.[1]).toEqual([{ p_project_id: "pr1" }]);
+    expect(await canAddPerDiems(db, "pr1")).toEqual({ ok: true, data: false });
+    expect((await canAddPerDiems(db, "pr1")).ok).toBe(false);
   });
 
   it("removes a per diem with a soft delete", async () => {

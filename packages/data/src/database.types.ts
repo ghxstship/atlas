@@ -60652,6 +60652,7 @@ export type Database = {
         Returns: number;
       };
       call_cue: { Args: { p_cue_id: string }; Returns: string };
+      can_add_per_diems: { Args: { p_project_id: string }; Returns: boolean };
       can_export_org: { Args: { p_org_id: string }; Returns: boolean };
       cancel_approval: {
         Args: { p_approval_instance_id: string; p_reason: string };

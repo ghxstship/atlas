@@ -9,6 +9,8 @@
 --   * The table's triggers still decide the rest: a closed production (t40_guard_per_diem), an engagement that
 --     names no person or is not Active or Closing (t38_guard_engaged_worker), another project's engagement (t39)
 --     and a negative amount.
+--   * app.can_add_per_diems(project) says whether the signed-in person holds crew.time_entry.write on the project,
+--     so Atlas shows Add and Remove by the project, not by org-wide reach. For showing controls only.
 -- Removing a per diem stays a soft delete under the write policy.
 
 create or replace function app.add_per_diems(
@@ -77,3 +79,17 @@ $$;
 comment on function app.add_per_diems(uuid, uuid, uuid, date, date, bigint, char) is 'Atlas Crew > Per Diems (R1): adds one per diem a day from p_from to p_to (at most 62 days) for one member of the project''s org or one engagement, with org_id from the project. Needs crew.time_entry.write on the project. Refusals: per_diem_one_worker, per_diem_range, per_diem_member_org, and per_diem_day_taken naming the first day already recorded; the table''s triggers refuse a closed production and an engagement that names no person or is not Active or Closing. Returns the number of days added.';
 revoke all on function app.add_per_diems(uuid, uuid, uuid, date, date, bigint, char) from public, anon;
 grant execute on function app.add_per_diems(uuid, uuid, uuid, date, date, bigint, char) to authenticated, service_role;
+
+create or replace function app.can_add_per_diems(p_project_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.can_on_project(p_project_id, 'crew.time_entry.write');
+$$;
+
+comment on function app.can_add_per_diems(uuid) is 'True when the signed-in person holds crew.time_entry.write on the project, the check app.add_per_diems and the per diem write policy apply (R1). For showing the Atlas Per Diems Add and Remove controls only; the function and the policy still decide every write.';
+revoke all on function app.can_add_per_diems(uuid) from public, anon;
+grant execute on function app.can_add_per_diems(uuid) to authenticated, service_role;

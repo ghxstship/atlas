@@ -1,7 +1,7 @@
 -- pgTAP: migration 2603 (R1), app.add_per_diems. Three days for a member and for an Active individual engagement;
 -- the range, day taken, one worker and member org refusals; the engaged worker triggers still refuse a company
--- engagement and an Onboarding one; callers without crew.time_entry.write get 42501; the engaged person reads
--- their own per diems through api_external.per_diems.
+-- engagement and an Onboarding one; callers without crew.time_entry.write get 42501 and can_add_per_diems says false;
+-- the engaged person reads their own per diems through api_external.per_diems.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -62,6 +62,18 @@ select throws_ok(format($$select app.add_per_diems(%L, null, %L, '2027-06-10', '
 select pg_temp.as_anon();
 select throws_ok(format($$select app.add_per_diems(%L, %L, null, '2027-06-10', '2027-06-11', 6500, 'USD')$$, pg_temp.id('prj_a'), pg_temp.id('dave@org_a')),
   '42501', null, 'anon is refused');
+
+-- app.can_add_per_diems answers the same question for the Atlas controls.
+select pg_temp.as_user('carol');
+select ok(app.can_add_per_diems(pg_temp.id('prj_a')), 'can_add_per_diems: true with crew.time_entry.write on the project');
+select pg_temp.as_user('gina');
+select ok(not app.can_add_per_diems(pg_temp.id('prj_a')), 'can_add_per_diems: false without it');
+select pg_temp.as_user('erin');
+select ok(not app.can_add_per_diems(pg_temp.id('prj_a')), 'can_add_per_diems: false for a Collaborator on the project');
+select pg_temp.as_user('ivy');
+select ok(not app.can_add_per_diems(pg_temp.id('prj_a')), 'can_add_per_diems: false for the engaged person');
+select pg_temp.as_anon();
+select throws_ok(format($$select app.can_add_per_diems(%L)$$, pg_temp.id('prj_a')), '42501', null, 'can_add_per_diems: anon may not call it');
 
 -- Reading and removing ---------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('ivy');

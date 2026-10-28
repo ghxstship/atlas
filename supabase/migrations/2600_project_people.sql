@@ -100,17 +100,29 @@ set search_path = ''
 as $$
 begin
   perform private.require_membership_in(p_org_id);
+  -- Reach is decided once per project, not once per engagement row: each check runs up to nine
+  -- can_on_project calls, and the Assets and Dock pages read the whole org's engagements.
   return query
-    select e.id, e.project_id, p.project_key, e.role_type, e.engagement_state, e.person_id, h.full_name, o.name
-    from app.engagements e
-    join app.projects p on p.id = e.project_id and p.org_id = p_org_id
-    left join app.people h on h.id = e.person_id
-    left join app.counterparties c on c.id = e.counterparty_id
+    with live as (
+      select e.id, e.project_id, e.role_type, e.engagement_state, e.person_id, e.counterparty_id
+      from app.engagements e
+      join app.projects p on p.id = e.project_id and p.org_id = p_org_id
+      where e.deleted_at is null and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing')
+        and (p_project_id is null or e.project_id = p_project_id)
+    ),
+    reached as materialized (
+      select p.id, p.project_key
+      from app.projects p
+      where p.id in (select live.project_id from live) and private.project_people_reach(p.id)
+    )
+    select live.id, live.project_id, reached.project_key, live.role_type, live.engagement_state, live.person_id,
+      h.full_name, o.name
+    from live
+    join reached on reached.id = live.project_id
+    left join app.people h on h.id = live.person_id
+    left join app.counterparties c on c.id = live.counterparty_id
     left join app.organizations o on o.id = c.organization_id
-    where e.deleted_at is null and e.engagement_state in ('Onboarding', 'Blocked', 'Active', 'Closing')
-      and (p_project_id is null or e.project_id = p_project_id)
-      and private.project_people_reach(e.project_id)
-    order by p.project_key, e.role_type, coalesce(o.name, h.full_name), e.id;
+    order by reached.project_key, live.role_type, coalesce(o.name, h.full_name), live.id;
 end;
 $$;
 
