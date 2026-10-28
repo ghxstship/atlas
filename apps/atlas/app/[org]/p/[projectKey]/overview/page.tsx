@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import type { Route } from "next";
 import { ActivityFeed } from "@/components/activity/activity-feed";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { SummaryEntry } from "@/components/aurora/entry/summary-entry";
 import { AttachmentsPanel, CommentsPanel } from "@/components/projects/collab-panels";
 import { ReadinessPanel } from "@/components/projects/readiness-panel";
@@ -220,6 +221,7 @@ export default async function OverviewPage({
             </Link>
           </p>
         </section>
+        <CustomFieldsPanel org={ctx.org.org.slug} table="app.projects" id={project.id} />
         {feed ? (
           <section aria-labelledby="recent-activity" className="flex flex-col gap-8">
             <h2 id="recent-activity" className="m-0 text-heading-16 font-semibold">
