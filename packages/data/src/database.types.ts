@@ -502,13 +502,6 @@ export type Database = {
             referencedRelation: "shifts";
             referencedColumns: ["id"];
           },
-          {
-            foreignKeyName: "clock_punches_time_entry_id_fkey";
-            columns: ["time_entry_id"];
-            isOneToOne: false;
-            referencedRelation: "time_entries";
-            referencedColumns: ["id"];
-          },
         ];
       };
       credentials: {
@@ -11505,6 +11498,7 @@ export type Database = {
           shift_id: string | null;
           skew_flagged: boolean;
           source: Database["app"]["Enums"]["punch_source"];
+          time_entry_created_at: string | null;
           time_entry_id: string | null;
           updated_at: string;
           updated_by: string | null;
@@ -11534,6 +11528,7 @@ export type Database = {
           shift_id?: string | null;
           skew_flagged?: boolean;
           source: Database["app"]["Enums"]["punch_source"];
+          time_entry_created_at?: string | null;
           time_entry_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -11562,6 +11557,7 @@ export type Database = {
           shift_id?: string | null;
           skew_flagged?: boolean;
           source?: Database["app"]["Enums"]["punch_source"];
+          time_entry_created_at?: string | null;
           time_entry_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
@@ -11674,10 +11670,10 @@ export type Database = {
           },
           {
             foreignKeyName: "clock_punches_time_entry_id_fkey";
-            columns: ["time_entry_id"];
+            columns: ["time_entry_id", "time_entry_created_at"];
             isOneToOne: false;
             referencedRelation: "time_entries";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "created_at"];
           },
           {
             foreignKeyName: "clock_punches_updated_by_fkey";
@@ -29921,6 +29917,76 @@ export type Database = {
           },
           {
             foreignKeyName: "org_notification_defaults_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      org_separation_of_duties_options: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          rule_code: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          rule_code: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          rule_code?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "org_separation_of_duties_options_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_separation_of_duties_options_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_separation_of_duties_options_rule_code_fkey";
+            columns: ["rule_code"];
+            isOneToOne: false;
+            referencedRelation: "separation_of_duties_options";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "org_separation_of_duties_options_rule_code_fkey";
+            columns: ["rule_code"];
+            isOneToOne: false;
+            referencedRelation: "separation_of_duties_rules";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "org_separation_of_duties_options_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -51866,6 +51932,7 @@ export type Database = {
           new_values: NonNullable<Json>;
           old_values: Json | null;
           org_id: string;
+          time_entry_created_at: string;
           time_entry_id: string;
           updated_at: string;
           updated_by: string | null;
@@ -51879,6 +51946,7 @@ export type Database = {
           new_values: NonNullable<Json>;
           old_values?: Json | null;
           org_id: string;
+          time_entry_created_at?: string;
           time_entry_id: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -51891,6 +51959,7 @@ export type Database = {
           new_values?: NonNullable<Json>;
           old_values?: Json | null;
           org_id?: string;
+          time_entry_created_at?: string;
           time_entry_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -51912,10 +51981,10 @@ export type Database = {
           },
           {
             foreignKeyName: "time_entry_audit_time_entry_id_fkey";
-            columns: ["time_entry_id"];
+            columns: ["time_entry_id", "time_entry_created_at"];
             isOneToOne: false;
             referencedRelation: "time_entries";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "created_at"];
           },
           {
             foreignKeyName: "time_entry_audit_updated_by_fkey";
@@ -51939,6 +52008,7 @@ export type Database = {
           proposed_clock_out: string | null;
           reason: string;
           requested_by: string | null;
+          time_entry_created_at: string;
           time_entry_id: string;
           updated_at: string;
           updated_by: string | null;
@@ -51956,6 +52026,7 @@ export type Database = {
           proposed_clock_out?: string | null;
           reason: string;
           requested_by?: string | null;
+          time_entry_created_at?: string;
           time_entry_id: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -51972,6 +52043,7 @@ export type Database = {
           proposed_clock_out?: string | null;
           reason?: string;
           requested_by?: string | null;
+          time_entry_created_at?: string;
           time_entry_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -52000,10 +52072,10 @@ export type Database = {
           },
           {
             foreignKeyName: "time_entry_corrections_time_entry_id_fkey";
-            columns: ["time_entry_id"];
+            columns: ["time_entry_id", "time_entry_created_at"];
             isOneToOne: false;
             referencedRelation: "time_entries";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "created_at"];
           },
           {
             foreignKeyName: "time_entry_corrections_updated_by_fkey";
@@ -60250,6 +60322,28 @@ export type Database = {
         };
         Relationships: [];
       };
+      separation_of_duties_options: {
+        Row: {
+          code: string | null;
+          description: string | null;
+          enforced_on: string | null;
+          tightens: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          code?: string | null;
+          description?: string | null;
+          enforced_on?: string | null;
+          tightens?: string | null;
+        };
+        Update: {
+          code?: string | null;
+          description?: string | null;
+          enforced_on?: string | null;
+          tightens?: string | null;
+        };
+        Relationships: [];
+      };
       separation_of_duties_rules: {
         Row: {
           code: string | null;
@@ -61724,6 +61818,7 @@ export type Database = {
         }[];
       };
       console_org_detail: { Args: { p_org_id: string }; Returns: Json };
+      console_platform_metrics: { Args: { p_weeks?: number }; Returns: Json };
       console_revoke_operator: {
         Args: { p_operator_id: string; p_reason: string };
         Returns: string;
@@ -63742,6 +63837,7 @@ export type Database = {
           shift_id: string | null;
           skew_flagged: boolean;
           source: Database["app"]["Enums"]["punch_source"];
+          time_entry_created_at: string | null;
           time_entry_id: string | null;
           updated_at: string;
           updated_by: string | null;
@@ -64454,6 +64550,10 @@ export type Database = {
         Returns: string;
       };
       set_saved_view_default: { Args: { p_saved_view_id: string }; Returns: string };
+      set_separation_of_duties_option: {
+        Args: { p_on: boolean; p_org_id: string; p_rule_code: string };
+        Returns: boolean;
+      };
       set_setting: {
         Args: {
           p_locked?: boolean;

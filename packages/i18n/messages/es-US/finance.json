@@ -344,7 +344,9 @@
     "step_up_required": "Exportar datos restringidos requiere autenticación reforzada. Vuelve a iniciar sesión con tu segundo factor y descarga de nuevo.",
     "form_1099_year": "Elige un año fiscal entre 2020 y este año.",
     "deliverable_fee_fixed": "Un hito aceptado conserva su tarifa.",
-    "deliverable_fee_currency": "Define la moneda de la contratación antes de poner precio a sus hitos."
+    "deliverable_fee_currency": "Define la moneda de la contratación antes de poner precio a sus hitos.",
+    "sod_document_creator": "Su organización no permite que quien creó un documento lo apruebe. Pida a otro aprobador.",
+    "sod_change_order_requester_steps": "Su organización no permite que quien solicita una orden de cambio decida un paso de su aprobación. Pida a otro aprobador."
   },
   "collab": {
     "attachments": "Adjuntos",

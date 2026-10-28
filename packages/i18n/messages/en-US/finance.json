@@ -344,7 +344,9 @@
     "step_up_required": "Exporting Restricted data needs step-up authentication. Sign in again with your second factor, then download.",
     "form_1099_year": "Choose a tax year from 2020 to this year.",
     "deliverable_fee_fixed": "An accepted milestone keeps its fee.",
-    "deliverable_fee_currency": "Set the engagement's currency before pricing its milestones."
+    "deliverable_fee_currency": "Set the engagement's currency before pricing its milestones.",
+    "sod_document_creator": "Your organization does not let the person who created a document approve it. Ask another approver.",
+    "sod_change_order_requester_steps": "Your organization does not let the requester of a change order decide any step of its approval. Ask another approver."
   },
   "collab": {
     "attachments": "Attachments",

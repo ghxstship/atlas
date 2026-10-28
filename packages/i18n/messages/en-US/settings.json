@@ -324,6 +324,14 @@
     "offeringsGuestList": {
       "label": "Guest list",
       "help": "Guest list places for the people you engage. Offered, the Guest list tab appears on artist engagements in Gateway."
+    },
+    "homeLayout": {
+      "label": "Home layout",
+      "help": "Widen or narrow a Home tile by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width."
+    },
+    "partnerLayout": {
+      "label": "Partner console layout",
+      "help": "Widen or narrow a partner console tile by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width."
     }
   },
   "choices": {
@@ -1148,5 +1156,7 @@
       "vendor_entitlements": "Vendor Entitlements",
       "verbiage": "Verbiage Library"
     }
-  }
+  },
+  "layoutCustom": "You arranged this dashboard. Reset puts its tiles back to their default widths.",
+  "layoutDefault": "Default layout. Arrange the tiles on the dashboard itself."
 }

@@ -2,7 +2,7 @@ import { labelActivity, listActivity, restorableEntries } from "@xos/data/activi
 import { getNode } from "@xos/ia";
 import { getTranslations } from "next-intl/server";
 import { LoadError } from "@/components/projects/load-error";
-import { PageHeader } from "@/components/projects/ui";
+import { PageHeader, TemplateCollection } from "@/components/projects/ui";
 import type { OrgContext } from "@/lib/shell/context";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { ActivityFeed, type ActivityView } from "./activity-feed";
@@ -58,8 +58,7 @@ export async function ActivityPage({
     ? (nodeHref("project.overview", params) ?? "")
     : (nodeHref("projects", params) ?? "");
   return (
-    <>
-      <PageHeader title={t("title")} />
+    <TemplateCollection header={<PageHeader title={t("title")} />}>
       <ActivityFeed
         label={project ? t("projectLabel", { key: project.key }) : t("label")}
         entries={entries}
@@ -74,6 +73,6 @@ export async function ActivityPage({
             : { sentence: t("empty"), action: t("emptyAction"), href: emptyHref }
         }
       />
-    </>
+    </TemplateCollection>
   );
 }
