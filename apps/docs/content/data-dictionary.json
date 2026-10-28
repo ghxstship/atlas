@@ -27679,7 +27679,7 @@
           "type": "uuid"
         }
       ],
-      "comment": "Holiday calendars of an org (Section 4.5.6). A calendar applies to the org (at most one per subdivision and one with none) or to the venues assigned to it; time off day counts and holiday pay read the calendar that governs the work (ADR 0105).",
+      "comment": "Holiday calendars of an org (Section 4.5.6). A calendar applies to the org (at most one per subdivision and one with none) or to the venues assigned to it; time off day counts and holiday pay read the calendar that governs the work (ADR 0112).",
       "kind": "table",
       "name": "holiday_calendars",
       "partitioned": false,

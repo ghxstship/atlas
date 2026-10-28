@@ -1,6 +1,6 @@
 -- 2270_holiday_calendars.sql
 --
--- A134 (RRR-196), Section 4.5.6 Payroll and Time Off (trace S4.5.6-26), ADR 0105. Settings, Payroll and Time Off edits
+-- A134 (RRR-196), Section 4.5.6 Payroll and Time Off (trace S4.5.6-26), ADR 0112. Settings, Payroll and Time Off edits
 -- earning codes, time off policies and holiday calendars (org.payroll.write, 0203). This adds the calendars:
 --   * app.holiday_calendars: an org's named calendars, each optionally for one ISO 3166-2 subdivision (US-CA). A
 --     calendar applies to the org, at most one per subdivision plus one with none, or to the venues it is assigned to
@@ -10,7 +10,7 @@
 --     wage-hour law governs the work (private.labor_subdivision, 1384); else the org's calendar with no subdivision.
 --     Time off names no place, so a request counts its days on the org's calendar with no subdivision.
 --   * app.time_off_day_count, a computed field of app.time_off_requests: the days a request spans less the holidays on
---     that calendar. Every day counts otherwise; productions work weekends (ADR 0105).
+--     that calendar. Every day counts otherwise; productions work weekends (ADR 0112).
 --   * app.earning_codes.is_holiday: the code holiday pay is paid under (2271). A code is never both overtime and
 --     holiday, and app.calculate_payroll_run's regular code is never a holiday code.
 -- Time off policies were written under org.time_attendance.write since 0341; the API (catalog/capabilities.ts) and the
@@ -42,7 +42,7 @@ create unique index holiday_calendars_org_applies_key on app.holiday_calendars (
   where applies_to_org and deleted_at is null;
 
 call private.install_domain_table('app.holiday_calendars');
-call private.describe('app.holiday_calendars', 'Holiday calendars of an org (Section 4.5.6). A calendar applies to the org (at most one per subdivision and one with none) or to the venues assigned to it; time off day counts and holiday pay read the calendar that governs the work (ADR 0105).', array[
+call private.describe('app.holiday_calendars', 'Holiday calendars of an org (Section 4.5.6). A calendar applies to the org (at most one per subdivision and one with none) or to the venues assigned to it; time off day counts and holiday pay read the calendar that governs the work (ADR 0112).', array[
   'name', 'Calendar name, such as United States or California.',
   'subdivision_code', 'ISO 3166-2 subdivision the calendar is for, such as US-CA; NULL when it is for no one subdivision. An org calendar for a subdivision governs work under that subdivision''s wage-hour law.',
   'applies_to_org', 'True when the calendar applies across the org: the one with no subdivision everywhere, one with a subdivision to work there. Venue assignments take precedence.'

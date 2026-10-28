@@ -1,6 +1,6 @@
 -- 2271_holiday_pay.sql
 --
--- A134 (RRR-196), trace S4.5.6-26, ADR 0105: a payroll run pays holiday pay through an earning code. This restates
+-- A134 (RRR-196), trace S4.5.6-26, ADR 0112: a payroll run pays holiday pay through an earning code. This restates
 -- app.calculate_payroll_run from its latest definition, 1399 (which joined 1384's state rules to 1398's org week; 0461 and
 -- 0463 came before), and adds:
 --   * the regular earning code is never a holiday code (app.earning_codes.is_holiday, 2270), so adding HOL, which sorts
@@ -98,7 +98,7 @@ begin
     perform private.refuse('payroll_rate_missing', 'A person on an approved timesheet has no pay rate in this currency; record one in the pay rate ledger.');
   end if;
 
-  -- Holiday pay (2270, ADR 0105): each paid holiday on the calendar that governs a project, inside the period of a person's
+  -- Holiday pay (2270, ADR 0112): each paid holiday on the calendar that governs a project, inside the period of a person's
   -- approved timesheet for that project, pays its hours once a day however many projects share it. Only people with
   -- worked time in the run are paid, at the rate of the role they worked most.
   create temporary table if not exists pg_temp.holiday_hours (membership_id uuid, observed_on date, hours numeric) on commit drop;

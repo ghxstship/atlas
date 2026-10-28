@@ -1,4 +1,4 @@
--- pgTAP: 2270_holiday_calendars and 2271_holiday_pay (A134, RRR-196, ADR 0105). Holiday calendars are written under
+-- pgTAP: 2270_holiday_calendars and 2271_holiday_pay (A134, RRR-196, ADR 0112). Holiday calendars are written under
 -- org.payroll.write and read across the org; time off policies are written under the same capability; a time off
 -- request's day count skips holidays on the org's calendar; a payroll run pays holiday pay on the holiday earning code
 -- from the calendar that governs the work (venue, then subdivision, then the org's), and refuses when no code is set.
