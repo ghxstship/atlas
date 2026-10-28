@@ -3,6 +3,7 @@
 import { cx, Icon, iconButtonClass } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import {
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -24,7 +25,6 @@ interface Held {
 
 /** A favorite dragged by its move button: the pointer, where it went down, and the order before and during. */
 interface Drag {
-  readonly id: string;
   readonly pointer: number;
   readonly startY: number;
   readonly order: readonly FavoriteLink[];
@@ -93,9 +93,13 @@ export function ReorderableFavorites({
   const [announcement, setAnnouncement] = useState("");
   const handles = useRef(new Map<string, HTMLButtonElement>());
   const list = useRef<HTMLOListElement>(null);
-  const drag = useRef<Drag | null>(null);
+  // Ends the drag under way, if any, removing the window's listeners.
+  const endDrag = useRef<(() => void) | null>(null);
   // Only the latest save may put an order back; an older one that fails was already replaced.
   const saves = useRef(0);
+
+  // A drag under way when the list goes away stops listening.
+  useEffect(() => () => endDrag.current?.(), []);
 
   // This list replaces the plain one under the focus; the favorite that had it keeps it.
   useLayoutEffect(() => {
@@ -176,34 +180,38 @@ export function ReorderableFavorites({
   };
 
   // The move button is the drag handle. Pointer events, not HTML drag and drop, move it: Firefox starts no native
-  // drag from a <button>, and pointer events work the same in every browser, by mouse, pen or touch.
-  const dragHandlers = (id: string) => ({
-    onPointerDown: (event: PointerEvent<HTMLButtonElement>) => {
-      if (event.button !== 0 || held !== null) return;
-      event.currentTarget.setPointerCapture(event.pointerId);
-      drag.current = {
-        id,
-        pointer: event.pointerId,
-        startY: event.clientY,
-        order: items,
-        moving: null,
-      };
-    },
-    onPointerMove: (event: PointerEvent<HTMLButtonElement>) => {
-      const current = drag.current;
-      if (current?.pointer !== event.pointerId) return;
-      if (current.moving === null && Math.abs(event.clientY - current.startY) < DRAG_THRESHOLD) {
-        return;
-      }
+  // drag from a <button>, and pointer events work the same in every browser, by mouse, pen or touch. The window
+  // follows the pointer, since moving a row in the list can drop the button's pointer capture. Esc puts it back.
+  const startDrag = (event: PointerEvent<HTMLButtonElement>, id: string) => {
+    if (event.button !== 0 || held !== null || endDrag.current !== null) return;
+    const current: Drag = {
+      pointer: event.pointerId,
+      startY: event.clientY,
+      order: items,
+      moving: null,
+    };
+    const end = () => {
+      endDrag.current = null;
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", cancel);
+      window.removeEventListener("keydown", key, true);
+    };
+    const putBack = () => {
+      end();
+      if (current.moving !== null) setItems(current.order);
+    };
+    const move = (e: globalThis.PointerEvent) => {
+      if (e.pointerId !== current.pointer) return;
+      if (current.moving === null && Math.abs(e.clientY - current.startY) < DRAG_THRESHOLD) return;
       const from = current.moving ?? current.order;
-      const next = moveWithin(from, id, indexAt(event.clientY));
+      const next = moveWithin(from, id, indexAt(e.clientY));
       current.moving = next;
       if (next !== from) setItems(next);
-    },
-    onPointerUp: (event: PointerEvent<HTMLButtonElement>) => {
-      const current = drag.current;
-      if (current?.pointer !== event.pointerId) return;
-      drag.current = null;
+    };
+    const up = (e: globalThis.PointerEvent) => {
+      if (e.pointerId !== current.pointer) return;
+      end();
       if (current.moving === null) return;
       announce(
         "dropped",
@@ -211,14 +219,22 @@ export function ReorderableFavorites({
         current.moving.findIndex((f) => f.id === id),
       );
       void save(current.moving, current.order);
-    },
-    onPointerCancel: (event: PointerEvent<HTMLButtonElement>) => {
-      const current = drag.current;
-      if (current?.pointer !== event.pointerId) return;
-      drag.current = null;
-      if (current.moving !== null) setItems(current.order);
-    },
-  });
+    };
+    const cancel = (e: globalThis.PointerEvent) => {
+      if (e.pointerId === current.pointer) putBack();
+    };
+    const key = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== "Escape" || current.moving === null) return;
+      e.preventDefault();
+      e.stopPropagation();
+      putBack();
+    };
+    endDrag.current = end;
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+    window.addEventListener("pointercancel", cancel);
+    window.addEventListener("keydown", key, true);
+  };
 
   return (
     <nav aria-label={t("nav.atlas.actions.favorites")} className={frameClass}>
@@ -254,7 +270,7 @@ export function ReorderableFavorites({
               aria-describedby="favorites-move-help"
               aria-pressed={held?.id === f.id}
               onKeyDown={(event) => onHandleKey(event, f.id)}
-              {...dragHandlers(f.id)}
+              onPointerDown={(event) => startDrag(event, f.id)}
               onBlur={(event) => {
                 // Moving the list can drop focus for a moment (no related target); leaving for another
                 // control drops the favorite where it is.
