@@ -315,7 +315,44 @@ export async function updateRosterEntry(
   return ok(null);
 }
 
-/** Submits every Draft and Returned entry for review; returns how many. */
+/**
+ * The producing org sets or clears an engagement's names lock (R5, G-142): after `locksAt` the company side can no
+ * longer add, invite, edit Draft entries or submit new names. Null clears it; a past instant locks at once.
+ */
+export async function setRosterLock(
+  db: XosClient,
+  engagementId: string,
+  locksAt: string | null,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("set_roster_lock", {
+    p_engagement_id: engagementId,
+    // The RPC takes null to clear the lock.
+    p_locks_at: locksAt as string,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}
+
+/** The names lock of each engagement the producing org reads, by engagement id (null for no lock). */
+export async function listRosterLocks(
+  db: XosClient,
+  engagementIds: readonly string[],
+): Promise<Result<Record<string, string | null>>> {
+  if (engagementIds.length === 0) return ok({});
+  const { data, error } = await db
+    .from("engagements")
+    .select("id, roster_locks_at")
+    .in("id", [...engagementIds]);
+  if (error) return fail(toDataError(error));
+  return ok(Object.fromEntries((data ?? []).map((e) => [e.id, e.roster_locks_at])));
+}
+
+/** True once a names lock has passed. */
+export function rosterLocked(locksAt: string | null, now: Date = new Date()): boolean {
+  return locksAt !== null && new Date(locksAt).getTime() <= now.getTime();
+}
+
+/** Submits every Draft and Returned entry for review; returns how many. Under a names lock only Returned entries. */
 export async function submitRoster(db: XosClient, engagementId: string): Promise<Result<number>> {
   const { data, error } = await db.rpc("submit_roster", { p_engagement_id: engagementId });
   if (error) return fail(toDataError(error));
