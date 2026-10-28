@@ -73,12 +73,16 @@ a `.diff.png` beside its capture: the baseline dimmed, with the differing pixels
 
 ## Measurements
 
-Recorded on the baselines' simulator when they were taken:
+Taken on 2026-10-28 when the baselines were recorded: an iPhone 17 Pro simulator on iOS 26.5, a Release
+gallery build, Maestro 1.39.0. 30 pages a theme, 60 in all, about 1.9 MB of baselines.
 
-| Check                                                       | Result |
-| ----------------------------------------------------------- | ------ |
-| Two runs of the same build                                  | TBD    |
-| A component changed (the `Tag` padding), rebuilt and re-run | TBD    |
+| Check                                                                                    | Result                                                                                                                                                     |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A second run of the same build                                                           | All 60 pages identical: 0 pixels differ, largest channel change 0.                                                                                         |
+| `Tag` given 2 points more padding a side (`space["6"]` to `space["8"]`), rebuilt, re-run | 8 pages fail, exactly the four that show a Tag in each theme: chips (2,776 to 2,813 pixels), cards, up next, photo (48 to 101 pixels). The other 52 match. |
+
+The tolerance is therefore not absorbing noise on this simulator; it stays above zero for the
+anti-aliasing differences a newer simulator build may bring.
 
 ## Owner step for CI
 

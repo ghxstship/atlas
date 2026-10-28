@@ -60,7 +60,7 @@ function Page({
           <Text variant="label13" tone="secondary">
             {entry.component}
           </Text>
-          {entry.render()}
+          {entry.render(testID === undefined ? undefined : `${testID}-overlay`)}
         </View>
       ))}
     </View>

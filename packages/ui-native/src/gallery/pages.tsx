@@ -62,7 +62,11 @@ import type { RecordState } from "../types.ts";
  */
 export interface GalleryEntry {
   readonly component: NativeComponentName;
-  readonly render: () => ReactElement;
+  /**
+   * Draws the component's states. A sheet or dialog covers the page, which hides the page's test id from
+   * Maestro, so it carries `overlayTestID` instead.
+   */
+  readonly render: (overlayTestID?: string) => ReactElement;
 }
 
 export interface GalleryPage {
@@ -694,8 +698,9 @@ export const galleryPages: readonly GalleryPage[] = [
     entries: [
       {
         component: "Sheet",
-        render: () => (
+        render: (overlayTestID) => (
           <Sheet
+            {...(overlayTestID === undefined ? {} : { testID: overlayTestID })}
             open
             title="Shift details"
             onClose={noop}
@@ -714,8 +719,9 @@ export const galleryPages: readonly GalleryPage[] = [
     entries: [
       {
         component: "Dialog",
-        render: () => (
+        render: (overlayTestID) => (
           <Dialog
+            {...(overlayTestID === undefined ? {} : { testID: overlayTestID })}
             open
             danger
             title="Delete this photo?"
@@ -1023,7 +1029,7 @@ export const galleryPages: readonly GalleryPage[] = [
     ],
   },
   {
-    key: "capture",
+    key: "signature",
     entries: [
       {
         component: "SignaturePad",
@@ -1036,10 +1042,15 @@ export const galleryPages: readonly GalleryPage[] = [
           />
         ),
       },
+    ],
+  },
+  {
+    key: "photo",
+    entries: [
       {
         component: "PhotoCapture",
         render: () => (
-          <Frame rows={7}>
+          <Frame rows={10}>
             <PhotoCapture
               hint="Photograph the damage."
               count={2}

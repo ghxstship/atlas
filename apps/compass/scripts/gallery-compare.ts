@@ -345,6 +345,10 @@ function main(argv: string[]): number {
     console.log(`Recorded ${taken.length} baselines in ${baselineDir}`);
     return taken.length > 0 ? 0 : 1;
   }
+  if (!existsSync(join(baselineDir, "manifest.json"))) {
+    console.error(`No baselines in ${baselineDir}; record them with --update.`);
+    return 1;
+  }
   const { mismatch, pages } = compareFolders(captures);
   if (mismatch) {
     console.error(`Not compared: ${mismatch}. Run on that simulator, or re-record with --update.`);
