@@ -5,7 +5,7 @@ import type { CustomDataType } from "@xos/data/custom-objects";
 import { Checkbox, Drawer, Input, PropertyList, Select, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { createRecordAction, setChoiceAction } from "@/app/[org]/objects/actions";
 import { WhyCanISeeThis } from "@/components/access/why-can-i-see-this";
@@ -176,6 +176,7 @@ export function RecordPeek({
   activity,
   conversation,
   me,
+  actions,
 }: {
   org: string;
   objectKey: string;
@@ -191,6 +192,8 @@ export function RecordPeek({
   conversation: Conversation;
   /** The viewer's person id, to offer deleting their own comments and files. */
   me: string | null;
+  /** Row actions the page adds, such as Archive (A124). */
+  actions?: ReactNode;
 }) {
   const t = usePlatformT();
   const c = useTranslations("collab");
@@ -224,6 +227,7 @@ export function RecordPeek({
           />
         </ActionForm>
       ) : null}
+      {actions}
       {activity ? (
         <FieldHistoryList
           id={recordId}

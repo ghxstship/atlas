@@ -155,6 +155,15 @@ const activity = source("app.activity_export", [
   "project_id",
 ]);
 
+// The collections A124 archives hide archived rows unless `?archived=include` (every row) or
+// `?archived=only` (the archived ones), as their loaders do (packages/data/src/archive.ts).
+const ARCHIVED = {
+  column: "archived_at",
+  param: "archived",
+  options: { include: "any", only: "set" },
+  fallback: "unset",
+} as const satisfies ExportPresenceSpec;
+
 const records = source(
   "app.records",
   [
@@ -170,18 +179,14 @@ const records = source(
     "due_at",
     "project_id",
   ],
-  { filters: { kind: "record_kind", state: "record_state" } },
+  { filters: { kind: "record_kind", state: "record_state" }, presence: [ARCHIVED] },
 );
 
-const homeRecords = source("app.records", [
-  "record_number",
-  "title",
-  "record_kind",
-  "record_state",
-  "due_at",
-  "updated_at",
-  "project_id",
-]);
+const homeRecords = source(
+  "app.records",
+  ["record_number", "title", "record_kind", "record_state", "due_at", "updated_at", "project_id"],
+  { presence: [ARCHIVED] },
+);
 
 const gateCriteria = source("app.gate_criteria_status", [
   "project_id",
@@ -295,7 +300,9 @@ const shifts = source(
   { filters: { state: "shift_state" } },
 );
 
-const documents = source("app.documents", ["title", "project_id", "updated_at"]);
+const documents = source("app.documents", ["title", "project_id", "updated_at"], {
+  presence: [ARCHIVED],
+});
 
 const fulfillments = source("app.fulfillments", [
   "fulfillment_number",
@@ -747,6 +754,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   // Custom objects: every page under /objects/<key> shares this source (exportSourceFor).
   "objects/*": source("app.custom_object_records", ["title", "created_at", "updated_at"], {
     objectType: true,
+    presence: [ARCHIVED],
   }),
 
   "project/activity": inProject(activity),
@@ -879,14 +887,11 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "area_sq_ft",
     "description",
   ]),
-  "places/venues": source("app.venues", [
-    "name",
-    "jurisdiction_id",
-    "time_zone",
-    "street_address",
-    "locality",
-    "postal_code",
-  ]),
+  "places/venues": source(
+    "app.venues",
+    ["name", "jurisdiction_id", "time_zone", "street_address", "locality", "postal_code"],
+    { presence: [ARCHIVED] },
+  ),
 
   "procurement/catalog": source("app.catalog_bindings", [
     "item_id",
@@ -1026,13 +1031,17 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   ]),
 
   "vendors/classes": source("app.vendor_classes", ["name", "std_vendor_class_id", "description"]),
-  "vendors/directory": source("app.vendors", [
-    "counterparty_id",
-    "vendor_state",
-    "payment_terms_days",
-    "default_currency_code",
-    "default_account_code",
-  ]),
+  "vendors/directory": source(
+    "app.vendors",
+    [
+      "counterparty_id",
+      "vendor_state",
+      "payment_terms_days",
+      "default_currency_code",
+      "default_account_code",
+    ],
+    { presence: [ARCHIVED] },
+  ),
   "vendors/insurance_certificates": source("app.insurance_certificates", [
     "vendor_id",
     "coverage_type",
@@ -1083,16 +1092,20 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "time_zone",
     "until_at",
   ]),
-  "work/work_orders": source("app.work_orders", [
-    "work_order_number",
-    "title",
-    "work_order_state",
-    "budget_minor",
-    "currency_code",
-    "bid_due_at",
-    "scheduled_starts_at",
-    "project_id",
-  ]),
+  "work/work_orders": source(
+    "app.work_orders",
+    [
+      "work_order_number",
+      "title",
+      "work_order_state",
+      "budget_minor",
+      "currency_code",
+      "bid_due_at",
+      "scheduled_starts_at",
+      "project_id",
+    ],
+    { presence: [ARCHIVED] },
+  ),
 };
 
 /** The entry of a collection key; custom object pages share one. Null for a collection without one. */

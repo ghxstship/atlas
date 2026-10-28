@@ -15,6 +15,9 @@ import { isNodeVisible } from "@xos/ia";
 import type { RecordState } from "@xos/ui";
 import { notFound } from "next/navigation";
 import { CollectionView } from "@/components/collection-kit/collection-view";
+import { ArchiveControls } from "@/components/archive/archive-controls";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
+import { archivedOf } from "@/lib/archive/param";
 import type {
   KitBoardColumn,
   KitColumn,
@@ -154,7 +157,7 @@ async function ObjectRecords({
     views,
     await orgToday(ctx),
   );
-  const records = await listObjectRecords(ctx.viewer.db, object);
+  const records = await listObjectRecords(ctx.viewer.db, object, archivedOf(query));
   if (!records.ok) {
     return (
       <TemplateCollection header={<PageHeader title={object.label} />}>
@@ -259,6 +262,7 @@ async function ObjectRecords({
       rows={rows}
       {...(boardColumns ? { board: boardColumns } : {})}
       month={state.month}
+      filters={<ArchivedFilter id="objects-archived" />}
       actions={
         canWrite ? (
           <ButtonLink href={`${base}?create=1`} variant="primary">
@@ -306,6 +310,15 @@ async function ObjectRecords({
           activity={activity}
           conversation={conversation}
           me={ctx.viewer.person?.id ?? null}
+          actions={
+            <ArchiveControls
+              org={ctx.org.slug}
+              entity="custom_object_records"
+              id={peeked.id}
+              archivedAt={peeked.archivedAt}
+              canWrite={canWrite}
+            />
+          }
         />
       ) : null}
     </CollectionView>

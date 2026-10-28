@@ -44,6 +44,9 @@ import { collectionState, withQuery, type SearchParams } from "@/lib/collection-
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { EmptyStateLink } from "@/components/ui";
+import { ArchiveControls } from "@/components/archive/archive-controls";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
+import { archivedOf } from "@/lib/archive/param";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "gallery"];
 const REFUSALS = "vendors.refusals";
@@ -66,7 +69,7 @@ export async function VendorDirectory({
   const db = ctx.viewer.db;
   const [t, vendors, classes, rules] = await Promise.all([
     getCopy("vendors"),
-    listVendors(db, ctx.org.id),
+    listVendors(db, ctx.org.id, archivedOf(search)),
     listVendorClasses(db, ctx.org.id),
     listTransitionRules<VendorState>(db, "vendor"),
   ]);
@@ -134,20 +137,29 @@ export async function VendorDirectory({
           fullHref={withQuery(path, state, { peek: vendor.id, full: "1" })}
           properties={vendorProperties(vendor, t, className)}
           actions={
-            canWrite ? (
-              <TransitionButtons
-                action={transitionVendorAction}
+            <>
+              {canWrite ? (
+                <TransitionButtons
+                  action={transitionVendorAction}
+                  org={ctx.org.slug}
+                  id={vendor.id}
+                  expected={vendor.state}
+                  refusals={REFUSALS}
+                  moves={nextStates(rules.data, vendor.state).map((next) => ({
+                    next,
+                    label: t(`moves.${next}`),
+                    danger: next === "Blocked" || next === "Canceled",
+                  }))}
+                />
+              ) : null}
+              <ArchiveControls
                 org={ctx.org.slug}
+                entity="vendors"
                 id={vendor.id}
-                expected={vendor.state}
-                refusals={REFUSALS}
-                moves={nextStates(rules.data, vendor.state).map((next) => ({
-                  next,
-                  label: t(`moves.${next}`),
-                  danger: next === "Blocked" || next === "Canceled",
-                }))}
+                archivedAt={vendor.archivedAt}
+                canWrite={canWrite}
               />
-            ) : null
+            </>
           }
         />
       );
@@ -168,6 +180,7 @@ export async function VendorDirectory({
         { key: "classes", label: t("fields.classes"), wrap: true },
       ]}
       rows={rows}
+      filters={<ArchivedFilter id="vendors-archived" />}
       actions={
         canWrite ? (
           <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">
@@ -348,20 +361,29 @@ async function VendorRecord({
       state={{ state: recordStateOf(v.state), label: stateLabel(v.state) }}
       properties={vendorProperties(v, t, className)}
       actions={
-        canWrite ? (
-          <TransitionButtons
-            action={transitionVendorAction}
+        <>
+          {canWrite ? (
+            <TransitionButtons
+              action={transitionVendorAction}
+              org={ctx.org.slug}
+              id={v.id}
+              expected={v.state}
+              refusals={REFUSALS}
+              moves={nextStates(rules, v.state).map((next) => ({
+                next,
+                label: t(`moves.${next}`),
+                danger: next === "Blocked" || next === "Canceled",
+              }))}
+            />
+          ) : null}
+          <ArchiveControls
             org={ctx.org.slug}
+            entity="vendors"
             id={v.id}
-            expected={v.state}
-            refusals={REFUSALS}
-            moves={nextStates(rules, v.state).map((next) => ({
-              next,
-              label: t(`moves.${next}`),
-              danger: next === "Blocked" || next === "Canceled",
-            }))}
+            archivedAt={v.archivedAt}
+            canWrite={canWrite}
           />
-        ) : null
+        </>
       }
     >
       {canWrite ? (

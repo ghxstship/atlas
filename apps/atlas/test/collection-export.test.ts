@@ -160,6 +160,7 @@ describe("the plan of an export", () => {
       projectKey: null,
       objectKey: null,
       filters: [
+        { operator: "is_null", column: "archived_at" },
         { operator: "eq", column: "project_id", value: "NWL", resolve: "project" },
         { operator: "in", column: "record_kind", value: "Task,Milestone" },
         { operator: "eq", column: "record_state", value: "Active" },
@@ -240,6 +241,30 @@ describe("the plan of an export", () => {
       ]);
       expect(filters({ archived: "1", q: "gala" })).toEqual([
         { operator: "search", value: "gala" },
+      ]);
+    }
+  });
+
+  it("hides archived rows of the A124 collections unless ?archived=include or only asks", () => {
+    for (const [key, path] of [
+      ["work/all_records", "/acme/work/all-records"],
+      ["work/work_orders", "/acme/work/work-orders"],
+      ["knowledge/documents", "/acme/knowledge/documents"],
+      ["places/venues", "/acme/places/venues"],
+      ["vendors/directory", "/acme/vendors/directory"],
+      ["objects/*", "/acme/objects/sponsors"],
+    ] as const) {
+      const source = exportSourceFor(key, new URLSearchParams());
+      if (!source) throw new Error(`no ${key} source`);
+      const filters = (query: Record<string, string>) =>
+        planExport(source, path, new URLSearchParams(query))?.filters;
+      expect(filters({}), key).toEqual([{ operator: "is_null", column: "archived_at" }]);
+      expect(filters({ archived: "include" }), key).toEqual([]);
+      expect(filters({ archived: "only" }), key).toEqual([
+        { operator: "not_null", column: "archived_at" },
+      ]);
+      expect(filters({ archived: "1" }), key).toEqual([
+        { operator: "is_null", column: "archived_at" },
       ]);
     }
   });

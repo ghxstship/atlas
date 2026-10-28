@@ -52,6 +52,7 @@ import {
   type KindField,
 } from "./record-panels";
 import { RelatedRecords, type RecordRelations } from "./related-records";
+import { ArchiveControls } from "@/components/archive/archive-controls";
 
 /**
  * Everything the record peek and the record full page show (Record template, Section 11.6), read
@@ -503,6 +504,15 @@ export async function RecordBody({
         canPost={!record.deletedAt}
       />
       {detail.canWrite ? <DuplicateButton org={org} recordId={record.id} /> : null}
+      {record.deletedAt ? null : (
+        <ArchiveControls
+          org={org}
+          entity="records"
+          id={record.id}
+          archivedAt={record.archivedAt}
+          canWrite={detail.canWrite}
+        />
+      )}
       {detail.canWrite || record.deletedAt ? <TrashControls org={org} record={record} /> : null}
     </div>
   );

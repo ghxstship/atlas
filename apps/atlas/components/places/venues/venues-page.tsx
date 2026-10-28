@@ -21,7 +21,6 @@ import { Collaboration } from "../kit/collaboration";
 import { ActionButton } from "../kit/buttons";
 import { PeekTable, QueryDrawer } from "../kit/client";
 import {
-  ArchiveFilter as ArchiveFilterLinks,
   BackLink,
   Collection,
   CollectionEmpty,
@@ -35,13 +34,16 @@ import { InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
 import { MapView } from "@/components/platform/client/map-view";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
 import { VenueForm } from "./venue-form";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
+import { archivedOf } from "@/lib/archive/param";
 
 const NODE = "places.venues";
 const MAP = { width: 800, height: 480, margin: 40 } as const;
 
+/** The Archived filter (`?archived=include|only`, A124) as the venue list reads it. */
 function archiveOf(search: Search): ArchiveFilter {
-  const value = param(search, "archive");
-  return value === "archived" || value === "all" ? value : "live";
+  const value = archivedOf(search);
+  return value === "only" ? "archived" : value === "include" ? "all" : "live";
 }
 
 function address(v: Venue): string | null {
@@ -253,7 +255,7 @@ export async function VenuesPage({
       filters={
         <>
           <SearchBox path={path} search={search} label={t("places.venues.search")} />
-          <ArchiveFilterLinks path={path} search={search} current={archive} t={t} />
+          <ArchivedFilter id="venues-archived" />
         </>
       }
       overlay={overlay}
