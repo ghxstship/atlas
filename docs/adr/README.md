@@ -63,6 +63,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0061](0061-watermarked-uploaded-pdfs.md)                           | Watermarked Uploaded PDFs                                                        | Proposed |
 | [0064](0064-account-security-and-import-notices.md)                 | Account Security and Import Notices, and Only the Channels a Category Reaches    | Proposed |
 | [0065](0065-carrier-client-credentials.md)                          | UPS and FedEx Mint Their Access Tokens with the Client-Credentials Grant         | Proposed |
+| [0068](0068-denormalization-register-and-catalog-lints.md)          | Denormalization Register and Catalog Lints                                       | Proposed |
 | [0069](0069-compass-profile-certifications-and-documents.md)        | Compass Profile Certifications and Documents                                     | Accepted |
 | [0070](0070-compass-native-identity-settings.md)                    | Compass Native Identity Settings                                                 | Proposed |
 | [0071](0071-compass-personal-settings-part-2.md)                    | Compass Preferences, Notifications, Out of Office and Work Details               | Accepted |
@@ -73,4 +74,4 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0082](0082-gateway-power-editing.md)                               | Power Editing in Gateway                                                         | Accepted |
 | [0083](0083-live-lists-dispatch-board-and-presence.md)              | Live Lists, a Realtime Dispatch Board, and Presence on Records                   | Proposed |
 
-The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.
+The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
