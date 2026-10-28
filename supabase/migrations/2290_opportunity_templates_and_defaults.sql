@@ -174,10 +174,6 @@ insert into private.trash_excluded_tables (table_name, rationale) values
   ('application_template_questions', 'A question of a question template (2290). It is removed and added again in its template; a template removed whole is restored from Trash with its questions.'),
   ('opportunity_defaults', 'An org''s one row of opportunity defaults (2290), edited in place and never deleted; it has no title.');
 
--- Only this table is registered here. A full private.sync_trash_tables() would also register the tables made eligible
--- since 1033 that ADR 0110 decides (osha_cases among them, titled by a Confidential description), ahead of the
--- migration that decides them; that migration's sync keeps this row, since the table is eligible.
-insert into private.trash_tables (table_name, title_column, has_project)
-values ('application_question_templates', private.trash_title_column('app.application_question_templates'), false)
-on conflict (table_name) do nothing;
-select private.rebuild_trash_items_view();
+-- ADR 0110's rule for new soft-deletable tables: the decisions above, then the sync. 2390 runs its own sync after this
+-- one and keeps this table, which is eligible.
+select private.sync_trash_tables();
