@@ -92,12 +92,12 @@ test("a person reorders favorites by keyboard and by mouse, hears each step, and
   await expect(favorites.getByRole("button", { name: "Move My Work" })).toBeVisible();
   await expect(first).toBeFocused();
 
-  // By mouse: a favorite dropped on another takes its place, a screen reader hears it, and the order is saved.
+  // By mouse: a favorite dragged by its move button onto another takes its place, a screen reader hears it, and the
+  // order is saved.
   const dropped = nextAction(page);
   await favorites
-    .getByRole("listitem")
-    .filter({ hasText: "Inbox" })
-    .dragTo(favorites.getByRole("listitem").filter({ hasText: "My Work" }));
+    .getByRole("button", { name: "Move Inbox" })
+    .dragTo(favorites.getByRole("button", { name: "Move My Work" }));
   await expect(page.getByText("Inbox dropped at position 1 of 3.")).toBeAttached();
   await dropped;
   await expect(favorites.getByRole("link")).toHaveText(["Inbox", "My Work", "Home"]);
