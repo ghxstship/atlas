@@ -59,7 +59,7 @@
     "setFor": "Asignar a",
     "setForNone": "Sin artista",
     "setForName": "Asignado a {name}",
-    "unlink": "Quitar el horario del set de {label}"
+    "unlink": "Quitar el horario del set de {name} de {label}"
   },
   "live": {
     "title": "En vivo",

@@ -59,7 +59,7 @@
     "setFor": "Set for",
     "setForNone": "No artist",
     "setForName": "Set for {name}",
-    "unlink": "Remove the set time from {label}"
+    "unlink": "Remove {name}'s set time from {label}"
   },
   "live": {
     "title": "Live",

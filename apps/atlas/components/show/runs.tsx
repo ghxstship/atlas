@@ -411,47 +411,53 @@ function LiveCues({ runId }: { runId: string }) {
 }
 
 /**
- * A cue's Set for control in edit mode: the linked artist with an unlink button, or a select of the
- * project's Artist engagements. Gateway Set Times shows the linked cue to the artist (Section 4.4.4).
+ * A cue's Set for control in edit mode: each linked artist with an unlink button (a back-to-back set
+ * links two), then a select of the project's other Artist engagements. Gateway Set Times shows the
+ * linked cue to each artist (Section 4.4.4).
  */
 function SetFor({
   org,
   cue,
-  link,
+  links,
   artists,
   action,
 }: {
   org: string;
   cue: Cue;
-  link: CueEngagement | undefined;
+  links: readonly CueEngagement[];
   artists: readonly { value: string; label: string }[];
   action: ReturnType<typeof useAction>;
 }) {
   const t = useCopy("show");
-  if (link) {
-    return (
-      <span className="flex items-center gap-4 text-text-12">
-        {t("cues.setForName", { name: link.personName ?? t("cues.setForNone") })}
-        <IconButton
-          icon="X"
-          label={t("cues.unlink", { label: cue.label })}
-          onClick={() => action.run(() => unlinkCueAction(org, link.id))}
-        />
-      </span>
-    );
-  }
-  if (artists.length === 0) return null;
+  const unlinked = artists.filter((a) => !links.some((l) => l.engagementId === a.value));
   return (
-    <Select
-      id={`set-for-${cue.id}`}
-      label={t("cues.setFor")}
-      value=""
-      options={[{ value: "", label: t("cues.setForNone") }, ...artists]}
-      onChange={(e) => {
-        const engagementId = e.target.value;
-        if (engagementId) action.run(() => linkCueAction(org, cue.id, engagementId));
-      }}
-    />
+    <>
+      {links.map((link) => (
+        <span key={link.id} className="flex items-center gap-4 text-text-12">
+          {t("cues.setForName", { name: link.personName ?? t("cues.setForNone") })}
+          <IconButton
+            icon="X"
+            label={t("cues.unlink", {
+              name: link.personName ?? t("cues.setForNone"),
+              label: cue.label,
+            })}
+            onClick={() => action.run(() => unlinkCueAction(org, link.id))}
+          />
+        </span>
+      ))}
+      {unlinked.length > 0 ? (
+        <Select
+          id={`set-for-${cue.id}`}
+          label={t("cues.setFor")}
+          value=""
+          options={[{ value: "", label: t("cues.setForNone") }, ...unlinked]}
+          onChange={(e) => {
+            const engagementId = e.target.value;
+            if (engagementId) action.run(() => linkCueAction(org, cue.id, engagementId));
+          }}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -642,7 +648,7 @@ export function RunBody({
                     <SetFor
                       org={org}
                       cue={c}
-                      link={setTimes.find((s) => s.cueId === c.id)}
+                      links={setTimes.filter((s) => s.cueId === c.id)}
                       artists={artists}
                       action={cueAction}
                     />
