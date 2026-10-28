@@ -56,11 +56,15 @@ async function expectAccessibleInBothThemes(page: Page) {
   await settle(page);
 }
 
-/** A status message, or a toast in the page's Notifications live region (no status role there). */
+/**
+ * A status message, or a toast in the page's Notifications live region or the shell's Undo notifications region (no
+ * status role there).
+ */
 const status = (page: Page, text: string | RegExp) =>
   page
     .getByRole("status")
     .or(page.getByRole("region", { name: "Notifications", exact: true }))
+    .or(page.getByRole("region", { name: "Undo notifications", exact: true }))
     .filter({ hasText: text });
 
 /** Creates a working budget on NWS through the UI and opens it; returns its id. */
