@@ -2,7 +2,10 @@ import type { ReactElement } from "react";
 import { cx } from "../lib/cx.ts";
 import { type TemplateRecordProps } from "./Templates.types.ts";
 
-/** Every record full page: content and activity beside the 320 px property column. */
+/**
+ * Every record full page: content and activity beside the 320 px property column. The page is a record
+ * region for the shell's record shortcuts (data-shortcut-scope, lib/shortcut-targets.ts).
+ */
 export function TemplateRecord({
   header,
   children,
@@ -11,7 +14,7 @@ export function TemplateRecord({
   propertiesLabel,
 }: TemplateRecordProps): ReactElement {
   return (
-    <article className="flex flex-col gap-16 min-w-0">
+    <article data-shortcut-scope="record" className="flex flex-col gap-16 min-w-0">
       {header}
       <div className="grid grid-cols-[minmax(0,1fr)_var(--layout-property-column)] max-lg:grid-cols-[minmax(0,1fr)] gap-24">
         <div className="flex flex-col gap-16 min-w-0">{children}</div>

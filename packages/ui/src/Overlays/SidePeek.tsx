@@ -13,7 +13,9 @@ import { panelClass } from "./panelClass.tsx";
 
 /**
  * Opens a record beside the list with the one record anatomy. Non-modal: the list stays usable, Esc
- * closes and the width resizes from 440 to 960 px with the handle or arrow keys.
+ * closes and the width resizes from 440 to 960 px with the handle or arrow keys. The panel is a record
+ * region for the shell's record shortcuts (data-shortcut-scope, lib/shortcut-targets.ts): Open full,
+ * Copy link and a clickable state carry their shortcut ids, and so can controls in `children`.
  */
 export function SidePeek({
   recordKey,
@@ -46,6 +48,7 @@ export function SidePeek({
       <RDialog.Portal>
         <RDialog.Content
           aria-describedby={undefined}
+          data-shortcut-scope="record"
           onInteractOutside={(e) => e.preventDefault()}
           onCloseAutoFocus={returnFocus}
           className={cx(
@@ -75,8 +78,18 @@ export function SidePeek({
               <span className="font-mono text-text-12">{recordKey}</span>
             </span>
             <span className="flex items-center gap-2">
-              <IconButton icon="Maximize2" label={t("peek.openFull")} onClick={onOpenFull} />
-              <IconButton icon="Link2" label={t("action.copyLink")} onClick={onCopyLink} />
+              <IconButton
+                icon="Maximize2"
+                label={t("peek.openFull")}
+                onClick={onOpenFull}
+                data-shortcut="record.open"
+              />
+              <IconButton
+                icon="Link2"
+                label={t("action.copyLink")}
+                onClick={onCopyLink}
+                data-shortcut="record.copy-link"
+              />
               <RDialog.Close asChild>
                 <IconButton icon="X" label={t("action.close")} shortcut={t("key.esc")} />
               </RDialog.Close>
@@ -85,11 +98,13 @@ export function SidePeek({
           <div className="flex flex-col gap-16 p-20">
             <RDialog.Title className="m-0 text-heading-20 font-semibold">{title}</RDialog.Title>
             <div className="flex flex-wrap items-center gap-8">
-              <StateChip
-                state={state}
-                label={stateLabel}
-                {...(onStateClick ? { onClick: onStateClick } : {})}
-              />
+              {onStateClick ? (
+                <span data-shortcut="record.state" className="contents">
+                  <StateChip state={state} label={stateLabel} onClick={onStateClick} />
+                </span>
+              ) : (
+                <StateChip state={state} label={stateLabel} />
+              )}
               {chips}
             </div>
             {properties ? <PropertyList items={properties} /> : null}
