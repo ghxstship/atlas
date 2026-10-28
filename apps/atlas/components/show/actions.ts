@@ -199,13 +199,20 @@ export async function removeCueAction(org: string, cueId: string): Promise<Actio
 }
 
 /** Calls a cue now (journey 15). */
-export async function callCueAction(org: string, cueId: string): Promise<ActionResult> {
+/**
+ * Calls a cue and answers with the database's call time. It rerenders nothing: the caller's page shows the call from
+ * that time and rereads itself, and every other device hears it through Realtime, so no render competes with the
+ * call reaching them (Section 11.11, cue sync under 500 ms; ADR 0119).
+ */
+export async function callCueAction(
+  org: string,
+  cueId: string,
+): Promise<ActionResult<{ calledAt: string }>> {
   const ctx = await context(org);
   if (!id.safeParse(cueId).success) return invalid();
   const result = await callCue(ctx.viewer.db, cueId);
   if (!result.ok) return failed(result.error);
-  refresh(org);
-  return done(null);
+  return done({ calledAt: result.data.calledAt });
 }
 
 export async function saveDaySheetAction(

@@ -1,6 +1,12 @@
 "use client";
 
-import type { Cue, CueEngagement, CueProgress, RunOfShow } from "@xos/data/show";
+import {
+  cueProgress,
+  type Cue,
+  type CueEngagement,
+  type CueProgress,
+  type RunOfShow,
+} from "@xos/data/show";
 import type { ProjectRef, ScopeNodeRef } from "@xos/data/work";
 import {
   Button,
@@ -18,6 +24,7 @@ import {
   Tag,
   TemplateCollection,
   Timeline,
+  useLive,
 } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useLocale } from "next-intl";
@@ -398,11 +405,32 @@ const SHOW_PACING = { batchMs: 30, minIntervalMs: 200, maxIntervalMs: 1_000 } as
 
 /**
  * Follows cue calls live while mounted (ADR 0044): a called cue refreshes the page as soon as
- * Realtime reports it. A 15-second pull covers a dropped channel; it replaced a 2-second poll.
+ * Realtime reports it, and `onCalled` hears the call from the cue's row first, so the page can show
+ * it before the reread lands (ADR 0119). A 15-second pull covers a dropped channel; it replaced a
+ * 2-second poll.
  */
-function LiveCues({ runId }: { runId: string }) {
+function LiveCues({
+  runId,
+  onCalled,
+}: {
+  runId: string;
+  onCalled: (cueId: string, calledAt: string) => void;
+}) {
   const router = useRouter();
-  useLiveRefresh([{ table: "cues", filter: `run_of_show_id=eq.${runId}` }], SHOW_PACING);
+  const topics = [{ table: "cues", filter: `run_of_show_id=eq.${runId}` }];
+  useLiveRefresh(topics, SHOW_PACING);
+  useLive(
+    topics,
+    (changes) => {
+      for (const change of changes) {
+        const calledAt = change.row?.["called_at"];
+        if (change.type === "UPDATE" && change.id && typeof calledAt === "string") {
+          onCalled(change.id, calledAt);
+        }
+      }
+    },
+    SHOW_PACING,
+  );
   useEffect(() => {
     const timer = setInterval(() => router.refresh(), 15_000);
     return () => clearInterval(timer);
@@ -475,7 +503,7 @@ export function RunBody({
   org,
   run: runOfShow,
   cues,
-  progress,
+  progress: served,
   live,
   canEdit,
   canCall,
@@ -514,13 +542,43 @@ export function RunBody({
   // Cue times follow me.time_zone_display and carry their zone abbreviation (Section 15).
   const view = useScheduleView();
   const time = (at: string | null) => formatScheduleTime(at, locale, tz, view, "time");
+  // Calls heard from Realtime rows (cue id to called_at), held only until the next server read: a
+  // follower shows another device's call in the frame it arrives (Section 11.11, cue sync under
+  // 500 ms), and the reread that follows stays the source of truth.
+  const [heard, setHeard] = useState<{
+    readonly base: CueProgress;
+    readonly calls: Readonly<Record<string, string>>;
+  } | null>(null);
+  const progress =
+    heard && heard.base === served
+      ? cueProgress(
+          cues.map((c) => {
+            const at = heard.calls[c.id];
+            return at && c.calledAt === null ? { ...c, calledAt: at } : c;
+          }),
+        )
+      : served;
+  const onCalled = (cueId: string, calledAt: string) =>
+    setHeard((h) => ({
+      base: served,
+      calls: { ...(h?.base === served ? h.calls : {}), [cueId]: calledAt },
+    }));
+  // A call shows from the time the database gave it, then the page rereads itself.
+  const callCue = (cueId: string) =>
+    calls.run(
+      () => callCueAction(org, cueId),
+      (data) => {
+        onCalled(cueId, data.calledAt);
+        router.refresh();
+      },
+    );
   const next = progress.next >= 0 ? cues[progress.next] : undefined;
   const current = progress.current >= 0 ? cues[progress.current] : undefined;
 
   if (live) {
     return (
       <div className="flex flex-col gap-16">
-        <LiveCues runId={runOfShow.id} />
+        <LiveCues runId={runOfShow.id} onCalled={onCalled} />
         <p className="m-0 text-text-12 text-text-secondary">{t("live.syncing")}</p>
         <ActionErrorAlert error={calls.error} />
         <p role="status" className="m-0 text-heading-16 font-semibold">
@@ -557,16 +615,12 @@ export function RunBody({
               showMode
               onGo={(index) => {
                 const cue = cues[index];
-                if (cue && !cue.calledAt) calls.run(() => callCueAction(org, cue.id));
+                if (cue && !cue.calledAt) callCue(cue.id);
               }}
             />
             {next ? (
               <div>
-                <Button
-                  variant="primary"
-                  loading={calls.pending}
-                  onClick={() => calls.run(() => callCueAction(org, next.id))}
-                >
+                <Button variant="primary" loading={calls.pending} onClick={() => callCue(next.id)}>
                   {t("live.callNext")}
                 </Button>
               </div>
