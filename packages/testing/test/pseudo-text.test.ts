@@ -9,7 +9,15 @@ import {
   type Found,
 } from "../src/pseudo-text.ts";
 
-const data = new Set(["Northwind Summer Series", "Jordan Lee", "NWS"]);
+const data = new Set([
+  "Northwind Summer Series",
+  "Jordan Lee",
+  "NWS",
+  "Northwind Winter Gala",
+  "Power & Electrical",
+  "House power, capacity not confirmed.",
+  "State Fire Marshal + City",
+]);
 
 suite("pseudo-locale text", () => {
   it("counts database values, codes and Intl shapes as data", () => {
@@ -27,6 +35,17 @@ suite("pseudo-locale text", () => {
     expect(isData("NWS · Northwind Summer Series", data)).toBe(true);
     expect(isData("Jordan Lee, Mar 4", data)).toBe(true);
     expect(isData("42", data)).toBe(true);
+    expect(isData("31 Sat", data)).toBe(true);
+  });
+
+  it("counts values code composes with spaces and punctuation as data", () => {
+    expect(isData("NWG Northwind Winter Gala", data)).toBe(true);
+    expect(
+      isData("Power & Electrical 5000.06.01: House power, capacity not confirmed. (1)", data),
+    ).toBe(true);
+    expect(isData("NWS · State Fire Marshal + City ·", data)).toBe(true);
+    expect(isData("Northwind Winter Gala starts soon", data)).toBe(false);
+    expect(isData("NWS order.created", data)).toBe(false);
   });
 
   it("finds copy that missed a catalog, and raw keys even when the data holds them", () => {
@@ -41,13 +60,15 @@ suite("pseudo-locale text", () => {
       { text: "Save changes", where: "main > button" },
       { text: "Save changes", where: "dialog > button" },
       { text: "Jordan Lee", where: "main > td" },
+      { text: `Save ${"changes ".repeat(30)}`, where: "form > p" },
     ];
     const left = hardCoded(found, data);
-    expect(left).toEqual([found[0], found[2]]);
-    expect(describe(left)).toEqual([
+    expect(left).toEqual([found[0], found[2], found[4]]);
+    expect(describe(left).slice(0, 2)).toEqual([
       '"Save changes" at main > button',
       '"Save changes" at dialog > button',
     ]);
+    expect(describe(left)[2]).toHaveLength('"" at form > p'.length + 120);
   });
 
   it("knows any run of long-form content, split wherever inline markup falls", () => {
@@ -58,6 +79,13 @@ suite("pseudo-locale text", () => {
     expect(content.has("Delete everything")).toBe(false);
     expect(content.has("  ")).toBe(false);
     expect(isData("CLI to create a project.", content)).toBe(true);
+  });
+
+  it("takes identifiers as content only from a source that shows them", () => {
+    const reference = contentText(["app.time_entries", "created_at"], { identifiers: true });
+    expect(isData("app.time_entries", reference)).toBe(true);
+    expect(isData("created_at", withText(reference, []))).toBe(true);
+    expect(isData("created_at", contentText(["created_at"]))).toBe(false);
   });
 
   it("adds the values a test wrote after the data was loaded", () => {

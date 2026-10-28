@@ -46,17 +46,23 @@ function files(dir: string, extension: string): string[] {
     .map((f) => readFileSync(join(dir, f), "utf8"));
 }
 
-/** The en-US sources a pseudo-locale page renders: Markdown, the OpenAPI document, the dictionary. */
+/**
+ * The en-US sources a pseudo-locale page renders: Markdown, the OpenAPI document, the dictionary.
+ * They name tables, columns and operations, so their identifiers are content too.
+ */
 function content(): KnownText {
   const json = (file: string) => jsonStrings(JSON.parse(readFileSync(file, "utf8")));
-  return contentText([
-    ...files(join(APP, "content", "guides", "en-US"), ".md"),
-    ...["atlas", "gateway", "compass"].flatMap((shell) =>
-      files(join(APP, "..", shell, "help", "articles", "en-US"), ".md"),
-    ),
-    ...json(join(APP, "..", "..", "packages", "api", "openapi", "v1.json")),
-    ...json(join(APP, "content", "data-dictionary.json")),
-  ]);
+  return contentText(
+    [
+      ...files(join(APP, "content", "guides", "en-US"), ".md"),
+      ...["atlas", "gateway", "compass"].flatMap((shell) =>
+        files(join(APP, "..", shell, "help", "articles", "en-US"), ".md"),
+      ),
+      ...json(join(APP, "..", "..", "packages", "api", "openapi", "v1.json")),
+      ...json(join(APP, "content", "data-dictionary.json")),
+    ],
+    { identifiers: true },
+  );
 }
 
 const GUIDES = readdirSync(join(APP, "content", "guides", "en-US"))

@@ -127,7 +127,8 @@ export async function unwrappedText(page: Page): Promise<Found[]> {
         }
       }
     }
-    return out.map((f) => ({ text: f.text.slice(0, 120), where: f.where }));
+    // Whole, so a long data value is still found in the data; describe() shortens it for reports.
+    return out;
   });
 }
 
@@ -287,7 +288,11 @@ export async function untilDrawn(page: Page): Promise<void> {
     .waitForFunction(
       () =>
         document.querySelector("[aria-busy='true'], [data-skeleton], .xos-skeleton") === null &&
-        !document.querySelector("nextjs-portal")?.shadowRoot?.querySelector("[data-nextjs-toast]"),
+        // A dev overlay toast (an error or warning), but not the dev tools badge, which carries the
+        // same attribute and stays on screen in an app that keeps Next's dev indicator.
+        !document
+          .querySelector("nextjs-portal")
+          ?.shadowRoot?.querySelector("[data-nextjs-toast]:not(#devtools-indicator)"),
       undefined,
       { timeout: 10_000 },
     )
