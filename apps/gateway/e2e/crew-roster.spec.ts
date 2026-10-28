@@ -21,6 +21,16 @@ test.use({ reducedMotion: "reduce" });
 test.setTimeout(300_000);
 const expect = baseExpect.configure({ timeout: 20_000 });
 
+/** The member's live entry on the engagement; a condition is appended. */
+const MEMBER_ENTRY = `select count(*)::int as n from app.engagement_roster_entries
+  where engagement_id = $1 and person_id = $2 and deleted_at is null`;
+
+/** A count read as postgres from the local stack. */
+async function count(text: string, params: unknown[]): Promise<number> {
+  const [row] = await sql<{ n: number }>(text, params);
+  return row?.n ?? 0;
+}
+
 test("crew roster: invite, confirm, assign, roster, review, accept and the masked profile", async ({
   page,
   browser,
@@ -60,7 +70,9 @@ test("crew roster: invite, confirm, assign, roster, review, accept and the maske
     const invite = page.getByRole("form", { name: "Invite someone to your company" });
     await invite.getByLabel("Email").fill(memberEmail);
     await invite.getByRole("button", { name: "Send invitation" }).click();
-    await expect(invite.getByText("Invitation sent. It stays open for 14 days.")).toBeVisible();
+    await expect(
+      page.getByRole("status").filter({ hasText: "Invitation sent. It stays open for 14 days." }),
+    ).toBeVisible();
     const [queued] = await sql<{ n: number }>(
       `select count(*)::int as n from private.platform_emails
         where template = 'party_invitation' and to_email = $1`,
@@ -77,7 +89,15 @@ test("crew roster: invite, confirm, assign, roster, review, accept and the maske
       .getByRole("listitem")
       .filter({ hasText: `${accountName} invites you to their company account` });
     await invitation.getByRole("button", { name: "Accept" }).click();
-    await expect(invitation).toBeHidden();
+    await expect
+      .poll(() =>
+        count(
+          `select count(*)::int as n from app.account_memberships
+            where org_id = $1 and person_id = $2 and accepted_at is not null and deleted_at is null`,
+          [accountId, memberId],
+        ),
+      )
+      .toBe(1);
 
     // Unassigned, the member does not reach the engagement; assigned as a Member, they do.
     expect((await memberPage.goto(engagementPath))?.status()).toBe(404);
@@ -85,6 +105,16 @@ test("crew roster: invite, confirm, assign, roster, review, accept and the maske
     const assign = page.getByRole("form", { name: "Assign a member to this engagement" });
     await assign.getByLabel("Member", { exact: true }).selectOption({ label: memberName });
     await assign.getByRole("button", { name: "Assign" }).click();
+    await expect
+      .poll(() =>
+        count(
+          `select count(*)::int as n from app.account_engagement_assignments
+            where engagement_id = $1 and duty = 'Member' and deleted_at is null`,
+          [engagementId],
+        ),
+      )
+      .toBe(1);
+    await page.reload();
     await expect(
       page.getByRole("list", { name: "Account team" }).getByText(memberName),
     ).toBeVisible();
@@ -95,10 +125,16 @@ test("crew roster: invite, confirm, assign, roster, review, accept and the maske
     const add = page.getByRole("form", { name: "Add someone from your team" });
     await add.getByLabel("Person").selectOption({ label: memberName });
     await add.getByRole("button", { name: "Add to roster" }).click();
-    await expect(add.getByText("Added. They are asked to accept on Gateway Home.")).toBeVisible();
+    await expect(
+      page
+        .getByRole("status")
+        .filter({ hasText: "Added. They are asked to accept on Gateway Home." }),
+    ).toBeVisible();
     await page.reload();
     await page.getByRole("button", { name: "Submit roster (1 entry)" }).click();
-    await expect(page.getByText("Roster submitted for review.")).toBeVisible();
+    await expect
+      .poll(() => count(`${MEMBER_ENTRY} and entry_state = 'Submitted'`, [engagementId, memberId]))
+      .toBe(1);
 
     // The demo Owner accepts the entry in Atlas.
     const atlas = await atlasAs(browser, "owner@example.com");
@@ -123,13 +159,25 @@ test("crew roster: invite, confirm, assign, roster, review, accept and the maske
       .filter({ hasText: `${accountName} put you on their crew` });
     await expect(rostered).toContainText("Accepting lets the company see your profile");
     await rostered.getByRole("button", { name: "Accept" }).click();
-    await expect(rostered).toBeHidden();
+    await expect
+      .poll(() =>
+        count(`${MEMBER_ENTRY} and person_response = 'Accepted'`, [engagementId, memberId]),
+      )
+      .toBe(1);
     await memberPage.goto("/settings/work-details");
     const sharing = memberPage.getByRole("region", { name: "Sharing with engagements" });
     const choose = sharing.getByRole("form", { name: /Categories to share with Demo Productions/ });
     await choose.getByLabel("Dietary needs").check();
     await choose.getByRole("button", { name: "Share selected" }).click();
-    await expect(sharing.getByText(/^Shared /)).toBeVisible();
+    await expect
+      .poll(() =>
+        count(
+          `select count(*)::int as n from app.work_detail_shares
+            where engagement_id = $1 and person_id = $2 and revoked_at is null and deleted_at is null`,
+          [engagementId, memberId],
+        ),
+      )
+      .toBe(1);
     await member.close();
 
     // The Owner views the profile: dietary needs, with allergies only On file.
