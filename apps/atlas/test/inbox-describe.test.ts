@@ -4,7 +4,7 @@ import { NOTIFICATION_KINDS } from "@xos/schemas/notifications";
 import { IntlMessageFormat } from "intl-messageformat";
 import { describe, expect, it } from "vitest";
 import { describeInboxItem, inboxTarget, type InboxCopy } from "../lib/inbox/describe";
-import { neighbourOf } from "../lib/inbox/focus";
+import { neighbourOf, neighbourOutside, selectItems } from "../lib/inbox/focus";
 
 /**
  * Finding A59-006: every Inbox item reads as a human title and summary. Each notification kind the
@@ -421,5 +421,28 @@ describe("Inbox keyboard focus (journey 57)", () => {
     expect(neighbourOf(["a", "b", "c"], "c")).toBe("b");
     expect(neighbourOf(["a"], "a")).toBeNull();
     expect(neighbourOf(["a", "b"], "gone")).toBe("a");
+  });
+});
+
+describe("Inbox selection (Section 11.2: X selects)", () => {
+  const ids = ["a", "b", "c", "d"];
+
+  it("toggles with X and selects a range from the anchor with Shift+X", () => {
+    let state = selectItems(ids, new Set(), null, "b", false);
+    expect([...state.selected]).toEqual(["b"]);
+    state = selectItems(ids, state.selected, state.anchor, "d", true);
+    expect([...state.selected].sort()).toEqual(["b", "c", "d"]);
+    state = selectItems(ids, state.selected, state.anchor, "c", false);
+    expect([...state.selected].sort()).toEqual(["b", "d"]);
+    expect(state.anchor).toBe("c");
+    // Without an anchor Shift+X toggles the one item.
+    expect([...selectItems(ids, new Set(), null, "a", true).selected]).toEqual(["a"]);
+  });
+
+  it("hands the focus past every item that leaves together", () => {
+    expect(neighbourOutside(ids, "b", new Set(["b", "c"]))).toBe("d");
+    expect(neighbourOutside(ids, "c", new Set(["a", "c", "d"]))).toBe("b");
+    expect(neighbourOutside(ids, "a", new Set(["b"]))).toBe("a");
+    expect(neighbourOutside(ids, "a", new Set(ids))).toBeNull();
   });
 });

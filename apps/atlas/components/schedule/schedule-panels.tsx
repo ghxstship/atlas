@@ -6,6 +6,7 @@ import { Button, Drawer, IconButton, Input, Select } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
 import { fromLocalInput, toLocalInput, withQuery } from "@/components/work/format";
 import {
@@ -17,7 +18,10 @@ import {
 
 const TYPES = ["Finish to Start", "Start to Start", "Finish to Finish", "Start to Finish"] as const;
 
-/** A record's predecessors and successors, with a form to add a predecessor of the same project. */
+/**
+ * A record's predecessors and successors, with a form to add a predecessor of the same project. Each
+ * related record's key previews it after 400 ms (Section 11.7).
+ */
 export function DependencyEditor({
   org,
   record,
@@ -42,12 +46,17 @@ export function DependencyEditor({
     const r = byId.get(id);
     return r ? `${r.key} ${r.title}` : t("dependencies.hidden");
   };
+  const hover = useRecordKeyHovers(org);
   const before = dependencies.filter((d) => d.successorId === record.id);
   const after = dependencies.filter((d) => d.predecessorId === record.id);
   const row = (d: Dependency, other: string) => (
     <li key={d.id} className="flex items-center justify-between gap-8 text-text-13">
       <span>
-        {name(other)}{" "}
+        <span
+          {...(byId.has(other) ? { "data-item": byId.get(other)?.key, "data-column": "key" } : {})}
+        >
+          {name(other)}
+        </span>{" "}
         <span className="text-text-secondary">· {t(`dependencies.types.${d.type}`)}</span>
       </span>
       {canEdit ? (
@@ -60,7 +69,11 @@ export function DependencyEditor({
     </li>
   );
   return (
-    <section aria-labelledby={`deps-${record.id}`} className="flex flex-col gap-8">
+    <section
+      aria-labelledby={`deps-${record.id}`}
+      className="flex flex-col gap-8"
+      {...hover.hoverProps}
+    >
       <h3 id={`deps-${record.id}`} className="m-0 text-label-13 font-semibold">
         {t("dependencies.title")}
       </h3>
@@ -138,6 +151,7 @@ export function DependencyEditor({
           </Button>
         </form>
       ) : null}
+      {hover.card}
     </section>
   );
 }

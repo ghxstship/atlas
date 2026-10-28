@@ -30,11 +30,15 @@ import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
+import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import type { CustomFieldListView } from "@/lib/custom-fields/types";
 import { conditionParam, conditionsOf, fieldParamKey, matchesShown } from "@/lib/views/conditions";
+
+/** Views whose rows select, open a menu and preview the same way (Section 11.7). */
+const ITEM_VIEWS = new Set<ViewKind>(["table", "list", "board", "calendar"]);
 
 /**
  * The Collection template (Section 11.6) for every A16 list: page header with the view switcher
@@ -83,7 +87,10 @@ export function CollectionView({
    * changes, so the list updates live (Section 11.7, ADR 0044).
    */
   live?: readonly LiveTopic[];
-  /** Bulk edit of the table view's selection (Section 11.7), for resources with a bulk RPC. */
+  /**
+   * Bulk edit of a selection (Section 11.7) in the table, list, board and calendar, for resources
+   * with a bulk RPC.
+   */
   bulk?: BulkConfig | null;
   /**
    * The table's filterable custom fields and their values (A117, `customFieldList(...).view(ids)`): table
@@ -101,7 +108,7 @@ export function CollectionView({
   const [query, setQuery] = useState(params.get("q") ?? "");
   useLiveRefresh(live ?? null);
   const bulkRows = useMemo(() => rows.map((r) => ({ id: r.id, label: r.key })), [rows]);
-  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const bulkKit = useBulk(ITEM_VIEWS.has(view) ? bulk : null, bulkRows);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
 
@@ -120,6 +127,31 @@ export function CollectionView({
     rememberOverlayOpener();
     router.push(href({ peek: id, full: null, create: null }));
   };
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  // A row's menu and hover card, the same in every view (Section 11.7).
+  const menuFor = (id: string, at: { x: number; y: number } | null, element: HTMLElement) =>
+    rowMenu.open(
+      {
+        id,
+        label: byId.get(id)?.key ?? id,
+        open: () => open(id),
+        href: href({ peek: id, full: "1", create: null }),
+        bulk: bulkKit,
+      },
+      at,
+      element,
+    );
+  const hover = useHoverCards((id, column) => {
+    const r = byId.get(id);
+    if (!r || (column !== "key" && column !== "title")) return null;
+    return {
+      kind: "record",
+      recordKey: r.key,
+      title: r.title,
+      ...(r.state ? { state: r.state.state, stateLabel: r.state.label } : {}),
+      ...(r.meta ? { detail: r.meta } : {}),
+    };
+  });
   // The page renders the peek for `?peek` as children. With none (a stale link, a key from elsewhere)
   // the key goes to the shell's peek, which opens the record it names or says it cannot.
   const peek = collectionPeek(params.get("peek"), children);
@@ -200,10 +232,11 @@ export function CollectionView({
     );
   } else if (view === "list") {
     body = (
-      <RecordList label={title}>
+      <RecordList label={title} onItemContextMenu={menuFor} {...(selection ? { selection } : {})}>
         {visible.map((r) => (
           <RecordRow
             key={r.id}
+            id={r.id}
             state={r.state?.state ?? "proposed"}
             stateLabel={r.state?.label ?? ""}
             recordKey={r.key}
@@ -231,6 +264,8 @@ export function CollectionView({
               ...(r.meta ? { meta: r.meta } : {}),
             })),
         }))}
+        onItemContextMenu={menuFor}
+        {...(selection ? { selection } : {})}
         onOpen={open}
       />
     );
@@ -264,14 +299,16 @@ export function CollectionView({
       <Calendar
         month={month}
         events={dated.map((r) => ({
+          id: r.id,
           date: r.date as string,
           label: `${r.key} ${r.title}`,
           state: (r.state?.state ?? "scheduled") as RecordState,
         }))}
         onEventSelect={(e) => {
-          const row = dated.find((r) => `${r.key} ${r.title}` === e.label && r.date === e.date);
-          if (row) open(row.id);
+          if (e.id) open(e.id);
         }}
+        onItemContextMenu={menuFor}
+        {...(selection ? { selection } : {})}
       />
     );
   } else if (view === "tree" && tree) {
@@ -312,20 +349,7 @@ export function CollectionView({
         columns={[...columns, ...custom.columns].map((c) => ({ ...c }))}
         rows={tableRows}
         onRowActivate={(row) => open(String(row["id"]))}
-        onRowContextMenu={(row, _index, at, cell) => {
-          const id = String(row["id"]);
-          rowMenu.open(
-            {
-              id,
-              label: rows.find((r) => r.id === id)?.key ?? id,
-              open: () => open(id),
-              href: href({ peek: id, full: "1", create: null }),
-              bulk: bulkKit,
-            },
-            at,
-            cell,
-          );
-        }}
+        onRowContextMenu={(row, _index, at, cell) => menuFor(String(row["id"]), at, cell)}
         {...(selection ? { selection } : {})}
       />
     );
@@ -349,9 +373,10 @@ export function CollectionView({
       }
       peek={peek}
     >
-      {body}
+      {ITEM_VIEWS.has(view) && visible.length > 0 ? <div {...hover.hoverProps}>{body}</div> : body}
       {bar}
       {rowMenu.menu}
+      {hover.card}
     </TemplateCollection>
   );
 }

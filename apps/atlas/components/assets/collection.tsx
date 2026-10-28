@@ -33,6 +33,7 @@ import type { CustomFieldColumns } from "@/components/custom-fields/columns";
 import type { CustomFieldListView } from "@/lib/custom-fields/types";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
+import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 import { displayKey, keyedTitle } from "@/lib/assets/views";
 
@@ -86,13 +87,26 @@ export interface CollectionProps {
   /** The record peek, rendered by the page when `?peek=` names a row. */
   readonly peek?: { title: string; content: ReactNode } | null;
   readonly before?: ReactNode;
-  /** Bulk edit of the table view's selection (Section 11.7); rows need an `id`. */
+  /**
+   * Bulk edit of a selection (Section 11.7) in the table, list, board and calendar; rows need an
+   * `id`.
+   */
   readonly bulk?: BulkConfig | null;
   /** The table's filterable custom fields (A117): columns, and fields the Add filter control offers. */
   readonly customFields?: CustomFieldListView | null;
 }
 
-const NOT_TABLE = new Set(["list", "board", "gallery", "calendar", "resource-schedule"]);
+/** Views that hold no records to select, open a menu on or preview. */
+const NOT_ITEMS = new Set(["gallery", "resource-schedule"]);
+
+/** How the views name a row: its id, or its key when it has none. */
+const itemOf = (row: CollectionRow) => row.id ?? row.key;
+
+/** What every view needs to select a row, open its menu and name it to hover cards. */
+interface Items {
+  readonly selection: DataTableSelection | undefined;
+  readonly menuFor: (id: string, at: { x: number; y: number } | null, element: HTMLElement) => void;
+}
 
 /**
  * The Collection template for every assets page (Section 11.6): header with title, count, view
@@ -121,26 +135,24 @@ export function AssetsCollection(props: CollectionProps) {
     if (peek) go({ peek, full: null });
   };
   const byKey = new Map(props.rows.map((r) => [r.key, r]));
+  const byItem = new Map(props.rows.map((r) => [itemOf(r), r]));
   const filtered = Boolean(search.get("q") || search.get("filter"));
   const refs = useMemo(
     () => props.rows.flatMap((r) => (r.id ? [{ id: r.id, label: r.title }] : [])),
     [props.rows],
   );
-  const bulkKit = useBulk(NOT_TABLE.has(props.view) ? null : props.bulk, refs);
+  const bulkKit = useBulk(NOT_ITEMS.has(props.view) ? null : props.bulk, refs);
   const custom = useCustomFieldColumns(props.customFields ?? null);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
-  const onContext = (
-    row: Record<string, unknown>,
-    at: { x: number; y: number } | null,
-    cell: HTMLElement,
-  ) => {
-    const r = byKey.get(String(row["__key"]));
+  // A row's menu and hover card, the same in every view (Section 11.7).
+  const menuFor = (id: string, at: { x: number; y: number } | null, element: HTMLElement) => {
+    const r = byItem.get(id);
     if (!r) return;
     const peek = r.peek;
     rowMenu.open(
       {
-        id: r.id ?? r.key,
+        id: itemOf(r),
         label: r.title,
         ...(peek
           ? { open: () => open(peek), href: `${pathname}?peek=${encodeURIComponent(peek)}&full=1` }
@@ -148,9 +160,20 @@ export function AssetsCollection(props: CollectionProps) {
         bulk: bulkKit,
       },
       at,
-      cell,
+      element,
     );
   };
+  const hover = useHoverCards((id, column) => {
+    const r = byItem.get(id);
+    if (!r || (column !== "key" && column !== "title")) return null;
+    return {
+      kind: "record",
+      recordKey: displayKey(r),
+      title: r.title,
+      ...(r.tone && r.stateLabel ? { state: r.tone, stateLabel: r.stateLabel } : {}),
+      ...(r.meta ? { detail: r.meta } : {}),
+    };
+  });
 
   const header = (
     <PageHeader
@@ -253,11 +276,16 @@ export function AssetsCollection(props: CollectionProps) {
       />
     );
   } else {
+    const view = renderView(withCustomColumns(props, custom), t, open, byKey, {
+      selection,
+      menuFor,
+    });
     body = (
       <>
-        {renderView(withCustomColumns(props, custom), t, open, byKey, selection, onContext)}
+        {NOT_ITEMS.has(props.view) ? view : <div {...hover.hoverProps}>{view}</div>}
         {bar}
         {rowMenu.menu}
+        {hover.card}
       </>
     );
   }
@@ -310,25 +338,27 @@ function withCustomColumns(props: CollectionProps, custom: CustomFieldColumns): 
   };
 }
 
+/** The row a view names by its item id. */
+function rowOfItem(props: CollectionProps, id: string): CollectionRow | undefined {
+  return props.rows.find((r) => itemOf(r) === id);
+}
+
 function renderView(
   props: CollectionProps,
   t: ReturnType<typeof useAssetsCopy>,
   open: (peek: string | undefined) => void,
   byKey: Map<string, CollectionRow>,
-  selection: DataTableSelection | undefined,
-  onContext: (
-    row: Record<string, unknown>,
-    at: { x: number; y: number } | null,
-    cell: HTMLElement,
-  ) => void,
+  { selection, menuFor }: Items,
 ): ReactNode {
+  const selectable = selection ? { selection } : {};
   switch (props.view) {
     case "list":
       return (
-        <RecordList label={props.title}>
+        <RecordList label={props.title} onItemContextMenu={menuFor} {...selectable}>
           {props.rows.map((row) => (
             <RecordRow
               key={row.key}
+              id={itemOf(row)}
               recordKey={displayKey(row)}
               title={row.title}
               state={row.tone ?? "ready"}
@@ -352,11 +382,14 @@ function renderView(
             cards: props.rows
               .filter((r) => r.group === c.value)
               .map((r) => ({
+                id: itemOf(r),
                 key: r.key,
                 title: keyedTitle(r),
                 ...(r.meta ? { meta: r.meta } : {}),
               })),
           }))}
+          onItemContextMenu={menuFor}
+          {...selectable}
           onOpen={(key) => open(byKey.get(key)?.peek)}
         />
       );
@@ -391,7 +424,15 @@ function renderView(
           {...(props.today ? { today: props.today } : {})}
           events={props.rows
             .filter((r) => r.date)
-            .map((r) => ({ date: r.date ?? "", label: keyedTitle(r), state: r.tone ?? "ready" }))}
+            .map((r) => ({
+              id: itemOf(r),
+              date: r.date ?? "",
+              label: keyedTitle(r),
+              state: r.tone ?? "ready",
+            }))}
+          onEventSelect={(e) => open(e.id ? rowOfItem(props, e.id)?.peek : undefined)}
+          onItemContextMenu={menuFor}
+          {...selectable}
         />
       );
     case "resource-schedule":
@@ -401,11 +442,11 @@ function renderView(
         <DataTable
           caption={props.title}
           columns={props.columns}
-          rows={props.rows.map((r) => ({ ...r.cells, __key: r.key, __id: r.id ?? r.key }))}
+          rows={props.rows.map((r) => ({ ...r.cells, __key: r.key, __id: itemOf(r) }))}
           rowId={(row) => String(row["__id"])}
           onRowActivate={(row) => open(byKey.get(String(row["__key"]))?.peek)}
-          onRowContextMenu={(row, _index, at, cell) => onContext(row, at, cell)}
-          {...(selection ? { selection } : {})}
+          onRowContextMenu={(row, _index, at, cell) => menuFor(String(row["__id"]), at, cell)}
+          {...selectable}
         />
       );
   }

@@ -1,0 +1,40 @@
+appId: pro.ghxstship.compass
+# Settings, Security works natively (A110): this device is listed under Sessions and devices as Compass, the demo
+# account holds no second factor so recovery codes wait for one, and a password typed twice differently is refused
+# on the phone. Nothing about how the account signs in changes, so later flows sign in as before.
+# Named after its file: config.yaml orders flows by name.
+name: settings-identity-security
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/security
+- extendedWaitUntil:
+    visible:
+      id: "settings-security-password-new"
+    timeout: 30000
+- tapOn:
+    id: "settings-security-password-new"
+- inputText: "river4tangerine"
+- tapOn:
+    id: "settings-security-password-confirm"
+- inputText: "river4tangerinx"
+- hideKeyboard
+- tapOn:
+    id: "settings-security-password-save"
+- assertVisible: "The two passwords don't match."
+- scrollUntilVisible:
+    element:
+      id: "settings-security-recovery-need-factor"
+    direction: DOWN
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "settings-security-session-current"
+    direction: DOWN
+    timeout: 30000
+- assertVisible: "This device"

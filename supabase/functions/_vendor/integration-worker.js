@@ -5,15 +5,19 @@ import "./chunks/data-result.js";
 import { StoreError, asDbClient, unwrap } from "./chunks/integrations-framework-db.js";
 import {
   ItemTally,
+  SYNC_SCOPES,
   chatConnectors,
   connectorRegistry,
   contentHash,
   credentialField,
   decimalToMinor,
   integrationsTranslator,
+  isProviderCode,
   minorToDecimal,
   mintChatSession,
   parseCredential,
+  providerEntry,
+  scopesFor,
   sha256Hex,
   slackFailure,
   supabaseCommunicationSource,
@@ -29,175 +33,6 @@ import {
 } from "./chunks/integrations-framework-http.js";
 import { isPublicAddress } from "./chunks/platform-webhooks-dispatch.js";
 import { createHash, createHmac } from "node:crypto";
-//#region ../integrations/src/framework/catalog.ts
-var PROVIDERS = [
-  {
-    code: "xero",
-    category: "Accounting",
-    sortOrder: 10,
-    requiredFeature: "upl_export",
-    needsCredential: true,
-  },
-  {
-    code: "quickbooks_online",
-    category: "Accounting",
-    sortOrder: 11,
-    requiredFeature: "upl_export",
-    needsCredential: true,
-  },
-  {
-    code: "netsuite",
-    category: "Accounting",
-    sortOrder: 12,
-    requiredFeature: "upl_export",
-    needsCredential: true,
-  },
-  {
-    code: "ramp",
-    category: "Accounting",
-    sortOrder: 13,
-    requiredFeature: "upl_export",
-    needsCredential: true,
-  },
-  {
-    code: "google_calendar",
-    category: "Calendar",
-    sortOrder: 20,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "microsoft_365",
-    category: "Calendar",
-    sortOrder: 21,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "google_drive",
-    category: "Storage",
-    sortOrder: 30,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "onedrive_sharepoint",
-    category: "Storage",
-    sortOrder: 31,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "dropbox",
-    category: "Storage",
-    sortOrder: 32,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "slack",
-    category: "Communication",
-    sortOrder: 40,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "microsoft_teams",
-    category: "Communication",
-    sortOrder: 41,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "gusto",
-    category: "Payroll",
-    sortOrder: 50,
-    requiredFeature: "payroll_export",
-    needsCredential: true,
-  },
-  {
-    code: "adp",
-    category: "Payroll",
-    sortOrder: 51,
-    requiredFeature: "payroll_export",
-    needsCredential: true,
-  },
-  {
-    code: "rippling",
-    category: "Payroll",
-    sortOrder: 52,
-    requiredFeature: "payroll_export",
-    needsCredential: true,
-  },
-  {
-    code: "ups",
-    category: "Shipping",
-    sortOrder: 60,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "fedex",
-    category: "Shipping",
-    sortOrder: 61,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "dhl",
-    category: "Shipping",
-    sortOrder: 62,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-  {
-    code: "ticketing_csv",
-    category: "Ticketing",
-    sortOrder: 70,
-    requiredFeature: null,
-    needsCredential: false,
-  },
-  {
-    code: "ticketing_api",
-    category: "Ticketing",
-    sortOrder: 71,
-    requiredFeature: null,
-    needsCredential: true,
-  },
-];
-var SYNC_SCOPES = [
-  "Ledger Export",
-  "Payment Sync",
-  "Calendar Sync",
-  "File Import",
-  "Notification Delivery",
-  "Payroll Export",
-  "Tracking Refresh",
-  "Attendance Import",
-];
-/** The category a sync scope belongs to (mirrors `private.integration_scope_category`). */
-var SCOPE_CATEGORY = {
-  "Ledger Export": "Accounting",
-  "Payment Sync": "Accounting",
-  "Calendar Sync": "Calendar",
-  "File Import": "Storage",
-  "Notification Delivery": "Communication",
-  "Payroll Export": "Payroll",
-  "Tracking Refresh": "Shipping",
-  "Attendance Import": "Ticketing",
-};
-function providerEntry(code) {
-  return PROVIDERS.find((p) => p.code === code);
-}
-function isProviderCode(code) {
-  return providerEntry(code) !== void 0;
-}
-/** Scopes a provider can run, by its category. */
-function scopesFor(code) {
-  const entry = providerEntry(code);
-  return SYNC_SCOPES.filter((scope) => SCOPE_CATEGORY[scope] === entry?.category);
-}
-//#endregion
 //#region ../integrations/src/framework/runner.ts
 /** The job kind migration 0600 registers on the A18 job queue. */
 var INTEGRATION_SYNC_JOB = "integration.sync";
@@ -286,7 +121,7 @@ async function runOne$1(options, job) {
       );
     const credential =
       (providerEntry(connection.providerCode)?.needsCredential ?? true)
-        ? parseCredential(await options.store.credential(connection.id))
+        ? parseCredential(await options.store.credential(connection.id), connection.providerCode)
         : null;
     outcome = await connector.sync({
       run,
@@ -3243,12 +3078,221 @@ function supabasePayrollSource(db) {
 }
 //#endregion
 //#region ../integrations/src/connectors/shipping/index.ts
-function key(context) {
+function credentialOf(context) {
   if (context.credential === null)
     throw new IntegrationError("credential_required", "The connection has no stored credential.", {
       connectionError: true,
     });
-  return context.credential.token;
+  return context.credential;
+}
+/** DHL's API key, stored as the connection's credential. */
+function key(context) {
+  return credentialOf(context).token;
+}
+/** A minted token stops being reused this long before the expiry the carrier stated. */
+var TOKEN_SAFETY_MARGIN_MS = 3e5;
+/**
+ * Access tokens minted with the OAuth 2.0 client-credentials grant, one per connection, kept until
+ * TOKEN_SAFETY_MARGIN_MS before they expire. The worker keeps one cache for as long as its isolate lives,
+ * so a warm worker reuses a token across runs; tests pass their own.
+ */
+var CarrierTokenCache = class {
+  tokens = /* @__PURE__ */ new Map();
+  get(connectionId, fingerprint, now) {
+    const cached = this.tokens.get(connectionId);
+    if (cached === void 0) return null;
+    if (cached.fingerprint !== fingerprint || now >= cached.usableUntil) {
+      this.tokens.delete(connectionId);
+      return null;
+    }
+    return cached.accessToken;
+  }
+  set(connectionId, token) {
+    this.tokens.set(connectionId, token);
+  }
+  forget(connectionId) {
+    this.tokens.delete(connectionId);
+  }
+};
+var workerTokens = new CarrierTokenCache();
+var form = (fields) => new URLSearchParams(fields).toString();
+/** Base64 of UTF-8 text without Node's Buffer, so the worker also runs in Deno. */
+function base64(text) {
+  let binary = "";
+  for (const byte of new TextEncoder().encode(text)) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
+/** UPS takes the pair as HTTP Basic authentication. */
+var UPS_TOKEN = {
+  label: "UPS",
+  request: (pair) => ({
+    method: "POST",
+    url: "https://onlinetools.ups.com/security/v1/oauth/token",
+    headers: {
+      accept: "application/json",
+      authorization: `Basic ${base64(`${pair.clientId}:${pair.clientSecret}`)}`,
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    body: form({ grant_type: "client_credentials" }),
+  }),
+};
+/** FedEx takes the pair (its "API key" and "secret key") in the form body. */
+var FEDEX_TOKEN = {
+  label: "FedEx",
+  request: (pair) => ({
+    method: "POST",
+    url: "https://apis.fedex.com/oauth/token",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/x-www-form-urlencoded",
+    },
+    body: form({
+      grant_type: "client_credentials",
+      client_id: pair.clientId,
+      client_secret: pair.clientSecret,
+    }),
+  }),
+};
+function clientPair(context, label) {
+  const fields = credentialOf(context).fields;
+  const clientId = fields["client_id"] ?? "";
+  const clientSecret = fields["client_secret"] ?? "";
+  if (clientId.length === 0 || clientSecret.length === 0)
+    throw new IntegrationError(
+      "credential_incomplete",
+      `${label} needs the client ID and client secret of a ${label} developer app. Store them on the connection in Settings, Integrations.`,
+      { connectionError: true },
+    );
+  return {
+    clientId,
+    clientSecret,
+  };
+}
+/** Every way a provider could echo a value: raw, form- and URI-encoded, and JSON-escaped (with or without `\/`). */
+function encodingsOf(value) {
+  const json = JSON.stringify(value).slice(1, -1);
+  return [
+    value,
+    form({ s: value }).slice(2),
+    encodeURIComponent(value),
+    json,
+    json.replaceAll("/", "\\/"),
+  ];
+}
+/** The client ID, the secret, the Basic value and the access tokens, in every encoding, longest first. */
+function secretsOf(pair, ...tokens) {
+  const values = [
+    pair.clientSecret,
+    base64(`${pair.clientId}:${pair.clientSecret}`),
+    pair.clientId,
+    ...tokens,
+  ];
+  return [...new Set(values.flatMap(encodingsOf))]
+    .filter((s) => s.length > 0)
+    .sort((a, b) => b.length - a.length);
+}
+function redact(text, secrets) {
+  let result = text;
+  for (const secret of secrets) result = result.split(secret).join("[redacted]");
+  return result;
+}
+/**
+ * The connection's HTTP client with every credential and token cut from a refusal's body before the status
+ * check quotes it in an error. The error keeps only the body's first 500 characters, so redacting afterwards
+ * would miss a secret that the cut splits. A successful answer is passed through untouched.
+ */
+function redacting(http, secrets) {
+  return async (request) => {
+    const response = await http(request);
+    if (response.status >= 200 && response.status < 300) return response;
+    const body = redact(response.body, secrets);
+    return body === response.body
+      ? response
+      : {
+          ...response,
+          body,
+        };
+  };
+}
+/**
+ * The error with every credential and token cut from its message, so none reaches the run's last error,
+ * the connection or a log. Code, retry and connection flags are kept.
+ */
+function scrubbed(error, secrets) {
+  if (!(error instanceof Error)) return error;
+  const message = redact(error.message, secrets);
+  if (message === error.message) return error;
+  if (error instanceof IntegrationError)
+    return new IntegrationError(error.code, message, {
+      retryable: error.retryable,
+      connectionError: error.connectionError,
+      status: error.status,
+    });
+  const copy = new Error(message);
+  copy.name = error.name;
+  return copy;
+}
+async function mint(context, endpoint, pair, fingerprint) {
+  const secrets = secretsOf(pair);
+  const response = await callRaw(
+    redacting(context.http, secrets),
+    endpoint.label,
+    endpoint.request(pair),
+  ).catch((error) => {
+    throw scrubbed(error, secrets);
+  });
+  let body = {};
+  try {
+    body = JSON.parse(response.body) ?? {};
+  } catch {}
+  const accessToken = typeof body.access_token === "string" ? body.access_token : "";
+  const lifetimeMs = Number(body.expires_in) * 1e3;
+  if (accessToken.length === 0 || !Number.isFinite(lifetimeMs) || lifetimeMs <= 0)
+    throw new IntegrationError(
+      "provider_malformed_response",
+      `${endpoint.label} answered the token request without an access token and its lifetime.`,
+      { retryable: true },
+    );
+  return {
+    fingerprint,
+    accessToken,
+    usableUntil:
+      context.now().getTime() + Math.max(lifetimeMs - TOKEN_SAFETY_MARGIN_MS, lifetimeMs / 2),
+  };
+}
+/**
+ * Runs a carrier call with the connection's access token, minting one from the stored client ID and
+ * secret when the cache has none that is still good. A 401 means the carrier dropped the token before its
+ * stated expiry: the token is forgotten, a new one minted and the call retried exactly once. The call gets
+ * an HTTP client that redacts the pair and the token from refusal bodies.
+ */
+async function withAccessToken(context, tokens, endpoint, call) {
+  const pair = clientPair(context, endpoint.label);
+  const fingerprint = sha256Hex(`${pair.clientId}\n${pair.clientSecret}`);
+  const connectionId = context.connection.id;
+  const current = async () => {
+    const cached = tokens.get(connectionId, fingerprint, context.now().getTime());
+    if (cached !== null) return cached;
+    const minted = await mint(context, endpoint, pair, fingerprint);
+    tokens.set(connectionId, minted);
+    return minted.accessToken;
+  };
+  const first = await current();
+  const firstSecrets = secretsOf(pair, first);
+  try {
+    return await call(first, redacting(context.http, firstSecrets));
+  } catch (error) {
+    if (!(error instanceof IntegrationError && error.status === 401))
+      throw scrubbed(error, firstSecrets);
+    tokens.forget(connectionId);
+  }
+  const second = await current();
+  const bothSecrets = secretsOf(pair, first, second);
+  try {
+    return await call(second, redacting(context.http, bothSecrets));
+  } catch (error) {
+    throw scrubbed(error, bothSecrets);
+  }
 }
 var place = (...parts) => {
   const text = parts.filter((p) => typeof p === "string" && p.length > 0).join(", ");
@@ -3273,61 +3317,66 @@ function upsInstant(date, time) {
   const t = time !== void 0 && /^\d{6}$/.test(time) ? time : "000000";
   return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}T${t.slice(0, 2)}:${t.slice(2, 4)}:${t.slice(4, 6)}Z`;
 }
-var upsCarrier = {
-  provider: "ups",
-  label: "UPS",
-  async track(context, trackingNumber) {
-    let body;
-    try {
-      body = await callJson(context.http, "UPS", {
-        method: "GET",
-        url: `https://onlinetools.ups.com/api/track/v1/details/${encodeURIComponent(trackingNumber)}?locale=en_US`,
-        token: key(context),
-        headers: {
-          transid: context.run.id,
-          transactionsrc: "xos",
-        },
-      });
-    } catch (error) {
-      if (error instanceof IntegrationError && error.code === "provider_not_found") return null;
-      throw error;
-    }
-    const pkg = body.trackResponse?.shipment?.[0]?.package?.[0];
-    if (pkg === void 0) return null;
-    const scans = [];
-    for (const a of pkg.activity ?? []) {
-      const occurredAt = upsInstant(a.date, a.time);
-      if (occurredAt === null) continue;
-      scans.push({
-        status: UPS_TYPES[a.status?.type ?? ""] ?? "Unknown",
-        code: a.status?.code ?? a.status?.type ?? "UNKNOWN",
-        description: a.status?.description ?? "",
-        location: place(
-          a.location?.address?.city,
-          a.location?.address?.stateProvince,
-          a.location?.address?.countryCode,
-        ),
-        occurredAt,
-      });
-    }
-    const top = latest(scans);
-    const status = UPS_TYPES[pkg.currentStatus?.type ?? ""] ?? top?.status ?? "Unknown";
-    const estimate = pkg.deliveryDate?.find((d) => d.type !== "DEL");
-    const delivered = pkg.deliveryDate?.find((d) => d.type === "DEL");
-    return {
-      status,
-      statusText: pkg.currentStatus?.description ?? top?.description ?? null,
-      estimatedDeliveryAt: estimate ? upsInstant(estimate.date, void 0) : null,
-      deliveredAt:
-        status === "Delivered"
-          ? delivered
-            ? upsInstant(delivered.date, void 0)
-            : (top?.occurredAt ?? null)
-          : null,
-      scans,
-    };
-  },
-};
+/** UPS tracking, with access tokens minted into `tokens` (the worker's cache unless a test passes one). */
+function upsCarrier(tokens = workerTokens) {
+  return {
+    provider: "ups",
+    label: "UPS",
+    async track(context, trackingNumber) {
+      let body;
+      try {
+        body = await withAccessToken(context, tokens, UPS_TOKEN, (token, http) =>
+          callJson(http, "UPS", {
+            method: "GET",
+            url: `https://onlinetools.ups.com/api/track/v1/details/${encodeURIComponent(trackingNumber)}?locale=en_US`,
+            token,
+            headers: {
+              transid: context.run.id,
+              transactionsrc: "xos",
+            },
+          }),
+        );
+      } catch (error) {
+        if (error instanceof IntegrationError && error.code === "provider_not_found") return null;
+        throw error;
+      }
+      const pkg = body.trackResponse?.shipment?.[0]?.package?.[0];
+      if (pkg === void 0) return null;
+      const scans = [];
+      for (const a of pkg.activity ?? []) {
+        const occurredAt = upsInstant(a.date, a.time);
+        if (occurredAt === null) continue;
+        scans.push({
+          status: UPS_TYPES[a.status?.type ?? ""] ?? "Unknown",
+          code: a.status?.code ?? a.status?.type ?? "UNKNOWN",
+          description: a.status?.description ?? "",
+          location: place(
+            a.location?.address?.city,
+            a.location?.address?.stateProvince,
+            a.location?.address?.countryCode,
+          ),
+          occurredAt,
+        });
+      }
+      const top = latest(scans);
+      const status = UPS_TYPES[pkg.currentStatus?.type ?? ""] ?? top?.status ?? "Unknown";
+      const estimate = pkg.deliveryDate?.find((d) => d.type !== "DEL");
+      const delivered = pkg.deliveryDate?.find((d) => d.type === "DEL");
+      return {
+        status,
+        statusText: pkg.currentStatus?.description ?? top?.description ?? null,
+        estimatedDeliveryAt: estimate ? upsInstant(estimate.date, void 0) : null,
+        deliveredAt:
+          status === "Delivered"
+            ? delivered
+              ? upsInstant(delivered.date, void 0)
+              : (top?.occurredAt ?? null)
+            : null,
+        scans,
+      };
+    },
+  };
+}
 var FEDEX_CODES = {
   OC: "Label Created",
   PU: "In Transit",
@@ -3341,47 +3390,54 @@ var FEDEX_CODES = {
   CA: "Exception",
   RS: "Returned",
 };
-var fedexCarrier = {
-  provider: "fedex",
-  label: "FedEx",
-  async track(context, trackingNumber) {
-    const result = (
-      await callJson(context.http, "FedEx", {
-        method: "POST",
-        url: "https://apis.fedex.com/track/v1/trackingnumbers",
-        token: key(context),
-        json: {
-          includeDetailedScans: true,
-          trackingInfo: [{ trackingNumberInfo: { trackingNumber } }],
-        },
-      })
-    ).output?.completeTrackResults?.[0]?.trackResults?.[0];
-    if (result === void 0 || result.error?.code === "TRACKING.TRACKINGNUMBER.NOTFOUND") return null;
-    const scans = (result.scanEvents ?? [])
-      .filter((e) => typeof e.date === "string")
-      .map((e) => ({
-        status: FEDEX_CODES[e.derivedStatusCode ?? e.eventType ?? ""] ?? "Unknown",
-        code: e.eventType ?? e.derivedStatusCode ?? "UNKNOWN",
-        description: e.eventDescription ?? "",
-        location: place(
-          e.scanLocation?.city,
-          e.scanLocation?.stateOrProvinceCode,
-          e.scanLocation?.countryCode,
-        ),
-        occurredAt: new Date(e.date).toISOString(),
-      }));
-    const status =
-      FEDEX_CODES[result.latestStatusDetail?.code ?? ""] ?? latest(scans)?.status ?? "Unknown";
-    const delivered = result.dateAndTimes?.find((d) => d.type === "ACTUAL_DELIVERY")?.dateTime;
-    return {
-      status,
-      statusText: result.latestStatusDetail?.description ?? null,
-      estimatedDeliveryAt: result.estimatedDeliveryTimeWindow?.window?.ends ?? null,
-      deliveredAt: status === "Delivered" ? (delivered ?? latest(scans)?.occurredAt ?? null) : null,
-      scans,
-    };
-  },
-};
+/** FedEx tracking, with access tokens minted into `tokens` (the worker's cache unless a test passes one). */
+function fedexCarrier(tokens = workerTokens) {
+  return {
+    provider: "fedex",
+    label: "FedEx",
+    async track(context, trackingNumber) {
+      const result = (
+        await withAccessToken(context, tokens, FEDEX_TOKEN, (token, http) =>
+          callJson(http, "FedEx", {
+            method: "POST",
+            url: "https://apis.fedex.com/track/v1/trackingnumbers",
+            token,
+            json: {
+              includeDetailedScans: true,
+              trackingInfo: [{ trackingNumberInfo: { trackingNumber } }],
+            },
+          }),
+        )
+      ).output?.completeTrackResults?.[0]?.trackResults?.[0];
+      if (result === void 0 || result.error?.code === "TRACKING.TRACKINGNUMBER.NOTFOUND")
+        return null;
+      const scans = (result.scanEvents ?? [])
+        .filter((e) => typeof e.date === "string")
+        .map((e) => ({
+          status: FEDEX_CODES[e.derivedStatusCode ?? e.eventType ?? ""] ?? "Unknown",
+          code: e.eventType ?? e.derivedStatusCode ?? "UNKNOWN",
+          description: e.eventDescription ?? "",
+          location: place(
+            e.scanLocation?.city,
+            e.scanLocation?.stateOrProvinceCode,
+            e.scanLocation?.countryCode,
+          ),
+          occurredAt: new Date(e.date).toISOString(),
+        }));
+      const status =
+        FEDEX_CODES[result.latestStatusDetail?.code ?? ""] ?? latest(scans)?.status ?? "Unknown";
+      const delivered = result.dateAndTimes?.find((d) => d.type === "ACTUAL_DELIVERY")?.dateTime;
+      return {
+        status,
+        statusText: result.latestStatusDetail?.description ?? null,
+        estimatedDeliveryAt: result.estimatedDeliveryTimeWindow?.window?.ends ?? null,
+        deliveredAt:
+          status === "Delivered" ? (delivered ?? latest(scans)?.occurredAt ?? null) : null,
+        scans,
+      };
+    },
+  };
+}
 var DHL_CODES = {
   "pre-transit": "Label Created",
   transit: "In Transit",
@@ -3460,8 +3516,10 @@ function trackingConnector(carrier, source) {
     },
   };
 }
-function trackingConnectors(source) {
-  return [upsCarrier, fedexCarrier, dhlCarrier].map((c) => trackingConnector(c, source));
+function trackingConnectors(source, tokens = workerTokens) {
+  return [upsCarrier(tokens), fedexCarrier(tokens), dhlCarrier].map((c) =>
+    trackingConnector(c, source),
+  );
 }
 function supabaseTrackingSource(db) {
   return {

@@ -85,7 +85,7 @@ export function FinanceCollection({
   detail?: RecordDetail | null;
   sheet?: ReactNode;
   above?: ReactNode;
-  /** Bulk edit of the table view's selection (Section 11.7). */
+  /** Bulk edit of a selection in the table, list and board (Section 11.7). */
   bulk?: BulkConfig | null;
   /** False on a page that renders no record panel (no `detail`): its rows open nothing. */
   activatable?: boolean;
@@ -174,15 +174,30 @@ export function FinanceCollection({
       />
     );
   } else if (page.view === "list" && listItems) {
-    body = <CollectionList label={title} items={listItems} activatable={activatable} />;
+    body = (
+      <CollectionList
+        label={title}
+        items={listItems}
+        bulk={bulk ?? null}
+        activatable={activatable}
+      />
+    );
   } else if (page.view === "board" && board) {
-    body = <CollectionBoard columns={board} activatable={activatable} />;
+    body = (
+      <CollectionBoard
+        columns={board}
+        {...(listItems ? { previews: listItems } : {})}
+        bulk={bulk ?? null}
+        activatable={activatable}
+      />
+    );
   } else {
     body = (
       <CollectionTable
         label={title}
         columns={columns}
         rows={rows}
+        {...(listItems ? { previews: listItems } : {})}
         bulk={bulk ?? null}
         activatable={activatable}
       />

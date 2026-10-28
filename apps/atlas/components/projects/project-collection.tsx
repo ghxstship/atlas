@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  Checkbox,
-  DataTable,
-  EmptyState,
-  Input,
-  PageHeader,
-  PhaseChip,
-  TemplateCollection,
-} from "@xos/ui";
+import { Checkbox, DataTable, EmptyState, Input, PageHeader, TemplateCollection } from "@xos/ui";
 import type { ProjectSummary } from "@xos/data/projects";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
@@ -19,31 +11,15 @@ import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
 import dynamic from "next/dynamic";
+import type { ProjectViewHelpers } from "./project-other-views";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { isConditionParam } from "@/lib/views/query";
+
 // Views other than the default table, and the peek, load when shown (A24-009).
-import { RecordList, RecordRow } from "@/components/lazy-ui";
-
-/** A project's peek, with its custom fields, loads when one opens (A24-009). */
-const ProjectPeek = dynamic(() => import("./project-peek").then((m) => m.ProjectPeek));
-
-/** The portfolio board loads when the Board view is shown (A24-009). */
-const PortfolioBoard = dynamic(() => import("./portfolio-board").then((m) => m.PortfolioBoard));
-
-/** The portfolio gallery loads when the Gallery view is shown (A24-009). */
-const PortfolioGallery = dynamic(() =>
-  import("./portfolio-gallery").then((m) => m.PortfolioGallery),
+const ProjectOtherView = dynamic(() =>
+  import("./project-other-views").then((m) => m.ProjectOtherView),
 );
-
-/** The portfolio calendar loads when the Calendar view is shown (A24-009). */
-const PortfolioCalendar = dynamic(() =>
-  import("./portfolio-calendar").then((m) => m.PortfolioCalendar),
-);
-
-/** The portfolio timeline loads when the Timeline view is shown (A24-009). */
-const PortfolioTimeline = dynamic(() =>
-  import("./portfolio-timeline").then((m) => m.PortfolioTimeline),
-);
+const ProjectPeek = dynamic(() => import("./project-other-views").then((m) => m.ProjectPeek));
 
 export type ProjectView = "table" | "list" | "board" | "gallery" | "timeline" | "calendar";
 
@@ -132,7 +108,6 @@ export function ProjectCollection({
     const qs = next.toString();
     router.replace((qs ? `${pathname}?${qs}` : pathname) as Route);
   };
-  const projectHref = (key: string, tab = "overview") => `/${org}/p/${key}/${tab}` as Route;
   const date = (iso: string | null) =>
     iso === null ? null : format.dateTime(new Date(`${iso}T00:00:00`), { dateStyle: "medium" });
   const dates = (p: ProjectSummary) => {
@@ -146,6 +121,16 @@ export function ProjectCollection({
   const stateLabel = (p: ProjectSummary) => t(`states.${p.projectState}`);
   const phaseName = (code: string) => t(`phases.${phaseCode(code)}`);
   const peek = projects.find((p) => p.key === peekKey) ?? null;
+  const helpers: ProjectViewHelpers = {
+    org,
+    phases,
+    gateOf,
+    dates,
+    stateLabel,
+    phaseName,
+    setPeekKey,
+    setParam,
+  };
 
   const header = (
     <PageHeader
@@ -253,53 +238,15 @@ export function ProjectCollection({
         onRowActivate={(row) => setPeekKey(String(row["key"]))}
       />
     );
-  } else if (view === "list") {
-    body = (
-      <RecordList label={t("list.caption")}>
-        {shown.map((p) => (
-          <RecordRow
-            key={p.id}
-            state={stateIcon(p.projectState)}
-            stateLabel={stateLabel(p)}
-            recordKey={p.key}
-            title={p.name}
-            chips={
-              <PhaseChip
-                gate={gateOf(p.phaseCode)}
-                code={phaseCode(p.phaseCode)}
-                name={phaseName(p.phaseCode)}
-              />
-            }
-            next={dates(p)}
-            actionLabel={t("list.open")}
-            onAction={() => setPeekKey(p.key)}
-            onOpen={() => setPeekKey(p.key)}
-          />
-        ))}
-      </RecordList>
-    );
-  } else if (view === "board") {
-    body = <PortfolioBoard projects={shown} phases={phases} mode={board} onOpen={setPeekKey} />;
-  } else if (view === "gallery") {
-    body = <PortfolioGallery projects={shown} gateOf={gateOf} dates={dates} onOpen={setPeekKey} />;
-  } else if (view === "timeline") {
-    body = (
-      <PortfolioTimeline
-        projects={shown}
-        label={t("list.timelineLabel")}
-        today={today}
-        format={(d) => format.dateTime(d, { weekday: "narrow", timeZone: "UTC" })}
-        onAddDates={(key) => router.push(projectHref(key, "settings"))}
-      />
-    );
   } else {
     body = (
-      <PortfolioCalendar
-        projects={shown}
+      <ProjectOtherView
+        view={view}
+        shown={shown}
+        board={board}
         month={month}
         today={today}
-        onMonth={(next) => setParam("month", next)}
-        onOpen={setPeekKey}
+        h={helpers}
       />
     );
   }
@@ -310,18 +257,7 @@ export function ProjectCollection({
     <TemplateCollection
       header={header}
       filters={filters}
-      peek={collectionPeek(
-        peekKey,
-        peek ? (
-          <ProjectPeek
-            org={org}
-            peek={peek}
-            gate={gateOf(peek.phaseCode)}
-            dates={dates(peek)}
-            onClose={() => setPeekKey(null)}
-          />
-        ) : undefined,
-      )}
+      peek={collectionPeek(peekKey, peek ? <ProjectPeek peek={peek} h={helpers} /> : undefined)}
     >
       {body}
       {(view === "timeline" || view === "calendar") && undated > 0 ? (

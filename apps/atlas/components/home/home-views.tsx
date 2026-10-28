@@ -18,6 +18,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Alert } from "@/lib/home/data";
 import { enumKey, phaseCode } from "@/lib/projects/format";
+import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { CollectionViews } from "@/components/views/collection-views";
 import { useAlertText } from "./alert-text";
 
@@ -74,6 +75,17 @@ function Empty({ sentence, action, href }: { sentence: string; action: string; h
 // Today --------------------------------------------------------------------------------------------
 
 /** Home > Today: the person's records due or running today and projects that start or end today. */
+/** A record's key or title previews it after 400 ms (Section 11.7), read on demand by its key. */
+function useRecordHovers(org: string, records: readonly HomeRecord[]) {
+  const keys = new Map(records.map((r) => [r.id, r.key]));
+  return useHoverCards((id, column) => {
+    const recordKey = keys.get(id);
+    return recordKey && (column === "key" || column === "title")
+      ? { kind: "recordKey", org, recordKey }
+      : null;
+  });
+}
+
 export function TodayView({
   org,
   records,
@@ -97,6 +109,7 @@ export function TodayView({
   const stateLabel = useRecordStateLabel();
   const format = useFormatter();
   const router = useRouter();
+  const hover = useRecordHovers(org, records);
   if (records.length === 0 && projects.length === 0) {
     return <Empty sentence={t("empty")} action={t("emptyAction")} href={projectsHref} />;
   }
@@ -122,22 +135,26 @@ export function TodayView({
         </ul>
       ) : null}
       {view === "list" ? (
-        <RecordList label={t("label")}>
-          {records.map((r) => (
-            <RecordRow
-              key={r.id}
-              state={recordState(r.state)}
-              stateLabel={stateLabel(r.state)}
-              recordKey={r.key ?? ""}
-              kind={r.kind as RecordKind}
-              title={r.title}
-              next={time(r)}
-              actionLabel={t("open")}
-              onAction={() => open(r.projectKey)}
-              onOpen={() => open(r.projectKey)}
-            />
-          ))}
-        </RecordList>
+        <div {...hover.hoverProps}>
+          <RecordList label={t("label")}>
+            {records.map((r) => (
+              <RecordRow
+                key={r.id}
+                id={r.id}
+                state={recordState(r.state)}
+                stateLabel={stateLabel(r.state)}
+                recordKey={r.key ?? ""}
+                kind={r.kind as RecordKind}
+                title={r.title}
+                next={time(r)}
+                actionLabel={t("open")}
+                onAction={() => open(r.projectKey)}
+                onOpen={() => open(r.projectKey)}
+              />
+            ))}
+          </RecordList>
+          {hover.card}
+        </div>
       ) : (
         <ol aria-label={t("label")} className="m-0 flex list-none flex-col gap-8 p-0">
           {records.map((r) => (
@@ -385,6 +402,7 @@ export function RecentView({
   const stateLabel = useRecordStateLabel();
   const format = useFormatter();
   const router = useRouter();
+  const hover = useRecordHovers(org, records);
   const when = (iso: string) =>
     format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" });
   const open = (key: string | null) => {
@@ -396,41 +414,50 @@ export function RecentView({
       {records.length === 0 ? (
         <Empty sentence={t("empty")} action={t("emptyAction")} href={projectsHref} />
       ) : view === "table" ? (
-        <DataTable
-          caption={t("caption")}
-          columns={[
-            { key: "key", label: t("key"), type: "code", width: 110 },
-            { key: "title", label: t("record"), wrap: true },
-            { key: "kind", label: t("kind"), width: 140 },
-            { key: "state", label: t("state"), type: "state", width: 140 },
-            { key: "updated", label: t("updated"), width: 200 },
-          ]}
-          rows={records.map((r) => ({
-            id: r.id,
-            key: r.key ?? "",
-            title: r.title,
-            kind: r.kind,
-            state: { state: recordState(r.state), label: stateLabel(r.state) },
-            updated: when(r.updatedAt),
-            project: r.projectKey,
-          }))}
-          onRowActivate={(row) => open(typeof row["project"] === "string" ? row["project"] : null)}
-        />
+        <div {...hover.hoverProps}>
+          <DataTable
+            caption={t("caption")}
+            columns={[
+              { key: "key", label: t("key"), type: "code", width: 110 },
+              { key: "title", label: t("record"), wrap: true },
+              { key: "kind", label: t("kind"), width: 140 },
+              { key: "state", label: t("state"), type: "state", width: 140 },
+              { key: "updated", label: t("updated"), width: 200 },
+            ]}
+            rows={records.map((r) => ({
+              id: r.id,
+              key: r.key ?? "",
+              title: r.title,
+              kind: r.kind,
+              state: { state: recordState(r.state), label: stateLabel(r.state) },
+              updated: when(r.updatedAt),
+              project: r.projectKey,
+            }))}
+            onRowActivate={(row) =>
+              open(typeof row["project"] === "string" ? row["project"] : null)
+            }
+          />
+          {hover.card}
+        </div>
       ) : (
-        <RecordList label={t("caption")}>
-          {records.map((r) => (
-            <RecordRow
-              key={r.id}
-              state={recordState(r.state)}
-              stateLabel={stateLabel(r.state)}
-              recordKey={r.key ?? ""}
-              kind={r.kind as RecordKind}
-              title={r.title}
-              next={when(r.updatedAt)}
-              onOpen={() => open(r.projectKey)}
-            />
-          ))}
-        </RecordList>
+        <div {...hover.hoverProps}>
+          <RecordList label={t("caption")}>
+            {records.map((r) => (
+              <RecordRow
+                key={r.id}
+                id={r.id}
+                state={recordState(r.state)}
+                stateLabel={stateLabel(r.state)}
+                recordKey={r.key ?? ""}
+                kind={r.kind as RecordKind}
+                title={r.title}
+                next={when(r.updatedAt)}
+                onOpen={() => open(r.projectKey)}
+              />
+            ))}
+          </RecordList>
+          {hover.card}
+        </div>
       )}
       {projects.length > 0 ? (
         <section aria-labelledby="recent-projects" className="flex flex-col gap-8">

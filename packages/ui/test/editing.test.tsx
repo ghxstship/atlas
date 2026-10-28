@@ -24,7 +24,11 @@ describe("parseQuickAdd", () => {
     expect(parsed.tokens.map((t) => t.type)).toEqual(["person", "tag", "kind", "scope", "date"]);
     expect(parsed.tokens.find((t) => t.type === "date")?.iso).toBe("2026-10-06");
     expect(parseQuickAdd("Advance call next Friday", monday).tokens[0]?.iso).toBe("2026-10-16");
-    expect(parseQuickAdd("Plain title", monday)).toEqual({ title: "Plain title", tokens: [] });
+    expect(parseQuickAdd("Plain title", monday)).toEqual({
+      text: "Plain title",
+      title: "Plain title",
+      tokens: [],
+    });
   });
 });
 

@@ -1,5 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { usesClientCredentials } from "../src/framework/catalog.ts";
+import { httpFromFetch, type FetchLike } from "../src/framework/http.ts";
 import {
+  clientCredentialSecret,
+  parseCredential,
+  type Credential,
+} from "../src/framework/support.ts";
+import {
+  CarrierTokenCache,
   dhlCarrier,
   fedexCarrier,
   shipmentTracking,
@@ -9,6 +17,7 @@ import {
   trackingConnector,
   trackingConnectors,
   trackingScans,
+  TOKEN_SAFETY_MARGIN_MS,
   upsCarrier,
   type TrackingSource,
   type TrackingUpdate,
@@ -24,6 +33,23 @@ import {
 } from "./doubles.ts";
 
 const run = { scope: "Tracking Refresh" as const, direction: "Inbound" as const };
+
+// Fixture values only, shorter than any real carrier credential, read back from the form Atlas stores.
+const upsPair: Credential = parseCredential(clientCredentialSecret("ups-cid", "ups-sec1"), "ups");
+const fedexPair: Credential = parseCredential(
+  clientCredentialSecret("fdx-cid", "fx+s/c=1"),
+  "fedex",
+);
+const UPS_TOKEN_URL = "https://onlinetools.ups.com/security/v1/oauth/token";
+const FEDEX_TOKEN_URL = "https://apis.fedex.com/oauth/token";
+const upsToken = {
+  match: `POST ${UPS_TOKEN_URL}`,
+  respond: () => ({ json: { access_token: "ups-tok", expires_in: "14399" } }),
+};
+const fedexToken = {
+  match: `POST ${FEDEX_TOKEN_URL}`,
+  respond: () => ({ json: { access_token: "fdx-tok", expires_in: 3599 } }),
+};
 
 function source(numbers: string[] = ["1Z999AA10123456784"], added = 2) {
   const recorded: [string, TrackingUpdate][] = [];
@@ -41,6 +67,7 @@ function source(numbers: string[] = ["1Z999AA10123456784"], added = 2) {
 describe("UPS", () => {
   it("normalizes activity, estimate and delivery", async () => {
     const { http, requests } = scriptedHttp([
+      upsToken,
       {
         match: "GET https://onlinetools.ups.com/api/track/v1/details/1Z999AA10123456784",
         respond: () => ({
@@ -79,11 +106,11 @@ describe("UPS", () => {
       },
     ]);
     const s = source();
-    const outcome = await trackingConnector(upsCarrier, s.value).sync(
-      contextFor("ups", { http, store: memoryStore().store, run }),
+    const outcome = await trackingConnector(upsCarrier(new CarrierTokenCache()), s.value).sync(
+      contextFor("ups", { http, store: memoryStore().store, run, credential: upsPair }),
     );
-    expect(requests[0]?.headers).toMatchObject({
-      authorization: "Bearer fixture-token",
+    expect(requests[1]?.headers).toMatchObject({
+      authorization: "Bearer ups-tok",
       transid: "run-1",
     });
     const update = s.recorded[0]?.[1];
@@ -121,6 +148,7 @@ describe("UPS", () => {
 
   it("falls back to scans, estimates and unknown numbers", async () => {
     const { http } = scriptedHttp([
+      upsToken,
       {
         match: "GET https://onlinetools.ups.com/api/track/v1/details/GONE00",
         respond: () => ({ status: 404 }),
@@ -163,8 +191,8 @@ describe("UPS", () => {
     ]);
     const s = source(["GONE00", "EMPTY0", "MOVING", "QUIET0"], 0);
     const memory = memoryStore();
-    const outcome = await trackingConnector(upsCarrier, s.value).sync(
-      contextFor("ups", { http, store: memory.store, run }),
+    const outcome = await trackingConnector(upsCarrier(new CarrierTokenCache()), s.value).sync(
+      contextFor("ups", { http, store: memory.store, run, credential: upsPair }),
     );
     expect(memory.itemErrors.map((e) => e.code)).toEqual([
       "tracking_number_unknown",
@@ -188,15 +216,16 @@ describe("UPS", () => {
     });
     expect(outcome.counts).toEqual({ read: 4, written: 0, skipped: 2, failed: 2 });
     const denied = scriptedHttp([
+      upsToken,
       { match: "GET https://onlinetools.ups.com", respond: () => ({ status: 401 }) },
     ]);
     await expect(
-      trackingConnector(upsCarrier, source().value).sync(
-        contextFor("ups", { http: denied.http, store: memory.store, run }),
+      trackingConnector(upsCarrier(new CarrierTokenCache()), source().value).sync(
+        contextFor("ups", { http: denied.http, store: memory.store, run, credential: upsPair }),
       ),
     ).rejects.toMatchObject({ code: "credential_refused" });
     await expect(
-      trackingConnector(upsCarrier, source().value).sync(
+      trackingConnector(upsCarrier(new CarrierTokenCache()), source().value).sync(
         contextFor("ups", { http, store: memory.store, run, credential: null }),
       ),
     ).rejects.toMatchObject({ code: "credential_required" });
@@ -206,6 +235,7 @@ describe("UPS", () => {
 describe("FedEx", () => {
   it("normalizes scan events and delivery", async () => {
     const { http, requests } = scriptedHttp([
+      fedexToken,
       {
         match: "POST https://apis.fedex.com/track/v1/trackingnumbers",
         respond: (r) => {
@@ -277,10 +307,11 @@ describe("FedEx", () => {
     ]);
     const s = source(["794698761234", "794600000000", "794600000001", "794600000002"]);
     const memory = memoryStore();
-    await trackingConnector(fedexCarrier, s.value).sync(
-      contextFor("fedex", { http, store: memory.store, run }),
+    await trackingConnector(fedexCarrier(new CarrierTokenCache()), s.value).sync(
+      contextFor("fedex", { http, store: memory.store, run, credential: fedexPair }),
     );
-    expect(bodyOf(requests[0])).toEqual({
+    expect(requests[1]?.headers).toMatchObject({ authorization: "Bearer fdx-tok" });
+    expect(bodyOf(requests[1])).toEqual({
       includeDetailedScans: true,
       trackingInfo: [{ trackingNumberInfo: { trackingNumber: "794698761234" } }],
     });
@@ -306,6 +337,393 @@ describe("FedEx", () => {
       scans: [{ code: "AR", description: "" }],
     });
     expect(memory.itemErrors).toHaveLength(2);
+  });
+});
+
+/**
+ * A fake fetch standing in for UPS and FedEx on one clock: each token request mints the next token for the
+ * lifetime the carrier states, and tracking refuses an expired, revoked or unknown token with 401, as the
+ * carriers do.
+ */
+function carrierWorld(options: { lifetimeSeconds?: number; refuseTokens?: boolean } = {}) {
+  let clock = Date.parse("2027-06-30T12:00:00Z");
+  const expiry = new Map<string, number>();
+  const revoked = new Set<string>();
+  const minted: string[] = [];
+  const mintRequests: { url: string; headers: Headers; body: string }[] = [];
+  const tracked: string[] = [];
+  let refused = 0;
+  const fetchImpl: FetchLike = async (url, init) => {
+    const headers = new Headers(init.headers);
+    if (url === UPS_TOKEN_URL || url === FEDEX_TOKEN_URL) {
+      const ups = url === UPS_TOKEN_URL;
+      mintRequests.push({ url, headers, body: String(init.body) });
+      const token = `${ups ? "ups" : "fdx"}-tok-${minted.length + 1}`;
+      minted.push(token);
+      const lifetime = options.lifetimeSeconds ?? (ups ? 14399 : 3599);
+      expiry.set(token, clock + lifetime * 1000);
+      return Response.json({
+        access_token: token,
+        token_type: "Bearer",
+        expires_in: ups ? String(lifetime) : lifetime,
+      });
+    }
+    const token = headers.get("authorization")?.replace(/^Bearer /, "") ?? "";
+    tracked.push(token);
+    const until = expiry.get(token);
+    if (options.refuseTokens || until === undefined || clock >= until || revoked.has(token)) {
+      refused += 1;
+      return Response.json(
+        {
+          response: {
+            errors: [{ code: "250002", message: "Invalid Authentication Information." }],
+          },
+        },
+        { status: 401 },
+      );
+    }
+    return url.startsWith("https://apis.fedex.com")
+      ? Response.json({
+          output: {
+            completeTrackResults: [
+              { trackResults: [{ latestStatusDetail: { code: "IT", description: "In transit" } }] },
+            ],
+          },
+        })
+      : Response.json({
+          trackResponse: {
+            shipment: [{ package: [{ currentStatus: { type: "I", description: "On the way" } }] }],
+          },
+        });
+  };
+  const http = httpFromFetch(fetchImpl);
+  return {
+    minted,
+    mintRequests,
+    tracked,
+    revoked,
+    refused: () => refused,
+    advance(ms: number) {
+      clock += ms;
+    },
+    async sync(
+      carrier: ReturnType<typeof upsCarrier>,
+      trackers: TrackingSource,
+      credential: Credential,
+    ) {
+      const context = contextFor(carrier.provider, {
+        http,
+        store: memoryStore().store,
+        run,
+        credential,
+      });
+      return trackingConnector(carrier, trackers).sync({ ...context, now: () => new Date(clock) });
+    },
+  };
+}
+
+const HOUR = 3_600_000;
+
+/** The error a sync rejects with; fails the test when the sync succeeds. */
+async function rejection(outcome: Promise<unknown>): Promise<Error> {
+  try {
+    await outcome;
+  } catch (error) {
+    return error as Error;
+  }
+  throw new Error("The sync was expected to fail.");
+}
+
+describe("UPS and FedEx access tokens", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("mints one UPS token per run with HTTP Basic and sends it on every tracking call", async () => {
+    const world = carrierWorld();
+    const s = source(["1ZA", "1ZB", "1ZC"]);
+    const outcome = await world.sync(upsCarrier(new CarrierTokenCache()), s.value, upsPair);
+    expect(world.minted).toEqual(["ups-tok-1"]);
+    const mint = world.mintRequests[0];
+    expect(mint?.headers.get("authorization")).toBe(`Basic ${btoa("ups-cid:ups-sec1")}`);
+    expect(mint?.headers.get("content-type")).toBe("application/x-www-form-urlencoded");
+    expect(mint?.body).toBe("grant_type=client_credentials");
+    expect(world.tracked).toEqual(["ups-tok-1", "ups-tok-1", "ups-tok-1"]);
+    expect(outcome.counts).toEqual({ read: 3, written: 3, skipped: 0, failed: 0 });
+  });
+
+  it("keeps tracking past token expiry: reuses the cached token, then mints before it lapses", async () => {
+    const world = carrierWorld();
+    const tokens = new CarrierTokenCache();
+    const s = source(["1ZA", "1ZB"]);
+    await world.sync(upsCarrier(tokens), s.value, upsPair);
+    world.advance(3 * HOUR);
+    await world.sync(upsCarrier(tokens), s.value, upsPair);
+    expect(world.minted).toEqual(["ups-tok-1"]);
+    // Inside the safety margin of the first token's 14399 seconds: a new token, never a refused call.
+    world.advance(14399_000 - TOKEN_SAFETY_MARGIN_MS - 3 * HOUR);
+    await world.sync(upsCarrier(tokens), s.value, upsPair);
+    world.advance(5 * HOUR);
+    await world.sync(upsCarrier(tokens), s.value, upsPair);
+    expect(world.minted).toEqual(["ups-tok-1", "ups-tok-2", "ups-tok-3"]);
+    expect(world.tracked).toEqual([
+      "ups-tok-1",
+      "ups-tok-1",
+      "ups-tok-1",
+      "ups-tok-1",
+      "ups-tok-2",
+      "ups-tok-2",
+      "ups-tok-3",
+      "ups-tok-3",
+    ]);
+    expect(world.refused()).toBe(0);
+    expect(s.recorded).toHaveLength(8);
+  });
+
+  it("refreshes the token after a 401 and retries the call exactly once", async () => {
+    const world = carrierWorld();
+    const tokens = new CarrierTokenCache();
+    const s = source(["1ZA", "1ZB"]);
+    await world.sync(upsCarrier(tokens), s.value, upsPair);
+    world.revoked.add("ups-tok-1");
+    world.advance(HOUR);
+    const outcome = await world.sync(upsCarrier(tokens), s.value, upsPair);
+    expect(world.minted).toEqual(["ups-tok-1", "ups-tok-2"]);
+    expect(world.tracked.slice(2)).toEqual(["ups-tok-1", "ups-tok-2", "ups-tok-2"]);
+    expect(outcome.counts).toEqual({ read: 2, written: 2, skipped: 0, failed: 0 });
+
+    const refusing = carrierWorld({ refuseTokens: true });
+    await expect(
+      refusing.sync(upsCarrier(new CarrierTokenCache()), source().value, upsPair),
+    ).rejects.toMatchObject({ code: "credential_refused", connectionError: true });
+    expect(refusing.minted).toEqual(["ups-tok-1", "ups-tok-2"]);
+    expect(refusing.tracked).toEqual(["ups-tok-1", "ups-tok-2"]);
+  });
+
+  it("mints FedEx tokens with the pair in the form body and refreshes them each hour", async () => {
+    const world = carrierWorld();
+    const tokens = new CarrierTokenCache();
+    const s = source(["794600000001", "794600000002"]);
+    await world.sync(fedexCarrier(tokens), s.value, fedexPair);
+    const mint = world.mintRequests[0];
+    expect(mint?.url).toBe(FEDEX_TOKEN_URL);
+    expect(mint?.headers.get("authorization")).toBeNull();
+    expect(Object.fromEntries(new URLSearchParams(mint?.body))).toEqual({
+      grant_type: "client_credentials",
+      client_id: "fdx-cid",
+      client_secret: "fx+s/c=1",
+    });
+    world.advance(3599_000 - TOKEN_SAFETY_MARGIN_MS);
+    await world.sync(fedexCarrier(tokens), s.value, fedexPair);
+    world.advance(HOUR / 2);
+    await world.sync(fedexCarrier(tokens), s.value, fedexPair);
+    expect(world.minted).toEqual(["fdx-tok-1", "fdx-tok-2"]);
+    expect(world.tracked).toEqual([
+      "fdx-tok-1",
+      "fdx-tok-1",
+      "fdx-tok-2",
+      "fdx-tok-2",
+      "fdx-tok-2",
+      "fdx-tok-2",
+    ]);
+    expect(s.recorded[0]?.[1]).toMatchObject({ status: "In Transit", statusText: "In transit" });
+  });
+
+  it("never reuses a token of a rotated secret, and keeps a short-lived token half its life", async () => {
+    const world = carrierWorld();
+    const tokens = new CarrierTokenCache();
+    await world.sync(upsCarrier(tokens), source().value, upsPair);
+    const rotated: Credential = {
+      token: "",
+      fields: { ...upsPair.fields, client_secret: "ups-sec2" },
+    };
+    await world.sync(upsCarrier(tokens), source().value, rotated);
+    expect(world.minted).toEqual(["ups-tok-1", "ups-tok-2"]);
+
+    const brief = carrierWorld({ lifetimeSeconds: 120 });
+    const briefTokens = new CarrierTokenCache();
+    await brief.sync(upsCarrier(briefTokens), source().value, upsPair);
+    brief.advance(59_000);
+    await brief.sync(upsCarrier(briefTokens), source().value, upsPair);
+    brief.advance(2_000);
+    await brief.sync(upsCarrier(briefTokens), source().value, upsPair);
+    expect(brief.minted).toEqual(["ups-tok-1", "ups-tok-2"]);
+  });
+
+  it("keeps the client ID, secret and tokens out of errors and logs", async () => {
+    const logs = (["log", "info", "warn", "error", "debug"] as const).map((m) =>
+      vi.spyOn(console, m).mockImplementation(() => undefined),
+    );
+    // A carrier that echoes whatever it was sent into its error bodies.
+    const echoing = scriptedHttp([
+      {
+        match: "POST https://apis.fedex.com/oauth/token",
+        respond: (r) => ({ status: 401, body: `rejected ${String(r.body)}` }),
+      },
+      {
+        match: "POST https://onlinetools.ups.com/security/v1/oauth/token",
+        respond: (r) => ({ status: 401, body: `rejected ${r.headers?.["authorization"]}` }),
+      },
+    ]);
+    const fedexError = await rejection(
+      trackingConnector(fedexCarrier(new CarrierTokenCache()), source().value).sync(
+        contextFor("fedex", {
+          http: echoing.http,
+          store: memoryStore().store,
+          run,
+          credential: fedexPair,
+        }),
+      ),
+    );
+    const upsError = await rejection(
+      trackingConnector(upsCarrier(new CarrierTokenCache()), source().value).sync(
+        contextFor("ups", {
+          http: echoing.http,
+          store: memoryStore().store,
+          run,
+          credential: upsPair,
+        }),
+      ),
+    );
+    expect(fedexError).toMatchObject({ code: "credential_refused", connectionError: true });
+    expect(upsError).toMatchObject({ code: "credential_refused", connectionError: true });
+    for (const secret of ["fx+s/c=1", "fx%2Bs%2Fc%3D1", "fdx-cid"])
+      expect(fedexError.message).not.toContain(secret);
+    for (const secret of ["ups-sec1", "ups-cid", btoa("ups-cid:ups-sec1")])
+      expect(upsError.message).not.toContain(secret);
+    expect(fedexError.message).toContain("[redacted]");
+
+    const leaking = scriptedHttp([
+      upsToken,
+      {
+        match: "GET https://onlinetools.ups.com/api/track",
+        respond: (r) => ({ status: 503, body: `down for ${r.headers?.["authorization"]}` }),
+      },
+    ]);
+    const trackError = await rejection(
+      trackingConnector(upsCarrier(new CarrierTokenCache()), source().value).sync(
+        contextFor("ups", {
+          http: leaking.http,
+          store: memoryStore().store,
+          run,
+          credential: upsPair,
+        }),
+      ),
+    );
+    expect(trackError).toMatchObject({ code: "provider_unavailable", retryable: true });
+    expect(trackError.message).toBe("UPS returned 503: down for Bearer [redacted]");
+
+    // A network failure keeps its name, so the runner still retries it as unreachable.
+    const unreachable = httpFromFetch(async (_url, init) => {
+      throw new TypeError(`fetch failed sending ${String(init.body)}`);
+    });
+    const networkError = await rejection(
+      trackingConnector(fedexCarrier(new CarrierTokenCache()), source().value).sync(
+        contextFor("fedex", {
+          http: unreachable,
+          store: memoryStore().store,
+          run,
+          credential: fedexPair,
+        }),
+      ),
+    );
+    expect(networkError.name).toBe("TypeError");
+    expect(networkError.message).not.toContain("fx%2Bs%2Fc%3D1");
+    expect(networkError.message).toContain("client_secret=[redacted]");
+    for (const spy of logs) expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("redacts an echo the 500-character excerpt would cut, and JSON-escaped echoes", async () => {
+    const fedexFailure = (respond: (body: string) => { status: number; body: string }) =>
+      rejection(
+        trackingConnector(fedexCarrier(new CarrierTokenCache()), source().value).sync(
+          contextFor("fedex", {
+            http: scriptedHttp([
+              { match: `POST ${FEDEX_TOKEN_URL}`, respond: (r) => respond(String(r.body)) },
+            ]).http,
+            store: memoryStore().store,
+            run,
+            credential: fedexPair,
+          }),
+        ),
+      );
+    // The form-encoded secret starts six characters before the excerpt ends.
+    const cut = await fedexFailure((body) => ({
+      status: 401,
+      body: ".".repeat(494 - body.indexOf("fx%2B")) + body,
+    }));
+    expect(cut).toMatchObject({ code: "credential_refused", connectionError: true });
+    expect(cut.message).not.toContain("fx%2B");
+    expect(cut.message).not.toContain("fdx-cid");
+    expect(cut.message).toContain("client_id=[redacted]");
+
+    // A carrier that answers in JSON with escaped slashes, as PHP's json_encode does.
+    const escaped = await fedexFailure((body) => ({
+      status: 400,
+      body: JSON.stringify({ received: Object.fromEntries(new URLSearchParams(body)) }).replaceAll(
+        "/",
+        "\\/",
+      ),
+    }));
+    expect(escaped).toMatchObject({ code: "provider_rejected" });
+    expect(escaped.message).not.toContain("fx+s");
+    expect(escaped.message).not.toContain("fdx-cid");
+    expect(escaped.message).toContain('"client_secret":"[redacted]"');
+
+    const quoted = parseCredential(clientCredentialSecret("ups-cid", 'up"s\\1'), "ups");
+    const upsEcho = scriptedHttp([
+      {
+        match: `POST ${UPS_TOKEN_URL}`,
+        respond: (r) => {
+          const basic = atob(String(r.headers?.["authorization"]).slice("Basic ".length));
+          return { status: 403, body: JSON.stringify({ sent: basic.split(":") }) };
+        },
+      },
+    ]);
+    const upsError = await rejection(
+      trackingConnector(upsCarrier(new CarrierTokenCache()), source().value).sync(
+        contextFor("ups", {
+          http: upsEcho.http,
+          store: memoryStore().store,
+          run,
+          credential: quoted,
+        }),
+      ),
+    );
+    expect(upsError.message).toBe('UPS returned 403: {"sent":["[redacted]","[redacted]"]}');
+  });
+
+  it("asks for the client ID and secret, and refuses a token answer it cannot use", async () => {
+    const { http, requests } = scriptedHttp([upsToken]);
+    await expect(
+      trackingConnector(upsCarrier(new CarrierTokenCache()), source().value).sync(
+        contextFor("ups", { http, store: memoryStore().store, run }),
+      ),
+    ).rejects.toMatchObject({
+      code: "credential_incomplete",
+      connectionError: true,
+      message: expect.stringContaining("client ID and client secret") as unknown,
+    });
+    expect(requests).toHaveLength(0);
+    for (const answer of [
+      { json: {} },
+      { body: "not json" },
+      { json: null },
+      { json: { access_token: "ups-tok", expires_in: "soon" } },
+    ]) {
+      const odd = scriptedHttp([{ match: `POST ${UPS_TOKEN_URL}`, respond: () => answer }]);
+      await expect(
+        trackingConnector(upsCarrier(new CarrierTokenCache()), source().value).sync(
+          contextFor("ups", {
+            http: odd.http,
+            store: memoryStore().store,
+            run,
+            credential: upsPair,
+          }),
+        ),
+      ).rejects.toMatchObject({ code: "provider_malformed_response", retryable: true });
+    }
+    expect(["ups", "fedex", "dhl"].map(usesClientCredentials)).toEqual([true, true, false]);
   });
 });
 

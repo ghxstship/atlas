@@ -150,6 +150,46 @@ describe("IntegrationsSettings", () => {
     await expectAccessible();
   });
 
+  it("asks a UPS or FedEx connection for its app's client ID and secret instead of a token", async () => {
+    const user = userEvent.setup();
+    const credential = recorder();
+    render(
+      <IntegrationsSettings
+        org="northwind"
+        canManage
+        providers={providers}
+        connections={[
+          connection({
+            providerCode: "ups",
+            providerLabel: "UPS",
+            displayName: "Warehouse UPS",
+            clientCredentialHelp: "Create an app at developer.ups.com.",
+            scopes: [{ value: "Tracking Refresh", label: "Refresh tracking" }],
+          }),
+        ]}
+        copy={copy}
+        actions={actions({ credential: credential.action })}
+      />,
+    );
+    expect(screen.queryByLabelText("copy:secret")).toBeNull();
+    expect(screen.queryByLabelText("copy:kind")).toBeNull();
+    const clientId = screen.getByLabelText("copy:clientId");
+    expect(clientId.getAttribute("aria-describedby")).toBeTruthy();
+    expect(screen.getByText("Create an app at developer.ups.com.")).toBeTruthy();
+    expect(screen.getByLabelText("copy:clientSecret").getAttribute("type")).toBe("password");
+    await user.type(clientId, "ups-cid");
+    await user.type(screen.getByLabelText("copy:clientSecret"), "ups-sec1");
+    await user.click(screen.getByRole("button", { name: "copy:storeCredential" }));
+    await waitFor(() => expect(screen.getByText("copy:saved")).toBeTruthy());
+    expect(credential.calls[0]).toEqual({
+      org: "northwind",
+      connectionId: "c1",
+      clientId: "ups-cid",
+      clientSecret: "ups-sec1",
+    });
+    await expectAccessible();
+  });
+
   it("offers pause, sync and disconnect on a connected integration", async () => {
     const user = userEvent.setup();
     const sync = recorder();
