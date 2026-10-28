@@ -333,7 +333,56 @@
     "readOnly": "Puedes leer esta configuración. Pide a un gerente del proyecto que la cambie.",
     "gateway": "Acceso a Gateway",
     "gatewayLead": "El acceso de clientes y patrocinadores a este proyecto se administra en la pestaña Encargos.",
-    "gatewayLink": "Abrir encargos"
+    "gatewayLink": "Abrir encargos",
+    "offerings": {
+      "title": "Ofertas",
+      "description": "Lo que este proyecto ofrece a las personas que contrata. Cada oferta queda como No se ofrece salvo que la organización o este proyecto la ofrezcan, y Gateway muestra sus pestañas solo donde se ofrece.",
+      "orgTitle": "Reglas de ofertas",
+      "orgDescription": "Reglas para un tipo de rol o una clase de proveedor en todos los proyectos. La regla propia de un proyecto prevalece sobre estas; un valor que la organización bloqueó prevalece sobre todas las reglas.",
+      "fieldsLabel": "Ofertas de este proyecto",
+      "rules": "Reglas",
+      "rulesDescription": "Ofrece de otra forma a un tipo de rol o una clase de proveedor, con límites opcionales. La regla más específica prevalece sobre los valores anteriores.",
+      "addRule": "Agregar regla",
+      "offering": "Oferta",
+      "roleType": "Tipo de rol",
+      "vendorClass": "Clase de proveedor",
+      "mode": "Modalidad",
+      "capPerEngagement": "Límite por contratación",
+      "capPerPerson": "Límite por persona",
+      "capHelp": "Déjalo en blanco para no fijar límite.",
+      "everyRoleType": "Todos los tipos de rol",
+      "everyVendorClass": "Todas las clases de proveedor",
+      "noCap": "Sin límite",
+      "remove": "Quitar",
+      "actions": "Acciones",
+      "empty": "Aún no hay reglas. Las ofertas anteriores se aplican a todas las personas contratadas.",
+      "readOnly": "Solo quienes pueden editar la configuración del proyecto cambian las ofertas.",
+      "added": "Regla agregada.",
+      "kinds": {
+        "Travel": "Viajes",
+        "Lodging": "Alojamiento",
+        "Catering": "Catering",
+        "Parking": "Estacionamiento",
+        "Uniforms": "Uniformes",
+        "Per Diem": "Viáticos",
+        "Radios": "Radios",
+        "Carts": "Carritos",
+        "Guest List": "Lista de invitados"
+      },
+      "modes": {
+        "Not Offered": "No se ofrece",
+        "Provided": "Incluido",
+        "Reimbursed": "Reembolsado",
+        "Buyout": "Pago fijo"
+      },
+      "errors": {
+        "conflict": "Ya existe una regla para esta oferta y este público. Quítala primero o elige otro tipo de rol o clase de proveedor.",
+        "invalid": "Revisa la regla: los límites solo van en una modalidad ofrecida, de 0 a 10000, y una clase de proveedor solo con el tipo de rol Proveedor o todos los tipos de rol.",
+        "crossOrg": "Esa clase de proveedor pertenece a otra organización.",
+        "notFound": "Ya no puedes cambiar esta regla. Vuelve a cargar la página.",
+        "unexpected": "La regla no se guardó. Inténtalo de nuevo."
+      }
+    }
   },
   "collab": {
     "commentsTitle": "Comentarios",

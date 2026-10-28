@@ -333,7 +333,56 @@
     "readOnly": "You can read these settings. Ask a project manager to change them.",
     "gateway": "Gateway access",
     "gatewayLead": "Client and sponsor access to this project is managed on the Engagements tab.",
-    "gatewayLink": "Open engagements"
+    "gatewayLink": "Open engagements",
+    "offerings": {
+      "title": "Offerings",
+      "description": "What this project offers the people it engages. Every offering is Not offered unless the organization or this project offers it, and Gateway shows its tabs only where it is offered.",
+      "orgTitle": "Offering rules",
+      "orgDescription": "Rules for one role type or vendor class across every project. A project's own rule wins over these; a value the organization locked wins over every rule.",
+      "fieldsLabel": "Offerings for this project",
+      "rules": "Rules",
+      "rulesDescription": "Offer differently to one role type or vendor class, with optional caps. The most specific rule wins over the values above.",
+      "addRule": "Add rule",
+      "offering": "Offering",
+      "roleType": "Role type",
+      "vendorClass": "Vendor class",
+      "mode": "Mode",
+      "capPerEngagement": "Cap per engagement",
+      "capPerPerson": "Cap per person",
+      "capHelp": "Leave blank for no cap.",
+      "everyRoleType": "Every role type",
+      "everyVendorClass": "Every vendor class",
+      "noCap": "No cap",
+      "remove": "Remove",
+      "actions": "Actions",
+      "empty": "No rules yet. The offerings above apply to everyone engaged.",
+      "readOnly": "Only people who can edit project settings change offerings.",
+      "added": "Rule added.",
+      "kinds": {
+        "Travel": "Travel",
+        "Lodging": "Lodging",
+        "Catering": "Catering",
+        "Parking": "Parking",
+        "Uniforms": "Uniforms",
+        "Per Diem": "Per diem",
+        "Radios": "Radios",
+        "Carts": "Carts",
+        "Guest List": "Guest list"
+      },
+      "modes": {
+        "Not Offered": "Not offered",
+        "Provided": "Provided",
+        "Reimbursed": "Reimbursed",
+        "Buyout": "Buyout"
+      },
+      "errors": {
+        "conflict": "A rule for this offering and audience already exists. Remove it first, or choose another role type or vendor class.",
+        "invalid": "Check the rule: caps go only on an offered mode, from 0 to 10000, and a vendor class only with role type Vendor or every role type.",
+        "crossOrg": "That vendor class belongs to another organization.",
+        "notFound": "You can no longer change this rule. Reload the page.",
+        "unexpected": "The rule did not save. Try again."
+      }
+    }
   },
   "collab": {
     "commentsTitle": "Comments",

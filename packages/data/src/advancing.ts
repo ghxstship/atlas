@@ -137,6 +137,22 @@ async function partyNames(
   return ok(names);
 }
 
+/** The person each engagement names, for riders that belong to an individual artist's engagement. */
+async function engagementPeople(
+  db: XosClient,
+  engagementIds: readonly string[],
+): Promise<Result<Map<string, string>>> {
+  const people = new Map<string, string>();
+  if (engagementIds.length === 0) return ok(people);
+  const { data, error } = await db
+    .from("engagements")
+    .select("id, person_id")
+    .in("id", [...new Set(engagementIds)]);
+  if (error) return fail(toDataError(error));
+  for (const e of data) if (e.person_id) people.set(e.id, e.person_id);
+  return ok(people);
+}
+
 // Packets -------------------------------------------------------------------------------------------
 
 /**
@@ -982,6 +998,10 @@ export interface RiderSummary {
   readonly title: string;
   readonly counterpartyId: string | null;
   readonly counterpartyName: string | null;
+  /** Artist engagement whose rider it is, for an artist booked as a person (R2); never set with a counterparty. */
+  readonly engagementId: string | null;
+  /** Name of the engagement's artist; null when not visible to the viewer. */
+  readonly engagementName: string | null;
   readonly createdAt: string;
   readonly lineCount: number;
   readonly fulfilledCount: number;
@@ -1006,7 +1026,7 @@ export async function listRiders(
 ): Promise<Result<RiderSummary[]>> {
   let query = db
     .from("riders")
-    .select("id, project_id, title, counterparty_id, created_at")
+    .select("id, project_id, title, counterparty_id, engagement_id, created_at")
     .eq("org_id", filter.orgId)
     .is("deleted_at", null);
   if (filter.projectId !== undefined) query = query.eq("project_id", filter.projectId);
@@ -1022,21 +1042,29 @@ export async function listRiders(
     )
     .is("deleted_at", null);
   if (lineError) return fail(toDataError(lineError));
+  const artists = await engagementPeople(
+    db,
+    riders.flatMap((r) => (r.engagement_id ? [r.engagement_id] : [])),
+  );
+  if (!artists.ok) return fail(artists.error);
   const names = await partyNames(
     db,
-    [],
+    [...artists.data.values()],
     riders.flatMap((r) => (r.counterparty_id ? [r.counterparty_id] : [])),
   );
   if (!names.ok) return fail(names.error);
   return ok(
     riders.map((r): RiderSummary => {
       const own = lines.filter((l) => l.rider_id === r.id);
+      const artist = r.engagement_id ? artists.data.get(r.engagement_id) : undefined;
       return {
         id: r.id,
         projectId: r.project_id,
         title: r.title,
         counterpartyId: r.counterparty_id,
         counterpartyName: r.counterparty_id ? (names.data.get(r.counterparty_id) ?? null) : null,
+        engagementId: r.engagement_id,
+        engagementName: artist ? (names.data.get(artist) ?? null) : null,
         createdAt: r.created_at,
         lineCount: own.length,
         fulfilledCount: own.filter((l) => l.fulfilled_at !== null).length,
@@ -1049,7 +1077,7 @@ export async function listRiders(
 export async function getRider(db: XosClient, riderId: string): Promise<Result<RiderDetail>> {
   const { data: rider, error } = await db
     .from("riders")
-    .select("id, project_id, title, counterparty_id, created_at")
+    .select("id, project_id, title, counterparty_id, engagement_id, created_at")
     .eq("id", riderId)
     .is("deleted_at", null)
     .maybeSingle();
@@ -1062,7 +1090,14 @@ export async function getRider(db: XosClient, riderId: string): Promise<Result<R
     .is("deleted_at", null)
     .order("created_at");
   if (lineError) return fail(toDataError(lineError));
-  const names = await partyNames(db, [], rider.counterparty_id ? [rider.counterparty_id] : []);
+  const artists = await engagementPeople(db, rider.engagement_id ? [rider.engagement_id] : []);
+  if (!artists.ok) return fail(artists.error);
+  const artist = rider.engagement_id ? artists.data.get(rider.engagement_id) : undefined;
+  const names = await partyNames(
+    db,
+    artist ? [artist] : [],
+    rider.counterparty_id ? [rider.counterparty_id] : [],
+  );
   if (!names.ok) return fail(names.error);
   return ok({
     id: rider.id,
@@ -1072,6 +1107,8 @@ export async function getRider(db: XosClient, riderId: string): Promise<Result<R
     counterpartyName: rider.counterparty_id
       ? (names.data.get(rider.counterparty_id) ?? null)
       : null,
+    engagementId: rider.engagement_id,
+    engagementName: artist ? (names.data.get(artist) ?? null) : null,
     createdAt: rider.created_at,
     lineCount: lines.length,
     fulfilledCount: lines.filter((l) => l.fulfilled_at !== null).length,
@@ -1085,7 +1122,10 @@ export async function getRider(db: XosClient, riderId: string): Promise<Result<R
   });
 }
 
-/** Records a rider received from a party; returns its id. */
+/**
+ * Records a rider received from a party, a counterparty or an individual artist's engagement (at most
+ * one); returns its id.
+ */
 export async function createRider(
   db: XosClient,
   input: {
@@ -1093,10 +1133,13 @@ export async function createRider(
     readonly projectId: string;
     readonly title: string;
     readonly counterpartyId: string | null;
+    readonly engagementId: string | null;
   },
 ): Promise<Result<{ id: string }>> {
   const title = cleanTitle(input.title);
   if (title === null) return fail({ kind: "invalid", message: "title" });
+  if (input.counterpartyId !== null && input.engagementId !== null)
+    return fail({ kind: "invalid", message: "party" });
   const { data, error } = await db
     .from("riders")
     .insert({
@@ -1104,6 +1147,7 @@ export async function createRider(
       project_id: input.projectId,
       title,
       counterparty_id: input.counterpartyId,
+      engagement_id: input.engagementId,
     })
     .select("id")
     .single();
@@ -1111,17 +1155,23 @@ export async function createRider(
   return ok({ id: data.id });
 }
 
-/** Renames a rider or changes whose rider it is. */
+/** Renames a rider or changes whose rider it is: a counterparty, an artist's engagement, or nobody. */
 export async function updateRider(
   db: XosClient,
   riderId: string,
-  input: { readonly title: string; readonly counterpartyId: string | null },
+  input: {
+    readonly title: string;
+    readonly counterpartyId: string | null;
+    readonly engagementId: string | null;
+  },
 ): Promise<Result<null>> {
   const title = cleanTitle(input.title);
   if (title === null) return fail({ kind: "invalid", message: "title" });
+  if (input.counterpartyId !== null && input.engagementId !== null)
+    return fail({ kind: "invalid", message: "party" });
   const { data, error } = await db
     .from("riders")
-    .update({ title, counterparty_id: input.counterpartyId })
+    .update({ title, counterparty_id: input.counterpartyId, engagement_id: input.engagementId })
     .eq("id", riderId)
     .is("deleted_at", null)
     .select("id");
