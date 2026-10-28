@@ -1,8 +1,10 @@
 import { lighthouseAssertions, webBudgets } from "./budgets.ts";
 
 /**
- * Lighthouse CI for the key Atlas, Gateway and docs pages (Section 18, gate 10). The CLI builds a
- * signed-in session cookie per app, writes one lighthouserc per app and runs `lhci autorun`.
+ * Lighthouse CI for Atlas, Gateway and docs (Section 18, gate 10): every signed-in route in the
+ * generated sitemaps (lighthouse-routes.ts) and the public key pages, each against the spec
+ * budgets. The CLI signs in each demo person, writes one lighthouserc per person and runs
+ * `lhci autorun`.
  */
 
 export type LighthouseApp = "atlas" | "gateway" | "docs";
@@ -85,8 +87,9 @@ export function sessionCookies(name: string, session: AuthSession): SessionCooki
 export const SESSION_COOKIES_ENV = "XOS_LH_SESSION_COOKIES";
 
 export interface LighthouseRcInput {
-  readonly app: LighthouseApp;
   readonly baseUrl: string;
+  /** The paths to visit, on `baseUrl`. */
+  readonly paths: readonly string[];
   /**
    * For signed-in apps, the path of `lighthouse-session.cjs` relative to the directory lhci runs
    * in. It puts the session in the browser's cookie jar before each page. A session sent as an
@@ -101,13 +104,12 @@ export interface LighthouseRcInput {
 
 const CHROME_FLAGS = ["--headless=new", "--no-sandbox"];
 
-/** One app's lighthouserc: desktop preset, the spec budgets as assertions, local reports only. */
+/** One run's lighthouserc: desktop preset, the spec budgets as assertions, local reports only. */
 export function lighthouseRc(input: LighthouseRcInput) {
-  const target = lighthouseTargets[input.app];
   return {
     ci: {
       collect: {
-        url: target.paths.map((path) => `${input.baseUrl}${path}`),
+        url: input.paths.map((path) => `${input.baseUrl}${path}`),
         numberOfRuns: input.runs ?? 1,
         ...(input.chromePath ? { chromePath: input.chromePath } : {}),
         // With a session script, lhci launches Chrome through puppeteer (lighthouse's own

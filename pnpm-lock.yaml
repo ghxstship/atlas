@@ -1350,6 +1350,12 @@ importers:
       '@xos/config':
         specifier: workspace:*
         version: link:../config
+      '@xos/data':
+        specifier: workspace:*
+        version: link:../data
+      '@xos/ia':
+        specifier: workspace:*
+        version: link:../ia
       '@xos/tokens':
         specifier: workspace:*
         version: link:../tokens

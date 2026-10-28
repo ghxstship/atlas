@@ -31,10 +31,10 @@ describe("sessionCookies", () => {
 });
 
 describe("lighthouseRc", () => {
-  it("lists the app's key pages, sets the session through the cookie jar and asserts the spec budgets", () => {
+  it("lists the run's pages, sets the session through the cookie jar and asserts the spec budgets", () => {
     const rc = lighthouseRc({
-      app: "atlas",
       baseUrl: "http://127.0.0.1:3006",
+      paths: lighthouseTargets.atlas.paths,
       sessionScript: "../../../../src/lighthouse-session.cjs",
       chromePath: "/chrome",
       outputDir: "/out",
@@ -51,8 +51,8 @@ describe("lighthouseRc", () => {
 
   it("launches Chrome itself, with no session, for public-only apps", () => {
     const rc = lighthouseRc({
-      app: "docs",
       baseUrl: "http://x",
+      paths: lighthouseTargets.docs.paths,
       sessionScript: null,
       chromePath: undefined,
       outputDir: "/out",
