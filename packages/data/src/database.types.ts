@@ -60552,7 +60552,27 @@ export type Database = {
       billing_portal_customer: { Args: { p_livemode: boolean; p_org_id: string }; Returns: string };
       block_member: { Args: { p_membership_id: string }; Returns: string };
       block_profile: { Args: { p_handle: string; p_kind: string }; Returns: string };
+      bulk_update_accommodation_blocks: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
       bulk_update_asset_units: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_beos: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_dock_slots: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_fulfillments: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_guest_list_entries: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };
@@ -60577,6 +60597,10 @@ export type Database = {
         Returns: Json;
       };
       bulk_update_shifts: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_shipments: {
         Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
         Returns: Json;
       };

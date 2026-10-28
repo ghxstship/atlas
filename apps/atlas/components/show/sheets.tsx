@@ -20,7 +20,11 @@ import {
 import type { Route } from "next";
 import { useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
+import { DraftEntry } from "@/components/aurora/entry/draft-entry";
+import { useRowMenu } from "@/components/menus/use-row-menu";
+import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
+import type { ActionResult } from "@/components/work/action-result";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
 import { formatDay, formatScheduleTime, formatWhen, withQuery } from "@/components/work/format";
 import { useScheduleView } from "@/components/work/use-schedule-view";
@@ -29,6 +33,7 @@ import {
   createCallSheetAction,
   deleteSheetAction,
   publishSheetAction,
+  restoreSheetAction,
   saveDaySheetAction,
 } from "./actions";
 import { CollectionViews } from "@/components/views/collection-views";
@@ -36,10 +41,44 @@ import { CollectionViews } from "@/components/views/collection-views";
 type Sheet = (DaySheet | CallSheet) & { readonly id: string };
 type Kind = "daySheets" | "callSheets";
 
+const TABLE: Readonly<Record<Kind, "day_sheets" | "call_sheets">> = {
+  daySheets: "day_sheets",
+  callSheets: "call_sheets",
+};
+
 /**
- * Show > Day sheets and Call sheets (Section 4.5.5): one sheet per project day, as a list or a
- * month calendar. Day sheets carry the day's plan; call sheets derive their calls from the day's
- * crew shifts. Publishing needs show.call_sheet.publish and happens once.
+ * Puts a sheet's move to Trash on the session's undo stack (Section 11.7): the shell's Undo toast
+ * shows for 8 seconds, outliving the peek that closes, and its Undo or Cmd or Ctrl+Z restores the
+ * sheet; redo moves it to Trash again. A sheet saved for the same day since is refused as a conflict.
+ */
+function useSheetTrash(org: string, kind: Kind) {
+  const t = useCopy("show");
+  const tw = useCopy("work");
+  const locale = useLocale();
+  return useCallback(
+    (sheet: Pick<Sheet, "id" | "projectKey" | "day">) => {
+      const asUndo = async (action: () => Promise<ActionResult>): Promise<UndoResult> => {
+        const result = await action();
+        return result.ok ? { ok: true } : { ok: false, message: tw(`errors.${result.error.key}`) };
+      };
+      undoStack.push({
+        label: t(`${kind}.trashed`, {
+          project: sheet.projectKey,
+          day: formatDay(sheet.day, locale, { dateStyle: "medium" }),
+        }),
+        undo: () => asUndo(() => restoreSheetAction(org, TABLE[kind], sheet.id)),
+        redo: () => asUndo(() => deleteSheetAction(org, TABLE[kind], sheet.id)),
+      });
+    },
+    [org, kind, t, tw, locale],
+  );
+}
+
+/**
+ * Show > Day sheets and Call sheets (Section 4.5.5): one sheet per project day, as a list, a table
+ * or a month calendar. Day sheets carry the day's plan; call sheets derive their calls from the
+ * day's crew shifts. Publishing needs show.call_sheet.publish and happens once. A table row's menu
+ * (right-click, Shift+F10 or the Context Menu key) opens the sheet or moves it to Trash.
  */
 export function SheetCollection({
   org,
@@ -53,6 +92,7 @@ export function SheetCollection({
   projects,
   canWrite,
   open,
+  openId,
   peek,
 }: {
   org: string;
@@ -66,6 +106,8 @@ export function SheetCollection({
   projects: readonly ProjectRef[];
   canWrite: boolean;
   open: boolean;
+  /** The sheet the peek shows, which closes when that sheet moves to Trash from its row. */
+  openId?: string;
   peek: ReactNode;
 }) {
   const t = useCopy("show");
@@ -73,6 +115,9 @@ export function SheetCollection({
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const rowMenu = useRowMenu();
+  const removal = useAction();
+  const trashed = useSheetTrash(org, kind);
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   const openSheet = (id: string) =>
@@ -149,6 +194,62 @@ export function SheetCollection({
           }}
         />
       </div>
+    );
+  } else if (view === "table") {
+    body = (
+      <>
+        <ActionErrorAlert error={removal.error} />
+        <DataTable
+          caption={t(`${kind}.listLabel`)}
+          columns={[
+            { key: "day", label: t(`${kind}.day`), wrap: true },
+            { key: "project", label: t(`${kind}.project`), type: "code" },
+            { key: "status", label: t(`${kind}.status`) },
+          ]}
+          rows={sheets.map((s) => ({
+            id: s.id,
+            day: formatDay(s.day, locale, { dateStyle: "full" }),
+            project: s.projectKey,
+            status: status(s),
+          }))}
+          onRowActivate={(row) => openSheet(String(row["id"]))}
+          onRowContextMenu={(_row, index, at, cell) => {
+            const s = sheets[index];
+            if (!s) return;
+            // A sheet has no full page or property that changes in bulk: its menu opens it, and
+            // moves an unpublished sheet to Trash with an 8-second Undo, as its peek does.
+            rowMenu.open(
+              {
+                id: s.id,
+                label: `${s.projectKey} · ${formatDay(s.day, locale, { dateStyle: "medium" })}`,
+                open: () => openSheet(s.id),
+                ...(canWrite && !s.publishedAt
+                  ? {
+                      more: [
+                        {
+                          label: t(`${kind}.delete`),
+                          icon: "Trash2" as const,
+                          danger: true,
+                          onSelect: () =>
+                            removal.run(
+                              () => deleteSheetAction(org, TABLE[kind], s.id),
+                              () => {
+                                trashed(s);
+                                if (openId === s.id) go({ peek: null });
+                              },
+                            ),
+                        },
+                      ],
+                    }
+                  : {}),
+              },
+              at,
+              cell,
+            );
+          }}
+        />
+        {rowMenu.menu}
+      </>
     );
   } else {
     body = (
@@ -263,7 +364,10 @@ function CreateSheet({
   );
 }
 
-/** A day sheet: its plan as text, saved, then published once. */
+/**
+ * A day sheet: its plan as text, drafted with Aurora or typed, saved, then published once. Moving
+ * an unpublished sheet to Trash offers Undo for 8 seconds (Section 11.7).
+ */
 export function DaySheetPeek({
   org,
   sheet,
@@ -283,16 +387,14 @@ export function DaySheetPeek({
   const pathname = usePathname();
   const params = useSearchParams();
   const { pending, error, run } = useAction();
+  const trashed = useSheetTrash(org, "daySheets");
   const [body, setBody] = useState(sheet.body);
   const [saved, setSaved] = useState(false);
   const close = () =>
     router.replace(withQuery(pathname, params, { peek: null }) as Route, { scroll: false });
+  const title = `${sheet.projectKey} · ${formatDay(sheet.day, locale, { dateStyle: "full" })}`;
   return (
-    <Drawer
-      title={`${sheet.projectKey} · ${formatDay(sheet.day, locale, { dateStyle: "full" })}`}
-      open
-      onOpenChange={(v) => (v ? undefined : close())}
-    >
+    <Drawer title={title} open onOpenChange={(v) => (v ? undefined : close())}>
       <ActionErrorAlert error={error} />
       <Tag tone={sheet.publishedAt ? "success" : "neutral"}>
         {sheet.publishedAt
@@ -311,8 +413,19 @@ export function DaySheetPeek({
             );
           }}
         >
+          {/* Draft with Aurora (Section 4.7, S4.7-05): fills the body; Save is the write. */}
+          <DraftEntry
+            kind="day_sheet"
+            fields={{ body: "body" }}
+            context={[
+              { collection: "day-sheets", id: sheet.id, label: title },
+              { collection: "projects", id: sheet.projectId, label: sheet.projectKey },
+            ]}
+            maxBody={20_000}
+          />
           <Textarea
             id={`day-sheet-${sheet.id}`}
+            name="body"
             label={t("daySheets.body")}
             help={t("daySheets.bodyHelp")}
             rows={12}
@@ -347,7 +460,15 @@ export function DaySheetPeek({
           <Button
             variant="ghost"
             icon="Trash2"
-            onClick={() => run(() => deleteSheetAction(org, "day_sheets", sheet.id), close)}
+            onClick={() =>
+              run(
+                () => deleteSheetAction(org, "day_sheets", sheet.id),
+                () => {
+                  trashed(sheet);
+                  close();
+                },
+              )
+            }
           >
             {t("daySheets.delete")}
           </Button>
@@ -380,6 +501,7 @@ export function CallSheetPeek({
   const pathname = usePathname();
   const params = useSearchParams();
   const { pending, error, run } = useAction();
+  const trashed = useSheetTrash(org, "callSheets");
   const close = () =>
     router.replace(withQuery(pathname, params, { peek: null }) as Route, { scroll: false });
   // Call times follow me.time_zone_display and carry their zone abbreviation (Section 15).
@@ -437,7 +559,15 @@ export function CallSheetPeek({
           <Button
             variant="ghost"
             icon="Trash2"
-            onClick={() => run(() => deleteSheetAction(org, "call_sheets", sheet.id), close)}
+            onClick={() =>
+              run(
+                () => deleteSheetAction(org, "call_sheets", sheet.id),
+                () => {
+                  trashed(sheet);
+                  close();
+                },
+              )
+            }
           >
             {t("callSheets.delete")}
           </Button>

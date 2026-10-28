@@ -196,6 +196,7 @@ export async function PacketsCollection({
           ]}
           rows={packets.map((p) => ({
             id: p.id,
+            label: p.title,
             title: p.title,
             project: projectKey(p.projectId),
             state: stateLabel(p.state),
