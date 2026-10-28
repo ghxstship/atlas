@@ -285,6 +285,14 @@
     "supplierDiversityProgram": {
       "label": "Programa de diversidad de proveedores",
       "help": "Permite que proveedores y profesionales independientes compartan sus certificaciones de diversidad de proveedores con su organización. Cada uno comparte con un consentimiento aparte y puede revocarlo en cualquier momento. Desactivado, no se puede compartir nada y las certificaciones compartidas quedan ocultas."
+    },
+    "homeLayout": {
+      "label": "Diseño de Inicio",
+      "help": "Ensancha o estrecha un mosaico de Inicio arrastrando su borde, o con las teclas de flecha en su control. Restablecer devuelve cada mosaico a su ancho predeterminado."
+    },
+    "partnerLayout": {
+      "label": "Diseño de la consola de socios",
+      "help": "Ensancha o estrecha un mosaico de la consola de socios arrastrando su borde, o con las teclas de flecha en su control. Restablecer devuelve cada mosaico a su ancho predeterminado."
     }
   },
   "choices": {
@@ -1055,5 +1063,7 @@
       "vendor_entitlements": "Derechos por clase de proveedor",
       "verbiage": "Biblioteca de terminología"
     }
-  }
+  },
+  "layoutCustom": "Organizaste este panel. Restablecer devuelve sus mosaicos a su ancho predeterminado.",
+  "layoutDefault": "Diseño predeterminado. Organiza los mosaicos en el propio panel."
 }

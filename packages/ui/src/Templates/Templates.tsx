@@ -3,6 +3,9 @@ export {
   type TemplateRecordProps,
   type TemplateSplitViewProps,
   type TemplateDashboardProps,
+  type DashboardTile,
+  type DashboardSpans,
+  type DashboardResize,
   type TemplateSettingsProps,
   type TemplateWizardProps,
   type TemplateGridEditorProps,
@@ -14,7 +17,7 @@ export {
 export { TemplateCollection } from "./TemplateCollection.tsx";
 export { TemplateRecord } from "./TemplateRecord.tsx";
 export { TemplateSplitView } from "./TemplateSplitView.tsx";
-export { TemplateDashboard } from "./TemplateDashboard.tsx";
+export { TemplateDashboard, clampSpan, spansOf } from "./TemplateDashboard.tsx";
 export { TemplateSettings } from "./TemplateSettings.tsx";
 export { TemplateWizard } from "./TemplateWizard.tsx";
 export { TemplateGridEditor } from "./TemplateGridEditor.tsx";

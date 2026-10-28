@@ -1,0 +1,31 @@
+# Settings registry: A129 (the 12-column dashboard template; RRR-174). Section 11.6.
+# Field reference: see a30.yaml. A person arranges a dashboard in place by resizing its tiles; the spans are kept as one
+# of their own settings for every org, as `tile:span` pairs ("plan:4,alerts:8"). Settings pages show input `layout`
+# with Reset only, and Gateway and Compass never offer it.
+contributor: a129
+settings:
+  # Personal: preferences ---------------------------------------------------------------------------------------------
+  - key: me.dashboard_layout.home
+    type: text
+    input: layout
+    max_length: 600
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.homeLayout.label
+    help: settings.fields.homeLayout.help
+    pages: { personal: me.preferences }
+    enforced_by:
+      - consumer: apps/atlas/lib/dashboard/layout.ts#DASHBOARD_LAYOUT_SETTINGS
+        test: apps/atlas/test/dashboard-layout.test.ts
+  - key: me.dashboard_layout.partner
+    type: text
+    input: layout
+    max_length: 600
+    scopes: [personal]
+    capability: me.preferences.write
+    label: settings.fields.partnerLayout.label
+    help: settings.fields.partnerLayout.help
+    pages: { personal: me.preferences }
+    enforced_by:
+      - consumer: apps/atlas/lib/dashboard/layout.ts#DASHBOARD_LAYOUT_SETTINGS
+        test: apps/atlas/test/dashboard-layout.test.ts

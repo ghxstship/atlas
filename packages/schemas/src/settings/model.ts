@@ -21,6 +21,8 @@ export const TEXT_INPUTS = [
   "currency",
   "date",
   "workspace",
+  // Arranged in place, such as a dashboard's tile spans: settings pages offer only Reset, never a field.
+  "layout",
 ] as const;
 export type TextInput = (typeof TEXT_INPUTS)[number];
 

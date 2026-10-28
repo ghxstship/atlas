@@ -285,6 +285,14 @@
     "supplierDiversityProgram": {
       "label": "Supplier diversity program",
       "help": "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden."
+    },
+    "homeLayout": {
+      "label": "Home layout",
+      "help": "Widen or narrow a Home tile by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width."
+    },
+    "partnerLayout": {
+      "label": "Partner console layout",
+      "help": "Widen or narrow a partner console tile by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width."
     }
   },
   "choices": {
@@ -1055,5 +1063,7 @@
       "vendor_entitlements": "Vendor Entitlements",
       "verbiage": "Verbiage Library"
     }
-  }
+  },
+  "layoutCustom": "You arranged this dashboard. Reset puts its tiles back to their default widths.",
+  "layoutDefault": "Default layout. Arrange the tiles on the dashboard itself."
 }
