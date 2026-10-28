@@ -11,6 +11,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./preferences": "./src/lib/preferences.ts",
+    "./quick-add": "./src/Editing/quickAddCore.ts",
     "./pwa": "./src/pwa/index.ts",
     "./pwa/client": "./src/pwa/client.ts",
     "./pwa/analytics": "./src/pwa/analytics.ts",

@@ -29,9 +29,9 @@ describe("my work", () => {
       ],
     });
     const result = await listMyWork(db, { orgId: "o1", personId: "p1", membershipId: "m1" });
-    expect(result.ok && result.data.map((r) => [r.key, r.roles])).toEqual([
-      ["NWL-7", ["owner"]],
-      ["-7", ["accountable", "assigned"]],
+    expect(result.ok && result.data.map((r) => [r.key, r.roles, r.ownerId])).toEqual([
+      ["NWL-7", ["owner"], "p1"],
+      ["-7", ["accountable", "assigned"], "x"],
     ]);
     const or = calls[1]?.steps.find((s) => s[0] === "or");
     expect(or?.[1][0]).toBe("owner_party_id.eq.p1,accountable_party_id.eq.p1,id.in.(r2)");
@@ -84,6 +84,7 @@ describe("my work", () => {
       projectName: "N",
       updatedAt: "",
       roles: [],
+      ownerId: null,
       ...none,
     };
     const groups = groupByDueState(

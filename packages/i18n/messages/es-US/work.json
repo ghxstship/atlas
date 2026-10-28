@@ -463,6 +463,13 @@
     "stateChanged": "{from} a {to}",
     "window": "{before} a {after}"
   },
+  "related": {
+    "title": "Registros relacionados",
+    "none": "No hay registros relacionados. Aquí aparecen los registros principales, los subregistros, las dependencias y los objetos personalizados vinculados.",
+    "parent": "Forma parte de",
+    "children": "Subregistros",
+    "links": "Vinculado desde objetos personalizados"
+  },
   "duplicate": {
     "button": "Duplicar"
   },
@@ -626,6 +633,16 @@
       "approval_decided": "Una aprobación decidida es definitiva. Solicite una nueva aprobación.",
       "approval_not_eligible": "Solo quien puede editar los registros de este proyecto puede decidir sus aprobaciones.",
       "time_zone_unknown": "Elija una zona horaria de la lista."
+    },
+    "quickAdd": {
+      "capability": "No puedes crear esto aquí.",
+      "title": "Escribe un título además de los campos.",
+      "kind": "Esta página crea otros tipos de registro.",
+      "person": "No puedes asignar a esa persona aquí.",
+      "category": "Esa categoría no está en el canon.",
+      "scope": "No puedes abrir ese alcance.",
+      "scopeProject": "Ese alcance pertenece a otro proyecto.",
+      "project": "Indica el proyecto con ~ y un alcance, por ejemplo ~NWS-E01."
     }
   },
   "grammar": {
@@ -725,5 +742,23 @@
     "mitigation": "Mitigación",
     "baseline_locked_at": "Fijado en una línea base",
     "title": "Detalles de {kind}"
+  },
+  "quickAdd": {
+    "label": "Agregar un registro rápido",
+    "labelKind": "Agregar rápido: {kind}",
+    "hint": "Título, luego una fecha, @responsable, #categoría, /Task o ~alcance",
+    "types": {
+      "person": "Responsable",
+      "tag": "Categoría",
+      "kind": "Tipo",
+      "scope": "Alcance",
+      "date": "Cuándo"
+    },
+    "created": "{key} creado",
+    "field": "{name}: {value}",
+    "announce": "{title}, con {fields}",
+    "choose": "Elegir una coincidencia para {token}",
+    "matches": "Coincidencias: {count}",
+    "untitled": "Sin título"
   }
 }

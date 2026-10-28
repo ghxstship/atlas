@@ -83,12 +83,20 @@ export function themeOptionsOf(values: ResolvedValues): ThemeOptions {
   };
 }
 
+/** The RPCs that change one of the person's own settings: set a value, or clear it to inherit again (0850). */
+export const PERSONAL_SETTING_RPCS: readonly string[] = [
+  "set_personal_setting",
+  "clear_personal_setting",
+];
+
 /**
  * The resolved values with a personal setting the person changed on this device (a queued
  * set_personal_setting), before the outbox sends it and a later resolve confirms it. A switch bound to a
  * resolved value, such as Haptics (me.haptics), then shows the change at once instead of snapping back;
- * queuedSettings.ts keeps it there until the server has it. Returns the same map for any other mutation or a
- * key Compass does not read.
+ * queuedSettings.ts keeps it there until the server has it. A queued clear_personal_setting removes the value,
+ * so Compass falls back to what it does without one (the device's zone, language or haptics switch) until the
+ * resolve after the clear shows what the person inherits (A111). Returns the same map for any other mutation or
+ * a key Compass does not read.
  */
 export function withQueuedSetting(
   values: ResolvedValues,
@@ -98,9 +106,15 @@ export function withQueuedSetting(
     readonly payload: Readonly<Record<string, unknown>>;
   },
 ): ResolvedValues {
-  if (input.op !== "rpc" || input.target !== "set_personal_setting") return values;
+  if (input.op !== "rpc" || !PERSONAL_SETTING_RPCS.includes(input.target ?? "")) return values;
   const key = input.payload["p_setting_key"];
   if (typeof key !== "string" || !COMPASS_SETTING_KEYS.includes(key)) return values;
+  if (input.target === "clear_personal_setting") {
+    if (!values.has(key)) return values;
+    const cleared = new Map(values);
+    cleared.delete(key);
+    return cleared;
+  }
   const next = new Map(values);
   next.set(
     key,

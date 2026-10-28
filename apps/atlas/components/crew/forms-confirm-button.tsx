@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import type { CrewActionState } from "@/lib/crew/action-state";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
-import { Dialog } from "@/components/lazy-ui";
+import { Dialog } from "@/components/lazy-ui/dialog";
 import { INITIAL } from "./forms.shared";
 import { type Action } from "./forms.types";
 

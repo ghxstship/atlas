@@ -1327,6 +1327,10 @@
       "vendor": "Vendor",
       "sop": "Standard operating procedure",
       "document": "Document"
+    },
+    "quickAdd": {
+      "group": "Quick add",
+      "item": "Add {title} as {kind}"
     }
   },
   "keys": {

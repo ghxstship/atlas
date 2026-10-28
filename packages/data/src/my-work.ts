@@ -29,6 +29,8 @@ export interface MyWorkRecord {
   readonly projectName: string;
   readonly updatedAt: string;
   readonly roles: readonly MyWorkRole[];
+  /** The record's owner, for its hover card; null when nobody owns it. */
+  readonly ownerId: string | null;
 }
 
 /** Record states that close a record; a closed record is never due or overdue. */
@@ -114,6 +116,7 @@ export async function listMyWork(
         projectName: r.project?.name ?? "",
         updatedAt: r.updated_at,
         roles,
+        ownerId: r.owner_party_id,
       };
     }),
   );

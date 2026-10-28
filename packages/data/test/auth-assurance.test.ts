@@ -246,7 +246,14 @@ describe("second factors", () => {
   it("clears unfinished enrollments of the type before starting another", async () => {
     const unenroll = vi.fn(async () => ({ data: {}, error: null }));
     const enroll = vi.fn(async () => ({
-      data: { id: "f3", totp: { qr_code: "data:image/svg+xml;utf-8,<svg/>", secret: "SECRET" } },
+      data: {
+        id: "f3",
+        totp: {
+          qr_code: "data:image/svg+xml;utf-8,<svg/>",
+          secret: "SECRET",
+          uri: "otpauth://totp/XOS:field%40example.com?secret=SECRET&issuer=XOS",
+        },
+      },
       error: null,
     }));
     const { db } = client({
@@ -272,7 +279,12 @@ describe("second factors", () => {
     expect(enroll).toHaveBeenCalledWith({ factorType: "totp", friendlyName: "Phone" });
     expect(result).toEqual({
       ok: true,
-      data: { factorId: "f3", qrCode: "data:image/svg+xml;utf-8,<svg/>", secret: "SECRET" },
+      data: {
+        factorId: "f3",
+        qrCode: "data:image/svg+xml;utf-8,<svg/>",
+        secret: "SECRET",
+        uri: "otpauth://totp/XOS:field%40example.com?secret=SECRET&issuer=XOS",
+      },
     });
   });
 
