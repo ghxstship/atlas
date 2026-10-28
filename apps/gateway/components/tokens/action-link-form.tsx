@@ -7,13 +7,14 @@ import NextLink from "next/link";
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import { OutcomeAlert } from "@/components/actions/action-button";
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
 import { confirmActionLinkAction, type ActionLinkState } from "@/lib/actions/one-tap";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /**
  * The confirm step of a one-tap email link in Gateway (A127, ADR 0089): one button to accept, or the reason and Reject.
- * Works before hydration.
+ * A refusal keeps the typed reason. Works before hydration.
  */
 export function ActionLinkForm({ token, action }: { token: string; action: LinkAction }) {
   const t = useTranslations("gateway.auth.actionLink") as unknown as Translate;
@@ -32,7 +33,7 @@ export function ActionLinkForm({ token, action }: { token: string; action: LinkA
     );
   }
   return (
-    <form action={confirm} className="flex flex-col gap-12">
+    <form action={confirm} onSubmit={keepInputOnSubmit(confirm)} className="flex flex-col gap-12">
       <OutcomeAlert outcome={state.outcome} />
       <input type="hidden" name="token" value={token} />
       <input type="hidden" name="action" value={action} />

@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { useActionState, useRef } from "react";
 import { confirmActionLink, type ActionLinkState } from "@/app/auth/act/[token]/actions";
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { useSecurityCopy, type SecurityCopy } from "./security/copy";
 import { useStepUpForm } from "./security/step-up";
 
@@ -27,7 +28,8 @@ function errorSentence(t: SecurityCopy, state: ActionLinkState): string | null {
 
 /**
  * The confirm step of a one-tap email link (A127, ADR 0089): one button for Approve or Accept, the reason and Reject
- * for a rejection. A step-up refusal opens the step-up dialog and verifying confirms again. Works before hydration.
+ * for a rejection. A step-up refusal opens the step-up dialog and verifying confirms again; a refusal keeps the typed
+ * reason. Works before hydration.
  */
 export function ActionLinkForm({
   token,
@@ -59,7 +61,12 @@ export function ActionLinkForm({
   return (
     <div className="flex flex-col gap-12">
       {error ? <InlineAlert tone="danger">{error}</InlineAlert> : null}
-      <form ref={form} action={confirm} className="flex flex-col gap-12">
+      <form
+        ref={form}
+        action={confirm}
+        onSubmit={keepInputOnSubmit(confirm)}
+        className="flex flex-col gap-12"
+      >
         <input type="hidden" name="token" value={token} />
         <input type="hidden" name="action" value={action} />
         {action === "reject" ? (
