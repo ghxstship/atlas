@@ -18,6 +18,8 @@ import {
   withdrawRosterEntry,
 } from "@xos/data/roster";
 import type { SharedWorkDetails } from "@xos/data/work-details";
+import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
+import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import { outcomeFor, toAction, type ActionResult } from "@/lib/action-result";
 import type { FormResult } from "@/lib/actions/operations";
@@ -134,16 +136,25 @@ export async function respondRosterEntryAction(
 }
 
 /** The profile a roster manager opens: one logged read per open, never on list load. */
-export async function viewRosterProfileAction(
-  rosterEntryId: string,
-): Promise<
-  | { readonly ok: true; readonly details: SharedWorkDetails }
+export async function viewRosterProfileAction(rosterEntryId: string): Promise<
+  | {
+      readonly ok: true;
+      readonly details: SharedWorkDetails;
+      /** Phone numbers formatted for the viewer here: the phone metadata stays out of the client. */
+      readonly phones: Readonly<Record<string, string>>;
+    }
   | { readonly ok: false; readonly outcome: string }
 > {
   const result = await rosterSharedWorkDetails(await createServerSupabase(), rosterEntryId);
-  return result.ok
-    ? { ok: true, details: result.data }
-    : { ok: false, outcome: outcomeFor(result.error) };
+  if (!result.ok) return { ok: false, outcome: outcomeFor(result.error) };
+  const region = regionFromLocale(await getLocale());
+  const phones = Object.fromEntries(
+    (result.data.emergencyContacts ?? [])
+      .flatMap((c) => [c.phoneE164, c.alternatePhoneE164])
+      .filter((p): p is string => !!p)
+      .map((p) => [p, formatPhone(p, region)] as const),
+  );
+  return { ok: true, details: result.data, phones };
 }
 
 // Invitations and membership ----------------------------------------------------------------------------

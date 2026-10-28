@@ -1,9 +1,9 @@
 "use client";
 
-import type { SharedWorkDetails } from "@xos/data/work-details";
+import { workDetailLabelKey, type SharedWorkDetails } from "@xos/data/work-details";
 import { Button, Dialog, InlineAlert, PropertyList, Skeleton } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { viewRosterProfileAction } from "@/lib/actions/roster";
 import { useCopy } from "./forms";
 
@@ -11,8 +11,9 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
 
 /**
  * The profile of a person on the roster (R4, owner decision 4), read once when the dialog opens
- * through app.roster_shared_work_details, which logs the read. A company reader reads every category;
- * allergies show as On file, never their text, and the passport number stays masked.
+ * through app.roster_shared_work_details, which logs the read. A company reader reads every category,
+ * and the dialog shows every field the read returns, enums in the reader's language; allergies show as
+ * On file, never their text, and the passport number stays masked.
  */
 export function RosterProfileDialog({
   rosterEntryId,
@@ -25,21 +26,25 @@ export function RosterProfileDialog({
 }) {
   const t = useCopy();
   const outcomes = useTranslations("gateway.outcomes") as unknown as Translate;
+  const wd = useTranslations("workDetails") as unknown as Translate;
   const [details, setDetails] = useState<SharedWorkDetails | null>(null);
+  const [phones, setPhones] = useState<Readonly<Record<string, string>>>({});
   const [outcome, setOutcome] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
     void viewRosterProfileAction(rosterEntryId).then((r) => {
       if (!live) return;
-      if (r.ok) setDetails(r.details);
-      else setOutcome(r.outcome);
+      if (r.ok) {
+        setPhones(r.phones);
+        setDetails(r.details);
+      } else setOutcome(r.outcome);
     });
     return () => {
       live = false;
     };
   }, [rosterEntryId]);
   const none = t("roster.profile.none");
-  const items = details ? profileItems(details, t, none) : [];
+  const items = details ? profileItems(details, phones, t, wd, none) : [];
   return (
     <Dialog
       open
@@ -64,22 +69,62 @@ export function RosterProfileDialog({
   );
 }
 
-function profileItems(d: SharedWorkDetails, t: Translate, none: string) {
-  const items: { label: string; value: string }[] = [];
+const lines = (values: (string | null | undefined)[]) => values.filter((v): v is string => !!v);
+
+/** Each category the reader may read, every field of it, enums in the reader's language. */
+function profileItems(
+  d: SharedWorkDetails,
+  phones: Readonly<Record<string, string>>,
+  t: Translate,
+  wd: Translate,
+  none: string,
+) {
+  const label = (group: string, value: string) => wd(`${group}.${workDetailLabelKey(value)}`);
+  const note = (key: string, value: string | null) => (value ? `${wd(key)}: ${value}` : null);
+  const phone = (e164: string) => phones[e164] ?? e164;
+  const block = (values: string[]) =>
+    values.length === 0 ? (
+      none
+    ) : (
+      <span className="flex flex-col gap-2">
+        {values.map((v) => (
+          <span key={v}>{v}</span>
+        ))}
+      </span>
+    );
+  const items: { label: string; value: ReactNode }[] = [];
   if (d.uniform) {
     const u = d.uniform;
+    const sizes: [string, string | null][] = [
+      ["uniform.shirt", u.shirtSize],
+      ["uniform.jacket", u.jacketSize],
+      ["uniform.pants", u.pantsSize],
+      ["uniform.shoe", u.shoeSize],
+      ["uniform.gloves", u.gloveSize],
+      ["uniform.hat", u.hatSize],
+    ];
     items.push({
       label: t("roster.profile.uniform"),
-      value:
-        [u.shirtSize, u.jacketSize, u.pantsSize, u.shoeSize, u.gloveSize, u.hatSize]
-          .filter(Boolean)
-          .join(" · ") || none,
+      value: block(
+        lines([
+          sizes
+            .filter(([, size]) => size)
+            .map(([garment, size]) => wd("org.sizes", { garment: wd(garment), size: size ?? "" }))
+            .join(" · "),
+          note("uniform.notes", u.uniformNotes),
+        ]),
+      ),
     });
   }
   if (d.dietary) {
     items.push({
       label: t("roster.profile.dietary"),
-      value: d.dietary.dietaryNeeds.join(", ") || none,
+      value: block(
+        lines([
+          d.dietary.dietaryNeeds.map((n) => label("dietaryNeeds", n)).join(", "),
+          note("org.notes", d.dietary.dietaryNotes),
+        ]),
+      ),
     });
     items.push({
       label: t("roster.profile.allergies"),
@@ -89,27 +134,66 @@ function profileItems(d: SharedWorkDetails, t: Translate, none: string) {
   if (d.accessibility) {
     items.push({
       label: t("roster.profile.accessibility"),
-      value: d.accessibility.accessibilityNeeds.join(", ") || none,
+      value: block(
+        lines([
+          d.accessibility.accessibilityNeeds.map((n) => label("accessibilityNeeds", n)).join(", "),
+          note("org.notes", d.accessibility.accessibilityNotes),
+        ]),
+      ),
     });
   }
   if (d.emergencyContacts) {
     items.push({
       label: t("roster.profile.emergency"),
-      value: d.emergencyContacts.map((c) => `${c.fullName} ${c.phoneE164}`).join(" · ") || none,
+      value: block(
+        d.emergencyContacts.map((c) =>
+          lines([
+            c.fullName,
+            c.relationship,
+            phone(c.phoneE164),
+            c.alternatePhoneE164 ? phone(c.alternatePhoneE164) : null,
+            c.email,
+          ]).join(" · "),
+        ),
+      ),
     });
   }
   if (d.travel) {
+    const tr = d.travel;
     items.push({
       label: t("roster.profile.travel"),
-      value: [d.travel.seatPreference, d.travel.homeAirport].filter(Boolean).join(" · ") || none,
+      value: block(
+        lines([
+          tr.seatPreference
+            ? `${wd("org.seat")}: ${label("seatPreferences", tr.seatPreference)}`
+            : null,
+          note("org.meal", tr.mealPreference),
+          note("org.airport", tr.homeAirport),
+          ...tr.loyaltyPrograms.map((l) =>
+            wd("loyalty.line", {
+              kind: label("loyaltyKinds", l.programKind),
+              program: l.programName,
+              member: l.memberNumber,
+            }),
+          ),
+        ]),
+      ),
     });
   }
   if (d.passport) {
+    const pp = d.passport;
     items.push({
       label: t("roster.profile.passport"),
-      value: d.passport.passportNumberLast4
-        ? t("roster.profile.passportMasked", { last4: d.passport.passportNumberLast4 })
-        : none,
+      value: block(
+        lines([
+          note("org.passportName", pp.passportName),
+          note("org.passportCountry", pp.passportIssuingCountry),
+          note("org.passportExpires", pp.passportExpiresOn),
+          pp.passportNumberLast4
+            ? t("roster.profile.passportMasked", { last4: pp.passportNumberLast4 })
+            : null,
+        ]),
+      ),
     });
   }
   return items;

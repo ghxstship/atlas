@@ -6,6 +6,7 @@ import {
   listRoleOptions,
   type RosterEntry,
 } from "@xos/data/roster";
+import dynamic from "next/dynamic";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
 import {
@@ -26,6 +27,12 @@ import {
 import { RosterProfileButton } from "./roster-profile";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
+
+// Withdrawing someone is final (their invitation, share and consent end with it), so it is confirmed in a
+// dialog whose code loads on demand.
+const ConfirmButton = dynamic(() =>
+  import("@/components/actions/confirm-button").then((m) => m.ConfirmButton),
+);
 
 /**
  * The Crew tab (R4, ADR 0100 and 0101): the people a party puts on an engagement. A roster manager
@@ -149,10 +156,13 @@ export async function CrewTab({ view, t, locale }: TabProps) {
                     />
                   ) : null}
                   {!e.isSelf ? (
-                    <ActionButton
+                    <ConfirmButton
                       action={withdrawRosterEntryAction.bind(null, e.id, "")}
                       label={t("gateway.engagement.crew.withdraw")}
-                      variant="ghost"
+                      title={t("gateway.engagement.crew.withdrawTitle", { name: title })}
+                      sentence={t("gateway.engagement.crew.withdrawSentence")}
+                      confirm={t("gateway.engagement.crew.withdrawConfirm")}
+                      cancel={t("gateway.common.cancel")}
                     />
                   ) : null}
                 </span>

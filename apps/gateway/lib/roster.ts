@@ -20,9 +20,10 @@ export function engagementRosterable(
 }
 
 /**
- * roster-manager when the roster area is open to the viewer (the engaged person, the account's
- * Owner or Admin, an Advancing Lead, an Advance representative) on a rosterable engagement: the
- * database's private.can_manage_roster, read from the engagement's areas.
+ * roster-manager when the roster area is open to the viewer (the account's Owner or Admin, an
+ * Advancing Lead, an Advance representative, or the engaged person of an Artist engagement) on a
+ * rosterable engagement: the database's private.can_manage_roster, read from the engagement's
+ * areas. The worker a company engagement names is on its roster, so their areas carry no roster.
  */
 export function rosterConditions(
   engagement: Pick<Engagement, "roleType" | "accountId" | "areas">,
