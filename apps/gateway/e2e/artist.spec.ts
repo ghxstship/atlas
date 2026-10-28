@@ -2,6 +2,7 @@ import { expect as baseExpect, test } from "./engine-test";
 import {
   artistAdvance,
   asPerson,
+  offer,
   offerToApplication,
   PEOPLE,
   PROJECT,
@@ -130,6 +131,8 @@ test("journey 45: open call, representative accepts, advance, set time and settl
   await expectAccessible(a);
   await a.goto(`/work/engagements/${key}/set-times`);
   await expect(a.getByText(set.label).first()).toBeVisible();
+  // The guest list tab opens only where the project offers a guest list (R3).
+  await offer("offerings.guest_list");
   await a.goto(`/work/engagements/${key}/guest-list`);
   await a.getByLabel("Guest name").fill("Jordan Reyes");
   await a.getByRole("button", { name: "Add guest" }).click();
