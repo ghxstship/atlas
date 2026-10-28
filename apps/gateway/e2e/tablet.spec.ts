@@ -8,14 +8,13 @@ import { expectAccessible, signIn } from "./support";
  */
 test("on a tablet the five destinations sit in the top bar", async ({ page }) => {
   await signIn(page, "crew@example.com");
-  const [top, bottom] = [
-    page.getByRole("navigation", { name: "Primary navigation" }).first(),
-    page.getByRole("navigation", { name: "Primary navigation" }).last(),
-  ];
+  // The phone's bottom bar is hidden, so the top bar is the one navigation left to name.
+  const top = page.getByRole("navigation", { name: "Primary navigation" });
+  await expect(top).toHaveCount(1);
+  expect((await top.boundingBox())?.y ?? Infinity).toBeLessThan(100);
   for (const name of ["Home", "Explore", "Work", "Money", "Messages"]) {
     await expect(top.getByRole("link", { name })).toBeVisible();
   }
-  await expect(bottom).toBeHidden();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - window.innerWidth,
   );
