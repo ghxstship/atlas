@@ -403,12 +403,14 @@ export const sitemap: Sitemap = {
                   kind: "tab",
                   label: "nav.gateway.engagementTabs.travelAndLodging",
                   route: "/work/engagements/{engagementKey}/travel-and-lodging",
+                  conditions: ["offered-travel-or-lodging"],
                 },
                 {
                   id: "engagement.per-diem",
                   kind: "tab",
                   label: "nav.gateway.engagementTabs.perDiem",
                   route: "/work/engagements/{engagementKey}/per-diem",
+                  conditions: ["offered-per-diem"],
                 },
                 {
                   id: "engagement.advance",
@@ -434,12 +436,14 @@ export const sitemap: Sitemap = {
                   kind: "tab",
                   label: "nav.gateway.engagementTabs.hospitality",
                   route: "/work/engagements/{engagementKey}/hospitality",
+                  conditions: ["offered-hospitality"],
                 },
                 {
                   id: "engagement.guest-list",
                   kind: "tab",
                   label: "nav.gateway.engagementTabs.guestList",
                   route: "/work/engagements/{engagementKey}/guest-list",
+                  conditions: ["offered-guest-list"],
                   list: { views: ["table", "list"], default: "table" },
                 },
                 {

@@ -88,6 +88,8 @@ with f as (insert into app.fulfillments (project_id, fulfillment_kind, title, st
   values (pg_temp.id('prj_a'), 'Catering', 'Load-In Lunch', '2027-06-01 16:00+00', '2027-06-01 17:00+00') returning id)
   insert into world select 'lunch', id from f;
 insert into app.fulfillment_lines (fulfillment_id, description, person_id) values (pg_temp.id('lunch'), 'Vegetarian plate', pg_temp.id('sam'));
+-- Per diem is an offering since R3 (2625): prj_a offers it.
+select app.set_setting(pg_temp.id('org_a'), 'offerings.per_diem', 'Project', pg_temp.id('prj_a'), 'provided');
 insert into app.per_diems (project_id, engagement_id, day, amount_minor, currency_code)
 values (pg_temp.id('prj_a'), pg_temp.id('eng_vendor_a'), '2027-06-01', 6500, 'USD');
 select pg_temp.as_platform();
