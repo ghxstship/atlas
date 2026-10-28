@@ -254,7 +254,7 @@ test("J and K move through a table, X and Shift+X select list rows and board car
   // A board card selects with X too.
   await page.goto(`${records}?view=board`);
   await settle(page);
-  const card = page.locator("article[data-item]").first();
+  const card = page.locator('[role="button"][data-item]').first();
   await card.focus();
   await page.keyboard.press("x");
   await expect(bar).toContainText("1 selected");
