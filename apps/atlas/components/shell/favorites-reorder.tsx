@@ -6,9 +6,9 @@ import {
   useLayoutEffect,
   useRef,
   useState,
-  type DragEvent,
   type KeyboardEvent,
   type MouseEvent,
+  type PointerEvent,
 } from "react";
 import { reorderFavoritesAction, toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { FavoriteLink } from "./sidebar-favorites";
@@ -21,6 +21,18 @@ interface Held {
   readonly origin: number;
   readonly order: readonly FavoriteLink[];
 }
+
+/** A favorite dragged by its move button: the pointer, where it went down, and the order before and during. */
+interface Drag {
+  readonly id: string;
+  readonly pointer: number;
+  readonly startY: number;
+  readonly order: readonly FavoriteLink[];
+  moving: readonly FavoriteLink[] | null;
+}
+
+/** How far the pointer travels before a press on the move button becomes a drag. */
+const DRAG_THRESHOLD = 4;
 
 function moveWithin(list: readonly FavoriteLink[], id: string, to: number) {
   const from = list.findIndex((f) => f.id === id);
@@ -39,9 +51,10 @@ export const toggleFavorite = toggleFavoriteAction;
 
 /**
  * The sidebar Favorites that move (Section 4.5.2, Section 11.7), fetched the first time the pointer or focus reaches
- * the Favorites, so the shell carries only the plain list (A24-009). Each favorite moves by drag, or by its move
- * button: Space picks up, the arrow keys move, Space drops and Esc puts back, and a screen reader hears each step. A
- * drop saves the new order at once (app.reorder_favorites) and puts the previous order back if the save fails.
+ * the Favorites, so the shell carries only the plain list (A24-009). Each favorite moves by dragging its move button,
+ * or from the keyboard on it: Space picks up, the arrow keys move, Space drops and Esc puts back, and a screen reader
+ * hears each step. A drop saves the new order at once (app.reorder_favorites) and puts the previous order back if the
+ * save fails.
  */
 export function ReorderableFavorites({
   org,
@@ -80,7 +93,7 @@ export function ReorderableFavorites({
   const [announcement, setAnnouncement] = useState("");
   const handles = useRef(new Map<string, HTMLButtonElement>());
   const list = useRef<HTMLOListElement>(null);
-  const dragged = useRef<string | null>(null);
+  const drag = useRef<Drag | null>(null);
   // Only the latest save may put an order back; an older one that fails was already replaced.
   const saves = useRef(0);
 
@@ -114,9 +127,9 @@ export function ReorderableFavorites({
     ).catch(() => ({ error: "unexpected" }));
     if (!result.error || attempt !== saves.current) return;
     setItems(previous);
-    const message = t("shell.chrome.favoriteOrder.failed");
-    onError(message);
-    setAnnouncement(message);
+    // The alert beside the Favorites heading says it once; the live region stays quiet.
+    setAnnouncement("");
+    onError(t("shell.chrome.favoriteOrder.failed"));
   };
 
   const drop = (hold: Held) => {
@@ -155,29 +168,55 @@ export function ReorderableFavorites({
     }
   };
 
-  const dragProps = (id: string, index: number) => ({
-    draggable: true,
-    onDragStart: (event: DragEvent<HTMLLIElement>) => {
-      dragged.current = id;
-      event.dataTransfer.effectAllowed = "move";
+  /** The favorite under the pointer's height, or the nearest end of the list when the pointer is past it. */
+  const indexAt = (y: number) => {
+    const rows = [...(list.current?.children ?? [])];
+    const below = rows.findIndex((row) => y < row.getBoundingClientRect().bottom);
+    return below < 0 ? rows.length - 1 : below;
+  };
+
+  // The move button is the drag handle. Pointer events, not HTML drag and drop, move it: Firefox starts no native
+  // drag from a <button>, and pointer events work the same in every browser, by mouse, pen or touch.
+  const dragHandlers = (id: string) => ({
+    onPointerDown: (event: PointerEvent<HTMLButtonElement>) => {
+      if (event.button !== 0 || held !== null) return;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      drag.current = {
+        id,
+        pointer: event.pointerId,
+        startY: event.clientY,
+        order: items,
+        moving: null,
+      };
     },
-    onDragOver: (event: DragEvent<HTMLLIElement>) => {
-      if (dragged.current === null) return;
-      event.preventDefault();
-      event.dataTransfer.dropEffect = "move";
+    onPointerMove: (event: PointerEvent<HTMLButtonElement>) => {
+      const current = drag.current;
+      if (current?.pointer !== event.pointerId) return;
+      if (current.moving === null && Math.abs(event.clientY - current.startY) < DRAG_THRESHOLD) {
+        return;
+      }
+      const from = current.moving ?? current.order;
+      const next = moveWithin(from, id, indexAt(event.clientY));
+      current.moving = next;
+      if (next !== from) setItems(next);
     },
-    onDrop: (event: DragEvent<HTMLLIElement>) => {
-      const from = dragged.current;
-      if (from === null) return;
-      event.preventDefault();
-      dragged.current = null;
-      const next = moveWithin(items, from, index);
-      setItems(next);
-      announce("dropped", next, index);
-      void save(next, items);
+    onPointerUp: (event: PointerEvent<HTMLButtonElement>) => {
+      const current = drag.current;
+      if (current?.pointer !== event.pointerId) return;
+      drag.current = null;
+      if (current.moving === null) return;
+      announce(
+        "dropped",
+        current.moving,
+        current.moving.findIndex((f) => f.id === id),
+      );
+      void save(current.moving, current.order);
     },
-    onDragEnd: () => {
-      dragged.current = null;
+    onPointerCancel: (event: PointerEvent<HTMLButtonElement>) => {
+      const current = drag.current;
+      if (current?.pointer !== event.pointerId) return;
+      drag.current = null;
+      if (current.moving !== null) setItems(current.order);
     },
   });
 
@@ -187,8 +226,8 @@ export function ReorderableFavorites({
         {t("shell.chrome.favoriteOrder.moveHelp")}
       </p>
       <ol ref={list} className="m-0 p-0 list-none">
-        {items.map((f, index) => (
-          <li key={f.id} {...dragProps(f.id, index)} className="flex items-center gap-2">
+        {items.map((f) => (
+          <li key={f.id} className="flex items-center gap-2">
             <a
               href={f.href}
               aria-current={f.label === active ? "page" : undefined}
@@ -215,6 +254,7 @@ export function ReorderableFavorites({
               aria-describedby="favorites-move-help"
               aria-pressed={held?.id === f.id}
               onKeyDown={(event) => onHandleKey(event, f.id)}
+              {...dragHandlers(f.id)}
               onBlur={(event) => {
                 // Moving the list can drop focus for a moment (no related target); leaving for another
                 // control drops the favorite where it is.
@@ -222,7 +262,7 @@ export function ReorderableFavorites({
               }}
               className={cx(
                 iconButtonClass("ghost"),
-                "shrink-0 cursor-grab aria-pressed:bg-bg-hover aria-pressed:text-text-primary",
+                "shrink-0 cursor-grab touch-none active:cursor-grabbing aria-pressed:bg-bg-hover aria-pressed:text-text-primary",
               )}
             >
               <Icon name="GripVertical" size={14} />
