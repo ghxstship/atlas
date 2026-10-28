@@ -17,9 +17,9 @@ import type { ShellKeys } from "@/lib/shell/shell-keys";
  *   region's own keys still answer in the region, such as a record's in the side peek.
  * - G, then a letter, goes to a section: the first key shows the hint, the next key either goes or
  *   cancels, Esc cancels, and the hint closes after four seconds.
- * - Record and view shortcuts answer in the region around focus (data-shortcut-scope): they click or
- *   focus the region's control marked with their id (@xos/ui/shortcut-targets). A region without
- *   that control leaves the key alone.
+ * - Record and view shortcuts answer in the region around focus (data-shortcut-scope): they click
+ *   or focus the region's control marked with their id (@xos/ui/shortcut-targets). A region
+ *   without that control leaves the key alone.
  * - A key a component already handled (preventDefault) and keys pressed while composing text are
  *   left alone.
  */

@@ -19,18 +19,21 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe("shortcut targets (Section 11.2)", () => {
-  it("finds the region around focus, or the first region while focus rests on the page", () => {
+  it("finds the region around focus, or the first region inside the focused container", () => {
     render(
       <div>
-        <div data-shortcut-scope="view">
-          <button type="button">In the view</button>
-        </div>
+        <main tabIndex={-1}>
+          <div data-shortcut-scope="view">
+            <button type="button">In the view</button>
+          </div>
+        </main>
         <button type="button">Outside</button>
       </div>,
     );
     const inside = screen.getByRole("button", { name: "In the view" });
     expect(regionScope(shortcutRegion(inside))).toBe("view");
     expect(shortcutRegion(screen.getByRole("button", { name: "Outside" }))).toBeNull();
+    expect(regionScope(shortcutRegion(screen.getByRole("main")))).toBe("view");
     expect(regionScope(shortcutRegion(document.body))).toBe("view");
     expect(shortcutRegion(null)).toBeNull();
     expect(regionScope(null)).toBeNull();
@@ -104,6 +107,7 @@ describe("shortcut targets (Section 11.2)", () => {
   it("prefers the selected option, skips disabled and hidden controls, and keeps a region's own", () => {
     const save = vi.fn();
     const exportView = vi.fn();
+    const opened: string[] = [];
     render(
       <TemplateCollection
         header={
@@ -119,6 +123,15 @@ describe("shortcut targets (Section 11.2)", () => {
               </span>
             </span>
             <button type="button" hidden data-shortcut="view.save" onClick={save} />
+            <button
+              type="button"
+              aria-haspopup="menu"
+              data-shortcut="view.menu"
+              onClick={save}
+              onKeyDown={(e) => opened.push(e.key)}
+            >
+              Saved views
+            </button>
             <button type="button" data-shortcut="view.export" disabled onClick={exportView}>
               Export (disabled)
             </button>
@@ -147,6 +160,10 @@ describe("shortcut targets (Section 11.2)", () => {
     expect(shortcutControl(region, "view.export")).toBeNull();
     expect(runShortcut(region, "view.export")).toBe(false);
     expect(exportView).not.toHaveBeenCalled();
+    // A menu trigger opens on the arrow key, as menus open on a press rather than a click.
+    expect(runShortcut(region, "view.menu")).toBe(true);
+    expect(opened).toEqual(["ArrowDown"]);
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Saved views" }));
     // The filter row is the view's filters control; the nested record's button is its own.
     expect(runShortcut(region, "view.filters")).toBe(true);
     expect(document.activeElement).toBe(screen.getByRole("textbox", { name: "Filter" }));

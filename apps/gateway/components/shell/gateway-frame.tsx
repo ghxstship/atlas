@@ -105,9 +105,10 @@ function activeLabel(links: readonly FrameLink[], pathname: string): string {
  * The Gateway shell (Section 11.6, Gateway shell; Section 4.5.8): the org or platform brand, the five
  * destinations in the top bar on desktop and the bottom tab bar on phones, search (Cmd or Ctrl+K),
  * help (the Help button, the avatar menu's Help and the `?` key open the contextual help panel,
- * Section 11.16), G then a letter for each destination and the account (A) and organization
- * switcher (O) keys from the shortcut registry, and the account panel with the avatar menu, the
- * acting account, theme and language. Every destination comes from ia/sitemap.yaml through the server-built navigation model.
+ * Section 11.16), G then a letter for each destination and keys for the account panel and the
+ * organization switcher from the shortcut registry, and the account panel with the avatar menu, the
+ * acting account, theme and language. Every destination comes from ia/sitemap.yaml through the
+ * server-built navigation model.
  * Search, the account panel and the organization switcher (shell-overlays.tsx) load on first use;
  * pointing at or focusing the header fetches them early. Help loads its own panel (HelpEntry).
  */

@@ -370,13 +370,13 @@ test("view and record shortcuts act on the collection and the side peek in focus
   await page.keyboard.press("Enter");
   const peek = page.locator('[role="dialog"][data-shortcut-scope="record"]');
   await expect(peek).toBeVisible();
-  await peek.getByRole("separator").focus();
+  await peek.getByRole("separator", { name: "Resize panel" }).focus();
   await page.keyboard.press("e");
   await expect(peek.locator("#edit-title")).toBeFocused();
   // While typing in the title, the keys type.
   await page.keyboard.press("s");
   await expect(peek.locator("#edit-title")).toBeFocused();
-  await peek.getByRole("separator").focus();
+  await peek.getByRole("separator", { name: "Resize panel" }).focus();
   await page.keyboard.press("s");
   await expect(peek.locator('[data-shortcut="record.state"] button').first()).toBeFocused();
   await expectAccessible(page);
