@@ -27,6 +27,7 @@ import { nodeHref } from "@/lib/shell/sitemap";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { ProjectPicker, REFUSALS, chosenProject, orgPickers, workforceCopy } from "./shared";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "gallery"];
 const STATES = {
@@ -64,26 +65,24 @@ export async function LostFoundSection({
   const project = chosenProject(pickers.projects, search);
   if (project === null) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <EmptyStateLink
           icon="FolderPlus"
           sentence={t("site.noProjects")}
           actionLabel={t("site.openProjects")}
           href={nodeHref("projects.all", { org: ctx.org.slug }) ?? "/"}
         />
-      </>
+      </CollectionPage>
     );
   }
   const items = await listLostItems(ctx.viewer.db, project.id);
   const picker = <ProjectPicker t={t} path={path} projects={pickers.projects} current={project} />;
   if (!items.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         {picker}
         <ErrorPanel what={t("lostFound.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canLog = ctx.role !== "viewer";

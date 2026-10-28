@@ -8,6 +8,7 @@ import {
   type AssetState,
 } from "@xos/data/assets";
 import { listEngagementOptions } from "@xos/data/project-people";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { OrgContext } from "@/lib/shell/context";
 
 /**
@@ -25,7 +26,7 @@ export interface AssetCapabilities {
 }
 
 export function assetCapabilities(ctx: OrgContext): AssetCapabilities {
-  const has = (code: string) => ctx.capabilities.has(code);
+  const has = (code: CapabilityCode) => ctx.capabilities.has(code);
   return {
     write: has("assets.asset.write"),
     custody: has("assets.custody.write"),
