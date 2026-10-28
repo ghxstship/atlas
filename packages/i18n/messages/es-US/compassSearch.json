@@ -1,0 +1,33 @@
+{
+  "label": "Buscar en Compass",
+  "hint": "Busca turnos, tareas, personas y referencia",
+  "clear": "Borrar búsqueda",
+  "empty": "Nada en este dispositivo coincide con “{query}”.",
+  "countOne": "{count} coincidencia",
+  "countOther": "{count} coincidencias",
+  "offline": "Sin conexión: se busca en lo que hay en este dispositivo.",
+  "when": "{day} · {time}",
+  "channel": "Canal {number}",
+  "purchaseOrder": "Orden de compra {number}",
+  "groups": {
+    "shift": "Turnos",
+    "task": "Tareas",
+    "record": "Registros",
+    "person": "Personas",
+    "reference": "Referencia",
+    "action": "Acciones"
+  },
+  "actions": {
+    "reportIncident": "Reportar un incidente",
+    "startInspection": "Iniciar una inspección",
+    "scan": "Escanear un código",
+    "addExpense": "Agregar un gasto",
+    "runOfShow": "Abrir la escaleta",
+    "openSchedule": "Abrir mi horario",
+    "openInbox": "Abrir la bandeja de entrada",
+    "offlineQueue": "Ver los cambios pendientes de subir",
+    "reference": "Abrir la referencia",
+    "help": "Obtener ayuda",
+    "settings": "Abrir la configuración"
+  }
+}

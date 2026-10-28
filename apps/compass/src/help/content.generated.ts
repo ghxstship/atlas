@@ -2254,6 +2254,21 @@ export const COMPASS_HELP: HelpContent = {
         order: 1,
         body: [
           { t: "p", c: [{ t: "text", v: "Today is the first tab. Pull down to refresh." }] },
+          { t: "h2", v: "Search" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "The search box at the top finds your shifts, tasks, records, people, reference such as SOPs, radio channels and emergency codes, and actions such as ",
+              },
+              { t: "strong", v: "Report an incident" },
+              {
+                t: "text",
+                v: ". It searches what is already on your phone, so it works offline. Type a code in full, such as an SOP code or a channel number, to put it first. Tap a result to open it.",
+              },
+            ],
+          },
           { t: "h2", v: "Clock in and out" },
           {
             t: "p",
@@ -5210,6 +5225,21 @@ export const COMPASS_HELP: HelpContent = {
             t: "p",
             c: [
               { t: "text", v: "Hoy es la primera pestaña. Desliza hacia abajo para actualizar." },
+            ],
+          },
+          { t: "h2", v: "Búsqueda" },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "El cuadro de búsqueda de arriba encuentra tus turnos, tareas, registros, personas, referencia como procedimientos operativos, canales de radio y códigos de emergencia, y acciones como ",
+              },
+              { t: "strong", v: "Reportar un incidente" },
+              {
+                t: "text",
+                v: ". Busca en lo que ya está en tu teléfono, así que funciona sin conexión. Escribe un código completo, como el de un procedimiento o el número de un canal, para que aparezca primero. Toca un resultado para abrirlo.",
+              },
             ],
           },
           { t: "h2", v: "Marcar entrada y salida" },
