@@ -71,7 +71,7 @@ select set_eq($$
   where p.prosecdef and n.nspname in ('app', 'private', 'xpms', 'api_public', 'api_external', 'public')
     and has_function_privilege('anon', p.oid, 'EXECUTE')
     and has_schema_privilege('anon', n.oid, 'USAGE')
-$$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_version'), ('confirm_subprocessor_notices'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'),
+$$, $$values ('active_system_banners'), ('calendar_feed'), ('client_minimum_version'), ('confirm_subprocessor_notices'), ('docs_brand_for_slug'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'),
   ('organization_profile'), ('organization_profile_details'), ('person_profile'), ('person_profile_certifications'), ('person_profile_languages'),
   ('person_profile_links'), ('person_profile_organizations'), ('person_profile_portfolio'), ('person_profile_references'),
   ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_cookie_consent'), ('sign_agreement'),

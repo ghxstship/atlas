@@ -61686,6 +61686,16 @@ export type Database = {
           radius_scale: Database["app"]["Enums"]["brand_radius_scale"];
         }[];
       };
+      email_brand_for_org: {
+        Args: { p_org_id: string };
+        Returns: {
+          accent_hex: string;
+          brand_name: string;
+          logo_path: string;
+          reply_to: string;
+          sender_name: string;
+        }[];
+      };
       end_account_membership: { Args: { p_account_membership_id: string }; Returns: undefined };
       end_break_glass: {
         Args: { p_session_id: string };
