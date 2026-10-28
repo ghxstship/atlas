@@ -2,7 +2,8 @@
 -- starts the 14-day Pro trial with three projects and three members besides its Owner; when the trial ends on the
 -- Access plan (1 active project, 1 seat), the projects past the limit and the seats past it turn read-only with an
 -- explanation, and nothing is deleted. The oldest stay writable unless the Owner chose others; archiving a project or
--- upgrading lifts the guard at once, and a later downgrade keeps the Owner's choice. Field seats are checked with the
+-- upgrading lifts the guard at once, and a later downgrade keeps the Owner's choice. The guard reaches a read-only
+-- project's grandchildren too: lines of its budget and comments in its threads. Field seats are checked with the
 -- Access field limit lowered to 1 inside this transaction, so the fixture stays small. A console limit override lifts
 -- the guard while it lasts.
 begin;
@@ -10,7 +11,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(64);
+select plan(72);
 
 create function pg_temp.project(p_key text) returns uuid language sql stable as $$
   select p.id from app.projects p where p.org_id = pg_temp.id('lim_org') and p.project_key = p_key $$;
@@ -39,6 +40,14 @@ insert into app.projects (org_id, project_key, name, time_zone) values
   (pg_temp.id('lim_org'), 'LRC', 'Lantern Winter Gala', 'America/Chicago');
 insert into app.scope_nodes (project_id, scope_kind, scope_code, name) values
   (pg_temp.project('LRB'), 'Engagement Root', 'LRB', 'Lantern Summer Fair');
+with x as (insert into app.budgets (project_id, name, currency_code) values (pg_temp.project('LRA'), 'Spring Tour Budget', 'USD') returning id)
+insert into world select 'lra_budget', id from x;
+with x as (insert into app.budgets (project_id, name, currency_code) values (pg_temp.project('LRB'), 'Summer Fair Budget', 'USD') returning id)
+insert into world select 'lrb_budget', id from x;
+with x as (insert into app.budget_lines (budget_id, line_number, description, urid, quantity, xyz, xyz_basis)
+  values (pg_temp.id('lrb_budget'), 1, 'Truss rental.', '0000.01.01', 1, 'X', 'Declared') returning id)
+insert into world select 'lrb_line', id from x;
+select app.post_comment('app.projects', pg_temp.project('LRB'), 'Load-in moves to 07:00.');
 select pg_temp.join_org('nina', 'lim_org', 'omar', 'admin');
 select pg_temp.join_org('nina', 'lim_org', 'pia', 'member');
 select pg_temp.join_org('nina', 'lim_org', 'quinn', 'field');
@@ -82,6 +91,18 @@ select throws_ok($$update app.scope_nodes set name = 'Summer Fair' where scope_c
 select lives_ok($$insert into app.scope_nodes (project_id, scope_kind, scope_code, name)
   values (pg_temp.project('LRA'), 'Engagement Root', 'LRA', 'Lantern Spring Tour')$$,
   'the writable project takes new work');
+select throws_like($$insert into app.budget_lines (budget_id, line_number, description, urid, quantity, xyz, xyz_basis)
+  values (pg_temp.id('lrb_budget'), 2, 'Sound package.', '0000.01.01', 1, 'X', 'Declared')$$,
+  'plan_limit_read_only: This project is read-only:%', 'a new line on a read-only project''s budget is refused');
+select throws_ok($$update app.budget_lines set description = 'Truss and motors.' where id = pg_temp.id('lrb_line')$$,
+  'XR001', null, 'so is editing a line of its budget');
+select throws_like($$select app.post_comment('app.projects', pg_temp.project('LRB'), 'Doors at 18:00.')$$,
+  'plan_limit_read_only:%', 'commenting in a read-only project''s thread is refused');
+select throws_like($$select app.post_comment('app.projects', pg_temp.project('LRB'), 'Check the rider.', null, 'rider')$$,
+  'plan_limit_read_only:%', 'and so is starting a new thread on it');
+select lives_ok($$insert into app.budget_lines (budget_id, line_number, description, urid, quantity, xyz, xyz_basis)
+  values (pg_temp.id('lra_budget'), 1, 'Stage deck rental.', '0000.01.01', 1, 'X', 'Declared')$$,
+  'the writable project''s budget takes new lines');
 
 select pg_temp.as_user('omar');
 select throws_like($$insert into app.workspaces (org_id, slug, name) values (pg_temp.id('lim_org'), 'north', 'North')$$,
@@ -91,6 +112,9 @@ select throws_ok($$update app.projects set name = 'Spring Tour' where id = pg_te
   'XR001', null, 'not even to the writable project');
 select lives_ok($$insert into app.favorites (org_id, person_id, node_id) values (pg_temp.id('lim_org'), pg_temp.id('omar'), 'projects')$$,
   'a read-only seat keeps the personal tables: favorites');
+select throws_like($$update app.membership_roles set deleted_at = now() where membership_id = pg_temp.id('pia@lim_org')$$,
+  'plan_limit_read_only: Your seat is read-only:%',
+  'an Admin whose seat is read-only cannot change another member''s roles, so cannot free a seat past the Owner''s choice');
 select is((select count(*)::int from app.projects where org_id = pg_temp.id('lim_org')), 3, 'and still reads every project');
 
 select pg_temp.as_platform();
@@ -207,6 +231,11 @@ where org_id = pg_temp.id('lim_org') and ended_at is null;
 select ok(not pg_temp.read_only('LRC') and pg_temp.read_only('LRA') and pg_temp.read_only('LRB'),
   'ending it early brings the read-only set back, with the Owner''s choice');
 select is(private.recompute_over_limit(pg_temp.id('lim_org')), 0, 'recomputing again changes nothing, so the set never drifts');
+select pg_temp.as_user('nina');
+select lives_ok($$update app.projects set deleted_at = now() where id = pg_temp.project('LRB')$$,
+  'deleting a read-only project stays allowed, its budget and comments with it');
+select ok(not pg_temp.read_only('LRB') and pg_temp.read_only('LRA'), 'a deleted project is no longer counted');
+select pg_temp.as_platform();
 
 -- Machinery ---------------------------------------------------------------------------------------------------------------
 select is((select coalesce(string_agg(t.table_name, ', '), '') from private.over_limit_personal_tables t

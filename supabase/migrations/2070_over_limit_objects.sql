@@ -23,10 +23,12 @@
 --     ends at its valid_to lifts a seat on time, and orgs whose memberships began or whose overrides started or
 --     expired in the last two hours.
 --   * The guard: the read-only row guard of 1063 (t15_refuse_read_only_org, on every app table with org_id that is
---     not exempt) now also refuses a person's write to a read-only project or to anything of it (a row that carries
---     the project's id, or belongs to one of its records or engagements), and every write of a person whose own seat
---     is read-only. The personal tables of private.over_limit_personal_tables (a person's membership, preferences,
---     consents, follows and reading marks) stay writable. Archiving or deleting
+--     not exempt) now also refuses a person's write to a read-only project or to anything of it, however deep: a row
+--     that carries the project's id, belongs to one of its records or engagements, is about one of its rows (a comment
+--     thread, an attachment) or descends from one through the parent it takes its org from (a budget line, a comment,
+--     a PO line). It also refuses every write of a person whose own seat is read-only. The personal tables of
+--     private.over_limit_personal_tables (a person's membership, preferences, consents, follows and reading marks)
+--     stay writable, though a read-only seat only leaves or drops its own roles there. Archiving or deleting
 --     a read-only project stays allowed, since it brings the org back under the limit. Each refusal is
 --     plan_limit_read_only and names the plan, the limit, the count and how to lift it. Workers, billing and
 --     retention (no person) still write.
@@ -121,8 +123,8 @@ revoke all on private.over_limit_personal_tables from public, anon, authenticate
 grant select on private.over_limit_personal_tables to service_role;
 
 insert into private.over_limit_personal_tables (table_name, rationale) values
-  ('app.memberships', 'A person leaves the org, and admins end memberships to free a seat; the membership guards decide who may.'),
-  ('app.membership_roles', 'Admins change roles to free a seat; the role guard decides who may.'),
+  ('app.memberships', 'A person leaves the org, and admins with a writable seat end memberships to free one; a read-only seat only leaves.'),
+  ('app.membership_roles', 'Admins with a writable seat change roles to free one; a read-only seat only drops its own.'),
   ('app.notification_preferences', 'A person''s own notification choices.'),
   ('app.notification_settings', 'A person''s own quiet hours and digest.'),
   ('app.push_subscriptions', 'A person''s own devices and browsers for notifications.'),
@@ -146,7 +148,8 @@ insert into private.over_limit_personal_tables (table_name, rationale) values
   ('app.privacy_signals', 'A person''s own privacy opt-outs.'),
   ('app.sop_acknowledgments', 'Confirming a person read a published SOP is reading, not work.'),
   ('app.personal_access_tokens', 'A person''s own API tokens, which reach only what the person may do.'),
-  ('app.personal_access_token_scopes', 'Scopes of a person''s own API tokens.');
+  ('app.personal_access_token_scopes', 'Scopes of a person''s own API tokens.'),
+  ('app.ai_requests', 'Asking Aurora about what a person may read; what Aurora drafts is saved through the guarded tables.');
 
 -- Ranking ----------------------------------------------------------------------------------------------------------
 
@@ -240,6 +243,23 @@ begin
     return 0;
   end if;
   perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('over-limit:' || p_org_id::text, 0));
+  -- An org with nothing read-only and every count within its limit (or no limit set: Enterprise, grandfathered seats)
+  -- has nothing to rank, so a role import or SCIM sync of many members only counts, never ranks, once per row.
+  if not exists (select 1 from app.over_limit_objects x where x.org_id = p_org_id)
+     and not exists (
+       select 1
+       from private.org_plan_limits l cross join private.membership_band_counts(p_org_id) b
+       where l.org_id = p_org_id and l.limit_value is not null
+         and l.limit_value < case l.limit_code
+           when 'seats' then b.seats
+           when 'field_members' then b.field_members
+           when 'active_projects' then (
+             select count(*) from app.projects p
+             where p.org_id = p_org_id and p.deleted_at is null and p.archived_at is null
+               and p.project_state in ('Proposed', 'Active', 'Blocked'))
+         end) then
+    return 0;
+  end if;
   select distinct l.plan_code into v_plan from private.org_plan_limits l where l.org_id = p_org_id;
 
   delete from app.over_limit_objects x
@@ -388,7 +408,35 @@ $$;
 comment on function private.as_uuid(text) is 'The text as a uuid, or null when it is not one; for reading ids out of a row as JSON.';
 revoke all on function private.as_uuid(text) from public, anon, authenticated;
 
-create or replace function private.row_project_id(p_table text, p_row jsonb)
+create or replace function private.over_limit_row(p_table text, p_id text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_table regclass;
+  v_id uuid := private.as_uuid(p_id);
+  v_row jsonb;
+begin
+  if p_table !~ '^app\.[a-z][a-z0-9_]*$' or v_id is null then
+    return null;
+  end if;
+  v_table := to_regclass(p_table);
+  if v_table is null or not exists (select 1 from pg_catalog.pg_attribute a
+                                    where a.attrelid = v_table and a.attname = 'id' and not a.attisdropped) then
+    return null;
+  end if;
+  execute format('select to_jsonb(t) from %s t where t.id = $1', v_table) into v_row using v_id;
+  return v_row;
+end;
+$$;
+
+comment on function private.over_limit_row(text, text) is 'An app row as JSON by its table and id, or null when the table is not an app table with an id or the row is gone; for following a row to its project (ADR 0081).';
+revoke all on function private.over_limit_row(text, text) from public, anon, authenticated;
+
+create or replace function private.row_project_id(p_table text, p_row jsonb, p_depth integer default 0)
 returns uuid
 language plpgsql
 stable
@@ -397,8 +445,12 @@ set search_path = ''
 as $$
 declare
   v_project uuid;
+  v_pair text[];
+  v_parent text;
+  v_parent_column text;
+  v_parent_row jsonb;
 begin
-  if p_row is null then
+  if p_row is null or p_depth > 6 then
     return null;
   end if;
   if p_table = 'app.projects' then
@@ -411,6 +463,31 @@ begin
   if v_project is null and p_row ? 'engagement_id' then
     select e.project_id into v_project from app.engagements e where e.id = private.as_uuid(p_row ->> 'engagement_id');
   end if;
+  -- A row about another row names it by table and id: comment threads, attachments, imports.
+  foreach v_pair slice 1 in array array[array['subject_table', 'subject_id'], array['target_table', 'target_id']] loop
+    exit when v_project is not null;
+    if p_row ? v_pair[1] and p_row ? v_pair[2] then
+      v_project := private.row_project_id(p_row ->> v_pair[1],
+        private.over_limit_row(p_row ->> v_pair[1], p_row ->> v_pair[2]), p_depth + 1);
+    end if;
+  end loop;
+  -- A child row follows the parent it takes its org from (install_domain_table's t10_derive_org_id): a budget line its
+  -- budget, a comment its thread, a PO line its purchase order, as deep as the chain goes.
+  if v_project is null then
+    select split_part(encode(t.tgargs, 'escape'), '\000', 1), split_part(encode(t.tgargs, 'escape'), '\000', 2)
+    into v_parent, v_parent_column
+    from pg_catalog.pg_trigger t
+    where t.tgrelid = to_regclass(p_table) and t.tgname = 't10_derive_org_id';
+    if v_parent is not null and v_parent_column <> '' then
+      v_parent_row := private.over_limit_row(v_parent, p_row ->> v_parent_column);
+      v_project := private.row_project_id(v_parent, v_parent_row, p_depth + 1);
+      -- A custom field value names its subject by target_id; its definition names the table.
+      if v_project is null and v_parent_row ? 'target_table' and p_row ? 'target_id' and not p_row ? 'target_table' then
+        v_project := private.row_project_id(v_parent_row ->> 'target_table',
+          private.over_limit_row(v_parent_row ->> 'target_table', p_row ->> 'target_id'), p_depth + 1);
+      end if;
+    end if;
+  end if;
   if v_project is null and p_table <> 'app.records' then
     select r.project_id into v_project from app.records r where r.id = private.as_uuid(p_row ->> 'id');
   end if;
@@ -418,8 +495,8 @@ begin
 end;
 $$;
 
-comment on function private.row_project_id(text, jsonb) is 'The project a row belongs to, for the over-limit guard (ADR 0081): the project itself, the row''s project_id, the project of the record or engagement it names (record_id, engagement_id), or of the record it extends (a table keyed by the record''s id). Null for org-level rows.';
-revoke all on function private.row_project_id(text, jsonb) from public, anon, authenticated;
+comment on function private.row_project_id(text, jsonb, integer) is 'The project a row belongs to, for the over-limit guard (ADR 0081): the project itself, the row''s project_id, the project of the record or engagement it names (record_id, engagement_id), of the row it is about (subject_table and subject_id, target_table and target_id), of the parent it takes its org from (a budget line''s budget, a comment''s thread, a custom field value''s subject), followed up to six levels, or of the record it extends (a table keyed by the record''s id). Null for org-level rows.';
+revoke all on function private.row_project_id(text, jsonb, integer) from public, anon, authenticated;
 
 create or replace function private.over_limit_refusal(p_org_id uuid, p_limit app.plan_limit_code)
 returns text
@@ -463,18 +540,34 @@ as $$
 declare
   v_limit app.plan_limit_code;
   v_project uuid;
+  v_personal boolean := exists (select 1 from private.over_limit_personal_tables t where t.table_name = p_table);
+  v_membership uuid;
   v_audit constant text[] := array['archived_at', 'deleted_at', 'updated_at', 'updated_by'];
 begin
-  if exists (select 1 from private.over_limit_personal_tables t where t.table_name = p_table) then
-    return;
-  end if;
   select x.limit_code into v_limit
   from app.over_limit_objects x join app.memberships m on m.id = x.membership_id
   where x.org_id = p_org_id and m.person_id = private.current_person_id()
   order by x.limit_code
   limit 1;
   if v_limit is not null then
-    perform private.refuse('plan_limit_read_only', private.over_limit_refusal(p_org_id, v_limit));
+    -- A read-only seat keeps the personal tables, but on memberships and roles only its own: it may leave the org or
+    -- drop its own roles, never add a role or change another member's, so it cannot win itself a seat past the Owner's
+    -- choice by demoting someone.
+    if v_personal and p_table = 'app.memberships' then
+      v_membership := private.as_uuid(coalesce(p_new, p_old) ->> 'id');
+    elsif v_personal and p_table = 'app.membership_roles' then
+      v_membership := private.as_uuid(coalesce(p_new, p_old) ->> 'membership_id');
+    end if;
+    if not v_personal
+       or (p_table in ('app.memberships', 'app.membership_roles')
+           and (p_old is null or not exists (select 1 from app.memberships m
+                                             where m.id = v_membership and m.person_id = private.current_person_id()))) then
+      perform private.refuse('plan_limit_read_only', private.over_limit_refusal(p_org_id, v_limit));
+    end if;
+  end if;
+  if v_personal
+     or not exists (select 1 from app.over_limit_objects x where x.org_id = p_org_id and x.project_id is not null) then
+    return;
   end if;
   -- Archiving or deleting a read-only project, and nothing else, brings the org back under the limit.
   if p_table = 'app.projects' and p_old is not null and p_new is not null
@@ -493,7 +586,7 @@ begin
 end;
 $$;
 
-comment on function private.refuse_over_limit_write(uuid, text, jsonb, jsonb) is 'Refuses a person''s write that touches what a plan limit made read-only (ADR 0081): any write of a person whose own seat is read-only, and any write to a read-only project or anything of it, except archiving or deleting that project. The personal tables (private.over_limit_personal_tables) stay writable. The refusal plan_limit_read_only names the limit and how to lift it.';
+comment on function private.refuse_over_limit_write(uuid, text, jsonb, jsonb) is 'Refuses a person''s write that touches what a plan limit made read-only (ADR 0081): any write of a person whose own seat is read-only, and any write to a read-only project or anything of it, however deep (private.row_project_id), except archiving or deleting that project. The personal tables (private.over_limit_personal_tables) stay writable; a read-only seat writes memberships and roles only to leave or drop its own roles. The refusal plan_limit_read_only names the limit and how to lift it.';
 revoke all on function private.refuse_over_limit_write(uuid, text, jsonb, jsonb) from public, anon, authenticated;
 
 create or replace function private.refuse_read_only_org()
