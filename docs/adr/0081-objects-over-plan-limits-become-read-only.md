@@ -65,7 +65,27 @@ Plan limits are `seats`, `active_projects`, `field_members`, `active_external_en
 
 - `app.over_limit_objects` is a stored derived value and is listed in the denormalization register. It is rewritten on every change it depends on, so it cannot drift from the counts.
 - An org with nothing read-only whose counts are within every limit only counts on a role or membership change, without ranking. A bulk role import or SCIM sync then pays one count of the org's memberships per row, never a ranking.
-- On release, migration 2070 recomputes every org. A live org on Access that is already past a limit (after a trial, a cancellation or a reactivation) turns read-only when the migration applies, with the banners as its notice. The release owner counts those orgs first and decides on notice under Terms of Service 5.2.
+- On release, migration 2070 recomputes every org. A live org on Access that is already past a limit (after a trial, a cancellation or a reactivation) turns read-only when the migration applies, with the banners as its notice. The release owner counts those orgs first and decides on notice under Terms of Service 5.2. The count reads only objects 4.0 already has, so it runs on production before 2070 applies:
+
+  ```sql
+  select o.slug, l.plan_code, l.limit_code, l.limit_value, c.used
+  from app.organizations o
+  join private.org_plan_limits l on l.org_id = o.id
+  cross join lateral private.membership_band_counts(o.id) b
+  cross join lateral (select case l.limit_code
+      when 'seats' then b.seats
+      when 'field_members' then b.field_members
+      else (select count(*) from app.projects p
+            where p.org_id = o.id and p.deleted_at is null and p.archived_at is null
+              and p.project_state in ('Proposed', 'Active', 'Blocked'))
+    end as used) c
+  where o.deleted_at is null and l.limit_value is not null and c.used > l.limit_value
+    and l.limit_code in ('seats', 'field_members', 'active_projects')
+  order by o.slug, l.limit_code;
+  ```
+
+  Each row is an org that turns partly read-only. An org whose Owners alone exceed `seats` is listed but loses nothing, since Owners' seats are never read-only.
+
 - A downgrade can make most of an org read-only at once, Owners excepted. Nothing is deleted, and upgrading, archiving or ending memberships restores writes at once (pgTAP 2070).
 - Personal tables and the guard both sit in the database. Adding a personal app table later means adding it to the list in a migration, and pgTAP 2070 checks that every listed table exists and carries the guard.
 - Public API v1 is unchanged. API writes meet the same refusal through the row guard, and the refusal shape is the existing one.
