@@ -24,6 +24,8 @@ test.describe.configure({ timeout: 180_000 });
 const expect = baseExpect.configure({ timeout: 20_000 });
 
 const PROJECT = "NWS";
+/** Demo Owner's person id (seed 0010). */
+const DEMO_OWNER = "01920000-0000-7000-8000-000000000101";
 
 /** Waits until the page settles and the shell answers keys, with focus on the page, not a field. */
 async function ready(page: Page) {
@@ -87,7 +89,7 @@ test("projects and gates: gate readiness loads in under 500 ms", async ({ page }
 test("work and records: create and fully classify a record in under 10 s, keyboard only", async ({
   page,
 }) => {
-  const title = `Timed rigging check ${uniqueId()}`;
+  const title = `Check the rigging ${uniqueId()}`;
   const interactions = countInteractions(page);
   await signInAs(page, "owner@example.com", DEMO_ORG);
   await page.goto(`/${DEMO_ORG}/home`);
@@ -107,12 +109,22 @@ test("work and records: create and fully classify a record in under 10 s, keyboa
 
   expectWithin("Create and classify by keyboard", elapsed, workflowTargets.keyboardCreateMs);
   expect(interactions.pointers() - pointersBefore, "pointer presses during the journey").toBe(0);
-  // Fully classified: the record carries the kind, owner, category and project the line named.
+  // Fully classified: the record carries the kind, owner, category, project and date the line named.
   const main = page.locator("#content");
-  await expect(main.getByText("Task").first()).toBeVisible();
-  await expect(main.getByText("Demo Owner").first()).toBeVisible();
-  await expect(main.getByText("Rigging").first()).toBeVisible();
-  await expect(main.getByText("Northwind Summer Series").first()).toBeVisible();
+  await expect(main.getByText("Task", { exact: true }).first()).toBeVisible();
+  await expect(main.getByRole("combobox", { name: "Owner" })).toHaveValue(DEMO_OWNER);
+  await expect(
+    main.getByRole("definition").filter({ hasText: "5000.51.02" }).first(),
+  ).toBeVisible();
+  await expect(
+    main.getByRole("definition").filter({ hasText: "NWS · Northwind Summer Series" }).first(),
+  ).toBeVisible();
+  await expect(
+    main
+      .getByRole("definition")
+      .filter({ hasText: /9:00\W?AM/ })
+      .first(),
+  ).toBeVisible();
 });
 
 /** Resolves once the page's Realtime channel reports its Postgres subscription ready. */

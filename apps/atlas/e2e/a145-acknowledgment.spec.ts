@@ -1,3 +1,4 @@
+import { latencyOf } from "@xos/testing";
 import { expectAcknowledged, watchFor } from "@xos/testing/playwright";
 import { apiPost, DEMO_ORG, signInAs } from "./a36-support";
 import { expect as baseExpect, settle, test, type Page } from "./engine-test";
@@ -17,6 +18,17 @@ const expect = baseExpect.configure({ timeout: 20_000 });
 
 const PROJECT = "NWS";
 const PROJECT_ID = "01920000-0000-7000-8000-000000001001";
+
+/**
+ * Keeps, beside the acknowledgment, when the server's own answer reached the screen: what the person waited for
+ * before the change was optimistic.
+ */
+function noteServer(label: string, elapsedMs: number): void {
+  test.info().annotations.push({
+    type: "latency",
+    description: `${label}, server answer on screen: ${elapsedMs.toFixed(1)} ms`,
+  });
+}
 
 /** The project's chip under a quick add field, once `~NWS` has resolved. */
 function scopeChip(field: ReturnType<Page["getByRole"]>) {
@@ -47,10 +59,12 @@ test("create: the quick add row shows the record being added within 100 ms", asy
   await field.fill(`${title} ~${PROJECT}`);
   await expect(scopeChip(field)).toBeVisible();
 
+  const peekOpen = await watchFor(page, { selector: '[role="dialog"]', text: title });
   await expectAcknowledged(page, "Quick add create", () => field.press("Enter"), {
     selector: "p",
     text: `Adding ${title}`,
   });
+  noteServer("Quick add create", latencyOf(await peekOpen()));
   // The server's record opens in the peek, and the line it replaced is gone.
   await page.waitForURL(/peek=NWS-\d+/);
   await expect(page.getByRole("dialog", { name: title })).toBeVisible();
@@ -221,7 +235,12 @@ test("favorite: Pin page and Unpin page answer within 100 ms and hold", async ({
     await settle(page);
   }
 
+  const listed = await watchFor(page, {
+    selector: 'nav[aria-label="Favorites"] a',
+    text: "All Records",
+  });
   await expectAcknowledged(page, "Pin page", () => button("Pin page").click(), shows("Unpin page"));
+  noteServer("Pin page", latencyOf(await listed()));
   // The label holds while the server saves and the Favorites refresh: it never flips back.
   const flippedBack = await watchFor(page, shows("Pin page"), {
     afterInput: false,

@@ -88,6 +88,7 @@ export function countInteractions(page: Page): {
  * moment kept. Runs in the browser; typed loosely because this package compiles without the DOM library.
  */
 function installWatch(
+  id: string,
   probe: VisibleProbe,
   afterInput: boolean,
   holds: (probe: VisibleProbe, root: unknown) => boolean,
@@ -102,7 +103,7 @@ function installWatch(
       observe(target: unknown, options: object): void;
       disconnect(): void;
     };
-    __xosWatch?: { inputAt: number | null; seenAt: number | null };
+    __xosWatches?: Record<string, { inputAt: number | null; seenAt: number | null }>;
   };
   const now = () => win.performance.timeOrigin + win.performance.now();
   const before = holds(probe, win.document);
@@ -110,7 +111,7 @@ function installWatch(
     inputAt: afterInput ? null : now(),
     seenAt: null,
   };
-  win.__xosWatch = state;
+  win.__xosWatches = { ...win.__xosWatches, [id]: state };
   const options = { capture: true };
   const onInput = () => {
     if (state.inputAt === null) state.inputAt = now();
@@ -146,6 +147,9 @@ function installWatch(
   return before;
 }
 
+/** Numbers each watch, so several on one page keep their own state. */
+let watches = 0;
+
 export interface WatchOptions {
   /** Count the state only after the next pointer or key press (the default), or from the moment the watch begins. */
   readonly afterInput?: boolean;
@@ -156,7 +160,8 @@ export interface WatchOptions {
 /**
  * Starts watching `page` for `probe` and returns a function that waits for it and answers when it was seen (and,
  * after input, when the input came), in epoch milliseconds, comparable across pages and browser contexts. The
- * state must not hold yet: a watch that would pass before anything happens fails at once.
+ * state must not hold yet: a watch that would pass before anything happens fails at once. Several watches can run on
+ * one page at once.
  */
 export async function watchFor(
   page: Page,
@@ -164,28 +169,28 @@ export async function watchFor(
   options: WatchOptions = {},
 ): Promise<() => Promise<InteractionTiming>> {
   const afterInput = options.afterInput ?? true;
+  watches += 1;
+  const id = `w${watches}`;
   // The watcher and the probe go to the browser as source, the probe's function unchanged (it refers to nothing
   // outside itself), so the browser runs exactly what the unit tests check.
   const before = await page.evaluate<boolean>(
-    `(${installWatch.toString()})(${JSON.stringify(probe)}, ${afterInput}, ${probeHolds.toString()})`,
+    `(${installWatch.toString()})(${JSON.stringify(id)}, ${JSON.stringify(probe)}, ${afterInput}, ${probeHolds.toString()})`,
   );
   expect(before, `${JSON.stringify(probe)} already holds before the action`).toBe(false);
   return async () => {
+    type Watches = { __xosWatches?: Record<string, { inputAt: number | null; seenAt: number }> };
     await page.waitForFunction(
-      () => {
-        const state = (globalThis as unknown as { __xosWatch?: { seenAt: number | null } })
-          .__xosWatch;
+      (key) => {
+        const state = (globalThis as unknown as Watches).__xosWatches?.[key];
         return state !== undefined && state.seenAt !== null;
       },
-      undefined,
+      id,
       { timeout: options.timeout ?? 10_000 },
     );
-    return page.evaluate(() => {
-      const state = (
-        globalThis as unknown as { __xosWatch: { inputAt: number | null; seenAt: number } }
-      ).__xosWatch;
-      return { inputAt: state.inputAt, seenAt: state.seenAt };
-    });
+    return page.evaluate((key) => {
+      const state = (globalThis as unknown as Watches).__xosWatches?.[key];
+      return { inputAt: state?.inputAt ?? null, seenAt: state?.seenAt ?? 0 };
+    }, id);
   };
 }
 
