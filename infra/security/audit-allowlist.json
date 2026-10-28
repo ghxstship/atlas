@@ -64,6 +64,15 @@
       "reason": "zod 3.25.76 comes only with the Expo command line tool that builds and serves Compass; the Compass app bundle does not include @expo/cli, and 3.x has no patched release. Every shipped package pins zod 4.6.6, the fixed release; the versions field keeps this entry from covering any 4.x. Review when expo moves @expo/cli to zod 4. Accepted 2026-10-24.",
       "recorded": "2026-10-24",
       "review_by": "2027-01-24"
+    },
+    {
+      "id": "GHSA-gcqx-w48m-w2h4",
+      "package": "deepmerge",
+      "severity": "low",
+      "path": "packages/email > @react-email/components > @react-email/render > html-to-text > deepmerge",
+      "reason": "No patched release exists (vulnerable >=4.2.0 <=4.3.1). html-to-text uses deepmerge only to combine its option objects (html-to-text.cjs: the defaults with the caller's options, and duplicate selector entries); the email HTML is parsed, never merged. Our one caller, packages/email/src/render.ts, renders plain text with fixed options ({ plainText: true }), so no attacker-controlled object reaches mergeObject(). Review when html-to-text or deepmerge ships a fix. Accepted 2026-10-28 (RRR-241, gate 11).",
+      "recorded": "2026-10-28",
+      "review_by": "2027-01-28"
     }
   ]
 }
