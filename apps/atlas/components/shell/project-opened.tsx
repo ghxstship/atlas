@@ -2,7 +2,9 @@
 
 import { useEffect } from "react";
 import { recentProjectLinksAction } from "@/lib/shell/recents-actions";
-import { RECENT_PROJECTS_EVENT } from "./recent-projects";
+
+/** Heard by the shell (recent-projects.tsx); each file spells it, so the shell shares no module with this one. */
+const RECENT_PROJECTS_EVENT = "xos:recent-projects";
 
 /**
  * Rendered by the project frame, after the page noted the view (app.record_recent_view): reads the links under

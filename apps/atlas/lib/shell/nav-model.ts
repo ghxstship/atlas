@@ -27,6 +27,8 @@ export interface NavLinkModel {
   readonly icon: string;
   /** Links listed under this one: the recent projects and All Projects under the pinned Projects entry. */
   readonly children?: readonly NavLinkModel[];
+  /** Names the list of `children` for screen readers. */
+  readonly childrenLabel?: string;
 }
 
 /** A project the person opened recently, newest first (lib/shell/recents.ts). */
@@ -246,7 +248,13 @@ export function buildShellNav(
   const recent = recentProjectLinks(sitemap, input.recentProjects ?? [], { nav, params, t });
   const pinned = navigable(sitemap.chrome?.["sidebarPinned"] ?? []).flatMap((id) =>
     link(getNode(sitemap, id).node, params, t).map((l) =>
-      l.id === "projects" && recent.length > 0 ? { ...l, children: recent } : l,
+      l.id === "projects"
+        ? {
+            ...l,
+            childrenLabel: t("shell.chrome.recentProjects"),
+            ...(recent.length > 0 ? { children: recent } : {}),
+          }
+        : l,
     ),
   );
   const shownAbove = new Set([...top, ...pinned].map((l) => l.id));

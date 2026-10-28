@@ -3,8 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import type { NavLinkModel } from "@/lib/shell/nav-model";
 
-/** Sent on window by the project frame once a project opens; the detail is the links under Projects, read anew. */
-export const RECENT_PROJECTS_EVENT = "xos:recent-projects";
+/**
+ * Sent on window by the project frame (project-opened.tsx) once a project opens; the detail is the links under
+ * Projects, read anew. Each file spells it, so the shell shares no module with the project pages.
+ */
+const RECENT_PROJECTS_EVENT = "xos:recent-projects";
 
 /**
  * The pinned sidebar entries with the recent projects under Projects kept current (Section 4.5.2). The shell stays

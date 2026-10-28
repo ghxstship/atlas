@@ -1,6 +1,6 @@
 "use client";
 
-import { cx, Icon, iconButtonClass, sidebarClass, sidebarItemClass } from "@xos/ui";
+import { cx, Icon, iconButtonClass } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import {
   useLayoutEffect,
@@ -10,7 +10,7 @@ import {
   type KeyboardEvent,
   type MouseEvent,
 } from "react";
-import { reorderFavoritesAction } from "@/lib/settings/favorites-actions";
+import { reorderFavoritesAction, toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { FavoriteLink } from "./sidebar-favorites";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -34,6 +34,9 @@ function moveWithin(list: readonly FavoriteLink[], id: string, to: number) {
 const sameOrder = (a: readonly FavoriteLink[], b: readonly FavoriteLink[]) =>
   a.length === b.length && a.every((f, i) => f.id === b[i]?.id);
 
+/** Pins the page the person is on, or unpins it (Pin page and Unpin page beside the Favorites heading). */
+export const toggleFavorite = toggleFavoriteAction;
+
 /**
  * The sidebar Favorites that move (Section 4.5.2, Section 11.7), fetched the first time the pointer or focus reaches
  * the Favorites, so the shell carries only the plain list (A24-009). Each favorite moves by drag, or by its move
@@ -47,6 +50,8 @@ export function ReorderableFavorites({
   go,
   focus,
   onError,
+  frameClass,
+  itemClass,
 }: {
   readonly org: string;
   /** The person's favorites in this org, in their order (app.favorites). */
@@ -59,6 +64,9 @@ export function ReorderableFavorites({
   readonly focus: string | null;
   /** Shows why a save failed beside the Favorites heading. */
   readonly onError: (message: string | null) => void;
+  /** The Sidebar's frame and item classes, passed in so this module shares none with the shell (A24-009). */
+  readonly frameClass: string;
+  readonly itemClass: string;
 }) {
   const t = useTranslations() as unknown as Translate;
   const [items, setItems] = useState(favorites);
@@ -174,7 +182,7 @@ export function ReorderableFavorites({
   });
 
   return (
-    <nav aria-label={t("nav.atlas.actions.favorites")} className={sidebarClass}>
+    <nav aria-label={t("nav.atlas.actions.favorites")} className={frameClass}>
       <p id="favorites-move-help" className="sr-only">
         {t("shell.chrome.favoriteOrder.moveHelp")}
       </p>
@@ -184,7 +192,7 @@ export function ReorderableFavorites({
             <a
               href={f.href}
               aria-current={f.label === active ? "page" : undefined}
-              className={cx(sidebarItemClass, "min-w-0 flex-1")}
+              className={cx(itemClass, "min-w-0 flex-1")}
               onClick={(event: MouseEvent) => {
                 if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
                   return;

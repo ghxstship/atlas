@@ -1,10 +1,9 @@
 "use client";
 
-import { Button, Sidebar, type NavItem } from "@xos/ui";
+import { Button, Sidebar, sidebarClass, sidebarItemClass, type NavItem } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useState, type FocusEvent } from "react";
 import type { NavLinkModel } from "@/lib/shell/nav-model";
-import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import { onDemand, useOnDemand } from "./on-demand";
 
 /** A favorite as the sidebar lists it: its link and the app.favorites row it stands for. */
@@ -12,7 +11,9 @@ export interface FavoriteLink extends NavLinkModel {
   readonly favoriteId: string;
 }
 
-/** The Favorites that move load the first time the pointer or focus reaches the Favorites (A24-009). */
+/**
+ * The Favorites that move, and pinning, load the first time the pointer or focus reaches the Favorites (A24-009).
+ */
 const reorder = onDemand(() => import("./favorites-reorder"));
 
 /**
@@ -66,7 +67,7 @@ export function SidebarFavorites({
             variant="ghost"
             onClick={async () => {
               const peek = new URLSearchParams(window.location.search).get("peek");
-              const result = await toggleFavoriteAction(org, pathname, peek);
+              const result = await (await reorder.load()).toggleFavorite(org, pathname, peek);
               setError(result.error ? t(`settings.errors.${result.error}`) : null);
             }}
           >
@@ -94,6 +95,8 @@ export function SidebarFavorites({
           go={go}
           focus={reached.focus}
           onError={setError}
+          frameClass={sidebarClass}
+          itemClass={sidebarItemClass}
         />
       ) : (
         <Sidebar

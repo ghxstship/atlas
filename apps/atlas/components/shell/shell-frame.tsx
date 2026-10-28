@@ -123,7 +123,6 @@ export function ShellFrame(props: ShellFrameProps) {
 
   const go = useCallback((href: string) => router.push(href as Route), [router]);
 
-  const recentProjectsLabel = t("shell.chrome.recentProjects");
   /**
    * Sidebar items navigate client side; the anchor stays for middle-click and screen readers. The items under one
    * (the recent projects under Projects) come along.
@@ -139,12 +138,10 @@ export function ShellFrame(props: ShellFrameProps) {
           event.preventDefault();
           go(l.href);
         }) as unknown as () => void,
-        ...(l.children && l.children.length > 0
-          ? { items: l.children.map(toItem), itemsLabel: recentProjectsLabel }
-          : {}),
+        ...(l.children ? { items: l.children.map(toItem), itemsLabel: l.childrenLabel } : {}),
       };
     },
-    [go, recentProjectsLabel],
+    [go],
   );
 
   // The pinned entries, with the recent projects under Projects kept current as projects open.
