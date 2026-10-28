@@ -119,8 +119,8 @@ bytes over, all of it shell code every signed-in page loads. Measured the same w
   one, so their code now loads after the page (`deferred-system-banners.tsx`), about 1 KB.
 
 After the review fixes (the favorites drag by their move button with pointer events), merged with
-batch-c 8ca5ac3d: Projects 202,299 (2,501 under), Inbox 202,188 (2,612 under), project overview
-198,424 and Home 186,115. The drag code is in `favorites-reorder.tsx`, which loads on demand, so
+batch-c 41fd86b9: Projects 202,395 (2,405 under), Inbox 202,273 (2,527 under), project overview
+198,620 and Home 187,539. The drag code is in `favorites-reorder.tsx`, which loads on demand, so
 the shell carries none of it.
 
 ## Lighthouse against the gate 10 budgets
