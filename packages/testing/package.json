@@ -16,7 +16,7 @@
     "design:audit": "node --experimental-strip-types --no-warnings src/design-audit-cli.ts",
     "lighthouse": "node --experimental-strip-types --no-warnings --import ./src/register-ts.mjs src/lighthouse-cli.ts",
     "load:smoke": "sh load/run.sh smoke",
-    "budget:js": "node --experimental-strip-types --no-warnings src/bundle-budget-cli.ts"
+    "budget:js": "node --experimental-strip-types --no-warnings --import ./src/register-ts.mjs src/bundle-budget-cli.ts"
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",

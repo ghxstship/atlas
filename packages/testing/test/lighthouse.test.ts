@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   SSR_CHUNK_SIZE,
   lighthouseRc,
+  runAssertions,
   lighthouseTargets,
   scorePage,
   SESSION_COOKIES_ENV,
@@ -46,7 +47,7 @@ describe("lighthouseRc", () => {
     // An extra Cookie header gives way to the jar once the page sets a cookie of its own.
     expect("extraHeaders" in rc.ci.collect.settings).toBe(false);
     expect(rc.ci.collect.chromePath).toBe("/chrome");
-    expect(rc.ci.assert.assertions["largest-contentful-paint"]).toBeDefined();
+    expect(rc.ci.assert.assertions?.["largest-contentful-paint"]).toBeDefined();
   });
 
   it("launches Chrome itself, with no session, for public-only apps", () => {
@@ -127,6 +128,31 @@ describe("scorePage", () => {
   it("fails a page over the LCP or script budget, and one with missing audits", () => {
     expect(scorePage(report(3000, 150_000)).withinBudget).toBe(false);
     expect(scorePage(report(1200, 300_000)).withinBudget).toBe(false);
+    expect(scorePage(report(1200, 300_000), 310_000).withinBudget).toBe(true);
     expect(scorePage({}).withinBudget).toBe(false);
+  });
+});
+
+describe("runAssertions", () => {
+  it("gives every page the 200 KB script budget when none holds a ceiling", () => {
+    const assert = runAssertions("http://x", ["/a", "/b"]);
+    expect(assert.assertions?.["resource-summary:script:size"]).toEqual([
+      "error",
+      { maxNumericValue: 204_800 },
+    ]);
+  });
+
+  it("matches each page to its own script budget by exact URL", () => {
+    const assert = runAssertions("http://x", ["/a", "/b.c", "/d"], { "/b.c": 230_000 });
+    const matrix = assert.assertMatrix ?? [];
+    expect(matrix).toHaveLength(2);
+    const budgetOf = (url: string) =>
+      matrix.find((m) => new RegExp(m.matchingUrlPattern).test(url))?.assertions[
+        "resource-summary:script:size"
+      ]?.[1];
+    expect(budgetOf("http://x/a")).toEqual({ maxNumericValue: 204_800 });
+    expect(budgetOf("http://x/b.c")).toEqual({ maxNumericValue: 230_000 });
+    expect(budgetOf("http://x/bxc")).toBeUndefined();
+    expect(budgetOf("http://x/d/e")).toBeUndefined();
   });
 });

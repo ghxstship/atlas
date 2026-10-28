@@ -70,11 +70,9 @@ const GATEWAY_PEOPLE: readonly Person[] = [
   {
     name: "vendor",
     email: "vendor@example.com",
-    ctx: {
-      role: "account-owner",
-      roleType: "vendor",
-      conditions: ["desktop", "paid-work", "company-account"],
-    },
+    // Not company-account: the company settings need the person acting for the account, a choice
+    // the session does not carry; they stay with the axe sweep's manual audit.
+    ctx: { role: "account-owner", roleType: "vendor", conditions: ["desktop", "paid-work"] },
     params: {
       engagementKey: toDisplayKey("engagement", "01920000-0000-7000-8000-000000228402"),
     },

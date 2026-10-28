@@ -47,11 +47,12 @@ describe("signedInRoutes", () => {
     expect(unvisitedRoutes("atlas").length).toBeLessThanOrEqual(2);
   });
 
-  it("covers Gateway as the crew member, then the vendor's company pages", () => {
+  it("covers Gateway as the crew member, then the vendor's own engagement tabs", () => {
     const [crew, vendor] = signedInRoutes("gateway");
     expect(crew?.email).toBe("crew@example.com");
     expect(crew?.paths).toContain("/home");
-    expect(vendor?.paths.some((p) => p.startsWith("/settings/company"))).toBe(true);
+    expect(vendor?.paths.length).toBeGreaterThan(0);
+    expect(vendor?.paths.every((p) => p.startsWith("/work/engagements/"))).toBe(true);
   });
 });
 

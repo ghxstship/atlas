@@ -100,6 +100,33 @@ export interface LighthouseRcInput {
   readonly chromePath: string | undefined;
   readonly outputDir: string;
   readonly runs?: number;
+  /** Route JavaScript ceilings by path, for pages still over 200 KB (bundle-ceilings.json). */
+  readonly ceilings?: Readonly<Record<string, number>>;
+}
+
+const escapeRegExp = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * The spec budgets for a run's pages. Every page gets the 200 KB script budget unless it holds a
+ * ceiling; pages that share a budget share one `assertMatrix` entry, matched by exact URL.
+ */
+export function runAssertions(
+  baseUrl: string,
+  paths: readonly string[],
+  ceilings: Readonly<Record<string, number>> = {},
+) {
+  const groups = new Map<number, string[]>();
+  for (const path of paths) {
+    const budget = Math.max(webBudgets.routeJavaScriptGzipBytes, ceilings[path] ?? 0);
+    groups.set(budget, [...(groups.get(budget) ?? []), `${baseUrl}${path}`]);
+  }
+  if (groups.size <= 1) return { assertions: lighthouseAssertions([...groups.keys()][0]) };
+  return {
+    assertMatrix: [...groups].map(([budget, urls]) => ({
+      matchingUrlPattern: `^(${urls.map(escapeRegExp).join("|")})$`,
+      assertions: lighthouseAssertions(budget),
+    })),
+  };
 }
 
 const CHROME_FLAGS = ["--headless=new", "--no-sandbox"];
@@ -125,7 +152,7 @@ export function lighthouseRc(input: LighthouseRcInput) {
           ...(input.sessionScript ? {} : { chromeFlags: CHROME_FLAGS.join(" ") }),
         },
       },
-      assert: { assertions: lighthouseAssertions() },
+      assert: runAssertions(input.baseUrl, input.paths, input.ceilings),
       upload: { target: "filesystem", outputDir: input.outputDir },
     },
   };
@@ -161,8 +188,11 @@ function numeric(result: LighthouseResult, audit: string): number | null {
   return typeof value === "number" ? value : null;
 }
 
-/** Scores and budget verdict for one Lighthouse JSON report. */
-export function scorePage(result: LighthouseResult): PageScore {
+/** Scores and budget verdict for one Lighthouse JSON report, against the page's script budget. */
+export function scorePage(
+  result: LighthouseResult,
+  scriptBudget: number = webBudgets.routeJavaScriptGzipBytes,
+): PageScore {
   const scripts = result.audits?.["resource-summary"]?.details?.items?.find(
     (item) => item.resourceType === "script",
   );
@@ -183,6 +213,7 @@ export function scorePage(result: LighthouseResult): PageScore {
       within(page.lcpMs, webBudgets.largestContentfulPaintMs) &&
       within(page.cls, webBudgets.cumulativeLayoutShift) &&
       within(page.tbtMs, webBudgets.interactionToNextPaintMs) &&
-      within(page.scriptBytes, webBudgets.routeJavaScriptGzipBytes),
+      page.scriptBytes !== null &&
+      page.scriptBytes <= scriptBudget,
   };
 }

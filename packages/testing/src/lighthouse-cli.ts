@@ -11,6 +11,7 @@ import {
   type LighthouseApp,
   type PageScore,
 } from "./lighthouse.ts";
+import { webBudgets } from "./budgets.ts";
 import { lighthouseRuns } from "./lighthouse-routes.ts";
 import { signIn } from "./session.ts";
 
@@ -33,6 +34,12 @@ const apps = (process.argv.slice(2).filter((a) => !a.startsWith("-")) as Lightho
 );
 const selected: LighthouseApp[] = apps.length > 0 ? apps : ["atlas", "gateway", "docs"];
 const keyPagesOnly = process.argv.includes("--key-pages");
+/** Pages still over 200 KB hold a recorded ceiling (ADR 0027), keyed `<app><path>`. */
+const recorded = (
+  JSON.parse(readFileSync(join(here, "bundle-ceilings.json"), "utf8")) as {
+    pages: Record<string, number>;
+  }
+).pages;
 const baseOverride: Record<LighthouseApp, string | undefined> = {
   atlas: process.env["ATLAS_URL"],
   gateway: process.env["GATEWAY_URL"],
@@ -45,6 +52,11 @@ for (const app of selected) {
   const appDir = join(here, "node_modules/.cache/lighthouse", app);
   rmSync(appDir, { recursive: true, force: true });
   const pages: PageScore[] = [];
+  const ceilings = Object.fromEntries(
+    Object.entries(recorded).flatMap(([key, bytes]) =>
+      key.startsWith(`${app}/`) ? [[key.slice(app.length), bytes]] : [],
+    ),
+  );
   for (const run of lighthouseRuns(app, keyPagesOnly)) {
     const cookies = run.email ? sessionCookies("xos-auth", await signIn(run.email)) : null;
     const outputDir = join(appDir, run.name);
@@ -62,6 +74,7 @@ for (const app of selected) {
             : null,
           chromePath: process.env["CHROME_PATH"],
           outputDir,
+          ceilings,
         }),
       ),
     );
@@ -82,9 +95,15 @@ for (const app of selected) {
     );
     if (lhci.status !== 0) failed = true;
     const reports = readdirSync(outputDir).filter((f) => f.endsWith(".report.json"));
-    pages.push(
-      ...reports.map((f) => scorePage(JSON.parse(readFileSync(join(outputDir, f), "utf8")))),
-    );
+    for (const f of reports) {
+      const result = JSON.parse(readFileSync(join(outputDir, f), "utf8")) as {
+        requestedUrl: string;
+      };
+      const path = new URL(result.requestedUrl).pathname;
+      pages.push(
+        scorePage(result, Math.max(webBudgets.routeJavaScriptGzipBytes, ceilings[path] ?? 0)),
+      );
+    }
   }
 
   pages.sort((a, b) => a.url.localeCompare(b.url));

@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { checkRouteBudgets, kb, transferBytes } from "./bundle-budget.ts";
+import { checkRouteBudgets, kb, keyPages, transferBytes, type BudgetApp } from "./bundle-budget.ts";
 import { findForbiddenClientCode } from "./client-chunk-audit.ts";
 import { sessionCookies } from "./lighthouse.ts";
+import { signedInRoutes } from "./lighthouse-routes.ts";
 import {
   scriptRequests,
   servedRow,
@@ -16,8 +17,9 @@ import { signIn } from "./session.ts";
  * Route JavaScript budget check for CI, in transfer bytes as Lighthouse counts them.
  *
  * `budget:js` runs after `next build` of Atlas, Gateway, docs and the console, from the build
- * manifests (bundle-budget.ts): each key page's scripts as `next start` sends them. With --chunks
- * it also lists each page's chunks by size, for finding what to split.
+ * manifests (bundle-budget.ts): the scripts of each key page and each signed-in route as
+ * `next start` sends them, against 200 KB or the route's recorded ceiling. With --chunks it also
+ * lists each printed page's chunks by size, for finding what to split.
  *
  * `budget:js -- --served [atlas|gateway|docs]` loads each key page from the running servers in
  * Chromium instead, signed in as the page's demo person, and counts every script fetched until
@@ -92,13 +94,30 @@ async function measureServed(): Promise<ServedRow[]> {
   return rows;
 }
 
+/**
+ * Every page the static check reads: the key pages, and in Atlas and Gateway every signed-in route
+ * the nightly Lighthouse run visits (lighthouse-routes.ts), each against 200 KB or its ceiling.
+ */
+function everyPage(): Record<BudgetApp, readonly string[]> {
+  const pages = keyPages();
+  const routes = (app: "atlas" | "gateway") => [
+    ...new Set([...pages[app], ...signedInRoutes(app).flatMap((s) => s.paths)]),
+  ];
+  return { ...pages, atlas: routes("atlas"), gateway: routes("gateway") };
+}
+
 const served = process.argv.includes("--served");
-const rows = served ? await measureServed() : checkRouteBudgets(repoRoot, ceilings.pages);
+const rows = served
+  ? await measureServed()
+  : checkRouteBudgets(repoRoot, ceilings.pages, everyPage());
+const key = new Set(Object.entries(keyPages()).flatMap(([app, ps]) => ps.map((p) => `${app}${p}`)));
 if (rows.length === 0) {
   console.error("No production build found under apps/<app>/.next. Run next build first.");
   process.exit(1);
 }
 for (const row of rows) {
+  // Key pages always print; another route prints when it fails.
+  if (row.pass && !key.has(`${row.app}${row.path}`)) continue;
   const verdict = row.pass ? "ok  " : "OVER";
   console.log(
     `${verdict} ${row.app.padEnd(8)}${row.path.padEnd(36)}${kb(row.transferBytes).padStart(8)} of ${kb(row.budgetBytes)}`,
@@ -120,7 +139,7 @@ if (over.length > 0) {
   console.error(`${over.length} page(s) over the route JavaScript budget.`);
   process.exit(1);
 }
-console.log(`All ${rows.length} key pages within the route JavaScript budget.`);
+console.log(`All ${rows.length} pages within the route JavaScript budget or their ceilings.`);
 
 if (!served) {
   // The Sentry browser SDK must never ship to a browser (ADR 0025): errors go through the reporter.
