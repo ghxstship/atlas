@@ -101,8 +101,17 @@ test("a person reorders favorites by keyboard and by mouse, hears each step, and
   await expect(page.getByText("Inbox dropped at position 1 of 3.")).toBeAttached();
   await dropped;
   await expect(favorites.getByRole("link")).toHaveText(["Inbox", "My Work", "Home"]);
+
+  // Down the list too, where the dragged row itself moves under the pointer.
+  const lowered = nextAction(page);
+  await favorites
+    .getByRole("button", { name: "Move Inbox" })
+    .dragTo(favorites.getByRole("button", { name: "Move Home" }));
+  await expect(page.getByText("Inbox dropped at position 3 of 3.")).toBeAttached();
+  await lowered;
+  await expect(favorites.getByRole("link")).toHaveText(["My Work", "Home", "Inbox"]);
   await page.reload();
-  await expect(favorites.getByRole("link")).toHaveText(["Inbox", "My Work", "Home"]);
+  await expect(favorites.getByRole("link")).toHaveText(["My Work", "Home", "Inbox"]);
 });
 
 test("the projects a person opens appear under Projects, newest first, then All Projects", async ({
