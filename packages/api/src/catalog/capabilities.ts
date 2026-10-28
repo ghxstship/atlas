@@ -8,17 +8,19 @@
  * governs the same operation.
  */
 
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
+
 export interface CapabilityRule {
-  readonly read?: string;
-  readonly write?: string;
-  readonly create?: string;
-  readonly delete?: string;
-  readonly actions?: Readonly<Record<string, string>>;
+  readonly read?: CapabilityCode;
+  readonly write?: CapabilityCode;
+  readonly create?: CapabilityCode;
+  readonly delete?: CapabilityCode;
+  readonly actions?: Readonly<Record<string, CapabilityCode>>;
 }
 
 const rw = (
-  read: string,
-  write: string,
+  read: CapabilityCode,
+  write: CapabilityCode,
   more: Omit<CapabilityRule, "read" | "write"> = {},
 ): CapabilityRule => ({
   read,
@@ -478,7 +480,7 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "hospitality.accommodation.write":
     "Accommodation blocks and room assignments (0440) are written in Atlas through @xos/data/hospitality; fulfillment lines check hospitality.fulfillment.write (0351, ADR 0023), and no v1 operation writes blocks yet.",
   "org.separation_of_duties.write":
-    "The separation of duties rules are the platform's, read through the view app.separation_of_duties_rules (0320); no operation writes them (ADR 0023).",
+    "The separation of duties rules are the platform's, read through the view app.separation_of_duties_rules (0320); orgs turn stricter options on in Atlas through app.set_separation_of_duties_option (2280, ADR 0114), and no v1 operation writes them (ADR 0023).",
   "procurement.bid.unseal":
     "Sealed bids unseal for the reader through row level security (private.bid_readable_by_org, 0720); no operation unseals a bid (ADR 0023).",
   "people.offer.write":

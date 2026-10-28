@@ -8,7 +8,9 @@ export const sitemap: Sitemap = {
   home: "tenants",
   params: { orgId: { type: "uuid" }, sessionId: { type: "uuid" }, opportunityId: { type: "uuid" } },
   audience: { dimension: "operator-role", roles: ["administrator", "support", "trust-and-safety"] },
-  chrome: { topBar: ["tenants", "flags", "support", "moderation", "banners", "team", "activity"] },
+  chrome: {
+    topBar: ["tenants", "metrics", "flags", "support", "moderation", "banners", "team", "activity"],
+  },
   nodes: [
     {
       id: "console",
@@ -32,6 +34,7 @@ export const sitemap: Sitemap = {
             },
           ],
         },
+        { id: "metrics", kind: "page", label: "nav.console.metrics", route: "/metrics" },
         {
           id: "flags",
           kind: "page",
