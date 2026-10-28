@@ -132,7 +132,18 @@
     "calledAt": "Llamado",
     "calledBy": "Llamado por",
     "notCalled": "Sin llamar",
-    "noCues": "Este orden del espectáculo no tiene cues."
+    "noCues": "Este orden del espectáculo no tiene cues.",
+    "curfew": "Hora límite",
+    "tbc": "Por confirmar",
+    "departmentCalls": "Llamados por departamento",
+    "departmentCall": "{department}: {instruction}",
+    "departments": {
+      "audio": "Audio",
+      "lighting": "Iluminación",
+      "video": "Video",
+      "sfx": "Efectos especiales",
+      "stage": "Escenario"
+    }
   },
   "beo": {
     "title": "Orden de evento de banquete {key}",

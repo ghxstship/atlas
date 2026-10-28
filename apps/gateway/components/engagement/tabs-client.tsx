@@ -199,7 +199,9 @@ export async function RecordsTab({
           title: r.title,
           meta: [
             t(enumLabelKey("recordKind", r.kind)),
-            r.startsAt
+            r.startsAt && r.startTbc
+              ? t("gateway.common.tbc")
+              : r.startsAt
               ? formatScheduleTime(
                   locale,
                   r.startsAt,
@@ -273,7 +275,9 @@ export async function RunOfShowTab({ view, t, locale, engagementKey }: TabProps)
                 id: c.id ?? "",
                 title: `${c.position ?? ""}. ${c.label ?? ""}`,
                 meta: [
-                  c.planned_at
+                  c.planned_at && c.start_tbc
+                    ? t("gateway.common.tbc")
+                    : c.planned_at
                     ? formatScheduleTime(
                         locale,
                         c.planned_at,

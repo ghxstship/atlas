@@ -115,7 +115,9 @@ export async function SetTimesTab({ view, t, locale, engagementKey }: TabProps) 
             id: c.id ?? "",
             title: c.label ?? "",
             meta: [
-              c.planned_at
+              c.planned_at && c.start_tbc
+                ? t("gateway.common.tbc")
+                : c.planned_at
                 ? formatScheduleTime(
                     locale,
                     c.planned_at,

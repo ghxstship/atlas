@@ -13,14 +13,19 @@ import {
   listCallSheets,
   listCalls,
   listCueEngagements,
+  listCueCalls,
   listCues,
   listDaySheets,
   listRunsOfShow,
   moveCue,
+  moveCueTo,
   publishSheet,
   removeCue,
   restoreSheet,
+  saveCueCalls,
   saveDaySheet,
+  shiftCuePlan,
+  standbyCue,
   unlinkCueEngagement,
   updateCue,
   updateRunOfShow,
@@ -65,6 +70,8 @@ const cue = (over: Partial<Cue> = {}): Cue => ({
   durationSeconds: null,
   calledAt: null,
   calledByName: null,
+  startTbc: false,
+  standbyAt: null,
   ...over,
 });
 
@@ -254,31 +261,72 @@ describe("cues", () => {
     });
   });
 
-  it("swaps a cue with its neighbor through a parked position", async () => {
+  it("moves a cue one place through app.move_cue, one transaction", async () => {
     const { db, calls } = moduleClient({
       "from:cues": [
         okResponse([cueRow("c1", 1), cueRow("c2", 2)]),
-        okResponse(null),
-        okResponse(null),
-        okResponse(null),
-        okResponse([cueRow("c1", 1)]),
-        errorResponse("XX000", "b"),
         okResponse([cueRow("c1", 1), cueRow("c2", 2)]),
-        errorResponse("XX000", "b"),
+        okResponse([cueRow("c1", 1), cueRow("c2", 2)]),
       ],
+      "rpc:move_cue": [okResponse(1), errorResponse("XR001", "cue_move_called: A called cue keeps its place.")],
     });
     expect((await moveCue(db, "ros1", "c2", "up")).ok).toBe(true);
-    expect([1, 2, 3].map((i) => stepsOf(calls[i], "update")[0]?.[0])).toEqual([
-      { position: 3 },
-      { position: 2 },
-      { position: 1 },
+    // Up from the second place is the first 1-based place; no row is written outside the RPC.
+    expect(calls.find((c) => c.target === "rpc:move_cue")?.steps[0]).toEqual([
+      "args",
+      [{ p_cue_id: "c2", p_to_position: 1 }],
     ]);
-    expect((await moveCue(db, "ros1", "c1", "down")).ok).toBe(true);
-    expect((await moveCue(db, "ros1", "c1", "down")).ok).toBe(false);
-    expect((await moveCue(db, "ros1", "c1", "down")).ok).toBe(false);
+    expect(calls.filter((c) => stepsOf(c, "update").length > 0)).toEqual([]);
+    expect(await moveCue(db, "ros1", "c1", "down")).toEqual({
+      ok: false,
+      error: { kind: "refusal", rule: "cue_move_called", message: "A called cue keeps its place." },
+    });
+    // Down from the last place moves nothing and calls nothing.
+    expect((await moveCue(db, "ros1", "c2", "down")).ok).toBe(true);
+    expect(calls.filter((c) => c.target === "rpc:move_cue")).toHaveLength(2);
   });
 
-  it("derives live progression", () => {
+  it("moves to a place, puts on standby and nudges through their RPCs", async () => {
+    const { db, calls } = moduleClient({
+      "rpc:move_cue": [okResponse(2)],
+      "rpc:standby_cue": [okResponse(null), okResponse(null)],
+      "rpc:shift_cue_plan": [okResponse(4), errorResponse("XR001", "cue_shift_range: Nudge by up to an hour.")],
+    });
+    expect(await moveCueTo(db, "c5", 2)).toEqual({ ok: true, data: { position: 2 } });
+    expect((await standbyCue(db, "ros1", "c3")).ok).toBe(true);
+    expect((await standbyCue(db, "ros1", null)).ok).toBe(true);
+    expect(await shiftCuePlan(db, "ros1", 60)).toEqual({ ok: true, data: { count: 4 } });
+    expect((await shiftCuePlan(db, "ros1", 0)).ok).toBe(false);
+    expect(calls.map((c) => [c.target, c.steps[0]?.[1]])).toEqual([
+      ["rpc:move_cue", [{ p_cue_id: "c5", p_to_position: 2 }]],
+      ["rpc:standby_cue", [{ p_run_of_show_id: "ros1", p_cue_id: "c3" }]],
+      ["rpc:standby_cue", [{ p_run_of_show_id: "ros1", p_cue_id: null }]],
+      ["rpc:shift_cue_plan", [{ p_run_of_show_id: "ros1", p_seconds: 60 }]],
+      ["rpc:shift_cue_plan", [{ p_run_of_show_id: "ros1", p_seconds: 0 }]],
+    ]);
+  });
+
+  it("lists a run's department calls in enum order and saves them in one call", async () => {
+    const { db, calls } = moduleClient({
+      "from:cue_calls": [
+        okResponse([
+          { id: "k2", cue_id: "c1", call_kind: "Stage", instruction: "Podium set" },
+          { id: "k1", cue_id: "c1", call_kind: "Audio", instruction: "Host mic live" },
+        ]),
+      ],
+      "rpc:save_cue_calls": [okResponse(null)],
+    });
+    const listed = await listCueCalls(db, "ros1");
+    expect(listed.ok && listed.data.map((c) => c.kind)).toEqual(["Audio", "Stage"]);
+    expect(stepsOf(calls[0], "eq")).toEqual([["cue.run_of_show_id", "ros1"]]);
+    expect((await saveCueCalls(db, "c1", { Lighting: "LX 14 GO", Audio: null })).ok).toBe(true);
+    expect(calls[1]?.steps[0]).toEqual([
+      "args",
+      [{ p_cue_id: "c1", p_calls: { Lighting: "LX 14 GO", Audio: null } }],
+    ]);
+  });
+
+  it("derives live progression as indices into the cues in position order", () => {
     const now = new Date("2027-06-05T23:00:00Z");
     expect(cueProgress([], now)).toEqual({
       current: -1,
@@ -286,11 +334,13 @@ describe("cues", () => {
       nextInSeconds: null,
       elapsedSeconds: null,
       complete: false,
+      standby: false,
+      skipped: [],
     });
     const cues = [
       cue({ id: "a", calledAt: "2027-06-05T22:59:00Z" }),
-      cue({ id: "b", plannedAt: "2027-06-05T23:02:00Z" }),
-      cue({ id: "c" }),
+      cue({ id: "b", position: 2, plannedAt: "2027-06-05T23:02:00Z" }),
+      cue({ id: "c", position: 3 }),
     ];
     expect(cueProgress(cues, now)).toEqual({
       current: 0,
@@ -298,6 +348,8 @@ describe("cues", () => {
       nextInSeconds: 120,
       elapsedSeconds: 60,
       complete: false,
+      standby: false,
+      skipped: [],
     });
     const done = cues.map((c) => ({ ...c, calledAt: "2027-06-05T22:00:00Z" }));
     expect(cueProgress(done, now)).toMatchObject({ current: 2, next: -1, complete: true });

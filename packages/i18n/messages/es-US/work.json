@@ -333,7 +333,8 @@
     "none": "Ninguno",
     "notSet": "Sin definir",
     "unpriced": "Sin precio",
-    "gate": "Compuerta {gate} · {name}"
+    "gate": "Compuerta {gate} · {name}",
+    "tbcEstimate": "Por confirmar · aprox. {time}"
   },
   "fields": {
     "title": "Título",
@@ -356,7 +357,8 @@
     "timeZone": "Zona horaria",
     "zoneNote": "Las horas están en {zone}.",
     "replanReason": "Motivo de replanificación",
-    "replanHelp": "Este registro está programado, así que el cambio de fecha se registra como replanificación. Indique el motivo."
+    "replanHelp": "Este registro está programado, así que el cambio de fecha se registra como replanificación. Indique el motivo.",
+    "startTbc": "Hora de inicio por confirmar"
   },
   "record": {
     "properties": "Propiedades del registro",

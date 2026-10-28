@@ -170,6 +170,8 @@ export interface UpNextDetails {
     readonly at: string;
     readonly timeZone: string;
     readonly kind: UpNextCallKind;
+    /** True when the call is a set whose time is still to be confirmed: show TBC, not the time. */
+    readonly tbc: boolean;
   } | null;
   /** The venue's name and address, joined; null when the project names no venue. */
   readonly where: string | null;
@@ -196,6 +198,7 @@ export function upNextDetails(input: {
     readonly next_call_at: string | null;
     readonly next_call_time_zone: string | null;
     readonly next_call_kind: string | null;
+    readonly next_call_tbc?: boolean | null;
   } | null;
   readonly orgName: string;
   readonly badges: readonly {
@@ -211,7 +214,7 @@ export function upNextDetails(input: {
   const kind = row?.next_call_kind ? CALL_KINDS[row.next_call_kind] : undefined;
   const call =
     row?.next_call_at && row.next_call_time_zone && kind
-      ? { at: row.next_call_at, timeZone: row.next_call_time_zone, kind }
+      ? { at: row.next_call_at, timeZone: row.next_call_time_zone, kind, tbc: row.next_call_tbc === true }
       : null;
   const place = row
     ? [row.venue_name, row.venue_street_address, row.venue_locality, row.venue_postal_code]

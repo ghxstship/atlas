@@ -6,7 +6,8 @@ import type { AgreementDetail } from "../people.ts";
 import type { PoLine, PurchaseOrder, PurchaseOrderTotals } from "../procurement.ts";
 import type { FinalCostReport, FinalCostRow } from "../reports.ts";
 import type { Inspection, InspectionItem } from "../safety-permits.ts";
-import type { Call, CallSheet, Cue, DaySheet, RunOfShow } from "../show.ts";
+import { callLines, CUE_CALL_SLUGS } from "../cue-calls.ts";
+import type { Call, CallSheet, Cue, CueCall, DaySheet, RunOfShow } from "../show.ts";
 import type { Formatter, Translate } from "./format.ts";
 import type { DocumentBlock, DocumentKind } from "./model.ts";
 
@@ -55,6 +56,8 @@ export interface DocumentDataMap {
     readonly project: DocumentProject;
     readonly run: RunOfShow;
     readonly cues: readonly Cue[];
+    /** The cues' department calls (internal only; an external reader gets none). Read from version 2. */
+    readonly calls?: readonly CueCall[];
   };
   beo: { readonly project: DocumentProject; readonly beo: BeoDetail };
   "credential-badge": { readonly project: DocumentProject; readonly credential: IssuedCredential };
@@ -194,6 +197,8 @@ function lineColumns(t: Translate) {
 }
 
 const V1 = "2026-01-01T00:00:00Z";
+/** Run of show version 2 (ADR 0131): TBC planned times, department calls and the curfew. */
+const RUN_OF_SHOW_V2 = "2026-10-29T00:00:00Z";
 
 export const TEMPLATES: TemplateRegistry = {
   "purchase-order": [
@@ -480,6 +485,62 @@ export const TEMPLATES: TemplateRegistry = {
               c.label,
               f.time(c.plannedAt),
               f.duration(c.durationSeconds),
+              c.calledAt ? f.time(c.calledAt) : t("runOfShow.notCalled"),
+              c.calledByName ?? t("common.none"),
+            ]),
+            empty: t("runOfShow.noCues"),
+          },
+        ],
+      }),
+    },
+    {
+      version: 2,
+      effectiveFrom: RUN_OF_SHOW_V2,
+      build: ({ project, run, cues, calls = [] }, { t, f }) => ({
+        title: t("runOfShow.title", { name: run.name }),
+        blocks: [
+          {
+            kind: "fields",
+            caption: t("common.details"),
+            fields: [
+              field(t("common.project"), projectLabel(project)),
+              field(t("runOfShow.showDate"), f.day(run.showDate)),
+              field(t("common.timeZone"), f.timeZone),
+              ...(run.curfewAt ? [field(t("runOfShow.curfew"), f.dateTime(run.curfewAt))] : []),
+              field(
+                t("runOfShow.progress"),
+                t("runOfShow.called", { called: run.calledCount, count: run.cueCount }),
+              ),
+            ],
+          },
+          {
+            kind: "table",
+            caption: t("runOfShow.cues"),
+            columns: [
+              { label: t("common.lineNumber"), numeric: true, weight: 0.5 },
+              { label: t("runOfShow.cue"), weight: 2.4 },
+              { label: t("runOfShow.plannedAt"), weight: 1.2 },
+              { label: t("runOfShow.duration"), numeric: true },
+              { label: t("runOfShow.departmentCalls"), weight: 3 },
+              { label: t("runOfShow.calledAt"), weight: 1.2 },
+              { label: t("runOfShow.calledBy"), weight: 1.6 },
+            ],
+            rows: cues.map((c, i) => [
+              String(i + 1),
+              c.label,
+              c.startTbc && c.plannedAt ? t("runOfShow.tbc") : f.time(c.plannedAt),
+              f.duration(c.durationSeconds),
+              callLines(
+                calls.filter((call) => call.cueId === c.id),
+                null,
+              )
+                .map((line) =>
+                  t("runOfShow.departmentCall", {
+                    department: t(`runOfShow.departments.${CUE_CALL_SLUGS[line.kind]}`),
+                    instruction: line.instruction,
+                  }),
+                )
+                .join("\n"),
               c.calledAt ? f.time(c.calledAt) : t("runOfShow.notCalled"),
               c.calledByName ?? t("common.none"),
             ]),

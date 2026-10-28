@@ -249,6 +249,54 @@ describe("data mapping", () => {
   });
 });
 
+describe("run of show version 2 (ADR 0131)", () => {
+  const v2Data = {
+    ...FIXTURES["run-of-show"],
+    run: { ...FIXTURES["run-of-show"].run, showDate: "2026-11-07", curfewAt: "2026-11-08T02:00:00Z" as string | null },
+    cues: FIXTURES["run-of-show"].cues.map((c) => (c.id === "q2" ? { ...c, startTbc: true } : c)),
+    calls: [
+      { id: "k2", cueId: "q2", kind: "Stage" as const, instruction: "Riser lock checked" },
+      { id: "k1", cueId: "q2", kind: "Lighting" as const, instruction: "LX 14 GO" },
+    ],
+  };
+  const render = (locale: string, data = v2Data) =>
+    buildDocumentModel("run-of-show", data, {
+      locale,
+      messages: locale === "en-US" ? EN : ES,
+      brand: BRAND,
+      recordUrl: "u",
+      now: NOW,
+    });
+
+  it("shows TBC planned times, a Department calls column and the curfew for a show on or after it", () => {
+    const model = render("en-US");
+    expect(model.facts.templateVersion).toBe(2);
+    const table = model.blocks.find((b) => b.kind === "table");
+    if (table?.kind !== "table") throw new Error("no cues");
+    expect(table.columns.map((c) => c.label)).toContain("Department calls");
+    expect(table.rows[1]?.[2]).toBe("TBC");
+    expect(table.rows[1]?.[4]).toBe("Lighting: LX 14 GO\nStage: Riser lock checked");
+    expect(table.rows[0]?.[4]).toBe("");
+    expect(strings(model)).toContain("Curfew");
+    const es = render("es-US");
+    expect(strings(es)).toContain("Por confirmar");
+    expect(strings(es)).toContain("Iluminación: LX 14 GO\nEscenario: Riser lock checked");
+    for (const text of [...strings(model), ...strings(es)]) expect(text).not.toMatch(/^runOfShow\./);
+  });
+
+  it("leaves the curfew out when none is set", () => {
+    const model = render("en-US", { ...v2Data, run: { ...v2Data.run, curfewAt: null } });
+    expect(strings(model)).not.toContain("Curfew");
+  });
+
+  it("re-renders an earlier show with version 1 unchanged", () => {
+    const model = render("en-US", { ...v2Data, run: { ...v2Data.run, showDate: "2026-10-24" } });
+    expect(model.facts.templateVersion).toBe(1);
+    expect(strings(model)).not.toContain("Department calls");
+    expect(strings(model)).not.toContain("TBC");
+  });
+});
+
 describe("helpers", () => {
   it("recognizes kinds and papers", () => {
     expect(isDocumentKind("beo")).toBe(true);
