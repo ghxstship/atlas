@@ -6,16 +6,7 @@ import type { Route } from "next";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  deleteViewAction,
-  loadViewsAction,
-  saveViewAction,
-  setDefaultViewAction,
-  shareViewAction,
-  updateViewAction,
-  type ViewDraft,
-  type ViewsError,
-} from "@/lib/views/actions";
+import { loadViewsAction, type ViewDraft, type ViewsError } from "@/lib/views/actions";
 import {
   canonicalQuery,
   collectionKeyFor,
@@ -33,7 +24,7 @@ import type { FilterField } from "./filter-model";
 import { useCustomFieldList } from "@/components/custom-fields/list";
 import type { CustomFieldListView } from "@/lib/custom-fields/types";
 
-/** The save, share and delete dialogs load when one opens (A24-009). */
+/** The save, share and delete dialogs, and the writes, load when one is used (A24-009). */
 const viewDialogs = onDemand(() => import("./view-dialogs"));
 
 /** The Add filter control loads on a page that has something to filter by, not with every collection (A24-009). */
@@ -207,7 +198,10 @@ export function CollectionViews({
     done: () => void,
   ) => {
     setError(null);
-    const result = await action();
+    const result = await action().catch(() => ({
+      ok: false as const,
+      error: "unexpected" as const,
+    }));
     if (!result.ok) {
       showError(result.error);
       return false;
@@ -252,7 +246,10 @@ export function CollectionViews({
       icon: "RefreshCw",
       onSelect: () =>
         void run(
-          () => updateViewAction(org, differing.id, draft(differing.name)),
+          () =>
+            viewDialogs
+              .load()
+              .then((m) => m.updateViewAction(org, differing.id, draft(differing.name))),
           () => announce("updated", differing.name),
         ),
     });
@@ -265,7 +262,10 @@ export function CollectionViews({
             icon: "PinOff",
             onSelect: () =>
               void run(
-                () => setDefaultViewAction(org, collection ?? "", null),
+                () =>
+                  viewDialogs
+                    .load()
+                    .then((m) => m.setDefaultViewAction(org, collection ?? "", null)),
                 () => announce("defaultCleared"),
               ),
           }
@@ -274,7 +274,10 @@ export function CollectionViews({
             icon: "Pin",
             onSelect: () =>
               void run(
-                () => setDefaultViewAction(org, collection ?? "", active.id),
+                () =>
+                  viewDialogs
+                    .load()
+                    .then((m) => m.setDefaultViewAction(org, collection ?? "", active.id)),
                 () => announce("defaultSet", active.name),
               ),
           },
@@ -348,19 +351,19 @@ export function CollectionViews({
           onClose={() => setDialog(null)}
           onSave={(name, share) =>
             run(
-              () => saveViewAction(org, collection ?? "", draft(name), share),
+              () => dialogsModule.saveViewAction(org, collection ?? "", draft(name), share),
               () => announce("saved", name),
             )
           }
           onShare={(view, share) =>
             run(
-              () => shareViewAction(org, view.id, share),
+              () => dialogsModule.shareViewAction(org, view.id, share),
               () => announce("shared", view.name),
             )
           }
           onDelete={async (view) => {
             const deleted = await run(
-              () => deleteViewAction(org, view.id),
+              () => dialogsModule.deleteViewAction(org, view.id),
               () => announce("deleted", view.name),
             );
             if (deleted) {

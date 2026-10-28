@@ -11,7 +11,7 @@
  * (app.filter_operator, ADR 0003), so a saved view stores field `cf.seats`, operator `gte`, value `100`.
  */
 
-import { filterParam, splitFilterParam, type ConditionOperator } from "./filter-param";
+import { filterParam, splitFilterParam, type ConditionOperator } from "./query";
 
 export {
   CONDITION_OPERATORS,
@@ -19,7 +19,7 @@ export {
   isConditionOperator,
   splitFilterParam,
   type ConditionOperator,
-} from "./filter-param";
+} from "./query";
 
 export type ConditionScope = "field" | "custom";
 

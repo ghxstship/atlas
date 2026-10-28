@@ -7,14 +7,15 @@ import { useActionState, useState } from "react";
 import { createProjectAction } from "@/lib/projects/actions";
 import { DeferredDrawer } from "@/components/lazy-ui/deferred";
 import { ActionError } from "./action-error";
-import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 
 import type { ProjectFormOptions } from "./project-fields";
 
 export type { ProjectFormOptions, ProjectFormValues } from "./project-fields";
 
 /** The form's fields load when the drawer first opens, not with the Projects page (A24-009). */
-const DrawerFields = dynamic(() => import("./project-fields").then((m) => m.ProjectFields));
+const DrawerFields = dynamic(() =>
+  import("./create-project-fields").then((m) => m.CreateProjectFields),
+);
 
 /**
  * New project, in a drawer whose body scrolls, so every field and the submit button stay reachable
@@ -58,7 +59,6 @@ export function CreateProjectDialog({
         <input type="hidden" name="org" value={org} />
         <ActionError state={state} />
         <DrawerFields idPrefix="create" options={options} state={state} />
-        <CustomFieldInputs table="app.projects" />
       </form>
     </DeferredDrawer>
   );

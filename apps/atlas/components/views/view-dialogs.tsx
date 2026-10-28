@@ -233,3 +233,13 @@ export function ShareDialog({
     </Dialog>
   );
 }
+
+// The view switcher's writes load with these dialogs, so their server references stay off every
+// collection's first load (A24-009).
+export {
+  deleteViewAction,
+  saveViewAction,
+  setDefaultViewAction,
+  shareViewAction,
+  updateViewAction,
+} from "@/lib/views/actions";

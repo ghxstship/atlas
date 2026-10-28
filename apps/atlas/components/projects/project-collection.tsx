@@ -1,41 +1,44 @@
 "use client";
 
 import {
-  Button,
-  Card,
   Checkbox,
   DataTable,
   EmptyState,
   Input,
   PageHeader,
   PhaseChip,
-  StateChip,
   TemplateCollection,
 } from "@xos/ui";
 import type { ProjectSummary } from "@xos/data/projects";
-import type { PhaseCode, RecordState } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { phaseCode, PROJECT_STATE_ORDER, stateIcon } from "@/lib/projects/format";
+import { phaseCode, stateIcon } from "@/lib/projects/format";
 import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import { CollectionViews } from "@/components/views/collection-views";
 import dynamic from "next/dynamic";
-import { CustomFieldsPeekSection } from "@/components/custom-fields/custom-fields-peek";
 import { useCustomFieldColumns } from "@/components/custom-fields/list";
-import { isConditionParam } from "@/lib/views/filter-param";
+import { isConditionParam } from "@/lib/views/query";
 // Views other than the default table, and the peek, load when shown (A24-009).
-import {
-  Board,
-  Calendar,
-  Drawer,
-  Gallery,
-  PropertyList,
-  RecordList,
-  RecordRow,
-} from "@/components/lazy-ui";
+import { RecordList, RecordRow } from "@/components/lazy-ui";
+
+/** A project's peek, with its custom fields, loads when one opens (A24-009). */
+const ProjectPeek = dynamic(() => import("./project-peek").then((m) => m.ProjectPeek));
+
+/** The portfolio board loads when the Board view is shown (A24-009). */
+const PortfolioBoard = dynamic(() => import("./portfolio-board").then((m) => m.PortfolioBoard));
+
+/** The portfolio gallery loads when the Gallery view is shown (A24-009). */
+const PortfolioGallery = dynamic(() =>
+  import("./portfolio-gallery").then((m) => m.PortfolioGallery),
+);
+
+/** The portfolio calendar loads when the Calendar view is shown (A24-009). */
+const PortfolioCalendar = dynamic(() =>
+  import("./portfolio-calendar").then((m) => m.PortfolioCalendar),
+);
 
 /** The portfolio timeline loads when the Timeline view is shown (A24-009). */
 const PortfolioTimeline = dynamic(() =>
@@ -276,59 +279,9 @@ export function ProjectCollection({
       </RecordList>
     );
   } else if (view === "board") {
-    const columns =
-      board === "phase"
-        ? phases.map((ph) => ({
-            state: "active" as RecordState,
-            label: t("gates.gate", { gate: ph.gate }) + ` · ${phaseName(ph.code)}`,
-            cards: shown
-              .filter((p) => p.phaseCode === ph.code)
-              .map((p) => ({ key: p.key, title: p.name, meta: `${p.key} · ${stateLabel(p)}` })),
-          }))
-        : PROJECT_STATE_ORDER.map((s) => ({
-            state: stateIcon(s),
-            label: t(`states.${s}`),
-            cards: shown
-              .filter((p) => p.projectState === s)
-              .map((p) => ({
-                key: p.key,
-                title: p.name,
-                meta: `${p.key} · ${phaseName(p.phaseCode)}`,
-              })),
-          }));
-    body = (
-      <section aria-label={board === "phase" ? t("list.phaseBoardLabel") : t("list.boardLabel")}>
-        <Board readOnly columns={columns} onOpen={(key) => setPeekKey(key)} />
-      </section>
-    );
+    body = <PortfolioBoard projects={shown} phases={phases} mode={board} onOpen={setPeekKey} />;
   } else if (view === "gallery") {
-    body = (
-      <Gallery label={t("list.galleryLabel")}>
-        {shown.map((p) => (
-          <Card
-            key={p.id}
-            interactive
-            title={`${p.key} ${p.name}`}
-            meta={<StateChip state={stateIcon(p.projectState)} label={stateLabel(p)} />}
-            footer={
-              <Button size="sm" variant="ghost" onClick={() => setPeekKey(p.key)}>
-                {t("list.open")}
-              </Button>
-            }
-          >
-            <div className="flex flex-col gap-6 text-text-13 text-text-secondary">
-              <PhaseChip
-                gate={gateOf(p.phaseCode)}
-                code={phaseCode(p.phaseCode)}
-                name={phaseName(p.phaseCode)}
-              />
-              <span>{p.venueName ?? p.jurisdictionId ?? t("values.unresolved")}</span>
-              <span>{dates(p)}</span>
-            </div>
-          </Card>
-        ))}
-      </Gallery>
-    );
+    body = <PortfolioGallery projects={shown} gateOf={gateOf} dates={dates} onOpen={setPeekKey} />;
   } else if (view === "timeline") {
     body = (
       <PortfolioTimeline
@@ -340,36 +293,14 @@ export function ProjectCollection({
       />
     );
   } else {
-    const byLabel = new Map<string, string>();
-    const events = shown.flatMap((p) => {
-      const out: { date: string; label: string; state: RecordState }[] = [];
-      const add = (iso: string | null, label: string) => {
-        if (iso?.startsWith(month.slice(0, 7))) {
-          byLabel.set(label, p.key);
-          out.push({ date: iso, label, state: stateIcon(p.projectState) });
-        }
-      };
-      add(p.startsOn, t("list.starts", { key: p.key }));
-      add(p.endsOn, t("list.ends", { key: p.key }));
-      return out;
-    });
     body = (
-      <div className="flex flex-col gap-8">
-        <div className="flex gap-8">
-          <Button onClick={() => setParam("month", shiftMonth(month, -1))}>
-            {t("list.previousMonth")}
-          </Button>
-          <Button onClick={() => setParam("month", shiftMonth(month, 1))}>
-            {t("list.nextMonth")}
-          </Button>
-        </div>
-        <Calendar
-          month={month}
-          today={today}
-          events={events}
-          onEventSelect={(e) => setPeekKey(byLabel.get(e.label) ?? null)}
-        />
-      </div>
+      <PortfolioCalendar
+        projects={shown}
+        month={month}
+        today={today}
+        onMonth={(next) => setParam("month", next)}
+        onOpen={setPeekKey}
+      />
     );
   }
 
@@ -382,45 +313,13 @@ export function ProjectCollection({
       peek={collectionPeek(
         peekKey,
         peek ? (
-          <Drawer
-            open
-            onOpenChange={(open) => (open ? undefined : setPeekKey(null))}
-            title={t("peek.title", { key: peek.key, name: peek.name })}
-            footer={
-              <>
-                <Button onClick={() => router.push(projectHref(peek.key, "gates"))}>
-                  {t("peek.gates")}
-                </Button>
-                <Button variant="primary" onClick={() => router.push(projectHref(peek.key))}>
-                  {t("peek.openProject")}
-                </Button>
-              </>
-            }
-          >
-            <div className="flex flex-wrap gap-6">
-              <StateChip state={stateIcon(peek.projectState)} label={stateLabel(peek)} />
-              <PhaseChip
-                gate={gateOf(peek.phaseCode)}
-                code={phaseCode(peek.phaseCode) as PhaseCode}
-                name={phaseName(peek.phaseCode)}
-              />
-            </div>
-            <PropertyList
-              items={[
-                { label: t("fields.production"), value: t(`states.${peek.productionState}`) },
-                {
-                  label: t("fields.jurisdiction"),
-                  value: peek.jurisdictionId ?? t("values.unresolved"),
-                },
-                { label: t("fields.venue"), value: peek.venueName ?? t("values.none") },
-                { label: t("fields.region"), value: peek.regionCode ?? t("values.none") },
-                { label: t("fields.currency"), value: peek.currency },
-                { label: t("fields.timeZone"), value: peek.timeZone },
-                { label: t("fields.dates"), value: dates(peek) },
-              ]}
-            />
-            <CustomFieldsPeekSection table="app.projects" id={peek.id} />
-          </Drawer>
+          <ProjectPeek
+            org={org}
+            peek={peek}
+            gate={gateOf(peek.phaseCode)}
+            dates={dates(peek)}
+            onClose={() => setPeekKey(null)}
+          />
         ) : undefined,
       )}
     >
@@ -432,11 +331,4 @@ export function ProjectCollection({
       ) : null}
     </TemplateCollection>
   );
-}
-
-/** `2026-11-01` moved by whole months, as the first of that month. */
-function shiftMonth(month: string, by: number): string {
-  const [y, m] = month.split("-").map(Number) as [number, number];
-  const d = new Date(Date.UTC(y, m - 1 + by, 1));
-  return d.toISOString().slice(0, 10);
 }
