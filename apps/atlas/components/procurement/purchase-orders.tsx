@@ -25,6 +25,8 @@ import {
   transitionPoAction,
 } from "@/app/[org]/procurement/actions";
 import { CollabPanels } from "@/components/collection-kit/collab";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
+import { customFieldList } from "@/lib/custom-fields/server";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import { StateHistory } from "@/components/collection-kit/history";
@@ -78,7 +80,7 @@ export async function PurchaseOrdersSection({
 }) {
   const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
-  const [t, format, all, projects, vendors, rules, currencies] = await Promise.all([
+  const [t, format, all, projects, vendors, rules, currencies, custom] = await Promise.all([
     getCopy("procurement"),
     getFormatter(),
     listPurchaseOrders(db, ctx.org.id),
@@ -86,6 +88,7 @@ export async function PurchaseOrdersSection({
     listVendors(db, ctx.org.id),
     listTransitionRules<PoState>(db, "purchase_order"),
     listCurrencies(db),
+    customFieldList(ctx, "app.purchase_orders", search),
   ]);
   const title = t("orders.title");
   if (!all.ok || !projects.ok || !vendors.ok || !rules.ok || !currencies.ok) {
@@ -164,7 +167,8 @@ export async function PurchaseOrdersSection({
     );
   }
 
-  const rows: KitRow[] = orders.map((o) => ({
+  const listed = orders.filter((o) => custom.keep(o.id));
+  const rows: KitRow[] = listed.map((o) => ({
     id: o.id,
     key: o.key,
     title: o.vendorName ?? t("fields.unnamedVendor"),
@@ -192,6 +196,7 @@ export async function PurchaseOrdersSection({
           refusals={REFUSALS}
           submitLabel={t("orders.create")}
           successHref={withQuery(path, state, { peek: "{id}", full: "1" })}
+          customFields="app.purchase_orders"
           fields={[
             {
               kind: "select",
@@ -234,6 +239,7 @@ export async function PurchaseOrdersSection({
         properties={properties(selected)}
         actions={controls(selected)}
       >
+        <CustomFieldsPanel org={ctx.org.slug} table="app.purchase_orders" id={selected.id} />
         <PresenceFor table="purchase_orders" id={selected.id} />
       </PeekDrawer>
     );
@@ -253,6 +259,7 @@ export async function PurchaseOrdersSection({
         { key: "unpriced", label: t("orders.unpricedLines"), type: "number" },
       ]}
       rows={rows}
+      customFields={await custom.view(rows.map((r) => r.id))}
       board={STATES.map((s) => ({ value: s, state: recordStateOf(s), label: stateLabel(s) }))}
       actions={
         canWrite ? (
@@ -539,6 +546,7 @@ async function PurchaseOrderRecord({
       </KitSection>
 
       <StateHistory ctx={ctx} ledger="purchase_order" id={order.id} stateLabel={stateLabel} />
+      <CustomFieldsPanel org={ctx.org.slug} table="app.purchase_orders" id={order.id} />
       <CollabPanels ctx={ctx} table="app.purchase_orders" id={order.id} />
     </RecordPage>
   );
