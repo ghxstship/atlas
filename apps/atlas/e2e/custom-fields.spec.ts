@@ -1,4 +1,5 @@
-import { expect as baseExpect, test, type Page } from "./engine-test";
+import type { Locator } from "@playwright/test";
+import { expect as baseExpect, settle, test, type Page } from "./engine-test";
 import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
 
 /**
@@ -13,6 +14,24 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
 test.use({ reducedMotion: "reduce" });
 // Saves re-render the org's pages (revalidatePath on the org layout) before the change shows (A71).
 const expect = baseExpect.configure({ timeout: 20_000 });
+
+/**
+ * Clicks a control until what it opens shows. The Add filter control and the Saved views menu load after the
+ * list, so a click that lands before they hydrate is lost (A71).
+ */
+async function openWith(page: Page, trigger: Locator, opened: Locator) {
+  await settle(page);
+  await expect(async () => {
+    await trigger.click();
+    await expect(opened).toBeVisible({ timeout: 5_000 });
+  }).toPass();
+}
+
+async function openFilterEditor(page: Page) {
+  const editor = page.getByRole("dialog", { name: "Add a filter" });
+  await openWith(page, page.getByRole("button", { name: "Add filter" }), editor);
+  return editor;
+}
 
 async function newOwnerOrg(page: Page): Promise<string> {
   const id = uniqueId();
@@ -126,8 +145,7 @@ test("a custom field is defined in Settings, filled on a record, filtered on and
   await page.goto(`/${slug}/work/all-records?view=table`);
   await expect(page.getByRole("columnheader", { name: "Dock door" })).toBeVisible();
   await expect(page.getByText("Stage the south dock")).toBeVisible();
-  await page.getByRole("button", { name: "Add filter" }).click();
-  const editor = page.getByRole("dialog", { name: "Add a filter" });
+  const editor = await openFilterEditor(page);
   await editor.getByLabel("Field").selectOption({ label: "Dock door" });
   await editor.getByLabel("Condition").selectOption({ label: "is" });
   await editor.getByLabel("Value").selectOption({ label: "North" });
@@ -148,8 +166,9 @@ test("a custom field is defined in Settings, filled on a record, filtered on and
   // Reopening the view brings the filter back.
   await page.goto(`/${slug}/work/all-records`);
   await expect(page.getByText("Stage the south dock")).toBeVisible();
-  await page.getByRole("button", { name: /Saved views/ }).click();
-  await page.getByRole("menuitem", { name: "North dock" }).click();
+  const saved = page.getByRole("menuitem", { name: "North dock" });
+  await openWith(page, page.getByRole("button", { name: /Saved views/ }), saved);
+  await saved.click();
   await page.waitForURL(/cf\.dock_door=north/);
   await expect(page.getByText("Stage the north dock")).toBeVisible();
   await expect(page.getByText("Stage the south dock")).toHaveCount(0);
@@ -186,8 +205,7 @@ test("a vendor's custom field is filled on the create form and filtered with con
 
   await page.goto(`/${slug}/vendors/directory?view=table`);
   await expect(page.getByRole("columnheader", { name: "Union local" })).toBeVisible();
-  await page.getByRole("button", { name: "Add filter" }).click();
-  const editor = page.getByRole("dialog", { name: "Add a filter" });
+  const editor = await openFilterEditor(page);
   await editor.getByLabel("Field").selectOption({ label: "Union local" });
   await editor.getByLabel("Condition").selectOption({ label: "contains" });
   await editor.getByLabel("Value").fill("iatse");

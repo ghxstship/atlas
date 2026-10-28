@@ -45,8 +45,13 @@ Orgs could define custom fields on nine built-in tables in Settings (A86, `app.c
 
 ### 6. Filterable fields are table columns
 
-- A loader hands the collection its filterable fields and their values on the rows shown (`customFieldList(...).view(ids)`). Tables append them as columns through `useCustomFieldColumns`, or `customFieldColumns` in a server-rendered table (incidents). A page wraps its collection in `CustomFieldList`, or passes the view to a collection component that takes it.
+- A loader hands the collection its filterable fields and their values on the rows shown (`customFieldList(...).view(ids)`). The server formats each value as display text in the viewer's locale, so a table carries no formatting code. Tables append them as columns through `useCustomFieldColumns`, or `customFieldColumns` in a server-rendered table (incidents). A page wraps its collection in `CustomFieldList`, or passes the view to a collection component that takes it.
 - The Add filter control appears only when a page declares fields or its table has filterable custom fields. An org without custom fields sees the pages it saw before.
+
+### 7. What custom fields add loads on demand
+
+- List pages sit close to the 200 KB route budget (`/projects` was 32 bytes under), so nothing custom fields add rides on a list's first load when it can wait. The Add filter control loads on a page that has something to filter by (`next/dynamic`), and its condition editor when first opened. The custom fields section of a peek loads with the peek. New project's custom field inputs load with the drawer's fields.
+- To make room on `/projects` without raising its budget, the Projects peek and its Board, Gallery and Calendar views load when shown, as the Timeline already did (A24-009), and the saved view switcher's writes (save, update, share, set default, delete) load with its dialogs. The round trip of a saved view, which every collection loads, reads only the operator spelling in `lib/views/query.ts`; the rest of the condition grammar (`conditions.ts`) loads with the filter control and the loaders.
 
 ## Consequences
 
