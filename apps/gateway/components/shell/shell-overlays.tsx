@@ -3,9 +3,9 @@
 import { Button, CommandMenu, Dialog, Drawer } from "@xos/ui";
 import { isBetaLocale } from "@xos/i18n/locales";
 import { useTranslations } from "next-intl";
-import { setActing, setLocale, setTheme } from "@/lib/shell/actions";
+import { setActing, setLocale, setRoleLens, setTheme } from "@/lib/shell/actions";
 import type { ThemePreference } from "@/lib/theme";
-import type { FrameAvatarEntry, FrameLink } from "./gateway-frame";
+import type { FrameAvatarEntry, FrameLink, GatewayLensOptions } from "./gateway-frame";
 
 type Translate = (key: string, values?: Record<string, string>) => string;
 
@@ -28,6 +28,7 @@ export interface ShellOverlaysProps {
   }[];
   readonly actingId: string | null;
   readonly orgs: readonly { readonly id: string; readonly name: string }[];
+  readonly lens: GatewayLensOptions;
   readonly theme: ThemePreference;
   readonly locale: string;
   readonly locales: readonly string[];
@@ -209,6 +210,39 @@ export function ShellOverlays(props: ShellOverlaysProps) {
             </li>
           ))}
         </ul>
+        {props.lens.roles.length > 1 ? (
+          // The role lens (A128): narrows Home, Work and the navigation to one role type for this session.
+          <fieldset className="m-0 mt-12 flex flex-col gap-4 border-0 p-0">
+            <legend className="mb-4 p-0 text-label-13 font-medium text-text-primary">
+              {t("gateway.shell.roleLens.title")}
+            </legend>
+            <p className="m-0 text-text-12 text-text-secondary">
+              {t("gateway.shell.roleLens.hint")}
+            </p>
+            {[{ id: "all", label: t("gateway.shell.roleLens.all") }, ...props.lens.roles].map(
+              (r) => {
+                const active = (props.lens.current ?? "all") === r.id;
+                return (
+                  <Button
+                    key={r.id}
+                    variant="ghost"
+                    {...(active ? { icon: "Check" as const } : {})}
+                    aria-pressed={active}
+                    data-testid={`role-lens-${r.id}`}
+                    className="w-full justify-start"
+                    onClick={async () => {
+                      await setRoleLens(r.id);
+                      props.setSwitchOpen(false);
+                      refresh();
+                    }}
+                  >
+                    {r.label}
+                  </Button>
+                );
+              },
+            )}
+          </fieldset>
+        ) : null}
       </Dialog>
     </>
   );

@@ -1600,6 +1600,11 @@
       "body": "Elige la organización en la que quieres enfocarte. Todas las organizaciones con las que trabajas siguen en Trabajo y Mensajes.",
       "all": "Todas las organizaciones",
       "empty": "Aún no trabajas con ninguna organización. Explora oportunidades para empezar."
+    },
+    "roleLens": {
+      "title": "Rol",
+      "hint": "Limita Inicio, Trabajo y la navegación a uno de tus roles. Tu acceso no cambia.",
+      "all": "Todos los roles"
     }
   },
   "system": {

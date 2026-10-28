@@ -1,3 +1,4 @@
+import { inboxItemInLens } from "@xos/data/role-lens";
 import type { Row } from "@xos/sync";
 import * as Linking from "expo-linking";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -25,13 +26,14 @@ import { Button, Card, EmptyState, ListRow, Screen, Text } from "../../src/ui";
  * from what it already holds on the device: shifts waiting for acceptance, open incidents for dispatchers,
  * conflicts in the offline queue. The person's notifications join from the server (A101): approvals,
  * mentions and assignments under Needs You, the rest under For Your Information. A notification opens the
- * record it is about, as its push does, or the Gateway page it names when Compass has no screen for it.
+ * record it is about, as its push does, or the Gateway page it names when Compass has no screen for it. Under a
+ * role lens (A128) a member sees what is addressed to them and what the lens role's capabilities brought them.
  */
 export default function InboxScreen(): ReactElement {
   const { t } = useTranslation();
   const roleTitle = useRoleTitle();
   const router = useRouter();
-  const { config, resolved, projectId, status } = useCompass();
+  const { config, resolved, projectId, status, lens } = useCompass();
   const canDispatch = useAllowed("incidents.dispatch");
   const identity = resolved?.identity;
   const permission = useNotificationPermission();
@@ -127,8 +129,17 @@ export default function InboxScreen(): ReactElement {
       />
     );
   };
-  const needsNotifications = notifications.rows.filter((n) => n.section === "Needs You");
-  const fyiNotifications = notifications.rows.filter((n) => n.section !== "Needs You");
+  // The lens narrows the active org's notifications; another org's stay as they are.
+  const lensed = notifications.rows.filter(
+    (n) =>
+      n.orgId !== resolved?.orgId ||
+      inboxItemInLens(
+        { kind: n.kind, subjectTable: n.subjectTable, documentType: n.documentType ?? null },
+        lens.inbox,
+      ),
+  );
+  const needsNotifications = lensed.filter((n) => n.section === "Needs You");
+  const fyiNotifications = lensed.filter((n) => n.section !== "Needs You");
   return (
     <Screen testID="inbox" title={t("compass.inbox.title")}>
       <ProjectPicker />

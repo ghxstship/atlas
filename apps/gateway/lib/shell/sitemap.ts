@@ -21,14 +21,15 @@ export function canSee(id: string, ctx: NavContext): boolean {
 /**
  * Every session page starts here: it needs a signed-in person and a node their standing may see,
  * else sign-in or 404 (the proxy already decided; pages repeat it so a matcher change never opens
- * a hidden page).
+ * a hidden page). The guard reads the person's own navigation, not the role lens's, as the proxy does: a lens
+ * narrows the navigation but leaves a link to a page the person may open working (A128).
  */
 export async function requireNode(
   id: string,
   params: Readonly<Record<string, string>> = {},
 ): Promise<GatewayContext> {
   const ctx = await requireContext(nodeHref(id, params));
-  if (!canSee(id, ctx.nav)) notFound();
+  if (!canSee(id, ctx.ownNav)) notFound();
   return ctx;
 }
 

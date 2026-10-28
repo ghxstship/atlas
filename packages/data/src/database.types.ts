@@ -63544,6 +63544,15 @@ export type Database = {
       revoke_supplier_diversity_share: { Args: { p_share_id: string }; Returns: undefined };
       revoke_web_push: { Args: { p_endpoint: string }; Returns: number };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
+      role_lens_capabilities: {
+        Args: { p_org_id: string; p_role_id: string };
+        Returns: {
+          capability_code: string;
+          lens_reach: Database["app"]["Enums"]["capability_reach"];
+          role_reach: Database["app"]["Enums"]["capability_reach"];
+          viewer_reach: Database["app"]["Enums"]["capability_reach"];
+        }[];
+      };
       rotate_calendar_feed: {
         Args: { p_calendar_feed_id: string };
         Returns: {

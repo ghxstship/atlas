@@ -13,6 +13,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Audience, DownloadScope } from "@xos/sync";
 import type { CompassIdentity, EngagementState, EngagementSummary } from "../domain/access";
+import type { LensRole } from "../domain/roleLens";
 
 /**
  * Field Supervisor and above hold one of these (Section 4.5.7 supervisor mode). The Field role holds none
@@ -93,6 +94,8 @@ export interface OrgContext {
   readonly identity: CompassIdentity;
   readonly scope: DownloadScope;
   readonly projects: readonly ProjectRef[];
+  /** A member's org roles with their capabilities, for the role lens (A128); absent when they could not be read. */
+  readonly roles?: readonly LensRole[];
 }
 
 /**
@@ -207,6 +210,19 @@ async function memberContexts(
         .is("deleted_at", null)
     : { data: [], error: null };
   if (caps.error) throw new IdentityError("capabilities", caps.error.message);
+  // Role codes and names for the role lens (A128); a failed read only leaves the lens out.
+  const roleInfo = roleIds.length
+    ? await client.from("roles").select("id, code, name").in("id", roleIds)
+    : { data: [], error: null };
+  const roleById = new Map(
+    (
+      (roleInfo.error ? [] : (roleInfo.data ?? [])) as {
+        id: string;
+        code: string;
+        name: string | null;
+      }[]
+    ).map((r) => [String(r.id), r] as const),
+  );
   // A project role adds capabilities on its project (SIM-007: the Field Supervisor dispatches).
   const projectRoleCaps = await client.rpc("my_project_role_capabilities");
   if (projectRoleCaps.error) throw new IdentityError("capabilities", projectRoleCaps.error.message);
@@ -259,10 +275,26 @@ async function memberContexts(
       membershipId: membership.id,
       engagements: [],
     };
+    const roles: LensRole[] = roleRows
+      .filter((r) => String(r.membership_id) === membership.id)
+      .flatMap((r) => {
+        const role = roleById.get(String(r.role_id));
+        return role
+          ? [
+              {
+                id: String(role.id),
+                code: String(role.code),
+                name: role.name ?? null,
+                capabilities: capsByRole.get(String(r.role_id)) ?? [],
+              },
+            ]
+          : [];
+      });
     contexts.push({
       orgId: membership.org_id,
       orgName: orgName.get(membership.org_id) ?? "",
       kind: "member",
+      roles,
       identity,
       scope: scopeFor(
         identity,

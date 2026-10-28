@@ -244,7 +244,7 @@ async function loadInboxNotifications(
   const items = await client
     .from("inbox_items")
     .select(
-      "id, org_id, created_at, kind, subject_table, subject_id, message_args, read_at, section",
+      "id, org_id, created_at, kind, subject_table, subject_id, message_args, read_at, section, document_type",
     )
     .order("created_at", { ascending: false })
     .order("id", { ascending: false })
@@ -271,6 +271,8 @@ async function loadInboxNotifications(
     subjectTable: text(r["subject_table"]),
     subjectId: text(r["subject_id"]),
     orgSlug: slugs.get(String(r["org_id"])) ?? null,
+    orgId: text(r["org_id"]),
+    documentType: text(r["document_type"]),
     lookedUpRecordKey: null as string | null,
     section: String(r["section"]),
   }));

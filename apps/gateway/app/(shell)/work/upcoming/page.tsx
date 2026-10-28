@@ -14,6 +14,7 @@ import { CalendarDownload } from "@/components/page/up-next-actions";
 import { DestinationTabs } from "@/components/page/work-tabs";
 import { Calendar, EmptyStateLink, Icon } from "@/components/ui";
 import { formatDate, formatScheduleTime } from "@/lib/format";
+import { lensApplications, lensEngagements } from "@/lib/shell/role-lens";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { getScheduleView, personToday } from "@/lib/time-zone";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
@@ -62,7 +63,8 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
       </>
     );
   }
-  const current = engagements.data.filter(isCurrentEngagement);
+  // Under a role lens (A128) only that role type's engagements and applications are upcoming.
+  const current = lensEngagements(ctx.lens, engagements.data).filter(isCurrentEngagement);
   const projectIds = [...new Set(current.map((e) => e.projectId))];
   const engagementIds = current.map((e) => e.id);
   const [shifts, records, docks, lodging, applications] = await Promise.all([
@@ -84,7 +86,7 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
     docks: docks.ok ? docks.data : [],
     lodging: lodging.ok ? lodging.data : [],
     interviews: applications.ok
-      ? applications.data.flatMap((a) =>
+      ? lensApplications(ctx.lens, applications.data).flatMap((a) =>
           a.interviews.map((i) => ({
             id: i.id,
             title: a.opportunity?.title ?? "",
