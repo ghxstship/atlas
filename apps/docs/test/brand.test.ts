@@ -4,17 +4,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   BRAND_COOKIE,
   BRAND_SCRIPT,
-  brandAssetUrl,
   decodeBrand,
-  docsAccent,
   encodeBrand,
-  fetchDocsBrand,
   parseTenantHosts,
   readCookie,
   resolveTenant,
   scopedPath,
   type DocsBrand,
 } from "../lib/brand.ts";
+import { brandAssetUrl, docsAccent, fetchDocsBrand } from "../lib/brand-lookup.ts";
 import { proxy } from "../proxy.ts";
 
 const HOSTS = parseTenantHosts(
@@ -131,19 +129,19 @@ describe("fetchDocsBrand", () => {
 
 describe("the brand cookie", () => {
   it("round-trips a brand and its link base", () => {
-    expect(decodeBrand(encodeBrand(brand, "/o/northwind-live"))).toEqual({
+    expect(decodeBrand(encodeURIComponent(encodeBrand(brand, "/o/northwind-live")))).toEqual({
       ...brand,
       base: "/o/northwind-live",
     });
-    expect(decodeBrand(encodeBrand(brand, ""))?.base).toBe("");
+    expect(decodeBrand(encodeURIComponent(encodeBrand(brand, "")))?.base).toBe("");
   });
 
   it("refuses anything malformed, and drops unsafe logo URLs and accents", () => {
     expect(decodeBrand(null)).toBeNull();
     expect(decodeBrand("%E0%A4%A")).toBeNull();
     expect(decodeBrand(encodeURIComponent("[1]"))).toBeNull();
-    expect(decodeBrand(encodeBrand({ ...brand, name: " " }, ""))).toBeNull();
-    expect(decodeBrand(encodeBrand(brand, "https://evil.test"))).toBeNull();
+    expect(decodeBrand(encodeURIComponent(encodeBrand({ ...brand, name: " " }, "")))).toBeNull();
+    expect(decodeBrand(encodeURIComponent(encodeBrand(brand, "https://evil.test")))).toBeNull();
     const unsafe = decodeBrand(
       encodeURIComponent(
         JSON.stringify({
@@ -172,7 +170,7 @@ describe("the brand cookie", () => {
     const style = new Map<string, string>();
     const dataset: Record<string, string> = {};
     const document = {
-      cookie: `${BRAND_COOKIE}=${encodeBrand(brand, "/o/northwind-live")}`,
+      cookie: `${BRAND_COOKIE}=${encodeURIComponent(encodeBrand(brand, "/o/northwind-live"))}`,
       documentElement: {
         dataset,
         style: { setProperty: (k: string, v: string) => style.set(k, v) },
@@ -247,7 +245,9 @@ describe("proxy", () => {
     const cookie = response.cookies.get(BRAND_COOKIE);
     expect(cookie?.path).toBe("/o/northwind-live");
     expect(cookie?.secure).toBe(true);
-    expect(decodeBrand(cookie?.value)).toEqual({
+    // Next encodes the value in Set-Cookie; the browser hands the page the encoded form.
+    expect(cookie?.value.startsWith("{")).toBe(true);
+    expect(decodeBrand(encodeURIComponent(cookie?.value ?? ""))).toEqual({
       name: "Northwind",
       logoLightUrl: `${SUPABASE}/storage/v1/object/public/org-brand/org-a/light.png`,
       logoDarkUrl: null,

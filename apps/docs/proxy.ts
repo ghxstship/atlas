@@ -3,12 +3,12 @@ import {
   BRAND_COOKIE,
   BRAND_MAX_AGE,
   encodeBrand,
-  fetchDocsBrand,
   parseTenantHosts,
   resolveTenant,
   type DocsBrand,
   type DocsTenant,
 } from "@/lib/brand.ts";
+import { fetchDocsBrand } from "@/lib/brand-lookup.ts";
 import { LOCALES, negotiate } from "@/lib/i18n.ts";
 
 function hasLocale(pathname: string): boolean {

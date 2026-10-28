@@ -46,10 +46,7 @@ export function DocsBrandMark({
   const brand = useSyncExternalStore(subscribe, snapshot, () => null);
 
   useEffect(() => {
-    if (brand === null) return;
-    if (document.title.includes(platformName))
-      document.title = document.title.replace(platformName, brand.name);
-    if (!brand.base) return;
+    if (brand === null || !brand.base) return;
     document
       .querySelectorAll<HTMLAnchorElement>("a[href]")
       .forEach((a) => scopeAnchor(a, brand.base));
@@ -64,7 +61,7 @@ export function DocsBrandMark({
       document.removeEventListener("click", onActivate, true);
       document.removeEventListener("auxclick", onActivate, true);
     };
-  }, [brand, platformName]);
+  }, [brand]);
 
   const className =
     "flex items-center gap-8 font-semibold text-text-14 text-text-primary no-underline";
