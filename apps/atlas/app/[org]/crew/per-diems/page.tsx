@@ -1,4 +1,4 @@
-import { getProjectCurrency, listPerDiems, type PerDiem } from "@xos/data/crew";
+import { canAddPerDiems, getProjectCurrency, listPerDiems, type PerDiem } from "@xos/data/crew";
 import { listCurrencies } from "@xos/data/hospitality";
 import Link from "next/link";
 import type { Route } from "next";
@@ -49,9 +49,14 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const personFilter = search["person"] ?? "";
   const all = perDiemsResult.data;
   const perDiems = personFilter ? all.filter((d) => d.personId === personFilter) : all;
-  // crew.time_entry.write is held org-wide by the roles that have it; the database checks the project.
-  const canWrite = crew.canAll("crew.time_entry.write");
-  const canAdd = project !== null && canWrite;
+  // Add and Remove show by crew.time_entry.write on the record's project (app.can_add_per_diems), the
+  // check add_per_diems and the write policy apply. A project role may grant it, so org reach is not enough.
+  const canWriteOn = async (projectId: string) => {
+    const result = await canAddPerDiems(db, projectId);
+    if (!result.ok) throw new Error(`Cannot check per diem access: ${result.error.kind}`);
+    return result.data;
+  };
+  const canAdd = project !== null && (await canWriteOn(project.id));
   const name = (d: PerDiem) => d.personName ?? t("crew.common.unnamed");
   const day = (d: PerDiem) =>
     format.dateTime(new Date(`${d.day}T12:00:00Z`), {
@@ -68,6 +73,10 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   let peek = null;
   const peeked = search["peek"] ? all.find((d) => d.id === search["peek"]) : undefined;
   if (peeked) {
+    const canRemove =
+      project !== null && peeked.projectId === project.id
+        ? canAdd
+        : await canWriteOn(peeked.projectId);
     const record = (
       <CrewRecord
         crew={crew}
@@ -79,7 +88,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
         stateLabel={t("crew.perDiems.kind")}
         backHref={withParams(base, search, { peek: null, full: null })}
         actions={
-          canWrite ? (
+          canRemove ? (
             <ConfirmButton
               label={t("crew.perDiems.remove")}
               title={t("crew.perDiems.confirmRemove")}
