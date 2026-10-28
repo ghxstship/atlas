@@ -61,5 +61,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0057](0057-encrypted-bank-and-certificate-numbers.md)              | Encrypted Bank and Certificate Numbers                                           | Accepted |
 | [0060](0060-collection-exports-and-the-export-worker.md)            | Exports of Every Collection and the Export Worker                                | Proposed |
 | [0064](0064-account-security-and-import-notices.md)                 | Account Security and Import Notices, and Only the Channels a Category Reaches    | Proposed |
+| [0083](0083-live-lists-dispatch-board-and-presence.md)              | Live Lists, a Realtime Dispatch Board, and Presence on Records                   | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.
