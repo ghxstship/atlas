@@ -97,8 +97,10 @@ select is(pg_temp.n('kai', format('select 1 from api_external.engagements where 
 select is(pg_temp.areas('victor', 'eng_co'), 'documents,engagement,money,onboarding,operational,roster', 'the Owner keeps every area');
 select is(pg_temp.areas('ada', 'eng_co'), 'documents,engagement,money,onboarding,operational,roster', 'and the Admin');
 select is(pg_temp.areas('fiona', 'eng_co'), 'documents,engagement,money', 'Account Finance keeps engagement, documents and money');
-select is(pg_temp.areas('sam', 'eng_vendor_a'), 'documents,engagement,onboarding,roster',
-  'Sam, the Account Member the vendor engagement names, reaches it as its person');
+select is(pg_temp.areas('sam', 'eng_vendor_a'), 'documents,engagement,onboarding',
+  'Sam, the Account Member the vendor engagement names, reaches it as its person, all but the roster the account manages');
+select is(pg_temp.areas('ivy', 'eng_ivy_a'), 'documents,engagement,onboarding,roster',
+  'the person of an engagement no account supplies reaches its roster area too');
 
 -- Member and Advancing Lead ------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('ada');

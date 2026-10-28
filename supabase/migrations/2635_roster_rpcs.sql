@@ -5,8 +5,10 @@
 --
 -- Helpers, each with one owner (ADR 0101 decision 4):
 --   * private.can_advance_engagement(engagement): the engagement is live and its roster area is open to the caller as
---     the engaged person, an Account Owner or Admin of the supplying account, a live Advancing Lead or an Advance
---     representative (2632). private.can_manage_roster adds that the engagement is rosterable. R5 and R8 use both.
+--     the engaged person of an Artist engagement or of one no account supplies, an Account Owner or Admin of the
+--     supplying account, a live Advancing Lead or an Advance representative (2632). The worker a company sends is on
+--     its roster and manages nothing. private.can_manage_roster adds that the engagement is rosterable. R5 and R8 use
+--     both.
 --   * private.roster_manager_ids(engagement): the people who manage it, for notifications.
 --   * private.roster_talent_eligible(engagement, person): a confirmed, active member of the supplying account, or an
 --     artist the caller represents with the Advance scope (the talent pool of ADR 0101 decision 6).
@@ -52,7 +54,7 @@ as $$
   select 'roster' in (select private.engagement_scope(p_engagement_id));
 $$;
 
-comment on function private.can_advance_engagement(uuid) is 'ADR 0101 (R4): true when the engagement is live and its roster area is open to the signed-in person as the engaged person, an Account Owner or Admin of the supplying account, a live Advancing Lead assigned to it or the artist''s Advance representative. R5 and R8 use it.';
+comment on function private.can_advance_engagement(uuid) is 'ADR 0101 (R4): true when the engagement is live and its roster area is open to the signed-in person as the engaged person of an Artist engagement or of one no account supplies, an Account Owner or Admin of the supplying account, a live Advancing Lead assigned to it or the artist''s Advance representative; never as the worker a company sends (2632). R5 and R8 use it.';
 
 create or replace function private.can_manage_roster(p_engagement_id uuid)
 returns boolean
@@ -419,7 +421,8 @@ begin
     raise exception using errcode = '42501', message = 'roster entry not found';
   end if;
   if v_entry.is_self and v_engagement.person_id = v_me then
-    if not private.can_advance_engagement(v_engagement.id) then
+    -- The engaged person keeps their own entry current, whether or not they manage the roster.
+    if not ('roster' = any (private.engagement_state_areas(v_engagement.engagement_state, null))) then
       perform private.refuse('roster_closed', 'This engagement is complete or canceled, so its roster is closed.');
     end if;
   else

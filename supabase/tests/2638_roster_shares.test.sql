@@ -3,7 +3,7 @@
 -- share on one engagement. The company reads every category of a person who accepted its roster entry, whatever they
 -- shared with the producing org, with the passport number masked and allergies NULL with allergies_on_file; before the
 -- person accepts, and after a decline or a withdrawal, it gets 42501, and the account consent follows. A Member-duty
--- assignee is refused. Producing-org readers read the shared categories their capabilities cover. Every read writes the
+-- assignee and the worker the engagement names are refused. Producing-org readers read the shared categories their capabilities cover. Every read writes the
 -- access log and the audit ledger, without dedupe. shared_work_details answers for the self entry and
 -- reveal_roster_passport_number needs step-up and a reason. An Advancing Lead is an engagement principal (R1's views).
 begin;
@@ -119,6 +119,8 @@ select throws_ok($$select pg_temp.read('mo', 'e_kai')$$, '42501', null, 'an Acco
 select throws_ok($$select pg_temp.read('fiona', 'e_kai')$$, '42501', null, 'Account Finance is refused');
 select throws_ok($$select pg_temp.read('kai', 'e_kai')$$, '42501', null, 'the person reads their own details elsewhere');
 select throws_ok($$select pg_temp.read('xavier', 'e_kai')$$, '42501', null, 'another tenant is refused');
+select throws_ok($$select pg_temp.read('sam', 'e_kai')$$, '42501', null,
+  'the worker the engagement names is refused: they are on the company''s roster, not its manager');
 
 -- Producing-org readers ---------------------------------------------------------------------------------------------------------
 select is(pg_temp.read('bob', 'e_kai') ->> 'reader', 'org', 'a member of the producing org reads as the org');

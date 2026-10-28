@@ -2,7 +2,9 @@
 -- R4 Crew roster core (RRR-182, ADR 0101 decisions 1 and 3; owner decision 6 of 2026-10-28). Each function is recreated
 -- from its only definition, in 0710_external_identity.sql. The Section 8.7 time box of 0710 changes as follows:
 --   * a sixth area, roster, opens at Onboarding, Blocked, Active and Closing and closes at Complete and Canceled;
---   * the engaged person and an Account Owner or Admin reach every area, roster included; Account Finance keeps
+--   * an Account Owner or Admin reaches every area, roster included; the engaged person reaches every area too, but
+--     the roster only on an Artist engagement or one no account supplies: on a company engagement the worker the
+--     account sends is on its roster, and the account manages it (owner decisions 4 and 6); Account Finance keeps
 --     engagement, documents and money; the Account Member role alone opens nothing;
 --   * a live assignment (2631) of the caller on the engagement, through their active, confirmed membership in the
 --     account that supplies it, opens engagement, operational, onboarding and roster for an Advancing Lead, and
@@ -57,7 +59,11 @@ begin
     return v_areas;
   end if;
   if p_person_id = v_me then
-    return array['engagement', 'documents', 'onboarding', 'operational', 'money', 'roster'];
+    if p_counterparty_id is null or p_role_type = 'Artist' then
+      return array['engagement', 'documents', 'onboarding', 'operational', 'money', 'roster'];
+    end if;
+    -- The worker a company sends: the account manages the roster they are on, unless they also manage it below.
+    v_areas := array['engagement', 'documents', 'onboarding', 'operational', 'money'];
   end if;
   if p_counterparty_id is not null then
     select c.organization_id into v_account from app.counterparties c where c.id = p_counterparty_id and c.deleted_at is null;
@@ -96,7 +102,7 @@ begin
 end;
 $$;
 
-comment on function private.engagement_party_areas(uuid, uuid, uuid, app.external_role_type) is 'Section 8.7 (R4): the areas the signed-in person reaches on an engagement through their relationship to it: as the engaged person or an Account Owner or Admin (every area), Account Finance (engagement, documents, money), a live assignment on the engagement (Advancing Lead: engagement, operational, onboarding, roster; Member: engagement, operational), or the artist''s representative within its scopes (Advance adds roster). The Account Member role alone opens nothing. Takes the engagement''s id and column values (ADR 0016 item 14).';
+comment on function private.engagement_party_areas(uuid, uuid, uuid, app.external_role_type) is 'Section 8.7 (R4): the areas the signed-in person reaches on an engagement through their relationship to it: as an Account Owner or Admin (every area), the engaged person (every area, the roster only on an Artist engagement or one no account supplies), Account Finance (engagement, documents, money), a live assignment on the engagement (Advancing Lead: engagement, operational, onboarding, roster; Member: engagement, operational), or the artist''s representative within its scopes (Advance adds roster). The Account Member role alone opens nothing. Takes the engagement''s id and column values (ADR 0016 item 14).';
 
 create or replace function private.engagement_party_areas(p_person_id uuid, p_counterparty_id uuid, p_role_type app.external_role_type)
 returns text[]

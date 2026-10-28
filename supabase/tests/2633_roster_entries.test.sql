@@ -117,6 +117,20 @@ select throws_ok(format($$select app.add_roster_entry(%L, %L)$$, pg_temp.id('eng
 select pg_temp.as_user('carol');
 select throws_ok(format($$select app.add_roster_entry(%L, %L)$$, pg_temp.id('eng_vendor_a'), pg_temp.id('kai')),
   '42501', null, 'nor the producing org');
+-- The worker the account sends is on its roster and manages nothing (owner decisions 4 and 6).
+select pg_temp.as_user('sam');
+select throws_ok(format($$select app.add_roster_entry(%L, %L)$$, pg_temp.id('eng_vendor_a'), pg_temp.id('kai')),
+  '42501', null, 'nor the worker a company engagement names');
+select throws_ok(format($$select app.invite_to_roster(%L, 'friend@touring.test')$$, pg_temp.id('eng_vendor_a')),
+  '42501', null, 'who invites nobody either');
+select throws_ok(format($$select app.submit_roster(%L)$$, pg_temp.id('eng_vendor_a')),
+  '42501', null, 'and submits nothing');
+select pg_temp.claims('sam');
+select ok(not private.can_manage_roster(pg_temp.id('eng_vendor_a')), 'private.can_manage_roster is false for them');
+select pg_temp.as_user('sam');
+select lives_ok(format($$select app.update_roster_entry(%L, '9000.50.02', null, null, null)$$, pg_temp.id('self_vendor')),
+  'but they keep their own entry current');
+select pg_temp.as_platform();
 select pg_temp.as_user('victor');
 select throws_like(format($$select app.add_roster_entry(%L, %L)$$, pg_temp.id('eng_vendor_a'), pg_temp.id('ivy')),
   'roster_person_not_in_team:%', 'someone outside the account is not added');
@@ -350,9 +364,13 @@ select is((select count(*)::int from app.roster_invitations where roster_entry_i
   'withdrawal revokes the entry''s invitation');
 
 -- Section 8.7 matrix --------------------------------------------------------------------------------------------------------------------
-select is(pg_temp.n('sam', format('select 1 from api_external.engagement_roster where engagement_id = %L', pg_temp.id('eng_vendor_a'))),
-  (select count(*)::int from app.engagement_roster_entries where engagement_id = pg_temp.id('eng_vendor_a') and deleted_at is null),
-  'the engaged person reads every entry of their engagement');
+select is(pg_temp.n('sam', format('select 1 from api_external.engagement_roster where engagement_id = %L', pg_temp.id('eng_vendor_a'))), 1,
+  'the worker a company engagement names sees only their own entry');
+select is(pg_temp.n('sam', format('select 1 from api_external.engagement_roster where engagement_id = %L and invited_email is not null',
+  pg_temp.id('eng_vendor_a'))), 0, 'and no invited address');
+select is(pg_temp.n('ivy', format('select 1 from api_external.engagement_roster where engagement_id = %L', pg_temp.id('eng_ivy_a'))),
+  (select count(*)::int from app.engagement_roster_entries where engagement_id = pg_temp.id('eng_ivy_a') and deleted_at is null),
+  'the person of an engagement no account supplies reads every entry of it');
 select is(pg_temp.n('victor', format('select 1 from api_external.engagement_roster where engagement_id = %L', pg_temp.id('eng_vendor_a'))),
   (select count(*)::int from app.engagement_roster_entries where engagement_id = pg_temp.id('eng_vendor_a') and deleted_at is null),
   'the account''s Owner reads every entry');

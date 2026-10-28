@@ -102,7 +102,7 @@ left join app.work_detail_shares s on s.roster_entry_id = r.id and s.revoked_at 
 where r.deleted_at is null
   and (r.engagement_id in (select private.my_engagement_ids('roster')) or r.id in (select private.my_roster_entry_ids('roster')));
 
-call private.describe('api_external.engagement_roster', 'Crew roster entries the caller reaches (Section 8.7, ADR 0101): every entry of an engagement whose roster area is open to them (the engaged person, the supplying account''s Owner or Admin, an assigned Advancing Lead, an Advance representative), and their own entries otherwise. The invited address shows only to a roster manager. Internal notes and rates never appear.', array[
+call private.describe('api_external.engagement_roster', 'Crew roster entries the caller reaches (Section 8.7, ADR 0101): every entry of an engagement whose roster area is open to them (the engaged person of an Artist engagement, the supplying account''s Owner or Admin, an assigned Advancing Lead, an Advance representative), and their own entries otherwise, as for the worker a company sends. The invited address shows only to a roster manager. Internal notes and rates never appear.', array[
   'id', 'Roster entry.', 'project_id', 'Project.', 'engagement_id', 'Engagement.',
   'party_name', 'Supplying account, else the engaged person.', 'role_type', 'External role type of the engagement.',
   'is_self', 'True for the engaged person''s own entry.', 'person_id', 'Resolved person; NULL for an unclaimed invitation.',
