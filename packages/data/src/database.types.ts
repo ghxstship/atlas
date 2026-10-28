@@ -61256,13 +61256,14 @@ export type Database = {
         }[];
       };
       consume_file_download_ticket: {
-        Args: { p_ticket: string };
+        Args: { p_ticket: string; p_watermarks?: boolean };
         Returns: {
           bucket_id: string;
           content_type: string;
           filename: string;
           object_name: string;
           size_bytes: number;
+          watermark: boolean;
         }[];
       };
       content_moderation_queue: {
@@ -62951,6 +62952,7 @@ export type Database = {
         Args: { p_attachment_version_id: string };
         Returns: {
           classification: Database["app"]["Enums"]["data_classification"];
+          ticket: string;
           viewer_email: string;
           watermark: boolean;
         }[];
