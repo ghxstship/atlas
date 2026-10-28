@@ -3,6 +3,7 @@
 import { DataTable, type DataTableColumn } from "@xos/ui";
 import { useMemo } from "react";
 import type { BulkConfig } from "@/components/bulk/types";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { useFinanceT } from "./kit-use-finance-t";
 import { useItemActions } from "./kit-use-item-actions";
 import { useQueryNav } from "./kit-use-query-nav";
@@ -60,13 +61,15 @@ export function CollectionTable({
     fullPage,
   });
   const { selection } = items.bulk;
+  // The list's filterable custom fields (A117), when the page wraps it in a CustomFieldList.
+  const custom = useCustomFieldColumns();
   return (
     <div className="flex flex-col gap-6" {...items.hoverProps}>
       <DataTable
         caption={label}
         label={label}
-        columns={columns}
-        rows={[...rows]}
+        columns={[...columns, ...custom.columns]}
+        rows={rows.map((r) => ({ ...r, ...custom.cells(r.id) }))}
         {...(totals ? { totals, totalsLabel: t("common.total") } : {})}
         {...(activatable ? { onRowActivate: (row) => go({ peek: String(row["id"]) }) } : {})}
         {...(activatable || selection

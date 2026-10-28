@@ -591,6 +591,7 @@
     "notFound": "This item is gone or you can no longer see it. Reload the page.",
     "conflict": "Something with the same value already exists.",
     "invalid": "Some values are not valid.",
+    "customFields": "A custom field needs attention. Check the fields marked and try again.",
     "unexpected": "Something went wrong on our side. Try again in a moment.",
     "reasonRequired": "Write a reason for the move.",
     "checklistLabel": "Write the checklist item first.",

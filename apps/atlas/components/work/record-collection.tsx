@@ -24,6 +24,7 @@ import dynamic from "next/dynamic";
 import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
+import { useCustomFieldColumns } from "@/components/custom-fields/list";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { transitionRecordAction } from "./actions";
 import { formatScheduleTime, formatWhen, stateToken, withQuery } from "./format";
@@ -31,6 +32,7 @@ import { useScheduleView } from "./use-schedule-view";
 import { displayTimeZone } from "@xos/ui/preferences";
 import { TransitionDialog, useStateUndo } from "./record-panels";
 import { CollectionViews } from "@/components/views/collection-views";
+import { isConditionParam } from "@/lib/views/query";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { useHoverCards } from "@/components/hover/use-hover-cards";
@@ -139,6 +141,8 @@ export function RecordCollection({
   const bulkKit = useBulk(ITEM_VIEWS.has(view) ? bulk : null, bulkRows);
   const { selection, bar } = bulkKit;
   const rowMenu = useRowMenu();
+  // The org's filterable record fields (A117), from the CustomFieldList the page wraps this in.
+  const custom = useCustomFieldColumns();
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   // The page renders the peek for `?peek` after the section's loading state, which can take focus
@@ -285,11 +289,14 @@ export function RecordCollection({
     </>
   );
 
+  // The Add filter control's conditions (A117) count as filters, and Clear removes them too.
+  const conditions = [...params.keys()].filter(isConditionParam);
   const filtered =
     filters.q !== "" ||
     filters.kinds.length > 0 ||
     filters.states.length > 0 ||
-    filters.project !== "";
+    filters.project !== "" ||
+    conditions.length > 0;
 
   let body: ReactNode;
   if (total === 0 && !filtered) {
@@ -309,7 +316,13 @@ export function RecordCollection({
         actionLabel={t("collection.clear")}
         onAction={() => {
           setSearch("");
-          go({ q: null, kind: null, state: null, project: null });
+          go({
+            q: null,
+            kind: null,
+            state: null,
+            project: null,
+            ...Object.fromEntries(conditions.map((name) => [name, null])),
+          });
         }}
       />
     );
@@ -325,6 +338,7 @@ export function RecordCollection({
           { key: "owner", label: t("columns.owner") },
           { key: "next", label: t("columns.next") },
           { key: "project", label: t("columns.project") },
+          ...custom.columns,
         ]}
         rows={records.map((r) => ({
           id: r.id,
@@ -337,6 +351,7 @@ export function RecordCollection({
           owner: r.ownerName ?? t("values.unassigned"),
           next: nextOf(r) ?? t("values.noDate"),
           project: r.projectName,
+          ...custom.cells(r.id),
         }))}
         onRowActivate={(row) => open(String(row["key"]))}
         onRowContextMenu={(row, _index, at, cell) => menuFor(String(row["id"]), at, cell)}

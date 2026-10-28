@@ -26,6 +26,7 @@ import {
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import { getOrgContext } from "@/lib/shell/context";
 import { done, failed, invalid, type ActionResult, type VersionedResult } from "./action-result";
 import { initialExtension } from "./kind-fields";
@@ -72,6 +73,13 @@ const createSchema = z.object({
   startsAt: instant,
   endsAt: instant,
   dueAt: instant,
+  /** The form's custom field inputs by field key (A117); absent when the form showed none. */
+  customFields: z
+    .record(
+      z.string().regex(/^[a-z][a-z0-9_]{0,47}$/),
+      z.object({ value: z.string().max(10_000), currency: z.string().max(3).optional() }),
+    )
+    .optional(),
 });
 
 export type CreateRecordInput = z.input<typeof createSchema>;
@@ -83,12 +91,16 @@ export async function createRecordAction(
   const ctx = await context(org);
   const parsed = createSchema.safeParse(input);
   if (!parsed.success) return invalid();
+  const { customFields, ...fields } = parsed.data;
+  const custom = await customFieldsOf(ctx, "app.records", customFields);
+  if (custom.fieldErrors) return invalid("customFields");
   const created = await createRecord(ctx.viewer.db, {
     orgId: ctx.org.id,
-    ...parsed.data,
+    ...fields,
     extension: initialExtension(parsed.data.kind, ctx.viewer.person?.id ?? null),
   });
   if (!created.ok) return failed(created.error);
+  await custom.save(created.data.id);
   const record = await getRecord(ctx.viewer.db, created.data.id);
   refresh(org);
   return done({ key: record.ok ? record.data.key : formatRecordKey("", created.data.number) });

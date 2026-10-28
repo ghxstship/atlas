@@ -9,6 +9,7 @@ import { majorUnits } from "@/lib/assets/money";
 import { ASSET_STATE_TONE } from "@/lib/assets/views";
 import type { Translate } from "@/lib/shell/translate";
 import { AssetCollab } from "./collab";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { AddIdentifier, RemoveIdentifier, UnitActions } from "./unit-actions";
 
 /**
@@ -235,6 +236,7 @@ export async function UnitRecord({
           </ul>
         )}
       </Section>
+      <CustomFieldsPanel org={org} table="app.asset_units" id={unit.id} />
       <AssetCollab db={db} org={org} table="app.asset_units" id={unit.id} me={me} />
     </>
   );

@@ -28,6 +28,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext, getViewer } from "@/lib/shell/context";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import { minorUnits } from "@/lib/assets/money";
 import { observability } from "@/lib/observability";
 
@@ -179,8 +180,12 @@ export async function createUnitAction(
   if (!parsed.success) {
     return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "assetTag") };
   }
+  const custom = await customFieldsOf(ctx, "app.asset_units", form);
+  const problem = Object.keys(custom.fieldErrors ?? {})[0];
+  if (problem) return { error: "invalid", field: problem };
   const result = await createAssetUnit(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
   if (!result.ok) return errorKey(result.error);
+  await custom.save(result.data.id);
   return { ...done(ctx.org.slug), assetTag: result.data.assetTag };
 }
 

@@ -1,16 +1,22 @@
 ---
 title: SDK de TypeScript
-summary: El cliente @xos/sdk, generado a partir del documento OpenAPI, con modelos tipados, paginación, filtros, idempotencia, ETag y errores de problema.
+summary: El cliente @ghxstship/xos-sdk, generado a partir del documento OpenAPI, con modelos tipados, paginación, filtros, idempotencia, ETag y errores de problema.
 section: tools
 order: 7
 ---
 
-`@xos/sdk` cubre cada operación del documento OpenAPI. Sus modelos, firmas de métodos y tabla de operaciones se generan a partir del documento en CI y nunca se editan a mano, así que una operación nueva aparece en el SDK en cuanto aparece en la API. Funciona en Node.js 22 o posterior, en navegadores y en entornos edge, sin dependencias.
+`@ghxstship/xos-sdk` cubre cada operación del documento OpenAPI. Sus modelos, firmas de métodos y tabla de operaciones se generan a partir del documento en CI y nunca se editan a mano, así que una operación nueva aparece en el SDK en cuanto aparece en la API. Funciona en Node.js 22 o posterior, en navegadores y en entornos edge, sin dependencias.
+
+## Instala
+
+```bash
+npm install @ghxstship/xos-sdk
+```
 
 ## Crea un cliente
 
 ```ts
-import { XosClient } from "@xos/sdk";
+import { XosClient } from "@ghxstship/xos-sdk";
 
 const xos = new XosClient({
   baseUrl: "https://api.ghxstship.tech/v1",
@@ -61,7 +67,11 @@ Los métodos POST envían un `Idempotency-Key` automáticamente y lo reutilizan 
 ## Errores
 
 ```ts
-import { XosPreconditionFailedError, XosRefusalError, XosValidationError } from "@xos/sdk";
+import {
+  XosPreconditionFailedError,
+  XosRefusalError,
+  XosValidationError,
+} from "@ghxstship/xos-sdk";
 
 try {
   await xos.purchaseOrders.approve(poId, {});
@@ -77,7 +87,7 @@ Consulta [Errores y rechazos](guide:errors) para ver cada clase.
 
 ## Webhooks
 
-`verifyWebhookSignature` y `signWebhookPayload` se exportan desde `@xos/sdk/webhooks`. Consulta [Webhooks](guide:webhooks).
+`verifyWebhookSignature` y `signWebhookPayload` se exportan desde `@ghxstship/xos-sdk/webhooks`. Consulta [Webhooks](guide:webhooks).
 
 ## Llamar a una operación por su id
 
