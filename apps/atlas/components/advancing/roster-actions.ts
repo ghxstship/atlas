@@ -3,9 +3,12 @@
 import type { DataError } from "@xos/data";
 import { reviewRosterEntry, rosterSharedWorkDetails } from "@xos/data/roster";
 import type { SharedWorkDetails } from "@xos/data/work-details";
+import { formatPhone, regionFromLocale } from "@xos/i18n/formats";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { z } from "zod";
+import { sharedPhones } from "@/components/work-details/shared-categories";
 import { getOrgContext } from "@/lib/shell/context";
 import type { AdvancingState } from "./actions";
 import { KNOWN_ERRORS } from "./errors";
@@ -64,7 +67,12 @@ export async function rosterProfileAction(
   org: string,
   rosterEntryId: string,
 ): Promise<
-  | { readonly ok: true; readonly details: SharedWorkDetails }
+  | {
+      readonly ok: true;
+      readonly details: SharedWorkDetails;
+      /** Phone numbers formatted for the viewer here: the phone metadata stays out of the client. */
+      readonly phones: Readonly<Record<string, string>>;
+    }
   | { readonly ok: false; readonly error: string }
 > {
   const ctx = await getOrgContext(org);
@@ -72,7 +80,10 @@ export async function rosterProfileAction(
   const id = z.uuid().safeParse(rosterEntryId);
   if (!id.success) return { ok: false, error: "invalid" };
   const result = await rosterSharedWorkDetails(ctx.viewer.db, id.data);
-  return result.ok
-    ? { ok: true, details: result.data }
-    : { ok: false, error: errorKey(result.error) };
+  if (!result.ok) return { ok: false, error: errorKey(result.error) };
+  const region = regionFromLocale(await getLocale());
+  const phones = Object.fromEntries(
+    sharedPhones(result.data).map((p) => [p, formatPhone(p, region)] as const),
+  );
+  return { ok: true, details: result.data, phones };
 }

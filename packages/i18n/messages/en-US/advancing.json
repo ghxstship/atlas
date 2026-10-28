@@ -448,6 +448,7 @@
     "returnSubmit": "Return entry",
     "cancel": "Cancel",
     "profileTitle": "Shared profile",
+    "profileNone": "No shared work details you can read.",
     "noArrival": "Not set"
   }
 }
