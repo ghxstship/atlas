@@ -298,10 +298,26 @@ export async function hardCodedText(page: Page, data: KnownText): Promise<Found[
   return hardCoded(await unwrappedText(page), data);
 }
 
-/** Waits for a page to finish drawing: requests quiet, fonts loaded, no skeleton or busy region. */
+/**
+ * Waits for a page to finish drawing: requests quiet, fonts loaded, the page hydrated, no skeleton
+ * or busy region, and two frames for what measures itself on mount or resize (the project tab bar
+ * renders every tab until it has measured them).
+ */
 export async function untilDrawn(page: Page): Promise<void> {
   await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
+  // React marks each node it has hydrated; the last node of the page is among the last to be.
+  await page
+    .waitForFunction(
+      () => {
+        const nodes = document.body.querySelectorAll("main *, nav *");
+        const last = nodes[nodes.length - 1] ?? document.body.firstElementChild;
+        return last !== null && Object.keys(last).some((key) => key.startsWith("__reactFiber$"));
+      },
+      undefined,
+      { timeout: 15_000 },
+    )
+    .catch(() => undefined);
   await page
     .waitForFunction(
       () =>
@@ -315,6 +331,12 @@ export async function untilDrawn(page: Page): Promise<void> {
       { timeout: 10_000 },
     )
     .catch(() => undefined);
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
 }
 
 /**
