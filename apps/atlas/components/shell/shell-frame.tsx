@@ -21,8 +21,10 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useOptimistic,
   useRef,
   useState,
+  useTransition,
   type MouseEvent,
   type ReactNode,
 } from "react";
@@ -121,6 +123,10 @@ export function ShellFrame(props: ShellFrameProps) {
     [pathname],
   );
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
+  // Pin page and Unpin page answer at once (Section 11.10 rule 9); the refreshed Favorites confirm it.
+  const pinnedHere = props.favorites.some((f) => f.href.split("?")[0] === pathname);
+  const [pinned, setPinned] = useOptimistic(pinnedHere);
+  const [, startPin] = useTransition();
   const signOutForm = useRef<HTMLFormElement>(null);
 
   const go = useCallback((href: string) => router.push(href as Route), [router]);
@@ -320,15 +326,16 @@ export function ShellFrame(props: ShellFrameProps) {
           <Button
             size="sm"
             variant="ghost"
-            onClick={async () => {
-              const peek = new URLSearchParams(window.location.search).get("peek");
-              const result = await toggleFavoriteAction(org.slug, pathname, peek);
-              setFavoriteError(result.error ? t(`settings.errors.${result.error}`) : null);
-            }}
+            onClick={() =>
+              startPin(async () => {
+                setPinned(!pinnedHere);
+                const peek = new URLSearchParams(window.location.search).get("peek");
+                const result = await toggleFavoriteAction(org.slug, pathname, peek);
+                setFavoriteError(result.error ? t(`settings.errors.${result.error}`) : null);
+              })
+            }
           >
-            {props.favorites.some((f) => f.href.split("?")[0] === pathname)
-              ? t("settings.favorites.unpin")
-              : t("settings.favorites.pin")}
+            {pinned ? t("settings.favorites.unpin") : t("settings.favorites.pin")}
           </Button>
         </div>
         {favoriteError ? (

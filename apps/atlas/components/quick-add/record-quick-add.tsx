@@ -3,7 +3,7 @@
 import { QuickAdd, type QuickAddResult } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { useCopy } from "@/components/work/action-ui";
 import { withQuery } from "@/components/work/format";
 import { quickAddRecordAction } from "@/lib/quick-add/actions";
@@ -25,7 +25,8 @@ export interface RecordQuickAddProps {
 /**
  * The inline create row of a record collection (Section 11.7, ADR 0073): one line sets the title,
  * the date, the owner (@), the canon category (#), the kind (/) and the scope (~). Saving opens the
- * new record's peek; a refusal keeps the line so it can be corrected.
+ * new record's peek; a refusal keeps the line so it can be corrected. The record being added shows
+ * under the field the moment Enter is pressed, before the server answers (Section 11.10 rule 9).
  */
 export function RecordQuickAdd({
   org,
@@ -41,33 +42,41 @@ export function RecordQuickAdd({
   const params = useSearchParams();
   const [error, setError] = useState<{ key: string; detail?: string } | null>(null);
   const [created, setCreated] = useState("");
+  const [, start] = useTransition();
+  // The title being saved, until the save and the peek it opens have landed.
+  const [adding, showAdding] = useOptimistic<string | null, string>(null, (_, title) => title);
   const allowed = kinds ? [...kinds] : null;
   const only = kinds?.length === 1 ? kinds[0] : undefined;
 
-  const submit = async (result: QuickAddResult) => {
-    setError(null);
-    const line = quickAddInput(result);
-    const saved = await quickAddRecordAction(org, {
-      projectId,
-      kinds: allowed,
-      defaultKind,
-      title: line.title,
-      kind: line.kind,
-      personId: line.personId,
-      tagId: line.tagId,
-      scopeNodeId: line.scopeNodeId,
-      when: line.when,
-    });
-    if (!saved.ok) {
-      setError(saved.error);
-      return false;
-    }
-    setCreated(t("quickAdd.created", { key: saved.data.key }));
-    router.replace(withQuery(pathname, params, { peek: saved.data.key }) as Route, {
-      scroll: false,
-    });
-    return true;
-  };
+  const submit = (result: QuickAddResult) =>
+    new Promise<boolean>((done) =>
+      start(async () => {
+        setError(null);
+        const line = quickAddInput(result);
+        showAdding(line.title || t("quickAdd.untitled"));
+        const saved = await quickAddRecordAction(org, {
+          projectId,
+          kinds: allowed,
+          defaultKind,
+          title: line.title,
+          kind: line.kind,
+          personId: line.personId,
+          tagId: line.tagId,
+          scopeNodeId: line.scopeNodeId,
+          when: line.when,
+        });
+        if (!saved.ok) {
+          setError(saved.error);
+          done(false);
+          return;
+        }
+        setCreated(t("quickAdd.created", { key: saved.data.key }));
+        router.replace(withQuery(pathname, params, { peek: saved.data.key }) as Route, {
+          scroll: false,
+        });
+        done(true);
+      }),
+    );
 
   return (
     <div className="flex flex-col gap-8 pb-12">
@@ -87,6 +96,11 @@ export function RecordQuickAdd({
         copy={copy}
         onSubmit={submit}
       />
+      {adding ? (
+        <p className="xos-anim-pulse m-0 text-text-13 text-text-secondary">
+          {t("quickAdd.adding", { title: adding })}
+        </p>
+      ) : null}
       <QuickAddAlert error={error} />
       <p role="status" className="sr-only">
         {created}

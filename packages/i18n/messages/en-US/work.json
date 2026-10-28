@@ -755,6 +755,7 @@
       "date": "When"
     },
     "created": "{key} created",
+    "adding": "Adding {title}…",
     "field": "{name}: {value}",
     "announce": "{title}, with {fields}",
     "choose": "Choose a match for {token}",
