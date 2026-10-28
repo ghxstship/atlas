@@ -134,6 +134,7 @@
     },
     "errors": {
       "unavailable": "Esta colección no se puede exportar.",
+      "conditions": "Las exportaciones aún no aplican las condiciones de Agregar filtro. Quítalas para exportar esta lista.",
       "denied": "Exportar estas columnas requiere la capacidad de exportación de su clasificación. Pídesela a un administrador.",
       "stepUp": "Confirma tu identidad con tu segundo factor para exportar columnas restringidas.",
       "medical": "Los datos de atención médica nunca se exportan.",

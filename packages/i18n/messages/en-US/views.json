@@ -134,6 +134,7 @@
     },
     "errors": {
       "unavailable": "This collection cannot be exported.",
+      "conditions": "Exports do not apply Add filter conditions yet. Remove them to export this list.",
       "denied": "Exporting these columns needs the export capability for their classification. Ask an Admin.",
       "stepUp": "Confirm it is you with your second factor to export Restricted columns.",
       "medical": "Medical encounter data is never exported.",
