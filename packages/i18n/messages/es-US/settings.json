@@ -324,6 +324,14 @@
     "offeringsGuestList": {
       "label": "Lista de invitados",
       "help": "Lugares en la lista de invitados para las personas que contratas. Si se ofrece, la pestaña Lista de invitados aparece en las contrataciones de artistas en Gateway."
+    },
+    "homeLayout": {
+      "label": "Diseño de Inicio",
+      "help": "Ensancha o estrecha un mosaico de Inicio arrastrando su borde, o con las teclas de flecha en su control. Restablecer devuelve cada mosaico a su ancho predeterminado."
+    },
+    "partnerLayout": {
+      "label": "Diseño de la consola de socios",
+      "help": "Ensancha o estrecha un mosaico de la consola de socios arrastrando su borde, o con las teclas de flecha en su control. Restablecer devuelve cada mosaico a su ancho predeterminado."
     }
   },
   "choices": {
@@ -1148,5 +1156,7 @@
       "vendor_entitlements": "Derechos por clase de proveedor",
       "verbiage": "Biblioteca de terminología"
     }
-  }
+  },
+  "layoutCustom": "Organizaste este panel. Restablecer devuelve sus mosaicos a su ancho predeterminado.",
+  "layoutDefault": "Diseño predeterminado. Organiza los mosaicos en el propio panel."
 }
