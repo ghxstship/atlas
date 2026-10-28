@@ -85,7 +85,8 @@
     "bulk": {
       "clear": "‮Ɔlǝɐɹ sǝlǝɔʇıou‬",
       "label": "‮ꓭnlʞ ɐɔʇıous‬",
-      "selected": "‮{n} sǝlǝɔʇǝp‬"
+      "selected": "‮{n} sǝlǝɔʇǝp‬",
+      "itemSelected": "‮Sǝlǝɔʇǝp‬"
     },
     "calendar": {
       "agenda": "‮∀ƃǝupɐ‬",
@@ -533,6 +534,7 @@
     },
     "recordList": {
       "columns": {
+        "select": "‮Sǝlǝɔʇ‬",
         "state": "‮Sʇɐʇǝ‬",
         "key": "‮ꓘǝʎ‬",
         "title": "‮ꓤǝɔoɹp‬",

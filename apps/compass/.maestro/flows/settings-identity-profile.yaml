@@ -1,0 +1,64 @@
+appId: pro.ghxstship.compass
+# Settings, Profile edits natively (A110): the section list opens Profile, the headline saves, and a language is
+# added and removed again. The Demo Field Lead has no language in the seed (0230), so the one Remove is the new one.
+# Named after its file: config.yaml orders flows by name.
+name: settings-identity-profile
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- tapOn:
+    id: "tab-more"
+- scrollUntilVisible:
+    element:
+      id: "more-settings"
+    direction: DOWN
+    centerElement: true
+    optional: true
+- tapOn:
+    id: "more-settings"
+# The identity group is native; the other sections open Gateway.
+- scrollUntilVisible:
+    element:
+      id: "settings-section-settings.profile"
+    direction: DOWN
+- assertVisible: ".*Opens in Gateway.*"
+- tapOn:
+    id: "settings-section-settings.profile"
+- extendedWaitUntil:
+    visible:
+      id: "settings-profile-headline"
+    timeout: 30000
+- tapOn:
+    id: "settings-profile-headline"
+- eraseText: 120
+- inputText: "Lead rigger, arena tours"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "settings-profile-save"
+    direction: DOWN
+- tapOn:
+    id: "settings-profile-save"
+- extendedWaitUntil:
+    visible: "Saved."
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "settings-profile-languages-tag"
+    direction: DOWN
+- tapOn:
+    id: "settings-profile-languages-tag"
+- inputText: "pt-BR"
+- hideKeyboard
+- tapOn:
+    id: "settings-profile-languages-add"
+- extendedWaitUntil:
+    visible: "pt-BR"
+    timeout: 30000
+- tapOn:
+    id: "settings-profile-languages-remove"
+- extendedWaitUntil:
+    notVisible: "pt-BR"
+    timeout: 30000

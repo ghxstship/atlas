@@ -12,6 +12,7 @@ import {
   getRecord,
   getRecordByKey,
   getRecordExtension,
+  getRecordFamily,
   getWatch,
   groupRecords,
   listAssignments,
@@ -373,6 +374,45 @@ describe("records", () => {
     expect(stepsOf(calls[0], "not")).toEqual([["deleted_at", "is", null]]);
     expect(stepsOf(calls[0], "or")[0]?.[0]).toContain("starts_at.lt.infinity");
     expect((await listRecords(db, { orgId: "o1", to: "2027-06-01" })).ok).toBe(false);
+  });
+
+  it("reads a record's parent and sub-records", async () => {
+    const { db, calls } = moduleClient({
+      "from:records": [
+        okResponse({ parent_record_id: "r0" }),
+        okResponse([recordRow({ id: "r2", record_number: 8 })]),
+        okResponse([recordRow({ id: "r0", record_number: 6 })]),
+      ],
+    });
+    const family = await getRecordFamily(db, "o1", "r1");
+    expect(family.ok && family.data.parent?.key).toBe("NWL-6");
+    expect(family.ok && family.data.parentHidden).toBe(false);
+    expect(family.ok && family.data.children.map((c) => c.key)).toEqual(["NWL-8"]);
+    expect(stepsOf(calls[0], "eq")).toEqual([["id", "r1"]]);
+    expect(stepsOf(calls[1], "eq")).toContainEqual(["parent_record_id", "r1"]);
+    expect(stepsOf(calls[2], "in")).toEqual([["id", ["r0"]]]);
+  });
+
+  it("calls a parent the viewer cannot read hidden, and a record without one has none", async () => {
+    const hidden = moduleClient({
+      "from:records": [okResponse({ parent_record_id: "r0" }), okResponse([]), okResponse([])],
+    });
+    expect(await getRecordFamily(hidden.db, "o1", "r1")).toEqual({
+      ok: true,
+      data: { parent: null, parentHidden: true, children: [] },
+    });
+    const none = moduleClient({
+      "from:records": [okResponse({ parent_record_id: null }), okResponse([])],
+    });
+    expect(await getRecordFamily(none.db, "o1", "r1")).toEqual({
+      ok: true,
+      data: { parent: null, parentHidden: false, children: [] },
+    });
+    expect(none.calls).toHaveLength(2);
+    const failing = moduleClient({
+      "from:records": [errorResponse("XX000", "boom"), okResponse([])],
+    });
+    expect((await getRecordFamily(failing.db, "o1", "r1")).ok).toBe(false);
   });
 
   it("finds a record by key or id", async () => {

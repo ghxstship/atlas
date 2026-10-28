@@ -6,6 +6,7 @@ import {
   providersIn,
   scopesFor,
   isProviderCode,
+  usesClientCredentials,
 } from "@xos/integrations";
 import {
   IntegrationsSettings,
@@ -26,7 +27,8 @@ import type { SettingsContribution, SettingsPanelProps } from "./types";
 
 /**
  * A19's panel on Settings > Integrations (Section 17): the org's connections with their state, last
- * sync and last error, the credential form (stored in Vault, never shown again), connect, pause,
+ * sync and last error, the credential form (stored in Vault, never shown again; UPS and FedEx take their
+ * developer app's client ID and secret, from which the connector mints access tokens), connect, pause,
  * resume and disconnect, sync now, and adding a connection from the catalog. It reads with the
  * viewer's client, so row level security decides what appears; people without
  * org.integrations.manage see the connections read-only.
@@ -55,6 +57,9 @@ const COPY_KEYS = [
   "kindOAuth",
   "kindKey",
   "kindServiceAccount",
+  "clientId",
+  "clientSecret",
+  "clientSecretHelp",
   "storeCredential",
   "connect",
   "pause",
@@ -103,6 +108,9 @@ async function IntegrationsPanel({ ctx }: SettingsPanelProps) {
     lastError: c.last_error_message,
     needsCredential: providerEntry(c.provider_code)?.needsCredential ?? true,
     credentialStored: c.credential_stored_at !== null,
+    ...(usesClientCredentials(c.provider_code)
+      ? { clientCredentialHelp: t(`integrations.clientCredentialHelp.${c.provider_code}`) }
+      : {}),
     scopes: isProviderCode(c.provider_code)
       ? scopesFor(c.provider_code).map((s) => ({ value: s, label: t(`integrations.scopes.${s}`) }))
       : [],

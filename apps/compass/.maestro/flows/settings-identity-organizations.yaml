@@ -1,0 +1,33 @@
+appId: pro.ghxstship.compass
+# Settings, Organizations works natively (A110): the Demo Multi-Org Crew (seed 1500_a93) sees both memberships in
+# their brands, the one open now, and makes the other the default, which opens it.
+# Named after its file: config.yaml orders flows by name.
+name: settings-identity-organizations
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: orgs@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/organizations
+- extendedWaitUntil:
+    visible:
+      id: "settings-organizations-members"
+    timeout: 30000
+- assertVisible: "Organization: Harbor Stages"
+- assertVisible: "Organization: Demo Productions"
+- assertVisible:
+    id: "settings-org-open-now"
+- tapOn:
+    id: "settings-org-make-default"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "settings-org-default"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "settings-organizations-accounts"
+    direction: DOWN

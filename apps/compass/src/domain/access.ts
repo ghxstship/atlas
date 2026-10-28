@@ -202,6 +202,8 @@ export interface MenuEntry {
   readonly label: string;
   readonly route: string;
   readonly readOnly: boolean;
+  /** Sitemap conditions the device must meet to show the entry (Settings, Developer); empty for most. */
+  readonly conditions: readonly string[];
   readonly children: readonly MenuEntry[];
 }
 
@@ -210,6 +212,7 @@ function toMenu(entry: {
   label: string;
   route: string;
   access: string;
+  conditions?: readonly string[];
   children: readonly unknown[];
 }): MenuEntry {
   return {
@@ -217,6 +220,7 @@ function toMenu(entry: {
     label: entry.label,
     route: entry.route,
     readOnly: entry.access === "read",
+    conditions: entry.conditions ?? [],
     children: (entry.children as (typeof entry)[]).map(toMenu),
   };
 }
@@ -310,6 +314,19 @@ export function certificationsUrl(
   return isInternal(audience)
     ? elsewhereLink(audience, urls).url
     : `${urls.gatewayUrl.replace(/\/+$/, "")}/profile`;
+}
+
+/**
+ * Where a person manages the documents on their Compass Profile (A109): an external person in Gateway's Documents,
+ * where they sign and renew them; an internal member in Atlas, which opens on their organization.
+ */
+export function documentsUrl(
+  audience: Audience,
+  urls: { readonly atlasUrl: string; readonly gatewayUrl: string },
+): string {
+  return isInternal(audience)
+    ? elsewhereLink(audience, urls).url
+    : `${urls.gatewayUrl.replace(/\/+$/, "")}/documents`;
 }
 
 /** Today's content blocks for the audience, with their message keys. */

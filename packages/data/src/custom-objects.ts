@@ -406,6 +406,59 @@ export async function setObjectValue(
   );
 }
 
+/**
+ * A custom object record that links to a record (custom_object_relations.to_record_id, Section 4.6.3 relations), for
+ * the record's related records.
+ */
+export interface RecordLink {
+  /** The relation row. */
+  readonly id: string;
+  /** Name of the relation, such as sponsor or venue. */
+  readonly relationKey: string;
+  readonly objectKey: string;
+  readonly objectLabel: string;
+  /** The custom object record the link starts from. */
+  readonly recordId: string;
+  readonly title: string;
+}
+
+/** The custom object records that link to a record, oldest link first; links from records in Trash are left out. */
+export async function listRecordLinks(
+  db: XosClient,
+  recordId: string,
+): Promise<Result<RecordLink[]>> {
+  const result = await rows(
+    untyped(db)
+      .from("custom_object_relations")
+      .select(
+        "id, relation_key, from_record:custom_object_records!custom_object_relations_from_record_id_fkey (id, title, deleted_at, type:custom_object_types!custom_object_records_custom_object_type_id_fkey (object_key, label, deleted_at))",
+      )
+      .eq("to_record_id", recordId)
+      .is("deleted_at", null)
+      .order("created_at")
+      .limit(100),
+  );
+  if (!result.ok) return result;
+  return ok(
+    result.data.flatMap((r) => {
+      const from = r["from_record"] as Raw | null;
+      const type = (from?.["type"] as Raw | null | undefined) ?? null;
+      const live = (row: Raw) => row["deleted_at"] === null || row["deleted_at"] === undefined;
+      if (!from || !type || !live(from) || !live(type)) return [];
+      return [
+        {
+          id: str(r["id"]),
+          relationKey: str(r["relation_key"]),
+          objectKey: str(type["object_key"]),
+          objectLabel: str(type["label"]),
+          recordId: str(from["id"]),
+          title: str(from["title"]),
+        },
+      ];
+    }),
+  );
+}
+
 /** The first Choice field: the board groups by it. */
 export function boardField(type: ObjectType): ObjectField | null {
   return type.fields.find((f) => f.dataType === "Choice") ?? null;
