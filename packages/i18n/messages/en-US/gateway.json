@@ -60,7 +60,9 @@
       "invitation_closed": "This invitation was already answered, revoked or has expired. Ask for a new one.",
       "account_membership_not_yours": "Only the person a membership names can confirm it.",
       "account_membership_unconfirmed": "This member has not confirmed their membership yet, so they cannot be assigned.",
-      "assignment_account_mismatch": "Assign members of the company that supplies this engagement."
+      "assignment_account_mismatch": "Assign members of the company that supplies this engagement.",
+      "roster_locked": "Names are locked on this engagement. Ask the producing organization to change the roster.",
+      "roster_lock_engagement_closed": "This engagement is closed, so its names lock no longer changes."
     }
   },
   "common": {
@@ -569,7 +571,10 @@
       "edit": "Edit role and arrival",
       "addTitle": "Add from your team",
       "noTalent": "Everyone on your team is on this roster, or nobody has confirmed their membership yet. Invite people by email below.",
-      "inviteTitle": "Invite by email"
+      "inviteTitle": "Invite by email",
+      "locksOn": "Names lock on {date}",
+      "lockedOn": "Names locked on {date}. Ask {orgName} to change the roster.",
+      "factsTitle": "Project details"
     },
     "accountTeam": {
       "title": "Account team",
