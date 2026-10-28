@@ -13,6 +13,7 @@
 --     that calendar. Every day counts otherwise; productions work weekends (ADR 0112).
 --   * app.earning_codes.is_holiday: the code holiday pay is paid under (2271). A code is never both overtime and
 --     holiday, and app.calculate_payroll_run's regular code is never a holiday code.
+--   * Retired calendars and removed holidays go to Trash (ADR 0110); venue assignments, which have no title, do not.
 -- Time off policies were written under org.time_attendance.write since 0341; the API (catalog/capabilities.ts) and the
 -- capability's own description put them under org.payroll.write, the capability of the settings page that edits them,
 -- so the write policy now asks for that.
@@ -170,3 +171,10 @@ $$;
 comment on function app.time_off_day_count(app.time_off_requests) is 'Computed field: the days a time off request takes, every day from its first to its last less the holidays on the org''s holiday calendar with no subdivision (time off names no place). Runs with the caller''s rights.';
 revoke all on function app.time_off_day_count(app.time_off_requests) from public, anon;
 grant execute on function app.time_off_day_count(app.time_off_requests) to authenticated, service_role;
+
+-- 5. Trash ---------------------------------------------------------------------------------------------------------------------
+-- ADR 0110: a retired calendar or a removed holiday is a mistake an editor can undo, and the tables' update policies let
+-- those who removed it restore it, so both go to Trash, titled by name. A venue assignment has no title column and stays
+-- out; it is assigned again.
+
+select private.sync_trash_tables();

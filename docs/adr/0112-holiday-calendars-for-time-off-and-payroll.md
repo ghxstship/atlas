@@ -61,7 +61,9 @@ hold both, so no seeded role loses anything.
 
 The three panels are settings contributions (`apps/atlas/components/settings/contributions/a134.tsx`) whose server
 actions write with the viewer's client, so row level security decides every change. Retiring soft deletes, so payroll
-lines and requests that name a retired code or policy keep it. A unique conflict answers with the rule naming what is
+lines and requests that name a retired code or policy keep it. Retired calendars and removed holidays go to Trash, titled
+by name, and their update policies let editors restore them (ADR 0110); a venue assignment has no title and is simply
+assigned again. A unique conflict answers with the rule naming what is
 taken (a code, name, day or venue), never as a concurrent edit. Holiday calendars stay off the v1 API: the contract is
 frozen to additive changes, and nothing outside Atlas needs them yet.
 

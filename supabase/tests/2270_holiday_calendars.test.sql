@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(29);
+select plan(31);
 
 -- Calendar writes and RLS -------------------------------------------------------------------------------------------------
 select pg_temp.as_user('bob');
@@ -42,6 +42,10 @@ select pg_temp.as_user('xavier');
 select is((select count(*)::integer from app.holiday_calendars where org_id = pg_temp.id('org_a')), 0, 'another org reads none of them');
 select throws_ok($$insert into app.holidays (holiday_calendar_id, observed_on, name) values (pg_temp.id('cal_us'), '2027-12-25', 'Christmas')$$,
   '42501', null, 'another org adds no holiday to the calendar');
+
+select pg_temp.as_platform();
+select is((select title_column from private.trash_tables where table_name = 'holidays'), 'name', 'a removed holiday goes to Trash under its name');
+select ok(not exists (select 1 from private.trash_tables where table_name = 'holiday_calendar_venues'), 'a venue assignment, with no title, stays out of Trash');
 
 -- Earning codes and time off policies ---------------------------------------------------------------------------------------
 select pg_temp.as_user('bob');
