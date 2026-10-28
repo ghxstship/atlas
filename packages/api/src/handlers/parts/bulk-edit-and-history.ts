@@ -1,7 +1,7 @@
 /**
  * Bulk edit and field history handlers (A106, RRR-151; catalog/modules/parts/bulk-edit-and-history.ts). Both run as
- * the caller through the RPCs of migrations 1451 and 1452, so the row functions and the row's own read policies
- * decide. A refusal of the whole call (a duplicate row, a resource that does not change in bulk) is a 422; refusals of
+ * the caller through the RPCs of migrations 1451 and 2061 (over 1452), so the row functions and the row's own read
+ * policies decide. A refusal of the whole call (a duplicate row, a resource that does not change in bulk) is a 422; refusals of
  * single rows come back in the result. A row the caller cannot read has no field history: 404.
  */
 import { bulkUpdate, type BulkResource, type BulkRow } from "@xos/data/bulk";

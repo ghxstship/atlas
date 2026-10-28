@@ -2315,7 +2315,7 @@ export class RecordsResource extends $Resource {
   /**
    * Field history of a record
    *
-   * Who changed which field of the record, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the record: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Who changed which field of the record, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the record: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /records/{id}/field-history` (operation `records.fieldHistory`).
    * Requires the capability `work.record.read`.
@@ -2324,7 +2324,7 @@ export class RecordsResource extends $Resource {
     id: string,
     params?: {
       /**
-       * At most this many changes, newest first; 200 when omitted.
+       * At most this many events, newest first, each with all of its changes; 200 when omitted.
        */
       readonly limit?: number;
     },
@@ -3508,7 +3508,7 @@ export class SopsResource extends $Resource {
   /**
    * Field history of a SOP
    *
-   * Who changed which field of the SOP, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the SOP: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Who changed which field of the SOP, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the SOP: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /sops/{id}/field-history` (operation `sops.fieldHistory`).
    * Requires the capability `knowledge.sop.read`.
@@ -3517,7 +3517,7 @@ export class SopsResource extends $Resource {
     id: string,
     params?: {
       /**
-       * At most this many changes, newest first; 200 when omitted.
+       * At most this many events, newest first, each with all of its changes; 200 when omitted.
        */
       readonly limit?: number;
     },
@@ -3731,7 +3731,7 @@ export class DocumentsResource extends $Resource {
   /**
    * Field history of a document
    *
-   * Who changed which field of the document, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the document: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Who changed which field of the document, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the document: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /documents/{id}/field-history` (operation `documents.fieldHistory`).
    * Requires the capability `knowledge.document.read`.
@@ -3740,7 +3740,7 @@ export class DocumentsResource extends $Resource {
     id: string,
     params?: {
       /**
-       * At most this many changes, newest first; 200 when omitted.
+       * At most this many events, newest first, each with all of its changes; 200 when omitted.
        */
       readonly limit?: number;
     },
@@ -7098,7 +7098,7 @@ export class AssetUnitsResource extends $Resource {
   /**
    * Field history of a asset unit
    *
-   * Who changed which field of the asset unit, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the asset unit: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Who changed which field of the asset unit, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the asset unit: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /asset-units/{id}/field-history` (operation `assetUnits.fieldHistory`).
    * Requires the capability `assets.asset.read`.
@@ -7107,7 +7107,7 @@ export class AssetUnitsResource extends $Resource {
     id: string,
     params?: {
       /**
-       * At most this many changes, newest first; 200 when omitted.
+       * At most this many events, newest first, each with all of its changes; 200 when omitted.
        */
       readonly limit?: number;
     },
@@ -8385,7 +8385,7 @@ export class ShiftsResource extends $Resource {
   /**
    * Field history of a shift
    *
-   * Who changed which field of the shift, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the shift: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Who changed which field of the shift, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the shift: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /shifts/{id}/field-history` (operation `shifts.fieldHistory`).
    * Requires the capability `crew.shift.read`.
@@ -8394,7 +8394,7 @@ export class ShiftsResource extends $Resource {
     id: string,
     params?: {
       /**
-       * At most this many changes, newest first; 200 when omitted.
+       * At most this many events, newest first, each with all of its changes; 200 when omitted.
        */
       readonly limit?: number;
     },
@@ -12485,7 +12485,7 @@ export class InvoicesResource extends $Resource {
   /**
    * Field history of a invoice
    *
-   * Who changed which field of the invoice, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the invoice: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Who changed which field of the invoice, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the invoice: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /invoices/{id}/field-history` (operation `invoices.fieldHistory`).
    * Requires the capability `finance.invoice.read`.
@@ -12494,7 +12494,7 @@ export class InvoicesResource extends $Resource {
     id: string,
     params?: {
       /**
-       * At most this many changes, newest first; 200 when omitted.
+       * At most this many events, newest first, each with all of its changes; 200 when omitted.
        */
       readonly limit?: number;
     },
@@ -13899,7 +13899,7 @@ export class PurchaseOrdersResource extends $Resource {
   /**
    * Field history of a purchase order
    *
-   * Who changed which field of the purchase order, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the purchase order: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Who changed which field of the purchase order, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the purchase order: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /purchase-orders/{id}/field-history` (operation `purchaseOrders.fieldHistory`).
    * Requires the capability `procurement.po.read`.
@@ -13908,7 +13908,7 @@ export class PurchaseOrdersResource extends $Resource {
     id: string,
     params?: {
       /**
-       * At most this many changes, newest first; 200 when omitted.
+       * At most this many events, newest first, each with all of its changes; 200 when omitted.
        */
       readonly limit?: number;
     },
@@ -14794,7 +14794,7 @@ export class VendorsResource extends $Resource {
   /**
    * Field history of a vendor
    *
-   * Who changed which field of the vendor, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the vendor: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Who changed which field of the vendor, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the vendor: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /vendors/{id}/field-history` (operation `vendors.fieldHistory`).
    * Requires the capability `vendors.vendor.read`.
@@ -14803,7 +14803,7 @@ export class VendorsResource extends $Resource {
     id: string,
     params?: {
       /**
-       * At most this many changes, newest first; 200 when omitted.
+       * At most this many events, newest first, each with all of its changes; 200 when omitted.
        */
       readonly limit?: number;
     },

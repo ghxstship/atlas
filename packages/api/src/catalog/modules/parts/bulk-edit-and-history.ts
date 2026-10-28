@@ -1,7 +1,8 @@
 /**
  * Bulk edit and field history in the public API (A106, RRR-151; A88, ADR 0044; migrations 1451 and 1452). Additive
  * actions (v1 is frozen, Section 10.1): each resource that changes in bulk gets `bulkPreview` and `bulkUpdate` over its
- * transactional RPC, and each resource that keeps a field history gets `fieldHistory` over `app.field_history`.
+ * transactional RPC, and each resource that keeps a field history gets `fieldHistory` over `app.field_history_events`
+ * (2061), which answers one row per event, so `limit` and the API's row cap count the same thing.
  *
  *   * A bulk change is all or nothing. The preview runs the same work, triggers and capability checks included, and
  *     always undoes it, so its counts are what applying would do. A refused row is answered in `refused` with its
@@ -76,7 +77,7 @@ export function bulkActions(input: BulkInput): ActionSpec[] {
     })
     .meta({
       id: `${input.name}BulkRow`,
-      description: `One of the ${input.label} in a bulk change: the values to \`set\` and, optionally, the values the caller saw (\`expect\`, compare-and-set). A row whose current value differs from \`expect\` is refused as bulk_stale.`,
+      description: `One of the ${input.label} in a bulk change: the values to \`set\` and, optionally, the values the caller saw (\`expect\`, compare-and-set). A row whose current value differs from \`expect\` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00).`,
       example: { id: ROW_ID, ...input.example },
     });
   const Request = z
@@ -260,7 +261,8 @@ const FieldHistoryEvent = z
 
 const historyQuery = z.object({
   limit: z.coerce.number().int().min(1).max(1000).optional().meta({
-    description: "At most this many changes, newest first; 200 when omitted.",
+    description:
+      "At most this many events, newest first, each with all of its changes; 200 when omitted.",
     example: 50,
   }),
 });
@@ -270,8 +272,8 @@ export function fieldHistoryAction(label: string): ActionSpec {
   return itemQuery("fieldHistory", {
     segment: "field-history",
     summary: `Field history of a ${label}`,
-    description: `Who changed which field of the ${label}, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the ${label}: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. \`next_cursor\` is always null: \`limit\` bounds the changes returned.`,
-    rpc: "app.field_history",
+    description: `Who changed which field of the ${label}, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the ${label}: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. \`limit\` counts events, and every event arrives with all of its changes. \`next_cursor\` is always null: the page holds the newest \`limit\` events, and older ones are not returned.`,
+    rpc: "app.field_history_events",
     paged: true,
     response: FieldHistoryEvent,
     query: historyQuery,

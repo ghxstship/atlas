@@ -2467,7 +2467,7 @@ class _RecordBulkRowRequired(TypedDict):
 
 
 class RecordBulkRow(_RecordBulkRowRequired, total=False):
-    """One of the records in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale."""
+    """One of the records in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00)."""
 
     expect: RecordBulkValues
 
@@ -5394,7 +5394,7 @@ class _AssetUnitBulkRowRequired(TypedDict):
 
 
 class AssetUnitBulkRow(_AssetUnitBulkRowRequired, total=False):
-    """One of the asset units in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale."""
+    """One of the asset units in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00)."""
 
     expect: AssetUnitBulkValues
 
@@ -6335,7 +6335,7 @@ class _ShiftBulkRowRequired(TypedDict):
 
 
 class ShiftBulkRow(_ShiftBulkRowRequired, total=False):
-    """One of the shifts in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale."""
+    """One of the shifts in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00)."""
 
     expect: ShiftBulkValues
 
@@ -8812,7 +8812,7 @@ class _InvoiceBulkRowRequired(TypedDict):
 
 
 class InvoiceBulkRow(_InvoiceBulkRowRequired, total=False):
-    """One of the invoices in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale."""
+    """One of the invoices in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00)."""
 
     expect: InvoiceBulkValues
 

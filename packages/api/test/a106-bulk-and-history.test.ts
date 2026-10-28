@@ -1,6 +1,6 @@
 /**
  * Contract tests for A106's additive operations (Section 18, gate 5): bulk edit over the 1451 RPCs, field history over
- * app.field_history (1452) and a document's co-edited notes (1453). Requests run through `contractApp`, and every
+ * app.field_history_events (2061, one row per event) and a document's co-edited notes (1453). Requests run through `contractApp`, and every
  * response is checked against openapi/v1.json with `expectContract`. The database is a recording stand-in for
  * supabase-js: each `from(table)` or `rpc(name)` call takes the next queued response, and the recorded steps show what
  * reached the database. Call-level refusals (422), unreadable rows (404) and request validation (422) are checked too.
@@ -316,21 +316,20 @@ describe("A106 contract: field history", () => {
       actor_person_id: id(80),
       actor_name: "Carol Nguyen",
       operation: "update",
-      field: "due_at",
-      old_value: "2026-10-08T14:30:00+00:00",
-      new_value: "2026-10-09T14:30:00+00:00",
-      masked: false,
-    },
-    {
-      event_id: id(21),
-      changed_at: T1,
-      actor_person_id: id(80),
-      actor_name: "Carol Nguyen",
-      operation: "update",
-      field: "bank_account_number",
-      old_value: null,
-      new_value: null,
-      masked: true,
+      changes: [
+        {
+          field: "bank_account_number",
+          old_value: null,
+          new_value: null,
+          masked: true,
+        },
+        {
+          field: "due_at",
+          old_value: "2026-10-08T14:30:00+00:00",
+          new_value: "2026-10-09T14:30:00+00:00",
+          masked: false,
+        },
+      ],
     },
     {
       event_id: id(20),
@@ -338,15 +337,12 @@ describe("A106 contract: field history", () => {
       actor_person_id: null,
       actor_name: null,
       operation: "insert",
-      field: null,
-      old_value: null,
-      new_value: null,
-      masked: false,
+      changes: [],
     },
   ];
 
-  it("groups a record's changes into events, newest first", async () => {
-    const { api, calls } = app({ "rpc:field_history": [ok(historyRows)] });
+  it("answers a record's events, newest first, each with its changes", async () => {
+    const { api, calls } = app({ "rpc:field_history_events": [ok(historyRows)] });
     const page = (await expectContract(
       await api.request(`/records/${id(1)}/field-history?limit=50`),
       "records.fieldHistory",
@@ -363,30 +359,55 @@ describe("A106 contract: field history", () => {
       [id(21), "update", 2],
       [id(20), "insert", 0],
     ]);
-    expect(page.data[0]?.changes[1]).toEqual({
+    expect(page.data[0]?.changes[0]).toEqual({
       field: "bank_account_number",
       old_value: null,
       new_value: null,
       masked: true,
     });
-    expect(argsOf(calls, "rpc:field_history")).toEqual({
+    expect(argsOf(calls, "rpc:field_history_events")).toEqual({
       p_subject_table: "app.records",
       p_subject_id: id(1),
       p_limit: 50,
     });
   });
 
+  it("keeps a full page whole: 1,000 events, each with all of its changes", async () => {
+    // One row per event, so the API's row cap (max_rows, 1,000) and limit count the same thing; app.field_history
+    // answered one row per changed field, and a page this size lost its oldest events to the cap.
+    const changes = Array.from({ length: 6 }, (_, i) => ({
+      field: `field_${i}`,
+      old_value: i,
+      new_value: i + 1,
+      masked: false,
+    }));
+    const events = Array.from({ length: 1000 }, (_, i) => ({
+      ...historyRows[0],
+      event_id: id(1000 + i),
+      changes,
+    }));
+    const { api, calls } = app({ "rpc:field_history_events": [ok(events)] });
+    const page = (await expectContract(
+      await api.request(`/records/${id(1)}/field-history?limit=1000`),
+      "records.fieldHistory",
+    )) as { data: { event_id: string; changes: unknown[] }[]; next_cursor: string | null };
+    expect(page.data).toHaveLength(1000);
+    expect(page.data.every((e) => e.changes.length === 6)).toBe(true);
+    expect(page.data.at(-1)?.event_id).toBe(id(1999));
+    expect(argsOf(calls, "rpc:field_history_events")).toMatchObject({ p_limit: 1000 });
+  });
+
   it("answers 404 for a row the caller cannot read, and validates the limit", async () => {
-    const { api, calls } = app({ "rpc:field_history": [forbidden] });
+    const { api, calls } = app({ "rpc:field_history_events": [forbidden] });
     const hidden = await api.request(`/records/${id(1)}/field-history`);
     expect(hidden.status).toBe(404);
-    expect(argsOf(calls, "rpc:field_history")).toMatchObject({ p_limit: 200 });
+    expect(argsOf(calls, "rpc:field_history_events")).toMatchObject({ p_limit: 200 });
     expect((await api.request(`/records/${id(1)}/field-history?limit=1001`)).status).toBe(422);
   });
 
   it("reads the history of every subject from its own table", async () => {
     const { api, calls } = app({
-      "rpc:field_history": Array.from({ length: 7 }, () => ok(historyRows.slice(2))),
+      "rpc:field_history_events": Array.from({ length: 7 }, () => ok(historyRows.slice(1))),
     });
     const history = (path: string) => api.request(`${path}/${id(6)}/field-history`);
     await expectContract(await history("/shifts"), "shifts.fieldHistory");

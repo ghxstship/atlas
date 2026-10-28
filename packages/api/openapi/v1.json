@@ -2842,7 +2842,7 @@
           "expect": { "$ref": "#/components/schemas/RecordBulkValues" }
         },
         "required": ["id", "set"],
-        "description": "One of the records in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale.",
+        "description": "One of the records in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00).",
         "example": {
           "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
           "set": { "record_state": "Scheduled" },
@@ -10391,7 +10391,7 @@
           "expect": { "$ref": "#/components/schemas/AssetUnitBulkValues" }
         },
         "required": ["id", "set"],
-        "description": "One of the asset units in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale.",
+        "description": "One of the asset units in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00).",
         "example": {
           "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
           "set": { "asset_state": "In Maintenance" },
@@ -12978,7 +12978,7 @@
           "expect": { "$ref": "#/components/schemas/ShiftBulkValues" }
         },
         "required": ["id", "set"],
-        "description": "One of the shifts in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale.",
+        "description": "One of the shifts in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00).",
         "example": {
           "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
           "set": { "shift_state": "Published" },
@@ -19444,7 +19444,7 @@
           "expect": { "$ref": "#/components/schemas/InvoiceBulkValues" }
         },
         "required": ["id", "set"],
-        "description": "One of the invoices in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale.",
+        "description": "One of the invoices in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00).",
         "example": {
           "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
           "set": { "invoice_state": "Approved" },
@@ -67134,9 +67134,9 @@
         "x-xos-table": "app.records",
         "x-xos-capability": "work.record.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["work"] }],
-        "x-xos-rpc": "app.field_history",
+        "x-xos-rpc": "app.field_history_events",
         "summary": "Field history of a record",
-        "description": "Who changed which field of the record, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the record: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Who changed which field of the record, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the record: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -67155,11 +67155,11 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 1000,
-              "description": "At most this many changes, newest first; 200 when omitted.",
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
               "example": 50
             },
             "required": false,
-            "description": "At most this many changes, newest first; 200 when omitted.",
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
             "name": "limit",
             "in": "query"
           }
@@ -70219,9 +70219,9 @@
         "x-xos-table": "app.sops",
         "x-xos-capability": "knowledge.sop.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
-        "x-xos-rpc": "app.field_history",
+        "x-xos-rpc": "app.field_history_events",
         "summary": "Field history of a SOP",
-        "description": "Who changed which field of the SOP, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the SOP: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Who changed which field of the SOP, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the SOP: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -70240,11 +70240,11 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 1000,
-              "description": "At most this many changes, newest first; 200 when omitted.",
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
               "example": 50
             },
             "required": false,
-            "description": "At most this many changes, newest first; 200 when omitted.",
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
             "name": "limit",
             "in": "query"
           }
@@ -70722,9 +70722,9 @@
         "x-xos-table": "app.documents",
         "x-xos-capability": "knowledge.document.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
-        "x-xos-rpc": "app.field_history",
+        "x-xos-rpc": "app.field_history_events",
         "summary": "Field history of a document",
-        "description": "Who changed which field of the document, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the document: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Who changed which field of the document, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the document: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -70743,11 +70743,11 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 1000,
-              "description": "At most this many changes, newest first; 200 when omitted.",
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
               "example": 50
             },
             "required": false,
-            "description": "At most this many changes, newest first; 200 when omitted.",
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
             "name": "limit",
             "in": "query"
           }
@@ -79261,9 +79261,9 @@
         "x-xos-table": "app.asset_units",
         "x-xos-capability": "assets.asset.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
-        "x-xos-rpc": "app.field_history",
+        "x-xos-rpc": "app.field_history_events",
         "summary": "Field history of a asset unit",
-        "description": "Who changed which field of the asset unit, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the asset unit: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Who changed which field of the asset unit, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the asset unit: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -79282,11 +79282,11 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 1000,
-              "description": "At most this many changes, newest first; 200 when omitted.",
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
               "example": 50
             },
             "required": false,
-            "description": "At most this many changes, newest first; 200 when omitted.",
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
             "name": "limit",
             "in": "query"
           }
@@ -82961,9 +82961,9 @@
         "x-xos-table": "app.shifts",
         "x-xos-capability": "crew.shift.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["crew"] }],
-        "x-xos-rpc": "app.field_history",
+        "x-xos-rpc": "app.field_history_events",
         "summary": "Field history of a shift",
-        "description": "Who changed which field of the shift, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the shift: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Who changed which field of the shift, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the shift: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -82982,11 +82982,11 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 1000,
-              "description": "At most this many changes, newest first; 200 when omitted.",
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
               "example": 50
             },
             "required": false,
-            "description": "At most this many changes, newest first; 200 when omitted.",
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
             "name": "limit",
             "in": "query"
           }
@@ -93378,9 +93378,9 @@
         "x-xos-table": "app.invoices",
         "x-xos-capability": "finance.invoice.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["finance"] }],
-        "x-xos-rpc": "app.field_history",
+        "x-xos-rpc": "app.field_history_events",
         "summary": "Field history of a invoice",
-        "description": "Who changed which field of the invoice, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the invoice: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Who changed which field of the invoice, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the invoice: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -93399,11 +93399,11 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 1000,
-              "description": "At most this many changes, newest first; 200 when omitted.",
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
               "example": 50
             },
             "required": false,
-            "description": "At most this many changes, newest first; 200 when omitted.",
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
             "name": "limit",
             "in": "query"
           }
@@ -96883,9 +96883,9 @@
         "x-xos-table": "app.purchase_orders",
         "x-xos-capability": "procurement.po.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
-        "x-xos-rpc": "app.field_history",
+        "x-xos-rpc": "app.field_history_events",
         "summary": "Field history of a purchase order",
-        "description": "Who changed which field of the purchase order, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the purchase order: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Who changed which field of the purchase order, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the purchase order: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -96904,11 +96904,11 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 1000,
-              "description": "At most this many changes, newest first; 200 when omitted.",
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
               "example": 50
             },
             "required": false,
-            "description": "At most this many changes, newest first; 200 when omitted.",
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
             "name": "limit",
             "in": "query"
           }
@@ -99153,9 +99153,9 @@
         "x-xos-table": "app.vendors",
         "x-xos-capability": "vendors.vendor.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
-        "x-xos-rpc": "app.field_history",
+        "x-xos-rpc": "app.field_history_events",
         "summary": "Field history of a vendor",
-        "description": "Who changed which field of the vendor, when, and from what to what, newest first, from the audit ledger (app.field_history). Answers only someone who can read the vendor: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `next_cursor` is always null: `limit` bounds the changes returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Who changed which field of the vendor, when, and from what to what, newest first, from the audit ledger (app.field_history_events). Answers only someone who can read the vendor: its own read policies decide, and 404 otherwise. A Restricted field is masked without its read capability. `limit` counts events, and every event arrives with all of its changes. `next_cursor` is always null: the page holds the newest `limit` events, and older ones are not returned. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -99174,11 +99174,11 @@
               "type": "integer",
               "minimum": 1,
               "maximum": 1000,
-              "description": "At most this many changes, newest first; 200 when omitted.",
+              "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
               "example": 50
             },
             "required": false,
-            "description": "At most this many changes, newest first; 200 when omitted.",
+            "description": "At most this many events, newest first, each with all of its changes; 200 when omitted.",
             "name": "limit",
             "in": "query"
           }
