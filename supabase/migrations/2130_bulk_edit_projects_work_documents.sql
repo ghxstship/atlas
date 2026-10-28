@@ -139,12 +139,13 @@ begin
   select * into v_item from app.punch_items i where i.id = p_id and i.deleted_at is null;
   select * into v_record from app.records r where r.id = v_item.record_id and r.deleted_at is null;
   if v_record.id is null
-     or not (v_record.project_id in (select private.project_ids_with('work.record.read'))
+     or not (coalesce(v_record.project_id in (select private.project_ids_with('work.record.read')), false)
              or v_record.id in (select private.my_record_ids('work.record.read'))
              or v_record.org_id in (select private.oversight_org_ids('work.record.read'))) then
     perform private.refuse('bulk_row_not_found', 'This row no longer exists or is not available to you.');
   end if;
-  if v_record.project_id not in (select private.project_ids_with('work.punch_list.write')) then
+  -- records.project_id is not null today; a NULL here must still refuse, never skip the check.
+  if v_record.project_id is null or v_record.project_id not in (select private.project_ids_with('work.punch_list.write')) then
     raise exception using errcode = '42501', message = 'work.punch_list.write is required on this punch item''s project.';
   end if;
   -- The item's title, owner, due time and state are its record's (0410): the record's own bulk row applies them.
@@ -171,13 +172,17 @@ declare
 begin
   perform private.bulk_check_fields(p_set, p_expect, 'project_id');
   select * into v_old from app.documents d where d.id = p_id and d.deleted_at is null for update;
+  -- The policy's expression, split by scope: an org-wide document's NULL project_id would make the IN NULL, and a
+  -- NULL condition skips the guard where a policy hides the row.
   if v_old.id is null
-     or not ((v_old.project_id is null and v_old.org_id in (select private.orgs_with_capability('knowledge.document.read')))
-             or v_old.project_id in (select private.project_ids_with('knowledge.document.read'))) then
+     or not (case when v_old.project_id is null
+                  then v_old.org_id in (select private.orgs_with_capability('knowledge.document.read'))
+                  else v_old.project_id in (select private.project_ids_with('knowledge.document.read')) end) then
     perform private.refuse('bulk_row_not_found', 'This row no longer exists or is not available to you.');
   end if;
-  if not ((v_old.project_id is null and v_old.org_id in (select private.orgs_with_capability('knowledge.document.write')))
-          or v_old.project_id in (select private.project_ids_with('knowledge.document.write'))) then
+  if not (case when v_old.project_id is null
+               then v_old.org_id in (select private.orgs_with_capability('knowledge.document.write'))
+               else v_old.project_id in (select private.project_ids_with('knowledge.document.write')) end) then
     raise exception using errcode = '42501', message = 'knowledge.document.write is required where this document is.';
   end if;
   perform private.bulk_check_expect(to_jsonb(v_old), p_expect);

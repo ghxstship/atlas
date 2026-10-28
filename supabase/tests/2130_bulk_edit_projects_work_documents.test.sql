@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(59);
+select plan(65);
 
 create function pg_temp.bulk(p_resource text, p_rows jsonb, p_preview boolean default false, p_reason text default null)
 returns jsonb
@@ -207,6 +207,11 @@ insert into answer select 'documents', pg_temp.bulk('documents', pg_temp.rows(ar
 select is((select r ->> 'committed' from answer), 'false', 'a document of another org undoes the whole call');
 select is((select project_id from app.documents where id = pg_temp.id('d1')), null, 'so the other stays org-wide');
 select is((select r -> 'refused' -> 0 ->> 'id' from answer), pg_temp.id('d3')::text, 'the refusal names the row');
+select is((select r -> 'refused' -> 0 ->> 'rule' from answer), 'bulk_row_not_found',
+  'and reads as not found, though the caller writes documents on a project of their own (invariant 2)');
+select is(
+  (select r -> 'refused' -> 0 ->> 'rule' from (select pg_temp.bulk('documents', pg_temp.rows(array['d3'], '{"project_id": null}')) r) x),
+  'bulk_row_not_found', 'a change that would leave another org''s document as it is still reads as not found');
 select pg_temp.as_user('carol');
 select is(
   (select r -> 'refused' -> 0 ->> 'rule' from (select pg_temp.bulk('documents', pg_temp.rows(array['d1'], jsonb_build_object('project_id', pg_temp.id('prj_b')))) r) x),
@@ -215,6 +220,25 @@ select pg_temp.as_user('frank');
 select ok(
   (select r -> 'refused' -> 0 ->> 'rule' from (select pg_temp.bulk('documents', pg_temp.rows(array['d1'], jsonb_build_object('project_id', pg_temp.id('prj_a')))) r) x)
     in ('not_allowed', 'bulk_row_not_found'), 'a person without knowledge.document.write cannot move it');
+
+-- An org-wide document has no project, so its checks stand on the org alone: knowledge.document.write on some
+-- project is never write on an org-wide document, nor read on one.
+select pg_temp.as_user('bob');
+insert into app.record_grants (target_kind, target_id, capability_code, grantee_person_id, valid_to, reason) values
+  ('project', pg_temp.id('prj_a'), 'knowledge.document.write', pg_temp.id('gina'), now() + interval '7 days', 'Files the show binder.'),
+  ('project', pg_temp.id('prj_a'), 'knowledge.document.read', pg_temp.id('xavier'), now() + interval '7 days', 'Co-production files.'),
+  ('project', pg_temp.id('prj_a'), 'knowledge.document.write', pg_temp.id('xavier'), now() + interval '7 days', 'Co-production files.');
+select pg_temp.as_user('gina');
+select is(
+  (select r -> 'refused' -> 0 ->> 'rule' from (select pg_temp.bulk('documents', pg_temp.rows(array['d2'], jsonb_build_object('project_id', pg_temp.id('prj_a')))) r) x),
+  'not_allowed', 'write on one project does not move an org-wide document the caller only reads into it');
+select is((select project_id from app.documents where id = pg_temp.id('d2')), null, 'so it stays org-wide');
+select pg_temp.as_user('xavier');
+select is(
+  (select r -> 'refused' -> 0 ->> 'rule' from (select pg_temp.bulk('documents', pg_temp.rows(array['d1'], jsonb_build_object('project_id', pg_temp.id('prj_a')))) r) x),
+  'bulk_row_not_found', 'and documents on a shared project never reach the org-wide documents of its org');
+select pg_temp.as_platform();
+select is((select project_id from app.documents where id = pg_temp.id('d1')), null, 'which stay where they were');
 
 -- Audit -----------------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
