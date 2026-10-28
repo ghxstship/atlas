@@ -96,14 +96,20 @@ export default async function LocaleLayout({
             sidebar={<DocsSidebar label={t("nav.label")} groups={navigation(locale)} />}
             header={
               <div className="flex flex-1 flex-wrap items-center justify-end gap-12">
-                <nav aria-label={t("language.label")} className="flex gap-8 text-text-13">
+                {/* The links share what the theme switch leaves, so a long name truncates with its title
+                    rather than wrapping out of the fixed header on a phone. */}
+                <nav
+                  aria-label={t("language.label")}
+                  className="flex flex-1 min-w-0 justify-end gap-8 text-text-13"
+                >
                   {other.map((l) => (
                     <a
                       key={l}
                       href={`/${l}`}
                       lang={l}
                       hrefLang={l}
-                      className="text-text-secondary hover:text-text-primary"
+                      title={t(`language.${l}`)}
+                      className="min-w-0 truncate text-text-secondary hover:text-text-primary"
                     >
                       {t(`language.${l}`)}
                     </a>

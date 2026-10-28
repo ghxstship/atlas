@@ -319,6 +319,26 @@ describe("API reference", () => {
     expect(loadReference()).toBe(reference);
   });
 
+  it("keeps constraints as data for each locale to word, and writes arrays as code", () => {
+    const rows = reference.resources.flatMap((r) =>
+      r.operations.flatMap((o) => [
+        ...o.pathParams,
+        ...o.queryParams,
+        ...(o.body?.fields ?? []),
+        ...(o.response?.fields ?? []),
+      ]),
+    );
+    const kinds = new Set(rows.flatMap((f) => f.constraints.map((c) => c.kind)));
+    expect([...kinds].sort()).toEqual(expect.arrayContaining(["length", "range"]));
+    const limit = rows.find((f) => f.name === "limit")?.constraints.find((c) => c.kind === "range");
+    expect(limit).toMatchObject({ kind: "range", min: expect.any(Number) });
+    // No English words in a type: arrays read as `Item[]`.
+    expect(rows.some((f) => f.type.endsWith("[]"))).toBe(true);
+    expect(rows.every((f) => !/\barray of\b/.test(f.type))).toBe(true);
+    const t = translator("es-US");
+    expect(t("reference.constraintLength", { min: 1, max: 300 })).toBe("longitud de 1 a 300");
+  });
+
   it("describes a list, a create and an update with fields, examples and samples", () => {
     const projects = reference.resources.find((r) => r.name === "projects");
     const list = projects?.operations.find((o) => o.verb === "list");

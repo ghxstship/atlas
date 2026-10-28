@@ -23,7 +23,9 @@ function NavLink({
   const body = (
     <>
       {item.icon ? <Icon name={item.icon} /> : null}
-      <span className="flex-1 min-w-0 truncate">{item.label}</span>
+      <span className="flex-1 min-w-0 truncate" title={item.label}>
+        {item.label}
+      </span>
       {item.badge !== undefined ? (
         <span className="text-text-11 text-text-secondary tabular-nums">{item.badge}</span>
       ) : null}
