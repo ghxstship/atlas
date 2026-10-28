@@ -153,6 +153,7 @@ insert into register_restated values
   ('app.guest_list_entries.project_id', 'app.scope_nodes.project_id', 'own'),
   ('app.import_job_columns.sheet_name', 'app.import_jobs.sheet_name', 'finding'),
   ('app.import_job_sheets.sheet_name', 'app.import_jobs.sheet_name', 'own'),
+  ('app.import_jobs.project_id', 'app.run_of_show.project_id', 'own'),
   ('app.import_jobs.sheet_name', 'app.import_job_sheets.sheet_name', 'own'),
   ('app.import_jobs.target_code', 'app.import_mapping_profiles.target_code', 'own'),
   ('app.import_row_matches.target_id', 'app.import_row_results.target_id', 'own'),

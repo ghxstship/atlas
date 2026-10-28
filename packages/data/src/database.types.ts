@@ -21211,6 +21211,8 @@ export type Database = {
           mapping_confirmed_at: string | null;
           org_id: string;
           original_filename: string;
+          project_id: string | null;
+          run_of_show_id: string | null;
           sheet_name: string | null;
           source: Database["app"]["Enums"]["import_source"];
           source_url: string | null;
@@ -21232,6 +21234,8 @@ export type Database = {
           mapping_confirmed_at?: string | null;
           org_id: string;
           original_filename: string;
+          project_id?: string | null;
+          run_of_show_id?: string | null;
           sheet_name?: string | null;
           source: Database["app"]["Enums"]["import_source"];
           source_url?: string | null;
@@ -21252,6 +21256,8 @@ export type Database = {
           mapping_confirmed_at?: string | null;
           org_id?: string;
           original_filename?: string;
+          project_id?: string | null;
+          run_of_show_id?: string | null;
           sheet_name?: string | null;
           source?: Database["app"]["Enums"]["import_source"];
           source_url?: string | null;
@@ -21287,6 +21293,41 @@ export type Database = {
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "import_jobs_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_jobs_run_of_show_id_fkey";
+            columns: ["run_of_show_id"];
+            isOneToOne: false;
+            referencedRelation: "run_of_show";
             referencedColumns: ["id"];
           },
           {
@@ -58425,6 +58466,7 @@ export type Database = {
       import_targets: {
         Row: {
           code: string | null;
+          destination: string | null;
           fuzzy_match: boolean | null;
           sort_order: number | null;
           write_capability: string | null;
@@ -58432,12 +58474,14 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           code?: string | null;
+          destination?: string | null;
           fuzzy_match?: boolean | null;
           sort_order?: number | null;
           write_capability?: string | null;
         };
         Update: {
           code?: string | null;
+          destination?: string | null;
           fuzzy_match?: boolean | null;
           sort_order?: number | null;
           write_capability?: string | null;
@@ -62721,8 +62765,30 @@ export type Database = {
         }[];
       };
       hide_feed_post: { Args: { p_post_id: string; p_reason: string }; Returns: string };
+      import_column_samples: {
+        Args: { p_import_job_id: string };
+        Returns: {
+          import_job_column_id: string;
+          sample_index: number;
+          sample_value: string;
+        }[];
+      };
+      import_destinations: {
+        Args: { p_include?: string; p_org_id: string; p_target_code: string };
+        Returns: {
+          destination_id: string;
+          label: string;
+          project_id: string;
+          show_date: string;
+        }[];
+      };
       import_detected_sheet: {
-        Args: { p_sheet_id: string; p_target_code: string };
+        Args: {
+          p_project_id?: string;
+          p_run_of_show_id?: string;
+          p_sheet_id: string;
+          p_target_code: string;
+        };
         Returns: string;
       };
       import_dry_run: {
@@ -62736,6 +62802,7 @@ export type Database = {
           updates: number;
         }[];
       };
+      import_strong_key_match: { Args: { p_import_job_id: string; p_keys: Json }; Returns: string };
       inbound_email_org: { Args: { p_local_part: string }; Returns: string };
       integration_inbound_secrets_stored: {
         Args: { p_org_id: string };
@@ -63679,6 +63746,10 @@ export type Database = {
       record_gate_arrival: {
         Args: { p_project_id: string; p_shipment_id?: string; p_vehicle_identifier: string };
         Returns: string;
+      };
+      record_import_column_samples: {
+        Args: { p_import_job_id: string; p_samples: Json };
+        Returns: number;
       };
       record_import_row: {
         Args: {
