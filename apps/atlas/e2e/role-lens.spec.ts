@@ -48,22 +48,30 @@ test("the Member lens hides the Producer's Inbox items, and All roles brings the
   await expect(page.getByText(TIMESHEET)).toBeVisible();
 });
 
+/** The Finance entry of the Commercial group, opening the group when it is collapsed. */
+async function financeEntry(page: Page) {
+  const nav = page.getByRole("navigation", { name: "Main" });
+  const finance = nav.getByRole("link", { name: "Finance", exact: true });
+  const group = nav.getByRole("button", { name: "Commercial", exact: true });
+  if ((await finance.count()) === 0 && (await group.count()) > 0) await group.click();
+  return finance;
+}
+
 test("the Field lens hides the Admin's navigation, a link still opens, and All roles restores it", async ({
   page,
 }) => {
   test.setTimeout(180_000);
   await signIn(page, "multi@example.com", "demo-bayside-studios");
-  const nav = page.getByRole("navigation", { name: "Main" });
-  await expect(nav.getByRole("link", { name: "Finance", exact: true })).toBeVisible();
+  await expect(await financeEntry(page)).toBeVisible();
 
   await chooseRole(page, "Field");
-  await expect(nav.getByRole("link", { name: "Finance", exact: true })).toHaveCount(0);
+  await expect(await financeEntry(page)).toHaveCount(0);
   // The lens narrows navigation, not access: a link to a page the Admin may open still opens it.
   await page.goto("/demo-bayside-studios/finance");
   await expect(page.getByRole("heading", { level: 1, name: "Finance" })).toBeVisible();
 
   await chooseRole(page, "All roles");
-  await expect(nav.getByRole("link", { name: "Finance", exact: true })).toBeVisible();
+  await expect(await financeEntry(page)).toBeVisible();
 });
 
 test("a person with one role is offered no lens", async ({ page }) => {
