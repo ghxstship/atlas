@@ -228,6 +228,7 @@ describe("opening a link", () => {
             watermark: true,
             recipient_email: "ana@venue.test",
             expires_at: "2026-10-27T00:00:00Z",
+            attachment_version_id: "0192f0a0-0000-7000-8000-000000000001",
           },
         ]),
       ],
@@ -239,7 +240,19 @@ describe("opening a link", () => {
       watermark: true,
       recipientEmail: "ana@venue.test",
       contentType: "image/png",
+      versionId: "0192f0a0-0000-7000-8000-000000000001",
     });
+  });
+
+  // A69-013: before migration 2000 the database answers no version, and the copy links nowhere.
+  it("answers no version when the database names none", async () => {
+    const { db } = withPublic({
+      "rpc:api_public.open_share_link": [
+        okResponse([{ refusal: null, reason: null, ticket: "xdlt_ticket", watermark: false }]),
+      ],
+    });
+    const result = await openShareLink(db, { token: TOKEN, accessCode: null });
+    expect(result.ok && !result.data.refused && result.data.versionId).toBeNull();
   });
 });
 

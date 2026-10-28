@@ -199,7 +199,7 @@ test("a Pro org allows personal tokens; one is created behind step-up, shown onc
   const tokenForm = page.getByRole("form", { name: "Create a token" });
   await tokenForm.getByLabel("Name").fill("Laptop scripts");
   await openChoices(tokenForm, "Areas it may use");
-  await tokenForm.getByRole("checkbox", { name: "work", exact: true }).check();
+  await tokenForm.getByRole("checkbox", { name: "Work records", exact: true }).check();
   await tokenForm.getByRole("button", { name: "Create token" }).click();
   // No second factor yet: the step-up dialog sets one up, and verifying it submits the form again.
   const dialog = page.getByRole("dialog", { name: "Set up a second factor" });
@@ -225,7 +225,7 @@ test("a Pro org allows personal tokens; one is created behind step-up, shown onc
   const key = page.getByRole("form", { name: "Create an API key" });
   await key.getByLabel("Name").fill("Ledger export");
   await openChoices(key, "Areas it may use");
-  await key.getByRole("checkbox", { name: "finance", exact: true }).check();
+  await key.getByRole("checkbox", { name: "Finance", exact: true }).check();
   await key.getByRole("button", { name: "Create key" }).click();
   await expect(page.getByLabel("API key", { exact: true })).toHaveValue(/^xos_live_[0-9a-f]{48}$/);
   await expectAccessibleInBothThemes(page);

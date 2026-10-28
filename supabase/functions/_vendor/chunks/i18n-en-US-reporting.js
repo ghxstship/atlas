@@ -6,6 +6,13 @@ var file = {
   subtitle:
     "Run {date}. Rows: {rows}. Rows with an unpriced amount, left out of their total: {unpriced}.",
   truncated: "This file stops at the row limit. Narrow the report's filters to see every row.",
+  watermark: "Prepared for {email} on {time}",
+};
+var exportFile = {
+  subtitle: "Exported {date}. Rows: {rows}.",
+  truncated:
+    "This file holds the first {limit} rows. Narrow the filters of the collection to export every row.",
+  watermark: "Exported by {email} on {time}",
 };
 var email = {
   subject: "{report} from {org}",
@@ -110,6 +117,7 @@ var errors = {
 };
 var reporting_default = {
   file,
+  exportFile,
   email,
   dashboards,
   tile,
@@ -117,4 +125,13 @@ var reporting_default = {
   errors,
 };
 //#endregion
-export { dashboards, reporting_default as default, email, errors, file, schedule, tile };
+export {
+  dashboards,
+  reporting_default as default,
+  email,
+  errors,
+  exportFile,
+  file,
+  schedule,
+  tile,
+};
