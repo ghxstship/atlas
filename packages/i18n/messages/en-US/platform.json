@@ -529,6 +529,34 @@
       "done": "Field added."
     }
   },
+  "customFields": {
+    "title": "Custom fields",
+    "companyTitle": "Company fields",
+    "edit": "Edit fields",
+    "save": "Save fields",
+    "cancel": "Cancel",
+    "saved": "Custom fields saved.",
+    "notSet": "Not set",
+    "yes": "Yes",
+    "no": "No",
+    "someone": "A former member",
+    "requiredHelp": "Required.",
+    "currency": "{label} currency",
+    "timeZone": "In {zone}.",
+    "urlHelp": "Starts with http:// or https://.",
+    "problems": {
+      "required": "{label} is required. Enter a value.",
+      "invalid": "{label} does not look right. Check the value and try again.",
+      "currency": "Choose a currency for {label}."
+    },
+    "errors": {
+      "custom_value_required": "A required field cannot be left empty. Enter a value and save again.",
+      "denied": "You cannot change these fields. Collaborators and higher roles can; ask an Admin.",
+      "invalid": "These values cannot be saved as they stand. Check them and try again.",
+      "unexpected": "The fields could not be saved. Try again in a moment.",
+      "refused": "The fields could not be saved because a value breaks one of this organization's rules. Check the values and try again."
+    }
+  },
   "inbox": {
     "title": "Inbox",
     "loadError": "Your Inbox could not be loaded.",

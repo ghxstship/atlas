@@ -51200,7 +51200,7 @@
           "type": "uuid"
         },
         {
-          "comment": "Table of what was opened: records, incidents, documents, sops or handbook_articles.",
+          "comment": "Table of what was opened: records, incidents, documents, sops, handbook_articles or projects.",
           "name": "subject_table",
           "nullable": false,
           "references": null,
@@ -51256,7 +51256,7 @@
           "type": "timestamp with time zone"
         }
       ],
-      "comment": "What a person opened (Section 11.7: the last 50 records each person viewed appear before they type): each record, incident, document, SOP or handbook article once, with when they last opened it. At most 50 per person and org; rows go after 90 days and when the person is deleted. Only the person reads or writes their own rows.",
+      "comment": "What a person opened (Section 11.7: the last 50 records each person viewed appear before they type; Section 4.5.2: the five most recent projects under Projects): each record, incident, document, SOP, handbook article or project once, with when they last opened it. At most 50 projects and 50 of everything else per person and org; rows go after 90 days and when the person is deleted. Only the person reads or writes their own rows.",
       "kind": "table",
       "name": "recent_views",
       "partitioned": false,

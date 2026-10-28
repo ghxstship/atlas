@@ -63415,6 +63415,17 @@ export type Database = {
           operation: string;
         }[];
       };
+      field_history_events: {
+        Args: { p_limit?: number; p_subject_id: string; p_subject_table: string };
+        Returns: {
+          actor_name: string;
+          actor_person_id: string;
+          changed_at: string;
+          changes: Json;
+          event_id: string;
+          operation: string;
+        }[];
+      };
       file_inbound_message: {
         Args: { p_inbound_message_id: string; p_record_id?: string; p_title?: string };
         Returns: string;
@@ -64418,6 +64429,15 @@ export type Database = {
           viewed_at: string;
         }[];
       };
+      recent_projects: {
+        Args: { p_limit?: number; p_org_id: string };
+        Returns: {
+          name: string;
+          project_id: string;
+          project_key: string;
+          viewed_at: string;
+        }[];
+      };
       recipient_setting: {
         Args: { p_org_id: string; p_person_id: string; p_setting_key: string };
         Returns: string;
@@ -64943,6 +64963,7 @@ export type Database = {
       };
       release_vehicle: { Args: { p_gate_queue_id: string }; Returns: string };
       remove_account_role: { Args: { p_account_membership_role_id: string }; Returns: undefined };
+      reorder_favorites: { Args: { p_favorite_ids: string[]; p_org_id: string }; Returns: number };
       replace_project_inbox: { Args: { p_project_id: string }; Returns: string };
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };
       reply_address_local_part: {

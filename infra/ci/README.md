@@ -141,141 +141,30 @@ api-breaking-changes:
 
 `--format githubactions` turns each breaking change into an error annotation on the pull request. Before the first `v*` tag the step prints that there is no released baseline and passes.
 
-## 5. New workflow `.github/workflows/publish-packages.yml`
+## 5. Workflow `.github/workflows/publish-packages.yml`
 
-Publishes `@xos/sdk` and `@xos/cli` to npm and `xos-sdk` to PyPI when a release tag `vX.Y.Z` is pushed. Nothing publishes from a branch or a pull request. The `verify` job checks that the tag equals the version in all three packages (`packages/sdk-ts/test/release.test.ts` keeps them equal on every push), runs their tests, builds them once and hands the exact archives to the publish jobs.
+Publishes `@ghxstship/xos-sdk` and `@ghxstship/xos-cli` to npm and `xos-sdk` to PyPI when a release tag `vX.Y.Z` is pushed. Nothing publishes from a branch or a pull request. The workflow is in the repository, so this section no longer copies it.
 
-- **npm:** trusted publishing over OIDC. `npm` 11.5 or later exchanges the job's OIDC token for a one-time publish token once the owner adds this repository and workflow as a trusted publisher of both packages on npmjs.com. Until then, the `NPM_TOKEN` secret (an automation token scoped to the `@xos` packages) is the fallback. No provenance: npm signs it only for a public repository, and this one is private (owner decision, 2026-10-24). A public mirror of the SDK packages can bring it back later.
-- **PyPI:** trusted publishing through `pypa/gh-action-pypi-publish`, so no PyPI secret exists. The owner registers a pending publisher for `xos-sdk` on pypi.org (owner `ghxstship`, repository `atlas`, workflow `publish-packages.yml`, environment `pypi`). Attestations are off (`attestations: false`): PEP 740 attestations need a public repository.
-- **Environments:** `npm` and `pypi` are GitHub environments with the owner as required reviewer, so a pushed tag waits for one approval before anything leaves the repository.
-- **Publishing an existing tag:** Actions, Publish packages, Run workflow, with the tag (for example `v4.0.0`). The run uses the workflow from `main` and checks out the tag, so a fix to the workflow reaches a tag that has already been pushed. v4.0.0 needs this: its own copy passed npm a path that npm read as a GitHub repository, and nothing was published.
+- **Names.** `@xos` on npm belongs to someone else, so both npm packages publish under the owner's `@ghxstship` scope (ADR 0024, 2026-10-28 amendment). The other workspace packages keep `@xos/*`: they are private and never published. The PyPI name stays `xos-sdk`.
+- **`verify`.** Checks that the tag equals the version in all three packages (`packages/sdk-ts/test/release.test.ts` keeps them equal on every push), runs their tests, builds them once and packs them. pnpm names a scoped archive `<scope>-<name>-<version>.tgz`, so the job looks for `ghxstship-xos-sdk-X.Y.Z.tgz` and `ghxstship-xos-cli-X.Y.Z.tgz`, checks each holds its built entry point, and checks that the packed CLI depends on the exact SDK version (pnpm writes `workspace:*` as `X.Y.Z`). The publish jobs get these exact archives.
+- **npm.** Publishes the SDK first, then the CLI, because the CLI depends on that SDK version. Each step runs `npm view <name>@X.Y.Z` first and skips a version that already exists. Both manifests set `publishConfig.provenance` to `false`: npm reads `publishConfig` from the archive, and npm signs provenance only for a public repository, while this one is private (owner decision, 2026-10-24). A public mirror of the SDK packages can bring it back later.
+- **PyPI.** Trusted publishing through `pypa/gh-action-pypi-publish`, so no PyPI secret exists. The owner registers a pending publisher for `xos-sdk` on pypi.org (owner `ghxstship`, repository `atlas`, workflow `publish-packages.yml`, environment `pypi`). Attestations are off (`attestations: false`): PEP 740 attestations need a public repository.
+- **Environments.** `npm` and `pypi` are GitHub environments with the owner as required reviewer, so a pushed tag waits for one approval before anything leaves the repository. The `npm` environment links to `https://www.npmjs.com/package/@ghxstship/xos-sdk`.
+- **Publishing an existing tag.** Actions, Publish packages, Run workflow, with the tag (for example `v4.0.0`). The run uses the workflow from `main` and checks out the tag, so a fix to the workflow reaches a tag that has already been pushed. A tag cut before the rename still names `@xos/*` in its manifests, so publish the first release that carries the `@ghxstship` names, not v4.0.0.
 
-```yaml
-name: Publish packages
+### npm credentials: one token for the first publish, then trusted publishing
 
-on:
-  push:
-    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
+npm adds a trusted publisher only to a package that already exists, so the first publish of each package needs a token. After it, npm trusted publishing replaces the token for good: `npm` 11.5 or later exchanges the job's OIDC token for a one-time publish token.
 
-permissions:
-  contents: read
-
-concurrency:
-  group: publish-${{ github.ref_name }}
-  cancel-in-progress: false
-
-jobs:
-  verify:
-    name: Version, tests, build and pack
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
-        with:
-          python-version: "3.12"
-      - run: pnpm install --frozen-lockfile
-      - name: Tag equals every package version
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          for manifest in packages/sdk-ts/package.json packages/cli/package.json; do
-            ACTUAL="$(node -p "require('./${manifest}').version")"
-            [ "$ACTUAL" = "$VERSION" ] || { echo "::error::${manifest} is ${ACTUAL}, tag is ${GITHUB_REF_NAME}"; exit 1; }
-          done
-          grep -qx "version = \"${VERSION}\"" packages/sdk-python/pyproject.toml || { echo "::error::pyproject.toml does not say ${VERSION}"; exit 1; }
-      - run: pnpm turbo run test --filter=@xos/sdk --filter=@xos/cli --filter=@xos/sdk-python
-      - name: Build and pack npm packages
-        run: |
-          pnpm --filter @xos/sdk build
-          pnpm --filter @xos/cli build
-          mkdir -p "$RUNNER_TEMP/npm"
-          (cd packages/sdk-ts && pnpm pack --pack-destination "$RUNNER_TEMP/npm")
-          (cd packages/cli && pnpm pack --pack-destination "$RUNNER_TEMP/npm")
-          tar -tzf "$RUNNER_TEMP/npm/xos-cli-${GITHUB_REF_NAME#v}.tgz" | grep -q package/dist/main.js
-      - name: Build Python distributions
-        run: |
-          python -m pip install build==1.3.0 twine==6.2.0
-          python -m build packages/sdk-python --outdir "$RUNNER_TEMP/pypi"
-          python -m twine check --strict "$RUNNER_TEMP/pypi"/*
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: npm-packages
-          path: ${{ runner.temp }}/npm/*.tgz
-          if-no-files-found: error
-          retention-days: 30
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: python-distributions
-          path: ${{ runner.temp }}/pypi/*
-          if-no-files-found: error
-          retention-days: 30
-
-  npm:
-    name: Publish to npm
-    needs: verify
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    environment:
-      name: npm
-      url: https://www.npmjs.com/package/@xos/sdk
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "22.14.0"
-          registry-url: https://registry.npmjs.org
-      - run: npm install --global npm@11.21.0
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: npm-packages
-          path: npm
-      # The SDK first: the CLI depends on the exact SDK version.
-      - name: Publish @xos/sdk and @xos/cli
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          publish() {
-            if npm view "$1@${VERSION}" version >/dev/null 2>&1; then
-              echo "$1@${VERSION} is already published; skipping."
-            else
-              npm publish "$2" --access public
-            fi
-          }
-          publish @xos/sdk "npm/xos-sdk-${VERSION}.tgz"
-          publish @xos/cli "npm/xos-cli-${VERSION}.tgz"
-
-  pypi:
-    name: Publish to PyPI
-    needs: verify
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    environment:
-      name: pypi
-      url: https://pypi.org/project/xos-sdk/
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: python-distributions
-          path: dist
-      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
-        with:
-          packages-dir: dist
-          skip-existing: true
-```
+1. **On npmjs.com,** signed in as the owner of the `ghxstship` organization, create a granular access token with read and write access to the `@ghxstship` scope only and a short expiry (7 days is enough). Copy it to the clipboard; never save it in a file, a note or a chat.
+2. **Store it as the `npm` environment's secret through a hidden prompt.** In a terminal at the repository root, run `gh secret set NPM_TOKEN --env npm --repo ghxstship/atlas` with no `--body`. `gh` asks for the value without echoing it; paste and press Return. The token never appears in shell history or on screen. Clear the clipboard afterwards.
+3. **Publish.** Push the release tag, or run Publish packages on an existing tag, and approve the `npm` environment. Confirm with `npm view @ghxstship/xos-sdk version` and `npm view @ghxstship/xos-cli version`.
+4. **Add the trusted publisher to each package.** On npmjs.com, open each package, Settings, Trusted publishing, GitHub Actions: organization or user `ghxstship`, repository `atlas`, workflow filename `publish-packages.yml`, environment `npm`. Then set Publishing access to require two-factor authentication and disallow tokens.
+5. **Remove the token.** Run `gh secret delete NPM_TOKEN --env npm --repo ghxstship/atlas` and revoke the token on npmjs.com. From the next tag on, the `npm` job authenticates through OIDC (`id-token: write`); with no secret set, `NODE_AUTH_TOKEN` is empty and npm uses the exchanged token.
 
 A failed publish is safe to rerun with "Re-run failed jobs" on the same tag: both publish steps skip a version that already exists, so a rerun publishes only what is missing. A wrong release is never unpublished: release the next patch version instead (npm `deprecate` and PyPI "yank" mark the bad one).
 
-Before the first tag, the owner confirms the names are theirs. Publishing under a new organization name is a Section 19.8 stop condition. The `@xos` scope on npm and the `xos-sdk` project on PyPI must belong to the owner's accounts.
+Before the first tag, the owner confirms the names are theirs. Publishing under a new organization name is a Section 19.8 stop condition. The `@ghxstship` scope on npm (the owner's npm organization `ghxstship`) and the `xos-sdk` project on PyPI must belong to the owner's accounts.
 
 ## 6. Repository settings (orchestrator)
 
