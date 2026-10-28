@@ -607,3 +607,30 @@ export async function listMyUnconfirmedMemberships(
   const names = new Map((accounts.data ?? []).map((a) => [a.account_id, a.name ?? ""]));
   return ok(rows.map((r) => ({ accountMembershipId: r.id, accountId: r.accountId, accountName: names.get(r.accountId) ?? "" })));
 }
+
+/** A role from the Roles Library, for the roster's role picker. */
+export interface RoleOption {
+  readonly roleCode: string;
+  readonly jobTitle: string;
+}
+
+/**
+ * Roles to pick from on a roster entry, read on the server: the roles of the engagement role's
+ * department class when it has one (a vendor's audio crew picks among audio roles), else the first
+ * 300 by job title.
+ */
+export async function listRoleOptions(
+  db: XosClient,
+  engagementRoleCode: string | null,
+): Promise<Result<RoleOption[]>> {
+  let query = db.schema("xpms").from("role").select("role_code, job_title");
+  if (engagementRoleCode) query = query.eq("class_code", engagementRoleCode.slice(0, 4));
+  const { data, error } = await query.order("job_title", { ascending: true }).limit(300);
+  if (error) return fail(toDataError(error));
+  return ok(
+    ((data ?? []) as { role_code: string; job_title: string }[]).map((r) => ({
+      roleCode: r.role_code,
+      jobTitle: r.job_title,
+    })),
+  );
+}

@@ -19,6 +19,7 @@ import {
   PROFILE_SECTIONS,
 } from "@xos/data/profiles";
 import { listMyPersonCalendarFeeds } from "@xos/data/calendar-feeds";
+import { listAccountInvitations } from "@xos/data/roster";
 import { getAccountNotificationDefaults } from "@xos/data/company-settings";
 import { getMyQuietHours, listMyNotificationPreferences } from "@xos/data/party-notifications";
 import { resolveSettings } from "@xos/data/settings";
@@ -65,6 +66,8 @@ import {
   RegionsSurface,
 } from "./surfaces";
 import { SecurityPanels } from "./security-panels";
+import { TeamInviteForm } from "./team-invite-form";
+import { revokeAccountInvitationAction } from "@/lib/actions/roster";
 import {
   MyAccessLogPanel,
   MySharingPanel,
@@ -848,8 +851,11 @@ async function CompanyProfileSection(props: SectionProps) {
 async function TeamSection(props: SectionProps) {
   const { ctx, t, locale } = props;
   if (!ctx.acting) return null;
-  const members = await listAccountMembers(ctx.db, ctx.acting.id);
   const admin = ctx.acting.roles.some((r) => r === "Account Owner" || r === "Account Admin");
+  const [members, invitations] = await Promise.all([
+    listAccountMembers(ctx.db, ctx.acting.id),
+    admin ? listAccountInvitations(ctx.db, ctx.acting.id) : null,
+  ]);
   return (
     <>
       <Header t={t} node={props.node} />
@@ -865,6 +871,10 @@ async function TeamSection(props: SectionProps) {
               m.roles.map((r) => t(enumLabelKey("accountRole", r))).join(", "),
               t("gateway.profile.company.since", { date: formatDate(locale, m.validFrom) }),
             ],
+            // R4: a member an admin added confirms before they can be rostered or assigned.
+            ...(m.acceptedAt === null
+              ? { tag: { label: t("gateway.settings.company.notConfirmed"), tone: "warning" as const } }
+              : {}),
             ...(admin && m.personId !== ctx.personId
               ? {
                   action: (
@@ -879,6 +889,30 @@ async function TeamSection(props: SectionProps) {
           }))}
         />
       )}
+      {invitations?.ok && invitations.data.length > 0 ? (
+        <RowList
+          label={t("gateway.settings.company.invitations")}
+          items={invitations.data.map((i) => ({
+            id: i.id,
+            title: i.email,
+            meta: [
+              t(enumLabelKey("accountRole", i.accountRole)),
+              t("gateway.settings.company.invitationExpires", { date: formatDate(locale, i.expiresAt) }),
+            ],
+            tag: { label: t("gateway.settings.company.invited"), tone: "accent" as const },
+            action: (
+              <ActionButton
+                action={revokeAccountInvitationAction.bind(null, i.id)}
+                label={t("gateway.settings.company.revokeInvitation")}
+                variant="ghost"
+              />
+            ),
+          }))}
+        />
+      ) : null}
+      {admin ? (
+        <TeamInviteForm accountId={ctx.acting.id} owner={ctx.acting.roles.includes("Account Owner")} />
+      ) : null}
       <p className="m-0 text-text-13 text-text-secondary">
         {t("gateway.settings.company.inviteNote")}
       </p>
