@@ -675,7 +675,11 @@ describe("budgets", () => {
       otherCurrencyLineCount: 0,
     });
     expect(
-      finance.budgetCommittedTotal([line(500), line(0, { otherCurrencyPoLineCount: 2 }), line(250)]),
+      finance.budgetCommittedTotal([
+        line(500),
+        line(0, { otherCurrencyPoLineCount: 2 }),
+        line(250),
+      ]),
     ).toEqual({ totalMinor: 750, committedLineCount: 2, otherCurrencyLineCount: 2 });
     expect(
       finance.budgetCommittedTotal([line(500), line(null, { committedWithheld: true })]),
