@@ -36,6 +36,7 @@ describe("console sitemap", () => {
       "/moderation",
       "/moderation/{opportunityId}",
       "/banners",
+      "/funnels",
       "/team",
       "/activity",
     ]);
@@ -50,15 +51,24 @@ describe("console sitemap", () => {
       "support",
       "moderation",
       "banners",
+      "funnels",
       "team",
       "activity",
     ]);
-    expect(visible("support")).toEqual(["tenants", "flags", "support", "banners", "activity"]);
+    expect(visible("support")).toEqual([
+      "tenants",
+      "flags",
+      "support",
+      "banners",
+      "funnels",
+      "activity",
+    ]);
     expect(visible("trust-and-safety")).toEqual([
       "tenants",
       "flags",
       "moderation",
       "banners",
+      "funnels",
       "activity",
     ]);
     expect(isNodeVisible(operatorConsole, "moderation.listing", { role: "support" })).toBe(false);
