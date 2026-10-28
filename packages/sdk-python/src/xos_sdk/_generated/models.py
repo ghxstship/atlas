@@ -14951,6 +14951,8 @@ class AccountMembership(TypedDict):
     valid_from: str
     #: End of account membership.
     valid_to: Optional[str]
+    #: When the person confirmed the membership; null until they do.
+    accepted_at: Optional[str]
 
 
 class AccountMembershipCreate(TypedDict):
@@ -21200,7 +21202,7 @@ class WorkDetailShare(TypedDict):
     updated_at: str
     #: Identifier of the person who last updated the row.
     updated_by: Optional[str]
-    #: Identifier of the engagement the share serves; the caller must be its person.
+    #: Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).
     engagement_id: str
     #: Identifier of the person sharing.
     person_id: str
@@ -21212,12 +21214,14 @@ class WorkDetailShare(TypedDict):
     shared_at: str
     #: When the person revoked it; null while it stands.
     revoked_at: Optional[str]
+    #: Identifier of the roster entry the share serves (R4): the caller's own entry on the engagement, the self entry for its person; null only on shares made before roster entries existed.
+    roster_entry_id: Optional[str]
 
 
 class WorkDetailShareCreate(TypedDict):
     """Fields accepted when creating a WorkDetailShare."""
 
-    #: Identifier of the engagement the share serves; the caller must be its person.
+    #: Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).
     engagement_id: str
     #: Categories shared.
     categories: List[WorkDetailCategory]
@@ -21235,10 +21239,14 @@ class SharedWorkDetails(TypedDict):
 
     #: Engagement.
     engagement_id: str
-    #: Person the engagement names.
+    #: Person the engagement names, or the roster entry's person.
     person_id: Optional[str]
     #: Engaging org.
     org_id: str
+    #: Roster entry read (R4): the engaged person's self entry; null when there is none.
+    roster_entry_id: Optional[str]
+    #: Who reads (R4): org, a member of the engaging org by capability; company, a roster manager of the account that rosters the person, who reads every category once the person accepted the entry.
+    reader: Literal["org", "company"]
     #: Live share; null when none stands.
     work_detail_share_id: Optional[str]
     #: When the share was given.
@@ -21294,8 +21302,10 @@ class SharedDietaryNeeds(TypedDict):
     """Dietary needs as an engaging org reads them."""
 
     dietary_needs: List[DietaryNeed]
-    #: Allergies.
+    #: Allergies; null when masked for the reader (a company reader never reads them).
     allergies: Optional[str]
+    #: Whether allergies are recorded, even when masked.
+    allergies_on_file: bool
     #: Other dietary notes.
     dietary_notes: Optional[str]
 
@@ -21375,6 +21385,8 @@ class WorkDetailEvent(TypedDict):
     org_id: Optional[str]
     #: Identifier of the engagement of a share, read or reveal.
     engagement_id: Optional[str]
+    #: Identifier of the roster entry of a share, read or reveal (R4).
+    roster_entry_id: Optional[str]
     #: What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.
     action: str
     #: Categories the act covered.
