@@ -706,6 +706,17 @@ export type Database = {
           },
         ];
       };
+      engagement_offerings: {
+        Row: {
+          cap_per_engagement: number | null;
+          cap_per_person: number | null;
+          engagement_id: string | null;
+          offering: Database["app"]["Enums"]["offering_kind"] | null;
+          offering_mode: Database["app"]["Enums"]["offering_mode"] | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       engagement_threads: {
         Row: {
           created_at: string | null;
@@ -27460,6 +27471,115 @@ export type Database = {
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      offering_rules: {
+        Row: {
+          cap_per_engagement: number | null;
+          cap_per_person: number | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          external_role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          id: string;
+          offering: Database["app"]["Enums"]["offering_kind"];
+          offering_mode: Database["app"]["Enums"]["offering_mode"];
+          org_id: string;
+          project_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          vendor_class_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          cap_per_engagement?: number | null;
+          cap_per_person?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          external_role_type?: Database["app"]["Enums"]["external_role_type"] | null;
+          id?: string;
+          offering: Database["app"]["Enums"]["offering_kind"];
+          offering_mode: Database["app"]["Enums"]["offering_mode"];
+          org_id: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_class_id?: string | null;
+        };
+        Update: {
+          cap_per_engagement?: number | null;
+          cap_per_person?: number | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          external_role_type?: Database["app"]["Enums"]["external_role_type"] | null;
+          id?: string;
+          offering?: Database["app"]["Enums"]["offering_kind"];
+          offering_mode?: Database["app"]["Enums"]["offering_mode"];
+          org_id?: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          vendor_class_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "offering_rules_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "offering_rules_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "offering_rules_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "offering_rules_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "offering_rules_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "offering_rules_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "offering_rules_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "offering_rules_vendor_class_id_fkey";
+            columns: ["vendor_class_id"];
+            isOneToOne: false;
+            referencedRelation: "vendor_classes";
             referencedColumns: ["id"];
           },
         ];
@@ -61730,6 +61850,16 @@ export type Database = {
           radius_scale: Database["app"]["Enums"]["brand_radius_scale"];
         }[];
       };
+      effective_offerings: {
+        Args: { p_engagement_id: string };
+        Returns: {
+          cap_per_engagement: number;
+          cap_per_person: number;
+          offering: Database["app"]["Enums"]["offering_kind"];
+          offering_mode: Database["app"]["Enums"]["offering_mode"];
+          source: string;
+        }[];
+      };
       end_account_membership: { Args: { p_account_membership_id: string }; Returns: undefined };
       end_break_glass: {
         Args: { p_session_id: string };
@@ -65065,6 +65195,17 @@ export type Database = {
       occupancy_load_basis: "Space Capacity" | "Occupant Load Factor" | "Permit";
       offer_side: "Organization" | "Party";
       offer_state: "Sent" | "Countered" | "Accepted" | "Declined" | "Withdrawn" | "Expired";
+      offering_kind:
+        | "Travel"
+        | "Lodging"
+        | "Catering"
+        | "Parking"
+        | "Uniforms"
+        | "Per Diem"
+        | "Radios"
+        | "Carts"
+        | "Guest List";
+      offering_mode: "Not Offered" | "Provided" | "Reimbursed" | "Buyout";
       onboarding_item_kind:
         | "Document Upload"
         | "Electronic Signature"
@@ -71679,6 +71820,18 @@ export const Constants = {
       occupancy_load_basis: ["Space Capacity", "Occupant Load Factor", "Permit"],
       offer_side: ["Organization", "Party"],
       offer_state: ["Sent", "Countered", "Accepted", "Declined", "Withdrawn", "Expired"],
+      offering_kind: [
+        "Travel",
+        "Lodging",
+        "Catering",
+        "Parking",
+        "Uniforms",
+        "Per Diem",
+        "Radios",
+        "Carts",
+        "Guest List",
+      ],
+      offering_mode: ["Not Offered", "Provided", "Reimbursed", "Buyout"],
       onboarding_item_kind: [
         "Document Upload",
         "Electronic Signature",
