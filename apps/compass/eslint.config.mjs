@@ -1,7 +1,9 @@
-import base from "@xos/config/eslint";
+import base, { copyLiterals } from "@xos/config/eslint";
 
+/** Compass labels come from the @xos/i18n catalogs, so JSX holds no string literals (Section 15). */
 export default [
   ...base,
+  ...copyLiterals,
   {
     ignores: ["ios/**", "android/**", ".expo/**", "dist/**"],
   },

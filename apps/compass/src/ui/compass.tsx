@@ -141,7 +141,11 @@ export function ShiftCard({
       footer={actions}
     >
       <View style={{ gap: theme.space["4"] }}>
-        <Text tone="secondary">{`${date} · ${time}`}</Text>
+        <Text tone="secondary">
+          {date}
+          {" · "}
+          {time}
+        </Text>
         <Text variant="text14" tone="tertiary">
           {place}
         </Text>
@@ -222,7 +226,9 @@ export function ScanSheet({
         ) : null}
         <View style={{ flexDirection: "row", alignItems: "center", gap: theme.space["12"] }}>
           <View style={{ flex: 1 }}>
-            <Text variant="heading20" {...tid(testID, "count")}>{`${count} ${countLabel}`}</Text>
+            <Text variant="heading20" {...tid(testID, "count")}>
+              {count} {countLabel}
+            </Text>
           </View>
           <Button label={doneLabel} onPress={onDone} {...tid(testID, "done")} />
         </View>
@@ -571,9 +577,11 @@ export function CredentialBadge({
         <NativeText style={[typography(theme, "heading24"), { color: theme.color.paperInk }]}>
           {name}
         </NativeText>
-        <NativeText
-          style={[typography(theme, "text14"), { color: theme.color.paperInk }]}
-        >{`${role} · ${category}`}</NativeText>
+        <NativeText style={[typography(theme, "text14"), { color: theme.color.paperInk }]}>
+          {role}
+          {" · "}
+          {category}
+        </NativeText>
         <QRCode value={payload} label={credentialKey} />
         <NativeText style={[typography(theme, "mono13"), { color: theme.color.paperInk }]}>
           {credentialKey}
@@ -586,9 +594,9 @@ export function CredentialBadge({
         >
           {zones.join(" · ")}
         </NativeText>
-        <NativeText
-          style={[typography(theme, "text12"), { color: theme.color.paperInk }]}
-        >{`${validFrom} – ${validTo}`}</NativeText>
+        <NativeText style={[typography(theme, "text12"), { color: theme.color.paperInk }]}>
+          {[validFrom, validTo].filter(Boolean).join(" – ")}
+        </NativeText>
       </View>
     </View>
   );

@@ -1,14 +1,16 @@
 import { type ReactElement } from "react";
+import { useT } from "../lib/context.tsx";
 import { type ProgressBarProps } from "./Gateway.types.ts";
 
 /** Determinate progress with its percentage. */
 export function ProgressBar({ label, value }: ProgressBarProps): ReactElement {
+  const t = useT();
   const pct = Math.max(0, Math.min(100, Math.round(value)));
   return (
     <div className="flex flex-col gap-6 w-(--ui-field) max-w-full">
       <div className="flex justify-between text-text-12 text-text-secondary">
         <span>{label}</span>
-        <span className="tabular-nums">{pct}%</span>
+        <span className="tabular-nums">{t("progress.percent", { n: pct })}</span>
       </div>
       <div
         role="progressbar"

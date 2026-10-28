@@ -340,7 +340,9 @@ export function SyncConflictSheet({
       }}
     >
       <Text variant="text14" tone="secondary">
-        {`${who} · ${meta}`}
+        {who}
+        {" · "}
+        {meta}
       </Text>
       <Text variant="heading16">{value}</Text>
     </View>

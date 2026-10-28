@@ -28,7 +28,7 @@ export function PayoutDetailsForm({ rail, onFile, onSave }: PayoutDetailsFormPro
         <div className={cx(chipClass, "h-control-lg self-start")}>
           <Icon name="Landmark" size={14} />
           <span>{onFile.bank}</span>
-          <span className="font-mono">•••• {onFile.last4}</span>
+          <span className="font-mono">{t("payout.masked", { last4: onFile.last4 })}</span>
         </div>
       ) : null}
       <Input

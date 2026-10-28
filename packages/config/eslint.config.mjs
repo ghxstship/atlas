@@ -33,5 +33,6 @@ export const base = tseslint.config(
 
 export { designValues, noRawDesignValues, xosPlugin } from "./eslint/no-raw-design-values.mjs";
 export { noServerConsole, serverConsole } from "./eslint/no-server-console.mjs";
+export { copyLiterals, copyLiteralsRules, jsxNoLiterals } from "./eslint/copy-literals.mjs";
 
 export default base;

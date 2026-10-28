@@ -51,6 +51,7 @@ export function EmergencyCodeCard({
   recordKey,
   authorities,
   serviceLabels,
+  stepLabel,
   testID,
 }: EmergencyCodeCardProps): ReactElement {
   const theme = useTheme();
@@ -103,7 +104,7 @@ export function EmergencyCodeCard({
       <View role="list" style={{ gap: theme.space["4"] }}>
         {steps.map((step, i) => (
           <View key={i} role="listitem" style={{ flexDirection: "row", gap: theme.space["8"] }}>
-            <Text tone="secondary">{`${i + 1}.`}</Text>
+            <Text tone="secondary">{stepLabel ? stepLabel(i + 1) : i + 1}</Text>
             <View style={{ flex: 1 }}>
               <Text>{resolveStep(step, authorities, serviceLabels)}</Text>
             </View>
@@ -121,7 +122,15 @@ export function EmergencyCodeCard({
         >
           {listed.map((a) => (
             <Text key={a.service} variant="text14">
-              {`${serviceLabels?.[a.service] ?? a.service}: ${a.agency}${a.contact ? ` · ${a.contact}` : ""}`}
+              {serviceLabels?.[a.service] ?? a.service}
+              {": "}
+              {a.agency}
+              {a.contact ? (
+                <>
+                  {" · "}
+                  {a.contact}
+                </>
+              ) : null}
             </Text>
           ))}
         </View>
@@ -169,7 +178,11 @@ export function RadioChannelTable({
               borderBottomColor: theme.color.borderSubtle,
             }}
           >
-            <Text variant="mono13" tone="secondary">{`${r.zone}·${r.channel}`}</Text>
+            <Text variant="mono13" tone="secondary">
+              {r.zone}
+              {"·"}
+              {r.channel}
+            </Text>
             <View style={{ flex: 1, gap: theme.space["2"] }}>
               <Text>{r.assignment}</Text>
               {r.notes ? (
@@ -217,7 +230,11 @@ export function RunOfShowLive({
             backgroundColor: theme.color.bgRaised,
           }}
         >
-          <Text variant="mono13" tone="accent">{`${live.number} · ${live.time}`}</Text>
+          <Text variant="mono13" tone="accent">
+            {live.number}
+            {" · "}
+            {live.time}
+          </Text>
           <Text variant={showMode ? "heading32" : "heading20"} heading>
             {live.title}
           </Text>
@@ -230,10 +247,11 @@ export function RunOfShowLive({
           {/* Only the next cue is live: the countdown changes every tick and would flood the
               screen reader, so it carries a spoken label instead (A23-009). */}
           <View aria-live="polite" style={{ flexShrink: 1 }}>
-            <Text
-              variant={showMode ? "heading20" : "text16"}
-              tone="secondary"
-            >{`${nextLabel}: ${next.title}`}</Text>
+            <Text variant={showMode ? "heading20" : "text16"} tone="secondary">
+              {nextLabel}
+              {": "}
+              {next.title}
+            </Text>
           </View>
           <View accessible aria-label={countdownLabel ?? clock(nextInSeconds)}>
             <Ink
@@ -314,7 +332,9 @@ export function CredentialBadge({
       }}
     >
       <Text variant="label13" tone="secondary">
-        {`${org} · ${category}`}
+        {org}
+        {" · "}
+        {category}
       </Text>
       <Text variant="heading24" heading>
         {name}
