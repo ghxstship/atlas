@@ -3,7 +3,7 @@ import { observability } from "@/lib/observability";
 import type { OrgContext } from "@/lib/shell/context";
 import { saveCustomFields } from "./server";
 import type { CustomFieldProblem, CustomFieldSaveResult } from "./types";
-import { CUSTOM_FIELD_SHOWN, customFieldInputsOf } from "./names";
+import { customFieldInputsOf } from "./names";
 
 /**
  * Custom fields in a create form's server action (A117). The form's custom field inputs (`cf.<key>`, and
@@ -15,8 +15,11 @@ import { CUSTOM_FIELD_SHOWN, customFieldInputsOf } from "./names";
  *   ...create the row...
  *   await custom.save(created.id);
  *
- * Required is a form rule (custom_field_definitions.required: "True when forms require a value"): a create that
- * shows no custom fields at all, such as a quick-add row, is not held to it.
+ * Required is a form rule (custom_field_definitions.required: "True when forms require a value"). Every create
+ * action that takes FormData is posted by a form that shows the custom fields, so a FormData source is always held
+ * to required fields, whatever the post carries; a post that leaves them out is refused. A typed action passes
+ * `undefined` when its caller shows no custom fields (a quick-add row), and an edit passes `undefined` because its
+ * custom fields are saved from the record's own section.
  */
 
 export interface CustomFieldsStep {
@@ -47,7 +50,6 @@ export async function customFieldsOf(
   source: FormData | Readonly<Record<string, CustomFieldInput>> | undefined,
 ): Promise<CustomFieldsStep> {
   if (source === undefined) return NOTHING;
-  if (source instanceof FormData && source.get(CUSTOM_FIELD_SHOWN) !== "1") return NOTHING;
   const inputs = source instanceof FormData ? customFieldInputsOf(source) : source;
   // A dry run on no row checks every input without writing; the row id comes after the create.
   const checked = await saveCustomFields(ctx, {

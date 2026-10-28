@@ -3,7 +3,6 @@
 import { checkCustomFieldInputs } from "@xos/data/custom-fields";
 import { useCallback, useEffect, useImperativeHandle, useRef, useState, type Ref } from "react";
 import { loadCustomFieldFormAction } from "@/lib/custom-fields/actions";
-import { CUSTOM_FIELD_SHOWN } from "@/lib/custom-fields/names";
 import type {
   CustomFieldForm,
   CustomFieldInput,
@@ -140,7 +139,6 @@ export function CustomFieldInputs({
 
   return (
     <div ref={box} className="contents">
-      <input type="hidden" name={CUSTOM_FIELD_SHOWN} value="1" />
       {form && form.fields.length > 0 ? (
         <CustomFieldControls
           form={form}

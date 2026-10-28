@@ -4,7 +4,7 @@ import { isCustomFieldTable } from "@xos/data/custom-fields";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
-import { loadCustomFieldForm, saveCustomFields } from "./server";
+import { canWriteCustomFields, loadCustomFieldForm, saveCustomFields } from "./server";
 import type { CustomFieldForm, CustomFieldInput, CustomFieldSaveResult } from "./types";
 
 /**
@@ -54,7 +54,9 @@ export async function saveCustomFieldsAction(
     return { ok: false, error: "invalid" };
   }
   const ctx = await getOrgContext(orgSlug);
-  if (!ctx) return { ok: false, error: "denied" };
+  // Row level security would drop the writes of a member below the writer band without an error, so they are
+  // refused here rather than answered with a success that wrote nothing.
+  if (!ctx || !canWriteCustomFields(ctx)) return { ok: false, error: "denied" };
   const result = await saveCustomFields(ctx, { table, targetId, inputs: parsed.data, mode });
   if (result.ok) revalidatePath(`/${ctx.org.slug}`, "layout");
   return result;

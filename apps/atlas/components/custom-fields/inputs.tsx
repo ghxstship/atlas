@@ -2,7 +2,6 @@
 
 import dynamic from "next/dynamic";
 import type { ComponentProps } from "react";
-import { CUSTOM_FIELD_SHOWN } from "@/lib/custom-fields/names";
 import type { CustomFieldInputs as Inputs } from "./custom-field-inputs";
 
 export type { CustomFieldInputsHandle } from "./custom-field-inputs";
@@ -11,14 +10,9 @@ export type { CustomFieldInputsHandle } from "./custom-field-inputs";
 const LazyInputs = dynamic(() => import("./custom-field-inputs").then((m) => m.CustomFieldInputs));
 
 /**
- * A form's custom fields (A117), as forms place them: `<CustomFieldInputs table="app.venues" />`. The marker that
- * holds the action to required fields is there from the first paint; the inputs follow when their code loads.
+ * A form's custom fields (A117), as forms place them: `<CustomFieldInputs table="app.venues" />`. The inputs follow
+ * when their code loads; the action holds the post to required fields either way (lib/custom-fields/form.ts).
  */
 export function CustomFieldInputs(props: ComponentProps<typeof Inputs>) {
-  return (
-    <>
-      <input type="hidden" name={CUSTOM_FIELD_SHOWN} value="1" />
-      <LazyInputs {...props} />
-    </>
-  );
+  return <LazyInputs {...props} />;
 }

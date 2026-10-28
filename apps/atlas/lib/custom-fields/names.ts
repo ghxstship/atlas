@@ -2,12 +2,9 @@ import type { CustomFieldInput } from "@xos/data/custom-fields";
 
 /**
  * How custom field inputs are named in a form's FormData (A117): `cf.<key>` holds a field's text and
- * `cf.<key>.currency` a money field's currency; `cf:shown` says the form showed its custom fields, so the action
- * holds it to required ones (form.ts). The same `cf.` prefix names custom field filters in a query string
+ * `cf.<key>.currency` a money field's currency. The same `cf.` prefix names custom field filters in a query string
  * (lib/views/conditions.ts), where a form never sends them.
  */
-
-export const CUSTOM_FIELD_SHOWN = "cf:shown";
 
 export function customFieldInputName(key: string): string {
   return `cf.${key}`;

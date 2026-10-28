@@ -16,7 +16,6 @@ import {
   toCondition,
 } from "@/components/views/filter-model";
 import {
-  CUSTOM_FIELD_SHOWN,
   customFieldCurrencyName,
   customFieldInputName,
   customFieldInputsOf,
@@ -155,7 +154,6 @@ describe("saved views keep the Add filter control's conditions", () => {
 describe("custom field inputs in a form", () => {
   it("names each input after its field and reads them back by key", () => {
     const form = new FormData();
-    form.set(CUSTOM_FIELD_SHOWN, "1");
     form.set(customFieldInputName("po_reference"), "PO-2207");
     form.set(customFieldInputName("fee"), "2500");
     form.set(customFieldCurrencyName("fee"), "USD");

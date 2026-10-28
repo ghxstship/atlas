@@ -87,7 +87,8 @@ export async function saveVenueAction(_: ActionState, form: FormData): Promise<A
     postalCode: text(form, "postalCode"),
   };
   const id = text(form, "id");
-  const custom = await customFieldsOf(ctx, "app.venues", form);
+  // An edit saves custom fields from the venue's own section, so only a create is held to them here.
+  const custom = await customFieldsOf(ctx, "app.venues", id === null ? form : undefined);
   if (custom.fieldErrors) return { error: "invalid", fieldErrors: custom.fieldErrors };
   const saved =
     id === null
