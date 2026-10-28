@@ -74,6 +74,14 @@ __all__ = [
     "RecordCreate",
     "RecordUpdate",
     "RecordTransitionRequest",
+    "RecordBulkEditResult",
+    "BulkEditRefusal",
+    "RecordBulkRow",
+    "RecordBulkValues",
+    "RecordBulkEditRequest",
+    "FieldHistoryEventPage",
+    "FieldHistoryEvent",
+    "FieldHistoryChange",
     "RecordStateTransitionPage",
     "RecordStateTransition",
     "RecordReplanPage",
@@ -121,6 +129,7 @@ __all__ = [
     "Document",
     "DocumentCreate",
     "DocumentUpdate",
+    "DocumentNotes",
     "DocumentVersionPage",
     "DocumentVersion",
     "DocumentVersionCreate",
@@ -244,6 +253,10 @@ __all__ = [
     "ScanRequest",
     "AssetScanResult",
     "AssetScanEvent",
+    "AssetUnitBulkEditResult",
+    "AssetUnitBulkRow",
+    "AssetUnitBulkValues",
+    "AssetUnitBulkEditRequest",
     "AssetLotPage",
     "AssetLot",
     "AssetLotCreate",
@@ -291,6 +304,10 @@ __all__ = [
     "ShiftUpdate",
     "ShiftTransitionRequest",
     "ShiftClaimResult",
+    "ShiftBulkEditResult",
+    "ShiftBulkRow",
+    "ShiftBulkValues",
+    "ShiftBulkEditRequest",
     "ShiftSwapPage",
     "ShiftSwap",
     "ShiftSwapCreate",
@@ -438,6 +455,10 @@ __all__ = [
     "InvoiceUpdate",
     "InvoiceTransitionRequest",
     "InvoicePaymentRequest",
+    "InvoiceBulkEditResult",
+    "InvoiceBulkRow",
+    "InvoiceBulkValues",
+    "InvoiceBulkEditRequest",
     "InvoiceLinePage",
     "InvoiceLine",
     "InvoiceLineCreate",
@@ -2411,6 +2432,117 @@ class RecordTransitionRequest(_RecordTransitionRequestRequired, total=False):
     replan_reason: str
 
 
+class RecordBulkEditResult(TypedDict):
+    """What a bulk change of records did, or would do in a preview."""
+
+    #: True for a preview, which never changes anything.
+    preview: bool
+    #: True only when every row passed and the change was applied. Any refused row means nothing changed.
+    committed: bool
+    #: Rows the change alters, or would alter in a preview.
+    changed: int
+    #: Rows that already hold the values.
+    unchanged: int
+    #: Rows that cannot change, each with its rule; empty when every row passed.
+    refused: List[BulkEditRefusal]
+    #: Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change.
+    inverse: List[RecordBulkRow]
+
+
+class BulkEditRefusal(TypedDict):
+    """A row of a bulk change that cannot change."""
+
+    #: Row the refusal is about; null when the row named no valid id.
+    id: Optional[str]
+    #: Why the row cannot change: the database's refusal rule (for example bulk_stale or transition_not_allowed), not_allowed, invalid, invalid_reference or conflict.
+    rule: str
+    #: The database's sentence for the refusal.
+    message: str
+
+
+class _RecordBulkRowRequired(TypedDict):
+    #: Row to change.
+    id: str
+    set: RecordBulkValues
+
+
+class RecordBulkRow(_RecordBulkRowRequired, total=False):
+    """One of the records in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00)."""
+
+    expect: RecordBulkValues
+
+
+class RecordBulkValues(TypedDict, total=False):
+    """Fields of one of the records in a bulk change. Only these fields change in bulk."""
+
+    record_state: RecordState
+    #: Owning person or organization.
+    owner_party_id: Optional[str]
+    #: Accountable person or organization.
+    accountable_party_id: Optional[str]
+    #: Due instant.
+    due_at: Optional[str]
+    phase_code: Optional[PhaseCode]
+    #: The named blocker, for a move to Blocked.
+    blocker_text: Optional[str]
+    #: Replan reason, for a move to Deferred.
+    replan_reason: Optional[str]
+
+
+class _RecordBulkEditRequestRequired(TypedDict):
+    #: The rows to change, each once; at most 500.
+    rows: List[RecordBulkRow]
+
+
+class RecordBulkEditRequest(_RecordBulkEditRequestRequired, total=False):
+    """A bulk change of records."""
+
+    #: Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.
+    reason: str
+
+
+class FieldHistoryEventPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[FieldHistoryEvent]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class FieldHistoryEvent(TypedDict):
+    """One change to a row from the audit ledger (Section 4.10): who made it, when, and from what to what. Actor IP addresses and user agents are never returned."""
+
+    #: Audit event of the change.
+    event_id: str
+    #: When the change was made.
+    changed_at: str
+    #: Person who made the change; null for a system change.
+    actor_person_id: Optional[str]
+    #: Name of that person.
+    actor_name: Optional[str]
+    #: Created, changed or deleted the row.
+    operation: Literal["insert", "update", "delete"]
+    #: The fields an update changed; empty for a creation or deletion.
+    changes: List[FieldHistoryChange]
+
+
+class _FieldHistoryChangeRequired(TypedDict):
+    #: Column that changed.
+    field: str
+    #: True for a Restricted field the caller may not read: neither value is returned.
+    masked: bool
+
+
+class FieldHistoryChange(_FieldHistoryChangeRequired, total=False):
+    """One field changed by an event."""
+
+    #: Stored value before the change, as JSON; null when masked or empty.
+    old_value: Any
+    #: Stored value after the change, as JSON; null when masked or emptied.
+    new_value: Any
+
+
 class RecordStateTransitionPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -3184,6 +3316,21 @@ class DocumentUpdate(TypedDict, total=False):
     title: str
     #: Identifier of the project.
     project_id: Optional[str]
+
+
+class DocumentNotes(TypedDict):
+    """A document's notes, edited together live in Atlas (Section 5), as plain text. Edits arrive over Realtime and are saved into the text when the editor pauses."""
+
+    #: Identifier of the document.
+    document_id: str
+    #: Plain text of the notes as last saved, at most 200,000 characters; null before anyone wrote any.
+    text: Optional[str]
+    #: Raised when the notes are reloaded from scratch; 0 before anyone opened them.
+    generation: int
+    #: Last edit folded into `text`.
+    saved_through: int
+    #: Last edit made. Greater than `saved_through` while an editor's latest changes are not yet saved into `text`, a few seconds after they type.
+    latest_edit: int
 
 
 class DocumentVersionPage(TypedDict):
@@ -5223,6 +5370,58 @@ class AssetScanEvent(_AssetScanEventRequired, total=False):
     quantity: Optional[float]
 
 
+class AssetUnitBulkEditResult(TypedDict):
+    """What a bulk change of asset units did, or would do in a preview."""
+
+    #: True for a preview, which never changes anything.
+    preview: bool
+    #: True only when every row passed and the change was applied. Any refused row means nothing changed.
+    committed: bool
+    #: Rows the change alters, or would alter in a preview.
+    changed: int
+    #: Rows that already hold the values.
+    unchanged: int
+    #: Rows that cannot change, each with its rule; empty when every row passed.
+    refused: List[BulkEditRefusal]
+    #: Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change.
+    inverse: List[AssetUnitBulkRow]
+
+
+class _AssetUnitBulkRowRequired(TypedDict):
+    #: Row to change.
+    id: str
+    set: AssetUnitBulkValues
+
+
+class AssetUnitBulkRow(_AssetUnitBulkRowRequired, total=False):
+    """One of the asset units in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00)."""
+
+    expect: AssetUnitBulkValues
+
+
+class AssetUnitBulkValues(TypedDict, total=False):
+    """Fields of one of the asset units in a bulk change. Only these fields change in bulk."""
+
+    #: Asset lifecycle state.
+    asset_state: Literal["Proposed", "Received", "Available", "Reserved", "Deployed", "In Maintenance", "Damaged", "Lost", "Retired"]
+    #: Venue the unit returns to.
+    home_venue_id: Optional[str]
+    #: Condition: a row of the canon Asset Condition enumeration.
+    condition_enum_id: Optional[str]
+
+
+class _AssetUnitBulkEditRequestRequired(TypedDict):
+    #: The rows to change, each once; at most 500.
+    rows: List[AssetUnitBulkRow]
+
+
+class AssetUnitBulkEditRequest(_AssetUnitBulkEditRequestRequired, total=False):
+    """A bulk change of asset units."""
+
+    #: Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.
+    reason: str
+
+
 class AssetLotPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -6110,6 +6309,56 @@ class ShiftClaimResult(TypedDict):
     scheduled_break_minutes: Optional[int]
     #: The caller's waiting claim when the claiming rule is approval or seniority; null when the caller got the shift (first-come).
     claim: Optional[Dict[str, Any]]
+
+
+class ShiftBulkEditResult(TypedDict):
+    """What a bulk change of shifts did, or would do in a preview."""
+
+    #: True for a preview, which never changes anything.
+    preview: bool
+    #: True only when every row passed and the change was applied. Any refused row means nothing changed.
+    committed: bool
+    #: Rows the change alters, or would alter in a preview.
+    changed: int
+    #: Rows that already hold the values.
+    unchanged: int
+    #: Rows that cannot change, each with its rule; empty when every row passed.
+    refused: List[BulkEditRefusal]
+    #: Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change.
+    inverse: List[ShiftBulkRow]
+
+
+class _ShiftBulkRowRequired(TypedDict):
+    #: Row to change.
+    id: str
+    set: ShiftBulkValues
+
+
+class ShiftBulkRow(_ShiftBulkRowRequired, total=False):
+    """One of the shifts in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00)."""
+
+    expect: ShiftBulkValues
+
+
+class ShiftBulkValues(TypedDict, total=False):
+    """Fields of one of the shifts in a bulk change. Only these fields change in bulk."""
+
+    #: Shift state.
+    shift_state: Literal["Draft", "Published", "Accepted", "Canceled"]
+    #: Member the shift is assigned to; null opens the shift.
+    membership_id: Optional[str]
+
+
+class _ShiftBulkEditRequestRequired(TypedDict):
+    #: The rows to change, each once; at most 500.
+    rows: List[ShiftBulkRow]
+
+
+class ShiftBulkEditRequest(_ShiftBulkEditRequestRequired, total=False):
+    """A bulk change of shifts."""
+
+    #: Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.
+    reason: str
 
 
 class ShiftSwapPage(TypedDict):
@@ -8537,6 +8786,54 @@ class InvoicePaymentRequest(_InvoicePaymentRequestRequired, total=False):
     amount_minor: Optional[int]
     #: Remittance reference from the bank or payout provider.
     reference: str
+
+
+class InvoiceBulkEditResult(TypedDict):
+    """What a bulk change of invoices did, or would do in a preview."""
+
+    #: True for a preview, which never changes anything.
+    preview: bool
+    #: True only when every row passed and the change was applied. Any refused row means nothing changed.
+    committed: bool
+    #: Rows the change alters, or would alter in a preview.
+    changed: int
+    #: Rows that already hold the values.
+    unchanged: int
+    #: Rows that cannot change, each with its rule; empty when every row passed.
+    refused: List[BulkEditRefusal]
+    #: Rows that undo a committed change: the values before as `set` and the values written as `expect`. Empty for a preview or a refused change.
+    inverse: List[InvoiceBulkRow]
+
+
+class _InvoiceBulkRowRequired(TypedDict):
+    #: Row to change.
+    id: str
+    set: InvoiceBulkValues
+
+
+class InvoiceBulkRow(_InvoiceBulkRowRequired, total=False):
+    """One of the invoices in a bulk change: the values to `set` and, optionally, the values the caller saw (`expect`, compare-and-set). A row whose current value differs from `expect` is refused as bulk_stale; an instant matches in any ISO 8601 form with an offset (Z or +00:00)."""
+
+    expect: InvoiceBulkValues
+
+
+class InvoiceBulkValues(TypedDict, total=False):
+    """Fields of one of the invoices in a bulk change. Only these fields change in bulk."""
+
+    #: Invoice state.
+    invoice_state: Literal["Proposed", "Issued", "Approved", "Disputed", "Canceled"]
+
+
+class _InvoiceBulkEditRequestRequired(TypedDict):
+    #: The rows to change, each once; at most 500.
+    rows: List[InvoiceBulkRow]
+
+
+class InvoiceBulkEditRequest(_InvoiceBulkEditRequestRequired, total=False):
+    """A bulk change of invoices."""
+
+    #: Why: recorded as the reason of every state change and in the audit event, and as the replan reason where a moved date needs one.
+    reason: str
 
 
 class InvoiceLinePage(TypedDict):

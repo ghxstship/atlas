@@ -59,6 +59,9 @@ export type OperationId =
   | "records.delete"
   | "records.transition"
   | "records.duplicate"
+  | "records.bulkPreview"
+  | "records.bulkUpdate"
+  | "records.fieldHistory"
   | "recordStateTransitions.list"
   | "recordStateTransitions.get"
   | "recordReplans.list"
@@ -111,6 +114,7 @@ export type OperationId =
   | "sops.update"
   | "sops.delete"
   | "sops.publish"
+  | "sops.fieldHistory"
   | "sopAcknowledgments.list"
   | "sopAcknowledgments.create"
   | "sopAcknowledgments.get"
@@ -119,6 +123,8 @@ export type OperationId =
   | "documents.get"
   | "documents.update"
   | "documents.delete"
+  | "documents.fieldHistory"
+  | "documents.notes"
   | "documentVersions.list"
   | "documentVersions.create"
   | "documentVersions.get"
@@ -263,6 +269,9 @@ export type OperationId =
   | "assetUnits.transition"
   | "assetUnits.scan"
   | "assetUnits.applyScan"
+  | "assetUnits.bulkPreview"
+  | "assetUnits.bulkUpdate"
+  | "assetUnits.fieldHistory"
   | "assetLots.list"
   | "assetLots.create"
   | "assetLots.get"
@@ -318,6 +327,9 @@ export type OperationId =
   | "shifts.transition"
   | "shifts.accept"
   | "shifts.claim"
+  | "shifts.bulkPreview"
+  | "shifts.bulkUpdate"
+  | "shifts.fieldHistory"
   | "shiftSwaps.list"
   | "shiftSwaps.create"
   | "shiftSwaps.get"
@@ -489,6 +501,9 @@ export type OperationId =
   | "invoices.transition"
   | "invoices.approve"
   | "invoices.recordPayment"
+  | "invoices.bulkPreview"
+  | "invoices.bulkUpdate"
+  | "invoices.fieldHistory"
   | "invoiceLines.list"
   | "invoiceLines.create"
   | "invoiceLines.get"
@@ -549,6 +564,7 @@ export type OperationId =
   | "purchaseOrders.approve"
   | "purchaseOrders.transition"
   | "purchaseOrders.acknowledge"
+  | "purchaseOrders.fieldHistory"
   | "poLines.list"
   | "poLines.create"
   | "poLines.get"
@@ -586,6 +602,7 @@ export type OperationId =
   | "vendors.update"
   | "vendors.delete"
   | "vendors.transition"
+  | "vendors.fieldHistory"
   | "vendorClasses.list"
   | "vendorClasses.create"
   | "vendorClasses.get"
@@ -2845,6 +2862,75 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "work.record.write",
     scopes: ["work"],
   },
+  "records.bulkPreview": {
+    id: "records.bulkPreview",
+    resource: "records",
+    verb: "bulkPreview",
+    method: "POST",
+    path: "/records/bulk-preview",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "RecordBulkEditRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "RecordBulkEditResult",
+    item: null,
+    tag: "Work",
+    summary: "Preview a bulk change of records",
+    capability: "work.record.write",
+    scopes: ["work"],
+  },
+  "records.bulkUpdate": {
+    id: "records.bulkUpdate",
+    resource: "records",
+    verb: "bulkUpdate",
+    method: "POST",
+    path: "/records/bulk-update",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "RecordBulkEditRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "RecordBulkEditResult",
+    item: null,
+    tag: "Work",
+    summary: "Change records in bulk",
+    capability: "work.record.write",
+    scopes: ["work"],
+  },
+  "records.fieldHistory": {
+    id: "records.fieldHistory",
+    resource: "records",
+    verb: "fieldHistory",
+    method: "GET",
+    path: "/records/{id}/field-history",
+    pathParams: ["id"],
+    queryParams: ["limit"],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "FieldHistoryEventPage",
+    item: null,
+    tag: "Work",
+    summary: "Field history of a record",
+    capability: "work.record.read",
+    scopes: ["work"],
+  },
   "recordStateTransitions.list": {
     id: "recordStateTransitions.list",
     resource: "recordStateTransitions",
@@ -4041,6 +4127,29 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "knowledge.sop.publish",
     scopes: ["knowledge"],
   },
+  "sops.fieldHistory": {
+    id: "sops.fieldHistory",
+    resource: "sops",
+    verb: "fieldHistory",
+    method: "GET",
+    path: "/sops/{id}/field-history",
+    pathParams: ["id"],
+    queryParams: ["limit"],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "FieldHistoryEventPage",
+    item: null,
+    tag: "Knowledge",
+    summary: "Field history of a SOP",
+    capability: "knowledge.sop.read",
+    scopes: ["knowledge"],
+  },
   "sopAcknowledgments.list": {
     id: "sopAcknowledgments.list",
     resource: "sopAcknowledgments",
@@ -4223,6 +4332,52 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     tag: "Knowledge",
     summary: "Delete a document",
     capability: "knowledge.document.write",
+    scopes: ["knowledge"],
+  },
+  "documents.fieldHistory": {
+    id: "documents.fieldHistory",
+    resource: "documents",
+    verb: "fieldHistory",
+    method: "GET",
+    path: "/documents/{id}/field-history",
+    pathParams: ["id"],
+    queryParams: ["limit"],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "FieldHistoryEventPage",
+    item: null,
+    tag: "Knowledge",
+    summary: "Field history of a document",
+    capability: "knowledge.document.read",
+    scopes: ["knowledge"],
+  },
+  "documents.notes": {
+    id: "documents.notes",
+    resource: "documents",
+    verb: "notes",
+    method: "GET",
+    path: "/documents/{id}/notes",
+    pathParams: ["id"],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "DocumentNotes",
+    item: null,
+    tag: "Knowledge",
+    summary: "Read a document's notes",
+    capability: "knowledge.document.read",
     scopes: ["knowledge"],
   },
   "documentVersions.list": {
@@ -7537,6 +7692,75 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "assets.custody.write",
     scopes: ["assets"],
   },
+  "assetUnits.bulkPreview": {
+    id: "assetUnits.bulkPreview",
+    resource: "assetUnits",
+    verb: "bulkPreview",
+    method: "POST",
+    path: "/asset-units/bulk-preview",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "AssetUnitBulkEditRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "AssetUnitBulkEditResult",
+    item: null,
+    tag: "Assets",
+    summary: "Preview a bulk change of asset units",
+    capability: "assets.asset.write",
+    scopes: ["assets"],
+  },
+  "assetUnits.bulkUpdate": {
+    id: "assetUnits.bulkUpdate",
+    resource: "assetUnits",
+    verb: "bulkUpdate",
+    method: "POST",
+    path: "/asset-units/bulk-update",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "AssetUnitBulkEditRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "AssetUnitBulkEditResult",
+    item: null,
+    tag: "Assets",
+    summary: "Change asset units in bulk",
+    capability: "assets.asset.write",
+    scopes: ["assets"],
+  },
+  "assetUnits.fieldHistory": {
+    id: "assetUnits.fieldHistory",
+    resource: "assetUnits",
+    verb: "fieldHistory",
+    method: "GET",
+    path: "/asset-units/{id}/field-history",
+    pathParams: ["id"],
+    queryParams: ["limit"],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "FieldHistoryEventPage",
+    item: null,
+    tag: "Assets",
+    summary: "Field history of a asset unit",
+    capability: "assets.asset.read",
+    scopes: ["assets"],
+  },
   "assetLots.list": {
     id: "assetLots.list",
     resource: "assetLots",
@@ -8799,6 +9023,75 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     item: null,
     tag: "Crew",
     summary: "Claim an open shift",
+    capability: "crew.shift.read",
+    scopes: ["crew"],
+  },
+  "shifts.bulkPreview": {
+    id: "shifts.bulkPreview",
+    resource: "shifts",
+    verb: "bulkPreview",
+    method: "POST",
+    path: "/shifts/bulk-preview",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "ShiftBulkEditRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "ShiftBulkEditResult",
+    item: null,
+    tag: "Crew",
+    summary: "Preview a bulk change of shifts",
+    capability: "crew.shift.write",
+    scopes: ["crew"],
+  },
+  "shifts.bulkUpdate": {
+    id: "shifts.bulkUpdate",
+    resource: "shifts",
+    verb: "bulkUpdate",
+    method: "POST",
+    path: "/shifts/bulk-update",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "ShiftBulkEditRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "ShiftBulkEditResult",
+    item: null,
+    tag: "Crew",
+    summary: "Change shifts in bulk",
+    capability: "crew.shift.write",
+    scopes: ["crew"],
+  },
+  "shifts.fieldHistory": {
+    id: "shifts.fieldHistory",
+    resource: "shifts",
+    verb: "fieldHistory",
+    method: "GET",
+    path: "/shifts/{id}/field-history",
+    pathParams: ["id"],
+    queryParams: ["limit"],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "FieldHistoryEventPage",
+    item: null,
+    tag: "Crew",
+    summary: "Field history of a shift",
     capability: "crew.shift.read",
     scopes: ["crew"],
   },
@@ -12735,6 +13028,75 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "finance.payment.write",
     scopes: ["finance"],
   },
+  "invoices.bulkPreview": {
+    id: "invoices.bulkPreview",
+    resource: "invoices",
+    verb: "bulkPreview",
+    method: "POST",
+    path: "/invoices/bulk-preview",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "InvoiceBulkEditRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "InvoiceBulkEditResult",
+    item: null,
+    tag: "Finance",
+    summary: "Preview a bulk change of invoices",
+    capability: "finance.invoice.write",
+    scopes: ["finance"],
+  },
+  "invoices.bulkUpdate": {
+    id: "invoices.bulkUpdate",
+    resource: "invoices",
+    verb: "bulkUpdate",
+    method: "POST",
+    path: "/invoices/bulk-update",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "InvoiceBulkEditRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "InvoiceBulkEditResult",
+    item: null,
+    tag: "Finance",
+    summary: "Change invoices in bulk",
+    capability: "finance.invoice.write",
+    scopes: ["finance"],
+  },
+  "invoices.fieldHistory": {
+    id: "invoices.fieldHistory",
+    resource: "invoices",
+    verb: "fieldHistory",
+    method: "GET",
+    path: "/invoices/{id}/field-history",
+    pathParams: ["id"],
+    queryParams: ["limit"],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "FieldHistoryEventPage",
+    item: null,
+    tag: "Finance",
+    summary: "Field history of a invoice",
+    capability: "finance.invoice.read",
+    scopes: ["finance"],
+  },
   "invoiceLines.list": {
     id: "invoiceLines.list",
     resource: "invoiceLines",
@@ -14115,6 +14477,29 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "procurement.po.read",
     scopes: ["procurement"],
   },
+  "purchaseOrders.fieldHistory": {
+    id: "purchaseOrders.fieldHistory",
+    resource: "purchaseOrders",
+    verb: "fieldHistory",
+    method: "GET",
+    path: "/purchase-orders/{id}/field-history",
+    pathParams: ["id"],
+    queryParams: ["limit"],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "FieldHistoryEventPage",
+    item: null,
+    tag: "Procurement",
+    summary: "Field history of a purchase order",
+    capability: "procurement.po.read",
+    scopes: ["procurement"],
+  },
   "poLines.list": {
     id: "poLines.list",
     resource: "poLines",
@@ -14964,6 +15349,29 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     tag: "Vendors",
     summary: "Transition the vendor state",
     capability: "vendors.vendor.write",
+    scopes: ["vendors"],
+  },
+  "vendors.fieldHistory": {
+    id: "vendors.fieldHistory",
+    resource: "vendors",
+    verb: "fieldHistory",
+    method: "GET",
+    path: "/vendors/{id}/field-history",
+    pathParams: ["id"],
+    queryParams: ["limit"],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: false,
+    ifMatch: false,
+    body: null,
+    bodyRequired: false,
+    successStatus: 200,
+    response: "FieldHistoryEventPage",
+    item: null,
+    tag: "Vendors",
+    summary: "Field history of a vendor",
+    capability: "vendors.vendor.read",
     scopes: ["vendors"],
   },
   "vendorClasses.list": {
@@ -39322,6 +39730,9 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "records.delete",
       "records.transition",
       "records.duplicate",
+      "records.bulkPreview",
+      "records.bulkUpdate",
+      "records.fieldHistory",
     ],
   },
   {
@@ -39419,6 +39830,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "sops.update",
       "sops.delete",
       "sops.publish",
+      "sops.fieldHistory",
     ],
   },
   {
@@ -39435,6 +39847,8 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "documents.get",
       "documents.update",
       "documents.delete",
+      "documents.fieldHistory",
+      "documents.notes",
     ],
   },
   {
@@ -39714,6 +40128,9 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "assetUnits.transition",
       "assetUnits.scan",
       "assetUnits.applyScan",
+      "assetUnits.bulkPreview",
+      "assetUnits.bulkUpdate",
+      "assetUnits.fieldHistory",
     ],
   },
   {
@@ -39829,6 +40246,9 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "shifts.transition",
       "shifts.accept",
       "shifts.claim",
+      "shifts.bulkPreview",
+      "shifts.bulkUpdate",
+      "shifts.fieldHistory",
     ],
   },
   {
@@ -40183,6 +40603,9 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "invoices.transition",
       "invoices.approve",
       "invoices.recordPayment",
+      "invoices.bulkPreview",
+      "invoices.bulkUpdate",
+      "invoices.fieldHistory",
     ],
   },
   {
@@ -40311,6 +40734,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "purchaseOrders.approve",
       "purchaseOrders.transition",
       "purchaseOrders.acknowledge",
+      "purchaseOrders.fieldHistory",
     ],
   },
   {
@@ -40388,6 +40812,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "vendors.update",
       "vendors.delete",
       "vendors.transition",
+      "vendors.fieldHistory",
     ],
   },
   {
