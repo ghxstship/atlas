@@ -1,10 +1,8 @@
 # ADR 0104: Advanceable Item Lifecycle and the Supply Bridge
 
-- Status: Proposed
-- Owner step: confirm this answer to decision 8. The ADR then moves to Accepted in a one-line follow-up commit, and
-  R7a and R7 start only after that.
+- Status: Accepted (the owner confirmed this answer to decision 8 as recommended on 2026-10-27)
 - Date: 2026-10-28
-- Decider: Owner decisions on advancing, 2026-10-28 (decision 8, answered here for confirmation); R0 (RRR-176)
+- Decider: Owner decisions on advancing, 2026-10-28 (decision 8, answered here and confirmed by the owner on 2026-10-27); R0 (RRR-176)
 - Migrations: none
 
 ## Context
@@ -122,4 +120,4 @@ fully received order, and finance committed and accrued views. None blocks advan
 - The asset lifecycle gains Returned, so Section 3.12 lifecycle 3 and Section 7.4 list ten values once R7a merges.
 - Reservations and scans take the same row lock, so a scan never checks out a unit a concurrent reservation is
   claiming without seeing it.
-- Until the owner confirms, R7a and R7 do not start, and this ADR stays Proposed.
+- With the owner's confirmation, R7a and R7 may start once their dependencies merge.
