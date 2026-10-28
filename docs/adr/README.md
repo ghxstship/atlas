@@ -75,5 +75,10 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0082](0082-gateway-power-editing.md)                               | Power Editing in Gateway                                                         | Accepted |
 | [0083](0083-live-lists-dispatch-board-and-presence.md)              | Live Lists, a Realtime Dispatch Board, and Presence on Records                   | Proposed |
 | [0089](0089-role-lens-in-the-context-switcher.md)                   | The Role Lens in the Context Switcher                                            | Accepted |
+| [0100](0100-crew-roster-and-production-advancing.md)                | Crew Roster and Production Advancing                                             | Accepted |
+| [0101](0101-roster-access-and-account-engagement-assignments.md)    | Roster Access and Account Engagement Assignments                                 | Accepted |
+| [0102](0102-profile-facts-and-project-facts.md)                     | Profile Facts and Project Facts                                                  | Accepted |
+| [0103](0103-combined-statuses-are-computed.md)                      | Combined Statuses Are Computed                                                   | Accepted |
+| [0104](0104-advanceable-item-lifecycle-and-supply-bridge.md)        | Advanceable Item Lifecycle and the Supply Bridge                                 | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).
