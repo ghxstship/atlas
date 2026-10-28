@@ -1,4 +1,4 @@
--- pgTAP: 1790, bulk edit of purchase orders, RFQs and vendors (A120, RRR-165, Section 11.7). Each resource previews
+-- pgTAP: 2140, bulk edit of purchase orders, RFQs and vendors (A120, RRR-165, Section 11.7). Each resource previews
 -- without changing anything, commits all or nothing, checks the capability on every row, and sends its inverse back
 -- through the same RPC. A bulk approval keeps every rule of a single one: one order the creator may not approve, one
 -- above the approver's spend limit or one needing a second approver refuses the whole call.

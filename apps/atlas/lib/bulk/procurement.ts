@@ -5,7 +5,7 @@ import type { BulkConfig } from "@/components/bulk/types";
 /**
  * Bulk edit (Section 11.7) of purchase orders, RFQs and vendors: the properties a person may change
  * across a selection, each offering only the choices the person's capabilities allow. The database
- * checks every row again (migration 1790), so a bulk approval still meets separation of duties, the
+ * checks every row again (migration 2140), so a bulk approval still meets separation of duties, the
  * approval policy and spend authority, and refuses the whole change when one order does not.
  * Goods receipts have no state and keep their receiver, so they have nothing to change in bulk.
  */
