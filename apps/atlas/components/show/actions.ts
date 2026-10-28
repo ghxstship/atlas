@@ -8,10 +8,13 @@ import {
   deleteRunOfShow,
   deleteSheet,
   getRunOfShow,
+  linkCueToEngagement,
   moveCue,
   publishSheet,
   removeCue,
+  restoreSheet,
   saveDaySheet,
+  unlinkCueEngagement,
   updateCue,
   updateRunOfShow,
 } from "@xos/data/show";
@@ -158,6 +161,34 @@ export async function moveCueAction(
   return done(null);
 }
 
+/**
+ * Marks a cue as an artist's set time (Set for). The database refuses a non-Artist engagement
+ * (engagement_cue_artist_only) and another project's cue (engagement_cue_project_mismatch); a cue
+ * already set for the artist comes back as a conflict.
+ */
+export async function linkCueAction(
+  org: string,
+  cueId: string,
+  engagementId: string,
+): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!id.safeParse(cueId).success || !id.safeParse(engagementId).success) return invalid();
+  const result = await linkCueToEngagement(ctx.viewer.db, { cueId, engagementId });
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
+/** Removes a cue's set time. */
+export async function unlinkCueAction(org: string, engagementCueId: string): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!id.safeParse(engagementCueId).success) return invalid();
+  const result = await unlinkCueEngagement(ctx.viewer.db, engagementCueId);
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
 export async function removeCueAction(org: string, cueId: string): Promise<ActionResult> {
   const ctx = await context(org);
   if (!id.safeParse(cueId).success) return invalid();
@@ -226,6 +257,21 @@ export async function deleteSheetAction(
   if (!id.safeParse(sheetId).success || (table !== "day_sheets" && table !== "call_sheets"))
     return invalid();
   const result = await deleteSheet(ctx.viewer.db, table, sheetId);
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
+/** Restores a sheet from Trash: the Undo of deleteSheetAction (Section 11.7). */
+export async function restoreSheetAction(
+  org: string,
+  table: "day_sheets" | "call_sheets",
+  sheetId: string,
+): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!id.safeParse(sheetId).success || (table !== "day_sheets" && table !== "call_sheets"))
+    return invalid();
+  const result = await restoreSheet(ctx.viewer.db, table, sheetId);
   if (!result.ok) return failed(result.error);
   refresh(org);
   return done(null);

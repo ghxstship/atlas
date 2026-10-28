@@ -51,7 +51,6 @@ import {
   type Column,
   type ListItem,
 } from "@/components/operations/kit";
-import { LiveRefresh } from "@/components/operations/peek";
 import { RecordCollab } from "@/components/operations/record-collab";
 import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 import { CustomFieldList } from "@/components/custom-fields/list";
@@ -59,6 +58,8 @@ import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-pane
 import { customFieldColumns } from "@/components/custom-fields/columns";
 import { customFieldList } from "@/lib/custom-fields/server";
 import { customConditionsOf } from "@/lib/views/conditions";
+import { LiveRefresh } from "@/components/live/live-refresh";
+import { PresenceFor } from "@/components/presence/presence-for";
 import { EmergencyCodeCard, TemplateSplitView } from "@/components/operations/ui";
 import { MapView } from "@/components/platform/client/map-view";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
@@ -543,6 +544,7 @@ async function IncidentRecord({
         />
       }
     >
+      <PresenceFor table="incidents" id={incident.id} />
       <DocumentActions org={page.ctx.org.slug} kind="incident-report" id={incident.id} />
       <IncidentOshaPanel ctx={page.ctx} incidentId={incident.id} members={memberList} />
       {moves.length > 0 && (canDispatch || canWrite) ? (
@@ -887,6 +889,12 @@ async function IncidentRecord({
 
 // Dispatch board ------------------------------------------------------------------------------------
 
+/**
+ * How fast the dispatch board follows incidents and dispatches (Section 11.11: a new incident visible
+ * to dispatch in under 2 s): a short batch and at most two rereads a second while changes keep coming.
+ */
+const DISPATCH_PACING = { batchMs: 100, minIntervalMs: 500, maxIntervalMs: 4_000 } as const;
+
 export async function DispatchBoardSection({ page }: { page: ModulePage }) {
   const t = page.t;
   const section = "dispatch";
@@ -927,7 +935,14 @@ export async function DispatchBoardSection({ page }: { page: ModulePage }) {
 
   return (
     <>
-      <LiveRefresh seconds={2} />
+      {/* Realtime, not polling: incidents and dispatches of the org stream to the board (0470, ADR 0083). */}
+      <LiveRefresh
+        topics={[
+          { table: "incidents", filter: `org_id=eq.${page.ctx.org.id}` },
+          { table: "dispatch_assignments", filter: `org_id=eq.${page.ctx.org.id}` },
+        ]}
+        pacing={DISPATCH_PACING}
+      />
       <Header
         page={page}
         section={section}

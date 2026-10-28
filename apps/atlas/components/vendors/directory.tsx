@@ -42,6 +42,7 @@ import { PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { PresenceFor } from "@/components/presence/presence-for";
 import { orgToday } from "@/lib/shell/time-zone";
 import { EmptyStateLink } from "@/components/ui";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
@@ -155,6 +156,7 @@ export async function VendorDirectory({
           }
         >
           <VendorCustomFields org={ctx.org.slug} vendor={vendor} />
+          <PresenceFor table="vendors" id={vendor.id} />
         </PeekDrawer>
       );
     }
@@ -372,6 +374,7 @@ async function VendorRecord({
         ) : null
       }
     >
+      <PresenceFor table="vendors" id={v.id} />
       {canWrite ? (
         <KitSection id="vendor-terms" title={t("directory.terms")}>
           <EntityForm

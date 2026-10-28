@@ -30,6 +30,7 @@ import { customFieldList } from "@/lib/custom-fields/server";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import { StateHistory } from "@/components/collection-kit/history";
+import { PresenceFor } from "@/components/presence/presence-for";
 import {
   ActionButton,
   EntityForm,
@@ -238,6 +239,7 @@ export async function PurchaseOrdersSection({
         actions={controls(selected)}
       >
         <CustomFieldsPanel org={ctx.org.slug} table="app.purchase_orders" id={selected.id} />
+        <PresenceFor table="purchase_orders" id={selected.id} />
       </PeekDrawer>
     );
   }
@@ -331,6 +333,7 @@ async function PurchaseOrderRecord({
         </>
       }
     >
+      <PresenceFor table="purchase_orders" id={order.id} />
       <KitSection id="po-lines" title={t("orders.lines")}>
         {lines.data.length === 0 ? (
           <p className="m-0 text-text-13 text-text-secondary">{t("orders.noLines")}</p>

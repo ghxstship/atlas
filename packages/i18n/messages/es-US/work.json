@@ -633,7 +633,9 @@
       "sod_approval_requester": "Alguien distinto al solicitante debe decidir esta aprobación.",
       "approval_decided": "Una aprobación decidida es definitiva. Solicite una nueva aprobación.",
       "approval_not_eligible": "Solo quien puede editar los registros de este proyecto puede decidir sus aprobaciones.",
-      "time_zone_unknown": "Elija una zona horaria de la lista."
+      "time_zone_unknown": "Elija una zona horaria de la lista.",
+      "engagement_cue_artist_only": "Los horarios de set pertenecen a contrataciones de artistas. Elija un artista.",
+      "engagement_cue_project_mismatch": "Ese artista está contratado en otro proyecto. Elija un artista del proyecto de este show."
     },
     "quickAdd": {
       "capability": "No puedes crear esto aquí.",

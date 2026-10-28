@@ -26,6 +26,7 @@ import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import { LiveRefresh } from "@/components/live/live-refresh";
+import { PresenceFor } from "@/components/presence/presence-for";
 import {
   ActionButton,
   EntityForm,
@@ -185,6 +186,7 @@ export async function SopsSection({
         actions={actions(sop)}
       >
         <LiveRefresh topics={[{ table: "sops", filter: `id=eq.${sop.id}` }]} />
+        <PresenceFor table="sops" id={sop.id} />
         {hasUnpublishedChanges(sop) ? (
           <InlineAlert tone="info" title={t("sops.changedTitle")}>
             {t("sops.changedBody")}
@@ -408,6 +410,7 @@ export async function SopsSection({
         properties={properties(selected)}
         actions={actions(selected)}
       >
+        <PresenceFor table="sops" id={selected.id} />
         {body(selected)}
       </PeekDrawer>
     );

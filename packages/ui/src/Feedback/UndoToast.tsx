@@ -6,7 +6,8 @@ import { type UndoToastProps } from "./Feedback.types.ts";
 
 /**
  * Replaces a confirmation for a reversible action: 8 seconds with a visible timer, Undo on the
- * button and on Cmd or Ctrl+Z.
+ * button and on Cmd or Ctrl+Z. Shift+Cmd or Ctrl+Z is redo, not undo, and inside a text field the
+ * keys stay the field's own.
  */
 export function UndoToast({
   message,
@@ -24,7 +25,13 @@ export function UndoToast({
       onExpire?.();
     }, seconds * 1000);
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        !e.shiftKey &&
+        e.key.toLowerCase() === "z" &&
+        // In a text field (anything editable: :read-write) the keys stay the field's own undo.
+        !(e.target as Element).matches?.(":read-write")
+      ) {
         e.preventDefault();
         setDone(true);
         onUndo?.();

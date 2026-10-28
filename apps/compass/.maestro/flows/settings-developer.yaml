@@ -1,0 +1,24 @@
+appId: pro.ghxstship.compass
+# Settings, Developer works natively (A112): the Demo Field Tech holds no personal API token, and since the demo
+# organization does not allow them, the screen says so instead of offering to create one in Gateway.
+# Named after its file: config.yaml orders flows by name.
+name: settings-developer
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- runFlow:
+    file: ../subflows/open-route.yaml
+    env:
+      ROUTE: settings/developer
+- extendedWaitUntil:
+    visible:
+      id: "settings-tokens-empty"
+    timeout: 30000
+- assertVisible: "You have no personal API tokens."
+- extendedWaitUntil:
+    visible:
+      id: "settings-token-create-off"
+    timeout: 30000
+- assertVisible: "None of your organizations allows personal API tokens."

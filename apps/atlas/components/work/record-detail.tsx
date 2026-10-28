@@ -37,6 +37,7 @@ import { CollabPanels } from "./collab";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { formatScheduleTime, scheduleViewOf, slipAmount, type ScheduleView } from "./format";
 import { getShellSettings } from "@/lib/shell/org-settings";
+import { PresenceFor } from "@/components/presence/presence-for";
 import { kindFields } from "./kind-fields";
 import { capabilitySet, loadRecordMeta, must, type RecordMeta } from "./load";
 import { loadConversation, loadRelations, type Conversation } from "./record-sections";
@@ -304,6 +305,8 @@ export async function RecordBody({
 
   return (
     <div className="flex flex-col gap-24">
+      {/* Who else has the record open, here or in a peek (Section 11.7). */}
+      <PresenceFor table="records" id={record.id} />
       <SummaryEntryRow
         subject={{ collection: "records", id: record.id, label: recordLabel }}
         kinds={["record_activity"]}
