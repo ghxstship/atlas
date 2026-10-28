@@ -2,6 +2,7 @@
 
 import { Button } from "@xos/ui";
 import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
+import { undoStack } from "@xos/ui/undo";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
@@ -47,7 +48,8 @@ function typing(target: EventTarget | null): boolean {
  * gesture has a visible button and a keyboard equivalent: the buttons sit under the row on every
  * screen, and the row's single-key shortcut runs the action while focus is inside it. The gesture
  * listens to touch pointers only, so a mouse still selects text and follows links. A row that leaves
- * the list (a pass) stays in place as one line with Undo until the next navigation.
+ * the list (a pass) stays in place as one line with Undo until the next navigation, and goes on the
+ * tab's undo stack (Section 11.7), so Cmd or Ctrl+Z undoes it too and Shift+Cmd or Ctrl+Z redoes it.
  */
 export function SwipeActions({
   right,
@@ -67,7 +69,12 @@ export function SwipeActions({
   const router = useRouter();
   const [pending, start] = useTransition();
   const [dx, setDx] = useState(0);
-  const [status, setStatus] = useState<{ text: string; undo?: SwipeAction["undo"] } | null>(null);
+  const [status, setStatus] = useState<{
+    text: string;
+    /** The undo stack entry of an action that can be undone, and its Undo label. */
+    entry?: number;
+    undoLabel?: string;
+  } | null>(null);
   const [hidden, setHidden] = useState(false);
   const [error, setError] = useState(false);
   const origin = useRef<{ x: number; y: number; id: number } | null>(null);
@@ -94,7 +101,35 @@ export function SwipeActions({
       }
       if (item.hides) {
         setHidden(true);
-        setStatus({ text: item.done, ...(item.undo ? { undo: item.undo } : {}) });
+        const undoItem = item.undo;
+        if (!undoItem) {
+          setStatus({ text: item.done });
+          return;
+        }
+        // The row shows its own Undo in place, so the shell's toast stays out of the way.
+        const entry = undoStack.push({
+          label: item.done,
+          toast: false,
+          undo: async () => {
+            const undone = await undoItem.action();
+            if (!undone.ok) {
+              setError(true);
+              return { ok: false, message: failed };
+            }
+            setHidden(false);
+            setStatus(null);
+            router.refresh();
+            return { ok: true };
+          },
+          redo: async () => {
+            const redone = await item.action();
+            if (!redone.ok) return { ok: false, message: failed };
+            setHidden(true);
+            setStatus({ text: item.done, entry: entry.id, undoLabel: undoItem.label });
+            return { ok: true };
+          },
+        });
+        setStatus({ text: item.done, entry: entry.id, undoLabel: undoItem.label });
       } else {
         setStatus({ text: item.done });
         router.refresh();
@@ -102,16 +137,10 @@ export function SwipeActions({
     });
   }
 
-  function undo(item: NonNullable<SwipeAction["undo"]>) {
+  function undo(entry: number) {
+    setError(false);
     start(async () => {
-      const result = await item.action();
-      if (!result.ok) {
-        setError(true);
-        return;
-      }
-      setHidden(false);
-      setStatus(null);
-      router.refresh();
+      await undoStack.undo(entry);
     });
   }
 
@@ -169,13 +198,13 @@ export function SwipeActions({
   }
 
   if (hidden && status) {
-    const undoItem = status.undo;
+    const { entry, undoLabel } = status;
     return (
       <div className="flex min-h-touch-min flex-wrap items-center gap-8 rounded-card border border-dashed border-border-subtle px-16 py-8 text-text-13 text-text-secondary">
         <span role="status">{status.text}</span>
-        {undoItem ? (
-          <Button size="sm" variant="ghost" disabled={pending} onClick={() => undo(undoItem)}>
-            {undoItem.label}
+        {entry !== undefined && undoLabel ? (
+          <Button size="sm" variant="ghost" disabled={pending} onClick={() => undo(entry)}>
+            {undoLabel}
           </Button>
         ) : null}
         {error ? (

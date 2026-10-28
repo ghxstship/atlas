@@ -4,9 +4,16 @@ import { Button } from "../Button/Button.tsx";
 import { InToastRegion, toastClass } from "./Feedback.shared.tsx";
 import { type UndoToastProps } from "./Feedback.types.ts";
 
+/** Whether a key press lands in a text field, whose own undo keeps Cmd or Ctrl+Z. */
+function inField(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  return target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName);
+}
+
 /**
  * Replaces a confirmation for a reversible action: 8 seconds with a visible timer, Undo on the
- * button and on Cmd or Ctrl+Z.
+ * button and on Cmd or Ctrl+Z. Shift+Cmd or Ctrl+Z is redo, not undo, and inside a text field the
+ * keys stay the field's own.
  */
 export function UndoToast({
   message,
@@ -24,7 +31,12 @@ export function UndoToast({
       onExpire?.();
     }, seconds * 1000);
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        !e.shiftKey &&
+        e.key.toLowerCase() === "z" &&
+        !inField(e.target)
+      ) {
         e.preventDefault();
         setDone(true);
         onUndo?.();

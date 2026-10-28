@@ -11,6 +11,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./preferences": "./src/lib/preferences.ts",
+    "./undo": "./src/lib/undo-stack.ts",
     "./pwa": "./src/pwa/index.ts",
     "./pwa/client": "./src/pwa/client.ts",
     "./pwa/analytics": "./src/pwa/analytics.ts",
