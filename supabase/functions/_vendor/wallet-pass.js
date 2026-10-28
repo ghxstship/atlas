@@ -357,8 +357,8 @@ async function sha1Hex(bytes) {
  * itself unconfigured and the function answers 503 wallet_not_configured. Tests use a fake signer built at
  * run time.
  */
-/** The pass.json for a pass. */
-function passJson(pass, config, labels) {
+/** The pass.json for a pass; with the org's logo as the logo image, the org's name is not repeated beside it. */
+function passJson(pass, config, labels, withLogo = false) {
   const color = passBackground(pass.accentHex);
   const date = (key, label, value) => ({
     key,
@@ -450,7 +450,7 @@ function passJson(pass, config, labels) {
     serialNumber: `${pass.kind}-${pass.serial}`,
     organizationName: pass.orgName,
     description: `${pass.title}, ${pass.projectName}`,
-    logoText: pass.orgName,
+    ...(withLogo ? {} : { logoText: pass.orgName }),
     foregroundColor: cssTriple(ON_ACCENT),
     labelColor: cssTriple(ON_ACCENT),
     backgroundColor: cssTriple(color),
@@ -473,27 +473,81 @@ function passJson(pass, config, labels) {
     ...fields,
   };
 }
-/** The signed .pkpass bytes. Throws when the signer is not configured. */
-async function buildPkpass(pass, config, labels, signer) {
-  if (!signer.configured) throw new Error("The Apple Wallet signer is not configured.");
+/** Wallet's image sizes in points, drawn at 1x, 2x and 3x. */
+var ICON = 29;
+var LOGO = {
+  width: 160,
+  height: 50,
+};
+var STRIP = {
+  width: 375,
+  height: 98,
+};
+var SCALES = [1, 2, 3];
+function named(base, scale) {
+  return scale === 1 ? `${base}.png` : `${base}@${String(scale)}x.png`;
+}
+/**
+ * The pass's images (A140). With the org's logo, read as a PNG: the icon is the logo on the pass color, the logo image
+ * is the logo itself at the top of the pass, and a shift pass (an event ticket) carries a strip of the pass color
+ * with the logo in its middle; Wallet has no strip for a generic pass. Without a logo it reads, the icon is the
+ * accent color alone, as before.
+ */
+async function passImages(pass, logo) {
   const color = passBackground(pass.accentHex);
+  const png = logo ? await import("./chunks/platform-wallet-png.js") : null;
+  const image = png && logo ? await png.decodePng(logo) : null;
+  if (!png || !image)
+    return {
+      fromLogo: false,
+      files: SCALES.map((s) => ({
+        name: named("icon", s),
+        data: solidPng(ICON * s, color),
+      })),
+    };
+  const files = [];
+  for (const s of SCALES)
+    files.push({
+      name: named("icon", s),
+      data: await png.encodePng(png.centered(image, ICON * s, ICON * s, color, 0.8)),
+    });
+  for (const s of SCALES) {
+    const size = png.fit(image, LOGO.width * s, LOGO.height * s);
+    const art = png.canvas(size.width, size.height, null);
+    png.draw(art, image, 0, 0, size.width, size.height);
+    files.push({
+      name: named("logo", s),
+      data: await png.encodePng(art),
+    });
+  }
+  if (pass.kind === "shift")
+    for (const s of SCALES)
+      files.push({
+        name: named("strip", s),
+        data: await png.encodePng(
+          png.centered(image, STRIP.width * s, STRIP.height * s, color, 0.6),
+        ),
+      });
+  return {
+    files,
+    fromLogo: true,
+  };
+}
+/**
+ * The signed .pkpass bytes, its images drawn from the org's logo when given one Wallet can show (passImages).
+ * Throws when the signer is not configured.
+ */
+async function buildPkpass(pass, config, labels, signer, logo = null) {
+  if (!signer.configured) throw new Error("The Apple Wallet signer is not configured.");
+  const images = await passImages(pass, logo);
   const files = [
     {
       name: "pass.json",
-      data: new TextEncoder().encode(JSON.stringify(passJson(pass, config, labels))),
+      data: new TextEncoder().encode(
+        JSON.stringify(passJson(pass, config, labels, images.fromLogo)),
+      ),
     },
-    {
-      name: "icon.png",
-      data: solidPng(29, color),
-    },
-    {
-      name: "icon@2x.png",
-      data: solidPng(58, color),
-    },
-    {
-      name: "icon@3x.png",
-      data: solidPng(87, color),
-    },
+    ...images.files,
   ];
   const manifest = {};
   for (const file of files) manifest[file.name] = await sha1Hex(file.data);
@@ -640,8 +694,11 @@ function text(language, value) {
     },
   };
 }
-/** The Generic object and class for a pass. */
-function genericObject(pass, config, labels, language) {
+/**
+ * The Generic object and class for a pass. Google Wallet fetches the logo itself, so it takes the public URL of the
+ * org's logo (A140), when it is a PNG.
+ */
+function genericObject(pass, config, labels, language, logoUrl = null) {
   const classId = `${config.issuerId}.xos_compass_${pass.kind}`;
   const modules = [
     {
@@ -674,6 +731,14 @@ function genericObject(pass, config, labels, language) {
       header: text(language, pass.kind === "credential" ? pass.holderName : pass.title),
       subheader: text(language, pass.kind === "credential" ? pass.title : pass.holderName),
       hexBackgroundColor: passBackground(pass.accentHex),
+      ...(logoUrl
+        ? {
+            logo: {
+              sourceUri: { uri: logoUrl },
+              contentDescription: text(language, pass.orgName),
+            },
+          }
+        : {}),
       ...(pass.barcode
         ? {
             barcode: {
@@ -692,9 +757,17 @@ function genericObject(pass, config, labels, language) {
   };
 }
 /** The "Save to Google Wallet" link for a pass. Throws when the signer is not configured. */
-async function googleSaveUrl(pass, config, labels, language, signer, now = Date.now) {
+async function googleSaveUrl(
+  pass,
+  config,
+  labels,
+  language,
+  signer,
+  now = Date.now,
+  logoUrl = null,
+) {
   if (!signer.configured) throw new Error("The Google Wallet signer is not configured.");
-  const { object, classId } = genericObject(pass, config, labels, language);
+  const { object, classId } = genericObject(pass, config, labels, language, logoUrl);
   return `${GOOGLE_SAVE_URL}${await signer.sign({
     iss: config.serviceAccountEmail,
     aud: "google",
@@ -737,7 +810,7 @@ function readGoogleWalletEnv(env) {
  * catalog); the pass comes from app.my_wallet_pass with the caller's own token, so nobody gets a pass for
  * another person's badge; the answer is the signed .pkpass for Apple Wallet or the "Save to Google Wallet"
  * link. A wallet whose certificate or key is not set answers 503 wallet_not_configured, which Compass
- * explains in plain words.
+ * explains in plain words. The pass art comes from the org's logo when it has a PNG one (A140).
  *
  * It loads no npm package (A85): the request is checked here and the database is reached over PostgREST
  * with fetch, so the function's cold start stays small.
@@ -800,8 +873,10 @@ async function walletPassResponse(body, deps) {
     return problem(503, "wallet_not_configured", "Wallet passes are not set up yet.");
   const pass = await deps.loadPass(kind, id);
   if (!pass) return problem(404, "wallet_pass_not_found", "No pass of yours matches.");
+  const logoPath = pass.logoPath ?? null;
   if (platform === "apple" && deps.apple) {
-    const bytes = await buildPkpass(pass, deps.apple.config, labels, deps.apple.signer);
+    const logo = logoPath && deps.logo ? await deps.logo.load(logoPath).catch(() => null) : null;
+    const bytes = await buildPkpass(pass, deps.apple.config, labels, deps.apple.signer, logo);
     return {
       status: 200,
       headers: {
@@ -819,6 +894,8 @@ async function walletPassResponse(body, deps) {
     labels,
     locale.slice(0, 2),
     google.signer,
+    Date.now,
+    logoPath && deps.logo && isPng(logoPath) ? deps.logo.url(logoPath) : null,
   );
   return {
     status: 200,
@@ -850,6 +927,30 @@ function passFromRow(row) {
     endsAt: str("ends_at"),
     timeZone: str("time_zone") ?? "UTC",
     voided: row["voided"] === true,
+    logoPath: str("logo_path"),
+  };
+}
+var isPng = (path) => path.toLowerCase().endsWith(".png");
+/** The org-brand bucket's size limit (0850): a larger answer is not a logo. */
+var MAX_LOGO_BYTES = 2097152;
+/**
+ * Reads org logos from the public org-brand bucket (0850), where Gateway and the sign-in pages read them without a
+ * session. Only PNG answers are kept; anything else, or a failed read, is null and the pass keeps its accent icon.
+ */
+function publicBrandLogo(options) {
+  const send = options.fetch ?? fetch;
+  const url = (path) =>
+    `${options.supabaseUrl.replace(/\/+$/, "")}/storage/v1/object/public/org-brand/${path.split("/").map(encodeURIComponent).join("/")}`;
+  return {
+    url,
+    async load(path) {
+      if (!/^[0-9a-f-]{36}\/[A-Za-z0-9._-]{1,120}$/.test(path) || !isPng(path)) return null;
+      const response = await send(url(path), { headers: { accept: "image/png" } });
+      if (!response.ok || !(response.headers.get("content-type") ?? "").startsWith("image/png"))
+        return null;
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      return bytes.length > MAX_LOGO_BYTES ? null : bytes;
+    },
   };
 }
 /**
@@ -882,4 +983,10 @@ function callerPassLoader(options) {
   };
 }
 //#endregion
-export { callerPassLoader, readAppleWalletEnv, readGoogleWalletEnv, walletPassResponse };
+export {
+  callerPassLoader,
+  publicBrandLogo,
+  readAppleWalletEnv,
+  readGoogleWalletEnv,
+  walletPassResponse,
+};
