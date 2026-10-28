@@ -63451,6 +63451,29 @@ export type Database = {
       };
       request_to_join: { Args: { p_message?: string; p_org_id: string }; Returns: string };
       request_warehouse_delivery: { Args: { p_destination_id: string }; Returns: string };
+      reschedule_record: {
+        Args: {
+          p_commit?: boolean;
+          p_end_days: number;
+          p_reason?: string;
+          p_record_id: string;
+          p_start_days: number;
+        };
+        Returns: {
+          baseline_ends_at: string;
+          baseline_starts_at: string;
+          due_at: string;
+          ends_at: string;
+          is_target: boolean;
+          old_due_at: string;
+          old_ends_at: string;
+          old_starts_at: string;
+          record_id: string;
+          shift_end_days: number;
+          shift_start_days: number;
+          starts_at: string;
+        }[];
+      };
       reset_shortcut_bindings: {
         Args: { p_shell: Database["app"]["Enums"]["shortcut_shell"]; p_shortcut_id?: string };
         Returns: number;

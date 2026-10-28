@@ -494,7 +494,30 @@
       "record": "[Réçörd ··]",
       "start": "[Stàrt ·]",
       "state": "[Stàté ·]",
-      "scroll": "[{label}, dàýs ·····]"
+      "scroll": "[{label}, dàýs ·····]",
+      "bar": "[{key} {title}, {start} tö {end} ···········]",
+      "controls": "[Résçhédûlé {label} ······]",
+      "locked": "[löçkéd ··]",
+      "moveHint": "[Àrröw kéýs mövé thé bàr à dàý. Shîft wîth àñ àrröw kéý mövés îts éñd. Éñtér àpplîés thé çhàñgé, Ésçàpé çàñçéls ît. ········································]",
+      "preview": {
+        "applied": "[{key} résçhédûléd. ······]",
+        "apply": "[Àpplý ··]",
+        "cancel": "[Càñçél ··]",
+        "canceled": "[Chàñgé çàñçéléd. ······]",
+        "change": "[{key} mövés tö {start} thröûgh {end}. ·············]",
+        "criticalChanges": "[Thé çrîtîçàl pàth çhàñgés. ·········]",
+        "criticalSame": "[Thé çrîtîçàl pàth stàýs thé sàmé. ············]",
+        "cycle": "[Thé dépéñdéñçîés àré çîrçûlàr, sö thîs çhàñgé çàññöt bé màdé. ·····················]",
+        "finishEarlierMany": "[Thé làst fîñîsh mövés {count} dàýs éàrlîér. ···············]",
+        "finishEarlierOne": "[Thé làst fîñîsh mövés 1 dàý éàrlîér. ·············]",
+        "finishLaterMany": "[Thé làst fîñîsh mövés {count} dàýs làtér. ··············]",
+        "finishLaterOne": "[Thé làst fîñîsh mövés 1 dàý làtér. ············]",
+        "label": "[Résçhédûlé prévîéw ······]",
+        "locked": "[{keys} çàññöt mövé: löçkéd. ·········]",
+        "movesMany": "[{count} sûççéssörs mövé: {keys}. ···········]",
+        "movesNone": "[Nö öthér réçörd mövés. ········]",
+        "movesOne": "[1 sûççéssör mövés: {keys}. ·········]"
+      }
     },
     "tooltip": {
       "withShortcut": "[{label} ({shortcut}) ·······]"

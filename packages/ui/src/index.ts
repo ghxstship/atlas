@@ -430,6 +430,9 @@ export {
   type GalleryProps,
   type CalendarProps,
   type TimelineProps,
+  type TimelineChange,
+  type TimelineLink,
+  type TimelinePreview,
   type ResourceScheduleProps,
   type OrgChartProps,
 } from "./Charts/Charts.tsx";

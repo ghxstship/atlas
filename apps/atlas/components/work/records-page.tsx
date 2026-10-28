@@ -1,4 +1,9 @@
-import { buildTimeline, latestBaselinePlan, listDependencies } from "@xos/data/schedule";
+import {
+  buildTimeline,
+  latestBaselinePlan,
+  listDependencies,
+  lockedRecordIds,
+} from "@xos/data/schedule";
 import { listRecords, sortRecords, type ProjectRef, type RecordSort } from "@xos/data/work";
 import { todayIn } from "@xos/data/calendar";
 import { getNode } from "@xos/ia";
@@ -98,20 +103,28 @@ export async function RecordsPage({
 
   const timeZone =
     project?.timeZone ?? records[0]?.projectTimeZone ?? meta.projects[0]?.timeZone ?? "UTC";
+  // People who may change the timeline drag its bars to reschedule (A133).
+  const canReschedule = view === "timeline" && caps.has("schedule.timeline.write");
   let timeline = null;
   if (view === "timeline" && records.length > 0) {
     const ids = records.map((r) => r.id);
-    const [deps, plan] = await Promise.all([
+    const [deps, plan, locked] = await Promise.all([
       listDependencies(db, ids),
       projectId
         ? latestBaselinePlan(db, projectId)
         : Promise.resolve({ ok: true as const, data: new Map() }),
+      canReschedule
+        ? lockedRecordIds(db, records)
+        : Promise.resolve({ ok: true as const, data: new Set<string>() }),
     ]);
     timeline = buildTimeline({
       records,
       dependencies: must(deps, "dependencies"),
       baseline: must(plan, "baseline"),
+      locked: must(locked, "locked records"),
       timeZone,
+      // A week of room on each side to drag bars into.
+      ...(canReschedule ? { pad: 7 } : {}),
     });
   }
 
@@ -189,6 +202,7 @@ export async function RecordsPage({
         today={today}
         timeZone={timeZone}
         timeline={timeline}
+        canReschedule={canReschedule}
         canCreate={canCreate}
         bulk={bulk}
         quickAdd={quickAdd}
