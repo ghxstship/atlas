@@ -1,3 +1,4 @@
+import { toDisplayKey } from "@xos/data/gateway-keys";
 import { expect, test } from "./engine-test";
 import { addCrewOnboardingUpload, publishCrewOpportunity, sendCrewAgreement } from "./fixtures";
 import {
@@ -95,12 +96,39 @@ test("a crew member answers the org in Messages", async ({ page }) => {
 });
 
 test("R2: Up Next shows the call time, the venue and the contact", async ({ page }) => {
-  // The crew member's next call: a Published shift on the demo engagement, sooner than any other.
+  // An Active crew engagement for the demo crew person that starts today, so Up Next picks it, with
+  // its onboarding verified the way Atlas records it, and a Published shift as the next call.
+  const [today] = await sql<{ d: string }>(`select private.project_today($1)::text as d`, [
+    DEMO.project,
+  ]);
+  const [engagement] = await sql<{ id: string }>(
+    `insert into app.engagements (project_id, person_id, role_type, role_code, worker_classification, pay_basis,
+       arrangement, start_date, end_date)
+     values ($1, $2, 'Crew', '5000.51.02', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', $3::date, $3::date + 2)
+     returning id`,
+    [DEMO.project, DEMO.crew, today?.d],
+    DEMO.owner,
+  );
+  const id = engagement?.id as string;
+  await sql(
+    `insert into app.onboarding_verifications (onboarding_item_id, org_id, outcome)
+     select i.id, i.org_id, 'Passed' from app.onboarding_items i where i.engagement_id = $1 and i.deleted_at is null`,
+    [id],
+    DEMO.owner,
+  );
+  const move = (from: string, to: string) =>
+    sql(
+      `select private.transition_lifecycle('engagement', 'app.engagements', 'engagement_state', 'app.engagement_state_transitions',
+         'engagement_id', $1::uuid, $2, $3, 'Moved by the journey fixture.')`,
+      [id, from, to],
+      DEMO.owner,
+    );
+  await move("Onboarding", "Active");
   const [shift] = await sql<{ id: string }>(
     `insert into app.shifts (project_id, engagement_id, role_code, starts_at, ends_at, time_zone)
      values ($1, $2, '5000.51.02', now() + interval '30 minutes', now() + interval '8 hours', 'America/New_York')
      returning id`,
-    [DEMO.project, DEMO.crewEngagement],
+    [DEMO.project, id],
     DEMO.owner,
   );
   await sql(
@@ -112,15 +140,15 @@ test("R2: Up Next shows the call time, the venue and the contact", async ({ page
   try {
     await signIn(page, "crew@example.com", "/home");
     const card = page.getByRole("region", { name: "Up next" });
-    await expect(card.getByText("Shift", { exact: true }).first()).toBeVisible();
-    await expect(card.getByText("Where", { exact: true })).toBeVisible();
-    await expect(card.getByText("Contact", { exact: true })).toBeVisible();
+    await expect(card.getByRole("term").filter({ hasText: /^Shift$/ })).toBeVisible();
+    await expect(card.getByRole("term").filter({ hasText: /^Where$/ })).toBeVisible();
+    await expect(card.getByRole("term").filter({ hasText: /^Contact$/ })).toBeVisible();
     await expect(card.getByRole("link", { name: "Message" })).toHaveAttribute(
       "href",
-      `/work/engagements/${DEMO.crewEngagementKey}/messages`,
+      `/work/engagements/${toDisplayKey("engagement", id)}/messages`,
     );
     await expectAccessible(page);
   } finally {
-    await sql(`update app.shifts set deleted_at = now() where id = $1`, [shift?.id], DEMO.owner);
+    await move("Active", "Canceled");
   }
 });
