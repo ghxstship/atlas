@@ -10,6 +10,7 @@ import {
 import { CoEditLauncher } from "@/components/coedit/coedit-launcher";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
+import { PresenceFor } from "@/components/presence/presence-for";
 import { emptyFor } from "@/components/collection-kit/empty";
 import {
   ActionButton,
@@ -165,6 +166,7 @@ export async function DocumentsSection({
         properties={properties(selected)}
         actions={actions(selected)}
       >
+        <PresenceFor table="documents" id={selected.id} />
         {canWrite ? (
           <KitSection id="document-rename" title={t("documents.details")}>
             <EntityForm
@@ -277,6 +279,7 @@ export async function DocumentsSection({
         properties={properties(selected)}
         actions={actions(selected)}
       >
+        <PresenceFor table="documents" id={selected.id} />
         {versions(selected, t)}
       </PeekDrawer>
     );

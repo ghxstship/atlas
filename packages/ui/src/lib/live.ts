@@ -47,13 +47,16 @@ export function LiveProvider({
   return createElement(LiveContext.Provider, { value: source }, children);
 }
 
-/** The topics as a stable key, so a new array with the same topics never resubscribes. */
+/**
+ * One string for a set of topics, so a re-render with equal topics keeps its subscription. Topics
+ * are joined by a line break, which no filter holds; an `in` filter's values are comma-separated.
+ */
 function topicsKey(topics: readonly LiveTopic[] | null): string {
   if (!topics || topics.length === 0) return "";
   return topics
     .map((t) => `${t.table}|${t.filter ?? ""}`)
     .sort()
-    .join(",");
+    .join("\n");
 }
 
 /**
@@ -74,7 +77,7 @@ export function useLive(
   const maxIntervalMs = pacing?.maxIntervalMs;
   useEffect(() => {
     if (!source || key === "") return undefined;
-    const watched = key.split(",").map((k): LiveTopic => {
+    const watched = key.split("\n").map((k): LiveTopic => {
       const [table = "", filter = ""] = k.split("|");
       return filter ? { table, filter } : { table };
     });

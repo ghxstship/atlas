@@ -142,8 +142,29 @@ export async function GuestList({
             { key: "from", label: t("advancing.guests.columns.from") },
             { key: "state", label: t("advancing.common.state") },
           ]}
+          full={false}
+          bulk={
+            can.rider
+              ? {
+                  org: ctx.org.slug,
+                  resource: "guest_list_entries",
+                  // The guest list guard decides each move: review authority, never the requester.
+                  fields: [
+                    {
+                      key: "entry_state",
+                      label: t("advancing.common.state"),
+                      options: GUEST_STATES.filter((s) => s !== "Requested").map((s) => ({
+                        value: s,
+                        label: label(s),
+                      })),
+                    },
+                  ],
+                }
+              : null
+          }
           rows={guests.data.map((g) => ({
             id: g.id,
+            label: g.guestName,
             guest: g.guestName,
             plusOnes: g.plusOnes,
             show: scopeName(g.scopeNodeId),

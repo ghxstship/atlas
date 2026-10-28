@@ -2,6 +2,7 @@ import { listPayments } from "@xos/data/gateway";
 import { getNode } from "@xos/ia";
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { LinkTable } from "@/components/page/collections";
 import { RowList } from "@/components/engagement/rows";
 import { PageTitle, pickView, RegionError, ViewSwitcher } from "@/components/page/page";
@@ -9,6 +10,7 @@ import { DestinationTabs } from "@/components/page/work-tabs";
 import { EmptyStateLink } from "@/components/ui";
 import { inBrandScope } from "@/lib/brand/brand";
 import { formatDate, formatMoney } from "@/lib/format";
+import { personalChannel } from "@/lib/live/topics";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
@@ -21,6 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Money, Payments (Section 4.4.5): what orgs paid the person's accounts, through the org's own
  * rails. Account Finance, Owners and Admins see the account's payments; nothing here holds funds.
+ * The list updates live through the person's private channel.
  */
 export default async function PaymentsPage({ searchParams }: PageProps<"/money/payments">) {
   const ctx = await requireNode("money.payments");
@@ -35,6 +38,7 @@ export default async function PaymentsPage({ searchParams }: PageProps<"/money/p
   const rows = payments.ok ? payments.data.filter((p) => inBrandScope(ctx.brand, p.orgId)) : [];
   return (
     <>
+      <LiveRefresh channel={personalChannel(ctx.personId)} />
       <PageTitle
         title={t("nav.gateway.primary.money")}
         action={<ViewSwitcher views={views} current={view} path="/money/payments" query={query} />}

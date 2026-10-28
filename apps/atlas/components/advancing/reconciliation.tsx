@@ -197,6 +197,7 @@ export async function ReconciliationCollection({
           ]}
           rows={runs.map((r) => ({
             id: r.id,
+            label: t("advancing.reconciliation.runTitle", { date: when(r.reconciledAt) }),
             when: when(r.reconciledAt),
             project: projectOf(r.projectId)?.key ?? "",
             state: t(`advancing.reconciliation.states.${runState(r).key}`),

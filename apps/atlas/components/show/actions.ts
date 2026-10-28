@@ -11,6 +11,7 @@ import {
   moveCue,
   publishSheet,
   removeCue,
+  restoreSheet,
   saveDaySheet,
   updateCue,
   updateRunOfShow,
@@ -226,6 +227,21 @@ export async function deleteSheetAction(
   if (!id.safeParse(sheetId).success || (table !== "day_sheets" && table !== "call_sheets"))
     return invalid();
   const result = await deleteSheet(ctx.viewer.db, table, sheetId);
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
+/** Restores a sheet from Trash: the Undo of deleteSheetAction (Section 11.7). */
+export async function restoreSheetAction(
+  org: string,
+  table: "day_sheets" | "call_sheets",
+  sheetId: string,
+): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!id.safeParse(sheetId).success || (table !== "day_sheets" && table !== "call_sheets"))
+    return invalid();
+  const result = await restoreSheet(ctx.viewer.db, table, sheetId);
   if (!result.ok) return failed(result.error);
   refresh(org);
   return done(null);

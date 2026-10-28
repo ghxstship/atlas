@@ -22,6 +22,7 @@ import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
 import { StateHistory } from "@/components/collection-kit/history";
+import { PresenceFor } from "@/components/presence/presence-for";
 import {
   ActionButton,
   EntityForm,
@@ -204,6 +205,7 @@ export async function RfqsSection({
         properties={properties(selected)}
         actions={transitions(selected)}
       >
+        <PresenceFor table="rfqs" id={selected.id} />
         <p className="m-0 text-text-13 text-text-secondary">
           {selected.state === "Issued" ? t("rfqs.sealedNotice") : t("rfqs.openFullHint")}
         </p>
@@ -287,6 +289,7 @@ async function RfqRecord({
       properties={properties}
       actions={transitions}
     >
+      <PresenceFor table="rfqs" id={rfq.id} />
       {canWrite && rfq.state === "Proposed" ? (
         <KitSection id="rfq-details" title={t("rfqs.details")}>
           <EntityForm

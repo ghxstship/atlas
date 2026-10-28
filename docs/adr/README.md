@@ -60,14 +60,20 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0056](0056-push-to-a-persons-own-devices-and-tap-targets.md)       | Push to a Person's Own Devices, and Tap Targets                                  | Accepted |
 | [0057](0057-encrypted-bank-and-certificate-numbers.md)              | Encrypted Bank and Certificate Numbers                                           | Accepted |
 | [0060](0060-collection-exports-and-the-export-worker.md)            | Exports of Every Collection and the Export Worker                                | Proposed |
+| [0061](0061-watermarked-uploaded-pdfs.md)                           | Watermarked Uploaded PDFs                                                        | Proposed |
 | [0064](0064-account-security-and-import-notices.md)                 | Account Security and Import Notices, and Only the Channels a Category Reaches    | Proposed |
 | [0065](0065-carrier-client-credentials.md)                          | UPS and FedEx Mint Their Access Tokens with the Client-Credentials Grant         | Proposed |
+| [0068](0068-denormalization-register-and-catalog-lints.md)          | Denormalization Register and Catalog Lints                                       | Proposed |
 | [0069](0069-compass-profile-certifications-and-documents.md)        | Compass Profile Certifications and Documents                                     | Accepted |
 | [0070](0070-compass-native-identity-settings.md)                    | Compass Native Identity Settings                                                 | Proposed |
 | [0071](0071-compass-personal-settings-part-2.md)                    | Compass Preferences, Notifications, Out of Office and Work Details               | Accepted |
+| [0072](0072-compass-settings-payout-feeds-apps-and-developer.md)    | Compass Settings: Payout and Tax, Calendar Feeds, Connected Apps and Developer   | Accepted |
 | [0073](0073-quick-add.md)                                           | Quick Add                                                                        | Accepted |
 | [0074](0074-record-sections-and-custom-object-history.md)           | Record Sections in Every Peek, and Custom Object Record History                  | Accepted |
 | [0075](0075-selection-menus-and-hover-cards-in-every-view.md)       | Selection, Record Menus and Hover Cards in Every View                            | Accepted |
+| [0080](0080-operations-bulk-edit-and-undo.md)                       | Operations Bulk Edit, Undo for Their Deletes and Day Sheet Drafts                | Accepted |
+| [0082](0082-gateway-power-editing.md)                               | Power Editing in Gateway                                                         | Accepted |
+| [0083](0083-live-lists-dispatch-board-and-presence.md)              | Live Lists, a Realtime Dispatch Board, and Presence on Records                   | Proposed |
 | [0087](0087-dashboard-template-and-template-roots.md)               | The Dashboard Template, Saved Spans and Template Roots                           | Accepted |
 
-The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.
+The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).

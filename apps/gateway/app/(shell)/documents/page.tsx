@@ -9,6 +9,7 @@ import { getNode } from "@xos/ia";
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
 import { ActionButton } from "@/components/actions/action-button";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { LinkTable } from "@/components/page/collections";
 import { RowList } from "@/components/engagement/rows";
 import { PageTitle, pickView, RegionError, Section, ViewSwitcher } from "@/components/page/page";
@@ -16,6 +17,7 @@ import { EmptyStateLink, InlineAlert } from "@/components/ui";
 import { signDocumentAction } from "@/lib/actions/engagement";
 import { inBrandScope } from "@/lib/brand/brand";
 import { formatDate } from "@/lib/format";
+import { idsTopic, personTopic, topics } from "@/lib/live/topics";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
@@ -27,8 +29,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /**
  * Documents (Section 4.5.8 avatar menu): a vault of contracts, onboarding and compliance documents
- * across orgs, with expiry. Documents to sign come first and carry Sign inline; documents that
- * expire within 30 days are called out.
+ * across orgs, with expiry. Documents to sign come first and carry Sign inline, and in the table a
+ * selection of them is signed at once (Section 11.7); documents that expire within 30 days are
+ * called out. The list updates live as the orgs send, sign or change documents.
  */
 export default async function DocumentsPage({ searchParams }: PageProps<"/documents">) {
   const ctx = await requireNode("documents");
@@ -69,6 +72,16 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
   const empty = docs.length === 0 && signedByLink.data.length === 0 && taxForms.data.length === 0;
   return (
     <>
+      <LiveRefresh
+        topics={topics(
+          idsTopic(
+            "engagement_documents",
+            "engagement_id",
+            engagements.data.map((e) => e.id),
+          ),
+          personTopic("tax_forms", "person_id", ctx.personId),
+        )}
+      />
       <PageTitle
         title={t("nav.gateway.avatar.documents")}
         lead={t("gateway.documents.lead")}
@@ -89,6 +102,7 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
       ) : view === "table" ? (
         <LinkTable
           caption={t("nav.gateway.avatar.documents")}
+          action="sign"
           columns={[
             { key: "title", label: t("gateway.documents.title") },
             { key: "kind", label: t("gateway.documents.kind") },
@@ -97,6 +111,9 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
             { key: "state", label: t("gateway.work.engagements.state") },
           ]}
           rows={docs.map(({ d, e }) => ({
+            id: d.id,
+            label: d.title,
+            eligible: d.state === "Sent",
             href: e ? `/work/engagements/${e.key}/documents` : "/documents",
             title: d.title,
             kind: t(enumLabelKey("engagementDocumentKind", d.kind)),

@@ -368,12 +368,12 @@ nodes:
             kind: page
             label: nav.atlas.pages.show.daySheets
             route: "/{org}/show/day-sheets"
-            list: { views: [list, calendar], default: list }
+            list: { views: [list, table, calendar], default: list }
           - id: show.call-sheets
             kind: page
             label: nav.atlas.pages.show.callSheets
             route: "/{org}/show/call-sheets"
-            list: { views: [list, calendar], default: list }
+            list: { views: [list, table, calendar], default: list }
       - id: advancing
         kind: item
         label: nav.atlas.items.advancing
@@ -457,7 +457,7 @@ nodes:
             kind: page
             label: nav.atlas.pages.logistics.dockSchedule
             route: "/{org}/logistics/dock-schedule"
-            list: { views: [resource-schedule, calendar, list], default: resource-schedule }
+            list: { views: [resource-schedule, calendar, list, table], default: resource-schedule }
           - id: logistics.marshalling-yard-log
             kind: page
             label: nav.atlas.pages.logistics.marshallingYardLog
