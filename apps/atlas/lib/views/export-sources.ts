@@ -587,6 +587,14 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "provider",
     "checksum_sha256",
   ]),
+  "crew/per_diems": source("app.per_diems", [
+    "project_id",
+    "membership_id",
+    "engagement_id",
+    "day",
+    "amount_minor",
+    "currency_code",
+  ]),
   // The rate is Restricted (Section 8.3): the masked view shows it only to holders of the payroll read
   // capability, and exporting it asks for the restricted export capability and step-up.
   "crew/rate_cards": source(

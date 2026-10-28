@@ -1,0 +1,40 @@
+appId: pro.ghxstship.compass
+# Settings, Payout and Tax works natively (A112): the Demo Road Crew (seed 1490) opens it from the Settings list
+# and sees that no organization pays them or holds a tax form from them yet, and that giving a tax form opens
+# Gateway, with the reason.
+# Named after its file: config.yaml orders flows by name.
+name: settings-payout-and-tax
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: road.crew@example.com
+- tapOn:
+    id: "tab-more"
+- scrollUntilVisible:
+    element:
+      id: "more-settings"
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: "more-settings"
+- scrollUntilVisible:
+    element:
+      id: "settings-section-settings.payout-and-tax"
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: "settings-section-settings.payout-and-tax"
+- extendedWaitUntil:
+    visible:
+      id: "settings-payouts-empty"
+    timeout: 30000
+- assertVisible: ".*entered through each organization's payment provider.*"
+- assertVisible:
+    id: "settings-tax-forms-empty"
+- scrollUntilVisible:
+    element:
+      id: "settings-tax-give"
+    direction: DOWN
+- assertVisible: "Give a Tax Form"
+- assertVisible: "Opens Gateway.*"

@@ -4,12 +4,14 @@ import {
   BrandMark,
   IconButton,
   Avatar,
+  LiveProvider,
   PreferencesProvider,
   TabBar,
   TemplateGatewayShell,
   TopNav,
   type NavItem,
 } from "@xos/ui";
+import { undoStack } from "@xos/ui/undo";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -24,6 +26,8 @@ import {
   type ReactNode,
 } from "react";
 import { HelpEntry } from "@/components/help/help-entry";
+import { gatewayLiveSource } from "@/components/live/live-source";
+import { UndoCenter } from "@/components/undo/undo-center";
 import {
   applyDocumentAttributes,
   decodePreferences,
@@ -97,8 +101,10 @@ function activeLabel(links: readonly FrameLink[], pathname: string): string {
  * The Gateway shell (Section 11.6, Gateway shell; Section 4.5.8): the org or platform brand, the five
  * destinations in the top bar on desktop and the bottom tab bar on phones, search (Cmd or Ctrl+K),
  * help (the Help button, the avatar menu's Help and the `?` key open the contextual help panel,
- * Section 11.16), and the account panel with the avatar menu, the acting account, theme and
- * language. Every destination comes from ia/sitemap.yaml through the server-built navigation model.
+ * Section 11.16), undo and redo (Cmd or Ctrl+Z and Shift+Cmd or Ctrl+Z, over the tab's undo
+ * stack, Section 11.7), live updates for the lists on the page, and the account panel with the
+ * avatar menu, the acting account, theme and language. Every destination comes from
+ * ia/sitemap.yaml through the server-built navigation model.
  * Search, the account panel and the organization switcher (shell-overlays.tsx) load on first use;
  * pointing at or focusing the header fetches them early. Help loads its own panel (HelpEntry).
  */
@@ -150,6 +156,15 @@ export function GatewayFrame(props: GatewayFrameProps) {
         // The command menu's own Cmd or Ctrl+K arrives with its module, so the frame owns it.
         event.preventDefault();
         setCommandOpen((open) => !open);
+      } else if (
+        (event.metaKey || event.ctrlKey) &&
+        !event.altKey &&
+        event.key.toLowerCase() === "z" &&
+        !typing
+      ) {
+        // Undo and redo over the tab's stack; inside a field the keys stay the field's own.
+        event.preventDefault();
+        void (event.shiftKey ? undoStack.redo() : undoStack.undo());
       }
     };
     window.addEventListener("keydown", onKey);
@@ -258,7 +273,7 @@ export function GatewayFrame(props: GatewayFrameProps) {
             preferences={displayPreferences}
             timeZone={props.viewerTimeZone ?? null}
           >
-            {props.children}
+            <LiveProvider source={gatewayLiveSource}>{props.children}</LiveProvider>
           </PreferencesProvider>
         </div>
         {props.showPoweredBy ? (
@@ -293,6 +308,7 @@ export function GatewayFrame(props: GatewayFrameProps) {
       ) : null}
 
       <HelpEntry open={helpOpen} onOpenChange={setHelpOpen} docsUrl={props.docsUrl} />
+      <UndoCenter />
 
       <form ref={signOutForm} method="post" action="/auth/sign-out" className="hidden" />
       <SessionWatcher email={props.email} />

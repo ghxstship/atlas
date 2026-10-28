@@ -420,3 +420,15 @@ shells:
         keys: Escape
         fixed: true
         label: help.shortcuts.close
+      # Undo and redo over the tab's last 50 actions, as in Atlas (Section 11.7, ADR 0082). Inside a field
+      # the keys stay the field's own text undo.
+      - id: undo
+        scope: global
+        group: general
+        keys: Mod+Z
+        label: help.shortcuts.undo
+      - id: redo
+        scope: global
+        group: general
+        keys: Mod+Shift+Z
+        label: help.shortcuts.redo

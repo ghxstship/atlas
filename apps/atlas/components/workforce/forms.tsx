@@ -40,6 +40,7 @@ import { orgToday } from "@/lib/shell/time-zone";
 import { QuerySwitch } from "./client";
 import { FormFiller } from "./form-filler";
 import { REFUSALS, workforceCopy } from "./shared";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["table", "list"];
 
@@ -88,10 +89,9 @@ export async function FormsSection({
   const title = t("forms.title");
   if (!templates.ok || !submissions.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("forms.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canWrite = ctx.capabilities.has("knowledge.sop.write");

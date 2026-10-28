@@ -34,6 +34,8 @@ export interface RowActions {
    */
   readonly onPage?: boolean;
   readonly bulk?: Bulk;
+  /** The row's own actions after the changes, the ones its peek offers, such as Delete draft. */
+  readonly more?: readonly MenuItem[];
 }
 
 /**
@@ -89,6 +91,10 @@ export function useRowMenu(): {
             onSelect: () => bulk.edit(field, actions.id),
           });
         }
+      }
+      if (actions.more && actions.more.length > 0) {
+        if (items.length > 0) items.push({ separator: true });
+        items.push(...actions.more);
       }
       if (items.length === 0) return;
       const rect = cell.getBoundingClientRect();

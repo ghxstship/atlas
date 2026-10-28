@@ -492,4 +492,22 @@ describe("surfaces and states", () => {
     await userEvent.click(screen.getByRole("button", { name: /Undo/ }));
     expect(onUndo).toHaveBeenCalledTimes(1);
   });
+
+  it("leaves Shift+Cmd+Z to redo and Cmd+Z in a text field to the field", () => {
+    const onUndo = vi.fn();
+    render(
+      <>
+        <label>
+          Note
+          <input />
+        </label>
+        <UndoToast message="Moved." onUndo={onUndo} />
+      </>,
+    );
+    fireEvent.keyDown(document, { key: "z", metaKey: true, shiftKey: true });
+    fireEvent.keyDown(screen.getByLabelText("Note"), { key: "z", ctrlKey: true });
+    expect(onUndo).not.toHaveBeenCalled();
+    fireEvent.keyDown(document, { key: "z", ctrlKey: true });
+    expect(onUndo).toHaveBeenCalledTimes(1);
+  });
 });

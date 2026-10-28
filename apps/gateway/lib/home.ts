@@ -152,3 +152,88 @@ export function needsYou(input: {
 function isoDaysAgo(now: Date, days: number): string {
   return new Date(now.getTime() - days * 86_400_000).toISOString().slice(0, 10);
 }
+
+/** How many things to bring the Up Next card lists before it says how many more there are. */
+export const BRING_LIMIT = 5;
+
+export type UpNextCallKind = "shift" | "dockSlot" | "set";
+
+const CALL_KINDS: Readonly<Record<string, UpNextCallKind>> = {
+  Shift: "shift",
+  "Dock Slot": "dockSlot",
+  Set: "set",
+};
+
+export interface UpNextDetails {
+  /** The next call while the operational area is open: when, in which zone, and what it is. */
+  readonly call: {
+    readonly at: string;
+    readonly timeZone: string;
+    readonly kind: UpNextCallKind;
+  } | null;
+  /** The venue's name and address, joined; null when the project names no venue. */
+  readonly where: string | null;
+  /** Whom to ask: the member who set up the engagement, else the org. */
+  readonly contact: string;
+  /** Badge categories, then gear with its asset tag, at most BRING_LIMIT. */
+  readonly bring: readonly string[];
+  /** How many more things to bring than the list shows. */
+  readonly bringMore: number;
+}
+
+/**
+ * What the Up Next card adds for an engagement (R2, api_external.engagement_up_next): the next call,
+ * where, whom to ask, and what to bring (the person's live badges on the project and the gear the
+ * engagement holds). Parking stays out until passes exist (R7, R8).
+ */
+export function upNextDetails(input: {
+  readonly row: {
+    readonly venue_name: string | null;
+    readonly venue_street_address: string | null;
+    readonly venue_locality: string | null;
+    readonly venue_postal_code: string | null;
+    readonly contact_name: string | null;
+    readonly next_call_at: string | null;
+    readonly next_call_time_zone: string | null;
+    readonly next_call_kind: string | null;
+  } | null;
+  readonly orgName: string;
+  readonly badges: readonly {
+    readonly category_name: string | null;
+    readonly revoked_at: string | null;
+  }[];
+  readonly gear: readonly {
+    readonly class_name: string | null;
+    readonly asset_tag: string | null;
+  }[];
+}): UpNextDetails {
+  const row = input.row;
+  const kind = row?.next_call_kind ? CALL_KINDS[row.next_call_kind] : undefined;
+  const call =
+    row?.next_call_at && row.next_call_time_zone && kind
+      ? { at: row.next_call_at, timeZone: row.next_call_time_zone, kind }
+      : null;
+  const place = row
+    ? [row.venue_name, row.venue_street_address, row.venue_locality, row.venue_postal_code]
+        .map((v) => v?.trim() ?? "")
+        .filter((v) => v !== "")
+    : [];
+  const badges = [
+    ...new Set(
+      input.badges.flatMap((b) =>
+        b.revoked_at === null && b.category_name ? [b.category_name] : [],
+      ),
+    ),
+  ];
+  const gear = input.gear.flatMap((g) =>
+    g.class_name ? [g.asset_tag ? `${g.class_name} (${g.asset_tag})` : g.class_name] : [],
+  );
+  const all = [...badges, ...gear];
+  return {
+    call,
+    where: place.length > 0 ? place.join(", ") : null,
+    contact: row?.contact_name?.trim() || input.orgName,
+    bring: all.slice(0, BRING_LIMIT),
+    bringMore: Math.max(0, all.length - BRING_LIMIT),
+  };
+}

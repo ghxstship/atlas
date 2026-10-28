@@ -3,8 +3,8 @@ import { toDisplayKey } from "@xos/data/gateway-keys";
 import { atlasAs, ORG } from "./atlas";
 import {
   asPerson,
-  engagementCredential,
   newSignIn,
+  offer,
   offerToApplication,
   PEOPLE,
   projectToday,
@@ -13,6 +13,7 @@ import {
   requirements,
   suffix,
   transition,
+  travelFulfillment,
   workedShift,
 } from "./role-fixtures";
 import { DEMO, expectAccessible, signIn, sql } from "./support";
@@ -102,9 +103,50 @@ test("journey 41: requisition to credential loss, one crew person through every 
     await atlas.context.close();
     await transition("engagement", id, "Blocked", "Active", "Background check passed.");
 
-    // Shift accepted in Gateway and worked; credential issued for the show.
+    // The Producer issues the show credential in Atlas Credentials > Issued, picking the engaged crew
+    // person (not a member), and books their flight on a Travel fulfillment (R1).
+    const holder = `Demo Deckhand ${tag.toUpperCase()} · Crew`;
+    const producer = await atlasAs(browser, "producer@example.com");
+    await producer.page.goto(`/${ORG}/credentials/issued?project=NWS&create=1`);
+    await producer.page.getByLabel("Category").selectOption({ label: "PRODUCTION · Production" });
+    await producer.page.getByLabel("Holder").selectOption({ label: holder });
+    await producer.page.getByRole("button", { name: "Issue credential" }).click();
+    const issued = producer.page.getByText(/Issued as \S+\./);
+    await expect(issued).toBeVisible();
+    const credential = {
+      number: /Issued as (\S+)\./.exec((await issued.textContent()) ?? "")?.[1] ?? "",
+    };
+    const [badge] = await sql<{ engagement_id: string | null }>(
+      `select engagement_id from app.credentials where holder_person_id = $1 and deleted_at is null`,
+      [person],
+    );
+    expect(badge?.engagement_id).toBe(id);
+    const flights = await travelFulfillment();
+    await producer.page.goto(`/${ORG}/hospitality/fulfillments?peek=${flights.key}`);
+    const segment = producer.page.getByRole("form", { name: "Add segment" });
+    await segment.getByLabel("Traveler").selectOption({ label: holder });
+    await segment.getByLabel("Mode").selectOption("Flight");
+    await segment.getByLabel("Operator").fill("Fictional Air");
+    await segment.getByLabel("Flight or service number").fill("FA 418");
+    await segment.getByLabel("From", { exact: true }).fill("Newark");
+    await segment.getByLabel("Departs", { exact: true }).fill("2027-06-03T09:00");
+    await segment.getByLabel("To", { exact: true }).fill("Miami");
+    await segment.getByRole("button", { name: "Add segment" }).click();
+    await expect
+      .poll(
+        async () =>
+          (
+            await sql<{ n: number }>(
+              `select count(*)::int as n from app.travel_segments where engagement_id = $1 and deleted_at is null`,
+              [id],
+            )
+          )[0]?.n,
+      )
+      .toBe(1);
+    await producer.context.close();
+
+    // Shift accepted in Gateway and worked.
     const shift = await publishedShift(id);
-    const credential = await engagementCredential(id, person);
     await page.goto(`/work/engagements/${key}/shifts`);
     await page.waitForLoadState("networkidle");
     await page.getByRole("button", { name: "Accept shift" }).click();
@@ -123,6 +165,10 @@ test("journey 41: requisition to credential loss, one crew person through every 
     await expect(page.getByRole("listitem").filter({ hasText: credential.number })).toContainText(
       "Valid",
     );
+    // The flight Atlas booked shows on Travel and Lodging, which opens where travel is offered (R3).
+    await offer("offerings.travel");
+    await page.goto(`/work/engagements/${key}/travel-and-lodging`);
+    await expect(page.getByText("Newark to Miami")).toBeVisible();
     const { timesheetId } = await workedShift(id, shift.id, person);
 
     // Timesheet submitted in Gateway, approved by the Producer.

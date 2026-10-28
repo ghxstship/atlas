@@ -1,6 +1,6 @@
 "use client";
 
-import type { Cue, CueProgress, RunOfShow } from "@xos/data/show";
+import type { Cue, CueEngagement, CueProgress, RunOfShow } from "@xos/data/show";
 import type { ProjectRef, ScopeNodeRef } from "@xos/data/work";
 import {
   Button,
@@ -31,12 +31,15 @@ import {
   callCueAction,
   createRunAction,
   deleteRunAction,
+  linkCueAction,
   moveCueAction,
   removeCueAction,
+  unlinkCueAction,
   updateRunAction,
 } from "./actions";
 import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
@@ -76,6 +79,7 @@ export function RunCollection({
   const pathname = usePathname();
   const params = useSearchParams();
   const [search, setSearch] = useState(q);
+  const rowMenu = useRowMenu();
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   const open = (runId: string) =>
@@ -166,6 +170,36 @@ export function RunCollection({
           cues: progress(r),
         }))}
         onRowActivate={(row) => open(String(row["id"]))}
+        onRowContextMenu={(_row, index, at, cell) => {
+          const r = runs[index];
+          if (!r) return;
+          // A running order has no full page or property that changes in bulk (Section 11.7):
+          // its menu opens it, or starts live mode as its peek does once it has cues.
+          rowMenu.open(
+            {
+              id: r.id,
+              label: `${r.projectKey} · ${r.name}`,
+              open: () => open(r.id),
+              ...(r.cueCount > 0
+                ? {
+                    more: [
+                      {
+                        label: t("live.start"),
+                        icon: "Play" as const,
+                        onSelect: () =>
+                          router.push(
+                            withQuery(pathname, params, { peek: r.id, live: "1" }) as Route,
+                            { scroll: false },
+                          ),
+                      },
+                    ],
+                  }
+                : {}),
+            },
+            at,
+            cell,
+          );
+        }}
       />
     );
   } else if (view === "timeline") {
@@ -238,6 +272,7 @@ export function RunCollection({
   return (
     <TemplateCollection header={header} filters={filters} peek={peek}>
       {body}
+      {rowMenu.menu}
     </TemplateCollection>
   );
 }
@@ -375,6 +410,57 @@ function LiveCues({ runId }: { runId: string }) {
   return null;
 }
 
+/**
+ * A cue's Set for control in edit mode: each linked artist with an unlink button (a back-to-back set
+ * links two), then a select of the project's other Artist engagements. Gateway Set Times shows the
+ * linked cue to each artist (Section 4.4.4).
+ */
+function SetFor({
+  org,
+  cue,
+  links,
+  artists,
+  action,
+}: {
+  org: string;
+  cue: Cue;
+  links: readonly CueEngagement[];
+  artists: readonly { value: string; label: string }[];
+  action: ReturnType<typeof useAction>;
+}) {
+  const t = useCopy("show");
+  const unlinked = artists.filter((a) => !links.some((l) => l.engagementId === a.value));
+  return (
+    <>
+      {links.map((link) => (
+        <span key={link.id} className="flex items-center gap-4 text-text-12">
+          {t("cues.setForName", { name: link.personName ?? t("cues.setForNone") })}
+          <IconButton
+            icon="X"
+            label={t("cues.unlink", {
+              name: link.personName ?? t("cues.setForNone"),
+              label: cue.label,
+            })}
+            onClick={() => action.run(() => unlinkCueAction(org, link.id))}
+          />
+        </span>
+      ))}
+      {unlinked.length > 0 ? (
+        <Select
+          id={`set-for-${cue.id}`}
+          label={t("cues.setFor")}
+          value=""
+          options={[{ value: "", label: t("cues.setForNone") }, ...unlinked]}
+          onChange={(e) => {
+            const engagementId = e.target.value;
+            if (engagementId) action.run(() => linkCueAction(org, cue.id, engagementId));
+          }}
+        />
+      ) : null}
+    </>
+  );
+}
+
 /** Seconds as m:ss, or h:mm:ss past an hour. */
 function clock(total: number): string {
   const s = Math.abs(Math.round(total));
@@ -393,6 +479,8 @@ export function RunBody({
   live,
   canEdit,
   canCall,
+  setTimes = [],
+  artists = [],
   children,
 }: {
   org: string;
@@ -402,6 +490,10 @@ export function RunBody({
   live: boolean;
   canEdit: boolean;
   canCall: boolean;
+  /** Cues marked as an artist's set time (app.engagement_cues), for the Set for control. */
+  setTimes?: readonly CueEngagement[];
+  /** The run's project's Artist engagements a cue can be set for. */
+  artists?: readonly { value: string; label: string }[];
   children?: ReactNode;
 }) {
   const t = useCopy("show");
@@ -552,6 +644,15 @@ export function RunBody({
                   </span>
                 </span>
                 <span className="flex items-center gap-4">
+                  {canEdit ? (
+                    <SetFor
+                      org={org}
+                      cue={c}
+                      links={setTimes.filter((s) => s.cueId === c.id)}
+                      artists={artists}
+                      action={cueAction}
+                    />
+                  ) : null}
                   <span className="text-text-12 text-text-secondary">
                     {c.calledAt
                       ? c.calledByName

@@ -255,6 +255,11 @@ supabase db push
   `main` never migrates it. `supabase db push` asks for the database password, which the owner types
   (decision 75).
 - Never load `supabase/seeds` into production; they are the demo tenant.
+- Then put back any Realtime channel rule the project lacks:
+  `supabase db query --linked "select private.ensure_realtime_channel_policies();"`. It answers the names of the
+  rules it created, usually none (`{}`). Realtime creates `realtime.messages` itself, the first time it starts and
+  in some upgrades, and the co-editing rooms refuse every join until their rules exist (ADR 0044, decision 6). The
+  `xos_ensure_realtime_channel_policies` job does the same every minute.
 - Then run `infra/drills/key-tables.sql` read-only in the production SQL editor and keep the output with the release.
 - Database advisors: Dashboard, Advisors. Zero errors (gate 11).
 
@@ -306,7 +311,7 @@ See Compass releases below. Compass ships on its own cadence; a web release neve
 | Edge Functions         | Check out the previous tag and redeploy the functions: `git switch --detach vPREV`, then `supabase functions deploy --project-ref <production-ref>`, then return to `main`                      | Minutes         |
 | A migration            | Never run a down migration. Ship a forward fix as a new migration. The previous app build keeps working on the new schema (expand and contract)                                                 | One deploy      |
 | Lost or corrupted data | Restore to a new project and switch traffic (`backup-and-restore.md`, Restoring production). Declare a SEV1 first                                                                               | Under 4 h (RTO) |
-| A published package    | Never unpublish. Publish the next patch; `npm deprecate @xos/sdk@X.Y.Z "<reason>"` and yank on PyPI                                                                                             | Minutes         |
+| A published package    | Never unpublish. Publish the next patch; `npm deprecate @ghxstship/xos-sdk@X.Y.Z "<reason>"` and yank on PyPI                                                                                   | Minutes         |
 | A Compass build        | Expire the build in TestFlight, or halt the Play rollout; testers keep the previous build                                                                                                       | Minutes         |
 
 ## Environment variables
@@ -331,6 +336,7 @@ Values live in Vercel, the Supabase project, EAS and GitHub. They are never comm
 | `XOS_INBOUND_DOMAIN`          | `inbound.ghxstship.tech`, once Resend receives there (ADR 0040; ADR 0033, decision 60) |
 | `VAPID_PUBLIC_KEY`            | The Web Push public key ("Web push" below; public, ADR 0052)                           |
 | `STRIPE_SECRET_KEY`           | The live key once billing opens (ADR 0033, decision 59); the sandbox key on staging    |
+| `XOS_FILE_HANDOVER_SECRET`    | The file handover secret, the same value as the Edge Function secret (ADR 0061, 2041)  |
 
 ### Gateway (Vercel project `gateway`)
 
@@ -379,9 +385,21 @@ None. The site is built from the repository and the OpenAPI document. Project se
 | `XOS_SMS_ALLOWLIST`, `XOS_SMS_DELIVER_TO_ANY`                    | `XOS_SMS_DELIVER_TO_ANY=true` only in production, once Twilio approves the 10DLC campaign (ADR 0033, decision 65)                                         |
 | `XOS_SMS_WEBHOOK_URL`                                            | Only when Twilio calls `sms-webhook` through another host; defaults to the function's own URL                                                             |
 | `APPLE_SIGN_IN_KEY_ID`, `APPLE_SIGN_IN_KEY_PEM`                  | The Sign in with Apple key, for `apple-revoke`: revoking Compass's Apple tokens when a person deletes their account ("Sign in with Apple (OWNER)")        |
+| `XOS_FILE_HANDOVER_SECRET`                                       | `file-download`: a random value of at least 32 characters (`openssl rand -hex 32`), the same as on `atlas`, one per environment ("File handover" below)   |
 | `APPLE_TEAM_ID`, `APPLE_SIGN_IN_CLIENT_IDS`                      | The team ID `wallet-pass` also uses; the bundle IDs the key serves, `pro.ghxstship.compass` first                                                         |
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase. The worker schedules read the service role key from Vault (`xos_worker_key`).
+
+### File handover (OWNER, A103)
+
+Confidential and Restricted PDFs and images leave Atlas only with the viewer's email and the time on every page (Section 8.6, ADR 0061). The Atlas web shell stamps them, so the `file-download` Edge Function hands those bytes only to Atlas, which proves itself with a shared secret. Until the secret is set on both sides, Atlas refuses those files ("cannot be downloaded right now", and "cannot be opened right now" on a share link page) and never sends them unmarked. Public and Internal files, and Confidential files of other types, are unaffected.
+
+1. Generate one value per environment on your machine: `openssl rand -hex 32`. Keep it in your secret store; never paste it into a chat, a ticket or the repository.
+2. Set it as the Edge Function secret `XOS_FILE_HANDOVER_SECRET` on that environment's Supabase project (staging first).
+3. Set the same value as `XOS_FILE_HANDOVER_SECRET` on the `atlas` Vercel project for that environment, then redeploy.
+4. Check: download a Confidential PDF from a file row in Atlas; the file is named `...-watermarked.pdf` and every page carries the line.
+
+To rotate, set the new value on both sides, function first; downloads of those files fail for the minute between the two.
 
 ### Compass (EAS environment `production`; `preview` holds the staging values)
 

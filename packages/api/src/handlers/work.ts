@@ -22,6 +22,7 @@ import { listPage } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { aliasedSource, problemFor } from "./projects.ts";
+import { bulkEdit, fieldHistory } from "./parts/bulk-edit-and-history.ts";
 import { from, groupBy, tableHandlers } from "./support/table.ts";
 
 type RecordBody = Components["Record"];
@@ -926,4 +927,12 @@ export const handlers = defineHandlers("Work", {
 
   // Replans (A04P): the history the replan transition writes; read only, the time is created_at.
   ...tableHandlers("Work", "recordReplans", { aliases: { replanned_at: "created_at" } }),
+
+  // Bulk edit and field history (A106, migrations 1451 and 1452).
+  "records.bulkPreview": async ({ body }, context) =>
+    ok((await bulkEdit(context, "records", body, true)) as never),
+  "records.bulkUpdate": async ({ body }, context) =>
+    ok((await bulkEdit(context, "records", body, false)) as never),
+  "records.fieldHistory": async ({ params, query }, context) =>
+    ok((await fieldHistory(context, "app.records", params.id, query.limit)) as never),
 });

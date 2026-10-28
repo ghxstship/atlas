@@ -1,4 +1,5 @@
 import { fillRoute, getNode, isNodeVisible, type NavContext, type Sitemap } from "@xos/ia";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { CreateItem } from "./create-order";
 import { NAV_ICONS } from "./nav-model";
 
@@ -13,7 +14,7 @@ export interface CreateKind {
   readonly id: string;
   /** Sitemap node of the org-level page whose create flow opens. */
   readonly node: string;
-  readonly capability: string;
+  readonly capability: CapabilityCode;
 }
 
 export const CREATE_KINDS: readonly CreateKind[] = [
@@ -57,7 +58,7 @@ export function createItems(
   sitemap: Sitemap,
   input: {
     readonly nav: NavContext;
-    readonly capabilities: ReadonlySet<string>;
+    readonly capabilities: ReadonlySet<CapabilityCode>;
     readonly params: Record<string, string>;
     readonly t: Translate;
   },

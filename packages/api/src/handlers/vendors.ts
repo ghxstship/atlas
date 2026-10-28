@@ -11,6 +11,7 @@ import {
   type VendorState,
 } from "@xos/data/vendors";
 import { defineHandlers, ok } from "../runtime/handler.ts";
+import { fieldHistory } from "./parts/bulk-edit-and-history.ts";
 import { mergeBy } from "./support/enrich.ts";
 import { from, groupBy, handlersFor, keysOf, run, tableResource, unwrap } from "./support/table.ts";
 
@@ -96,4 +97,8 @@ export const handlers = defineHandlers("Vendors", {
     unwrap(await setEntitlementFulfilled(context.db, params.id, false));
     return ok((await entitlements.read(context, params.id)) as never);
   },
+
+  // Field history (A106, migration 1452).
+  "vendors.fieldHistory": async ({ params, query }, context) =>
+    ok((await fieldHistory(context, "app.vendors", params.id, query.limit)) as never),
 });

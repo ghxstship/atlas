@@ -1,15 +1,18 @@
 import { expect as baseExpect, test } from "./engine-test";
 import {
   artistAdvance,
-  artistSetCue,
   asPerson,
+  offer,
   offerToApplication,
   PEOPLE,
+  PROJECT,
   publishArtistCall,
+  roleEngagement,
   ROLE_PEOPLE,
   submittedSettlement,
   transition,
 } from "./role-fixtures";
+import { atlasAs, ORG } from "./atlas";
 import { expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./support";
 import { toDisplayKey } from "@xos/data/gateway-keys";
 
@@ -85,7 +88,32 @@ test("journey 45: open call, representative accepts, advance, set time and settl
   const key = toDisplayKey("engagement", engagementId);
   await transition("engagement", engagementId, "Onboarding", "Active", "Contract signed.");
   const advance = await artistAdvance(ROLE_PEOPLE.artist);
-  const set = await artistSetCue(engagementId);
+
+  // The Producer sets the Opening Night cue for the artist in Atlas Show > Run of show (R1).
+  const [cue] = await sql<{ id: string; label: string; run: string }>(
+    `select c.id, c.label, r.id as run from app.cues c join app.run_of_show r on r.id = c.run_of_show_id
+      where r.project_id = $1 and r.name = 'Opening Night Running Order' and c.deleted_at is null
+        and c.called_at is null
+      order by c.position limit 1`,
+    [PROJECT],
+  );
+  const set = { label: cue?.label as string };
+  const producer = await atlasAs(browser, "producer@example.com");
+  await producer.page.goto(`/${ORG}/show/run-of-show?peek=${cue?.run}`);
+  await producer.page.locator(`#set-for-${cue?.id}`).selectOption(engagementId);
+  await expect
+    .poll(
+      async () =>
+        (
+          await sql<{ n: number }>(
+            `select count(*)::int as n from app.engagement_cues
+              where engagement_id = $1 and cue_id = $2 and deleted_at is null`,
+            [engagementId, cue?.id],
+          )
+        )[0]?.n,
+    )
+    .toBe(1);
+  await producer.context.close();
 
   // The representative answers the advance and reads the rider and the set time.
   await a.goto(`/work/engagements/${key}/advance`);
@@ -104,6 +132,8 @@ test("journey 45: open call, representative accepts, advance, set time and settl
   await expectAccessible(a);
   await a.goto(`/work/engagements/${key}/set-times`);
   await expect(a.getByText(set.label).first()).toBeVisible();
+  // The guest list tab opens only where the project offers a guest list (R3).
+  await offer("offerings.guest_list");
   await a.goto(`/work/engagements/${key}/guest-list`);
   await a.getByLabel("Guest name").fill("Jordan Reyes");
   await a.getByRole("button", { name: "Add guest" }).click();
@@ -144,4 +174,26 @@ test("journey 45: open call, representative accepts, advance, set time and settl
     [engagementId],
   );
   expect(closed?.s).toBe("Complete");
+});
+
+test("R2: an individual artist reads the rider Atlas assigned to their engagement", async ({
+  page,
+}) => {
+  const engagement = await roleEngagement({ person: ROLE_PEOPLE.artist, roleType: "Artist" });
+  await transition("engagement", engagement.id, "Onboarding", "Active", "Artist confirmed.");
+  const title = `Technical Rider ${engagement.key.slice(-4)}`;
+  const [rider] = await sql<{ id: string }>(
+    `insert into app.riders (project_id, engagement_id, title) values ($1, $2, $3) returning id`,
+    [PROJECT, engagement.id, title],
+    PEOPLE.owner,
+  );
+  await sql(
+    `insert into app.rider_lines (rider_id, description, quantity) values ($1, 'Two wedge monitors', 2)`,
+    [rider?.id],
+    PEOPLE.owner,
+  );
+  await signIn(page, "artist@example.com", `/work/engagements/${engagement.key}/rider`);
+  await expect(page.getByRole("heading", { name: title })).toBeVisible();
+  await expect(page.getByText("Two wedge monitors")).toBeVisible();
+  await expectAccessible(page);
 });
