@@ -1,5 +1,5 @@
 /**
- * Push actions for offers and messages (A127, ADR 0089; Section 11.10 rule 5): a shift still to accept and an offer
+ * Push actions for offers and messages (A127, ADR 0106; Section 11.10 rule 5): a shift still to accept and an offer
  * that waits on the applicant are accepted or declined from the notification, the lock screen included, and a message
  * is answered from it with a reply typed in place, all without opening Compass.
  *

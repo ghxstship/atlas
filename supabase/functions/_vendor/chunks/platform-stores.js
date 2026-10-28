@@ -2,7 +2,7 @@
 // Never edit by hand; the @xos/platform tests fail when this file differs from the build output.
 import { isEmailActionName } from "./email-actions.js";
 //#region ../schemas/src/notifications/action-token.ts
-/** A one-tap email action token (ADR 0089): a nonce and its signature, minted and verified only in the database. */
+/** A one-tap email action token (ADR 0106): a nonce and its signature, minted and verified only in the database. */
 var ACTION_TOKEN = /^xact_[0-9a-f]{48}\.[0-9a-f]{32}$/;
 /** The confirm page, in Atlas and Gateway. */
 var ACTION_PATH = "/auth/act";

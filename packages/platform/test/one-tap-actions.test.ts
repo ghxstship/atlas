@@ -18,7 +18,7 @@ import {
   type PlatformDb,
 } from "../src/index.ts";
 
-/** One-tap actions (A127, ADR 0089): email action links minted at dispatch, and the push categories of offers. */
+/** One-tap actions (A127, ADR 0106): email action links minted at dispatch, and the push categories of offers. */
 
 const TOKEN = `xact_${"a".repeat(48)}.${"b".repeat(32)}`;
 const TOKEN_2 = `xact_${"c".repeat(48)}.${"d".repeat(32)}`;

@@ -5,7 +5,7 @@ import { expectAccessibleInBothThemes } from "./a16-support";
 import { apiPost, DEMO_ORG, signInAs } from "./a36-support";
 
 /**
- * A127 (Section 11.10 rule 5, S11.10-06, ADR 0089): an approver approves from the approval request's email in two taps,
+ * A127 (Section 11.10 rule 5, S11.10-06, ADR 0106): an approver approves from the approval request's email in two taps,
  * the email's Approve button and the confirm page's Approve, without opening the record. The link never acts on
  * opening, works once, and says nothing to anyone but its recipient.
  */

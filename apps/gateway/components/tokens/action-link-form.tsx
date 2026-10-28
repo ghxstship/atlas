@@ -13,7 +13,7 @@ import { confirmActionLinkAction, type ActionLinkState } from "@/lib/actions/one
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /**
- * The confirm step of a one-tap email link in Gateway (A127, ADR 0089): one button to accept, or the reason and Reject.
+ * The confirm step of a one-tap email link in Gateway (A127, ADR 0106): one button to accept, or the reason and Reject.
  * A refusal keeps the typed reason. Works before hydration.
  */
 export function ActionLinkForm({ token, action }: { token: string; action: LinkAction }) {

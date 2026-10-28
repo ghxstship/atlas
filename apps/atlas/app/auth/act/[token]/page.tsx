@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * The confirm page of a one-tap email link (A127, ADR 0089; Section 11.10 rule 5): the email's Approve, Reject or
+ * The confirm page of a one-tap email link (A127, ADR 0106; Section 11.10 rule 5): the email's Approve, Reject or
  * Accept button opens it, and one more press acts, so acting from an email takes two taps. Opening it only reads what
  * the link does (app.read_notification_action); someone else's link says nothing about itself. Signed out, the person
  * signs in and comes back here.

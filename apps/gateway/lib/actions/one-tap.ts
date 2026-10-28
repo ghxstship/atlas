@@ -8,7 +8,7 @@ import { outcomeFor, type ActionResult } from "@/lib/action-result";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
- * Acting where notifications arrive in Gateway (A127, ADR 0089; Section 11.10 rule 5): the confirm button of a one-tap
+ * Acting where notifications arrive in Gateway (A127, ADR 0106; Section 11.10 rule 5): the confirm button of a one-tap
  * email link, and Done (E) and Snooze (H) on Home's For Your Information list. Each runs as the signed-in person; the
  * database decides who may act and every rule of the action itself.
  */

@@ -1,5 +1,5 @@
 /**
- * Push actions for offers and messages on the device (A127, ADR 0089): registers the shift offer, engagement offer
+ * Push actions for offers and messages on the device (A127, ADR 0106): registers the shift offer, engagement offer
  * and message categories with their Accept, Decline and Reply actions, and answers each through notifications.act
  * without opening Compass. It sits beside useActionableNotifications (runtime/notifications.ts), which keeps the
  * approval category, the device registration and every tap on a notification body; each listener reads only the
