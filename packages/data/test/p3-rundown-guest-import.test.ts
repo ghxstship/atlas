@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { describe, expect, it } from "vitest";
 import {
   cuePosition,
@@ -16,6 +17,7 @@ import {
   ImportWriteError,
   markInFileDuplicates,
   runImportJobs,
+  supabaseImportStore,
   validateRow,
   type ImportDestination,
   type ImportJobKind,
@@ -453,6 +455,7 @@ function memoryStore(
   csv: string,
   targetCode: "cues" | "guest_list_entries",
   called: string[] = [],
+  merges: Readonly<Record<number, string>> = {},
 ) {
   const writes: Row[] = [];
   const queue: { kind: ImportJobKind; jobId: string; subjectId: string }[] = [
@@ -538,7 +541,15 @@ function memoryStore(
     validRows: async () =>
       rows
         .filter((r) => r.state === "Valid")
-        .map((r) => ({ id: r.id, rowNumber: r.rowNumber, matchedId: r.match, mergeInto: null })),
+        .map((r) => {
+          const merge = merges[r.rowNumber];
+          return {
+            id: r.id,
+            rowNumber: r.rowNumber,
+            matchedId: r.match,
+            mergeInto: merge ? { table: `app.${targetCode}`, id: merge } : null,
+          };
+        }),
     async commitWrite(input) {
       const r = rows.find((x) => x.id === input.rowId);
       if (r) r.written = { action: input.action, target: input.targetId };
@@ -661,5 +672,102 @@ describe("the worker on a guest list", () => {
         entry_state: "Requested",
       },
     ]);
+  });
+
+  it("merges into the chosen guest without moving it to another show or renaming it", async () => {
+    // Riley Chen for Night 1 is a near duplicate the person merged into an existing whole-project row.
+    const s = memoryStore("Guest,Plus,Show\nRiley Chen,1,Night 1\n", "guest_list_entries", [], {
+      2: "guest9",
+    });
+    await s.run();
+    s.confirm();
+    await s.run();
+    s.commit();
+    await s.run();
+    expect(s.writes).toEqual([
+      { op: "update", target: "guest_list_entries", id: "guest9", plus_ones: 1 },
+    ]);
+  });
+});
+
+/**
+ * A stand-in for the service-role client: each table answers its rows to select, eq and is filters, as PostgREST
+ * would, so the store's name lookups are checked without a database (C8, C12).
+ */
+function fakeClient(tables: Readonly<Record<string, readonly Row[]>>): SupabaseClient {
+  const query = (rows: readonly Row[]) => {
+    let out = [...rows];
+    const chain = {
+      select: () => chain,
+      eq(column: string, value: unknown) {
+        out = out.filter((r) => r[column] === value);
+        return chain;
+      },
+      is(column: string, value: unknown) {
+        out = out.filter((r) => (r[column] ?? null) === value);
+        return chain;
+      },
+      then(resolve: (v: { data: Row[]; error: null }) => unknown) {
+        return Promise.resolve({ data: out, error: null }).then(resolve);
+      },
+    };
+    return chain;
+  };
+  const schema = { from: (table: string) => query(tables[table] ?? []), rpc: async () => ({}) };
+  return { schema: () => schema } as unknown as SupabaseClient;
+}
+
+describe("the store's name lookups under the service role", () => {
+  const client = fakeClient({
+    counterparties: [
+      { id: "cp1", org_id: "o", deleted_at: null, organizations: { name: "Harbor Sound" } },
+      { id: "cp2", org_id: "o", deleted_at: null, organizations: { name: "Twin Lights" } },
+      { id: "cp3", org_id: "o", deleted_at: null, organizations: { name: "twin lights " } },
+      { id: "cp4", org_id: "o", deleted_at: "2026-10-01", organizations: { name: "Old Pier" } },
+      { id: "cp5", org_id: "other", deleted_at: null, organizations: { name: "Bay Rentals" } },
+    ],
+    spaces: [
+      {
+        id: "11111111-1111-4111-8111-111111111111",
+        venue_id: "v1",
+        deleted_at: null,
+        name: "Main Stage",
+      },
+      { id: "sp2", venue_id: "v1", deleted_at: null, name: "Annex" },
+      { id: "sp3", venue_id: "v1", deleted_at: null, name: "annex" },
+      { id: "sp4", venue_id: "v2", deleted_at: null, name: "Club Room" },
+    ],
+    scope_nodes: [
+      { id: "n1", project_id: "p1", deleted_at: null, scope_code: "N1", name: "Night 1" },
+      { id: "n2", project_id: "p1", deleted_at: null, scope_code: "N2", name: "Encore" },
+      { id: "n3", project_id: "p1", deleted_at: null, scope_code: "N3", name: "encore" },
+    ],
+  });
+  const lookup = supabaseImportStore(client).lookups;
+
+  it("finds a company by its organization's name, trimmed and in any case, in the job's org only", async () => {
+    await expect(lookup.counterpartyIdByName("o", "  HARBOR sound ")).resolves.toBe("cp1");
+    await expect(lookup.counterpartyIdByName("o", "Twin Lights")).resolves.toBeNull();
+    await expect(lookup.counterpartyIdByName("o", "Old Pier")).resolves.toBeNull();
+    await expect(lookup.counterpartyIdByName("o", "Bay Rentals")).resolves.toBeNull();
+  });
+
+  it("finds a space of the venue by id or one name, and none without a venue", async () => {
+    await expect(lookup.spaceId("v1", "main stage")).resolves.toBe(
+      "11111111-1111-4111-8111-111111111111",
+    );
+    await expect(lookup.spaceId("v1", "11111111-1111-4111-8111-111111111111")).resolves.toBe(
+      "11111111-1111-4111-8111-111111111111",
+    );
+    await expect(lookup.spaceId("v1", "Annex")).resolves.toBeNull();
+    await expect(lookup.spaceId("v1", "Club Room")).resolves.toBeNull();
+    await expect(lookup.spaceId(null, "Main Stage")).resolves.toBeNull();
+  });
+
+  it("finds a show by its scope code or one name", async () => {
+    await expect(lookup.scopeNodeId("p1", "n2")).resolves.toBe("n2");
+    await expect(lookup.scopeNodeId("p1", "night 1")).resolves.toBe("n1");
+    await expect(lookup.scopeNodeId("p1", "Encore")).resolves.toBeNull();
+    await expect(lookup.scopeNodeId("p2", "Night 1")).resolves.toBeNull();
   });
 });
