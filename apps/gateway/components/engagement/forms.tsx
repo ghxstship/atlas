@@ -18,6 +18,7 @@ import {
   answerAdvanceAction,
   decideApprovalAction,
   openThreadAction,
+  respondSubmittalAction,
   submitDeliverableAction,
   submitInvoiceAction,
   submitTaxFormAction,
@@ -379,6 +380,40 @@ export function OnboardingUploadForm(props: {
         />
         <span className="text-text-12 text-text-secondary">{t("upload.help")}</span>
       </label>
+    </FormShell>
+  );
+}
+
+/** The vendor's submission of a Proposed submittal, or resubmission of a Returned one (R2). */
+export function SubmittalResponseForm(props: {
+  submittalId: string;
+  title: string;
+  expected: "Proposed" | "Returned";
+}) {
+  const t = useTranslations("gateway.engagement.submittals");
+  const [state, action, pending] = useActionState<FormResult, FormData>(respondSubmittalAction, {});
+  return (
+    <FormShell
+      row
+      state={state}
+      pending={pending}
+      action={action}
+      submitLabel={props.expected === "Returned" ? t("resubmit") : t("submit")}
+      doneLabel={t("done")}
+      label={props.title}
+    >
+      <input type="hidden" name="submittalId" value={props.submittalId} />
+      <input type="hidden" name="expected" value={props.expected} />
+      <Textarea
+        id={`submittal-${props.submittalId}`}
+        name="note"
+        required
+        maxLength={500}
+        rows={2}
+        width="100%"
+        label={t("note")}
+        help={t("noteHelp")}
+      />
     </FormShell>
   );
 }

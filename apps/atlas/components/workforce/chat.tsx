@@ -21,6 +21,7 @@ import type { SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { TemplateSplitView } from "./client";
 import { REFUSALS, workforceCopy } from "./shared";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 function first(v: string | string[] | undefined): string | undefined {
   return Array.isArray(v) ? v[0] : v;
@@ -57,10 +58,9 @@ export async function ChatSection({
   const title = t("chat.title");
   if (!conversations.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("chat.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const when = (d: string) =>

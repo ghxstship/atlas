@@ -1017,6 +1017,14 @@ restated:
     parent: app.projects.starts_on
     kind: own
     note: First day of the work, not of the production.
+  - column: app.riders.counterparty_id
+    parent: app.engagements.counterparty_id
+    kind: own
+    note: The account whose rider it is; `riders_one_party` never sets it together with the engagement link (migration 2611).
+  - column: app.riders.project_id
+    parent: app.engagements.project_id
+    kind: own
+    note: The rider's project; the engagement link is optional and `t39_rider_engagement_project` keeps it equal (migration 2611).
   - column: app.role_assignments.ends_on
     parent: app.projects.ends_on
     kind: own

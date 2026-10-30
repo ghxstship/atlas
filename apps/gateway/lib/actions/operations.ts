@@ -11,6 +11,7 @@ import {
   revokeSelfBilling,
   submitAdvanceAnswer,
   submitDeliverable,
+  submitEngagedSubmittal,
   submitEngagementInvoice,
   submitTaxForm,
   submitTimesheet,
@@ -105,6 +106,23 @@ export async function submitDeliverableAction(_: FormResult, form: FormData): Pr
     });
   if (!parsed.success) return { fieldError: "deliverable" };
   const result = await submitDeliverable(await createServerSupabase(), parsed.data);
+  return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
+}
+
+export async function respondSubmittalAction(_: FormResult, form: FormData): Promise<FormResult> {
+  const parsed = z
+    .object({
+      submittalId: id,
+      expected: z.enum(["Proposed", "Returned"]),
+      note: z.string().trim().min(1).max(500),
+    })
+    .safeParse({
+      submittalId: form.get("submittalId"),
+      expected: form.get("expected"),
+      note: form.get("note"),
+    });
+  if (!parsed.success) return { fieldError: "submittalNote" };
+  const result = await submitEngagedSubmittal(await createServerSupabase(), parsed.data);
   return result.ok ? { done: true } : { outcome: outcomeFor(result.error) };
 }
 

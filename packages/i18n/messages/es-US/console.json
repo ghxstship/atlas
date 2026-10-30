@@ -547,6 +547,126 @@
     "reason": "Motivo",
     "platform": "Plataforma"
   },
+  "metrics": {
+    "title": "Métricas de la plataforma",
+    "intro": "Cifras de toda la plataforma leídas de la base de datos de XOS: solo totales, nunca los registros de una organización. Las semanas empiezan el lunes y los meses el día 1, en UTC.",
+    "generatedAt": "Cifras al {when}.",
+    "week": "Semana del",
+    "growth": {
+      "title": "Crecimiento",
+      "intro": "Organizaciones nuevas y registros por semana.",
+      "liveOrgs": "Organizaciones activas",
+      "clients": "{count, plural, one {# cliente de socio} other {# clientes de socios}}",
+      "newOrgs": "Organizaciones nuevas",
+      "signUps": "Registros",
+      "inWeeks": "{count, plural, one {La última semana} other {Las últimas # semanas}}",
+      "withAccount": "Personas con cuenta",
+      "chart": "Organizaciones nuevas y registros por semana"
+    },
+    "active": {
+      "title": "Personas activas",
+      "intro": "Personas que iniciaron sesión o usaron una sesión iniciada.",
+      "day": "Activas en el último día",
+      "week": "Activas en los últimos 7 días",
+      "month": "Activas en los últimos 30 días"
+    },
+    "plans": {
+      "title": "Planes y pruebas",
+      "intro": "Organizaciones según el plan y el estado de su suscripción vigente. No se cuentan los cambios de plan de la consola; la facturación mantiene el plan de la suscripción.",
+      "trialing": "Pruebas en curso",
+      "ending": "Pruebas que terminan en 7 días",
+      "withoutSubscription": "Organizaciones sin suscripción vigente",
+      "chart": "Organizaciones por plan y estado de la suscripción",
+      "plan": "Plan",
+      "orgs": "Organizaciones"
+    },
+    "usage": {
+      "title": "Uso",
+      "intro": "Totales de uso mensuales cerrados de todas las organizaciones, de los últimos tres meses.",
+      "none": "Todavía no se ha cerrado ningún mes con uso.",
+      "month": "Mes",
+      "meter": "Medidor",
+      "quantity": "Total",
+      "orgs": "Organizaciones",
+      "amount": "{quantity} {unit}"
+    },
+    "meters": {
+      "field_members": "Miembros de campo",
+      "external_engagements": "Contrataciones externas",
+      "emails_sent": "Correos enviados",
+      "sms_segments": "Segmentos de mensajes de texto",
+      "push_sent": "Notificaciones push enviadas",
+      "api_requests": "Solicitudes a la API",
+      "storage_bytes": "Almacenamiento",
+      "ai_tokens": "Tokens de Aurora"
+    },
+    "units": {
+      "member": "miembros",
+      "engagement": "contrataciones",
+      "message": "mensajes",
+      "segment": "segmentos",
+      "request": "solicitudes",
+      "byte_day": "bytes-día",
+      "token": "tokens"
+    },
+    "aurora": {
+      "title": "Aurora",
+      "intro": "Solicitudes a Aurora por semana, y sus resultados, funciones y tokens de los últimos 30 días.",
+      "requests": "Solicitudes en los últimos 30 días",
+      "inputTokens": "Tokens de entrada en los últimos 30 días",
+      "outputTokens": "Tokens de salida en los últimos 30 días",
+      "chart": "Solicitudes a Aurora por semana",
+      "requestsSeries": "Solicitudes",
+      "byOutcome": "Solicitudes a Aurora por resultado",
+      "byFeature": "Solicitudes a Aurora por función",
+      "outcome": "Resultado",
+      "feature": "Función"
+    },
+    "outcomes": {
+      "Pending": "Pendiente",
+      "Answered": "Respondida",
+      "No Answer": "Sin respuesta",
+      "Failed": "Fallida"
+    },
+    "features": {
+      "assistant": "Asistente",
+      "plain_language": "Preguntar en lenguaje natural",
+      "extraction": "Extracción de documentos",
+      "drafting": "Redacción",
+      "summaries": "Resúmenes",
+      "mapping": "Ayuda de asignación"
+    },
+    "jobs": {
+      "title": "Cola de trabajos",
+      "intro": "Trabajos en segundo plano por tipo: los que esperan ahora y los terminados en las últimas 24 horas. Un trabajo que lleva más de 30 minutos en ejecución está detenido.",
+      "none": "Ningún trabajo espera, se ejecuta ni terminó en las últimas 24 horas.",
+      "kind": "Tipo de trabajo",
+      "ready": "Listos",
+      "scheduled": "Programados",
+      "running": "En ejecución",
+      "stalled": "Detenidos",
+      "failed": "Fallidos en 24 horas",
+      "succeeded": "Completados en 24 horas",
+      "oldestReady": "Listo más antiguo desde"
+    },
+    "notifications": {
+      "title": "Entrega de notificaciones",
+      "intro": "Entregas por correo, mensaje de texto y push de las notificaciones de los últimos 7 días, por canal. La tasa de fallos cuenta las entregas fallidas y rebotadas entre las ya resueltas.",
+      "channel": "Canal",
+      "total": "Entregas",
+      "sent": "Enviadas",
+      "pending": "En espera",
+      "failed": "Fallidas",
+      "bounced": "Rebotadas",
+      "suppressed": "Suprimidas",
+      "failureRate": "Tasa de fallos"
+    },
+    "channels": {
+      "Email": "Correo",
+      "SMS": "Mensaje de texto",
+      "Push": "Push"
+    }
+  },
   "actionNames": {
     "organization_searched": "Buscó organizaciones",
     "organization_viewed": "Abrió una organización",

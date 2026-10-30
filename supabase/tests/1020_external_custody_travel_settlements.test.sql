@@ -59,6 +59,9 @@ with x as (insert into app.report_runs (report_definition_id, run_for_membership
 with x as (insert into app.shared_reports (engagement_id, project_id, report_run_id, title) values (pg_temp.id('eng_ivy_a'), pg_temp.id('prj_a'), pg_temp.id('run'), 'Show Spend to Date') returning id)
   insert into world select 'share', id from x;
 
+-- Per diem is an offering since R3 (2625): prj_a offers it.
+insert into app.setting_values (org_id, setting_key, scope_kind, scope_id, value_text, locked)
+values (pg_temp.id('org_a'), 'offerings.per_diem', 'Project', pg_temp.id('prj_a'), 'provided', false);
 insert into app.per_diems (project_id, engagement_id, day, amount_minor, currency_code)
 values (pg_temp.id('prj_a'), pg_temp.id('eng_ivy_a'), '2027-06-01', 6500, 'USD');
 

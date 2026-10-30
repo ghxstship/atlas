@@ -7,14 +7,16 @@ import {
   type Engagement,
   type Representation,
 } from "@xos/data/gateway";
+import { listEngagementOfferings, type EngagementOffering } from "@xos/data/offerings";
 import {
-  engagementTabIds,
   getNode,
   isNodeVisible,
+  type Condition,
   type ExternalRoleType as SitemapRoleType,
 } from "@xos/ia";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { engagementNav, offeringConditions, visibleEngagementTabs } from "./engagement-offerings";
 import type { ScheduleView } from "./format";
 import type { GatewayContext } from "./shell/context";
 import { getScheduleView } from "./time-zone";
@@ -39,6 +41,10 @@ export interface EngagementView {
   readonly representation: Representation | null;
   /** Representation scopes as sitemap keys (offers, advance, settlement, documents). */
   readonly scopes: readonly string[];
+  /** What the producing org offers on the engagement (R3), one row per offering. */
+  readonly offerings: readonly EngagementOffering[];
+  /** Sitemap conditions the offerings meet (offeringConditions), on top of the shell's. */
+  readonly conditions: readonly Condition[];
   readonly tabs: readonly string[];
   /** Today on the engagement's project calendar (its time zone, 1390), as `YYYY-MM-DD`; never UTC's date. */
   readonly today: string;
@@ -72,14 +78,20 @@ export const loadEngagementView = cache(async (engagementKey: string): Promise<E
   const ctx = await requireNode("engagement", { engagementKey });
   const id = fromDisplayKey("engagement", engagementKey);
   if (!id) notFound();
-  const [engagement, representations, scheduleView] = await Promise.all([
+  const [engagement, representations, scheduleView, offerings] = await Promise.all([
     getEngagement(ctx.db, id),
     listRepresentations(ctx.db),
     getScheduleView(ctx),
+    listEngagementOfferings(ctx.db, id),
   ]);
   if (!engagement.ok) {
     if (engagement.error.kind === "not-found") notFound();
     throw new Error(`Engagement ${engagementKey} did not load: ${engagement.error.kind}`);
+  }
+  if (!offerings.ok) {
+    throw new Error(
+      `Offerings of engagement ${engagementKey} did not load: ${offerings.error.kind}`,
+    );
   }
   if (ctx.brand.kind === "org" && ctx.brand.org.orgId !== engagement.data.orgId) notFound();
   const today = todayIn(engagement.data.projectTimeZone);
@@ -93,13 +105,16 @@ export const loadEngagementView = cache(async (engagementKey: string): Promise<E
     ? "artist-representative"
     : sitemapRoleType(engagement.data.roleType);
   const scopes = representation ? representation.scopes.map((s) => s.toLowerCase()) : [];
+  const conditions = offeringConditions(offerings.data);
   return {
     ctx,
     engagement: engagement.data,
     roleType,
     representation,
     scopes,
-    tabs: engagementTabIds(sitemap, roleType, scopes),
+    offerings: offerings.data,
+    conditions,
+    tabs: visibleEngagementTabs(sitemap, ctx.nav, roleType, scopes, conditions),
     today,
     scheduleView,
   };
@@ -111,11 +126,11 @@ export async function loadEngagementTab(
   tab: string,
 ): Promise<EngagementView> {
   const view = await loadEngagementView(engagementKey);
-  const visible = isNodeVisible(sitemap, tab, {
-    ...view.ctx.nav,
-    roleType: view.roleType,
-    representationScopes: view.scopes,
-  });
+  const visible = isNodeVisible(
+    sitemap,
+    tab,
+    engagementNav(view.ctx.nav, view.roleType, view.scopes, view.conditions),
+  );
   if (!visible || !view.tabs.includes(tab)) notFound();
   return view;
 }
@@ -132,3 +147,4 @@ export function hasArea(view: EngagementView, area: string): boolean {
 }
 
 export { closedArea, isLiveEngagement, type ClosedArea } from "./engagement-state";
+export { offeringConditions } from "./engagement-offerings";

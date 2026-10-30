@@ -25,6 +25,8 @@ import { useCopy } from "./use-copy";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState, type ReactNode } from "react";
 import type { ActionState } from "@/lib/collection-kit/forms";
+import { CustomFieldInputs } from "@/components/custom-fields/inputs";
+import type { CustomFieldTable } from "@/lib/custom-fields/types";
 import type { KitState } from "./types";
 
 /**
@@ -320,10 +322,16 @@ export function EntityForm({
   refusals,
   successHref,
   onCancelHref,
+  customFields,
 }: {
   id: string;
   action: ServerAction;
   fields: FieldSpec[];
+  /**
+   * The table whose custom fields a create form shows after its own fields (A117); the action saves them
+   * through `customFieldsOf` (lib/custom-fields/form.ts).
+   */
+  customFields?: CustomFieldTable;
   hidden?: Readonly<Record<string, string>>;
   submitLabel: string;
   /** Secondary for a form beside the page's own primary action (gate 27). */
@@ -441,6 +449,7 @@ export function EntityForm({
             );
         }
       })}
+      {customFields ? <CustomFieldInputs table={customFields} idPrefix={id} /> : null}
       <div className="flex flex-wrap items-center gap-8">
         <Button type="submit" variant={submitVariant} loading={pending}>
           {submitLabel}

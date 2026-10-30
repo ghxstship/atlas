@@ -37,7 +37,9 @@
       "notification_channel_outside": "Una empresa solo configura Correo electrónico y Push.",
       "supplier_diversity_no_program": "Esa organización no tiene un programa de diversidad de proveedores, así que no recibe certificaciones de diversidad.",
       "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
-      "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven."
+      "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
+      "submittal_response": "Este entregable técnico no está esperando tu respuesta. Recarga la página para ver en qué estado está.",
+      "submittal_note_length": "Escribe una nota de 1 a 500 caracteres."
     }
   },
   "common": {
@@ -118,7 +120,8 @@
       "approvalsCount": "{n, plural, =0 {Ninguna} other {#}}",
       "entitlements": "Beneficios",
       "entitlementsCount": "{done} de {total} entregados",
-      "rated": "Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días."
+      "rated": "Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días.",
+      "uploads": "Documentos por subir"
     },
     "documents": {
       "empty": "Aún no hay documentos. Los contratos y formularios que comparta la organización aparecen aquí.",
@@ -218,7 +221,15 @@
       "shipments": "Envíos"
     },
     "submittals": {
-      "empty": "Aún no hay entregables técnicos solicitados. Las solicitudes de planos y especificaciones aparecen aquí."
+      "empty": "Aún no se han solicitado entregables técnicos.",
+      "revision": "Revisión {n}",
+      "returned": "Devuelto: {reason}",
+      "awaiting": "Enviado. La organización lo está revisando.",
+      "note": "Nota",
+      "noteHelp": "Indica qué envías y dónde están los archivos, en hasta 500 caracteres.",
+      "submit": "Enviar",
+      "resubmit": "Volver a enviar",
+      "done": "Enviado para revisión."
     },
     "advance": {
       "empty": "Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.",
@@ -327,7 +338,8 @@
         "plusOnes": "Los acompañantes van de 0 a 20.",
         "settlementReason": "Escribe una nota o un motivo breve antes de responder.",
         "asset": "Elija aprobar, devolver o volver a enviar.",
-        "assetReason": "Indique qué cambiar para que la organización pueda revisar el recurso."
+        "assetReason": "Indique qué cambiar para que la organización pueda revisar el recurso.",
+        "submittalNote": "Escribe una nota de hasta 500 caracteres antes de enviar."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -786,6 +798,14 @@
       "smallDisadvantagedBusiness": "Pequeña empresa en desventaja",
       "hubzone": "Empresa HUBZone",
       "other": "Otra certificación"
+    },
+    "submittalKind": {
+      "shopDrawing": "Plano de taller",
+      "productData": "Datos de producto",
+      "sample": "Muestra",
+      "methodStatement": "Procedimiento de trabajo",
+      "certificate": "Certificado",
+      "other": "Otro"
     }
   },
   "explore": {
@@ -1043,7 +1063,17 @@
       "project": "Proyecto",
       "when": "Cuándo",
       "kind": "Qué",
-      "state": "Estado"
+      "state": "Estado",
+      "callKind": {
+        "shift": "Turno",
+        "dockSlot": "Horario de muelle",
+        "set": "Presentación"
+      },
+      "where": "Dónde",
+      "contact": "Contacto",
+      "message": "Mensaje",
+      "bring": "Qué llevar",
+      "bringMore": "Y {n} más"
     },
     "needsYou": {
       "title": "Te necesita",

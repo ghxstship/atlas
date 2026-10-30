@@ -10,13 +10,16 @@ CircleCheck
 CircleUserRound
 Clapperboard
 FileText
+Folder
 FolderKanban
+GripVertical
 HardHat
 House
 IdCard
 Inbox
 Landmark
 Library
+List
 ListChecks
 LogOut
 MapPin
