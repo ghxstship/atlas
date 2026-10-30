@@ -110,6 +110,7 @@ export interface Components {
     person_id: string;
     valid_from: string;
     valid_to: string | null;
+    accepted_at: string | null;
   };
   AccountMembershipCreate: { person_id: string; account_role: Components["AccountRole"] };
   AccountMembershipPage: {
@@ -7637,6 +7638,7 @@ export interface Components {
   SharedDietaryNeeds: {
     dietary_needs: Array<Components["DietaryNeed"]>;
     allergies: string | null;
+    allergies_on_file: boolean;
     dietary_notes: string | null;
   };
   SharedEmergencyContact: {
@@ -7680,6 +7682,8 @@ export interface Components {
     engagement_id: string;
     person_id: string | null;
     org_id: string;
+    roster_entry_id: string | null;
+    reader: "org" | "company";
     work_detail_share_id: string | null;
     shared_at: string | null;
     sharing_open: boolean;
@@ -9514,6 +9518,7 @@ export interface Components {
     actor_person_id: string | null;
     org_id: string | null;
     engagement_id: string | null;
+    roster_entry_id: string | null;
     action: string;
     categories: Array<Components["WorkDetailCategory"]>;
     changed_columns: Array<string>;
@@ -9534,6 +9539,7 @@ export interface Components {
     categories: Array<Components["WorkDetailCategory"]>;
     shared_at: string;
     revoked_at: string | null;
+    roster_entry_id: string | null;
   };
   WorkDetailShareCreate: {
     engagement_id: string;

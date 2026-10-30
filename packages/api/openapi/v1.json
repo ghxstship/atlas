@@ -36187,9 +36187,23 @@
             "format": "date-time",
             "description": "End of account membership.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "accepted_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the person confirmed the membership; null until they do.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["id", "created_at", "updated_at", "person_id", "valid_from", "valid_to"],
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "person_id",
+          "valid_from",
+          "valid_to",
+          "accepted_at"
+        ],
         "description": "A person in an external organization's account."
       },
       "AccountMembershipCreate": {
@@ -53156,7 +53170,7 @@
           "engagement_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the engagement the share serves; the caller must be its person.",
+            "description": "Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "person_id": {
@@ -53190,6 +53204,12 @@
             "format": "date-time",
             "description": "When the person revoked it; null while it stands.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "roster_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the roster entry the share serves (R4): the caller's own entry on the engagement, the self entry for its person; null only on shares revoked before roster entries existed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -53204,9 +53224,10 @@
           "consent_record_id",
           "categories",
           "shared_at",
-          "revoked_at"
+          "revoked_at",
+          "roster_entry_id"
         ],
-        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them."
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged."
       },
       "WorkDetailCategory": {
         "type": "string",
@@ -53227,7 +53248,7 @@
           "engagement_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the engagement the share serves; the caller must be its person.",
+            "description": "Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "categories": {
@@ -53268,7 +53289,7 @@
           "person_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Person the engagement names.",
+            "description": "Person the engagement names, or the roster entry's person.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "org_id": {
@@ -53276,6 +53297,18 @@
             "format": "uuid",
             "description": "Engaging org.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "roster_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Roster entry read (R4): the engaged person's self entry; null when there is none.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reader": {
+            "type": "string",
+            "enum": ["org", "company"],
+            "description": "Who reads (R4): org, a member of the engaging org by capability; company, a roster manager of the account that rosters the person, who reads every category once the person accepted the entry.",
+            "example": "org"
           },
           "work_detail_share_id": {
             "type": ["string", "null"],
@@ -53333,6 +53366,8 @@
           "engagement_id",
           "person_id",
           "org_id",
+          "roster_entry_id",
+          "reader",
           "work_detail_share_id",
           "shared_at",
           "sharing_open",
@@ -53442,8 +53477,13 @@
           },
           "allergies": {
             "type": ["string", "null"],
-            "description": "Allergies.",
+            "description": "Allergies; null when masked for the reader (a company reader never reads them).",
             "example": "Peanuts, severe"
+          },
+          "allergies_on_file": {
+            "type": "boolean",
+            "description": "Whether allergies are recorded, even when masked.",
+            "example": true
           },
           "dietary_notes": {
             "type": ["string", "null"],
@@ -53451,7 +53491,7 @@
             "example": "No pork."
           }
         },
-        "required": ["dietary_needs", "allergies", "dietary_notes"],
+        "required": ["dietary_needs", "allergies", "allergies_on_file", "dietary_notes"],
         "description": "Dietary needs as an engaging org reads them."
       },
       "SharedAccessibilityNeeds": {
@@ -53619,6 +53659,12 @@
             "description": "Identifier of the engagement of a share, read or reveal.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
+          "roster_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the roster entry of a share, read or reveal (R4).",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
           "action": {
             "type": "string",
             "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
@@ -53657,6 +53703,7 @@
           "actor_person_id",
           "org_id",
           "engagement_id",
+          "roster_entry_id",
           "action",
           "categories",
           "changed_columns",
@@ -120146,7 +120193,8 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "valid_from": "2026-10-08T14:30:00Z",
-                      "valid_to": "2026-10-08T14:30:00Z"
+                      "valid_to": "2026-10-08T14:30:00Z",
+                      "accepted_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -120198,7 +120246,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/AccountMembership" }
               }
@@ -120253,7 +120302,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/AccountMembership" }
               }
@@ -145208,7 +145258,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
         "summary": "List work detail share rows",
-        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -145240,7 +145290,8 @@
                       "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "categories": ["Dietary Needs", "Emergency Contacts"],
                       "shared_at": "2026-10-08T14:30:00Z",
-                      "revoked_at": "2026-10-08T14:30:00Z"
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -145261,7 +145312,7 @@
         "x-xos-capability": "me.work_details.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Create a work detail share",
-        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -145298,7 +145349,8 @@
                   "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -145320,7 +145372,7 @@
         "x-xos-capability": "opportunities.engagement.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
         "summary": "Get a work detail share",
-        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.",
         "parameters": [
           {
             "schema": {
@@ -145359,7 +145411,8 @@
                   "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -145378,7 +145431,7 @@
         "x-xos-capability": "me.work_details.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Update a work detail share",
-        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
         "parameters": [
           {
             "schema": {
@@ -145426,7 +145479,8 @@
                   "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -145490,7 +145544,8 @@
                   "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -145543,6 +145598,8 @@
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reader": "org",
                   "work_detail_share_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shared_at": "2026-10-08T14:30:00Z",
                   "sharing_open": true,
@@ -145570,6 +145627,7 @@
                   "dietary": {
                     "dietary_needs": ["Vegetarian"],
                     "allergies": "Peanuts, severe",
+                    "allergies_on_file": true,
                     "dietary_notes": "No pork."
                   },
                   "accessibility": {
@@ -145702,6 +145760,7 @@
                       "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "action": "work_details.viewed",
                       "categories": ["Dietary Needs"],
                       "changed_columns": ["allergies"],

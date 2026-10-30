@@ -26923,6 +26923,11 @@ export interface AccountMembership {
    * Format: `date-time`.
    */
   readonly valid_to: string | null;
+  /**
+   * When the person confirmed the membership; null until they do.
+   * Format: `date-time`.
+   */
+  readonly accepted_at: string | null;
 }
 
 /**
@@ -39501,7 +39506,7 @@ export interface WorkDetailSharePage {
 }
 
 /**
- * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them.
+ * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged.
  */
 export interface WorkDetailShare {
   /**
@@ -39535,7 +39540,7 @@ export interface WorkDetailShare {
    */
   readonly updated_by: string | null;
   /**
-   * Identifier of the engagement the share serves; the caller must be its person.
+   * Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).
    * Format: `uuid`.
    */
   readonly engagement_id: string;
@@ -39563,6 +39568,11 @@ export interface WorkDetailShare {
    * Format: `date-time`.
    */
   readonly revoked_at: string | null;
+  /**
+   * Identifier of the roster entry the share serves (R4): the caller's own entry on the engagement, the self entry for its person; null only on shares revoked before roster entries existed.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
 }
 
 /**
@@ -39581,7 +39591,7 @@ export type WorkDetailCategory =
  */
 export interface WorkDetailShareCreate {
   /**
-   * Identifier of the engagement the share serves; the caller must be its person.
+   * Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).
    * Format: `uuid`.
    */
   readonly engagement_id: string;
@@ -39611,7 +39621,7 @@ export interface SharedWorkDetails {
    */
   readonly engagement_id: string;
   /**
-   * Person the engagement names.
+   * Person the engagement names, or the roster entry's person.
    * Format: `uuid`.
    */
   readonly person_id: string | null;
@@ -39620,6 +39630,15 @@ export interface SharedWorkDetails {
    * Format: `uuid`.
    */
   readonly org_id: string;
+  /**
+   * Roster entry read (R4): the engaged person's self entry; null when there is none.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
+  /**
+   * Who reads (R4): org, a member of the engaging org by capability; company, a roster manager of the account that rosters the person, who reads every category once the person accepted the entry.
+   */
+  readonly reader: "org" | "company";
   /**
    * Live share; null when none stands.
    * Format: `uuid`.
@@ -39713,9 +39732,13 @@ export interface SharedUniformSizes {
 export interface SharedDietaryNeeds {
   readonly dietary_needs: ReadonlyArray<DietaryNeed>;
   /**
-   * Allergies.
+   * Allergies; null when masked for the reader (a company reader never reads them).
    */
   readonly allergies: string | null;
+  /**
+   * Whether allergies are recorded, even when masked.
+   */
+  readonly allergies_on_file: boolean;
   /**
    * Other dietary notes.
    */
@@ -39851,6 +39874,11 @@ export interface WorkDetailEvent {
    * Format: `uuid`.
    */
   readonly engagement_id: string | null;
+  /**
+   * Identifier of the roster entry of a share, read or reveal (R4).
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
   /**
    * What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.
    * Pattern: `^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$`.
