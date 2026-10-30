@@ -253,7 +253,8 @@ from an immutable, cached chunk into every full page load.
 sitemaps (`packages/testing/src/lighthouse-routes.ts`): 253 Atlas routes (248 as the
 Owner, 5 partner console pages as the partner's Owner) and 52 Gateway routes (46 as the crew
 member, 6 vendor engagement tabs as the vendor), plus both sign-in pages signed out. 308 pages,
-every one within its budgets on the final run:
+every one within its budgets on the final run, read from the reports (lhci asserted 302 of them;
+see "Pages that ended elsewhere" below):
 
 | App     | Pages | Accessibility | Performance | LCP          | CLS            | TBT        | Script             |
 | ------- | ----- | ------------- | ----------- | ------------ | -------------- | ---------- | ------------------ |
@@ -289,6 +290,50 @@ and Crew pages.
 
 Splitting the collection kit and the settings form kit the way A46 and A48 split the Projects
 table is each module's follow-up; the ceilings keep them from growing until then.
+
+#### Pages that ended elsewhere (review, 2026-10-30)
+
+lhci 0.15.1 matches each `assertMatrix` entry against a report's `finalUrl`, and a report that no
+entry matches is not asserted at all. Every Atlas owner run holds more than one script budget, so
+its entries are exact URLs. Six of the 308 pages redirected and went unasserted: Atlas
+`/demo-productions/p/NWS` (to `/p/NWS/overview`) and the saved view `/views/<id>` (to
+`/projects?view=table&archive=active&sort=name`); Gateway `/work`, `/money`, `/settings` and
+`/work/engagements/<key>` (to `/work/upcoming`, `/money/overview`, `/settings/profile` and the
+engagement's overview). Read against the budgets, all six were inside them at their landing URLs
+(accessibility 1, LCP 683 to 796 ms, CLS at most 0.0002, TBT 0, script 182,241 to 204,256 bytes,
+Gateway Settings 544 bytes under). The same blind spot would have hidden a run that lost its session:
+the CLI signed in once per person and put that session back before every page, and with a one-hour
+JWT and refresh-token rotation, a run past the hour (Atlas takes about one) would have sent every
+later page to sign in, unasserted.
+
+The CLI (`packages/testing/src/lighthouse-landing.ts`) now:
+
+- asks the server where each page lands, with the person's cookies and redirects not followed,
+  and visits the landing path (the project's overview is visited once, from its own route);
+- stops the run when a signed-in page answers with a redirect to `/auth/`, or off the app;
+- signs each person in afresh for every 40 pages, about 7 minutes of Lighthouse;
+- fails when lhci does, and also when any page's summary is over a budget (accessibility below 1
+  included, as lhci asserts) or its final URL is not the one it asked for.
+
+Rescoring the 308 local reports with the new verdict fails exactly those six (and only for having
+ended elsewhere); the nightly measures their landing paths from now on. The redirect, sign-in and
+batching rules are unit tested with a fake server (`packages/testing/test/lighthouse-landing.test.ts`).
+
+#### Follow-up 12's shell cut: 11 KB of the 15 KB asked
+
+The cut above is about 11 KB in Lighthouse's terms, short of the "at least 15 KB" of follow-up 12.
+On the 2026-10-28 build the org shell chunk is 13,516 gzip bytes and the root chunk 22,362. Taking
+each remaining shell module out of the org chunk and gzipping again shows what each would give:
+the Undo and plain toasts 334 bytes, the help tour list 328, the help model's article search 298,
+the Banner 163 and the count badge 127; everything left is rendered or listening on every page. The
+remaining 4 KB would take a dozen such moves or one of two larger ones this package left out: the
+en-US `ui` catalog (4,198 bytes of the root chunk) shipped in the page payload, which moves bytes
+from a cached chunk into every full load (ADR 0027), or the shell's key handler (about 3 KB, fetched
+after hydration on every signed-in page) loaded on the first key, which would let a page's first
+key reach the browser's default before the shell could claim it. Follow-up 12 stays Partial on that
+clause until the owner accepts the 11 KB or schedules the catalog split. This branch also carries
+A125's region shortcuts and A143's region boundaries, so the next `route-js-budget` and served
+measure in CI give the shell's figures as merged.
 
 #### 10,000 rows at 60 fps
 

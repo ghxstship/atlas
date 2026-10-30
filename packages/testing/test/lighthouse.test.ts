@@ -127,9 +127,22 @@ describe("scorePage", () => {
 
   it("fails a page over the LCP or script budget, and one with missing audits", () => {
     expect(scorePage(report(3000, 150_000)).withinBudget).toBe(false);
+    expect(
+      scorePage({ ...report(1200, 150_000), categories: { accessibility: { score: 0.98 } } })
+        .withinBudget,
+    ).toBe(false);
     expect(scorePage(report(1200, 300_000)).withinBudget).toBe(false);
     expect(scorePage(report(1200, 300_000), 310_000).withinBudget).toBe(true);
     expect(scorePage({}).withinBudget).toBe(false);
+  });
+
+  it("marks a page that ended on another URL, which lhci's assertMatrix never matches", () => {
+    expect(scorePage(report(1200, 150_000))).toMatchObject({
+      finalUrl: "http://x/home",
+      landed: true,
+    });
+    const moved = scorePage({ ...report(1200, 150_000), finalUrl: "http://x/auth/sign-in" });
+    expect(moved).toMatchObject({ landed: false, finalUrl: "http://x/auth/sign-in" });
   });
 });
 

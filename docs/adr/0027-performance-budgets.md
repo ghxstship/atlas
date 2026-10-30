@@ -116,7 +116,11 @@ the gate caught the regression a night late. Decision 1 now reads:
    of script holds a ceiling in `bundle-ceilings.json` (measured plus 3 KB, by decision 1), which
    lhci asserts for that URL alone and `budget:js` checks on every push; a ceiling only moves down,
    and the key pages hold none. The routes over budget and their causes are in
-   `legal/qa/performance-results.md`.
+   `legal/qa/performance-results.md`. lhci asserts a report by its final URL, so each page must
+   end where it asked to: the CLI visits a redirecting route at its landing path, signs each person
+   in afresh for every 40 pages (well inside the hour a session lasts), stops when a signed-in page
+   sends the person to sign in, and fails the run when any page is over a budget or ended on
+   another URL (`packages/testing/src/lighthouse-landing.ts`).
 4. **What loads with a page is what the page shows.** Code for something a page shows only after an
    interaction or in some states loads then, and a server component never imports such a client
    component directly, since the client reference manifest ships every client component a server

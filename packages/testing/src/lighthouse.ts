@@ -160,6 +160,10 @@ export function lighthouseRc(input: LighthouseRcInput) {
 
 export interface PageScore {
   readonly url: string;
+  /** Where the page ended; lhci asserts a report by this URL, so it must be `url`. */
+  readonly finalUrl: string;
+  /** The page ended on the URL it asked for, so lhci asserted it. */
+  readonly landed: boolean;
   readonly performance: number | null;
   readonly accessibility: number | null;
   readonly lcpMs: number | null;
@@ -170,6 +174,7 @@ export interface PageScore {
 }
 
 interface LighthouseResult {
+  readonly finalUrl?: string;
   readonly finalDisplayedUrl?: string;
   readonly requestedUrl?: string;
   readonly categories?: Record<string, { score: number | null } | undefined>;
@@ -188,7 +193,10 @@ function numeric(result: LighthouseResult, audit: string): number | null {
   return typeof value === "number" ? value : null;
 }
 
-/** Scores and budget verdict for one Lighthouse JSON report, against the page's script budget. */
+/**
+ * Scores and budget verdict for one Lighthouse JSON report, against the page's script budget: the
+ * same errors lhci asserts (lighthouseAssertions), so the summary fails what the assertions fail.
+ */
 export function scorePage(
   result: LighthouseResult,
   scriptBudget: number = webBudgets.routeJavaScriptGzipBytes,
@@ -197,8 +205,12 @@ export function scorePage(
     (item) => item.resourceType === "script",
   );
   const score = (name: string) => result.categories?.[name]?.score ?? null;
+  const url = result.requestedUrl ?? result.finalDisplayedUrl ?? "";
+  const finalUrl = result.finalUrl ?? result.finalDisplayedUrl ?? url;
   const page = {
-    url: result.requestedUrl ?? result.finalDisplayedUrl ?? "",
+    url,
+    finalUrl,
+    landed: url !== "" && finalUrl === url,
     performance: score("performance"),
     accessibility: score("accessibility"),
     lcpMs: numeric(result, "largest-contentful-paint"),
@@ -210,6 +222,7 @@ export function scorePage(
   return {
     ...page,
     withinBudget:
+      page.accessibility === 1 &&
       within(page.lcpMs, webBudgets.largestContentfulPaintMs) &&
       within(page.cls, webBudgets.cumulativeLayoutShift) &&
       within(page.tbtMs, webBudgets.interactionToNextPaintMs) &&
