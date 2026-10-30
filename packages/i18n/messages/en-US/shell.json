@@ -1056,6 +1056,16 @@
     "search": "Search",
     "searchHint": "Search records, people, pages and actions",
     "favoritesEmpty": "Pin projects, saved views and records to keep them here.",
+    "favoriteOrder": {
+      "move": "Move {item}",
+      "moveHelp": "Drag a favorite by its move button, or press Space on that button to pick it up, the arrow keys to move it, Space to drop it and Esc to cancel.",
+      "picked": "{item} picked up, position {position} of {count}. Use the arrow keys to move it, Space to drop it.",
+      "moved": "{item} moved to position {position} of {count}.",
+      "dropped": "{item} dropped at position {position} of {count}.",
+      "returned": "{item} put back at position {position} of {count}.",
+      "failed": "Your favorites could not be reordered, so the previous order is back. Try again."
+    },
+    "recentProjects": "Recent projects",
     "organizations": "Organizations",
     "createOrganization": "Create organization",
     "workspace": "Workspace",

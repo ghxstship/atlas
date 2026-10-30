@@ -53,6 +53,8 @@ with x as (insert into app.payroll_runs (pay_period_id, currency_code) values (p
 select is(app.calculate_payroll_run(pg_temp.id('run')), 0, 'an approved external timesheet adds no payroll line and does not block the run');
 
 -- Per diems for external crew (0981) ----------------------------------------------------------------------------
+-- Per diem is an offering since R3 (2625): prj_a offers it, so the inserts below reach the table's own rules.
+select app.set_setting(pg_temp.id('org_a'), 'offerings.per_diem', 'Project', pg_temp.id('prj_a'), 'provided');
 select lives_ok($$with x as (insert into app.per_diems (project_id, engagement_id, day, amount_minor, currency_code) values ((select id from world where key = 'prj_a'), (select id from world where key = 'eng_ivy_a'), '2027-07-05', 6500, 'USD') returning id) insert into world select 'pd_ivy', id from x$$,
   'a time writer records a per diem for external crew');
 select throws_ok($$insert into app.per_diems (project_id, engagement_id, day, amount_minor, currency_code) values ((select id from world where key = 'prj_a'), (select id from world where key = 'eng_ivy_a'), '2027-07-05', 6500, 'USD')$$,

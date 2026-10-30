@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./capabilities": "./src/capabilities/index.ts",
     "./capabilities.yaml": "./capabilities.yaml",
+    "./capabilities/codes": "./src/capabilities/codes.generated.ts",
     "./plans": "./src/plans/index.ts",
     "./plans.yaml": "./plans.yaml",
     "./settings": "./src/settings/index.ts",

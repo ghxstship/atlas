@@ -13,6 +13,7 @@ import { Drawer } from "@/components/lazy-ui/drawer";
 import { Gallery } from "@/components/lazy-ui/gallery";
 import { PropertyList } from "@/components/lazy-ui/property-list";
 import { RecordList, RecordRow } from "@/components/lazy-ui/record-list";
+import { CustomFieldsSection } from "@/components/custom-fields/custom-fields-section";
 import { PortfolioTimeline } from "./portfolio-timeline";
 import type { BoardMode, PhaseInfo, ProjectView } from "./project-collection";
 
@@ -224,6 +225,7 @@ export function ProjectPeek({ peek, h }: { peek: ProjectSummary; h: ProjectViewH
           { label: t("fields.dates"), value: dates(peek) },
         ]}
       />
+      <CustomFieldsSection table="app.projects" id={peek.id} />
     </Drawer>
   );
 }

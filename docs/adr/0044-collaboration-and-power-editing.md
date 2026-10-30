@@ -140,6 +140,58 @@ Two constraints shape every decision here:
   at once produce the same update, and Yjs keeps one copy.
 - **Loading.** Yjs, Tiptap and the room load only when someone presses Edit together, never with the page.
 
+### 6. The channel rules on every environment, and the public API (A106, RRR-151)
+
+_Amended 2026-10-23._
+
+- **The channel rules.** `realtime.messages` belongs to Supabase Realtime, which creates it in its own tenant
+  migrations as `supabase_admin`. Migration 1453 created the `doc:<doc id>` policies only where the table already
+  existed. A local stack has it, because the CLI runs Realtime's migrations before ours. A hosted project whose
+  Realtime has not started yet does not, and a Realtime upgrade that recreates the table drops its policies.
+  - Migration 2060 lists the channel policies in `private.realtime_channel_policies`.
+  - `private.ensure_realtime_channel_policies()` creates any listed policy the table lacks. It never drops or changes
+    one that exists, and it does nothing until the table exists.
+  - It runs in the migration, in the deploy path after `supabase db push` (`infra/runbooks/production.md`), and
+    every minute from pg_cron (`xos_ensure_realtime_channel_policies`).
+  - Until a rule is back, a join to that channel is refused, so a missing rule fails closed: editors keep working
+    through the 15-second pull.
+  - A later channel rule is one more registry row. To change a rule, a migration updates its row and drops the
+    policy, and the function recreates it.
+- **Not an event trigger.** Realtime runs its DDL as `supabase_admin`, a superuser. An event trigger created by
+  `postgres` (which supautils allows) does not fire for a superuser's DDL; this was checked on a local stack.
+- **Not 1450.** Migration 1450's condition is the `supabase_realtime` publication. The Postgres image creates it
+  when the cluster is initialized, before any migration runs, and Realtime never recreates it.
+- **Bulk edit in v1.** ADR 0023 allows additive operations within `/v1`.
+  - `records`, `shifts`, `invoices` and `assetUnits` each gain `bulkPreview` and `bulkUpdate`
+    (`POST /<resource>/bulk-preview` and `/bulk-update`) over the 1451 RPCs, with the same rows, answer and limit of
+    500 rows.
+  - Each resource's `set` and `expect` accept only the fields that change in bulk, so a mistyped field is a 422
+    rather than a row that silently does not change.
+  - A refused row answers 200 with `committed: false` and the row in `refused`. The call itself was valid, and the
+    frozen problem shape has no place for per-row rules. A refusal of the whole call (a duplicate row) is a 422.
+- **Field history in v1.** The eight field history subjects (records, shifts, invoices, asset units, SOPs,
+  documents, purchase orders and vendors) gain `fieldHistory` (`GET /<resource>/{id}/field-history`).
+  - It answers one entry per audit event with its changed fields, newest first.
+  - It reads `app.field_history_events` (migration 2061), which groups `app.field_history`'s rows into one row per
+    event with its changes as a JSON array. `app.field_history` answers one row per changed field while its limit
+    counts events, and PostgREST caps every answer at `max_rows` (1,000) without an error, so a long or busy
+    history lost its oldest events, or the last event lost some of its changes. With one row per event, `limit`
+    and `max_rows` count the same thing. Atlas's history tab reads it too.
+  - It is a page whose `next_cursor` is always null: `limit` (at most 1,000 events) bounds it.
+  - A row the caller cannot read answers 404.
+- **Compare-and-set on instants.** A bulk row's `expect` was compared with the row as JSON, and a stored instant
+  reads back as `+00:00`, so an integration that sent the same instant with `Z` was refused as `bulk_stale`.
+  Migration 2062 makes `private.bulk_check_expect` treat two full ISO 8601 timestamps with an offset as equal when
+  they name the same instant. A date alone, a timestamp without an offset and any other text still compare
+  exactly.
+- **Co-editing in v1.** v1 has no operation that writes a live document or joins its room.
+  - Yjs updates travel over the private Realtime channel, and only a Yjs client can merge them; a REST write
+    would bypass the merge.
+  - An integration that changes a co-edited field writes the row instead (`sops.update` for an SOP's procedure).
+    The next open reseeds the document in a new generation, as any change made outside the editor does.
+  - `documents.notes` reads a document's notes as plain text, as last saved. Notes are the one co-edited field
+    whose text lives only in the snapshots; an SOP's procedure is already in `sops.get`.
+
 ## Consequences
 
 - The IP allow-list limit of ADR 0034 decision 5 applies to the Realtime socket as it does to PostgREST: a valid
