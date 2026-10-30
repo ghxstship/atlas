@@ -9,6 +9,7 @@ import {
   createSheetsImport,
   decideMergeReview,
   googleSheetsLinkId,
+  IMPORT_MAX_BYTES,
   importDetectedSheet,
   importObjectPath,
   requestImportCommit,
@@ -78,7 +79,9 @@ export async function createImportAction(
 
 /**
  * Pasted rows (P3): written as a .csv in the person's imports folder and imported like an uploaded .csv, so the
- * file is scanned and detected the same way. An empty paste is refused import_paste_empty.
+ * file is scanned and detected the same way. An empty paste is refused import_paste_empty, and one over the
+ * 10 MB limit import_file_size: the rows' .csv is measured, and a paste of more than twice the limit in characters
+ * is refused before it is parsed at all.
  */
 export async function createPastedImportAction(
   _: PlatformActionState,
@@ -88,9 +91,12 @@ export async function createPastedImportAction(
   const person = ctx.viewer.person;
   const destination = destinationOf(form);
   const parsed = z
-    .object({ target: TARGET, text: z.string().max(20 * 1024 * 1024) })
+    .object({ target: TARGET, text: z.string() })
     .safeParse({ target: field(form, "target"), text: form.get("text") ?? "" });
   if (!person || !parsed.success || !destination) return inputError();
+  if (parsed.data.text.length > 2 * IMPORT_MAX_BYTES) {
+    return { rule: "import_file_size", at: Date.now() };
+  }
   const t = await getTranslate();
   const result = await createPastedImport(ctx.viewer.db, {
     orgId: ctx.org.id,

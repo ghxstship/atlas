@@ -702,7 +702,10 @@ async function validateRow(orgId, targetCode, fields, columns, row, lookups, des
       for (const f of ["guest_name", "note"]) bounded(f);
       await set(
         "plus_ones",
-        (v) => (/^\d{1,2}$/.test(v) && Number(v) <= 20 ? Number(v) : null),
+        (v) => {
+          const n = v.trim();
+          return /^\d{1,2}$/.test(n) && Number(n) <= 20 ? Number(n) : null;
+        },
         "invalid_plus_ones",
       );
       await set(
@@ -1395,10 +1398,8 @@ function supabaseImportStore(client) {
           .is("deleted_at", null);
         if (error) throw new Error(`spaces: ${error.message}`);
         const spaces = data ?? [];
-        if (UUID.test(idOrName))
-          return spaces.some((r) => r["id"] === idOrName.toLowerCase())
-            ? idOrName.toLowerCase()
-            : null;
+        const id = idOrName.trim().toLowerCase();
+        if (UUID.test(id)) return spaces.some((r) => r["id"] === id) ? id : null;
         return onlyMatch(spaces, idOrName, "name");
       },
       async scopeNodeId(projectId, codeOrName) {

@@ -318,6 +318,8 @@ describe("guest rows", () => {
     expect((await check(["Riley", "1.5", "", "", ""])).issues.map((i) => i.issue)).toEqual([
       "invalid_plus_ones",
     ]);
+    // Pasted cells often carry a space: the count is read trimmed, like the other cue and guest cells.
+    expect((await check(["Riley", " 2 ", "", "", ""])).values).toMatchObject({ plus_ones: 2 });
     expect((await check(["Riley Chen", "", "", "", ""])).strongKeys).toEqual({
       guest_name: "riley chen",
     });
@@ -757,6 +759,9 @@ describe("the store's name lookups under the service role", () => {
       "11111111-1111-4111-8111-111111111111",
     );
     await expect(lookup.spaceId("v1", "11111111-1111-4111-8111-111111111111")).resolves.toBe(
+      "11111111-1111-4111-8111-111111111111",
+    );
+    await expect(lookup.spaceId("v1", " 11111111-1111-4111-8111-111111111111 ")).resolves.toBe(
       "11111111-1111-4111-8111-111111111111",
     );
     await expect(lookup.spaceId("v1", "Annex")).resolves.toBeNull();
