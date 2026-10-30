@@ -129,7 +129,9 @@ Migrations 2680 to 2683 build section 4. Where the build differs from the text a
 - **Idempotency.** The event id is the row id: `app.receive_goods` inserts the goods receipt with id = the event id,
   and `app.return_goods` the goods return. A replay on the same order returns outcome duplicate with the stored ids;
   the same id on another order is refused (receipt_event_reused, return_event_reused). The API mints a fresh event id
-  on the first request and its Idempotency-Key ledger replays the stored response.
+  on the first request and its Idempotency-Key ledger replays the stored response. Both RPCs check
+  procurement.receipt.write before they lock the order or answer a replay, so a person who may not receive on an
+  order neither locks it nor reads back its stored ids.
 - **Compass.** The receiving scan mode is not replaced. Receiving gains a Receive against an order sheet for internal
   receivers (feature `scan.receiving.order`, procurement.receipt.write) that queues one `app.receive_goods`
   mutation; scans outside the sheet keep queuing unknown codes to scan intake, and a vendor still only acknowledges.
@@ -137,7 +139,7 @@ Migrations 2680 to 2683 build section 4. Where the build differs from the text a
   (`app.transition_asset` refuses it otherwise, asset_returned_through_goods_return). A unit in someone's custody is
   checked in first (return_unit_in_custody). A quantity out of a lot is a Vendor Return movement; the direction
   constraint keeps R1's engagement custodian on Check Out. A receipt line goes back the way it came in: units by
-  unit (return_units_count), a quantity that came into a lot out of a lot (return_venue_required), and a quantity
+  unit, each named once (return_units_count, return_unit_repeated), a quantity that came into a lot out of a lot (return_venue_required), and a quantity
   that never came into stock without one (return_line_not_stocked), so stock that went back never stays on hand.
 - **Units on a receipt line.** `app.asset_units.receipt_line_id` is fixed once set, and a receipt line never brings
   in more live units than it received or a unit of another element (t42_guard_asset_unit_receipt).
@@ -156,8 +158,13 @@ Migrations 2680 to 2683 build section 4. Where the build differs from the text a
 - **API.** `poLines` and `assetUnits` take the new fields through correction entries (`po-line-rental`,
   `asset-unit-receipt-line`); `purchaseOrders.receive`, `purchaseOrders.returnGoods`, `poLines.hireWindowWarnings`,
   `goodsReturns`, `returnLines`, `poLineHireWarnings` and `assetUnitHire` are additions.
-- **Gate 20 exception.** Returned also enters the `asset_state` enum of every `assetUnits` response and of the scan
-  result, which oasdiff reports against v4.0.0 as six response-enum additions (response-property-enum-value-added).
-  This decision accepts them as a one-off exception under ADR 0014: they are listed in
-  [`0104-oasdiff-err-ignore.txt`](0104-oasdiff-err-ignore.txt), which `infra/ci/oasdiff.sh` passes to oasdiff as
-  `--err-ignore`. Any other breaking change still fails the gate.
+- **Gate 20 exception (awaiting the owner's confirmation).** Returned also enters the `asset_state` enum of every
+  `assetUnits` response and of the scan result, which oasdiff reports against v4.0.0 as six response-enum additions
+  (response-property-enum-value-added). Decision 8 approved the state; it did not separately approve this change to
+  the v1 contract, so R7a records it as a one-off exception under ADR 0014 and asks the owner to confirm it before
+  R7a merges. The six entries are in [`0104-oasdiff-err-ignore.txt`](0104-oasdiff-err-ignore.txt). `infra/ci/oasdiff.sh`
+  reads only the exception files its `EXCEPTIONS` list names, each beside an Accepted ADR, so a later exception is a
+  reviewed change to the gate script and never a file that appears on its own. Any other breaking change still
+  fails the gate. Clients typed from v4.0.0 (the `sdk-ts` union, the `sdk-python` `Literal` of a `TypedDict`) do
+  not list Returned; neither validates at run time, so a returned unit reads as an unlisted string until the client
+  regenerates. Without the confirmation, the alternative is to keep Returned out of v1 responses until `/v2`.
