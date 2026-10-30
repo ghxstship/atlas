@@ -110,6 +110,7 @@ export interface Components {
     person_id: string;
     valid_from: string;
     valid_to: string | null;
+    accepted_at: string | null;
   };
   AccountMembershipCreate: { person_id: string; account_role: Components["AccountRole"] };
   AccountMembershipPage: {
@@ -2049,6 +2050,8 @@ export interface Components {
   ChatMessagePage: { data: Array<Components["ChatMessage"]>; next_cursor: string | null };
   ChatMessageUpdate: { body?: string | null };
   Classification: "Public" | "Internal" | "Confidential" | "Restricted";
+  ClearProjectFactRequest: { kind: Components["ProjectFactKind"] };
+  ClearedProjectFact: { id?: string };
   ColumnClassification: {
     table_name: string;
     column_name: string;
@@ -2922,6 +2925,7 @@ export interface Components {
     engagement_state: Components["EngagementState"];
     activated_at: string | null;
     completed_at: string | null;
+    roster_locks_at: string | null;
     application_id: string | null;
     worker_classification: string | null;
     pay_basis: string | null;
@@ -5996,6 +6000,7 @@ export interface Components {
     time_zone: string;
     venue_id?: string | null;
   };
+  ProjectFactKind: "Travel" | "Uniform" | "Vehicle";
   ProjectInbox: {
     id: string;
     org_id: string;
@@ -7227,6 +7232,117 @@ export interface Components {
   RoleCreate: { name?: string | null; description?: string | null; code: string; band: number };
   RolePage: { data: Array<Components["Role"]>; next_cursor: string | null };
   RoleUpdate: { name?: string | null; description?: string | null; band?: number };
+  RosterEntry: {
+    id: string;
+    org_id: string;
+    project_id: string;
+    engagement_id: string;
+    party_name: string | null;
+    role_type: string;
+    is_self: boolean;
+    person_id: string | null;
+    full_name: string | null;
+    invited_email: string | null;
+    invitation_expires_at: string | null;
+    role_code: string | null;
+    job_title: string | null;
+    arrival_starts_at: string | null;
+    arrival_ends_at: string | null;
+    arrival_time_zone: string | null;
+    entry_state: Components["RosterEntryState"];
+    person_response: Components["RosterPersonResponse"];
+    responded_at: string | null;
+    return_reason: string | null;
+    replaces_entry_id: string | null;
+    share_categories: Array<string>;
+  };
+  RosterEntryPage: { data: Array<Components["RosterEntry"]>; next_cursor: string | null };
+  RosterEntryState: "Draft" | "Submitted" | "Accepted" | "Returned" | "Withdrawn";
+  RosterFactOfferings: { travel: boolean; lodging: boolean; uniforms: boolean; parking: boolean };
+  RosterFactPresence: { travel: boolean; uniform: boolean; vehicle: boolean };
+  RosterFactProvenance: { travel: boolean; uniform: boolean; vehicle: boolean };
+  RosterLockRequest: { locks_at: string | null };
+  RosterPersonResponse: "Pending" | "Accepted" | "Declined";
+  RosterProjectFacts: {
+    roster_entry_id: string;
+    engagement_id: string;
+    org_id: string;
+    person_id: string | null;
+    standing: "Person" | "Company" | "Producer";
+    offered: Components["RosterFactOfferings"];
+    present: Components["RosterFactPresence"];
+    entered_by_person: Components["RosterFactProvenance"];
+    readable: Array<Components["ProjectFactKind"]>;
+    travel: Components["RosterTravelRequest"] | null;
+    uniform: Components["RosterUniformSizes"] | null;
+    vehicle: Components["RosterVehicle"] | null;
+  };
+  RosterTravelRequest: {
+    id: string;
+    inbound_airport_code: string | null;
+    inbound_airport_name: string | null;
+    outbound_airport_code: string | null;
+    outbound_airport_name: string | null;
+    inbound_on: string | null;
+    outbound_on: string | null;
+    seat_preference: "Window" | "Aisle" | "No Preference" | null;
+    meal_preference: string | null;
+    needs_ground_transport: boolean;
+    needs_lodging: boolean;
+    travel_notes: string | null;
+    updated_at: string;
+  };
+  RosterTravelRequestInput: {
+    inbound_airport_code: string | null;
+    outbound_airport_code: string | null;
+    inbound_on: string | null;
+    outbound_on: string | null;
+    seat_preference?: "Window" | "Aisle" | "No Preference" | null;
+    meal_preference?: string | null;
+    needs_ground_transport?: boolean;
+    needs_lodging?: boolean;
+    travel_notes?: string | null;
+  };
+  RosterUniformSizes: {
+    id: string;
+    shirt_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+    jacket_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+    pants_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+    glove_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+    hat_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+    pants_waist_in: number | null;
+    pants_inseam_in: number | null;
+    shoe_size: number | null;
+    shoe_size_system: Components["ShoeSizeSystem"] | null;
+    updated_at: string;
+  };
+  RosterUniformSizesInput: {
+    shirt_size?: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+    jacket_size?: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+    pants_size?: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+    glove_size?: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+    hat_size?: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+    pants_waist_in?: number | null;
+    pants_inseam_in?: number | null;
+    shoe_size?: number | null;
+    shoe_size_system?: Components["ShoeSizeSystem"] | null;
+  };
+  RosterVehicle: {
+    id: string;
+    make: string;
+    model: string;
+    color: string | null;
+    plate: string;
+    plate_region: string;
+    updated_at: string;
+  };
+  RosterVehicleInput: {
+    make: string;
+    model: string;
+    color?: string | null;
+    plate: string;
+    plate_region: string;
+  };
   RsvpRequest: { response: "Going" | "Maybe" | "Declined" };
   RunOfShow: {
     id: string;
@@ -7250,6 +7366,7 @@ export interface Components {
   };
   RunOfShowPage: { data: Array<Components["RunOfShow"]>; next_cursor: string | null };
   RunOfShowUpdate: { name?: string; show_date?: string; record_id?: string | null };
+  SavedProjectFact: { id: string };
   SavedSearch: {
     id: string;
     created_at: string;
@@ -7527,9 +7644,12 @@ export interface Components {
     accessibility_needs: Array<Components["AccessibilityNeed"]>;
     accessibility_notes: string | null;
   };
+  SharedContact: { email: string | null; phone: string | null };
   SharedDietaryNeeds: {
     dietary_needs: Array<Components["DietaryNeed"]>;
     allergies: string | null;
+    allergies_masked: boolean;
+    allergies_on_file: boolean;
     dietary_notes: string | null;
   };
   SharedEmergencyContact: {
@@ -7545,6 +7665,7 @@ export interface Components {
     program_name: string;
     member_number: string;
   };
+  SharedMedicalNeeds: { allergies: string | null };
   SharedPassport: {
     passport_number: null;
     passport_number_last4: string | null;
@@ -7573,14 +7694,18 @@ export interface Components {
     engagement_id: string;
     person_id: string | null;
     org_id: string;
+    roster_entry_id: string | null;
+    reader: "org" | "company";
     work_detail_share_id: string | null;
     shared_at: string | null;
     sharing_open: boolean;
     categories: Array<Components["WorkDetailCategory"]>;
     readable: Array<Components["WorkDetailCategory"]>;
     emergency_contacts: Array<Components["SharedEmergencyContact"]> | null;
+    contact: Components["SharedContact"] | null;
     uniform: Components["SharedUniformSizes"] | null;
     dietary: Components["SharedDietaryNeeds"] | null;
+    medical: Components["SharedMedicalNeeds"] | null;
     accessibility: Components["SharedAccessibilityNeeds"] | null;
     travel: Components["SharedTravelProfile"] | null;
     passport: Components["SharedPassport"] | null;
@@ -7775,6 +7900,7 @@ export interface Components {
     seal_identifier?: string | null;
     bill_of_lading_identifier?: string | null;
   };
+  ShoeSizeSystem: "US Men" | "US Women" | "EU" | "UK";
   Shortlist: {
     id: string;
     org_id: string;
@@ -8904,6 +9030,43 @@ export interface Components {
     subject_id: string;
     rows_restored: number;
   };
+  TravelDayCount: {
+    day: string;
+    arriving: number;
+    departing: number;
+    on_site: number;
+    rooms_needed: number;
+    pickups_needed: number;
+    truncated: boolean;
+  };
+  TravelDayCountPage: { data: Array<Components["TravelDayCount"]>; next_cursor: string | null };
+  TravelPartyMember: {
+    roster_entry_id: string;
+    engagement_id: string;
+    party_name: string | null;
+    person_id: string;
+    person_name: string | null;
+    role_code: string | null;
+    arrival_starts_at: string | null;
+    arrival_ends_at: string | null;
+    arrival_time_zone: string | null;
+    travel: Components["RosterTravelRequest"] | null;
+    room: Components["TravelPartyRoom"];
+    pickup: Components["TravelPartyPickup"];
+    pass: Components["TravelPartyPass"] | null;
+  };
+  TravelPartyMemberPage: {
+    data: Array<Components["TravelPartyMember"]>;
+    next_cursor: string | null;
+  };
+  TravelPartyPass: { issued: boolean };
+  TravelPartyPickup: { booked: boolean };
+  TravelPartyRoom: {
+    assigned: boolean;
+    check_in_on: string | null;
+    check_out_on: string | null;
+    block_name: string | null;
+  };
   UnionLocalRate: {
     id: string;
     org_id: string;
@@ -9407,8 +9570,11 @@ export interface Components {
     actor_person_id: string | null;
     org_id: string | null;
     engagement_id: string | null;
+    roster_entry_id: string | null;
+    fact_kinds: Array<Components["ProjectFactKind"]>;
     action: string;
     categories: Array<Components["WorkDetailCategory"]>;
+    includes_contact: boolean;
     changed_columns: Array<string>;
     reason: string | null;
     created_at: string;
@@ -9427,13 +9593,19 @@ export interface Components {
     categories: Array<Components["WorkDetailCategory"]>;
     shared_at: string;
     revoked_at: string | null;
+    roster_entry_id: string | null;
+    contact_shared: boolean;
   };
   WorkDetailShareCreate: {
     engagement_id: string;
     categories: Array<Components["WorkDetailCategory"]>;
+    share_contact?: boolean;
   };
   WorkDetailSharePage: { data: Array<Components["WorkDetailShare"]>; next_cursor: string | null };
-  WorkDetailShareUpdate: { categories?: Array<Components["WorkDetailCategory"]> };
+  WorkDetailShareUpdate: {
+    categories?: Array<Components["WorkDetailCategory"]>;
+    share_contact?: boolean;
+  };
   WorkDetails: {
     id: string;
     created_at: string;
@@ -17319,6 +17491,15 @@ export interface Operations {
     body: Components["EngagementTransitionRequest"];
     responses: { 200: Components["Engagement"] };
   };
+  "engagements.setRosterLock": {
+    module: "Opportunities";
+    method: "post";
+    path: "/engagements/{id}/roster-lock";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["RosterLockRequest"];
+    responses: { 200: Components["Engagement"] };
+  };
   "engagementDocuments.list": {
     module: "Opportunities";
     method: "get";
@@ -23739,6 +23920,93 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "rosterEntries.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/roster-entries";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["RosterEntryPage"] };
+  };
+  "rosterEntries.get": {
+    module: "Advancing";
+    method: "get";
+    path: "/roster-entries/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["RosterEntry"] };
+  };
+  "rosterEntries.projectFacts": {
+    module: "Advancing";
+    method: "get";
+    path: "/roster-entries/{id}/project-facts";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["RosterProjectFacts"] };
+  };
+  "rosterEntries.saveTravelRequest": {
+    module: "Advancing";
+    method: "post";
+    path: "/roster-entries/{id}/save-travel-request";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["RosterTravelRequestInput"];
+    responses: { 200: Components["SavedProjectFact"] };
+  };
+  "rosterEntries.saveUniformSizes": {
+    module: "Advancing";
+    method: "post";
+    path: "/roster-entries/{id}/save-uniform-sizes";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["RosterUniformSizesInput"];
+    responses: { 200: Components["SavedProjectFact"] };
+  };
+  "rosterEntries.saveVehicle": {
+    module: "Advancing";
+    method: "post";
+    path: "/roster-entries/{id}/save-vehicle";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["RosterVehicleInput"];
+    responses: { 200: Components["SavedProjectFact"] };
+  };
+  "rosterEntries.clearProjectFact": {
+    module: "Advancing";
+    method: "post";
+    path: "/roster-entries/{id}/clear-project-fact";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ClearProjectFactRequest"];
+    responses: { 200: Components["ClearedProjectFact"] };
+  };
+  "rosterEntries.travelParty": {
+    module: "Advancing";
+    method: "get";
+    path: "/roster-entries/travel-party";
+    params: Record<string, never>;
+    query: { project_id: string };
+    body: undefined;
+    responses: { 200: Components["TravelPartyMemberPage"] };
+  };
+  "rosterEntries.travelDayCounts": {
+    module: "Advancing";
+    method: "get";
+    path: "/roster-entries/travel-day-counts";
+    params: Record<string, never>;
+    query: { project_id: string };
+    body: undefined;
+    responses: { 200: Components["TravelDayCountPage"] };
+  };
   "guestListEntries.list": {
     module: "Advancing";
     method: "get";
@@ -27260,6 +27528,15 @@ export interface ModuleOperations {
     | "riderLines.get"
     | "riderLines.update"
     | "riderLines.delete"
+    | "rosterEntries.list"
+    | "rosterEntries.get"
+    | "rosterEntries.projectFacts"
+    | "rosterEntries.saveTravelRequest"
+    | "rosterEntries.saveUniformSizes"
+    | "rosterEntries.saveVehicle"
+    | "rosterEntries.clearProjectFact"
+    | "rosterEntries.travelParty"
+    | "rosterEntries.travelDayCounts"
     | "guestListEntries.list"
     | "guestListEntries.create"
     | "guestListEntries.get"
@@ -27385,6 +27662,7 @@ export interface ModuleOperations {
     | "engagements.create"
     | "engagements.get"
     | "engagements.transition"
+    | "engagements.setRosterLock"
     | "engagementDocuments.list"
     | "engagementDocuments.create"
     | "engagementDocuments.get"

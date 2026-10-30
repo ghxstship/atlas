@@ -105,14 +105,17 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,
-  "notification-dispatch": 180,
+  // R5 (2650): the two project facts and names lock kinds in both locales took it to 181.6 KB on 2026-10-28.
+  "notification-dispatch": 185,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
   // which the org export reaches at boot; 211.5 KB on 2026-10-25.
   "org-lifecycle": 215,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
-  "sms-webhook": 145,
+  // R6a (2660): account.work_details_moved, the one-time notice of the profile move, in both locales took it to
+  // 146.0 KB on 2026-10-30; 2 KB of headroom, as R5 left notification-dispatch about 2 percent.
+  "sms-webhook": 148,
   "stripe-webhook": 84,
   "subprocessor-notices": 115,
   "upload-scan": 100,

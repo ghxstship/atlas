@@ -577,7 +577,8 @@
       "account": {
         "security_changed": "Account security changed",
         "recovery_code_used": "Recovery code used",
-        "session_signed_out": "Session signed out"
+        "session_signed_out": "Session signed out",
+        "work_details_moved": "Work details moved to each project"
       },
       "announcement": {
         "posted": "Announcement posted"
@@ -692,6 +693,15 @@
       },
       "content": {
         "removed": "Your content removed"
+      },
+      "roster_entry": {
+        "invited": "Put on a crew roster",
+        "returned": "Roster entry returned",
+        "declined": "Roster entry declined",
+        "project_facts_entered": "Project details entered for you"
+      },
+      "engagement": {
+        "roster_lock_changed": "Names lock changed"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

@@ -39,6 +39,8 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   // A99: a recovery code used (the codes left) and sessions signed out (how many).
   "account.recovery_code_used": ["remaining"],
   "account.session_signed_out": ["count"],
+  // R6a (2664): which profile facts moved to each project (uniform, travel or both).
+  "account.work_details_moved": ["moved"],
   "billing.payment_failed": ["days"],
   // 2051: the rows of a validated or committed import.
   "import.finished": ["written", "refused", "skipped"],

@@ -355,6 +355,8 @@ if TYPE_CHECKING:
         ChatMessageCreate,
         ChatMessagePage,
         ChatMessageUpdate,
+        ClearProjectFactRequest,
+        ClearedProjectFact,
         ColumnClassification,
         ColumnClassificationPage,
         Comment,
@@ -1111,11 +1113,19 @@ if TYPE_CHECKING:
         RoleCreate,
         RolePage,
         RoleUpdate,
+        RosterEntry,
+        RosterEntryPage,
+        RosterLockRequest,
+        RosterProjectFacts,
+        RosterTravelRequestInput,
+        RosterUniformSizesInput,
+        RosterVehicleInput,
         RsvpRequest,
         RunOfShow,
         RunOfShowCreate,
         RunOfShowPage,
         RunOfShowUpdate,
+        SavedProjectFact,
         SavedSearch,
         SavedSearchCreate,
         SavedSearchPage,
@@ -1354,6 +1364,8 @@ if TYPE_CHECKING:
         TrashItem,
         TrashItemPage,
         TrashRestoreResult,
+        TravelDayCountPage,
+        TravelPartyMemberPage,
         UnionLocalRate,
         UnionLocalRateCreate,
         UnionLocalRatePage,
@@ -17569,6 +17581,23 @@ class EngagementsResource(Resource):
         """
         return self._client.request(OPERATIONS["engagements.transition"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
+    def set_roster_lock(
+        self,
+        id: str,
+        body: RosterLockRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Engagement]:
+        """Set an engagement's names lock
+
+        Sets or clears the names lock through `app.set_roster_lock` (R5, G-142): after `locks_at` the company side can no longer add, invite, edit Draft entries or submit new names; Returned entries stay editable. Null clears the lock and a past instant locks at once. Needs advancing.packet.write on the project; 422 roster_lock_engagement_closed unless the engagement is Onboarding, Blocked, Active or Closing. Each roster manager is notified. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /engagements/{id}/roster-lock`` (operation ``engagements.setRosterLock``).
+        Requires the capability ``advancing.packet.write``.
+        """
+        return self._client.request(OPERATIONS["engagements.setRosterLock"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
 
 class EngagementDocumentsResource(Resource):
     """Operations on ``engagementDocuments``, in the Opportunities module."""
@@ -31941,6 +31970,178 @@ class CueCallsResource(Resource):
         return self._client.request(OPERATIONS["cueCalls.delete"], path={"id": id}, options=options)
 
 
+class RosterEntriesResource(Resource):
+    """Operations on ``rosterEntries``, in the Advancing module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[RosterEntry]:
+        """List roster entry rows
+
+        A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs. Returns a cursor page of roster entry rows the caller may see. The default order is `engagement_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /roster-entries`` (operation ``rosterEntries.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request_page(OPERATIONS["rosterEntries.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[RosterEntry]:
+        """List roster entry rows
+
+        A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs. Returns a cursor page of roster entry rows the caller may see. The default order is `engagement_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /roster-entries`` (operation ``rosterEntries.list``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.paginate(OPERATIONS["rosterEntries.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RosterEntry]:
+        """Get a roster entry
+
+        A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs. Returns one roster entry with its `ETag`. A roster entry the caller may not see returns 404.
+
+        ``GET /roster-entries/{id}`` (operation ``rosterEntries.get``).
+        Requires the capability ``advancing.packet.read``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def project_facts(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RosterProjectFacts]:
+        """Read a roster entry's project facts
+
+        The travel request, uniform sizes and vehicle of a roster entry as the caller may read them, through `app.roster_project_facts`. The person and the company that rosters them read every kind; a producer reads the kinds its project capabilities cover (Travel hospitality.fulfillment.read, Uniform opportunities.engagement.read or crew.shift.write, Vehicle credentials.credential.read) on Submitted, Accepted and Returned entries. Every Company or Producer read of a value is logged in the person's access log. 404 without standing. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /roster-entries/{id}/project-facts`` (operation ``rosterEntries.projectFacts``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.projectFacts"], path={"id": id}, options=options)
+
+    def save_travel_request(
+        self,
+        id: str,
+        body: RosterTravelRequestInput,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SavedProjectFact]:
+        """Save a roster entry's travel request
+
+        Replaces the live travel request through `app.save_roster_travel_request`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, airport_unknown, travel_dates_order, project_fact_empty and project_fact_text_length. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /roster-entries/{id}/save-travel-request`` (operation ``rosterEntries.saveTravelRequest``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.saveTravelRequest"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def save_uniform_sizes(
+        self,
+        id: str,
+        body: RosterUniformSizesInput,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SavedProjectFact]:
+        """Save a roster entry's uniform sizes
+
+        Replaces the live uniform sizes through `app.save_roster_uniform_sizes`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, project_fact_empty, shoe_size_format, shoe_size_system_required and pants_measure_range. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /roster-entries/{id}/save-uniform-sizes`` (operation ``rosterEntries.saveUniformSizes``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.saveUniformSizes"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def save_vehicle(
+        self,
+        id: str,
+        body: RosterVehicleInput,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SavedProjectFact]:
+        """Save a roster entry's vehicle
+
+        Replaces the live vehicle through `app.save_roster_vehicle`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, vehicle_fields_required, plate_format, plate_region_format and project_fact_text_length. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /roster-entries/{id}/save-vehicle`` (operation ``rosterEntries.saveVehicle``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.saveVehicle"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def clear_project_fact(
+        self,
+        id: str,
+        body: ClearProjectFactRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ClearedProjectFact]:
+        """Clear a project fact of a roster entry
+
+        Soft-deletes the live row of one kind through `app.clear_roster_project_fact`. The person clears at any time; the company only rows the person did not enter (422 project_fact_person_entered) while it manages the roster (422 project_fact_not_yours). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /roster-entries/{id}/clear-project-fact`` (operation ``rosterEntries.clearProjectFact``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.clearProjectFact"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def travel_party(
+        self,
+        *,
+        project_id: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TravelPartyMemberPage]:
+        """Read a project's travel party
+
+        Every rostered person of the project the producer reads (live entries Submitted, Accepted or Returned on engagements Onboarding to Closing with Travel offered), with their travel request and whether a room is assigned, a pickup booked and a pass issued, through `app.roster_travel_party`. Needs hospitality.fulfillment.read on the project (404 otherwise). Every travel value returned is logged. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /roster-entries/travel-party`` (operation ``rosterEntries.travelParty``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.travelParty"], query={"project_id": project_id}, options=options)
+
+    def travel_day_counts(
+        self,
+        *,
+        project_id: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[TravelDayCountPage]:
+        """Count a project's travel party by day
+
+        Arrivals, departures, people on site, rooms and pickups needed per day from the first arrival to the last departure, at most 120 days, through `app.roster_travel_day_counts`. Needs hospitality.fulfillment.read on the project. Each call is logged. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /roster-entries/travel-day-counts`` (operation ``rosterEntries.travelDayCounts``).
+        Requires the capability ``hospitality.fulfillment.read``.
+        """
+        return self._client.request(OPERATIONS["rosterEntries.travelDayCounts"], query={"project_id": project_id}, options=options)
+
+
 class GuestListEntriesResource(Resource):
     """Operations on ``guestListEntries``, in the Advancing module."""
 
@@ -32912,7 +33113,7 @@ class WorkDetailsResource(Resource):
     ) -> Page[WorkDetails]:
         """List work details rows
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /work-details`` (operation ``workDetails.list``).
         Requires the capability ``me.work_details.write``.
@@ -32930,7 +33131,7 @@ class WorkDetailsResource(Resource):
     ) -> Iterator[WorkDetails]:
         """List work details rows
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -32948,7 +33149,7 @@ class WorkDetailsResource(Resource):
     ) -> ApiResponse[WorkDetails]:
         """Create a work details
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Creates a work details. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Creates a work details. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
 
         ``POST /work-details`` (operation ``workDetails.create``).
         Requires the capability ``me.work_details.write``.
@@ -32964,7 +33165,7 @@ class WorkDetailsResource(Resource):
     ) -> ApiResponse[WorkDetails]:
         """Get a work details
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns one work details with its `ETag`. A work details the caller may not see returns 404.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns one work details with its `ETag`. A work details the caller may not see returns 404.
 
         ``GET /work-details/{id}`` (operation ``workDetails.get``).
         Requires the capability ``me.work_details.write``.
@@ -32981,7 +33182,7 @@ class WorkDetailsResource(Resource):
     ) -> ApiResponse[WorkDetails]:
         """Update a work details
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
 
         ``PATCH /work-details/{id}`` (operation ``workDetails.update``).
         Requires the capability ``me.work_details.write``.
@@ -32996,7 +33197,7 @@ class WorkDetailsResource(Resource):
     ) -> ApiResponse[None]:
         """Delete a work details
 
-        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Soft-deletes the work details: it moves to Trash and can be restored for its table's retention period.
+        The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Soft-deletes the work details: it moves to Trash and can be restored for its table's retention period.
 
         ``DELETE /work-details/{id}`` (operation ``workDetails.delete``).
         Requires the capability ``me.work_details.write``.
@@ -33249,7 +33450,7 @@ class WorkDetailSharesResource(Resource):
     ) -> Page[WorkDetailShare]:
         """List work detail share rows
 
-        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /work-detail-shares`` (operation ``workDetailShares.list``).
         Requires the capability ``opportunities.engagement.read``.
@@ -33267,7 +33468,7 @@ class WorkDetailSharesResource(Resource):
     ) -> Iterator[WorkDetailShare]:
         """List work detail share rows
 
-        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -33285,7 +33486,7 @@ class WorkDetailSharesResource(Resource):
     ) -> ApiResponse[WorkDetailShare]:
         """Create a work detail share
 
-        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
 
         ``POST /work-detail-shares`` (operation ``workDetailShares.create``).
         Requires the capability ``me.work_details.write``.
@@ -33301,7 +33502,7 @@ class WorkDetailSharesResource(Resource):
     ) -> ApiResponse[WorkDetailShare]:
         """Get a work detail share
 
-        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.
 
         ``GET /work-detail-shares/{id}`` (operation ``workDetailShares.get``).
         Requires the capability ``opportunities.engagement.read``.
@@ -33318,7 +33519,7 @@ class WorkDetailSharesResource(Resource):
     ) -> ApiResponse[WorkDetailShare]:
         """Update a work detail share
 
-        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
 
         ``PATCH /work-detail-shares/{id}`` (operation ``workDetailShares.update``).
         Requires the capability ``me.work_details.write``.
@@ -33349,7 +33550,7 @@ class WorkDetailSharesResource(Resource):
     ) -> ApiResponse[SharedWorkDetails]:
         """Read what the share's person shared
 
-        For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement readers and shift editors for uniform sizes, hospitality readers for the rest), through `app.shared_work_details`. Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Each read is logged in the person's access log and the org's audit ledger. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement and safety readers for the person's contact, hospitality readers for the rest), through `app.shared_work_details`. Allergies are Restricted: a holder of data.restricted.read.medical on the project reads them, in dietary and in medical (the medical read, also without hospitality.fulfillment.read); anyone else reads them masked (allergies_masked). Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Every read is logged in the person's access log and the org's audit ledger, and every unmasked allergy read also as allergies.viewed. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``GET /work-detail-shares/{id}/details`` (operation ``workDetailShares.details``).
         Requires the capability ``opportunities.engagement.read``.
@@ -33366,7 +33567,7 @@ class WorkDetailSharesResource(Resource):
     ) -> ApiResponse[PassportReveal]:
         """Reveal a shared passport number
 
-        For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Allergies, the other Restricted value, come back through details for medical readers (data.restricted.read.medical), logged on every read. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``POST /work-detail-shares/{id}/reveal-passport`` (operation ``workDetailShares.revealPassport``).
         Requires the capability ``data.restricted.read.government_id``.

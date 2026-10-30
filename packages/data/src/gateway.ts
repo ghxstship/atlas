@@ -69,10 +69,12 @@ export interface Engagement {
   readonly areas: readonly EngagementArea[];
   /** IANA time zone of the project: the calendar the engagement's dates follow (1390). */
   readonly projectTimeZone: string;
+  /** Names lock (R5, 2656): after this instant the company side names no new crew; null means no lock. */
+  readonly rosterLocksAt: string | null;
 }
 
 const ENGAGEMENT_COLUMNS =
-  "id, org_id, org_name, project_id, project_name, role_type, role_code, job_title, person_id, account_id, pay_basis, arrangement, rate_minor, rate_currency_code, start_date, end_date, engagement_state, areas, project_time_zone";
+  "id, org_id, org_name, project_id, project_name, role_type, role_code, job_title, person_id, account_id, pay_basis, arrangement, rate_minor, rate_currency_code, start_date, end_date, engagement_state, areas, project_time_zone, roster_locks_at";
 
 function toEngagement(row: ExternalRow<"engagements">): Engagement {
   const id = req(row.id, "engagements.id");
@@ -97,6 +99,7 @@ function toEngagement(row: ExternalRow<"engagements">): Engagement {
     state: req(row.engagement_state, "engagements.engagement_state"),
     areas: (row.areas ?? []) as EngagementArea[],
     projectTimeZone: req(row.project_time_zone, "engagements.project_time_zone"),
+    rosterLocksAt: row.roster_locks_at,
   };
 }
 
@@ -641,6 +644,8 @@ export interface AccountMember {
   readonly fullName: string | null;
   readonly validFrom: string;
   readonly roles: readonly AccountRole[];
+  /** When the member confirmed (R4); null while not confirmed. */
+  readonly acceptedAt: string | null;
 }
 
 /** The roster of one account the caller belongs to, by name. */
@@ -650,7 +655,9 @@ export async function listAccountMembers(
 ): Promise<Result<AccountMember[]>> {
   const { data, error } = await external(db)
     .from("account_members")
-    .select("account_membership_id, account_id, person_id, full_name, valid_from, valid_to, roles")
+    .select(
+      "account_membership_id, account_id, person_id, full_name, valid_from, valid_to, roles, accepted_at",
+    )
     .eq("account_id", accountId);
   if (error) return fail(toDataError(error));
   const members = data.map((row) => ({
@@ -659,6 +666,7 @@ export async function listAccountMembers(
     personId: req(row.person_id, "account_members.person_id"),
     fullName: row.full_name,
     validFrom: req(row.valid_from, "account_members.valid_from"),
+    acceptedAt: row.accepted_at ?? null,
     roles: ACCOUNT_ROLE_ORDER.filter((r) => (row.roles ?? []).includes(r)),
   }));
   return ok(members.sort((a, b) => (a.fullName ?? "").localeCompare(b.fullName ?? "")));
