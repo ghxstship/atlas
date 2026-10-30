@@ -752,8 +752,9 @@ async function CredentialRecord({
 
 /**
  * The badge photo of a credential (P5): the photo its badge prints and where it came from, with a thumbnail, and
- * for issuers a request to the holder, the Gateway link to send them, and removal. A revoked or expired credential
- * prints no photo, so it shows only that.
+ * for issuers a request to the holder, the Gateway link to send them, and removal once the photo's scan finished (an
+ * issuer cannot delete an object before it scans Clean, 2821). A revoked or expired credential prints no photo, so it
+ * shows only that.
  */
 async function BadgePhotoSection({
   page,
@@ -844,7 +845,12 @@ async function BadgePhotoSection({
               </span>
             </div>
           ) : null}
-          {row.source ? (
+          {row.state === "Scanning" ? (
+            <p className="m-0 text-text-12 text-text-secondary">
+              {t("credentials.photo.removeAfterScan")}
+            </p>
+          ) : null}
+          {row.source && (row.state === "Provided" || row.state === "Refused") ? (
             <ActionForm
               action={removeCredentialPhotoAction}
               hidden={{ org: page.ctx.org.slug, personId: c.holderPersonId }}

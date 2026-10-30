@@ -1964,6 +1964,7 @@
     "useProfile": "Use my profile photo",
     "remove": "Remove",
     "removed": "Photo removed and your consent withdrawn.",
+    "lapsed": "You no longer hold a live credential with {org}, so your badges there print no photo. The organization still keeps this photo until you remove it.",
     "fileType": "Choose a JPEG or PNG photo.",
     "fileSize": "That photo is too large. Choose one under 25 MB.",
     "section": "Badge photos",

@@ -8,7 +8,8 @@ import { expectAccessible, uniqueId } from "./support";
 /**
  * P5 (RRR-219, G-144) on the demo tenant: a credential record shows its badge photo state; a badge downloads
  * on a CR80 card; the Issued credentials print panel downloads the checked badges in one PDF and leaves an
- * unchecked one out; and "Request photo" notifies the holder with the Gateway link. Credentials are seeded with
+ * unchecked one out; "Request missing photos" asks only the checked holders without a photo; "Request photo"
+ * notifies the holder with the Gateway link; and "Remove photo" deletes a Clean photo. Credentials are seeded with
  * the service role under a fresh category per run, and a Clean photo stands in for the upload-scan worker's
  * local pass-through (ADR 0034), as a36-support.ts does for imports. Every surface is checked with axe in both
  * themes and at phone width.
@@ -81,7 +82,7 @@ async function seedCredentials(
 }
 
 /** A Clean badge photo of the holder with their consent, as the holder's upload and the scan worker leave it. */
-async function seedCleanPhoto(client: SupabaseClient, holder: string): Promise<void> {
+async function seedCleanPhoto(client: SupabaseClient, holder: string): Promise<string> {
   const app = client.schema("app");
   const path = `${ORG_ID}/${holder}/${randomUUID()}.png`;
   const uploaded = await client.storage
@@ -123,6 +124,7 @@ async function seedCleanPhoto(client: SupabaseClient, holder: string): Promise<v
     consent_record_id: (consent.data as { id: string }).id,
   });
   if (photo.error) throw new Error(`photo: ${photo.error.message}`);
+  return path;
 }
 
 async function atPhoneWidth(page: Page): Promise<void> {
@@ -211,6 +213,72 @@ test.describe("Printable photo badges (P5)", () => {
     expect((pdf.match(/\/S \/Sect\b/g) ?? []).length).toBe(3);
     const many = Array.from({ length: 101 }, () => `id=${credentials[0]?.id}`).join("&");
     expect((await page.request.get(`/${ORG}/documents/badges?${many}`)).status()).toBe(400);
+  });
+
+  test("Request missing photos asks only the checked holders without a photo", async ({ page }) => {
+    const client = serviceClient();
+    const { categoryId, credentials } = await seedCredentials(client, [FIELD_LEAD, CREW]);
+    const [withPhoto, without] = credentials;
+    if (!withPhoto || !without) throw new Error("no credentials seeded");
+    await seedCleanPhoto(client, FIELD_LEAD);
+    await signIn(page, "producer@example.com");
+    await page.goto(`/${ORG}/credentials/issued?project=${PROJECT}&category=${categoryId}&print=1`);
+    const panel = page.getByRole("region", { name: "Print badges" });
+    await expect(panel.getByText("Provided", { exact: true })).toBeVisible();
+    await panel.getByRole("button", { name: "Request missing photos" }).click();
+    await expect(panel.getByRole("status")).toHaveText("1 holder asked.");
+    await expect(page).toHaveURL(/[?&]asked=requested(%3A|:)1(&|$)/);
+    await expect(panel.getByText("Requested", { exact: true })).toBeVisible();
+    await expectAccessibleInBothThemes(page);
+
+    const asked = async (credentialId: string) => {
+      const { data, error } = await client
+        .schema("app")
+        .from("notifications")
+        .select("id")
+        .eq("kind", "credential_photo.requested")
+        .eq("subject_id", credentialId);
+      expect(error).toBeNull();
+      return (data ?? []).length;
+    };
+    expect(await asked(without.id)).toBe(1);
+    expect(await asked(withPhoto.id)).toBe(0);
+
+    // Unchecking the only badge still missing a photo asks nobody.
+    await panel.getByRole("checkbox", { name: new RegExp(without.number) }).uncheck();
+    await panel.getByRole("button", { name: "Request missing photos" }).click();
+    await expect(panel.getByRole("status")).toHaveText("Nobody needed asking.");
+    expect(await asked(without.id)).toBe(1);
+  });
+
+  test("Remove photo deletes a Clean badge photo and its object", async ({ page }) => {
+    const client = serviceClient();
+    const { credentials } = await seedCredentials(client, [FIELD_LEAD]);
+    const [credential] = credentials;
+    if (!credential) throw new Error("no credential seeded");
+    const path = await seedCleanPhoto(client, FIELD_LEAD);
+    await signIn(page, "producer@example.com");
+    await page.goto(`/${ORG}/credentials/issued?project=${PROJECT}&peek=${credential.id}`);
+    const photo = page.getByRole("dialog").getByRole("region", { name: "Badge photo" });
+    await expect(photo.getByText("Provided", { exact: true })).toBeVisible();
+    await photo.getByRole("checkbox", { name: /Remove Demo Field Lead's badge photo/ }).check();
+    await photo.getByRole("button", { name: "Remove photo" }).click();
+    // The section re-renders without the photo, so the removal form, and its status line, go with it.
+    await expect(photo.getByRole("button", { name: "Remove photo" })).toHaveCount(0);
+    await expect(photo.getByText("Provided", { exact: true })).toHaveCount(0);
+    const folder = path.slice(0, path.lastIndexOf("/"));
+    const name = path.slice(path.lastIndexOf("/") + 1);
+    await expect
+      .poll(async () => {
+        const { data, error } = await client.storage.from("credential-photos").list(folder);
+        if (error) throw new Error(`list: ${error.message}`);
+        return (data ?? []).some((o) => o.name === name);
+      })
+      .toBe(false);
+    await page.reload();
+    await settle(page);
+    const reread = page.getByRole("dialog").getByRole("region", { name: "Badge photo" });
+    await expect(reread.getByText("Provided", { exact: true })).toHaveCount(0);
   });
 
   test("Request photo notifies the holder with the Gateway link, once a day", async ({ page }) => {

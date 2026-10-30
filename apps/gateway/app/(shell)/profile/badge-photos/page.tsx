@@ -26,7 +26,9 @@ export async function generateMetadata(): Promise<Metadata> {
 /**
  * Badge photos (P5, G-144): one card per org that holds a live credential for the person, with the photo its badge
  * prints, who sees it and how to take it back, and the person's choices: upload or take a photo (cropped by hand),
- * use their profile photo, or remove it, which also withdraws their consent. An org's photo request links here.
+ * use their profile photo, or remove it, which also withdraws their consent. An org whose credentials of the person
+ * all lapsed but which still keeps their photo has a card too, offering only Remove. An org's photo request links
+ * here.
  */
 export default async function BadgePhotosPage() {
   const ctx = await requireNode("profile.badge-photos");
@@ -85,7 +87,9 @@ export default async function BadgePhotosPage() {
                   <div className="flex min-w-0 flex-1 flex-col gap-8">
                     <p className="m-0 text-text-13">
                       <span className="sr-only">{t("gateway.badgePhotos.stateLabel")}: </span>
-                      {t(`gateway.badgePhotos.stateHelp.${p.state}`)}
+                      {p.holdsCredential
+                        ? t(`gateway.badgePhotos.stateHelp.${p.state}`)
+                        : t("gateway.badgePhotos.lapsed", { org: p.orgName })}
                       {p.providedAt
                         ? ` ${t("gateway.badgePhotos.providedOn", { date: formatDate(locale, p.providedAt) })}.`
                         : null}
@@ -96,12 +100,14 @@ export default async function BadgePhotosPage() {
                         version: CREDENTIAL_PHOTO_NOTICE_VERSION,
                       })}
                     </p>
-                    <BadgePhotoUpload
-                      action={uploadBadgePhotoAction.bind(null, p.orgId)}
-                      labels={labels}
-                    />
+                    {p.holdsCredential ? (
+                      <BadgePhotoUpload
+                        action={uploadBadgePhotoAction.bind(null, p.orgId)}
+                        labels={labels}
+                      />
+                    ) : null}
                     <span className="flex flex-wrap gap-8">
-                      {p.hasProfilePhoto ? (
+                      {p.holdsCredential && p.hasProfilePhoto ? (
                         <ActionButton
                           action={chooseProfilePhotoAction.bind(null, p.orgId)}
                           label={t("gateway.badgePhotos.useProfile")}

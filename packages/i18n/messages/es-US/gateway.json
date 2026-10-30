@@ -1964,6 +1964,7 @@
     "useProfile": "Usar mi foto de perfil",
     "remove": "Quitar",
     "removed": "Foto quitada y tu consentimiento retirado.",
+    "lapsed": "Ya no tienes una credencial vigente con {org}, así que tus credenciales ahí no imprimen foto. La organización guarda esta foto hasta que la quites.",
     "fileType": "Elige una foto JPEG o PNG.",
     "fileSize": "Esa foto es demasiado grande. Elige una de menos de 25 MB.",
     "section": "Fotos de credencial",

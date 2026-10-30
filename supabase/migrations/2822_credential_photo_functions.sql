@@ -16,7 +16,8 @@
 --     once a day, through the credential_photo.requested notification that opens /profile/badge-photos in Gateway.
 --   * app.record_credential_photo: the holder records a photo they uploaded to their own folder, opening a
 --     credential_photo consent record unless one stands; returns the photo it replaced so the caller removes it.
---   * app.remove_credential_photo: an issuer removes the holder's photo (soft delete); returns its object name.
+--   * app.remove_credential_photo: an issuer removes the holder's photo (soft delete) once it scanned Clean, or its object
+--     is gone; returns the holder's Clean objects in the org's folder to delete.
 --   * app.withdraw_my_credential_photos: the holder withdraws their photos and consent, in one org or all, and gets every
 --     object of theirs still stored so they remove it (account deletion calls it first, 1670 is unchanged).
 -- Domain event payloads carry ids only, never the object name.
@@ -130,23 +131,41 @@ grant execute on function app.credential_badge_photos(uuid[]) to authenticated, 
 create or replace function app.my_credential_photos()
 returns table (
   org_id uuid, org_name text, photo_state app.credential_photo_state, source app.credential_photo_source,
-  provided_at timestamptz, photo_path text, has_profile_photo boolean
+  provided_at timestamptz, photo_path text, has_profile_photo boolean, holds_credential boolean
 )
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select distinct on (s.org_id) s.org_id, o.name, s.photo_state, s.source, s.provided_at, p.photo_path,
-    exists (select 1 from private.badge_profile_photo(s.holder_person_id))
-  from app.credential_photo_states s
-  join app.organizations o on o.id = s.org_id
-  left join app.credential_photos p on p.org_id = s.org_id and p.person_id = s.holder_person_id and p.deleted_at is null
-  where s.holder_person_id = private.current_person_id()
-  order by s.org_id;
+  with live as (
+    select distinct on (s.org_id) s.org_id, o.name as org_name, s.photo_state, s.source, s.provided_at, p.photo_path,
+      exists (select 1 from private.badge_profile_photo(s.holder_person_id)) as has_profile_photo, true as holds_credential
+    from app.credential_photo_states s
+    join app.organizations o on o.id = s.org_id
+    left join app.credential_photos p on p.org_id = s.org_id and p.person_id = s.holder_person_id and p.deleted_at is null
+    where s.holder_person_id = private.current_person_id()
+    order by s.org_id
+  ),
+  -- An org whose credentials of the holder all lapsed still keeps their photo and consent until they withdraw them.
+  lapsed as (
+    select p.org_id, o.name as org_name,
+      (case private.credential_photo_scan(p.photo_path)
+        when 'Clean' then 'Provided' when 'Scanning' then 'Scanning' else 'Refused'
+      end)::app.credential_photo_state as photo_state,
+      p.source, p.provided_at, p.photo_path, false as has_profile_photo, false as holds_credential
+    from app.credential_photos p
+    join app.organizations o on o.id = p.org_id
+    where p.person_id = private.current_person_id() and p.deleted_at is null and p.photo_path is not null
+      and not exists (select 1 from live l where l.org_id = p.org_id)
+  )
+  select * from live
+  union all
+  select * from lapsed
+  order by 1;
 $$;
 
-comment on function app.my_credential_photos() is 'P5: for the signed-in person, one row per org where they hold a live credential: the photo their badge prints there, where it came from and when, the object name of their badge photo (for their own thumbnail) and whether their profile photo can stand in (a JPEG or PNG of at most 2 MiB).';
+comment on function app.my_credential_photos() is 'P5: for the signed-in person, one row per org where they hold a live credential (holds_credential): the photo their badge prints there, where it came from and when, the object name of their badge photo (for their own thumbnail) and whether their profile photo can stand in (a JPEG or PNG of at most 2 MiB). An org where they hold no live credential any more but that still keeps their badge photo has a row too, with holds_credential false, so they can withdraw it.';
 revoke all on function app.my_credential_photos() from public, anon;
 grant execute on function app.my_credential_photos() to authenticated, service_role;
 
@@ -311,7 +330,7 @@ grant execute on function app.record_credential_photo(uuid, text, app.credential
 -- Removing and withdrawing --------------------------------------------------------------------------------------------
 
 create or replace function app.remove_credential_photo(p_org_id uuid, p_person_id uuid)
-returns text
+returns setof text
 language plpgsql
 volatile
 security definer
@@ -319,23 +338,44 @@ set search_path = ''
 as $$
 declare
   v_photo app.credential_photos;
+  v_scan app.scan_status;
 begin
   perform private.require_person();
   if not private.credential_photo_issuer(p_org_id, p_person_id) then
-    raise exception using errcode = '42501', message = 'only an issuer of the person''s credentials removes their badge photo';
+    perform private.refuse('credential_photo_not_issuer', 'Only an issuer of this person''s credentials removes their badge photo.');
   end if;
-  update app.credential_photos p set deleted_at = now()
+  select * into v_photo from app.credential_photos p
   where p.org_id = p_org_id and p.person_id = p_person_id and p.deleted_at is null
-  returning * into v_photo;
-  if v_photo.id is not null then
-    perform private.emit_event(p_org_id, 'credential_photo.removed', 'credential_photos', v_photo.id, null,
-      jsonb_build_object('credential_photo_id', v_photo.id, 'person_id', p_person_id));
+  for update;
+  if v_photo.id is null then
+    return;
   end if;
-  return v_photo.photo_path;
+  -- The restrictive read gate (2821) lets only the holder or a Clean object through, so an issuer can delete an object
+  -- only once it scanned Clean. One still being scanned waits for its verdict; one the scanner could not clear stays
+  -- for its holder to replace or remove. A photo whose object the scanner already deleted is simply removed.
+  if v_photo.photo_path is not null
+     and exists (select 1 from storage.objects o where o.bucket_id = 'credential-photos' and o.name = v_photo.photo_path) then
+    v_scan := private.credential_photo_scan(v_photo.photo_path);
+    if v_scan is null or v_scan in ('Pending Upload', 'Scanning') then
+      perform private.refuse('credential_photo_scanning', 'This photo is still being scanned. Remove it once the scan finishes, in a few minutes.');
+    elsif v_scan <> 'Clean' then
+      perform private.refuse('credential_photo_unscanned', 'This photo could not be cleared by the virus scan, so only its holder can delete it. Ask them to replace or remove it in Gateway.');
+    end if;
+  end if;
+  update app.credential_photos p set deleted_at = now() where p.id = v_photo.id;
+  perform private.emit_event(p_org_id, 'credential_photo.removed', 'credential_photos', v_photo.id, null,
+    jsonb_build_object('credential_photo_id', v_photo.id, 'person_id', p_person_id));
+  return query
+  select s.name
+  from storage.objects s
+  cross join lateral private.credential_photo_object(s.name) o
+  where s.bucket_id = 'credential-photos' and o.org_id = p_org_id and o.person_id = p_person_id
+    and private.credential_photo_scan(s.name) = 'Clean'
+  order by s.name;
 end;
 $$;
 
-comment on function app.remove_credential_photo(uuid, uuid) is 'P5: an issuer of the org (credentials.credential.issue on a project where the person holds or held a credential) removes the person''s badge photo, a soft delete, and gets its object name to remove. NULL when there was no photo. The consent record stays: the holder withdraws it themselves.';
+comment on function app.remove_credential_photo(uuid, uuid) is 'P5: an issuer of the org (credentials.credential.issue on a project where the person holds or held a credential; credential_photo_not_issuer otherwise) removes the person''s badge photo, a soft delete, and gets every Clean object of the person still stored in the org''s folder, the removed photo and replaced copies, which the caller deletes. Nothing when there was no photo or its object is gone. Refuses while the photo is being scanned (credential_photo_scanning) or when the scan could not clear it (credential_photo_unscanned): the read gate keeps such an object from everyone but its holder. The consent record stays: the holder withdraws it themselves.';
 revoke all on function app.remove_credential_photo(uuid, uuid) from public, anon;
 grant execute on function app.remove_credential_photo(uuid, uuid) to authenticated, service_role;
 

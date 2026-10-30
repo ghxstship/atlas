@@ -135,11 +135,36 @@ export async function fetchProfilePhoto(
     if (!response.ok) return null;
     const declared = Number(response.headers.get("content-length") ?? "0");
     if (declared > BADGE_PHOTO_MAX_BYTES) return null;
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    return isBadgePhotoBytes(bytes) ? bytes : null;
+    const bytes = await readCapped(response, BADGE_PHOTO_MAX_BYTES);
+    return bytes && isBadgePhotoBytes(bytes) ? bytes : null;
   } catch {
     return null;
   }
+}
+
+/** A response body of at most `max` bytes, read as it streams in: null as soon as it runs past the cap. */
+async function readCapped(response: Response, max: number): Promise<Uint8Array | null> {
+  if (!response.body) return new Uint8Array(await response.arrayBuffer());
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > max) {
+      await reader.cancel();
+      return null;
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let at = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, at);
+    at += chunk.byteLength;
+  }
+  return bytes;
 }
 
 /** One photo's bytes: the badge photo read as the caller, or the profile photo from its public URL. */
@@ -257,18 +282,23 @@ export async function recordCredentialPhoto(
   return ok({ id: row.credential_photo_id, replacedPath: row.replaced_path });
 }
 
-/** An issuer removes a holder's badge photo; returns the object to delete, or null when there was none. */
+/**
+ * An issuer removes a holder's badge photo and gets the objects to delete: the holder's Clean objects in the org's
+ * folder, the removed photo and any replaced copy, or none when the photo's object is already gone. The database
+ * refuses while the photo is being scanned (credential_photo_scanning) or after a scan that could not clear it
+ * (credential_photo_unscanned), since an issuer cannot delete such an object (2821's read gate).
+ */
 export async function removeCredentialPhoto(
   db: XosClient,
   orgId: string,
   personId: string,
-): Promise<Result<string | null>> {
+): Promise<Result<string[]>> {
   const { data, error } = await db.rpc("remove_credential_photo", {
     p_org_id: orgId,
     p_person_id: personId,
   });
   if (error) return fail(toDataError(error));
-  return ok((data as string | null) ?? null);
+  return ok(((data ?? []) as unknown as (string | null)[]).filter((p): p is string => !!p));
 }
 
 /**
@@ -329,9 +359,17 @@ export interface MyCredentialPhoto {
   readonly photoPath: string | null;
   /** True when their profile photo can stand in: a JPEG or PNG of at most 2 MiB. */
   readonly hasProfilePhoto: boolean;
+  /**
+   * False for an org where they hold no live credential any more but which still keeps their photo: they can only
+   * withdraw it there.
+   */
+  readonly holdsCredential: boolean;
 }
 
-/** The signed-in person's badge photo in each org where they hold a live credential. */
+/**
+ * The signed-in person's badge photo in each org where they hold a live credential, and in each org that still keeps
+ * their photo after their credentials there lapsed.
+ */
 export async function myCredentialPhotos(db: XosClient): Promise<Result<MyCredentialPhoto[]>> {
   const { data, error } = await db.rpc("my_credential_photos");
   if (error) return fail(toDataError(error));
@@ -345,6 +383,7 @@ export async function myCredentialPhotos(db: XosClient): Promise<Result<MyCreden
         provided_at: string | null;
         photo_path: string | null;
         has_profile_photo: boolean;
+        holds_credential: boolean;
       }[]
     ).map((r) => ({
       orgId: r.org_id,
@@ -354,6 +393,7 @@ export async function myCredentialPhotos(db: XosClient): Promise<Result<MyCreden
       providedAt: r.provided_at,
       photoPath: r.photo_path,
       hasProfilePhoto: r.has_profile_photo === true,
+      holdsCredential: r.holds_credential !== false,
     })),
   );
 }

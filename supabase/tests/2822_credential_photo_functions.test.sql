@@ -1,9 +1,11 @@
 -- pgTAP: migration 2822 (P5, G-144), asking for, giving and withdrawing badge photos, and the photo a badge prints.
 -- An issuer asks a holder once a day, through credential_photo.requested opening /profile/badge-photos; a holder without
 -- a sign-in, or with a photo already, is not asked. The holder records a photo from their own folder with a consent
--- record, replaces it, and withdraws it with the consent. The state follows the resolution order: the badge photo once
--- Clean (Scanning, then Refused when the scan rejects it), else a profile photo the caller may see, JPEG or PNG of at most
--- 2 MiB, with no block either way, else Requested or Missing. The state view is not backed up.
+-- record, replaces it, and withdraws it with the consent, even after their credential lapsed. An issuer removes a photo
+-- once it scanned Clean or its object is gone, never while it is being scanned or after a scan that could not clear it.
+-- The state follows the resolution order: the badge photo once Clean (Scanning, then Refused when the scan rejects it),
+-- else a profile photo the caller may see, JPEG or PNG of at most 2 MiB, with no block either way, else Requested or
+-- Missing. The state view is not backed up.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -173,12 +175,53 @@ delete from storage.objects where bucket_id = 'credential-photos' and name = (se
 select is(pg_temp.state('alice', 'cred_frank'), 'Refused', 'and so does a photo whose object is gone');
 
 -- Removing ---------------------------------------------------------------------------------------------------------------
+create function pg_temp.removed(p_who text, p_person text) returns text
+language plpgsql as $$
+declare v text;
+begin
+  perform pg_temp.as_user(p_who);
+  select coalesce(string_agg(r, ',' order by r), '') into v from app.remove_credential_photo(pg_temp.id('org_a'), pg_temp.id(p_person)) r;
+  perform pg_temp.as_platform();
+  return v;
+end $$;
+
 select pg_temp.as_user('gina');
-select throws_ok(format($$select app.remove_credential_photo(%L, %L)$$, pg_temp.id('org_a'), pg_temp.id('frank')), '42501', null,
-  'a viewer cannot remove a photo');
+select throws_ok(format($$select * from app.remove_credential_photo(%L, %L)$$, pg_temp.id('org_a'), pg_temp.id('frank')), 'XR001',
+  'credential_photo_not_issuer: Only an issuer of this person''s credentials removes their badge photo.',
+  'a viewer cannot remove a photo, and is told so by rule');
+select pg_temp.as_user('frank');
+insert into paths values ('four', pg_temp.upload('frank'));
+select app.record_credential_photo(pg_temp.id('org_a'), (select name from paths where key = 'four'), 'Holder Upload', 'credential-photo-2026-11');
 select pg_temp.as_user('dave');
-select is(app.remove_credential_photo(pg_temp.id('org_a'), pg_temp.id('frank')), (select name from paths where key = 'two'),
-  'an issuer removes it and gets the object to delete');
+select throws_ok(format($$select * from app.remove_credential_photo(%L, %L)$$, pg_temp.id('org_a'), pg_temp.id('frank')), 'XR001',
+  'credential_photo_scanning: This photo is still being scanned. Remove it once the scan finishes, in a few minutes.',
+  'an issuer cannot remove a photo still being scanned: the read gate keeps its object from them');
+select pg_temp.as_platform();
+select is(pg_temp.state('alice', 'cred_frank'), 'Scanning', 'so the photo stays, Scanning');
+select pg_temp.scanned((select name from paths where key = 'four'), 'Scan Failed');
+select pg_temp.as_user('dave');
+select throws_ok(format($$select * from app.remove_credential_photo(%L, %L)$$, pg_temp.id('org_a'), pg_temp.id('frank')), 'XR001',
+  'credential_photo_unscanned: This photo could not be cleared by the virus scan, so only its holder can delete it. Ask them to replace or remove it in Gateway.',
+  'nor one the scan could not clear while its object is still stored');
+select pg_temp.as_platform();
+select is(pg_temp.state('alice', 'cred_frank'), 'Refused', 'which stays Refused');
+delete from storage.objects where bucket_id = 'credential-photos' and name = (select name from paths where key = 'four');
+select is(pg_temp.removed('dave', 'frank'), (select name from paths where key = 'one'),
+  'once the scanner deleted the object the issuer removes the photo, and gets only the Clean copy still stored to delete');
+select is(pg_temp.state('alice', 'cred_frank'), 'Missing', 'the badge reads Missing');
+select pg_temp.as_user('frank');
+insert into paths values ('five', pg_temp.upload('frank'));
+select app.record_credential_photo(pg_temp.id('org_a'), (select name from paths where key = 'five'), 'Holder Upload', 'credential-photo-2026-11');
+select pg_temp.as_platform();
+select pg_temp.scanned((select name from paths where key = 'five'), 'Clean');
+select is(pg_temp.state('alice', 'cred_frank'), 'Provided', 'a new photo scanned Clean prints');
+select is(pg_temp.removed('dave', 'frank'), (select string_agg(name, ',' order by name) from paths where key in ('one', 'five')),
+  'an issuer removes a Clean photo and gets it, with the older Clean copy, to delete');
+select is(pg_temp.removed('dave', 'frank'), '', 'removing again finds nothing');
+select pg_temp.as_user('dave');
+select ok((select bool_and(private.credential_photo_removable(name)) from paths where key in ('one', 'five')),
+  'and the storage policy lets that issuer delete both objects now no live photo names them');
+delete from storage.objects where bucket_id = 'credential-photos' and name = (select name from paths where key = 'five');
 select pg_temp.as_platform();
 select is(pg_temp.state('alice', 'cred_frank'), 'Missing', 'the badge reads Missing again');
 select is((select withdrawn_at from app.consent_records where person_id = pg_temp.id('frank') and purpose_code = 'credential_photo'), null,
@@ -241,17 +284,26 @@ select is((select count(*)::int from app.credential_photos where person_id = pg_
   'the photo row is removed');
 select ok((select bool_and(withdrawn_at is not null) from app.consent_records where person_id = pg_temp.id('frank') and purpose_code = 'credential_photo'),
   'and the consent is withdrawn');
-select is((select count(*)::int from app.domain_events where event_type = 'credential_photo.removed'), 2,
-  'credential_photo.removed is emitted for the org''s removal and the withdrawal');
+select is((select count(*)::int from app.domain_events where event_type = 'credential_photo.removed'), 3,
+  'credential_photo.removed is emitted for the org''s two removals and the withdrawal, never for a refused one');
 select ok((select bool_and(not (data ? 'photo_path')) from app.domain_events where event_type like 'credential_photo.%'),
   'no event carries a photo path');
 
 select pg_temp.as_user('gina');
 select is((select count(*)::int from app.my_credential_photos()), 1, 'another holder sees her own org card');
+select is((select holds_credential from app.my_credential_photos()), true, 'as an org where she holds a live credential');
+insert into paths values ('gina', pg_temp.upload('gina'));
+select app.record_credential_photo(pg_temp.id('org_a'), (select name from paths where key = 'gina'), 'Holder Upload', 'credential-photo-2026-11');
 select pg_temp.as_user('alice');
 update app.credentials set revoked_at = now() where id = pg_temp.id('cred_gina');
 select pg_temp.as_user('gina');
-select is((select count(*)::int from app.my_credential_photos()), 0, 'and none once her only credential there is revoked');
+select is((select org_name || '|' || photo_state::text || '|' || holds_credential::text || '|' || has_profile_photo::text
+    from app.my_credential_photos()),
+  'Northwind Live|Scanning|false|false',
+  'once her only credential there is revoked the org still lists the photo it keeps, so she can withdraw it');
+select is((select string_agg(photo_path, ',') from app.withdraw_my_credential_photos(pg_temp.id('org_a'))),
+  (select name from paths where key = 'gina'), 'and withdrawing it returns the object to remove');
+select is((select count(*)::int from app.my_credential_photos()), 0, 'after which she has no card');
 select pg_temp.as_platform();
 
 select * from finish();

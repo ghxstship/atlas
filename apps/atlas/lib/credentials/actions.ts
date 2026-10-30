@@ -399,7 +399,10 @@ export async function requestMissingPhotosAction(form: FormData): Promise<void> 
   redirect(`${target.pathname}${target.search}` as Route);
 }
 
-/** An issuer removes the holder's badge photo, then deletes its object. */
+/**
+ * An issuer removes the holder's badge photo, then deletes the objects the database hands back (none when the scanner
+ * already deleted it). A photo still being scanned, or one the scan could not clear, is refused by rule and stays.
+ */
 export async function removeCredentialPhotoAction(
   _: ActionState,
   form: FormData,
@@ -410,9 +413,7 @@ export async function removeCredentialPhotoAction(
   if (form.get("confirm") !== "on") return { error: "confirmRemovePhoto" };
   const removed = await removeCredentialPhoto(ctx.viewer.db, ctx.org.id, person.data);
   if (!removed.ok) return failed(removed.error);
-  if (removed.data) {
-    const gone = await removeCredentialPhotoObjects(ctx.viewer.db, [removed.data]);
-    if (!gone.ok) return failed(gone.error);
-  }
+  const gone = await removeCredentialPhotoObjects(ctx.viewer.db, removed.data);
+  if (!gone.ok) return failed(gone.error);
   return done(ctx.org.slug);
 }

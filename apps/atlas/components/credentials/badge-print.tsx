@@ -135,7 +135,6 @@ export async function BadgePrint({
                 type="submit"
                 variant="ghost"
                 formAction={requestMissingPhotosAction}
-                formMethod="post"
                 aria-describedby="badge-print-request-help"
               >
                 {t("credentials.print.requestMissing")}

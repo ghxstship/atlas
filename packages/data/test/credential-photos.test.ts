@@ -10,6 +10,7 @@ import {
   loadBadgePhotoBytes,
   myCredentialPhotos,
   recordCredentialPhoto,
+  removeCredentialPhoto,
   removeCredentialPhotoObjects,
   requestCredentialPhotos,
   withdrawMyCredentialPhotos,
@@ -190,6 +191,46 @@ describe("the photo a badge prints", () => {
     }) as unknown as typeof fetch;
     expect(await fetchProfilePhoto(db, "p/a.jpg", broken)).toBeNull();
   });
+
+  it("stops reading a profile photo with no declared length as soon as it passes 2 MiB", async () => {
+    const { db } = withStorage(fakeClient({}).db, {});
+    let pulled = 0;
+    let canceled = false;
+    const chunk = new Uint8Array(512 * 1024);
+    chunk.set(JPEG);
+    const endless = (async () =>
+      new Response(
+        new ReadableStream<Uint8Array>({
+          pull(controller) {
+            pulled += 1;
+            controller.enqueue(chunk.slice());
+          },
+          cancel() {
+            canceled = true;
+          },
+        }),
+        { status: 200 },
+      )) as unknown as typeof fetch;
+    expect(await fetchProfilePhoto(db, "p/a.jpg", endless)).toBeNull();
+    expect(canceled).toBe(true);
+    // Five 512 KiB chunks pass 2 MiB; the reader stops there, never buffering the whole body.
+    expect(pulled).toBeLessThanOrEqual(6);
+    const chunks = [JPEG, new Uint8Array(1024)];
+    const streamed = (async () =>
+      new Response(
+        new ReadableStream<Uint8Array>({
+          pull(controller) {
+            const next = chunks.shift();
+            if (next) controller.enqueue(next.slice());
+            else controller.close();
+          },
+        }),
+        { status: 200 },
+      )) as unknown as typeof fetch;
+    const bytes = await fetchProfilePhoto(db, "p/a.jpg", streamed);
+    expect(bytes?.length).toBe(JPEG.length + 1024);
+    expect(bytes?.slice(0, JPEG.length)).toEqual(JPEG);
+  });
 });
 
 describe("asking for, giving and withdrawing photos", () => {
@@ -266,6 +307,7 @@ describe("asking for, giving and withdrawing photos", () => {
             provided_at: "2026-10-30T00:00:00Z",
             photo_path: `${ORG}/${PERSON}/a.jpg`,
             has_profile_photo: true,
+            holds_credential: true,
           },
         ]),
       ],
@@ -281,7 +323,54 @@ describe("asking for, giving and withdrawing photos", () => {
       orgName: "Northwind Live",
       state: "Scanning",
       hasProfilePhoto: true,
+      holdsCredential: true,
     });
+  });
+
+  it("removes a holder's photo as an issuer and returns the objects to delete, or the refusal rule", async () => {
+    const paths = [`${ORG}/${PERSON}/a.jpg`, `${ORG}/${PERSON}/b.jpg`];
+    const { db, calls } = fakeClient({
+      "rpc:remove_credential_photo": [
+        okResponse(paths),
+        okResponse([]),
+        okResponse(null),
+        errorResponse(
+          "XR001",
+          "credential_photo_scanning: This photo is still being scanned. Remove it once the scan finishes, in a few minutes.",
+          "credential_photo_scanning",
+        ),
+      ],
+    });
+    expect(await removeCredentialPhoto(db, ORG, PERSON)).toEqual({ ok: true, data: paths });
+    // The scanner already deleted the object: the photo goes and nothing is left to delete.
+    expect(await removeCredentialPhoto(db, ORG, PERSON)).toEqual({ ok: true, data: [] });
+    expect(await removeCredentialPhoto(db, ORG, PERSON)).toEqual({ ok: true, data: [] });
+    expect(await removeCredentialPhoto(db, ORG, PERSON)).toMatchObject({
+      ok: false,
+      error: { kind: "refusal", rule: "credential_photo_scanning" },
+    });
+    expect(calls[0]?.steps[0]).toEqual(["args", [{ p_org_id: ORG, p_person_id: PERSON }]]);
+  });
+
+  it("lists an org whose credentials lapsed but which keeps the photo, for withdrawal only", async () => {
+    const { db } = fakeClient({
+      "rpc:my_credential_photos": [
+        okResponse([
+          {
+            org_id: ORG,
+            org_name: "Northwind Live",
+            photo_state: "Provided",
+            source: "Holder Upload",
+            provided_at: "2026-10-30T00:00:00Z",
+            photo_path: `${ORG}/${PERSON}/a.jpg`,
+            has_profile_photo: false,
+            holds_credential: false,
+          },
+        ]),
+      ],
+    });
+    const mine = await myCredentialPhotos(db);
+    expect(mine.ok && mine.data[0]).toMatchObject({ state: "Provided", holdsCredential: false });
   });
 
   it("fails when storage leaves a badge photo object behind", async () => {
