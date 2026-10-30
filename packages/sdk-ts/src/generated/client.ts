@@ -342,6 +342,7 @@ import {
   EarnedMediaItemsResource,
   ProjectMeasurementSummaryResource,
   CueCallsResource,
+  RosterEntriesResource,
   GuestListEntriesResource,
   Form1099NecResource,
   InsuranceCertificateInsuredsResource,
@@ -1196,6 +1197,8 @@ export class XosClient extends XosClientCore {
     new ProjectMeasurementSummaryResource(this);
   /** Show: operations on `cueCalls`. */
   readonly cueCalls: CueCallsResource = new CueCallsResource(this);
+  /** Advancing: operations on `rosterEntries`. */
+  readonly rosterEntries: RosterEntriesResource = new RosterEntriesResource(this);
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
   /** Finance: operations on `form1099Nec`. */

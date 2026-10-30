@@ -592,19 +592,106 @@ export interface TimelineRow {
   dependsOn?: number;
   baselineStart?: number;
   baselineEnd?: number;
+  /** The row stays put when the schedule moves: it cannot be dragged, and a change that would push it is refused. */
+  locked?: boolean;
+  /**
+   * Labelled spans drawn inside the row, such as a production's Load In, Show and Load Out days on the portfolio
+   * timeline. Each is named in the table alternative; colour (a categorical step) is never its only signal.
+   */
+  segments?: TimelineSegment[];
+  /**
+   * A short tag after the row's title, such as a production's clash count on the portfolio timeline. Its text is
+   * named in the table alternative; the tone repeats what the text says.
+   */
+  badge?: { label: string; tone?: TagProps["tone"] };
+}
+/** A day-type tag or segment: its text, a categorical colour step (viz-cat-1 to viz-cat-7) and an icon. */
+export interface TimelineCategory {
+  label: string;
+  category: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  icon?: IconName;
+}
+/** A span of days inside a row, first and last day by index. */
+export interface TimelineSegment extends TimelineCategory {
+  start: number;
+  end: number;
+}
+/** A dependency between two rows, by row index, for the reschedule preview. */
+export interface TimelineLink {
+  from: number;
+  to: number;
+  /** Finish to Start (the default), Start to Start, Finish to Finish or Start to Finish. */
+  type?: string;
+  /** Days of lag; negative for lead. */
+  lagDays?: number;
+}
+/** A row's new first and last day. */
+export interface TimelineChange {
+  row: number;
+  start: number;
+  end: number;
+}
+export type TimelineMove = TimelineChange;
+/** The page's own preview of a pending change, such as the server's answer. */
+export interface TimelinePreview {
+  change: TimelineChange;
+  /** The other rows the change moves. */
+  moves: TimelineMove[];
+  /** Why the change cannot be applied, when it cannot. */
+  refusal?: string;
+  /** A sentence the preview adds, such as records the change moves that the timeline does not show. */
+  note?: string;
 }
 export interface TimelineProps {
   label: string;
-  days: { dow: string; date: number; weekend?: boolean }[];
+  /**
+   * `label` names the day in full (Wednesday, June 3) for the table and announcements; `tags` are the day's types
+   * (Load In, Show), drawn as a header band and named wherever the day is.
+   */
+  days: {
+    dow: string;
+    date: number;
+    weekend?: boolean;
+    label?: string;
+    tags?: TimelineCategory[];
+  }[];
   rows: TimelineRow[];
   gates?: { day: number; label: string }[];
   today?: number;
   dayWidth?: number;
+  /** Dependencies by row index: the preview pushes successors along them and reports the critical path. */
+  links?: TimelineLink[];
+  /**
+   * Bars move and resize, by pointer or keyboard, when given. Called with the change to apply; a
+   * promise that resolves to false keeps the change pending.
+   */
+  onReschedule?: (change: TimelineChange) => void | boolean | Promise<void | boolean>;
+  /** Called when a pending change starts, changes or ends (null), so the page can preview it itself. */
+  onPendingChange?: (change: TimelineChange | null) => void;
+  /** The page's preview of the pending change; it replaces the estimate from `links` while it matches. */
+  preview?: TimelinePreview | null;
+  /**
+   * The page previews every pending change itself: Apply and Enter wait until `preview` matches the
+   * change, so nothing is applied on the strength of the estimate alone.
+   */
+  awaitPreview?: boolean;
+  /**
+   * The day grid takes a dropped record (MIME type application/x-xos-record): called with the day
+   * index under the pointer, mirrored in right-to-left layouts, and the drag's payload.
+   */
+  onDayDrop?: (day: number, payload: string) => void;
+  /**
+   * The project's anchor day by index: the table alternative gains an Offset column (D−3, D+1), read as "3 days
+   * before the anchor". The page draws the anchor's gate itself.
+   */
+  anchorDay?: number;
 }
 export interface CalendarProps {
   /** First day of the month shown, as an ISO date such as 2026-11-01. */ month: string;
   today?: string;
   events: { date: string; label: string; state: RecordState }[];
+  /** Day-type tags of dates in the month, drawn in each day's cell and named with the day. */
+  days?: { date: string; tags: TimelineCategory[] }[];
 }
 export interface TreeNode {
   label: string;
@@ -627,18 +714,25 @@ export interface RichTextEditorProps {
 export interface GridColumn {
   key: string;
   label: string;
-  type?: "text" | "code" | "number" | "money" | "multiplier";
+  /** "time" holds a time or a time range typed as shorthand; its parse turns the text into the cell. */
+  type?: "text" | "code" | "number" | "money" | "multiplier" | "time";
   editable?: boolean;
   total?: boolean;
   currency?: string;
   width?: number;
   derive?: (row: Record<string, string | number | null>) => string | number | null | undefined;
+  /** Turns typed or pasted text into the cell; the default trims text and parses numbers. */
+  parse?: (text: string) => string | number | null;
 }
 export interface SpreadsheetGridProps {
   label: string;
   columns: GridColumn[];
   rows: Record<string, string | number | null>[];
   totalsLabel?: string;
+  /** A trailing blank row that becomes a new row once something is typed or pasted into it. */
+  appendRow?: boolean;
+  /** Messages for cells keyed "row:col" (0-based row index, column key), shown in place and announced. */
+  errors?: Record<string, string>;
 }
 export interface FilterBuilderProps {
   filters: { field: string; op: string; value: string }[];
@@ -805,6 +899,8 @@ export interface UndoToastProps {
   message: string;
   seconds?: number;
   onUndo?: () => void;
+  /** The button's label when the action is not a plain undo, such as "Move back"; Undo by default. */
+  undoLabel?: string;
 }
 export interface NotificationItem {
   title: string;
@@ -884,6 +980,8 @@ export interface DaySheetViewProps {
   venue: string;
   entries: { time: string; label: string; now?: boolean }[];
   contacts: { name: string; role: string }[];
+  /** The day's types (Load In, Show), each with its text, an icon and a categorical swatch. */
+  dayTypes?: TimelineCategory[];
 }
 export interface SignaturePadProps {
   label: string;
@@ -1049,6 +1147,7 @@ export declare const Calendar: C<CalendarProps>;
 export declare const TreeView: C<TreeViewProps>;
 export declare const RichTextEditor: C<RichTextEditorProps>;
 export declare const SpreadsheetGrid: C<SpreadsheetGridProps>;
+export declare const Heatmap: C<HeatmapProps>;
 export declare const FilterBuilder: C<FilterBuilderProps>;
 export declare const QuickAdd: C<QuickAddProps>;
 export declare const ColorPicker: C<ColorPickerProps>;
@@ -1170,6 +1269,26 @@ export interface OrgChartProps {
   root: OrgChartNode;
 }
 /** One y-axis only. Series take viz-cat-1..7 in order; an eighth series folds into Other. Blank values are gaps, never zero. */
+/** One cell of a heatmap: its value as text, a tint step and, when over a limit, the sentence that says so. */
+export interface HeatmapCell {
+  /** What the cell says, such as "9.5 h". */
+  text: string;
+  /** Tint step, 0 (empty) to 4 (at or over the limit). */
+  step: 0 | 1 | 2 | 3 | 4;
+  /** Shown with an icon when the cell is over its limit, such as "Over 10 h". */
+  over?: string;
+}
+export interface HeatmapProps {
+  /** Names the table (its caption). */
+  label: string;
+  /** Names the row header column, such as Person. */
+  rowHeader: string;
+  rows: { key: string; label: string }[];
+  /** Columns in order; `label` is short (Mon 3), `fullLabel` is read aloud (Monday, June 3). */
+  columns: { key: string; label: string; fullLabel?: string }[];
+  /** Cells keyed '<row>:<col>'; a missing cell is empty. */
+  cells: Record<string, HeatmapCell>;
+}
 export interface ChartProps {
   type: "bar" | "line";
   title: string;

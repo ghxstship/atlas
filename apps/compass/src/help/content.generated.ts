@@ -1184,6 +1184,51 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "project-details",
+        title: "Project details",
+        summary: "Enter the travel, uniform sizes and vehicle a project asks of you.",
+        kind: "page",
+        nodes: ["project-details"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "More" },
+              { t: "text", v: " > " },
+              { t: "strong", v: "Project details" },
+              {
+                t: "text",
+                v: " lists the projects you are on a roster for. Open one to see what it asks of you: your travel request (the airport codes and dates you fly in and home, and whether you need a pickup or a room), your uniform sizes, or the vehicle you park on site. A project asks only for what it offers.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Project details save only when you are online, and they are never kept on your phone. Offline, the save buttons are off until you connect again.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "These details stay on that roster entry and are never written to your profile. Each time someone else reads them, your access log in Gateway shows it, and they are deleted after the engagement closes. Gateway's ",
+              },
+              { t: "strong", v: "Project details" },
+              {
+                t: "text",
+                v: " tab on the engagement holds the same details, with a search for airports by city.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "record",
         title: "A record from Atlas",
         summary: "A record someone sent you from Atlas, and opening it in Compass or on the web.",
@@ -1277,8 +1322,10 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Run of Show lets you follow today's running order cue by cue, with the next cue counting down and how many cues are called. The stage manager calls the cues; you follow along.",
+                v: "Run of Show lets you follow today's running order cue by cue, with the next cue counting down and how many cues are called. The stage manager calls the cues; you follow along. A cue whose time is still to be confirmed shows ",
               },
+              { t: "strong", v: "TBC" },
+              { t: "text", v: " instead of a countdown." },
             ],
           },
           {
@@ -2385,7 +2432,26 @@ export const COMPASS_HELP: HelpContent = {
                 v: "The next cue counts down, with a tap you can feel as it gets close. If you call cues, ",
               },
               { t: "strong", v: "Call Cue" },
-              { t: "text", v: " calls the next one." },
+              {
+                t: "text",
+                v: " calls the next one. When the stage manager puts a cue on standby, it shows as ",
+              },
+              { t: "strong", v: "Standby" },
+              { t: "text", v: ". A cue whose time is still to be confirmed shows " },
+              { t: "strong", v: "TBC" },
+              { t: "text", v: ": it is not counted down, buzzed or spoken." },
+            ],
+          },
+          { t: "h2", v: "Your department" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Pick " },
+              { t: "strong", v: "Your department" },
+              {
+                t: "text",
+                v: " once (Audio, Lighting, Video, Special Effects or Stage, or All). Compass remembers it on this device. The cards under the running order show your department's call for the current and next cue, or say there is none.",
+              },
             ],
           },
           { t: "h2", v: "Show mode" },
@@ -4304,6 +4370,51 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "project-details",
+        title: "Datos del proyecto",
+        summary: "Ingresa el viaje, las tallas de uniforme y el vehículo que un proyecto te pide.",
+        kind: "page",
+        nodes: ["project-details"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Más" },
+              { t: "text", v: " > " },
+              { t: "strong", v: "Datos del proyecto" },
+              {
+                t: "text",
+                v: " muestra los proyectos en cuya lista estás. Abre uno para ver lo que te pide: tu solicitud de viaje (los códigos de aeropuerto y las fechas de llegada y de regreso, y si necesitas que te recojan o una habitación), tus tallas de uniforme o el vehículo que estacionas en el sitio. Un proyecto solo pide lo que ofrece.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Los datos del proyecto solo se guardan cuando tienes conexión y nunca se quedan en tu teléfono. Sin conexión, los botones de guardar están desactivados hasta que vuelvas a conectarte.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Estos datos se quedan en esa entrada de la lista y nunca se escriben en tu perfil. Cada vez que otra persona los lee, tu registro de accesos en Gateway lo muestra, y se eliminan después de que la contratación se cierra. La pestaña ",
+              },
+              { t: "strong", v: "Datos del proyecto" },
+              {
+                t: "text",
+                v: " de la contratación en Gateway tiene los mismos datos, con una búsqueda de aeropuertos por ciudad.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "record",
         title: "Un registro desde Atlas",
         summary:
@@ -4402,8 +4513,10 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "El Orden del show te deja seguir el orden de hoy cue por cue, con la cuenta regresiva del siguiente cue y cuántos cues se llamaron. El jefe de escena llama los cues; tú los sigues.",
+                v: "El Orden del show te deja seguir el orden de hoy cue por cue, con la cuenta regresiva del siguiente cue y cuántos cues se llamaron. El jefe de escena llama los cues; tú los sigues. Un cue cuya hora aún está por confirmar muestra ",
               },
+              { t: "strong", v: "Por confirmar" },
+              { t: "text", v: " en lugar de la cuenta regresiva." },
             ],
           },
           {
@@ -5555,7 +5668,26 @@ export const COMPASS_HELP: HelpContent = {
                 v: "El siguiente cue lleva una cuenta regresiva, con una vibración cuando se acerca. Si llamas cues, ",
               },
               { t: "strong", v: "Llamar cue" },
-              { t: "text", v: " llama el siguiente." },
+              {
+                t: "text",
+                v: " llama el siguiente. Cuando el jefe de escena pone un cue en espera, aparece como ",
+              },
+              { t: "strong", v: "En espera" },
+              { t: "text", v: ". Un cue cuya hora aún está por confirmar muestra " },
+              { t: "strong", v: "Por confirmar" },
+              { t: "text", v: ": no tiene cuenta regresiva, vibración ni aviso hablado." },
+            ],
+          },
+          { t: "h2", v: "Tu departamento" },
+          {
+            t: "p",
+            c: [
+              { t: "text", v: "Elige " },
+              { t: "strong", v: "Tu departamento" },
+              {
+                t: "text",
+                v: " una vez (Audio, Iluminación, Video, Efectos especiales o Escenario, o Todos). Compass lo recuerda en este dispositivo. Las tarjetas bajo el orden muestran la llamada de tu departamento para el cue actual y el siguiente, o indican que no hay ninguna.",
+              },
             ],
           },
           { t: "h2", v: "Modo show" },

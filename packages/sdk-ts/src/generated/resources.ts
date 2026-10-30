@@ -250,6 +250,8 @@ import type {
   ChatMessage,
   ChatMessageCreate,
   ChatMessageUpdate,
+  ClearProjectFactRequest,
+  ClearedProjectFact,
   ColumnClassification,
   Comment,
   CommentCreate,
@@ -810,10 +812,17 @@ import type {
   RoleCode,
   RoleCreate,
   RoleUpdate,
+  RosterEntry,
+  RosterLockRequest,
+  RosterProjectFacts,
+  RosterTravelRequestInput,
+  RosterUniformSizesInput,
+  RosterVehicleInput,
   RsvpRequest,
   RunOfShow,
   RunOfShowCreate,
   RunOfShowUpdate,
+  SavedProjectFact,
   SavedSearch,
   SavedSearchCreate,
   SavedSearchUpdate,
@@ -983,6 +992,8 @@ import type {
   TrainingQuizQuestionUpdate,
   TrashItem,
   TrashRestoreResult,
+  TravelDayCountPage,
+  TravelPartyMemberPage,
   UnionLocalRate,
   UnionLocalRateCreate,
   UnionLocalRateUpdate,
@@ -18337,6 +18348,26 @@ export class EngagementsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Set an engagement's names lock
+   *
+   * Sets or clears the names lock through `app.set_roster_lock` (R5, G-142): after `locks_at` the company side can no longer add, invite, edit Draft entries or submit new names; Returned entries stay editable. Null clears the lock and a past instant locks at once. Needs advancing.packet.write on the project; 422 roster_lock_engagement_closed unless the engagement is Onboarding, Blocked, Active or Closing. Each roster manager is notified. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /engagements/{id}/roster-lock` (operation `engagements.setRosterLock`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  setRosterLock(
+    id: string,
+    body: RosterLockRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Engagement>> {
+    return this.client.request<Engagement>(
+      $OPERATIONS["engagements.setRosterLock"],
+      { path: { id }, body },
+      options,
+    );
+  }
 }
 
 /**
@@ -34219,6 +34250,214 @@ export class CueCallsResource extends $Resource {
 }
 
 /**
+ * Operations on `rosterEntries`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class RosterEntriesResource extends $Resource {
+  /**
+   * List roster entry rows
+   *
+   * A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs. Returns a cursor page of roster entry rows the caller may see. The default order is `engagement_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /roster-entries` (operation `rosterEntries.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(params?: $ListParams<RosterEntry>, options?: $RequestOptions): Promise<$Page<RosterEntry>> {
+    return this.client.requestPage<RosterEntry>(
+      $OPERATIONS["rosterEntries.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List roster entry rows
+   *
+   * A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs. Returns a cursor page of roster entry rows the caller may see. The default order is `engagement_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /roster-entries` (operation `rosterEntries.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<RosterEntry>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<RosterEntry, void, undefined> {
+    return this.client.paginate<RosterEntry>(
+      $OPERATIONS["rosterEntries.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a roster entry
+   *
+   * A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs. Returns one roster entry with its `ETag`. A roster entry the caller may not see returns 404.
+   *
+   * `GET /roster-entries/{id}` (operation `rosterEntries.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<RosterEntry>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<RosterEntry>> {
+    return this.client.request<RosterEntry>(
+      $OPERATIONS["rosterEntries.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Read a roster entry's project facts
+   *
+   * The travel request, uniform sizes and vehicle of a roster entry as the caller may read them, through `app.roster_project_facts`. The person and the company that rosters them read every kind; a producer reads the kinds its project capabilities cover (Travel hospitality.fulfillment.read, Uniform opportunities.engagement.read or crew.shift.write, Vehicle credentials.credential.read) on Submitted, Accepted and Returned entries. Every Company or Producer read of a value is logged in the person's access log. 404 without standing. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /roster-entries/{id}/project-facts` (operation `rosterEntries.projectFacts`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  projectFacts(id: string, options?: $RequestOptions): Promise<$ApiResponse<RosterProjectFacts>> {
+    return this.client.request<RosterProjectFacts>(
+      $OPERATIONS["rosterEntries.projectFacts"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Save a roster entry's travel request
+   *
+   * Replaces the live travel request through `app.save_roster_travel_request`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, airport_unknown, travel_dates_order, project_fact_empty and project_fact_text_length. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /roster-entries/{id}/save-travel-request` (operation `rosterEntries.saveTravelRequest`).
+   * Requires the capability `me.work_details.write`.
+   */
+  saveTravelRequest(
+    id: string,
+    body: RosterTravelRequestInput,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SavedProjectFact>> {
+    return this.client.request<SavedProjectFact>(
+      $OPERATIONS["rosterEntries.saveTravelRequest"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Save a roster entry's uniform sizes
+   *
+   * Replaces the live uniform sizes through `app.save_roster_uniform_sizes`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, project_fact_empty, shoe_size_format, shoe_size_system_required and pants_measure_range. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /roster-entries/{id}/save-uniform-sizes` (operation `rosterEntries.saveUniformSizes`).
+   * Requires the capability `me.work_details.write`.
+   */
+  saveUniformSizes(
+    id: string,
+    body: RosterUniformSizesInput,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SavedProjectFact>> {
+    return this.client.request<SavedProjectFact>(
+      $OPERATIONS["rosterEntries.saveUniformSizes"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Save a roster entry's vehicle
+   *
+   * Replaces the live vehicle through `app.save_roster_vehicle`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, vehicle_fields_required, plate_format, plate_region_format and project_fact_text_length. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /roster-entries/{id}/save-vehicle` (operation `rosterEntries.saveVehicle`).
+   * Requires the capability `me.work_details.write`.
+   */
+  saveVehicle(
+    id: string,
+    body: RosterVehicleInput,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<SavedProjectFact>> {
+    return this.client.request<SavedProjectFact>(
+      $OPERATIONS["rosterEntries.saveVehicle"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Clear a project fact of a roster entry
+   *
+   * Soft-deletes the live row of one kind through `app.clear_roster_project_fact`. The person clears at any time; the company only rows the person did not enter (422 project_fact_person_entered) while it manages the roster (422 project_fact_not_yours). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /roster-entries/{id}/clear-project-fact` (operation `rosterEntries.clearProjectFact`).
+   * Requires the capability `me.work_details.write`.
+   */
+  clearProjectFact(
+    id: string,
+    body: ClearProjectFactRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ClearedProjectFact>> {
+    return this.client.request<ClearedProjectFact>(
+      $OPERATIONS["rosterEntries.clearProjectFact"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Read a project's travel party
+   *
+   * Every rostered person of the project the producer reads (live entries Submitted, Accepted or Returned on engagements Onboarding to Closing with Travel offered), with their travel request and whether a room is assigned, a pickup booked and a pass issued, through `app.roster_travel_party`. Needs hospitality.fulfillment.read on the project (404 otherwise). Every travel value returned is logged. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /roster-entries/travel-party` (operation `rosterEntries.travelParty`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  travelParty(
+    params: {
+      /**
+       * Project whose travel party is read.
+       */
+      readonly project_id: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TravelPartyMemberPage>> {
+    return this.client.request<TravelPartyMemberPage>(
+      $OPERATIONS["rosterEntries.travelParty"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Count a project's travel party by day
+   *
+   * Arrivals, departures, people on site, rooms and pickups needed per day from the first arrival to the last departure, at most 120 days, through `app.roster_travel_day_counts`. Needs hospitality.fulfillment.read on the project. Each call is logged. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /roster-entries/travel-day-counts` (operation `rosterEntries.travelDayCounts`).
+   * Requires the capability `hospitality.fulfillment.read`.
+   */
+  travelDayCounts(
+    params: {
+      /**
+       * Project whose travel party is read.
+       */
+      readonly project_id: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<TravelDayCountPage>> {
+    return this.client.request<TravelDayCountPage>(
+      $OPERATIONS["rosterEntries.travelDayCounts"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `guestListEntries`, in the Advancing module.
  *
  * Advance packets, sections, recipients, submissions and riders (Section 4.2).
@@ -35652,7 +35891,7 @@ export class WorkDetailSharesResource extends $Resource {
   /**
    * List work detail share rows
    *
-   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /work-detail-shares` (operation `workDetailShares.list`).
    * Requires the capability `opportunities.engagement.read`.
@@ -35671,7 +35910,7 @@ export class WorkDetailSharesResource extends $Resource {
   /**
    * List work detail share rows
    *
-   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -35692,7 +35931,7 @@ export class WorkDetailSharesResource extends $Resource {
   /**
    * Create a work detail share
    *
-   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
    *
    * `POST /work-detail-shares` (operation `workDetailShares.create`).
    * Requires the capability `me.work_details.write`.
@@ -35711,7 +35950,7 @@ export class WorkDetailSharesResource extends $Resource {
   /**
    * Get a work detail share
    *
-   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.
+   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.
    *
    * `GET /work-detail-shares/{id}` (operation `workDetailShares.get`).
    * Requires the capability `opportunities.engagement.read`.
@@ -35731,7 +35970,7 @@ export class WorkDetailSharesResource extends $Resource {
   /**
    * Update a work detail share
    *
-   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
    *
    * `PATCH /work-detail-shares/{id}` (operation `workDetailShares.update`).
    * Requires the capability `me.work_details.write`.

@@ -9,6 +9,7 @@ import { PageHeader, TemplateCollection } from "@/components/finance/ui";
 import { InlineAlert } from "@/components/ui";
 import type { OrgContext } from "@/lib/shell/context";
 import { EmptyPanel, ErrorPanel } from "./kit";
+import { DayTemplatesSection } from "@/components/schedule/day-templates-section";
 import {
   AddItemForm,
   ApplyTemplateForm,
@@ -30,9 +31,12 @@ import {
 export async function TemplatesView({
   ctx,
   selected,
+  dayTemplate = null,
 }: {
   ctx: OrgContext;
   selected: string | null;
+  /** B4: the day template chosen in the Day templates section. */
+  dayTemplate?: string | null;
 }) {
   const t = (await getTranslations("workflow")) as unknown as (
     key: string,
@@ -174,6 +178,7 @@ export async function TemplatesView({
           )}
         </div>
       </div>
+      <DayTemplatesSection ctx={ctx} selected={dayTemplate} />
     </TemplateCollection>
   );
 }

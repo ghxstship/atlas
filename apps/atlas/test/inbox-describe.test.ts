@@ -100,8 +100,48 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "occupancy.threshold": { title: "Main Gate", percent: "90", count: "450", permitted_load: "500" },
   "recognition.received": { title: "Re-rigged the stage left truss in record time." },
   "report.delivered": { title: "Weekly labor" },
+  // R4: the crew roster (2642), as private.roster_notification_args stores them.
+  "roster_entry.invited": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+  },
+  "roster_entry.returned": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+    reason: "Add the arrival window.",
+  },
+  "roster_entry.declined": {
+    personName: "Kai Morgan",
+    partyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+    orgName: "Northwind Live",
+  },
+  // R5: project facts entered for the person (2655) and an engagement's names lock (2656).
+  "roster_entry.project_facts_entered": {
+    kind: "travel",
+    actorName: "Riley Chen",
+    companyName: "Bayside Audio",
+    projectName: "Northwind Summer Series",
+  },
+  "engagement.roster_lock_changed": {
+    projectName: "Northwind Summer Series",
+    locksAt: "2027-03-01T17:00:00Z",
+  },
   "shift.assigned": { title: "Stagehand · Load-in", startsAt: "2027-03-08T07:00:00Z" },
   "shift.changed": { title: "Stagehand · Load-in", startsAt: "2027-03-08T08:00:00Z" },
+  // P8 (2853): the poll's project and days.
+  "availability.requested": {
+    title: "Load-in week",
+    orgName: "Demo Productions",
+    projectName: "Tidewater Weekend",
+    firstDay: "2027-03-08",
+    lastDay: "2027-03-12",
+    dayCount: "5",
+  },
   "survey.opened": { title: "Load-In Pulse", anonymous: "true" },
   "training.assigned": { title: "Rigging Basics for Crew", due_on: "2026-10-27" },
   "weather.alert": { level: "Monitor", hazard: "Wind", reading: "24" },
@@ -349,6 +389,12 @@ describe("Inbox item copy", () => {
     expect(inboxTarget("demo", { subjectTable: null, kind: "billing.read_only" })).toBe(
       "/demo/settings/billing-and-plan",
     );
+    expect(
+      inboxTarget("demo", {
+        subjectTable: "app.availability_polls",
+        kind: "availability.requested",
+      }),
+    ).toBe("/demo/me/work-details");
     expect(inboxTarget("demo", { subjectTable: "app.shifts", kind: "shift.changed" })).toBe(
       "/demo/crew/shifts",
     );

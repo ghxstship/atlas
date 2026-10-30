@@ -38,6 +38,7 @@ executionOrder:
     - field-report-block
     - crew-external-today
     - crew-external-work
+    - project-details
     - profile-credentials
     - vendor-external-scan
     - multi-org-today

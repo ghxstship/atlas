@@ -6,7 +6,7 @@ import type { RecordKind } from "@xos/ui";
 import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import type { RecordPreview } from "@/components/hover/use-hover-cards";
-import { formatScheduleTime, scheduleViewOf, stateToken } from "@/components/work/format";
+import { formatStartTime, scheduleViewOf, stateToken } from "@/components/work/format";
 import { getOrgContext } from "@/lib/shell/context";
 import { getShellSettings } from "@/lib/shell/org-settings";
 import { getTranslate } from "@/lib/shell/translate";
@@ -62,7 +62,14 @@ export async function recordCardAction(
     stateLabel: t(`work.states.${r.state}`),
     owner: r.ownerName ?? t("work.values.unassigned"),
     next:
-      formatScheduleTime(at, locale, r.timeZone ?? r.projectTimeZone, view) ??
-      t("work.values.noDate"),
+      formatStartTime(
+        at,
+        at === r.startsAt && r.startTbc,
+        locale,
+        r.timeZone ?? r.projectTimeZone,
+        view,
+        "dateTime",
+        (time) => t("work.values.tbcEstimate", { time }),
+      ) ?? t("work.values.noDate"),
   };
 }

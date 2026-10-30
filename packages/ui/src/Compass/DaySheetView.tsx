@@ -4,10 +4,15 @@ import { useT } from "../lib/context.tsx";
 import { IconButton } from "../Button/Button.tsx";
 import { Tag } from "../Chips/Chips.tsx";
 import { Avatar } from "../Avatar/Avatar.tsx";
+import { Icon } from "../Icon/Icon.tsx";
+import { TL_CATEGORY } from "../Charts/categories.ts";
 import { Phone } from "./Compass.shared.tsx";
 import { type DaySheetViewProps } from "./Compass.types.ts";
 
-/** The day sheet: schedule with the current entry marked, and contacts with call and message. */
+/**
+ * The day sheet: schedule with the current entry marked, and contacts with call and message. `dayTypes` names what
+ * the day is (B4), as text with an icon and a categorical swatch.
+ */
 export function DaySheetView({
   frame,
   date,
@@ -15,6 +20,7 @@ export function DaySheetView({
   venue,
   entries,
   contacts,
+  dayTypes = [],
   onCall,
   onMessage,
 }: DaySheetViewProps): ReactElement {
@@ -26,6 +32,29 @@ export function DaySheetView({
           <span className="text-text-secondary">{date}</span>
           <strong className="text-heading-20 font-semibold">{title}</strong>
           <span className="text-text-secondary">{venue}</span>
+          {dayTypes.length > 0 ? (
+            <ul
+              className="m-0 flex list-none flex-wrap gap-4 p-0"
+              aria-label={t("daysheet.dayTypes")}
+            >
+              {dayTypes.map((d) => (
+                <li
+                  key={d.label}
+                  className="inline-flex items-center gap-4 rounded-chip bg-bg-surface px-6 text-text-12"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={cx(
+                      "inline-block size-(--space-8) rounded-mark",
+                      TL_CATEGORY[d.category],
+                    )}
+                  />
+                  {d.icon ? <Icon name={d.icon} size={12} /> : null}
+                  {d.label}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </header>
         <ol className="m-0 p-0 list-none">
           {entries.map((e, i) => (

@@ -142,6 +142,7 @@ export const VIEW_TYPES = [
   "matrix",
   "org-chart",
   "chart",
+  "heatmap",
   "feed",
   "inbox",
   "split",
@@ -209,6 +210,13 @@ export const CONDITIONS = [
   "offered-per-diem",
   "offered-hospitality",
   "offered-guest-list",
+  // Gateway, per engagement (R5, ADR 0100): the producing org offers travel, uniforms or parking on the engagement, so
+  // the person enters project facts for it.
+  "offered-project-facts",
+  // Gateway, per engagement (R4, ADR 0101): the caller manages the engagement's crew roster: its roster area is open to
+  // them (the artist on an Artist engagement, the account's Owner or Admin, an Advancing Lead, an Advance
+  // representative; never the worker a company engagement names) and it is rosterable.
+  "roster-manager",
 ] as const;
 export type Condition = (typeof CONDITIONS)[number];
 

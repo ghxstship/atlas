@@ -361,6 +361,57 @@ describe("records", () => {
     expect((await listRecords(db, { orgId: "o1", to: "2027-06-01" })).ok).toBe(false);
   });
 
+  it("finds undated open records behind a full read of dated ones (P8 Unscheduled list)", async () => {
+    // A stand-in that applies is, not-in, order and limit to its rows, as PostgREST would: 600 dated
+    // records come first in key order, then closed undated ones, then the one to schedule.
+    const rows = [
+      ...Array.from({ length: 600 }, (_, i) =>
+        recordRow({ id: `d${i}`, record_number: i + 1, starts_at: "2027-06-01T14:00:00Z" }),
+      ),
+      recordRow({ id: "c1", record_number: 601, record_state: "Complete" }),
+      recordRow({ id: "c2", record_number: 602, record_state: "Canceled" }),
+      recordRow({ id: "u1", record_number: 603, owner_party_id: null, owner: null }),
+    ];
+    const steps: [string, unknown[]][] = [];
+    const builder: Record<string, unknown> = new Proxy(
+      {},
+      {
+        get(_target, prop: string) {
+          if (prop !== "then") {
+            return (...args: unknown[]) => {
+              steps.push([prop, args]);
+              return builder;
+            };
+          }
+          return (resolve: (r: { data: unknown; error: null }) => unknown) => {
+            let out: Record<string, unknown>[] = rows;
+            for (const [method, args] of steps) {
+              const [column, a, b] = args as [string, unknown, unknown];
+              if (method === "is") out = out.filter((r) => r[column] === a);
+              if (method === "not" && a === "in") {
+                const closed = String(b).slice(1, -1).split(",");
+                out = out.filter((r) => !closed.includes(String(r[column])));
+              }
+              if (method === "limit") out = out.slice(0, column as unknown as number);
+            }
+            return resolve({ data: out, error: null });
+          };
+        },
+      },
+    );
+    const db = { from: () => builder } as unknown as Parameters<typeof listRecords>[0];
+    const result = await listRecords(db, {
+      orgId: "o1",
+      undatedOnly: true,
+      excludeStates: ["Canceled", "Complete"],
+    });
+    expect(result.ok && result.data.map((r) => r.id)).toEqual(["u1"]);
+    expect(steps.filter(([m]) => m === "not")).toContainEqual([
+      "not",
+      ["record_state", "in", "(Canceled,Complete)"],
+    ]);
+  });
+
   it("reads a record's parent and sub-records", async () => {
     const { db, calls } = moduleClient({
       "from:records": [

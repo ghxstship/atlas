@@ -156,6 +156,14 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "engagement-crew",
+        title: "Crew",
+        summary: "Put your people on an engagement, submit the roster and see who accepted.",
+        kind: "page",
+        nodes: ["engagement.crew"],
+        order: 1,
+      },
+      {
         slug: "engagement-deliverables",
         title: "Deliverables",
         summary: "What you owe from your scope, with due dates and fees, and submitting each one.",
@@ -262,6 +270,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary: "Your shifts grouped by the position each one fills.",
         kind: "page",
         nodes: ["engagement.positions"],
+        order: 1,
+      },
+      {
+        slug: "engagement-project-details",
+        title: "Project details",
+        summary: "The travel, uniform sizes and vehicle a project asks of you.",
+        kind: "page",
+        nodes: ["engagement.project-details"],
         order: 1,
       },
       {
@@ -825,6 +841,14 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "engagement-crew",
+        title: "Equipo",
+        summary: "Incluye a tu gente en una contratación, envía la lista y ve quién aceptó.",
+        kind: "page",
+        nodes: ["engagement.crew"],
+        order: 1,
+      },
+      {
         slug: "engagement-deliverables",
         title: "Entregables",
         summary:
@@ -935,6 +959,14 @@ export const HELP_CONTENT: HelpIndex = {
         summary: "Tus turnos agrupados por el puesto que cubre cada uno.",
         kind: "page",
         nodes: ["engagement.positions"],
+        order: 1,
+      },
+      {
+        slug: "engagement-project-details",
+        title: "Datos del proyecto",
+        summary: "El viaje, las tallas de uniforme y el vehículo que un proyecto te pide.",
+        kind: "page",
+        nodes: ["engagement.project-details"],
         order: 1,
       },
       {

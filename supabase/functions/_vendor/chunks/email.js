@@ -18,6 +18,7 @@ var TEMPLATE_CODES = [
   "dsar_received",
   "subprocessor_confirm",
   "subprocessor_notice",
+  "party_invitation",
 ];
 //#endregion
 //#region ../email/src/render.ts

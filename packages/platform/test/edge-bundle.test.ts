@@ -105,14 +105,19 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "integration-inbound": 130,
   "integration-worker": 290,
   "kiosk-punch": 64,
-  "notification-dispatch": 180,
+  // R5 (2650): the two project facts and names lock kinds in both locales took it to 181.6 KB on 2026-10-28.
+  "notification-dispatch": 185,
   // A102: the shared report files chunk gained the export renderers' watermark and column helpers (about 11 KB),
-  // which the org export reaches at boot; 211.5 KB on 2026-10-25.
-  "org-lifecycle": 215,
+  // which the org export reaches at boot; 211.5 KB on 2026-10-25. P2's run of show PDF copy (curfew, TBC and the
+  // department calls in both locales) beside R5's and P8's notification kinds, once the three branches meet on B4,
+  // took it to 215.1 KB on 2026-10-30.
+  "org-lifecycle": 216,
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
-  "sms-webhook": 145,
+  // The shared notification stores chunk with R5's and P8's kinds together (B4 stacks both) took it to 145.7 KB on
+  // 2026-10-30.
+  "sms-webhook": 146,
   "stripe-webhook": 84,
   "subprocessor-notices": 115,
   "upload-scan": 100,

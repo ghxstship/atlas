@@ -141,6 +141,9 @@ export const TABLE_RULES: readonly TableRule[] = [
   // artists receive their set times through the REST downloader, which reads the views.
   { table: "run_of_show", anyOf: [internalProject, clientRunningOrder, artistSetTimes] },
   { table: "cues", anyOf: [internalProject, clientRunningOrder, artistSetTimes] },
+  // Department calls (G-74) carry no project; the REST downloader stamps each with its cue's. They stay internal:
+  // no api_external view shows them (ADR 0131).
+  { table: "cue_calls", anyOf: [{ ...internalProject, restOnly: true }] },
   { table: "incidents", anyOf: [internalProject, { column: "reported_by", key: "personIds" }] },
   { table: "incident_media", anyOf: [internalProject, { column: "created_by", key: "personIds" }] },
   { table: "inspection_templates", anyOf: [internalOrg] },

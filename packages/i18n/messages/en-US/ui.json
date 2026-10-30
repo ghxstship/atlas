@@ -93,7 +93,8 @@
     "month": "Month",
     "more": "+{n} more",
     "range": "Range",
-    "week": "Week"
+    "week": "Week",
+    "dayTypes": "Day types"
   },
   "camera": {
     "viewfinder": "Camera viewfinder"
@@ -156,7 +157,8 @@
   },
   "daysheet": {
     "contacts": "Contacts",
-    "now": "Now"
+    "now": "Now",
+    "dayTypes": "Day types"
   },
   "diff": {
     "after": "After",
@@ -223,7 +225,10 @@
   "grid": {
     "derived": "Derived from canon. Edit the source record to change it.",
     "hint": "Arrow keys move, Enter edits, Delete clears to Unpriced, paste from Excel fills the range.",
-    "row": "Row"
+    "row": "Row",
+    "newRow": "New row",
+    "hintAppend": "Arrow keys and Tab move, Enter edits and moves down, and typing in the last row adds a row. Paste from a spreadsheet fills the range.",
+    "cellError": "Row {row}, {column}: {message}"
   },
   "help": {
     "ask": "Ask a question about this page",
@@ -402,7 +407,9 @@
     "go": "Go",
     "label": "Run of show",
     "live": "Live",
-    "nextIn": "Next cue in"
+    "nextIn": "Next cue in",
+    "standby": "Standby",
+    "skipped": "Skipped"
   },
   "rte": {
     "bold": "Bold",
@@ -485,15 +492,48 @@
     "selectRow": "Select {row}"
   },
   "timeline": {
+    "bar": "{key} {title}, {start} to {end}",
+    "controls": "Reschedule {label}",
     "critical": "critical path",
     "dependsOn": "Depends on",
     "end": "End",
     "key": "Key",
+    "locked": "locked",
     "milestone": "milestone",
+    "moveHint": "Arrow keys move the bar a day. Shift with an arrow key moves its end. Enter applies the change, Escape cancels it.",
+    "preview": {
+      "applied": "{key} rescheduled.",
+      "apply": "Apply",
+      "cancel": "Cancel",
+      "canceled": "Change canceled.",
+      "change": "{key} moves to {start} through {end}.",
+      "checking": "Checking every dependency before the change can be applied.",
+      "criticalChanges": "The critical path changes.",
+      "criticalSame": "The critical path stays the same.",
+      "cycle": "The dependencies are circular, so this change cannot be made.",
+      "finishEarlierMany": "The last finish moves {count} days earlier.",
+      "finishEarlierOne": "The last finish moves 1 day earlier.",
+      "finishLaterMany": "The last finish moves {count} days later.",
+      "finishLaterOne": "The last finish moves 1 day later.",
+      "label": "Reschedule preview",
+      "locked": "{keys} cannot move: locked.",
+      "movesMany": "{count} successors move: {keys}.",
+      "movesNone": "No other record moves.",
+      "movesOne": "1 successor moves: {keys}."
+    },
     "record": "Record",
     "scroll": "{label}, days",
     "start": "Start",
-    "state": "State"
+    "state": "State",
+    "dayTypes": "Day types",
+    "dayWithTypes": "{day} ({types})",
+    "segment": "{label} {start} to {end}",
+    "offset": "Offset",
+    "offsetOn": "On the anchor day",
+    "offsetBefore": "{n} days before the anchor",
+    "offsetAfter": "{n} days after the anchor",
+    "offsetBeforeOne": "1 day before the anchor",
+    "offsetAfterOne": "1 day after the anchor"
   },
   "tooltip": {
     "withShortcut": "{label} ({shortcut})"
@@ -542,5 +582,8 @@
       "owner": "Owner",
       "action": "Action"
     }
+  },
+  "heatmap": {
+    "cell": "{row}, {column}: {value}"
   }
 }

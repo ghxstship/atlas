@@ -127,6 +127,18 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "availability.requested",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.availability.requested.subject",
+      body: "kinds.availability.requested.body",
+    },
+  },
+  {
     kind: "event.invited",
     category: "schedule",
     emailTemplate: "notification",
@@ -690,6 +702,66 @@ var NOTIFICATION_KINDS = [
       body: "kinds.document.expiring.body",
     },
   },
+  {
+    kind: "roster_entry.invited",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.invited.subject",
+      body: "kinds.roster_entry.invited.body",
+    },
+  },
+  {
+    kind: "roster_entry.returned",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.returned.subject",
+      body: "kinds.roster_entry.returned.body",
+    },
+  },
+  {
+    kind: "roster_entry.declined",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.declined.subject",
+      body: "kinds.roster_entry.declined.body",
+    },
+  },
+  {
+    kind: "roster_entry.project_facts_entered",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.roster_entry.project_facts_entered.subject",
+      body: "kinds.roster_entry.project_facts_entered.body",
+    },
+  },
+  {
+    kind: "engagement.roster_lock_changed",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.engagement.roster_lock_changed.subject",
+      body: "kinds.engagement.roster_lock_changed.body",
+    },
+  },
 ];
 //#endregion
 //#region ../schemas/src/notifications/parse.ts
@@ -744,7 +816,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1639_notification_kind_seed.sql"
+"supabase/migrations/2859_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

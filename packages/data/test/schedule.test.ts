@@ -9,14 +9,21 @@ import {
   dayDiff,
   getActual,
   getBaselineVariance,
+  intervalHours,
   latestBaselinePlan,
   listBaselines,
   listDependencies,
   localDay,
   lockBaseline,
+  lockedRecordIds,
   recordWindow,
   removeDependency,
+  placeRecord,
+  rescheduleRecord,
+  scheduleWindow,
   setActual,
+  shiftRecords,
+  shiftUndoRows,
   updateBaseline,
 } from "../src/schedule.ts";
 import { errorResponse, okResponse } from "./fake-client.ts";
@@ -149,6 +156,7 @@ describe("timeline", () => {
     expect(model.bars[0]).toMatchObject({ start: 1, end: 2, milestone: false });
     expect(model.bars[1]).toMatchObject({ dependsOn: 0, baselineStart: 2, baselineEnd: 3 });
     expect(model.bars[2]).toMatchObject({ milestone: true, baselineStart: 4, baselineEnd: 4 });
+    expect(model.edges).toEqual([{ from: 0, to: 1, type: "Finish to Start", lagHours: 0 }]);
     expect(model.today).toBe(2);
     expect(model.days.filter((d) => d.weekend).map((d) => d.day)).toEqual([
       "2027-06-05",
@@ -367,5 +375,304 @@ describe("actuals", () => {
     expect(
       (await setActual(db, { orgId: "o1", recordId: "r1", startedAt: null, finishedAt: null })).ok,
     ).toBe(false);
+  });
+});
+
+describe("reschedule", () => {
+  it("reads interval lag in hours", () => {
+    expect(intervalHours("00:00:00")).toBe(0);
+    expect(intervalHours("02:30:00")).toBe(2.5);
+    expect(intervalHours("1 day")).toBe(24);
+    expect(intervalHours("-1 days")).toBe(-24);
+    expect(intervalHours("2 days 06:00:00")).toBe(54);
+    expect(intervalHours("-01:00:00")).toBe(-1);
+  });
+
+  it("marks locked bars and keeps only edges between drawn bars", () => {
+    const a = summary({
+      id: "a",
+      starts_at: "2027-06-01T12:00:00Z",
+      ends_at: "2027-06-01T20:00:00Z",
+    });
+    const b = summary({
+      id: "b",
+      starts_at: "2027-06-03T12:00:00Z",
+      ends_at: "2027-06-03T20:00:00Z",
+    });
+    const model = buildTimeline({
+      records: [a, b],
+      dependencies: [
+        { id: "d1", predecessorId: "a", successorId: "b", type: "Start to Start", lag: "1 day" },
+        { id: "d2", predecessorId: "b", successorId: "hidden", type: "Finish to Start", lag: "0" },
+      ],
+      locked: new Set(["b"]),
+      timeZone: "UTC",
+      now: NOW,
+    });
+    expect(model.bars[1]?.locked).toBe(true);
+    expect(model.bars[0]?.locked).toBeUndefined();
+    expect(model.edges).toEqual([{ from: 0, to: 1, type: "Start to Start", lagHours: 24 }]);
+  });
+
+  it("previews and commits through app.reschedule_record", async () => {
+    const row = {
+      record_id: "a",
+      is_target: true,
+      shift_start_days: 1,
+      shift_end_days: 1,
+      starts_at: "2027-06-02T12:00:00Z",
+      ends_at: "2027-06-02T20:00:00Z",
+      due_at: null,
+      old_starts_at: "2027-06-01T12:00:00Z",
+      old_ends_at: "2027-06-01T20:00:00Z",
+      old_due_at: null,
+      baseline_starts_at: null,
+      baseline_ends_at: null,
+    };
+    const { db, calls } = moduleClient({
+      "rpc:reschedule_record": [
+        okResponse([row]),
+        okResponse([row]),
+        errorResponse(
+          "XR001",
+          "reschedule_locked: NWL-4 Load-In Window is locked.",
+          "reschedule_locked",
+        ),
+      ],
+    });
+    const preview = await rescheduleRecord(db, { recordId: "a", startDays: 1, endDays: 1 });
+    expect(preview).toEqual({
+      ok: true,
+      data: [
+        {
+          recordId: "a",
+          isTarget: true,
+          shiftStartDays: 1,
+          shiftEndDays: 1,
+          shiftStartMinutes: 0,
+          shiftEndMinutes: 0,
+          startsAt: "2027-06-02T12:00:00Z",
+          endsAt: "2027-06-02T20:00:00Z",
+          dueAt: null,
+          oldStartsAt: "2027-06-01T12:00:00Z",
+          oldEndsAt: "2027-06-01T20:00:00Z",
+          oldDueAt: null,
+          baselineStartsAt: null,
+          baselineEndsAt: null,
+        },
+      ],
+    });
+    expect(stepsOf(calls[0], "args")[0]?.[0]).toEqual({
+      p_record_id: "a",
+      p_start_days: 1,
+      p_end_days: 1,
+      p_commit: false,
+    });
+    await rescheduleRecord(db, {
+      recordId: "a",
+      startDays: 1,
+      endDays: 1,
+      commit: true,
+      reason: "Truss arrives a day late.",
+    });
+    expect(stepsOf(calls[1], "args")[0]?.[0]).toMatchObject({
+      p_commit: true,
+      p_reason: "Truss arrives a day late.",
+    });
+    const refused = await rescheduleRecord(db, { recordId: "a", startDays: 9, endDays: 9 });
+    expect(refused.ok === false && refused.error).toMatchObject({
+      kind: "refusal",
+      rule: "reschedule_locked",
+    });
+  });
+
+  it("finds complete records and Timeline windows locked into a baseline", async () => {
+    const { db, calls } = moduleClient({
+      "from:record_timeline": [okResponse([{ record_id: "w" }]), errorResponse("XX000", "boom")],
+    });
+    const records = [
+      summary({ id: "done", record_state: "Complete" }),
+      summary({ id: "w", record_kind: "Timeline", record_subtype: "Show Cycle" }),
+      summary({ id: "open" }),
+    ];
+    const locked = await lockedRecordIds(db, records);
+    expect(locked.ok && [...locked.data].sort()).toEqual(["done", "w"]);
+    expect(stepsOf(calls[0], "in")).toEqual([["record_id", ["w"]]]);
+    expect((await lockedRecordIds(db, [summary({ id: "open" })])).ok).toBe(true);
+    expect(calls).toHaveLength(1);
+    expect((await lockedRecordIds(db, records)).ok).toBe(false);
+  });
+});
+
+describe("minute shifts, placements and their undo (P8)", () => {
+  const move = {
+    record_id: "a",
+    is_target: true,
+    shift_start_days: 0,
+    shift_end_days: 0,
+    shift_start_minutes: 30,
+    shift_end_minutes: 30,
+    starts_at: "2027-06-01T12:30:00+00:00",
+    ends_at: "2027-06-01T20:30:00+00:00",
+    due_at: null,
+    old_starts_at: "2027-06-01T12:00:00+00:00",
+    old_ends_at: "2027-06-01T20:00:00+00:00",
+    old_due_at: null,
+    baseline_starts_at: null,
+    baseline_ends_at: null,
+  };
+
+  it("sends minute offsets only when they are set, and reads the minutes each row moves", async () => {
+    const { db, calls } = moduleClient({
+      "rpc:reschedule_record": [okResponse([move]), okResponse([])],
+    });
+    const preview = await rescheduleRecord(db, {
+      recordId: "a",
+      startDays: 0,
+      endDays: 0,
+      startMinutes: 30,
+      endMinutes: 30,
+    });
+    expect(preview.ok && preview.data[0]).toMatchObject({
+      shiftStartMinutes: 30,
+      shiftEndMinutes: 30,
+      startsAt: "2027-06-01T12:30:00+00:00",
+    });
+    expect(stepsOf(calls[0], "args")[0]?.[0]).toEqual({
+      p_record_id: "a",
+      p_start_days: 0,
+      p_end_days: 0,
+      p_commit: false,
+      p_start_minutes: 30,
+      p_end_minutes: 30,
+    });
+    await rescheduleRecord(db, { recordId: "a", startDays: 1, endDays: 1, startMinutes: 0 });
+    expect(stepsOf(calls[1], "args")[0]?.[0]).not.toHaveProperty("p_start_minutes");
+  });
+
+  it("shifts a selection, with each moved record's project", async () => {
+    const { db, calls } = moduleClient({
+      "rpc:shift_records": [
+        okResponse([
+          { ...move, shift_start_minutes: null, shift_end_minutes: null, project_id: "p" },
+        ]),
+        errorResponse(
+          "XR001",
+          "shift_too_large: Shift at most 500 records at a time.",
+          "shift_too_large",
+        ),
+      ],
+    });
+    const shifted = await shiftRecords(db, {
+      recordIds: ["a", "b"],
+      minutes: 15,
+      commit: true,
+      reason: "Doors open late.",
+    });
+    expect(shifted.ok && shifted.data[0]).toMatchObject({
+      projectId: "p",
+      shiftStartMinutes: 0,
+      shiftEndMinutes: 0,
+    });
+    expect(stepsOf(calls[0], "args")[0]?.[0]).toEqual({
+      p_record_ids: ["a", "b"],
+      p_minutes: 15,
+      p_commit: true,
+      p_reason: "Doors open late.",
+    });
+    const refused = await shiftRecords(db, { recordIds: ["a"], minutes: 15 });
+    expect(refused.ok === false && refused.error).toMatchObject({ rule: "shift_too_large" });
+  });
+
+  it("places an undated record on a day", async () => {
+    const placed = { ...move, old_starts_at: null, old_ends_at: null };
+    const { db, calls } = moduleClient({
+      "rpc:place_record": [
+        okResponse([placed]),
+        errorResponse("XR001", "place_dated: This record already has dates.", "place_dated"),
+      ],
+    });
+    const result = await placeRecord(db, { recordId: "a", day: "2027-06-01" });
+    expect(result.ok && result.data[0]?.oldStartsAt).toBeNull();
+    expect(stepsOf(calls[0], "args")[0]?.[0]).toEqual({
+      p_record_id: "a",
+      p_day: "2027-06-01",
+      p_commit: false,
+    });
+    const refused = await placeRecord(db, {
+      recordId: "a",
+      day: "2027-06-01",
+      commit: true,
+      reason: "Placed.",
+    });
+    expect(refused.ok === false && refused.error).toMatchObject({ rule: "place_dated" });
+    expect(stepsOf(calls[1], "args")[0]?.[0]).toMatchObject({
+      p_commit: true,
+      p_reason: "Placed.",
+    });
+  });
+
+  it("undoes a move by setting the old dates back, expecting the new, null included", () => {
+    const moved = {
+      recordId: "a",
+      isTarget: true,
+      shiftStartDays: 0,
+      shiftEndDays: 0,
+      shiftStartMinutes: 0,
+      shiftEndMinutes: 0,
+      startsAt: "2027-06-01T13:00:00+00:00",
+      endsAt: "2027-06-01T21:00:00+00:00",
+      dueAt: null,
+      oldStartsAt: null,
+      oldEndsAt: null,
+      oldDueAt: null,
+      baselineStartsAt: null,
+      baselineEndsAt: null,
+    };
+    const still = { ...moved, recordId: "b", startsAt: null, endsAt: null };
+    expect(shiftUndoRows([moved, still])).toEqual([
+      {
+        id: "a",
+        set: { starts_at: null, ends_at: null, due_at: null },
+        expect: {
+          starts_at: "2027-06-01T13:00:00+00:00",
+          ends_at: "2027-06-01T21:00:00+00:00",
+          due_at: null,
+        },
+      },
+    ]);
+  });
+
+  it("draws a window of days when nothing is dated", async () => {
+    const empty = buildTimeline({ records: [], timeZone: "America/New_York", now: NOW });
+    expect(empty.days).toHaveLength(0);
+    const drawn = buildTimeline({
+      records: [],
+      timeZone: "America/New_York",
+      now: NOW,
+      window: { first: "2027-06-01", last: "2027-06-28" },
+    });
+    expect(drawn.days).toHaveLength(28);
+    expect(drawn.days[0]?.day).toBe("2027-06-01");
+    expect(drawn.today).toBe(1);
+    expect(drawn.bars).toEqual([]);
+
+    const { db } = moduleClient({
+      "from:projects": [
+        okResponse({ starts_on: "2027-07-01", ends_on: "2027-07-04" }),
+        okResponse({ starts_on: null, ends_on: null }),
+        errorResponse("XX000", "boom"),
+      ],
+    });
+    expect(await scheduleWindow(db, undefined, "2027-06-02")).toEqual({
+      ok: true,
+      data: { first: "2027-06-02", last: "2027-06-29" },
+    });
+    expect(await scheduleWindow(db, "p", "2027-06-02")).toEqual({
+      ok: true,
+      data: { first: "2027-07-01", last: "2027-07-04" },
+    });
+    expect((await scheduleWindow(db, "p", "2027-06-02")).ok && true).toBe(true);
+    expect((await scheduleWindow(db, "p", "2027-06-02")).ok).toBe(false);
   });
 });

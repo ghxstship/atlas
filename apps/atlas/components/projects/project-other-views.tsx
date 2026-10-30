@@ -141,6 +141,7 @@ export function ProjectOtherView({
   if (view === "timeline") {
     return (
       <PortfolioTimeline
+        org={h.org}
         projects={shown}
         label={t("list.timelineLabel")}
         today={today}

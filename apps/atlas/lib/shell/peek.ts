@@ -51,6 +51,10 @@ const NO_OWN_PEEK_NODES: ReadonlySet<string> = new Set([
   "reports.labor",
   "reports.measurement",
   "reports.purchase-order-exposure",
+  // B4: Days opens its own day editor (?day=), Workload its cell (?cell=), and Clashes links to each side's page.
+  "schedule.clashes",
+  "schedule.days",
+  "schedule.workload",
   "site-ops.weather",
   "trash",
 ]);

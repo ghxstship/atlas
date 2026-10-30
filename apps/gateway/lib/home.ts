@@ -11,6 +11,12 @@ import {
   type Representation,
   type SharedRecord,
 } from "@xos/data/gateway";
+import {
+  pendingRosterAnswers,
+  type MyRosterEntry,
+  type PendingInvitation,
+  type UnconfirmedMembership,
+} from "@xos/data/roster";
 
 /**
  * Gateway Home (Section 4.5.8): the Up Next card for the person's next shift, set time, delivery
@@ -86,11 +92,17 @@ export type FeedItem =
       readonly application: ApplicationWithOpportunity;
       readonly at: string;
     }
-  | { readonly kind: "rate"; readonly engagement: Engagement };
+  | { readonly kind: "rate"; readonly engagement: Engagement }
+  // R4: an invitation to an account or onto a roster, a membership to confirm, a roster entry to answer.
+  | { readonly kind: "invitation"; readonly invitation: PendingInvitation }
+  | { readonly kind: "membership"; readonly membership: UnconfirmedMembership }
+  | { readonly kind: "roster"; readonly entry: MyRosterEntry };
 
 /**
- * Things that need the person, most urgent first: documents to sign, offers to answer, blocking
- * onboarding, representations to accept, interviews ahead, then completed engagements to rate.
+ * Things that need the person, most urgent first: invitations, memberships to confirm and roster
+ * entries to answer (R4: nothing about the person flows until they do), documents to sign, offers to
+ * answer, blocking onboarding, representations to accept, interviews ahead, then completed engagements
+ * to rate.
  */
 export function needsYou(input: {
   readonly engagements: readonly Engagement[];
@@ -98,12 +110,19 @@ export function needsYou(input: {
   readonly onboarding: readonly OnboardingItem[];
   readonly applications: readonly ApplicationWithOpportunity[];
   readonly representations: readonly Representation[];
+  readonly invitations?: readonly PendingInvitation[];
+  readonly memberships?: readonly UnconfirmedMembership[];
+  readonly rosterEntries?: readonly MyRosterEntry[];
   readonly personId: string;
   readonly now: Date;
 }): FeedItem[] {
   const today = input.now.toISOString().slice(0, 10);
   const byId = new Map(input.engagements.map((e) => [e.id, e]));
   const items: FeedItem[] = [];
+  for (const invitation of input.invitations ?? []) items.push({ kind: "invitation", invitation });
+  for (const membership of input.memberships ?? []) items.push({ kind: "membership", membership });
+  for (const entry of pendingRosterAnswers(input.rosterEntries ?? []))
+    items.push({ kind: "roster", entry });
   for (const document of awaitingSignature(input.documents)) {
     const engagement = byId.get(document.engagementId);
     if (engagement) items.push({ kind: "sign", document, engagement });
@@ -170,6 +189,8 @@ export interface UpNextDetails {
     readonly at: string;
     readonly timeZone: string;
     readonly kind: UpNextCallKind;
+    /** True when the call is a set whose time is still to be confirmed: show TBC, not the time. */
+    readonly tbc: boolean;
   } | null;
   /** The venue's name and address, joined; null when the project names no venue. */
   readonly where: string | null;
@@ -196,6 +217,7 @@ export function upNextDetails(input: {
     readonly next_call_at: string | null;
     readonly next_call_time_zone: string | null;
     readonly next_call_kind: string | null;
+    readonly next_call_tbc?: boolean | null;
   } | null;
   readonly orgName: string;
   readonly badges: readonly {
@@ -211,7 +233,12 @@ export function upNextDetails(input: {
   const kind = row?.next_call_kind ? CALL_KINDS[row.next_call_kind] : undefined;
   const call =
     row?.next_call_at && row.next_call_time_zone && kind
-      ? { at: row.next_call_at, timeZone: row.next_call_time_zone, kind }
+      ? {
+          at: row.next_call_at,
+          timeZone: row.next_call_time_zone,
+          kind,
+          tbc: row.next_call_tbc === true,
+        }
       : null;
   const place = row
     ? [row.venue_name, row.venue_street_address, row.venue_locality, row.venue_postal_code]

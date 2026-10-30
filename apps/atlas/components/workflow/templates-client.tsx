@@ -1,6 +1,6 @@
 "use client";
 
-import { Input, Select, Textarea } from "@xos/ui";
+import { Checkbox, Input, Select, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
@@ -131,6 +131,7 @@ export function SaveProjectForm({ org, projects }: { org: string; projects: read
         onChange={(e) => setProject(e.target.value)}
       />
       <Input name="name" label={t("templates.fields.name")} maxLength={200} required width="100%" />
+      <Checkbox name="keepDates" label={t("templates.fromProject.keepDates")} defaultChecked />
     </ActionForm>
   );
 }
@@ -202,6 +203,7 @@ export function ApplyTemplateForm({
             onChange={(e) => setZone(e.target.value)}
           />
         </div>
+        <Checkbox name="withoutDates" label={t("templates.apply.withoutDates")} />
       </ActionForm>
       {created ? (
         <p role="status" className="m-0 text-text-13">

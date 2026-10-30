@@ -76,6 +76,20 @@ const LOG_KEYS: Readonly<Record<string, string>> = {
   "work_details.share_revoked": "shareRevoked",
   "work_details.viewed": "viewed",
   "work_details.erased": "erased",
+  // Project facts on a roster entry (R5, 2654 to 2657).
+  "roster_travel_requests.insert": "travelSaved",
+  "roster_travel_requests.update": "travelSaved",
+  "roster_travel_requests.delete": "travelCleared",
+  "roster_uniform_sizes.insert": "uniformSaved",
+  "roster_uniform_sizes.update": "uniformSaved",
+  "roster_uniform_sizes.delete": "uniformCleared",
+  "roster_vehicles.insert": "vehicleSaved",
+  "roster_vehicles.update": "vehicleSaved",
+  "roster_vehicles.delete": "vehicleCleared",
+  "project_facts.viewed": "projectFactsViewed",
+  "project_facts.counted": "projectFactsCounted",
+  "project_facts.expired": "projectFactsExpired",
+  "project_facts.erased": "projectFactsErased",
 };
 
 /** The `workDetails.log.actions.*` key of an access log action; unknown actions are `other`. */
@@ -557,9 +571,15 @@ export interface SharedLoyaltyProgram {
   readonly memberNumber: string;
 }
 
+/** Who reads a roster entry's work details (R4): the producing org by capability, or the company that rosters the person. */
+export type WorkDetailReader = "org" | "company";
+
 export interface SharedWorkDetails {
   readonly engagementId: string;
   readonly personId: string | null;
+  /** Roster entry the read is for (R4); the self entry for app.shared_work_details. Null with no self entry. */
+  readonly rosterEntryId: string | null;
+  readonly reader: WorkDetailReader;
   readonly shareId: string | null;
   readonly sharedAt: string | null;
   /** Engagement is Onboarding to Closing; a closed engagement reads nothing. */
@@ -570,7 +590,8 @@ export interface SharedWorkDetails {
   readonly readable: readonly WorkDetailCategory[];
   readonly emergencyContacts: readonly SharedEmergencyContact[] | null;
   readonly uniform: UniformSizes | null;
-  readonly dietary: DietaryDetails | null;
+  /** allergiesOnFile says whether allergies are recorded when allergies comes back masked (null). */
+  readonly dietary: (DietaryDetails & { readonly allergiesOnFile: boolean }) | null;
   readonly accessibility: AccessibilityDetails | null;
   readonly travel:
     (TravelPreferences & { loyaltyPrograms: readonly SharedLoyaltyProgram[] }) | null;
@@ -598,6 +619,8 @@ export function parseSharedWorkDetails(raw: Json): SharedWorkDetails {
   return {
     engagementId: str(d["engagement_id"]) ?? "",
     personId: str(d["person_id"]),
+    rosterEntryId: str(d["roster_entry_id"]),
+    reader: d["reader"] === "company" ? "company" : "org",
     shareId: str(d["work_detail_share_id"]),
     sharedAt: str(d["shared_at"]),
     sharingOpen: d["sharing_open"] === true,
@@ -630,6 +653,8 @@ export function parseSharedWorkDetails(raw: Json): SharedWorkDetails {
       ? {
           dietaryNeeds: list<DietaryNeed>(dietary["dietary_needs"]),
           allergies: str(dietary["allergies"]),
+          allergiesOnFile:
+            dietary["allergies_on_file"] === true || str(dietary["allergies"]) !== null,
           dietaryNotes: str(dietary["dietary_notes"]),
         }
       : null,
@@ -672,6 +697,32 @@ export async function getSharedWorkDetails(
   const { data, error } = await db.rpc("shared_work_details", { p_engagement_id: engagementId });
   if (error) return fail(toDataError(error));
   return ok(parseSharedWorkDetails(data));
+}
+
+/** What the person on a roster entry shared (R4), as the viewer may read it: org or company. Each read is logged. */
+export async function getRosterSharedWorkDetails(
+  db: XosClient,
+  rosterEntryId: string,
+): Promise<Result<SharedWorkDetails>> {
+  const { data, error } = await db.rpc("roster_shared_work_details", {
+    p_roster_entry_id: rosterEntryId,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(parseSharedWorkDetails(data));
+}
+
+/** The producing org's audited reveal of a passport number shared on a roster entry: step-up and a reason. */
+export async function revealRosterPassportNumber(
+  db: XosClient,
+  rosterEntryId: string,
+  reason: string,
+): Promise<Result<string>> {
+  const { data, error } = await db.rpc("reveal_roster_passport_number", {
+    p_roster_entry_id: rosterEntryId,
+    p_reason: reason,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(data);
 }
 
 /** The org's audited reveal of a shared passport number: needs step-up and a reason. */

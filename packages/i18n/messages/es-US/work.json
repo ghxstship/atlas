@@ -263,7 +263,8 @@
     "board": "Tablero",
     "calendar": "Calendario",
     "timeline": "Cronograma",
-    "site-plan": "Plano del sitio"
+    "site-plan": "Plano del sitio",
+    "heatmap": "Mapa de calor"
   },
   "columns": {
     "key": "Clave",
@@ -333,7 +334,8 @@
     "none": "Ninguno",
     "notSet": "Sin definir",
     "unpriced": "Sin precio",
-    "gate": "Compuerta {gate} · {name}"
+    "gate": "Compuerta {gate} · {name}",
+    "tbcEstimate": "Por confirmar · aprox. {time}"
   },
   "fields": {
     "title": "Título",
@@ -356,7 +358,8 @@
     "timeZone": "Zona horaria",
     "zoneNote": "Las horas están en {zone}.",
     "replanReason": "Motivo de replanificación",
-    "replanHelp": "Este registro está programado, así que el cambio de fecha se registra como replanificación. Indique el motivo."
+    "replanHelp": "Este registro está programado, así que el cambio de fecha se registra como replanificación. Indique el motivo.",
+    "startTbc": "Hora de inicio por confirmar"
   },
   "record": {
     "properties": "Propiedades del registro",
@@ -471,7 +474,8 @@
     "links": "Vinculado desde objetos personalizados"
   },
   "duplicate": {
-    "button": "Duplicar"
+    "button": "Duplicar",
+    "withoutDates": "Duplicar sin fechas"
   },
   "trash": {
     "move": "Mover a la papelera",
@@ -614,6 +618,12 @@
       "dependency_cycle": "Esa dependencia haría circular el cronograma. Elija otro predecesor.",
       "dependency_project": "Las dependencias vinculan registros del mismo proyecto.",
       "baseline_locked": "Una línea base fijada nunca cambia. Capture una nueva línea base.",
+      "reschedule_cycle": "Aquí el cronograma es circular, así que el registro no se puede mover. Quite primero una de sus dependencias.",
+      "reschedule_locked": "Este cambio movería un registro completado o fijado en una línea base. Muévalo menos o cambie la dependencia.",
+      "reschedule_canceled": "Este registro está cancelado, así que se queda donde estaba en la línea de tiempo.",
+      "reschedule_window": "Un registro no puede terminar antes de empezar. Cambie su tamaño en la otra dirección.",
+      "reschedule_single_date": "Un registro con una sola fecha solo se puede mover. Asígnele un inicio y un final para cambiar su tamaño.",
+      "reschedule_undated": "Asigne una fecha al registro antes de moverlo en la línea de tiempo.",
       "cue_already_called": "Ese cue ya se llamó. Llame el siguiente cue.",
       "cue_call_capability": "No puede llamar cues en este proyecto. Pida al jefe de escena que lo llame.",
       "sheet_publish_capability": "No puede publicar hojas en este proyecto. Pida a un productor que la publique.",
@@ -635,7 +645,38 @@
       "approval_not_eligible": "Solo quien puede editar los registros de este proyecto puede decidir sus aprobaciones.",
       "time_zone_unknown": "Elija una zona horaria de la lista.",
       "engagement_cue_artist_only": "Los horarios de set pertenecen a contrataciones de artistas. Elija un artista.",
-      "engagement_cue_project_mismatch": "Ese artista está contratado en otro proyecto. Elija un artista del proyecto de este show."
+      "engagement_cue_project_mismatch": "Ese artista está contratado en otro proyecto. Elija un artista del proyecto de este show.",
+      "shift_empty": "Seleccione al menos un registro para mover.",
+      "shift_too_large": "Este cambio mueve más de 500 registros con sus sucesores. Mueva menos a la vez.",
+      "place_dated": "Este registro ya tiene fechas; arrastre su barra en su lugar.",
+      "cue_called": "Un cue ya llamado conserva su hora. Quítelo de la selección.",
+      "cue_move_called": "Un cue llamado conserva su lugar. Mueva un cue sin llamar.",
+      "cue_move_before_called": "Los cues solo se mueven después del último cue llamado. Elija un lugar posterior.",
+      "cue_standby_called": "Ese cue ya se llamó, así que no puede quedar en espera. Elija un cue sin llamar.",
+      "cue_standby_capability": "No puede poner cues en espera en este proyecto. Pida al jefe de escena que lo haga.",
+      "cue_shift_range": "Ajuste el plan hasta una hora antes o después.",
+      "cue_call_kind": "Las llamadas van a Audio, Iluminación, Video, Efectos especiales o Escenario. Elija uno de esos departamentos.",
+      "project_day_split_limit": "Un día se divide en hasta cuatro partes. Cambie o quite una primero.",
+      "project_day_scope_kind": "Un día sirve a una función del proyecto. Elija una función o déjelo para todo el proyecto.",
+      "project_day_time_zone": "La sede de esta función fija la zona horaria. Deje la zona horaria vacía.",
+      "project_day_project_immutable": "Un día se queda en su proyecto. Agregue el día al otro proyecto.",
+      "grid_empty": "Escriba al menos una fila antes de guardar.",
+      "grid_too_large": "Una cuadrícula guarda como máximo 200 filas a la vez. Guarde por partes.",
+      "grid_incomplete": "Alguien agregó o quitó un cue. Vuelva a cargar el orden de presentación y edítelo de nuevo.",
+      "grid_kind": "Elija un tipo de registro para la fila nueva.",
+      "bulk_stale": "Alguien cambió esta fila después de que la cargó. Vuelva a cargar para ver el cambio.",
+      "day_template_title": "El título de un elemento de registro sigue la gramática de su tipo.",
+      "day_template_too_large": "Una plantilla de día admite como máximo 500 elementos. Quite algunos primero.",
+      "day_template_item_window": "Un elemento está a más de un día de este día o dura más de un día, así que una plantilla de día no puede guardarlo.",
+      "day_template_run_ambiguous": "Este día tiene más de un orden de presentación. Elija cuál usar.",
+      "day_template_run_unknown": "Elija un orden de presentación de este proyecto.",
+      "day_template_unknown": "Elija una plantilla de día de esta organización.",
+      "anchor_unset": "Fije el día ancla del proyecto antes de moverlo.",
+      "anchor_set": "Este proyecto ya tiene un día ancla. Vuelva a cargar la página y use Mover el ancla para cambiarlo.",
+      "anchor_too_large": "Este cambio movería más de 2000 registros. Mueva el plan por partes.",
+      "anchor_show_started": "Ya se llamó un cue de este proyecto, así que sus funciones empezaron y se quedan en sus fechas.",
+      "anchor_sheet_collision": "Una hoja publicada ya cubre el día al que se movería una sin publicar.",
+      "anchor_pinned_pushed": "Este cambio empujaría un registro fijado a sus fechas."
     },
     "quickAdd": {
       "capability": "No puedes crear esto aquí.",
@@ -646,7 +687,9 @@
       "scope": "No puedes abrir ese alcance.",
       "scopeProject": "Ese alcance pertenece a otro proyecto.",
       "project": "Indica el proyecto con ~ y un alcance, por ejemplo ~NWS-E01."
-    }
+    },
+    "shiftMinutes": "Escriba minutos enteros distintos de 0, hasta siete días en cualquier sentido.",
+    "cueCall": "La llamada de cada departamento puede tener hasta 2000 caracteres. Acórtela y guarde de nuevo."
   },
   "grammar": {
     "Approval": "Una frase nominal que nombra lo que se aprueba, por ejemplo Aprobación del Plan de Rigging.",

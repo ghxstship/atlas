@@ -3,6 +3,7 @@ import type { XosClient } from "@xos/data";
 import type { Route } from "next";
 import Link from "next/link";
 import { RegionError, Section } from "@/components/page/page";
+import { RosterFactsButton } from "@/components/roster/roster-facts-button";
 import { formatDateTime } from "@/lib/format";
 import type { Translate } from "@/lib/shell/translate";
 
@@ -17,12 +18,17 @@ const KINDS: Readonly<Record<string, string>> = {
   "onboarding.item_expiring": "onboardingExpiring",
   "certification.expiring": "certificationExpiring",
   "document.expiring": "documentExpiring",
+  // P8 (2853): an org asks for the person's availability; it links to /profile#availability-requests.
+  "availability.requested": "availabilityRequested",
+  // A company entered project details for the person (R5): they open their details here and correct them.
+  "roster_entry.project_facts_entered": "projectFactsEntered",
 };
 
 /**
  * The person's latest updates in Gateway (finding A38-002): in-app notifications for the steps of
  * their invoices, each linking to where they follow it. The same notifications go out by Email and
- * Push as the person chose in Settings, Notifications.
+ * Push as the person chose in Settings, Notifications. When a company entered project details for
+ * the person (R5), the update opens those details in place, so the person checks and corrects them.
  */
 export async function Updates({ db, t, locale }: { db: XosClient; t: Translate; locale: string }) {
   const result = await listMyNotifications(db, 10);
@@ -42,8 +48,15 @@ export async function Updates({ db, t, locale }: { db: XosClient; t: Translate; 
             searchName: n.args["searchName"] ?? "",
             expiresOn: n.args["expiresOn"] ?? "",
             kind: n.args["kind"] ?? "other",
+            actorName: n.args["actorName"] ?? "",
+            projectName: n.args["projectName"] ?? "",
           });
           const path = n.args["gatewayPath"];
+          const rosterEntryId =
+            n.kind === "roster_entry.project_facts_entered" &&
+            n.subject?.table === "engagement_roster_entries"
+              ? n.subject.id
+              : null;
           return (
             <li
               key={n.id}
@@ -60,6 +73,17 @@ export async function Updates({ db, t, locale }: { db: XosClient; t: Translate; 
                 {formatDateTime(locale, n.createdAt)}
                 {n.read ? "" : ` · ${t("gateway.home.updates.new")}`}
               </span>
+              {rosterEntryId ? (
+                <span>
+                  <RosterFactsButton
+                    rosterEntryId={rosterEntryId}
+                    name={n.args["personName"] ?? ""}
+                    companyName={n.args["companyName"] ?? ""}
+                    projectName={n.args["projectName"] ?? ""}
+                    self
+                  />
+                </span>
+              ) : null}
             </li>
           );
         })}

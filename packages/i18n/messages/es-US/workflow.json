@@ -212,7 +212,8 @@
       "label": "Guardar un proyecto como plantilla",
       "project": "Proyecto",
       "submit": "Guardar como plantilla",
-      "done": "Plantilla guardada a partir del proyecto."
+      "done": "Plantilla guardada a partir del proyecto.",
+      "keepDates": "Conservar las fechas de vencimiento"
     },
     "detail": {
       "none": "Cree una plantilla para verla aquí.",
@@ -227,7 +228,7 @@
       "none": "Aún no hay elementos.",
       "nodeLine": "Nodo de alcance {kind}, sufijo de código {suffix}",
       "recordLine": "Registro {kind} · {phase} · {due}",
-      "phase": "fase {code}",
+      "phase": "Fase",
       "phaseNone": "sin fase",
       "noPhase": "Sin fase",
       "noDue": "sin fecha de vencimiento",
@@ -257,7 +258,6 @@
         "Y": "Y: proceso",
         "Z": "Z: cronograma"
       },
-      "phase": "Fase",
       "dueOffset": "Vence, días después del inicio",
       "dueOffsetHelp": "Déjelo en blanco para no tener vencimiento; use un número negativo para antes del inicio.",
       "remove": "Quitar",
@@ -294,7 +294,8 @@
       "submit": "Crear proyecto",
       "done": "Proyecto {key} creado.",
       "open": "Abrir el proyecto",
-      "needsCapability": "Crear proyectos requiere projects.project.create. Pídalo a un Propietario o Administrador."
+      "needsCapability": "Crear proyectos requiere projects.project.create. Pídalo a un Propietario o Administrador.",
+      "withoutDates": "Dejar los registros sin fecha (esperan en la lista Sin programar del cronograma)"
     },
     "delete": {
       "label": "Eliminar esta plantilla",

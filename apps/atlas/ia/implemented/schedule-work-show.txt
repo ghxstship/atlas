@@ -9,6 +9,9 @@ work.work-orders
 work.punch-lists
 work.recurring
 schedule.baselines
+schedule.days
+schedule.workload
+schedule.clashes
 project.schedule
 project.work
 show.run-of-show

@@ -170,7 +170,17 @@
       "shareRevoked": "Share revoked",
       "viewed": "Viewed",
       "erased": "Work details erased",
-      "other": "Recorded"
+      "other": "Recorded",
+      "travelSaved": "Travel details saved",
+      "travelCleared": "Travel details cleared",
+      "uniformSaved": "Uniform sizes saved",
+      "uniformCleared": "Uniform sizes cleared",
+      "vehicleSaved": "Vehicle saved",
+      "vehicleCleared": "Vehicle cleared",
+      "projectFactsViewed": "Viewed your project details",
+      "projectFactsCounted": "Counted your travel dates",
+      "projectFactsExpired": "Project details deleted after the engagement closed",
+      "projectFactsErased": "Project details erased"
     }
   },
   "org": {
@@ -214,12 +224,185 @@
     "invalid": "Check the highlighted fields and try again.",
     "conflict": "You already have this loyalty program.",
     "denied": "You cannot change this.",
-    "unexpected": "That did not save. Try again."
+    "unexpected": "That did not save. Try again.",
+    "project_fact_not_yours": "Only the person on this roster entry, or the company that rosters them, enters these details.",
+    "roster_entry_withdrawn": "This roster entry was withdrawn.",
+    "roster_entry_declined": "This roster entry was declined, so nothing more is entered on it.",
+    "project_fact_closed": "This engagement is complete or canceled, so its project details are closed.",
+    "offering_not_offered": "The project does not offer this, so it is not asked.",
+    "project_fact_company_write_off": "This project asks each person to enter their own details.",
+    "project_fact_person_entered": "The person entered these details themselves, so only they change them.",
+    "airport_unknown": "Choose an airport from the list.",
+    "travel_dates_order": "The day you travel home comes on or after the day you arrive.",
+    "project_fact_empty": "Give at least one detail before saving.",
+    "project_fact_text_length": "That text is too long. Shorten it and save again.",
+    "shoe_size_format": "A shoe size runs from 1 to 20 in half sizes.",
+    "shoe_size_system_required": "Give the shoe size with its sizing system.",
+    "pants_measure_range": "A waist runs from 20 to 70 inches and an inseam from 20 to 40.",
+    "vehicle_fields_required": "Give the make, model, plate and the region that issued it.",
+    "plate_format": "A plate is 1 to 10 letters and digits.",
+    "plate_region_format": "Give the region as a code such as US-FL, or the country code alone.",
+    "project_fact_kind_required": "Say which details to clear."
   },
   "compass": {
     "edit": "Edit work details",
     "offline": "Your work details load when you are online.",
     "failed": "Your work details did not load. Open your profile again to retry.",
     "noSizes": "No uniform sizes yet."
+  },
+  "allergiesOnFile": "On file",
+  "allergiesMasked": "Allergies are on file. They are not shown to you.",
+  "projectFacts": {
+    "title": "Project details",
+    "sentence": "The travel, uniform and vehicle details this project asks of you. They stay on this engagement, never on your profile, and leave after the engagement closes.",
+    "none": "This project asks for no travel, uniform or vehicle details.",
+    "wizardTitle": "Project details for {projectName}",
+    "steps": {
+      "travel": "Travel",
+      "uniform": "Uniform",
+      "vehicle": "Vehicle",
+      "review": "Review"
+    },
+    "kinds": {
+      "travel": "Travel",
+      "uniform": "Uniform",
+      "vehicle": "Vehicle"
+    },
+    "kindsLower": {
+      "travel": "travel details",
+      "uniform": "uniform sizes",
+      "vehicle": "vehicle details"
+    },
+    "next": "Save and continue",
+    "back": "Back",
+    "finish": "Done",
+    "saved": "Saved.",
+    "clear": "Clear",
+    "cleared": "Cleared.",
+    "notEntered": "Not entered yet",
+    "moreFields": "More details",
+    "reviewSentence": "Here is what you entered. Go back to any step to change it.",
+    "useLastDetails": "Use my last details",
+    "lastDetailsNone": "You have no earlier details of this kind.",
+    "lastDetailsFilled": "Filled from your last details. Check them, then save.",
+    "readOnly": "Entered by {name}. Only they change these details.",
+    "enterFor": "Enter for {name}",
+    "companyBanner": "{name} will be notified of what you enter and can correct it.",
+    "drawerTitle": "Project details for {name}",
+    "drawerOpen": "Project details",
+    "byPerson": "Entered by the person",
+    "byCompany": "Entered by {company} for them",
+    "enteredBy": "Entered by {name}",
+    "notReadable": "Reading {kind} needs {capability} on this project.",
+    "chips": {
+      "onFile": "On file",
+      "missing": "Missing",
+      "notOffered": "Not offered"
+    },
+    "yes": "Yes",
+    "no": "No",
+    "shoeSizeSystems": {
+      "usMen": "US Men",
+      "usWomen": "US Women",
+      "eu": "EU",
+      "uk": "UK"
+    },
+    "airportSearch": "Search by city, airport or code",
+    "airportNoMatch": "No airport matches. Try the city or the three-letter code.",
+    "fields": {
+      "inboundAirport": {
+        "label": "Arriving at",
+        "help": "The airport you fly into for the project."
+      },
+      "inboundOn": {
+        "label": "Arrival date",
+        "help": "The day you travel to the project."
+      },
+      "outboundAirport": {
+        "label": "Flying home from",
+        "help": "The airport you fly home from."
+      },
+      "outboundOn": {
+        "label": "Departure date",
+        "help": "The day you travel home."
+      },
+      "needsGroundTransport": {
+        "label": "I need a pickup on arrival",
+        "help": "Ground transport from the airport."
+      },
+      "needsLodging": {
+        "label": "I need a room",
+        "help": "Lodging for the nights you are on site."
+      },
+      "seatPreference": {
+        "label": "Seat",
+        "help": "Your preferred seat on the flight."
+      },
+      "mealPreference": {
+        "label": "Meal preference",
+        "help": "For the flight, up to 100 characters."
+      },
+      "travelNotes": {
+        "label": "Notes for the travel desk",
+        "help": "Anything else they should know, up to 500 characters."
+      },
+      "shirtSize": {
+        "label": "Shirt",
+        "help": "Letter size."
+      },
+      "jacketSize": {
+        "label": "Jacket",
+        "help": "Letter size."
+      },
+      "pantsSize": {
+        "label": "Pants",
+        "help": "Letter size."
+      },
+      "shoeSize": {
+        "label": "Shoe size",
+        "help": "1 to 20 in half sizes."
+      },
+      "shoeSizeSystem": {
+        "label": "Shoe sizing",
+        "help": "The system your shoe size is in."
+      },
+      "gloveSize": {
+        "label": "Gloves",
+        "help": "Letter size."
+      },
+      "hatSize": {
+        "label": "Hat",
+        "help": "Letter size."
+      },
+      "pantsWaistIn": {
+        "label": "Waist (inches)",
+        "help": "Whole inches, 20 to 70."
+      },
+      "pantsInseamIn": {
+        "label": "Inseam (inches)",
+        "help": "Whole inches, 20 to 40."
+      },
+      "make": {
+        "label": "Make",
+        "help": "For example Ford."
+      },
+      "model": {
+        "label": "Model",
+        "help": "For example Transit."
+      },
+      "color": {
+        "label": "Color",
+        "help": "As you would describe it."
+      },
+      "plate": {
+        "label": "License plate",
+        "help": "Letters and digits; spaces and hyphens are removed."
+      },
+      "plateRegion": {
+        "label": "Plate region",
+        "help": "Where the plate was issued, such as US-FL, or the country code alone."
+      }
+    },
+    "offline": "You are offline. Project details save only online, so connect to save."
   }
 }
