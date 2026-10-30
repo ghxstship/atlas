@@ -65,6 +65,7 @@ export function RosterFactsDrawer({
             personName={name}
             projectName={projectName}
             onDone={onClose}
+            onSaved={() => setReads((n) => n + 1)}
           />
         )
       ) : null}
@@ -74,6 +75,7 @@ export function RosterFactsDrawer({
           mode="company"
           personName={name}
           projectName={projectName}
+          onSaved={() => setReads((n) => n + 1)}
           onDone={() => {
             setEntering(false);
             setReads((n) => n + 1);

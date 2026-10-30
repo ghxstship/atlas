@@ -61,12 +61,15 @@ export function ProjectFactsWizard({
   personName,
   projectName,
   onDone,
+  onSaved,
 }: {
   facts: RosterProjectFacts;
   mode: WizardMode;
   personName: string;
   projectName: string;
   onDone?: () => void;
+  /** After each save or clear, for a caller whose facts are not server props (a drawer reads them again). */
+  onSaved?: () => void;
 }) {
   const t = useTranslations("workDetails") as unknown as Translate;
   const router = useRouter();
@@ -97,10 +100,16 @@ export function ProjectFactsWizard({
       return;
     }
     const form = new FormData(formRef.current);
+    // A step left blank with nothing on file is skipped, so one kind can be entered without the others.
+    if (!facts.present[byKind(kind)] && [...form.values()].every((v) => v === "")) {
+      move(current + 1);
+      return;
+    }
     startTransition(async () => {
       const result = await SAVE[kind](facts.rosterEntryId, form);
       if (result.ok) {
         move(current + 1);
+        onSaved?.();
         router.refresh();
       } else {
         setState(result);
@@ -123,6 +132,7 @@ export function ProjectFactsWizard({
       setState(result.ok ? {} : result);
       if (result.ok) {
         setNotice(t("projectFacts.cleared"));
+        onSaved?.();
         router.refresh();
       }
     });
