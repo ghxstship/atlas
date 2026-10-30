@@ -8,8 +8,6 @@ import {
   parseNamePartsForm,
   parsePassportForm,
   parseShareForm,
-  parseTravelForm,
-  parseUniformForm,
   workDetailErrorKey,
 } from "../src/work-details-forms.ts";
 
@@ -27,37 +25,6 @@ const E164 = (input: string) => {
 const ID = "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f";
 
 describe("work details form parsers", () => {
-  it("reads uniform sizes, clearing blanks and refusing unknown or overlong values", () => {
-    const parsed = parseUniformForm(
-      form([
-        ["shirtSize", "M"],
-        ["jacketSize", ""],
-        ["gloveSize", "huge"],
-        ["pantsSize", " 32x32 "],
-        ["shoeSize", ""],
-        ["hatSize", "7 1/4"],
-        ["uniformNotes", ""],
-      ]),
-    );
-    expect(parsed).toEqual({
-      ok: true,
-      value: {
-        shirtSize: "M",
-        jacketSize: null,
-        gloveSize: null,
-        pantsSize: "32x32",
-        shoeSize: null,
-        hatSize: "7 1/4",
-        uniformNotes: null,
-      },
-    });
-    expect(parseUniformForm(form([["pantsSize", "x".repeat(21)]]))).toEqual({
-      ok: false,
-      fields: ["pantsSize"],
-      code: "invalid",
-    });
-  });
-
   it("reads dietary and accessibility needs as known values only", () => {
     const dietary = parseDietaryForm(
       form([
@@ -79,25 +46,6 @@ describe("work details form parsers", () => {
       accessibilityNotes: null,
     });
     expect(parseAccessibilityForm(form([["accessibilityNotes", "a".repeat(1001)]])).ok).toBe(false);
-  });
-
-  it("reads the travel profile with an IATA airport code", () => {
-    const travel = parseTravelForm(
-      form([
-        ["seatPreference", "Aisle"],
-        ["mealPreference", "Vegetarian (VGML)"],
-        ["homeAirport", "mia"],
-      ]),
-    );
-    expect(travel.ok && travel.value).toEqual({
-      seatPreference: "Aisle",
-      mealPreference: "Vegetarian (VGML)",
-      homeAirport: "MIA",
-    });
-    expect(parseTravelForm(form([["homeAirport", "M1"]]))).toMatchObject({
-      ok: false,
-      fields: ["homeAirport"],
-    });
   });
 
   it("reads passport details and keeps the number apart", () => {
@@ -207,10 +155,21 @@ describe("work details form parsers", () => {
         form([
           ["engagementId", ID],
           ["categories", "Passport"],
+          ["categories", "Contact"],
+          ["categories", "Uniform Sizes"],
           ["categories", "Nope"],
         ]),
       ),
-    ).toEqual({ ok: true, value: { engagementId: ID, categories: ["Passport"] } });
+    ).toEqual({ ok: true, value: { engagementId: ID, categories: ["Passport", "Contact"] } });
+    // Uniform Sizes is retired (R6a): a share of it alone names nothing.
+    expect(
+      parseShareForm(
+        form([
+          ["engagementId", ID],
+          ["categories", "Uniform Sizes"],
+        ]),
+      ),
+    ).toMatchObject({ fields: ["categories"] });
     expect(parseShareForm(form([["categories", "Passport"]]))).toMatchObject({
       fields: ["engagementId"],
     });
@@ -230,6 +189,12 @@ describe("work details form parsers", () => {
     expect(
       workDetailErrorKey({ kind: "refusal", rule: "emergency_contact_limit", message: "" }),
     ).toBe("emergency_contact_limit");
+    expect(
+      workDetailErrorKey({ kind: "refusal", rule: "work_detail_field_moved", message: "" }),
+    ).toBe("work_detail_field_moved");
+    expect(
+      workDetailErrorKey({ kind: "refusal", rule: "work_detail_category_retired", message: "" }),
+    ).toBe("work_detail_category_retired");
     expect(workDetailErrorKey({ kind: "refusal", rule: "something_else", message: "" })).toBe(
       "unexpected",
     );

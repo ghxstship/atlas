@@ -2,10 +2,8 @@ import type { DataError } from "./result.ts";
 import {
   ACCESSIBILITY_NEEDS,
   DIETARY_NEEDS,
-  GARMENT_LETTER_SIZES,
   LOYALTY_PROGRAM_KINDS,
-  SEAT_PREFERENCES,
-  WORK_DETAIL_CATEGORIES,
+  SHAREABLE_WORK_DETAIL_CATEGORIES,
   WORK_DETAIL_RULES,
   type EmergencyContactInput,
   type LoyaltyProgramInput,
@@ -62,20 +60,6 @@ function pickAll<T extends string>(allowed: readonly T[], form: FormData, name: 
     .filter((v): v is T => typeof v === "string" && (allowed as readonly string[]).includes(v));
 }
 
-export function parseUniformForm(form: FormData): Parsed<WorkDetailsPatch> {
-  const problems: string[] = [];
-  const value: WorkDetailsPatch = {
-    shirtSize: pick(GARMENT_LETTER_SIZES, form.get("shirtSize")),
-    jacketSize: pick(GARMENT_LETTER_SIZES, form.get("jacketSize")),
-    gloveSize: pick(GARMENT_LETTER_SIZES, form.get("gloveSize")),
-    pantsSize: optional(form, "pantsSize", 20, problems),
-    shoeSize: optional(form, "shoeSize", 20, problems),
-    hatSize: optional(form, "hatSize", 20, problems),
-    uniformNotes: optional(form, "uniformNotes", 500, problems),
-  };
-  return problems.length > 0 ? bad(problems) : good(value);
-}
-
 export function parseDietaryForm(form: FormData): Parsed<WorkDetailsPatch> {
   const problems: string[] = [];
   const value: WorkDetailsPatch = {
@@ -93,19 +77,6 @@ export function parseAccessibilityForm(form: FormData): Parsed<WorkDetailsPatch>
     accessibilityNotes: optional(form, "accessibilityNotes", 1000, problems),
   };
   return problems.length > 0 ? bad(problems) : good(value);
-}
-
-export function parseTravelForm(form: FormData): Parsed<WorkDetailsPatch> {
-  const problems: string[] = [];
-  const meal = optional(form, "mealPreference", 100, problems);
-  const airport = optional(form, "homeAirport", 3, problems)?.toUpperCase() ?? null;
-  if (airport !== null && !/^[A-Z]{3}$/.test(airport)) problems.push("homeAirport");
-  if (problems.length > 0) return bad(problems);
-  return good({
-    seatPreference: pick(SEAT_PREFERENCES, form.get("seatPreference")),
-    mealPreference: meal,
-    homeAirport: airport,
-  });
 }
 
 /** Passport details; `number` is null when the field was left blank (keep the number on file). */
@@ -181,7 +152,8 @@ export function parseShareForm(
   form: FormData,
 ): Parsed<{ readonly engagementId: string; readonly categories: WorkDetailCategory[] }> {
   const engagementId = parseId(form, "engagementId");
-  const categories = pickAll(WORK_DETAIL_CATEGORIES, form, "categories");
+  // Uniform Sizes is retired (R6a): sizes are entered per roster entry, so a share never names it.
+  const categories = pickAll(SHAREABLE_WORK_DETAIL_CATEGORIES, form, "categories");
   if (!engagementId) return bad(["engagementId"]);
   if (categories.length === 0) return bad(["categories"]);
   return good({ engagementId, categories });
