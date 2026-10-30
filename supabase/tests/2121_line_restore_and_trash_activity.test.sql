@@ -2,13 +2,13 @@
 -- deleted into Trash and restore through app.restore_trash_item; a restored line keeps its number when it is free
 -- and moves to the end when a later line took it. Moving a record or a line to Trash emits its .trashed event with
 -- the project, which the Activity feed shows to the people who may read the project, and only the move to Trash
--- emits it.
+-- emits it. A line's event carries none of the line's content, since the feed reaches people without finance read.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(27);
+select plan(31);
 
 create function pg_temp.events(p_type text, p_key text) returns integer
 language sql as $$
@@ -119,8 +119,22 @@ select is(pg_temp.events('settlement_line.trashed', 'sl2'), 1, 'a settlement lin
 select is(pg_temp.events('budget_line.trashed', 'bl2'), 1, 'a budget line emits budget_line.trashed');
 select is((select project_id from app.domain_events where event_type = 'invoice_line.trashed' and subject_id = pg_temp.id('il2') limit 1),
   pg_temp.id('prj_a'), 'a line''s event carries its parent''s project');
-select is((select data ->> 'description' from app.domain_events where event_type = 'settlement_line.trashed' and subject_id = pg_temp.id('sl2')),
-  'Sell-out bonus.', 'and its description');
+select is((select count(*)::int from app.domain_events where event_type like '%line.trashed' and data <> '{}'::jsonb), 0,
+  'a line''s event carries none of the line''s content');
+
+-- The project's feed reaches a Viewer without finance read: they see that a line went to Trash, never what it said.
+select pg_temp.as_user('gina');
+select is((select count(*)::int from app.settlement_lines where id = pg_temp.id('sl2')), 0,
+  'a project Viewer cannot read the settlement line');
+select is((select count(*)::int from app.activity_feed(pg_temp.id('org_a'), pg_temp.id('prj_a')) f
+  where f.event_type = 'settlement_line.trashed' and f.subject_id = pg_temp.id('sl2')), 1,
+  'but sees its deletion in the project''s Activity feed');
+select is((select count(*)::int from app.activity_feed(pg_temp.id('org_a'), pg_temp.id('prj_a')) f
+  where f.event_type like '%line.trashed' and (f.data::text like '%Sell-out%' or f.data::text like '%Truss%' or f.data::text like '%Barricade%')), 0,
+  'without the line''s description');
+select is((select count(*)::int from app.trash_items where subject_id = pg_temp.id('il3')), 0,
+  'and Trash, read under their row level security, names no line to them');
+select pg_temp.as_platform();
 
 select pg_temp.as_user('dave');
 update app.records set title = 'Hang two banners' where id = pg_temp.id('rec');

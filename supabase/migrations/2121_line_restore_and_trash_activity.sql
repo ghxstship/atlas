@@ -6,10 +6,12 @@
 --     among live lines, so a line added after a delete could take the deleted line's number and the restore failed
 --     on the index. A restored line keeps its number when it is free and otherwise moves to the end of its parent.
 --   * record.trashed, invoice_line.trashed, settlement_line.trashed and budget_line.trashed are emitted when a row
---     moves to Trash, with the project it belongs to, so the Activity feed shows the deletion to the people who could
---     read the row. The feed names a record by its key; a line's event carries its description. Activity offers
---     Restore on the entry while app.trash_items still lists the row (until its purge_after), through
---     app.restore_trash_item, the same RPC as the Trash page and the Undo of a line.
+--     moves to Trash, with the project it belongs to, so the project's Activity feed shows the deletion. The feed
+--     shows a project's events to everyone who may read the project, which includes people without finance read, so
+--     a line's event carries no line content: the feed names the line from app.trash_items, read under the reader's
+--     row level security, and otherwise as "an invoice line". A record's event carries its title, as record.created
+--     does. Activity offers Restore on the entry while app.trash_items still lists the row (until its purge_after),
+--     through app.restore_trash_item, the same RPC as the Trash page and the Undo of a line.
 
 -- Restored lines keep their place when they can ---------------------------------------------------------------------
 
@@ -77,12 +79,12 @@ begin
       into v_project using (v_row ->> tg_argv[2])::uuid;
   end if;
   perform private.emit_event(new.org_id, tg_argv[0], tg_table_name, new.id, v_project,
-    jsonb_strip_nulls(jsonb_build_object('title', v_row -> 'title', 'description', v_row -> 'description')));
+    jsonb_strip_nulls(jsonb_build_object('title', v_row -> 'title')));
   return null;
 end;
 $$;
 
-comment on function private.emit_trashed_event() is 'After trigger on a row moved to Trash: emits the event named by the first argument, with the row''s title or description. The project is the row''s column named by the second argument, or the project_id of the parent table (second argument) the row names in the column given third.';
+comment on function private.emit_trashed_event() is 'After trigger on a row moved to Trash: emits the event named by the first argument, with the row''s title when it has one (records) and no other content, since the project''s feed reaches people who cannot read a finance line. The project is the row''s column named by the second argument, or the project_id of the parent table (second argument) the row names in the column given third.';
 revoke all on function private.emit_trashed_event() from public, anon, authenticated;
 
 create trigger t90_emit_record_trashed after update of deleted_at on app.records

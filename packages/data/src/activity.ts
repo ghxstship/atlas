@@ -124,8 +124,10 @@ export async function getActivityEntry(
  * Names the thing each entry acted on (finding A59-030), so a line reads "clocked in on NWS-17
  * Stagehand · Load-in" instead of "clocked in on a time entry". A shift, or a time entry on a shift,
  * takes its record's key and title (and opens it); a credential reads as its number and holder; an
- * engagement as its party; an approval as its reference; a domain as its host name. Lookups run under
- * the reader's row level security, so an entry keeps its generic noun when its subject is hidden.
+ * engagement as its party; an approval as its reference; a domain as its host name; a row moved to Trash
+ * (2121) as its Trash title. Lookups run under the reader's row level security, so an entry keeps its
+ * generic noun when its subject is hidden: a line's event carries none of the line, since the feed
+ * reaches people without finance read.
  * A failed lookup never fails the feed.
  */
 export async function labelActivity(
@@ -148,6 +150,9 @@ export async function labelActivity(
   const credentialIds = idsOf("credentials");
   const engagementIds = idsOf("engagements");
   const approvalIds = idsOf("approval_instances");
+  const trashedIds = [
+    ...new Set(pending.filter((e) => e.type.endsWith(".trashed")).map((e) => e.subjectId)),
+  ].filter(Boolean);
   const read = async (query: PromiseLike<{ data: unknown; error: unknown }> | null) => {
     if (!query) return [] as Record<string, unknown>[];
     try {
@@ -158,7 +163,7 @@ export async function labelActivity(
     }
   };
   const client = untyped(db);
-  const [shifts, credentials, engagements, approvals] = await Promise.all([
+  const [shifts, credentials, engagements, approvals, trashed] = await Promise.all([
     read(
       shiftIds.length > 0
         ? client
@@ -191,6 +196,11 @@ export async function labelActivity(
             .from("approval_instances")
             .select("id, document_type, subject_reference")
             .in("id", approvalIds)
+        : null,
+    ),
+    read(
+      trashedIds.length > 0
+        ? client.from("trash_items").select("subject_id, title").in("subject_id", trashedIds)
         : null,
     ),
   ]);
@@ -246,6 +256,10 @@ export async function labelActivity(
     const kind = text(a["document_type"]);
     if (reference) labels.set(String(a["id"]), kind ? `${kind} ${reference}` : reference);
   }
+  for (const t of trashed) {
+    const title = text(t["title"]);
+    if (title) labels.set(String(t["subject_id"]), title);
+  }
   return entries.map((e) => {
     if (e.recordKey) return e;
     const shift = shiftOf(e);
@@ -253,11 +267,11 @@ export async function labelActivity(
     if (record) return { ...e, recordKey: record.key, recordTitle: record.title };
     const role = shift ? shiftLabels.get(shift) : undefined;
     if (role) return { ...e, subjectLabel: role.label, subjectAt: role.at };
-    // A line moved to Trash (2121) names itself by the description its event carries.
+    // A record moved to Trash and since restored still reads as the title its event carries (2121).
     const label =
       labels.get(e.subjectId) ??
       (table(e) === "org_domains" ? text(e.data["hostname"]) : null) ??
-      (e.type.endsWith(".trashed") ? (text(e.data["description"]) ?? text(e.data["title"])) : null);
+      (e.type === "record.trashed" ? text(e.data["title"]) : null);
     return label ? { ...e, subjectLabel: label } : e;
   });
 }
