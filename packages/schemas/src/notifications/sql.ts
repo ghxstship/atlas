@@ -16,10 +16,11 @@ import type { NotificationKindRegistry } from "./model.ts";
  * push (ADR 0033 decision 77). 1639 adds the reported content kinds (ADR 0033 decision 57, 1630) and carries 1620's. 2649 adds the crew roster
  * kinds (R4, ADR 0100 section 6) and the party_invitation platform email; it is the first advancing seed (ADR 0022).
  * 2650 adds R5's roster_entry.project_facts_entered and the names lock's engagement.roster_lock_changed. 2660 adds R6a's
- * account.work_details_moved.
+ * account.work_details_moved. 2698 adds R7's allocation.decided, allocation.assigned, allocation.issued and
+ * allocation.withdrawn.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/2660_notification_kind_seed.sql";
+  "supabase/migrations/2698_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(

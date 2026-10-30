@@ -494,3 +494,30 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/2656_roster_lock.sql#app.set_roster_lock
         test: supabase/tests/2656_roster_lock.test.sql
+  # Advance allocations (R7: 2693, 2694). Accepted account members receive them through private.party_org_ids (1131).
+  - kind: allocation.decided
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/2693_allocation_rpcs.sql#app.decide_allocation
+        test: supabase/tests/2693_allocation_rpcs.test.sql
+      - emitter: supabase/migrations/2693_allocation_rpcs.sql#app.assign_allocation
+        test: supabase/tests/2693_allocation_rpcs.test.sql
+  - kind: allocation.assigned
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2693_allocation_rpcs.sql#private.split_allocation_parts
+        test: supabase/tests/2693_allocation_rpcs.test.sql
+  - kind: allocation.issued
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2693_allocation_rpcs.sql#app.issue_allocation
+        test: supabase/tests/2693_allocation_rpcs.test.sql
+  - kind: allocation.withdrawn
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2693_allocation_rpcs.sql#app.withdraw_allocation
+        test: supabase/tests/2693_allocation_rpcs.test.sql
+      - emitter: supabase/migrations/2694_allocation_cascades.sql#private.close_engagement_allocations
+        test: supabase/tests/2694_allocation_cascades.test.sql
+      - emitter: supabase/migrations/2694_allocation_cascades.sql#private.withdraw_entry_allocations
+        test: supabase/tests/2694_allocation_cascades.test.sql

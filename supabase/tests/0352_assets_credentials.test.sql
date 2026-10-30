@@ -27,7 +27,12 @@ select lives_ok($$select app.transition_asset((select id from world where key = 
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Deployed', 'Damaged', 'Cracked panel.')$$, 'Deployed to Damaged');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Damaged', 'Retired', 'Written off.')$$, 'Damaged to Retired');
 select throws_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Retired', 'Available', 'Back.')$$, 'XR001', 'asset_transition_not_allowed: A asset cannot move from Retired to Available.', 'Retired is terminal');
-select lives_ok($$insert into app.asset_custody (asset_unit_id, custodian_membership_id, project_id) values ((select id from world where key = 'unit'), (select id from world where key = 'frank@org_a'), (select id from world where key = 'prj_a'))$$, 'custody is handed to a member');
+select throws_ok($$insert into app.asset_custody (asset_unit_id, custodian_membership_id, project_id) values ((select id from world where key = 'unit'), (select id from world where key = 'frank@org_a'), (select id from world where key = 'prj_a'))$$,
+  '42501', null, 'signed-in callers insert no custody row: app.record_asset_custody writes it through the scan (R7, 2692)');
+select pg_temp.as_platform();
+insert into app.asset_custody (asset_unit_id, custodian_membership_id, project_id)
+values (pg_temp.id('unit'), pg_temp.id('frank@org_a'), pg_temp.id('prj_a'));
+select pg_temp.as_user('carol');
 select throws_ok($$update app.asset_custody set note = 'Edited.'$$, '42501', null, 'the custody ledger is append-only for signed-in callers');
 select throws_ok($$insert into app.asset_identifiers (asset_unit_id, identifier_class, scheme, value) values ((select id from world where key = 'unit'), 'code', 'serial', 'X1')$$,
   '23514', null, 'asset identifiers are externally issued values only');
