@@ -505,6 +505,7 @@
         "cancel": "[Càñçél ··]",
         "canceled": "[Chàñgé çàñçéléd. ······]",
         "change": "[{key} mövés tö {start} thröûgh {end}. ·············]",
+        "checking": "[Chéçkîñg évérý dépéñdéñçý béföré thé çhàñgé çàñ bé àpplîéd. ·····················]",
         "criticalChanges": "[Thé çrîtîçàl pàth çhàñgés. ·········]",
         "criticalSame": "[Thé çrîtîçàl pàth stàýs thé sàmé. ············]",
         "cycle": "[Thé dépéñdéñçîés àré çîrçûlàr, sö thîs çhàñgé çàññöt bé màdé. ·····················]",

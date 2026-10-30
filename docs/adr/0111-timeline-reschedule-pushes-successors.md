@@ -39,7 +39,9 @@ compare the predecessor's start or finish plus lag with the successor's start or
 
 ### 4. What is refused
 
-A cycle downstream of the record (the insert guard keeps cycles out, and the function checks again), a move of a
+A cycle through the record (the insert guard keeps cycles out, and the function checks again with a walk that visits
+each downstream record once, as the guard does, so schedules whose chains split and rejoin stay cheap; a cycle further
+downstream that misses the record ends the push rounds at their limit), a move of a
 record that is Complete or of a Timeline window locked into a baseline, or a change that would push one; a window
 that would end before it starts; a resize of a record with one date; and an undated record. Preview and commit
 refuse the same way. Canceled records neither move nor hold others back. Baselines are never written.
@@ -49,7 +51,11 @@ refuse the same way. Canceled records neither move nor hold others back. Baselin
 `@xos/ui` Timeline works out the same push rule on its day grid from the drawn dependencies while a bar is dragged,
 and reports the critical path (rows with no float to the last finish) before and after. When the pointer or keys
 rest, Atlas asks the function for its preview, which also sees dependencies to records the view filters out, and that
-answer replaces the estimate. Apply calls commit mode.
+answer replaces the estimate. The estimate reads a milestone as one instant, as the function reads a one-date record,
+but a day grid cannot see times of day or records the view leaves out, so it can still disagree. Apply and Enter
+therefore wait for the function's preview of the exact change (`awaitPreview`): pressed early, they apply when that
+preview arrives if it moves the same rows the estimate showed, and otherwise leave its answer up to be applied again.
+Apply calls commit mode, so what is applied is what the function previewed.
 
 ## Consequences
 

@@ -86,17 +86,19 @@ begin
   end if;
   v_time_zone := (select p.time_zone from app.projects p where p.id = v_record.project_id);
 
-  -- The record and everything downstream of it; a cycle anywhere downstream is refused before anything moves.
+  -- A cycle through the record is refused before anything moves: the walk downstream comes back to it. The walk
+  -- visits each record once (UNION, as 0310's guard does), not each path, so schedules whose chains split and rejoin
+  -- stay cheap. A cycle downstream that misses the record is caught by the round limit below.
   if exists (
     with recursive walk (record_id) as (
       select d.successor_record_id from app.record_dependencies d
       where d.predecessor_record_id = p_record_id and d.deleted_at is null
-      union all
+      union
       select d.successor_record_id from app.record_dependencies d
       join walk w on d.predecessor_record_id = w.record_id
       where d.deleted_at is null
-    ) cycle record_id set is_cycle using path
-    select 1 from walk w where w.is_cycle or w.record_id = p_record_id
+    )
+    select 1 from walk w where w.record_id = p_record_id
   ) then
     perform private.refuse('reschedule_cycle', 'This schedule is circular; remove a dependency before moving the record.');
   end if;

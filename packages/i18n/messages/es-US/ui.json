@@ -500,6 +500,7 @@
       "cancel": "Cancelar",
       "canceled": "Cambio cancelado.",
       "change": "{key} pasa del {start} al {end}.",
+      "checking": "Comprobando todas las dependencias antes de poder aplicar el cambio.",
       "criticalChanges": "La ruta crítica cambia.",
       "criticalSame": "La ruta crítica no cambia.",
       "cycle": "Las dependencias son circulares, así que este cambio no se puede hacer.",

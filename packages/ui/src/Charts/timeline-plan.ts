@@ -4,6 +4,8 @@ import type { TimelineChange, TimelineLink, TimelineMove } from "../types/refere
 interface Span {
   readonly start: number;
   readonly end: number;
+  /** A milestone: one instant on its day, so it starts and finishes at the same point. */
+  readonly point?: boolean;
 }
 
 /** The dependency preview of a pending change, worked out on the day grid. */
@@ -21,17 +23,23 @@ export interface TimelinePlan {
 
 const EPSILON = 1e-9;
 
+/** Where a bar finishes on the day grid: the end of its last day, or a milestone's own day. */
+function finishOf(s: Span): number {
+  return s.point ? s.start : s.end + 1;
+}
+
 /*
  * Bars occupy half-open day ranges [start, end + 1), so a Finish to Start successor may start the
- * day after its predecessor's last day. Each type compares one side of each bar:
- * the predecessor's start or finish, plus lag, against the successor's start or finish.
+ * day after its predecessor's last day. A milestone is one instant, as app.reschedule_record reads
+ * a one-date record, so it starts and finishes on its day. Each type compares one side of each
+ * bar: the predecessor's start or finish, plus lag, against the successor's start or finish.
  */
 function gap(link: TimelineLink, from: Span, to: Span): number {
   const type = link.type ?? "Finish to Start";
   const fromFinish = type === "Finish to Start" || type === "Finish to Finish";
   const toStart = type === "Finish to Start" || type === "Start to Start";
-  const required = (fromFinish ? from.end + 1 : from.start) + (link.lagDays ?? 0);
-  const actual = toStart ? to.start : to.end + 1;
+  const required = (fromFinish ? finishOf(from) : from.start) + (link.lagDays ?? 0);
+  const actual = toStart ? to.start : finishOf(to);
   return required - actual;
 }
 
@@ -65,8 +73,8 @@ export function pushSuccessors(
   change: TimelineChange,
 ): Span[] | null {
   if (cyclic(links, change.row)) return null;
-  const now: Span[] = spans.map((s) => ({ start: s.start, end: s.end }));
-  now[change.row] = { start: change.start, end: change.end };
+  const now: Span[] = spans.map((s) => ({ ...s }));
+  now[change.row] = { ...spans[change.row], start: change.start, end: change.end };
   const allowed = links.map((l) => {
     const from = spans[l.from];
     const to = spans[l.to];
@@ -85,7 +93,7 @@ export function pushSuccessors(
     if (push.size === 0) return now;
     for (const [i, days] of push) {
       const s = now[i];
-      if (s) now[i] = { start: s.start + days, end: s.end + days };
+      if (s) now[i] = { ...s, start: s.start + days, end: s.end + days };
     }
   }
   return null;
@@ -97,7 +105,7 @@ export function pushSuccessors(
  */
 export function criticalRows(spans: readonly Span[], links: readonly TimelineLink[]): number[] {
   if (spans.length === 0) return [];
-  const finish = Math.max(...spans.map((s) => s.end + 1));
+  const finish = Math.max(...spans.map(finishOf));
   const out = new Map<number, TimelineLink[]>();
   for (const l of links) out.set(l.from, [...(out.get(l.from) ?? []), l]);
   const memo = new Map<number, number>();
@@ -108,7 +116,7 @@ export function criticalRows(spans: readonly Span[], links: readonly TimelineLin
     const s = spans[i];
     if (!s || visiting.has(i)) return Number.POSITIVE_INFINITY;
     visiting.add(i);
-    let value = finish - (s.end + 1);
+    let value = finish - finishOf(s);
     for (const l of out.get(i) ?? []) {
       const to = spans[l.to];
       if (to) value = Math.min(value, -gap(l, s, to) + float(l.to));
@@ -147,12 +155,12 @@ export function withMoves(
   moves: readonly TimelineMove[],
   isLocked: (row: number) => boolean,
 ): TimelinePlan {
-  const after = spans.map((s) => ({ start: s.start, end: s.end }));
-  after[change.row] = { start: change.start, end: change.end };
-  for (const m of moves) after[m.row] = { start: m.start, end: m.end };
+  const after = spans.map((s) => ({ ...s }));
+  after[change.row] = { ...spans[change.row], start: change.start, end: change.end };
+  for (const m of moves) after[m.row] = { ...spans[m.row], start: m.start, end: m.end };
   const was = spans[change.row];
   const targetMoved = !!was && (was.start !== change.start || was.end !== change.end);
-  const lastFinish = (list: readonly Span[]) => Math.max(...list.map((s) => s.end + 1));
+  const lastFinish = (list: readonly Span[]) => Math.max(...list.map(finishOf));
   return {
     moves,
     locked: [
@@ -170,4 +178,14 @@ export function sameRows(a: readonly number[], b: readonly number[]): boolean {
   if (a.length !== b.length) return false;
   const set = new Set(a);
   return b.every((i) => set.has(i));
+}
+
+/** The same rows moved to the same days, in any order. */
+export function sameMoves(a: readonly TimelineMove[], b: readonly TimelineMove[]): boolean {
+  if (a.length !== b.length) return false;
+  const at = new Map(a.map((m) => [m.row, m]));
+  return b.every((m) => {
+    const other = at.get(m.row);
+    return !!other && other.start === m.start && other.end === m.end;
+  });
 }

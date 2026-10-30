@@ -15,7 +15,7 @@ import { StateIcon } from "../StateIcon/StateIcon.tsx";
 import { ScrollRegion } from "../Layout/Layout.tsx";
 import { Button } from "../Button/Button.tsx";
 import { type TimelineChange, type TimelineProps } from "./Charts.types.ts";
-import { planChange, sameRows, withMoves, type TimelinePlan } from "./timeline-plan.ts";
+import { planChange, sameMoves, sameRows, withMoves, type TimelinePlan } from "./timeline-plan.ts";
 
 const TL_BAR: Record<string, string> = {
   active: cx("bg-accent"),
@@ -45,7 +45,8 @@ const DRAG_SLOP = 4;
  * end resizes it; with a bar focused, arrow keys move it a day, Shift with an arrow moves its end,
  * Enter applies and Escape cancels. While a change is pending, the successors it pushes along
  * `links` show where they would land, a preview line says what moves and whether the critical path
- * changes, and a live region reads the same line. Apply takes the second interaction.
+ * changes, and a live region reads the same line. Apply takes the second interaction. With
+ * `awaitPreview`, Apply and Enter wait for the page's own preview of the exact change.
  */
 export function Timeline({
   label,
@@ -58,6 +59,7 @@ export function Timeline({
   onReschedule,
   onPendingChange,
   preview = null,
+  awaitPreview = false,
 }: TimelineProps): ReactElement {
   const t = useT();
   const format = useFormat();
@@ -83,7 +85,11 @@ export function Timeline({
     const d = days[i];
     return d ? (d.label ?? `${d.dow} ${d.date}`) : "";
   };
-  const spans = useMemo(() => rows.map((r) => ({ start: r.start, end: r.end })), [rows]);
+  const spans = useMemo(
+    () =>
+      rows.map((r) => ({ start: r.start, end: r.end, ...(r.milestone ? { point: true } : {}) })),
+    [rows],
+  );
   const page =
     draft &&
     preview &&
@@ -92,16 +98,21 @@ export function Timeline({
     preview.change.end === draft.end
       ? preview
       : null;
-  const plan: TimelinePlan | null = useMemo(() => {
-    if (!draft) return null;
-    const locked = (i: number) => rows[i]?.locked === true;
-    return page
-      ? withMoves(spans, links, draft, page.moves, locked)
-      : planChange(spans, links, draft, locked);
-  }, [draft, page, spans, links, rows]);
+  const isLocked = useMemo(() => (i: number) => rows[i]?.locked === true, [rows]);
+  // The estimate from `links`; the page's own preview replaces it once it matches the change.
+  const estimate: TimelinePlan | null = useMemo(
+    () => (draft ? planChange(spans, links, draft, isLocked) : null),
+    [draft, spans, links, isLocked],
+  );
+  const plan: TimelinePlan | null = useMemo(
+    () => (draft && page ? withMoves(spans, links, draft, page.moves, isLocked) : estimate),
+    [draft, page, spans, links, isLocked, estimate],
+  );
   const cycle = draft !== null && plan === null;
   const refusal = page?.refusal ?? null;
-  const blocked = cycle || refusal !== null || (plan?.locked.length ?? 0) > 0;
+  // The page's answer for this exact change has not arrived yet, so the estimate stands in for it.
+  const waiting = awaitPreview && draft !== null && page === null && !cycle;
+  const blocked = cycle || waiting || refusal !== null || (plan?.locked.length ?? 0) > 0;
 
   useEffect(() => {
     pending.current?.(draft);
@@ -164,6 +175,7 @@ export function Timeline({
     }
     if (page?.note) parts.push(page.note);
     if (refusal) parts.push(refusal);
+    if (waiting) parts.push(t("timeline.preview.checking"));
     return parts.join(" ");
   })();
 
@@ -192,8 +204,16 @@ export function Timeline({
     setDraft(null);
     setNotice(t("timeline.preview.canceled"));
   };
+  // Apply or Enter pressed while the page's preview is on its way: applied when it arrives, if it
+  // moves the same rows the estimate showed; otherwise its answer stays up to be applied again.
+  const [queued, setQueued] = useState<TimelineChange | null>(null);
   const apply = async () => {
-    if (!draft || !onReschedule || blocked || applying) return;
+    if (!draft || !onReschedule || applying) return;
+    if (waiting) {
+      setQueued(draft);
+      return;
+    }
+    if (blocked) return;
     const change = draft;
     const key = rows[change.row]?.key ?? "";
     setApplying(true);
@@ -207,6 +227,14 @@ export function Timeline({
       setApplying(false);
     }
   };
+
+  useEffect(() => {
+    if (!queued || waiting) return;
+    setQueued(null);
+    if (queued !== draft || blocked || !page || page.note || !estimate) return;
+    if (sameMoves(estimate.moves, page.moves)) void apply();
+    // apply reads this render's draft and preview, which are the ones checked here.
+  }, [queued, waiting, draft, blocked, page, estimate]);
 
   const sign = dir === "rtl" ? -1 : 1;
   const onKey = (event: KeyboardEvent<HTMLButtonElement>, i: number) => {
@@ -567,8 +595,8 @@ export function Timeline({
           <Button
             size="sm"
             variant="primary"
-            disabled={blocked}
-            loading={applying}
+            disabled={blocked && !waiting}
+            loading={applying || (queued !== null && queued === draft)}
             onClick={() => void apply()}
           >
             {t("timeline.preview.apply")}

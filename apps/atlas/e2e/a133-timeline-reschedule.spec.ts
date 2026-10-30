@@ -5,7 +5,8 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
  * A133 (Section 11.11, S11.11-01): drag to reschedule on the timeline with a dependency preview.
  * A record moved by keyboard (arrows, then Enter) and one moved by pointer (a drag, then Apply)
  * each show which successors move and whether the critical path changes before anything is
- * written, and the commit lands what the preview showed, successors included. Each run signs up a
+ * written, nothing applies before the server has previewed the change, and the commit lands what
+ * the preview showed, successors included. Each run signs up a
  * new owner in a new org on the local stack.
  */
 
@@ -85,6 +86,9 @@ test("journey: reschedule on the timeline by keyboard and by drag, with a depend
   await expect(preview).toContainText(`${first} moves to`);
   await expect(preview).toContainText(`1 successor moves: ${second}.`);
   await expect(preview).toContainText(/The critical path (changes|stays the same)\./);
+  // The server's own preview replaces the estimate before anything can be applied.
+  await expect(preview).not.toContainText("Checking every dependency");
+  await expect(preview).toContainText(`1 successor moves: ${second}.`);
   await expectAccessible(page);
   await page.keyboard.press("Enter");
   await expect(preview).toBeHidden();
@@ -108,6 +112,7 @@ test("journey: reschedule on the timeline by keyboard and by drag, with a depend
   await page.mouse.up();
   await expect(preview).toContainText(`${second} moves to`);
   await expect(preview).toContainText("No other record moves.");
+  // Apply may be pressed before the server's preview lands; it applies once that preview agrees.
   await preview.getByRole("button", { name: "Apply" }).click();
   await expect(preview).toBeHidden();
   expect(await dueOf(page, slug, second)).toBe("2027-03-16T10:00");

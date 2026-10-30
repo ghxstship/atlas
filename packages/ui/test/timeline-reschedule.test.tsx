@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { Timeline, type TimelineLink, type TimelineProps } from "../src/index.ts";
@@ -6,6 +6,7 @@ import {
   criticalRows,
   planChange,
   pushSuccessors,
+  sameMoves,
   sameRows,
   withMoves,
 } from "../src/Charts/timeline-plan.ts";
@@ -91,6 +92,25 @@ describe("timeline plan", () => {
     expect(sameRows([1, 2], [2, 1])).toBe(true);
   });
 
+  it("reads a milestone as one instant, as the server reads a one-date record", () => {
+    // Due the 12th, then due the 13th: moving the first two days pushes the second one day.
+    const points = [
+      { start: 11, end: 11, point: true },
+      { start: 12, end: 12, point: true },
+    ];
+    expect(
+      pushSuccessors(points, [{ from: 0, to: 1 }], { row: 0, start: 13, end: 13 })?.[1],
+    ).toEqual({ start: 13, end: 13, point: true });
+  });
+
+  it("compares moves by row and day, in any order", () => {
+    const a = { row: 1, start: 2, end: 3 };
+    const b = { row: 2, start: 4, end: 4 };
+    expect(sameMoves([a, b], [b, a])).toBe(true);
+    expect(sameMoves([a], [a, b])).toBe(false);
+    expect(sameMoves([a], [{ ...a, end: 4 }])).toBe(false);
+  });
+
   it("names the locked rows a change would move", () => {
     const plan = planChange(spans, links, { row: 0, start: 2, end: 4 }, (i) => i === 2);
     expect(plan?.moves.map((m) => m.row)).toEqual([1, 2]);
@@ -129,7 +149,8 @@ describe("Timeline rescheduling", () => {
     expect(onReschedule).toHaveBeenCalledWith({ row: 0, start: 1, end: 3 });
     expect(screen.queryByRole("group", { name: "Reschedule preview" })).toBeNull();
     expect(container.querySelector("[aria-live]")?.textContent).toBe("B-1 rescheduled.");
-    expect(onPendingChange).toHaveBeenLastCalledWith(null);
+    // The page hears of the cleared change from an effect, which may run after the paint.
+    await waitFor(() => expect(onPendingChange).toHaveBeenLastCalledWith(null));
   });
 
   it("resizes with Shift, cancels with Escape and drops a change back to where it was", async () => {
@@ -270,6 +291,84 @@ describe("Timeline rescheduling", () => {
     expect(screen.getByRole("group", { name: "Reschedule preview" })).toBeTruthy();
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(screen.queryByRole("group", { name: "Reschedule preview" })).toBeNull();
+  });
+
+  it("waits for the page's preview before applying, and applies on arrival when it agrees", async () => {
+    const onReschedule = vi.fn(() => Promise.resolve(true));
+    const props = { label: "Build schedule", days, rows, links, onReschedule, awaitPreview: true };
+    const { rerender, container } = render(<Timeline {...props} />);
+    screen.getByRole("button", { name: /^B-1 Truss/ }).focus();
+    await userEvent.keyboard("{ArrowRight}");
+    const shown = screen.getByRole("group", { name: "Reschedule preview" }).textContent;
+    expect(shown).toContain("2 successors move: B-2 and B-3.");
+    expect(shown).toContain("Checking every dependency before the change can be applied.");
+    // Enter while the preview is on its way waits for it, and Apply shows that it is waiting.
+    await userEvent.keyboard("{Enter}");
+    expect(onReschedule).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Apply" }).getAttribute("aria-busy")).toBe("true");
+    const change = { row: 0, start: 1, end: 3 };
+    await act(async () => {
+      rerender(
+        <Timeline
+          {...props}
+          preview={{
+            change,
+            moves: [
+              { row: 1, start: 4, end: 5 },
+              { row: 2, start: 6, end: 6 },
+            ],
+          }}
+        />,
+      );
+    });
+    expect(onReschedule).toHaveBeenCalledWith(change);
+    expect(container.querySelector("[aria-live]")?.textContent).toBe("B-1 rescheduled.");
+  });
+
+  it("shows the page's preview for a second look when it disagrees with the estimate", async () => {
+    const onReschedule = vi.fn(() => Promise.resolve(true));
+    const props = { label: "Build schedule", days, rows, links, onReschedule, awaitPreview: true };
+    const { rerender } = render(<Timeline {...props} />);
+    screen.getByRole("button", { name: /^B-1 Truss/ }).focus();
+    await userEvent.keyboard("{ArrowRight}{Enter}");
+    const change = { row: 0, start: 1, end: 3 };
+    await act(async () => {
+      rerender(<Timeline {...props} preview={{ change, moves: [{ row: 1, start: 4, end: 5 }] }} />);
+    });
+    expect(onReschedule).not.toHaveBeenCalled();
+    const shown = screen.getByRole("group", { name: "Reschedule preview" }).textContent;
+    expect(shown).toContain("1 successor moves: B-2.");
+    expect(shown).not.toContain("Checking");
+    await userEvent.keyboard("{Enter}");
+    expect(onReschedule).toHaveBeenCalledWith(change);
+  });
+
+  it("does not apply a waiting change that the page refuses or that changed meanwhile", async () => {
+    const onReschedule = vi.fn(() => Promise.resolve(true));
+    const props = { label: "Build schedule", days, rows, links, onReschedule, awaitPreview: true };
+    const { rerender } = render(<Timeline {...props} />);
+    screen.getByRole("button", { name: /^B-4 Strike/ }).focus();
+    await userEvent.keyboard("{ArrowRight}{Enter}");
+    const first = { row: 3, start: 2, end: 3 };
+    await act(async () => {
+      rerender(<Timeline {...props} preview={{ change: first, moves: [], refusal: "No." }} />);
+    });
+    expect(onReschedule).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Apply" })).toHaveProperty("disabled", true);
+    // Enter, then another day: the answer for the first change no longer matches, so nothing applies.
+    await userEvent.keyboard("{ArrowRight}");
+    await userEvent.click(screen.getByRole("button", { name: "Apply" }));
+    screen.getByRole("button", { name: /^B-4 Strike/ }).focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await act(async () => {
+      rerender(
+        <Timeline {...props} preview={{ change: { row: 3, start: 3, end: 4 }, moves: [] }} />,
+      );
+    });
+    expect(onReschedule).not.toHaveBeenCalled();
+    expect(screen.getByRole("group", { name: "Reschedule preview" }).textContent).toContain(
+      "Checking",
+    );
   });
 
   it("moves a milestone without resizing it, and says when the dependencies are circular", async () => {

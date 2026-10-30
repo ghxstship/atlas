@@ -500,6 +500,7 @@
       "cancel": "Cancel",
       "canceled": "Change canceled.",
       "change": "{key} moves to {start} through {end}.",
+      "checking": "Checking every dependency before the change can be applied.",
       "criticalChanges": "The critical path changes.",
       "criticalSame": "The critical path stays the same.",
       "cycle": "The dependencies are circular, so this change cannot be made.",

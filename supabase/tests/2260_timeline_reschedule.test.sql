@@ -1,14 +1,15 @@
 -- pgTAP: timeline reschedule (2260, A133). Moving and resizing by whole days on the project's wall clock, successors
 -- pushed through the chain by the days their dependency needs (every dependency type, lag, a gap broken before the
 -- change kept), nothing pulled earlier, preview equal to commit and writing nothing, cycles, locked windows, bad
--- windows, one-date resizes and undated records refused, the latest baseline window returned, and capability,
--- cross-tenant and anon denial.
+-- windows, one-date resizes and undated records refused, the latest baseline window returned, one-date records pushed
+-- by the instants they hold, a schedule whose chains split and rejoin previewed quickly, and capability, cross-tenant
+-- and anon denial.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(31);
+select plan(34);
 
 create function pg_temp.new_record(p_project text, p_kind text, p_title text, p_subtype text default null) returns uuid
 language plpgsql as $$
@@ -24,6 +25,9 @@ create temporary table preview_rows (record_id uuid, is_target boolean, shift_st
   old_starts_at timestamptz, old_ends_at timestamptz, old_due_at timestamptz, starts_at timestamptz, ends_at timestamptz,
   due_at timestamptz, baseline_starts_at timestamptz, baseline_ends_at timestamptz);
 grant select, insert, delete on preview_rows to public;
+create temporary table fan (phase integer, slot integer, id uuid);
+create temporary table fan_moves (like preview_rows);
+grant select, insert on fan, fan_moves to public;
 
 select has_function('app', 'reschedule_record', array['uuid', 'integer', 'integer', 'boolean', 'text'], 'app.reschedule_record exists');
 select is((select prosecdef from pg_catalog.pg_proc where oid = 'app.reschedule_record(uuid, integer, integer, boolean, text)'::regprocedure),
@@ -129,6 +133,34 @@ select throws_ok($$select * from app.reschedule_record((select id from world whe
   'reschedule_cycle: This schedule is circular; remove a dependency before moving the record.', 'a cycle is refused');
 select pg_temp.as_platform();
 update app.record_dependencies set deleted_at = now() where predecessor_record_id = pg_temp.id('c') and successor_record_id = pg_temp.id('a');
+
+-- One-date records push by the instants they hold: a successor due a day after its predecessor moves one day when the
+-- predecessor moves two (the case the timeline journey drags).
+select pg_temp.as_user('carol');
+insert into world values ('due1', pg_temp.new_record('prj_a', 'Task', 'Confirm the rigging plot', 'Execute'));
+insert into world values ('due2', pg_temp.new_record('prj_a', 'Task', 'Send the rigging plot to the venue', 'Execute'));
+update app.records set due_at = '2027-04-12 14:00+00' where id = pg_temp.id('due1');
+update app.records set due_at = '2027-04-13 14:00+00' where id = pg_temp.id('due2');
+insert into app.record_dependencies (predecessor_record_id, successor_record_id) values (pg_temp.id('due1'), pg_temp.id('due2'));
+select is((select due_at from app.reschedule_record(pg_temp.id('due1'), 2, 2) where record_id = pg_temp.id('due2')),
+  '2027-04-14 14:00+00'::timestamptz, 'a one-date successor is pushed by what the change adds to the gap between the instants');
+
+-- A schedule whose chains split and rejoin: six phases of eight tasks, each task depending on every task of the phase
+-- before (8^5 paths from the first task, 48 records). The cycle check walks records, not paths, so it stays quick.
+insert into fan select p, n, pg_temp.new_record('prj_a', 'Task', 'Phase ' || p || ' department ' || n, 'Execute')
+from generate_series(1, 6) p, generate_series(1, 8) n;
+update app.records r set starts_at = '2027-08-01 12:00+00'::timestamptz + pg_catalog.make_interval(days => f.phase * 2),
+  ends_at = '2027-08-01 22:00+00'::timestamptz + pg_catalog.make_interval(days => f.phase * 2)
+from fan f where r.id = f.id;
+insert into app.record_dependencies (predecessor_record_id, successor_record_id)
+select a.id, b.id from fan a join fan b on b.phase = a.phase + 1;
+set local statement_timeout = '10s';
+insert into fan_moves select * from app.reschedule_record((select id from fan where phase = 1 and slot = 1), 10, 10);
+select is((select count(*)::int from fan_moves), 41,
+  'a schedule that splits and rejoins previews within the statement timeout, pushing every later phase');
+select is((select count(*)::int from fan_moves m join fan f on f.id = m.record_id where f.phase = 6 and m.shift_start_days = 5), 8,
+  'the last phase moves by what the change adds through the whole chain (a day less each phase, as slack opens), every task of it');
+reset statement_timeout;
 
 -- Who may reschedule.
 select pg_temp.as_user('gina');

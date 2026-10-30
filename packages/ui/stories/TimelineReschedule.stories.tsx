@@ -62,7 +62,8 @@ function Reschedulable(): ReactElement {
   // The page's part: apply the change and the pushes the preview showed (a server does this in Atlas).
   const apply = (change: TimelineChange) =>
     setRows((list) => {
-      const after = pushSuccessors(list, links, change) ?? list;
+      const spans = list.map((r) => ({ start: r.start, end: r.end, point: r.milestone === true }));
+      const after = pushSuccessors(spans, links, change) ?? list;
       return list.map((r, i) => ({
         ...r,
         start: after[i]?.start ?? r.start,

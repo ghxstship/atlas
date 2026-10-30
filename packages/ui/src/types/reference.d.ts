@@ -640,6 +640,11 @@ export interface TimelineProps {
   onPendingChange?: (change: TimelineChange | null) => void;
   /** The page's preview of the pending change; it replaces the estimate from `links` while it matches. */
   preview?: TimelinePreview | null;
+  /**
+   * The page previews every pending change itself: Apply and Enter wait until `preview` matches the
+   * change, so nothing is applied on the strength of the estimate alone.
+   */
+  awaitPreview?: boolean;
 }
 export interface CalendarProps {
   /** First day of the month shown, as an ISO date such as 2026-11-01. */ month: string;

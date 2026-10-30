@@ -7,30 +7,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ActionError } from "@/components/work/action-result";
 import { ActionErrorAlert, useCopy } from "@/components/work/action-ui";
 import { rescheduleRecordAction } from "./actions";
+import { createPreviewer, previewOf, shiftsOf } from "./reschedule-preview";
 import { timelineView } from "./timeline-view";
 
 /** Quiet time after the last arrow key or pointer step before the server previews the change. */
 const PREVIEW_DELAY_MS = 250;
-
-/** The record a change is about and the whole days its start and end move. */
-function shiftsOf(bars: TimelineModel["bars"], change: TimelineChange) {
-  const bar = bars[change.row];
-  return bar
-    ? {
-        recordId: bar.record.id,
-        startDays: change.start - bar.start,
-        endDays: change.end - bar.end,
-      }
-    : null;
-}
 
 /**
  * Schedule > Timeline with drag to reschedule (Section 11.11, A133), for people who may change the
  * timeline. While a change is pending the bar shows the estimate the Timeline works out from the
  * drawn dependencies; once the pointer or keys rest, app.reschedule_record previews it on the server
  * (every dependency, locked records, records this view filters out) and that answer replaces the
- * estimate. Apply commits the same computation in one transaction, and the page refreshes with the
- * new dates. Loaded on demand with the timeline view, so other views never carry it (ADR 0027).
+ * estimate. Apply and Enter wait for that answer (`awaitPreview`), so what is applied is what the
+ * server previewed; the commit runs the same computation in one transaction and the page refreshes
+ * with the new dates. Loaded on demand with the timeline view, so other views never carry it
+ * (ADR 0027).
  */
 export function RescheduleTimeline({
   org,
@@ -45,49 +36,50 @@ export function RescheduleTimeline({
   const t = useCopy("schedule");
   const w = useCopy("work");
   const view = useMemo(() => timelineView(timeline, format), [timeline, format]);
-  const rowOf = useMemo(
-    () => new Map(timeline.bars.map((b, i) => [b.record.id, i])),
-    [timeline.bars],
-  );
-  const [preview, setPreview] = useState<TimelinePreview | null>(null);
+  // A preview belongs to the bars it was worked out on; after a refresh it no longer applies.
+  const [answer, setAnswer] = useState<{
+    bars: TimelineModel["bars"];
+    preview: TimelinePreview;
+  } | null>(null);
   const [error, setError] = useState<ActionError | null>(null);
   const [pending, setPending] = useState<TimelineChange | null>(null);
-  // Only the newest request may set the preview: an older answer arriving late is dropped.
-  const latest = useRef(0);
 
+  // The copy is read when an answer arrives, so a new translator never restarts a preview.
+  const copy = useRef({
+    error: (key: string) => w(`errors.${key}`),
+    offView: (count: number) => t("reschedule.offView", { count }),
+  });
   useEffect(() => {
-    const ask = ++latest.current;
-    if (!pending) return undefined;
-    const input = shiftsOf(timeline.bars, pending);
-    if (!input) return undefined;
-    const timer = setTimeout(() => {
-      void rescheduleRecordAction(org, { ...input, commit: false }).then((result) => {
-        if (ask !== latest.current) return;
-        if (!result.ok) {
-          setPreview({ change: pending, moves: [], refusal: w(`errors.${result.error.key}`) });
-          return;
-        }
-        const moves = [];
-        let offView = 0;
-        for (const m of result.data) {
-          if (m.isTarget) continue;
-          const row = rowOf.get(m.recordId);
-          const bar = row === undefined ? undefined : timeline.bars[row];
-          if (row === undefined || !bar) {
-            offView += 1;
-            continue;
-          }
-          moves.push({ row, start: bar.start + m.shiftStartDays, end: bar.end + m.shiftEndDays });
-        }
-        setPreview({
-          change: pending,
-          moves,
-          ...(offView > 0 ? { note: t("reschedule.offView", { count: offView }) } : {}),
-        });
-      });
-    }, PREVIEW_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [pending, org, rowOf, timeline.bars, t, w]);
+    copy.current = {
+      error: (key: string) => w(`errors.${key}`),
+      offView: (count: number) => t("reschedule.offView", { count }),
+    };
+  }, [t, w]);
+
+  // One previewer per set of bars: a refresh drops whatever the old one still had on its way.
+  const previewer = useRef<ReturnType<typeof createPreviewer> | null>(null);
+  useEffect(() => {
+    const bars = timeline.bars;
+    const current = createPreviewer({
+      delayMs: PREVIEW_DELAY_MS,
+      run: async (change) => {
+        const input = shiftsOf(bars, change);
+        if (!input) return { change, moves: [], refusal: copy.current.error("unexpected") };
+        const result = await rescheduleRecordAction(org, { ...input, commit: false });
+        return previewOf(bars, change, result, copy.current);
+      },
+      show: (preview) => setAnswer({ bars, preview }),
+      failure: (change) => ({ change, moves: [], refusal: copy.current.error("unexpected") }),
+    });
+    previewer.current = current;
+    return () => {
+      current.dispose();
+      if (previewer.current === current) previewer.current = null;
+    };
+  }, [org, timeline.bars]);
+  useEffect(() => {
+    previewer.current?.request(pending);
+  }, [pending, org, timeline.bars]);
 
   const apply = async (change: TimelineChange): Promise<boolean> => {
     const input = shiftsOf(timeline.bars, change);
@@ -107,7 +99,8 @@ export function RescheduleTimeline({
       <Timeline
         label={label}
         {...view}
-        preview={preview}
+        preview={answer && answer.bars === timeline.bars ? answer.preview : null}
+        awaitPreview
         onPendingChange={(change) => {
           setPending(change);
           if (!change) setError(null);
