@@ -57,8 +57,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "account",
     ]);
     // 43 kinds (A79, A91, A99 among them), plus the three marketplace moderation kinds of A90 (1473) and the four
-    // reported content kinds of ADR 0033 decision 57 (1630).
-    expect(registry.kinds).toHaveLength(54);
+    // reported content kinds of ADR 0033 decision 57 (1630), and P5's badge photo request (2822).
+    expect(registry.kinds).toHaveLength(55);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",

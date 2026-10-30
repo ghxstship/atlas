@@ -416,6 +416,18 @@ export default async function ProfilePage() {
         </Section>
       ) : null}
 
+      {/* P5: the photo each organization prints on the person's credential badge. */}
+      <Section
+        title={t("gateway.badgePhotos.section")}
+        action={
+          <ButtonLink href="/profile/badge-photos">{t("gateway.badgePhotos.open")}</ButtonLink>
+        }
+      >
+        <p className="m-0 text-text-13 text-text-secondary">
+          {t("gateway.badgePhotos.sectionLead")}
+        </p>
+      </Section>
+
       <Section title={t("gateway.profile.shares.title")}>
         {!shares.ok ? (
           <RegionError />

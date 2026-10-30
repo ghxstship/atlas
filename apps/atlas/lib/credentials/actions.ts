@@ -14,14 +14,24 @@ import {
   withdrawZoneAccess,
   CATEGORY_CODE,
 } from "@xos/data/credentials";
+import {
+  countOutcomes,
+  credentialPhotoStates,
+  removeCredentialPhoto,
+  removeCredentialPhotoObjects,
+  requestCredentialPhotos,
+} from "@xos/data/credential-photos";
 import { resolveProjectPerson } from "@xos/data/project-people";
 import { resolveScanIntake } from "@xos/data/scan-intake";
+import type { Route } from "next";
 import { revalidatePath } from "next/cache";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext } from "@/lib/shell/context";
 import { failed, type ActionState } from "@/lib/operations/state";
 import { localToInstant } from "@/lib/operations/time";
+import { getTranslate } from "@/lib/shell/translate";
+import { formatAsked, outcomeSummary } from "./photo-outcomes";
 
 /**
  * Credentials actions (Section 4.2). Each resolves the viewer's org context again (404 when it is
@@ -340,4 +350,70 @@ export async function recordScanAction(_: ActionState, form: FormData): Promise<
       decision: result.data.result,
     },
   };
+}
+
+// Badge photos (P5) --------------------------------------------------------------------------------
+
+/** Asks one credential's holder for a badge photo, from the credential record. */
+export async function requestCredentialPhotosAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const id = z.uuid().safeParse(form.get("id"));
+  if (!id.success) return { error: "notFound" };
+  const result = await requestCredentialPhotos(ctx.viewer.db, [id.data]);
+  if (!result.ok) return failed(result.error);
+  revalidatePath(`/${ctx.org.slug}`, "layout");
+  const t = await getTranslate();
+  return { ok: true, result: { summary: outcomeSummary(t, countOutcomes(result.data)) } };
+}
+
+/**
+ * The print panel's "Request missing photos": asks the holders of the checked badges whose photo is Missing or
+ * Requested, then returns to the panel with a count per outcome (counts only, never a name, in the URL).
+ */
+export async function requestMissingPhotosAction(form: FormData): Promise<void> {
+  const ctx = await contextFor(form);
+  const ids = z.array(z.uuid()).min(1).max(100).safeParse(form.getAll("id"));
+  const back = z
+    .string()
+    .regex(/^\/[^/]/)
+    .safeParse(form.get("back"));
+  const target = new URL(
+    back.success ? back.data : `/${ctx.org.slug}/credentials/issued`,
+    "http://x",
+  );
+  target.searchParams.set("print", "1");
+  if (ids.success) {
+    const states = await credentialPhotoStates(ctx.viewer.db, ids.data);
+    const wanted = ids.data.filter((id) => {
+      const state = states.ok ? states.data.get(id) : undefined;
+      return state === "Missing" || state === "Requested";
+    });
+    const result = wanted.length > 0 ? await requestCredentialPhotos(ctx.viewer.db, wanted) : null;
+    const counts = result?.ok ? countOutcomes(result.data) : {};
+    target.searchParams.set("asked", formatAsked(counts));
+    revalidatePath(`/${ctx.org.slug}`, "layout");
+  }
+  redirect(`${target.pathname}${target.search}` as Route);
+}
+
+/**
+ * An issuer removes the holder's badge photo, then deletes the objects the database hands back (none when the scanner
+ * already deleted it). A photo still being scanned, or one the scan could not clear, is refused by rule and stays.
+ */
+export async function removeCredentialPhotoAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const person = z.uuid().safeParse(form.get("personId"));
+  if (!person.success) return { error: "notFound" };
+  if (form.get("confirm") !== "on") return { error: "confirmRemovePhoto" };
+  const removed = await removeCredentialPhoto(ctx.viewer.db, ctx.org.id, person.data);
+  if (!removed.ok) return failed(removed.error);
+  const gone = await removeCredentialPhotoObjects(ctx.viewer.db, removed.data);
+  if (!gone.ok) return failed(gone.error);
+  return done(ctx.org.slug);
 }

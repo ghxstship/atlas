@@ -1,16 +1,19 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { buildDocumentModel } from "../../src/documents/generate.ts";
-import { DOCUMENT_KINDS } from "../../src/documents/model.ts";
+import { DOCUMENT_KINDS, type PrintSize } from "../../src/documents/model.ts";
+import type { DocumentDataMap } from "../../src/documents/templates.ts";
 import { qrMatrix } from "../../src/documents/qr.ts";
 import { INTER_REGULAR_HEX } from "../../src/documents/fonts.generated.ts";
 import {
   isEmbeddableImage,
   printable,
   renderDocumentPdf,
+  renderDocumentsPdf,
   sfntFromWoff,
+  streamDocumentsPdf,
 } from "../../src/documents/render.ts";
-import { BRAND, FIXTURES, LOGO_PNG, NOW } from "./fixtures.ts";
+import { BADGE_V2, BRAND, FIXTURES, LOGO_PNG, NOW, PHOTO_JPEG, PHOTO_PNG } from "./fixtures.ts";
 
 const EN: unknown = JSON.parse(
   readFileSync(new URL("../../../i18n/messages/en-US/documents.json", import.meta.url), "utf8"),
@@ -114,4 +117,164 @@ describe("tagged PDF/UA output", () => {
       "/MediaBox [0 0 612 792]",
     );
   }, 60_000);
+});
+
+describe("credential badges on cards and in batches (P5)", () => {
+  const ascii: DocumentDataMap["credential-badge"] = {
+    ...BADGE_V2,
+    credential: { ...BADGE_V2.credential, holderName: "Ana Ruiz" },
+  };
+  // No logo, so the only image in a file is the portrait.
+  const model = (paper: PrintSize, data: DocumentDataMap["credential-badge"] = ascii) =>
+    buildDocumentModel("credential-badge", data, {
+      locale: "en-US",
+      messages: EN,
+      brand: { ...BRAND, logo: null },
+      recordUrl: "https://atlas.example.test/r",
+      now: NOW,
+      paper,
+    });
+  const pages = (pdf: string) => (pdf.match(/\/Type \/Page\b(?!s)/g) ?? []).length;
+
+  /** A real JPEG grown to `size` bytes with comment segments, as a camera photo of that size would be. */
+  function jpegOf(size: number): Uint8Array {
+    const parts: Uint8Array[] = [PHOTO_JPEG.subarray(0, 2)];
+    let total = PHOTO_JPEG.length;
+    while (total < size) {
+      const n = Math.min(65_000, size - total);
+      const segment = new Uint8Array(n + 4);
+      segment.set([0xff, 0xfe, ((n + 2) >> 8) & 0xff, (n + 2) & 0xff]);
+      parts.push(segment);
+      total += segment.length;
+    }
+    parts.push(PHOTO_JPEG.subarray(2));
+    return Uint8Array.from(Buffer.concat(parts));
+  }
+
+  it("draws the CR80 card and A6 page boxes, one page each", async () => {
+    const cr80 = text(await renderDocumentPdf(model("cr80"), { paper: "cr80" }));
+    expect(cr80).toContain("/MediaBox [0 0 153.01 242.65]");
+    expect(pages(cr80)).toBe(1);
+    const a6 = text(await renderDocumentPdf(model("a6"), { paper: "a6" }));
+    expect(a6).toContain("/MediaBox [0 0 297.64 419.53]");
+    expect(pages(a6)).toBe(1);
+  }, 60_000);
+
+  it("tags the portrait and the gate code as Figures with alternative text, and the name as the heading", async () => {
+    for (const paper of ["cr80", "a6", "letter"] as const) {
+      const pdf = text(await renderDocumentPdf(model(paper), { paper }));
+      expect(pdf).toContain("/Alt (Photo of Ana Ruiz, the credential holder)");
+      expect(pdf).toContain("/Alt (Entry code for credential CR-000042)");
+      expect(pdf).toContain("/Subtype /Image");
+      expect(pdf).toContain("pdfuaid:part>1<");
+    }
+    const card = text(await renderDocumentPdf(model("cr80"), { paper: "cr80" }));
+    expect(card).toContain("/S /H1");
+    // The only QR on a card is the gate code: the record link is not drawn there.
+    expect(card).not.toContain("QR code that opens record");
+    const page = text(await renderDocumentPdf(model("letter"), { paper: "letter" }));
+    expect(page).toContain("QR code that opens record");
+    const a6 = text(await renderDocumentPdf(model("a6"), { paper: "a6" }));
+    expect(a6).toContain("/S /Table");
+    expect(card).not.toContain("/S /Table");
+  }, 60_000);
+
+  it("prints the placeholder for a missing photo or one it cannot embed", async () => {
+    for (const bytes of [null, new TextEncoder().encode("RIFF....WEBP")]) {
+      const data = { ...ascii, photo: bytes ? { bytes, source: "Profile" as const } : null };
+      const pdf = text(await renderDocumentPdf(model("cr80", data), { paper: "cr80" }));
+      expect(pdf).not.toContain("/Subtype /Image");
+      expect(pdf).not.toContain("/Alt (Photo of Ana Ruiz");
+    }
+    const png = { ...ascii, photo: { bytes: PHOTO_PNG, source: "Badge" as const } };
+    expect(text(await renderDocumentPdf(model("a6", png), { paper: "a6" }))).toContain(
+      "/Subtype /Image",
+    );
+  }, 60_000);
+
+  it("wraps a long name on the card and keeps it to one card", async () => {
+    const pdf = text(await renderDocumentPdf(model("cr80", BADGE_V2), { paper: "cr80" }));
+    expect(pages(pdf)).toBe(1);
+  }, 60_000);
+
+  it("refuses a card paper for any kind but the badge", async () => {
+    const invoice = buildDocumentModel("invoice", FIXTURES.invoice, {
+      locale: "en-US",
+      messages: EN,
+      brand: BRAND,
+      recordUrl: "u",
+      now: NOW,
+    });
+    await expect(renderDocumentPdf(invoice, { paper: "cr80" })).rejects.toThrow(/Letter or A4/);
+  });
+
+  it("puts a batch of three in one file, a Sect per badge with its own facts", async () => {
+    const three = ["CR-000001", "CR-000002", "CR-000003"].map((number) =>
+      model("cr80", { ...ascii, credential: { ...ascii.credential, number } }),
+    );
+    const pdf = text(
+      await renderDocumentsPdf(three, {
+        paper: "cr80",
+        title: "Credential badges (3)",
+        lang: "en-US",
+      }),
+    );
+    expect(pages(pdf)).toBe(3);
+    expect((pdf.match(/\/S \/Sect\b/g) ?? []).length).toBe(3);
+    expect((pdf.match(/\/S \/Document\b/g) ?? []).length).toBe(1);
+    for (const number of ["CR-000001", "CR-000002", "CR-000003"]) {
+      expect(pdf).toContain(`/Alt (Entry code for credential ${number})`);
+    }
+    expect(pdf).toContain("(Credential badges \\(3\\))");
+    const letter = text(
+      await renderDocumentsPdf(
+        three.map((m, i) =>
+          model("letter", {
+            ...ascii,
+            credential: { ...ascii.credential, number: `CR-00000${i + 1}` },
+          }),
+        ),
+        { paper: "letter", title: "Credential badges (3)", lang: "en-US" },
+      ),
+    );
+    expect(pages(letter)).toBe(3);
+  }, 60_000);
+
+  it("streams a 100-badge batch with 150 KB photos as it draws them", async () => {
+    const photo = jpegOf(150 * 1024);
+    expect(photo.length).toBeGreaterThanOrEqual(150 * 1024);
+    const hundred = Array.from({ length: 100 }, (_, i) =>
+      model("cr80", {
+        ...ascii,
+        credential: { ...ascii.credential, number: `CR-${String(i + 1).padStart(6, "0")}` },
+        photo: { bytes: photo, source: "Badge" },
+      }),
+    );
+    const reader = streamDocumentsPdf(hundred, {
+      paper: "cr80",
+      title: "Credential badges (100)",
+      lang: "en-US",
+    }).getReader();
+    let chunks = 0;
+    let bytes = 0;
+    let firstAt = -1;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks += 1;
+      bytes += value.length;
+      if (firstAt < 0 && bytes > 1024 * 1024) firstAt = chunks;
+    }
+    expect(bytes).toBeGreaterThan(100 * 150 * 1024);
+    // More than a megabyte has gone out long before the hundredth badge is drawn.
+    expect(chunks).toBeGreaterThan(firstAt);
+    expect(firstAt).toBeGreaterThan(0);
+    await expect(
+      renderDocumentsPdf([...hundred, hundred[0] as never], {
+        paper: "cr80",
+        title: "x",
+        lang: "en-US",
+      }),
+    ).rejects.toThrow(/1 to 100/);
+  }, 120_000);
 });

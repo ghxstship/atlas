@@ -122,6 +122,7 @@ insert into register_restated values
   ('app.content_reports.feed_post_id', 'app.content_moderation_decisions.feed_post_id', 'own'),
   ('app.content_reports.subject_kind', 'app.content_moderation_decisions.subject_kind', 'own'),
   ('app.correction_state_transitions.reason', 'app.time_entry_corrections.reason', 'own'),
+  ('app.credential_photos.person_id', 'app.consent_records.person_id', 'own'),
   ('app.credentials.project_id', 'app.credential_categories.project_id', 'registered'),
   ('app.credentials.project_id', 'app.engagements.project_id', 'registered'),
   ('app.cues.project_id', 'app.run_of_show.project_id', 'registered'),
