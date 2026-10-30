@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   changedFields,
+  formBefore,
   propertyEdit,
   sameValue,
   softDelete,
@@ -9,6 +10,7 @@ import {
   versionChain,
 } from "../components/undo/entries";
 import { createUndoStack } from "../components/undo/undo-stack";
+import { fromLocalInput, toLocalInput } from "../components/work/format";
 
 /** A fake server that records each call and answers ok, or refuses the calls named in `refuse`. */
 function server(refuse: readonly string[] = []) {
@@ -35,6 +37,24 @@ describe("undo entries for inline edits (A118)", () => {
     expect(diff.after).toEqual({ title: "Hang two banners" });
     expect(sameValue(null, undefined)).toBe(true);
     expect(sameValue("2027-06-05T18:00:00Z", "2027-06-05T19:00:00Z")).toBe(false);
+  });
+
+  it("does not count a stored time with seconds as an edit the form never made", () => {
+    const tz = "America/New_York";
+    // The row came in through API v1 with seconds; the form's inputs show it at the minute.
+    const held = { title: "Hang the banner", dueAt: "2026-11-01T10:00:30+00:00" };
+    const shown = { title: held.title, dueAt: fromLocalInput(toLocalInput(held.dueAt, tz), tz) };
+    expect(sameValue(shown.dueAt, held.dueAt)).toBe(false);
+
+    const titleOnly = { title: "Hang two banners", dueAt: shown.dueAt };
+    const diff = changedFields(formBefore(held, shown, titleOnly), titleOnly);
+    expect(diff.keys).toEqual(["title"]);
+
+    // A date the person did change is sent expecting the exact value the row held, so undo writes it back.
+    const moved = { title: held.title, dueAt: "2026-11-01T16:00:00.000Z" };
+    const dateDiff = changedFields(formBefore(held, shown, moved), moved);
+    expect(dateDiff.keys).toEqual(["dueAt"]);
+    expect(dateDiff.before).toEqual({ dueAt: "2026-11-01T10:00:30+00:00" });
   });
 
   it("undoes a property edit by writing the values before, expecting the values after", async () => {

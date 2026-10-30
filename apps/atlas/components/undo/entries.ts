@@ -40,6 +40,21 @@ export function changedFields<V extends FieldValues>(
 }
 
 /**
+ * The values an edit form started from, to compare with what it holds now. `held` is the row as stored, `shown` the
+ * same row read back through the form's inputs (a time with seconds comes back at the minute). A field whose form
+ * value is unchanged takes its value after, so what the form cannot show exactly is not an edit; a field the person
+ * changed keeps the value the row held, which a save expects and an undo writes back.
+ */
+export function formBefore<V extends FieldValues>(held: V, shown: V, after: V): V {
+  return Object.fromEntries(
+    (Object.keys(after) as (keyof V & string)[]).map((k) => [
+      k,
+      sameValue(shown[k], after[k]) ? (after[k] ?? null) : (held[k] ?? null),
+    ]),
+  ) as V;
+}
+
+/**
  * A property edit: undo writes the values before, expecting the values after; redo writes the values after,
  * expecting the values before.
  */

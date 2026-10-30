@@ -31,7 +31,7 @@ import { undoStack, type UndoResult } from "@xos/ui/undo";
 import { ConflictDialog } from "@/components/undo/conflict-dialog";
 import {
   changedFields,
-  sameValue,
+  formBefore,
   stateChange,
   toggle,
   type FieldValue,
@@ -336,7 +336,14 @@ export function EditRecordForm({
     endsAt: fromLocalInput(d.endsAt, tz),
     dueAt: fromLocalInput(d.dueAt, tz),
   });
-  const dirty = changedFields(base.fields, valuesOf(draft)).keys.length > 0;
+  const after = valuesOf(draft);
+  // Dates the person did not touch compare equal even when the row holds seconds the inputs cannot show.
+  const before = formBefore(
+    base.fields,
+    valuesOf(draftOf(base.fields, tz) as Record<RecordField, string>),
+    after,
+  );
+  const dirty = changedFields(before, after).keys.length > 0;
   const edit = useVersionedEdit<RecordFieldValues>({
     label: t("undo.edited", { key: record.key }),
     save: ({ set, expect, version, undoing }) =>
@@ -351,10 +358,10 @@ export function EditRecordForm({
           ? { replanReason: replan }
           : {}),
       }),
-    onSaved: ({ after, version }) => {
+    onSaved: ({ after: written, version }) => {
       setSaved(true);
       setReplan("");
-      setBase((b) => ({ fields: { ...b.fields, ...after }, version: version ?? b.version }));
+      setBase((b) => ({ fields: { ...b.fields, ...written }, version: version ?? b.version }));
     },
   });
   if (record.updatedAt !== base.version && !dirty && !edit.pending && !edit.conflict) {
@@ -398,7 +405,7 @@ export function EditRecordForm({
       onSubmit={(e) => {
         e.preventDefault();
         setSaved(false);
-        edit.submit(base.fields, valuesOf(draft), base.version);
+        edit.submit(before, after, base.version);
       }}
     >
       <h3 className="m-0 text-label-13 font-semibold">{t("edit.title")}</h3>
@@ -934,13 +941,11 @@ export function ExtensionForm({
   // An attribute the person did not touch compares equal even where the form shows it differently (an unset
   // checkbox reads as unchecked); one they changed is sent with the value the row held.
   const baseDraft = draftFrom(base);
-  const before = Object.fromEntries(
-    editable.map((f) => {
-      const shown = toValue(f, baseDraft);
-      const held = (base[f.column] ?? null) as FieldValue;
-      return [f.column, sameValue(shown, after[f.column] ?? null) ? after[f.column] : held];
-    }),
-  ) as Record<string, FieldValue>;
+  const before = formBefore(
+    base as Record<string, FieldValue>,
+    Object.fromEntries(editable.map((f) => [f.column, toValue(f, baseDraft)])),
+    after,
+  );
   const dirty = changedFields(before, after).keys.length > 0;
   const edit = useVersionedEdit<Record<string, FieldValue>>({
     label: t("undo.edited", { key: record.key }),
