@@ -12,6 +12,10 @@
 # oasdiff runs from its Docker image, pinned by version and digest. Set OASDIFF_BIN to a local
 # oasdiff binary of the same version to run without Docker. The documents are mounted read-only,
 # and external $refs are refused, so a document can never make oasdiff fetch anything.
+#
+# A one-off exception (ADR 0014) is a line in an err-ignore file next to the ADR that accepts it,
+# docs/adr/<number>-oasdiff-err-ignore.txt. Every such file is passed to oasdiff as --err-ignore; a line
+# names the operation and the change exactly as oasdiff reports it, and lines starting with # are comments.
 
 set -euo pipefail
 
@@ -56,10 +60,19 @@ if ! git -C "$REPO" cat-file -e "${BASE_REF}:${DOCUMENT}" 2>/dev/null; then
 fi
 git -C "$REPO" show "${BASE_REF}:${DOCUMENT}" >"$WORK/base.json"
 cp "$REVISION" "$WORK/revision.json"
+IGNORES=()
+for file in "$REPO"/docs/adr/*-oasdiff-err-ignore.txt; do
+  [[ -f "$file" ]] && IGNORES+=("$file")
+done
 
 echo "Gate 20: comparing ${DOCUMENT} at ${BASE_REF} (base) with $( [[ "$REVISION" == "$REPO/$DOCUMENT" ]] && git -C "$REPO" rev-parse --short HEAD || echo "$REVISION") (revision), oasdiff ${OASDIFF_VERSION}"
 
 ARGS=(breaking base.json revision.json --fail-on ERR --format "$FORMAT" --allow-external-refs=false)
+if [[ ${#IGNORES[@]} -gt 0 ]]; then
+  grep -hv -e '^#' -e '^[[:space:]]*$' "${IGNORES[@]}" >"$WORK/err-ignore.txt" || true
+  echo "Gate 20: $(wc -l <"$WORK/err-ignore.txt" | tr -d ' ') recorded exceptions from ${#IGNORES[@]} ADR err-ignore files."
+  ARGS+=(--err-ignore err-ignore.txt)
+fi
 # --color applies only to the text formats.
 if [[ "$FORMAT" == "text" || "$FORMAT" == "singleline" ]]; then ARGS+=(--color never); fi
 set +e

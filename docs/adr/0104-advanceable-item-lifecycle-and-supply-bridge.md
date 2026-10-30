@@ -153,3 +153,8 @@ Migrations 2680 to 2683 build section 4. Where the build differs from the text a
 - **API.** `poLines` and `assetUnits` take the new fields through correction entries (`po-line-rental`,
   `asset-unit-receipt-line`); `purchaseOrders.receive`, `purchaseOrders.returnGoods`, `poLines.hireWindowWarnings`,
   `goodsReturns`, `returnLines`, `poLineHireWarnings` and `assetUnitHire` are additions.
+- **Gate 20 exception.** Returned also enters the `asset_state` enum of every `assetUnits` response and of the scan
+  result, which oasdiff reports against v4.0.0 as six response-enum additions (response-property-enum-value-added).
+  This decision accepts them as a one-off exception under ADR 0014: they are listed in
+  [`0104-oasdiff-err-ignore.txt`](0104-oasdiff-err-ignore.txt), which `infra/ci/oasdiff.sh` passes to oasdiff as
+  `--err-ignore`. Any other breaking change still fails the gate.
