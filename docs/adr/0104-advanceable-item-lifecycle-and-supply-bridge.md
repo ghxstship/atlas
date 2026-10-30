@@ -168,3 +168,38 @@ Migrations 2680 to 2683 build section 4. Where the build differs from the text a
   fails the gate. Clients typed from v4.0.0 (the `sdk-ts` union, the `sdk-python` `Literal` of a `TypedDict`) do
   not list Returned; neither validates at run time, so a returned unit reads as an unlisted string until the client
   regenerates. Without the confirmation, the alternative is to keep Returned out of v1 responses until `/v2`.
+
+## Amendment: R7 as built (RRR-187, 2026-10-30)
+
+Migrations 2690 to 2698 build section 5. Where the build differs from the text above or adds to it:
+
+- **No Issue or Return lot kinds.** 2690 adds none. Possession out of a lot stays Check Out and Check In, as the
+  Alternatives above reject the two extra kinds.
+- **Asset class offering.** `app.asset_classes.offering` is a column of type `app.offering_kind`, used for Radios and
+  Carts. A live (org, offering) pair is unique. `app.ensure_offering_asset_class` finds or creates the class from
+  the offering's Standard Library element; it refuses any other offering with `offering_not_asset_class`. This
+  replaces a free-text offering key. It reaches API v1 as the correction entry `asset-class-offering`, and
+  `credential_categories.category_kind` (Access or Parking) as `credential-category-kind`. The orchestrator records
+  both in the ADR 0023 register at merge.
+- **Caps.** `private.check_allocation_caps(allocation, step, reason)` runs at request, approve, assign and split. It
+  returns how far the allocation goes beyond the offering's allowance. Going beyond needs a reason when the setting
+  `advancing.allowance_overflow` says so. An unknown step refuses with `allocation_cap_step`.
+- **Section 6, as built.**
+  - `private.guard_asset_reservation` (BEFORE) locks the class row first, then the source row (unit, lot or order
+    line), so every hold on a class waits in one order.
+  - The AFTER trigger `private.check_asset_reservation_capacity` refuses two overlapping holds on one unit, and a
+    peak above the class's capacity.
+  - The peak is a boundary sweep over the live windows (`private.asset_reservation_peak`), so two holds that never
+    overlap each other do not add up.
+  - A rental order line counts for its open quantity, and only inside its hire period.
+- **Cascades (2694).**
+  - An engagement moving to Complete or Canceled withdraws its open allocations, releases their holds and revokes
+    their credentials and parking passes.
+  - So does a roster entry that is Withdrawn, deleted, or whose person declines.
+  - The revocation runs inside the trusted operations `engagement_close` and `roster_entry_close`.
+    `private.guard_credential` then skips the revoke-capability check and records who closed the engagement or entry.
+- **Parity (2697).**
+  - G-174: `app.allocation_allowances` shows what is left of each allowance.
+  - G-91: `app.allocation_radio_channels` stores radio channels, set as a whole through
+    `app.set_allocation_radio_channels`, and read by `app.radio_handout` and the radio hand-out document (ADR 0031).
+  - G-93: `app.asset_class_availability` gives a class's availability over a window.

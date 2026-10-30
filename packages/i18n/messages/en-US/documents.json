@@ -466,6 +466,21 @@
     "signature": "Signature",
     "returned": "Returned",
     "empty": "No radios are allocated on this project yet.",
-    "footer": "Sign when you take a radio and when you hand it back."
+    "footer": "Sign when you take a radio and when you hand it back.",
+    "statuses": {
+      "Requested": "Requested",
+      "Approved": "Approved",
+      "Reserved": "Reserved",
+      "AwaitingOrder": "Awaiting order",
+      "OnOrder": "On order",
+      "Confirmed": "Confirmed",
+      "Received": "Received",
+      "PartlyIssued": "Partly issued",
+      "Issued": "Issued",
+      "Returned": "Returned",
+      "Revoked": "Revoked",
+      "Declined": "Declined",
+      "Withdrawn": "Withdrawn"
+    }
   }
 }

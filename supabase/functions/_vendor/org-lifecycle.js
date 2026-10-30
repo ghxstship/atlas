@@ -503,6 +503,21 @@ var documents_default$1 = {
     returned: "Returned",
     empty: "No radios are allocated on this project yet.",
     footer: "Sign when you take a radio and when you hand it back.",
+    statuses: {
+      Requested: "Requested",
+      Approved: "Approved",
+      Reserved: "Reserved",
+      AwaitingOrder: "Awaiting order",
+      OnOrder: "On order",
+      Confirmed: "Confirmed",
+      Received: "Received",
+      PartlyIssued: "Partly issued",
+      Issued: "Issued",
+      Returned: "Returned",
+      Revoked: "Revoked",
+      Declined: "Declined",
+      Withdrawn: "Withdrawn",
+    },
   },
 };
 var documents_default = {
@@ -996,6 +1011,21 @@ var documents_default = {
     returned: "Devuelta",
     empty: "Aún no hay radios asignadas en este proyecto.",
     footer: "Firma al recibir una radio y al devolverla.",
+    statuses: {
+      Requested: "Solicitada",
+      Approved: "Aprobada",
+      Reserved: "Reservada",
+      AwaitingOrder: "Pendiente de pedido",
+      OnOrder: "Pedida",
+      Confirmed: "Confirmada",
+      Received: "Recibida",
+      PartlyIssued: "Entregada en parte",
+      Issued: "Entregada",
+      Returned: "Devuelta",
+      Revoked: "Revocada",
+      Declined: "Rechazada",
+      Withdrawn: "Retirada",
+    },
   },
 };
 //#endregion

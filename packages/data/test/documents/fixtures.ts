@@ -467,6 +467,47 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       ],
     },
   },
+  "radio-handout": {
+    project,
+    lines: [
+      {
+        allocationId: "a1000000-0000-4000-8000-000000000002",
+        rosterEntryId: "re2",
+        personName: "Zoë Ångström",
+        partyName: "Bayside Audio",
+        className: "Two-way radios",
+        quantity: 1,
+        tagsIssued: [],
+        channelNumbers: [2],
+        channelNames: ["Audio"],
+        status: "Approved",
+      },
+      {
+        allocationId: "a1000000-0000-4000-8000-000000000001",
+        rosterEntryId: "re1",
+        personName: "Kai Morgan",
+        partyName: "Bayside Audio",
+        className: "Two-way radios",
+        quantity: 1,
+        tagsIssued: ["R-001"],
+        channelNumbers: [1, 2],
+        channelNames: ["Production", "Audio"],
+        status: "Issued",
+      },
+      {
+        allocationId: "a1000000-0000-4000-8000-000000000003",
+        rosterEntryId: null,
+        personName: "",
+        partyName: "Ivy Marchetti Lighting",
+        className: "Two-way radios",
+        quantity: 4,
+        tagsIssued: ["R-010", "R-011"],
+        channelNumbers: [],
+        channelNames: [],
+        status: "Partly Issued",
+      },
+    ],
+  },
 };
 
 /**

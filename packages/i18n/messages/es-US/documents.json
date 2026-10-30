@@ -466,6 +466,21 @@
     "signature": "Firma",
     "returned": "Devuelta",
     "empty": "Aún no hay radios asignadas en este proyecto.",
-    "footer": "Firma al recibir una radio y al devolverla."
+    "footer": "Firma al recibir una radio y al devolverla.",
+    "statuses": {
+      "Requested": "Solicitada",
+      "Approved": "Aprobada",
+      "Reserved": "Reservada",
+      "AwaitingOrder": "Pendiente de pedido",
+      "OnOrder": "Pedida",
+      "Confirmed": "Confirmada",
+      "Received": "Recibida",
+      "PartlyIssued": "Entregada en parte",
+      "Issued": "Entregada",
+      "Returned": "Devuelta",
+      "Revoked": "Revocada",
+      "Declined": "Rechazada",
+      "Withdrawn": "Retirada"
+    }
   }
 }
