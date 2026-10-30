@@ -122,10 +122,11 @@ select is((select project_id from app.domain_events where event_type = 'invoice_
 select is((select count(*)::int from app.domain_events where event_type like '%line.trashed' and data <> '{}'::jsonb), 0,
   'a line''s event carries none of the line''s content');
 
--- The project's feed reaches a Viewer without finance read: they see that a line went to Trash, never what it said.
-select pg_temp.as_user('gina');
+-- The project's feed reaches a Collaborator on the project without finance read: they see that a line went to Trash,
+-- never what it said.
+select pg_temp.as_user('erin');
 select is((select count(*)::int from app.settlement_lines where id = pg_temp.id('sl2')), 0,
-  'a project Viewer cannot read the settlement line');
+  'a Collaborator on the project cannot read the settlement line');
 select is((select count(*)::int from app.activity_feed(pg_temp.id('org_a'), pg_temp.id('prj_a')) f
   where f.event_type = 'settlement_line.trashed' and f.subject_id = pg_temp.id('sl2')), 1,
   'but sees its deletion in the project''s Activity feed');
