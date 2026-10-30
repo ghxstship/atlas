@@ -26,6 +26,7 @@ export const HELP_CONTENT: HelpIndex = {
           "advancing.submissions",
           "advancing.riders",
           "advancing.reconciliation",
+          "advancing.crew",
           "project.advancing",
         ],
         order: 42,
@@ -286,7 +287,7 @@ export const HELP_CONTENT: HelpIndex = {
         slug: "places",
         title: "Venues, spaces and site plans",
         summary:
-          "Record venues and their capabilities, divide them into spaces and zones, and pin plans to drawings.",
+          "Record venues, their levels and specs, divide them into spaces and zones, draw on site plans and track signage.",
         kind: "page",
         nodes: [
           "places",
@@ -294,6 +295,7 @@ export const HELP_CONTENT: HelpIndex = {
           "places.spaces-and-zones",
           "places.capability-documents",
           "places.site-plans",
+          "places.signage",
         ],
         order: 30,
       },
@@ -473,6 +475,7 @@ export const HELP_CONTENT: HelpIndex = {
           "advancing.submissions",
           "advancing.riders",
           "advancing.reconciliation",
+          "advancing.crew",
           "project.advancing",
         ],
         order: 42,
@@ -735,7 +738,7 @@ export const HELP_CONTENT: HelpIndex = {
         slug: "places",
         title: "Sedes, espacios y planos del sitio",
         summary:
-          "Registre sedes y sus capacidades, divídalas en espacios y zonas y ubique elementos en planos.",
+          "Registra sedes, sus niveles y especificaciones, divídelas en espacios y zonas, dibuja en planos del sitio y sigue la señalización.",
         kind: "page",
         nodes: [
           "places",
@@ -743,6 +746,7 @@ export const HELP_CONTENT: HelpIndex = {
           "places.spaces-and-zones",
           "places.capability-documents",
           "places.site-plans",
+          "places.signage",
         ],
         order: 30,
       },

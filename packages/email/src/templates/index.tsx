@@ -74,6 +74,20 @@ export interface TemplateProps {
     readonly effectiveOn: Date;
     readonly listUrl: string;
   };
+  /**
+   * An invitation to an external account or onto a crew roster (R4, migrations 2630 and 2636), sent by the
+   * platform to an address that may not be on XOS yet. The link is Gateway sign-in; the address never goes
+   * into it, because the invitation is claimed by the confirmed email the person signs in with.
+   */
+  readonly party_invitation: {
+    readonly kind: "account" | "roster";
+    readonly inviterName: string;
+    readonly accountName: string;
+    readonly projectName: string;
+    readonly partyName: string;
+    readonly expiresAt: Date;
+    readonly signInUrl: string;
+  };
 }
 
 export type TemplateCode = keyof TemplateProps;
@@ -311,6 +325,38 @@ export const templates: { readonly [C in TemplateCode]: Template<TemplateProps[C
           >
             <Paragraph>{ctx.t("subprocessor_confirm.body")}</Paragraph>
             <Paragraph>{ctx.t("subprocessor_confirm.ignore")}</Paragraph>
+          </Layout>
+        ),
+      };
+    },
+  },
+  party_invitation: {
+    transactional: true,
+    compose: (p, ctx) => {
+      const subject =
+        p.kind === "account"
+          ? ctx.t("party_invitation.accountSubject", {
+              inviterName: p.inviterName,
+              accountName: p.accountName,
+            })
+          : ctx.t("party_invitation.rosterSubject", {
+              inviterName: p.inviterName,
+              partyName: p.partyName,
+              projectName: p.projectName,
+            });
+      return {
+        subject,
+        element: (
+          <Layout
+            locale={ctx.locale}
+            t={ctx.t}
+            sender={ctx.sender}
+            preview={subject}
+            heading={subject}
+            transactional
+            action={{ label: ctx.t("party_invitation.action"), url: p.signInUrl }}
+          >
+            <Paragraph>{ctx.t("party_invitation.how", { expiresAt: p.expiresAt })}</Paragraph>
           </Layout>
         ),
       };

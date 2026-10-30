@@ -246,7 +246,9 @@
       "asset_units": "Asset units",
       "purchase_orders": "Purchase orders",
       "invoices": "Invoices",
-      "incidents": "Incidents"
+      "incidents": "Incidents",
+      "spaces": "Spaces",
+      "signs": "Signs"
     }
   },
   "canon": {

@@ -1,7 +1,9 @@
 {
   "actions": {
     "download": "Download PDF",
-    "downloadA4": "PDF (A4)"
+    "downloadA4": "PDF (A4)",
+    "size": "Paper size",
+    "downloadSize": "Download PDF"
   },
   "kinds": {
     "purchase-order": "Purchase order",
@@ -16,7 +18,9 @@
     "incident-report": "Incident report",
     "final-cost-report": "Final cost report",
     "agreement-certificate": "Signature certificate",
-    "deletion-certificate": "Deletion certificate"
+    "deletion-certificate": "Deletion certificate",
+    "site-plan": "Site plan",
+    "signage-build-sheet": "Signage build sheet"
   },
   "facts": {
     "recordKey": "Record key",
@@ -157,7 +161,14 @@
       "active": "Active",
       "expired": "Expired",
       "revoked": "Revoked"
-    }
+    },
+    "photoAlt": "Photo of {name}, the credential holder",
+    "noPhoto": "No photo on file",
+    "scanAlt": "Entry code for credential {number}",
+    "scanCaption": "Scan at entry",
+    "scanNoteV2": "Scan the entry code to check this credential. A scan decides access at the time of the scan, so a printed badge never outlives a revocation. The code in the header opens the record.",
+    "window": "Valid {from} to {to}",
+    "batchTitle": "Credential badges ({count})"
   },
   "inspectionReport": {
     "title": "Inspection report: {template}",
@@ -451,6 +462,111 @@
       "fringe": "Fringe benefits have been paid in cash and/or to bona fide fringe benefit plans, funds, or programs.",
       "wages": "All workers on the project have been paid the full weekly wages earned, and no rebates or deductions have been or will be made either directly or indirectly, other than permissible deductions as defined in 29 CFR part 3.",
       "warning": "The willful falsification of any of the above statements may subject the contractor or subcontractor to civil or criminal prosecution (see section 1001 of title 18 and section 3729 of title 31 of the United States Code), as well as debarment from future federal and federally-assisted contracts."
+    }
+  },
+  "paper": {
+    "letter": "US Letter",
+    "a4": "A4",
+    "a6": "A6",
+    "cr80": "CR80 card"
+  },
+  "sitePlan": {
+    "title": "Site plan {title}",
+    "venue": "Venue",
+    "level": "Level",
+    "scale": "Scale",
+    "scaleValue": "Calibrated from a known distance of {distance}",
+    "notCalibrated": "Not calibrated",
+    "alt": "Site plan {title} with {pins} pins and {shapes} shapes drawn on it. The legend lists each one.",
+    "drawingNotStored": "Drawing not stored in XOS",
+    "drawingClassified": "The drawing is classified above Internal, so it is not printed here.",
+    "drawingRemoved": "The drawing was removed, so it is not printed here.",
+    "legend": "Legend",
+    "kind": "Kind",
+    "count": "Count",
+    "length": "Length",
+    "area": "Area",
+    "number": "No.",
+    "label": "Label",
+    "measure": "Length or area",
+    "signs": "Signs here",
+    "emptyLegend": "Nothing is drawn on this plan yet.",
+    "pinTable": "Pins",
+    "across": "Across (%)",
+    "down": "Down (%)",
+    "noPins": "This plan has no pins.",
+    "kinds": {
+      "Pin": "Pin",
+      "Route": "Route",
+      "Barrier": "Barrier",
+      "Area": "Area",
+      "Label": "Label"
+    },
+    "states": {
+      "Draft": "Draft",
+      "Locked": "Locked",
+      "Live": "Live",
+      "Archived": "Archived"
+    },
+    "units": {
+      "imperial": {
+        "length": "{value} ft",
+        "area": "{value} sq ft"
+      },
+      "metric": {
+        "length": "{value} m",
+        "area": "{value} m²"
+      }
+    }
+  },
+  "buildSheet": {
+    "title": "Signage build sheet {project}",
+    "showing": "Showing",
+    "count": "Signs",
+    "signs": "Signs to build and place",
+    "key": "Key",
+    "signTitle": "Sign",
+    "type": "Type",
+    "sizeLabel": "Size",
+    "quantity": "Qty",
+    "substrate": "Material",
+    "location": "Location",
+    "state": "State",
+    "placedInitials": "Placed (initials)",
+    "noSigns": "No signs match this sheet.",
+    "atPin": "{plan}, pin {n}: {label}",
+    "unlocated": "No location yet",
+    "planAlt": "Site plan {title} with the {pins} pins where signs go, numbered to match the Location column.",
+    "artwork": "Artwork",
+    "artworkFor": "{key} {title}",
+    "artworkAlt": "Artwork for sign {key} {title}",
+    "artworkFile": "Artwork file: {name}",
+    "size": {
+      "imperial": "{width} × {height} in",
+      "metric": "{width} × {height} cm"
+    },
+    "filters": {
+      "open": "Signs not yet placed",
+      "to-order": "To order",
+      "ordered": "Ordered",
+      "printed": "Printed",
+      "placed": "Placed",
+      "all": "All signs"
+    },
+    "types": {
+      "Directional": "Directional",
+      "Identification": "Identification",
+      "Regulatory": "Regulatory",
+      "Informational": "Informational",
+      "Sponsor": "Sponsor",
+      "Menu": "Menu",
+      "Digital": "Digital"
+    },
+    "states": {
+      "ToOrder": "To order",
+      "Ordered": "Ordered",
+      "Printed": "Printed",
+      "Placed": "Placed"
     }
   }
 }

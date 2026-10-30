@@ -1,4 +1,4 @@
--- 1639_notification_kind_seed.test.sql
+-- 2829_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -31,7 +31,8 @@ select set_eq(
   ('import_finished', 'An import finished validating or committing.', true),
   ('dsar_received', 'Acknowledges a data subject request and states its due date.', true),
   ('subprocessor_confirm', 'Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).', true),
-  ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false)$$,
+  ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false),
+  ('party_invitation', 'Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.', true)$$,
   'email templates match notification-kinds.yaml');
 
 select set_eq(
@@ -255,6 +256,10 @@ select set_eq(
   ('help_request.assigned', 'Email', 'assignments', 'notification'),
   ('help_request.assigned', 'SMS', 'assignments', null::text),
   ('help_request.assigned', 'Push', 'assignments', null::text),
+  ('credential_photo.requested', 'In App', 'assignments', null::text),
+  ('credential_photo.requested', 'Email', 'assignments', 'notification'),
+  ('credential_photo.requested', 'SMS', 'assignments', null::text),
+  ('credential_photo.requested', 'Push', 'assignments', null::text),
   ('opportunity.matched', 'In App', 'opportunities', null::text),
   ('opportunity.matched', 'Email', 'opportunities', 'notification'),
   ('opportunity.matched', 'Push', 'opportunities', null::text),
@@ -269,7 +274,19 @@ select set_eq(
   ('document.expiring', 'In App', 'expiry_reminders', null::text),
   ('document.expiring', 'Email', 'expiry_reminders', 'notification'),
   ('document.expiring', 'SMS', 'expiry_reminders', null::text),
-  ('document.expiring', 'Push', 'expiry_reminders', null::text)$$,
+  ('document.expiring', 'Push', 'expiry_reminders', null::text),
+  ('roster_entry.invited', 'In App', 'assignments', null::text),
+  ('roster_entry.invited', 'Email', 'assignments', 'notification'),
+  ('roster_entry.invited', 'SMS', 'assignments', null::text),
+  ('roster_entry.invited', 'Push', 'assignments', null::text),
+  ('roster_entry.returned', 'In App', 'approvals', null::text),
+  ('roster_entry.returned', 'Email', 'approvals', 'notification'),
+  ('roster_entry.returned', 'SMS', 'approvals', null::text),
+  ('roster_entry.returned', 'Push', 'approvals', null::text),
+  ('roster_entry.declined', 'In App', 'assignments', null::text),
+  ('roster_entry.declined', 'Email', 'assignments', 'notification'),
+  ('roster_entry.declined', 'SMS', 'assignments', null::text),
+  ('roster_entry.declined', 'Push', 'assignments', null::text)$$,
   'notification kinds by channel match notification-kinds.yaml');
 
 select set_eq(

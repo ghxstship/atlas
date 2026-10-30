@@ -1,0 +1,49 @@
+-- The B1 fixture parts (2900 to 2905), included after a domain world: 2900_places_world.psql includes them after A03's
+-- domain world, and the sign suites after R7a's supply world (2681_supply_world.psql), which builds on the same.
+--
+-- plan_a: a Draft site plan of prj_a on venue_a, created by dave (Member), with pin pin_a.
+-- plan_b: a Draft site plan of prj_a2 (no members), created by alice.
+-- gina (Viewer) is a Field member of prj_a, so she reads its rows and writes none.
+-- pg_temp.clean_file uploads a file on a subject as the current user and has the scanner mark it Clean.
+
+create function pg_temp.clean_file(p_key text, p_subject_table text, p_subject_id uuid, p_filename text, p_type text)
+returns uuid
+language plpgsql as $$
+declare
+  v_version uuid;
+  v_object text;
+  v_claims text := current_setting('request.jwt.claims', true);
+begin
+  select u.attachment_version_id, u.object_name into v_version, v_object
+  from app.begin_attachment_upload(p_subject_table, p_subject_id, p_filename, p_type, 1200) u;
+  insert into storage.objects (bucket_id, name, metadata) values ('attachments', v_object, '{"size": 1200}');
+  perform app.complete_attachment_upload(v_version, repeat('ab', 32));
+  perform set_config('role', 'postgres', true);
+  perform app.record_attachment_scan(v_version, true);
+  perform set_config('role', 'authenticated', true);
+  insert into world values (p_key, v_version);
+  return v_version;
+end $$;
+
+create function pg_temp.build_places_world() returns void
+language plpgsql as $$
+declare
+  v_id uuid;
+begin
+  perform pg_temp.as_user('dave');
+  insert into app.site_plans (project_id, venue_id, title, image_uri)
+  values (pg_temp.id('prj_a'), pg_temp.id('venue_a'), 'Ground floor', 'attachments/pending') returning id into v_id;
+  insert into world values ('plan_a', v_id);
+  insert into app.site_plan_pins (site_plan_id, label, x_ratio, y_ratio) values (v_id, 'Main gate', 0.2, 0.3) returning id into v_id;
+  insert into world values ('pin_a', v_id);
+
+  perform pg_temp.as_user('alice');
+  -- gina (Viewer) is put on prj_a, so she reads its places rows without being able to write them.
+  insert into app.project_members (project_id, membership_id, project_role) values (pg_temp.id('prj_a'), pg_temp.id('gina@org_a'), 'Field');
+  insert into app.site_plans (project_id, title, image_uri)
+  values (pg_temp.id('prj_a2'), 'Gala hall', 'https://example.test/gala.png') returning id into v_id;
+  insert into world values ('plan_b', v_id);
+  perform pg_temp.as_platform();
+end $$;
+
+select pg_temp.build_places_world();

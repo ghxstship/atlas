@@ -16,6 +16,7 @@ import {
 import { ActionError, echoed, fieldError } from "./action-error";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { AttachmentPreview } from "@/components/files/file-preview";
 /** Comments on a project (Section 19.6): the main thread, newest last, with a composer. */
 export function CommentsPanel({
   org,
@@ -175,6 +176,7 @@ export function AttachmentsPanel({
                       {status === "Infected" ? t("collab.infected") : t("collab.scanning")}
                     </Tag>
                   )}
+                  <AttachmentPreview attachment={a} />
                   {a.current ? (
                     <Button size="sm" variant="secondary" onClick={() => void open(a.id)}>
                       {t("collab.download")}

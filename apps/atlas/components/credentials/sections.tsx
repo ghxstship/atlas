@@ -17,6 +17,8 @@ import {
   type OperationsProject,
   type Zone,
 } from "@xos/data/credentials";
+import { badgePhotos, badgePhotoThumbnail } from "@xos/data/credential-photos";
+import { printSizesFor } from "@xos/data/documents/model";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
@@ -53,6 +55,8 @@ import {
   grantZoneAccessAction,
   issueCredentialAction,
   recordScanAction,
+  removeCredentialPhotoAction,
+  requestCredentialPhotosAction,
   revokeCredentialAction,
   updateCategoryAction,
   updateWindowAction,
@@ -65,6 +69,9 @@ import { AccessMatrixEditor, CredentialBadge } from "./client";
 import { ScanIntakeQueue } from "./scan-intake";
 import { DocumentActions } from "@/components/documents/document-actions";
 import { CollectionPage } from "@/components/platform/collection-page";
+import { env } from "@/lib/env";
+import { gatewayUrl } from "@/lib/gateway-url";
+import { BadgePrint, PHOTO_TONE } from "./badge-print";
 
 /**
  * The Credentials module (Section 4.2: categories, issuance, the access grid and scans), one
@@ -342,6 +349,7 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
   const categoryList = unwrap(categories, "credential categories");
   const peekId = param(page.search, "peek");
   const creating = param(page.search, "create") === "1";
+  const printing = param(page.search, "print") === "1";
   const canIssue = can(page, "credentials.credential.issue");
   const title = t("nav.atlas.pages.credentials.issued");
   const peekHref = (c: IssuedCredential) =>
@@ -444,14 +452,28 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
           views={views}
           view={view}
           action={
-            canIssue ? (
-              <ButtonLink
-                href={sectionHref(page, { create: "1", peek: undefined, section })}
-                variant="primary"
-              >
-                {t("credentials.issued.new")}
-              </ButtonLink>
-            ) : undefined
+            <span className="inline-flex flex-wrap items-center gap-8">
+              {issued.length > 0 ? (
+                <ButtonLink
+                  href={sectionHref(page, {
+                    print: "1",
+                    peek: undefined,
+                    create: undefined,
+                    section,
+                  })}
+                >
+                  {t("credentials.print.action")}
+                </ButtonLink>
+              ) : null}
+              {canIssue ? (
+                <ButtonLink
+                  href={sectionHref(page, { create: "1", peek: undefined, section })}
+                  variant="primary"
+                >
+                  {t("credentials.issued.new")}
+                </ButtonLink>
+              ) : null}
+            </span>
           }
         />
       }
@@ -481,6 +503,7 @@ export async function IssuedSection({ page }: { page: ModulePage }) {
           chooseProjectNotice(page, section)
         )
       ) : null}
+      {printing ? <BadgePrint page={page} credentials={issued} section={section} /> : null}
       {body}
       {peekId ? <CredentialRecord page={page} id={peekId} section={section} /> : null}
     </CollectionPage>
@@ -655,8 +678,14 @@ async function CredentialRecord({
             c.validTo ? dateTime(format, c.validTo, timeZone) : t("credentials.issued.openEnded")
           }
         />
-        <DocumentActions org={page.ctx.org.slug} kind="credential-badge" id={c.id} />
+        <DocumentActions
+          org={page.ctx.org.slug}
+          kind="credential-badge"
+          id={c.id}
+          sizes={printSizesFor("credential-badge")}
+        />
       </RecordSection>
+      <BadgePhotoSection page={page} credential={c} timeZone={timeZone} />
       {canEdit ? (
         <RecordSection id="credential-window" title={t("credentials.issued.windowHeading")}>
           <ActionForm
@@ -718,6 +747,126 @@ async function CredentialRecord({
         canChange={can(page, "credentials.credential.issue")}
       />
     </RecordChrome>
+  );
+}
+
+/**
+ * The badge photo of a credential (P5): the photo its badge prints and where it came from, with a thumbnail, and
+ * for issuers a request to the holder, the Gateway link to send them, and removal once the photo's scan finished (an
+ * issuer cannot delete an object before it scans Clean, 2821). A revoked or expired credential prints no photo, so it
+ * shows only that.
+ */
+async function BadgePhotoSection({
+  page,
+  credential: c,
+  timeZone,
+}: {
+  page: ModulePage;
+  credential: IssuedCredential;
+  timeZone: string;
+}) {
+  const t = page.t;
+  const format = await getFormatter();
+  const rows = await badgePhotos(page.ctx.viewer.db, [c.id]);
+  const row = rows.ok ? rows.data[0] : undefined;
+  const name = c.holderName ?? t("credentials.common.unnamed");
+  if (!row) {
+    return (
+      <RecordSection id="credential-photo" title={t("credentials.photo.heading")}>
+        <p className="m-0 text-text-13 text-text-secondary">{t("credentials.photo.notLive")}</p>
+      </RecordSection>
+    );
+  }
+  const thumbnail = await badgePhotoThumbnail(page.ctx.viewer.db, row);
+  const canIssue = can(page, "credentials.credential.issue");
+  const link = env().GATEWAY_SITE_URL ? gatewayUrl("/profile/badge-photos") : null;
+  const when = row.providedAt
+    ? t("credentials.photo.providedOn", { date: dateTime(format, row.providedAt, timeZone) })
+    : row.requestedAt
+      ? t("credentials.photo.requestedOn", { date: dateTime(format, row.requestedAt, timeZone) })
+      : null;
+  return (
+    <RecordSection id="credential-photo" title={t("credentials.photo.heading")}>
+      <div className="flex flex-wrap items-start gap-12">
+        {thumbnail ? (
+          // A 60-second signed link (or a public profile photo); next/image would cache it past its expiry.
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={thumbnail}
+            alt={t("credentials.photo.thumbnailAlt", { name })}
+            width={72}
+            height={96}
+            className="h-96 w-72 rounded-md border border-border object-contain"
+          />
+        ) : null}
+        <div className="flex min-w-0 flex-1 flex-col gap-4">
+          <span className="inline-flex items-center gap-8 text-text-13">
+            <span className="text-text-secondary">{t("credentials.photo.stateLabel")}</span>
+            <ToneChip tone={PHOTO_TONE[row.state]}>
+              {t(`credentials.photo.states.${row.state}`)}
+            </ToneChip>
+          </span>
+          <p className="m-0 text-text-13 text-text-secondary">
+            {t(`credentials.photo.stateHelp.${row.state}`)}
+            {when ? ` ${when}.` : null}
+          </p>
+        </div>
+      </div>
+      {canIssue ? (
+        <div className="flex flex-col gap-12">
+          {row.state !== "Provided" && row.state !== "Scanning" ? (
+            <ActionForm
+              action={requestCredentialPhotosAction}
+              hidden={{ org: page.ctx.org.slug, id: c.id }}
+              submitLabel={t("credentials.photo.request")}
+              successKey="credentials.photo.requestDone"
+              variant="secondary"
+              layout="inline"
+            />
+          ) : null}
+          {link ? (
+            <div className="flex w-full max-w-full flex-col gap-4">
+              <label
+                htmlFor="credential-photo-link"
+                className="text-text-12 font-medium text-text-secondary"
+              >
+                {t("credentials.photo.copyLink")}
+              </label>
+              <input
+                id="credential-photo-link"
+                type="text"
+                readOnly
+                value={link}
+                aria-describedby="credential-photo-link-help"
+                className="h-control-md w-full rounded-control border border-border-control bg-bg-surface px-8 font-mono text-text-13"
+              />
+              <span id="credential-photo-link-help" className="text-text-12 text-text-secondary">
+                {t("credentials.photo.copyLinkHelp")}
+              </span>
+            </div>
+          ) : null}
+          {row.state === "Scanning" ? (
+            <p className="m-0 text-text-12 text-text-secondary">
+              {t("credentials.photo.removeAfterScan")}
+            </p>
+          ) : null}
+          {row.source && (row.state === "Provided" || row.state === "Refused") ? (
+            <ActionForm
+              action={removeCredentialPhotoAction}
+              hidden={{ org: page.ctx.org.slug, personId: c.holderPersonId }}
+              submitLabel={t("credentials.photo.remove")}
+              successKey="credentials.photo.removed"
+              variant="danger"
+            >
+              <label className="flex items-center gap-8 text-text-13">
+                <input type="checkbox" name="confirm" required className="size-16" />
+                {t("credentials.photo.removeConfirm", { name })}
+              </label>
+            </ActionForm>
+          ) : null}
+        </div>
+      ) : null}
+    </RecordSection>
   );
 }
 

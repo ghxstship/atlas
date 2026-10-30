@@ -156,6 +156,14 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "engagement-crew",
+        title: "Crew",
+        summary: "Put your people on an engagement, submit the roster and see who accepted.",
+        kind: "page",
+        nodes: ["engagement.crew"],
+        order: 1,
+      },
+      {
         slug: "engagement-deliverables",
         title: "Deliverables",
         summary: "What you owe from your scope, with due dates and fees, and submitting each one.",
@@ -512,6 +520,15 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "profile-badge-photos",
+        title: "Badge photos",
+        summary:
+          "Give each organization you hold a credential with a photo for your badge, choose your profile photo instead, or take it back.",
+        kind: "page",
+        nodes: ["profile.badge-photos"],
+        order: 2,
+      },
+      {
         slug: "profile",
         title: "Your profile",
         summary:
@@ -822,6 +839,14 @@ export const HELP_CONTENT: HelpIndex = {
           "Las acreditaciones emitidas para ti en el proyecto, y cómo descargar tu credencial.",
         kind: "page",
         nodes: ["engagement.credentials"],
+        order: 1,
+      },
+      {
+        slug: "engagement-crew",
+        title: "Equipo",
+        summary: "Incluye a tu gente en una contratación, envía la lista y ve quién aceptó.",
+        kind: "page",
+        nodes: ["engagement.crew"],
         order: 1,
       },
       {
@@ -1186,6 +1211,15 @@ export const HELP_CONTENT: HelpIndex = {
         kind: "workflow",
         nodes: ["explore.opportunity"],
         order: 1,
+      },
+      {
+        slug: "profile-badge-photos",
+        title: "Fotos de credencial",
+        summary:
+          "Da a cada organización con la que tienes una credencial una foto para tu credencial, elige tu foto de perfil o retírala.",
+        kind: "page",
+        nodes: ["profile.badge-photos"],
+        order: 2,
       },
       {
         slug: "profile",

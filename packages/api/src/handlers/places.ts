@@ -19,6 +19,13 @@ import {
   type Row,
 } from "./support/table.ts";
 
+// Site plans ------------------------------------------------------------------------------------------
+
+const listedSitePlans = tableResource("sitePlans", {
+  verbs: ["list"],
+  scope: (query) => query.neq("plan_state", "Archived"),
+});
+
 // Venues ------------------------------------------------------------------------------------------
 
 const venues = tableResource("venues", {
@@ -161,6 +168,9 @@ export const handlers = defineHandlers("Places", {
   },
 
   ...tableHandlers("Places", "sitePlans"),
+  // v1 has no plan state (frozen contract, B1, ADR 0140 D1): a list leaves out Archived plans, so a v1 client never
+  // takes a retired plan for a live one. Get, update and delete still answer for it.
+  ...handlersFor("Places", listedSitePlans),
   ...tableHandlers("Places", "sitePlanPins", { aliases: { x: "x_ratio", y: "y_ratio" } }),
 
   ...handlersFor("Places", geofences),

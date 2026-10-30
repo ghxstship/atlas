@@ -92,6 +92,14 @@ function world() {
           venue_id: VENUE,
           title: "Ground Plan",
           image_uri: "plans/ground.png",
+          plan_state: "Draft",
+        }),
+        tenantRow(id(19), ORG, {
+          project_id: PROJECT,
+          venue_id: VENUE,
+          title: "Last Season",
+          image_uri: "plans/old.png",
+          plan_state: "Archived",
         }),
       ],
       site_plan_pins: [
@@ -448,6 +456,19 @@ describe("Places contract: spaces, zones, documents, plans and pins", () => {
     await expectContract(r.created, "sitePlans.create");
     await expectContract(r.updated, "sitePlans.update");
     await expectContract(r.removed, "sitePlans.delete");
+  });
+
+  it("leaves Archived plans out of the v1 list but still reads them (B1, ADR 0140 D1)", async () => {
+    const { http } = world();
+    const page = (await expectContract(
+      await success(http.get("/site-plans")),
+      "sitePlans.list",
+    )) as {
+      data: Row[];
+    };
+    expect(page.data.map((p) => p["title"])).toEqual(["Ground Plan"]);
+    const archived = await success(http.get(`/site-plans/${id(19)}`));
+    expect(((await expectContract(archived, "sitePlans.get")) as Row)["title"]).toBe("Last Season");
   });
 
   it("serves site plan pins with fractional positions", async () => {

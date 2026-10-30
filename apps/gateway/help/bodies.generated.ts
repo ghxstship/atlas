@@ -276,7 +276,27 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "To add someone, ask them to create a Gateway account; an Account Owner or Admin then adds them by their account. Owners and Admins can remove members here.",
+            v: "An Account Owner or Admin invites someone by email with a role; only an Owner offers Account Owner. We send one email to the address, and the person signs in to Gateway with it and accepts on Home. Pending invitations are listed here until they are accepted, and Owners and Admins can revoke them.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A member marked " },
+          { t: "strong", v: "Not confirmed" },
+          {
+            t: "text",
+            v: " was added without an invitation and has not confirmed yet. Until they confirm on Home, they cannot be put on a crew roster or assigned to an engagement, and nothing about them is shared.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "An Account Member reaches only the engagements an Owner or Admin assigns them, on the engagement's Overview. Owners and Admins can remove members here.",
           },
         ],
       },
@@ -692,6 +712,44 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
       { t: "p", c: [{ t: "text", v: "Credentials are issued once onboarding passes." }] },
+    ],
+    "engagement-crew": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Crew is the roster of people who work an engagement for your company: a vendor's technicians, a band and its touring crew, or a sponsor's activation staff. It shows to the people who manage the roster: the artist on their own engagement, the account's Owner and Admin, an Advancing Lead assigned to the engagement, and an artist's representative with the Advance scope.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Add someone from your team, or invite an email address for someone who is not on XOS yet; they get one email asking them to sign in to Gateway with that address. Give each person a role and, when you know it, their arrival window in the project's time zone. Submit the roster when it is ready; the organization accepts or returns each person, and a returned entry shows the reason so you can fix it and submit again.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each person accepts or declines their own entry on Gateway Home. Nothing about them is shared until they accept: then your company can see their profile and project facts, and they choose what to share with the organization. View profile opens what they share with your company; each time you open it, they can see that you did. Allergies show only as On file.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The roster opens while the engagement is onboarding and closes when it completes or is canceled. To swap someone after they were accepted, withdraw their entry and add the replacement.",
+          },
+        ],
+      },
     ],
     "engagement-deliverables": [
       {
@@ -2591,6 +2649,86 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "profile-badge-photos": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Organizations that hold a live credential for you print a badge for it. This page shows one card per organization, with the photo its badge prints. An organization can ask you for a photo; the request opens this page.",
+          },
+        ],
+      },
+      { t: "h2", v: "What each card shows" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "On your badge" },
+            { t: "text", v: ": your photo prints on the badge." },
+          ],
+          [
+            { t: "strong", v: "Being checked" },
+            { t: "text", v: ": your photo is being virus-checked and prints in a few minutes." },
+          ],
+          [
+            { t: "strong", v: "Not accepted" },
+            { t: "text", v: ": the check refused your photo. Upload another." },
+          ],
+          [
+            { t: "strong", v: "Your profile photo" },
+            { t: "text", v: ": you gave no badge photo, so the badge prints your " },
+            { t: "link", v: "profile", href: "help:profile" },
+            { t: "text", v: " photo, when your privacy settings let the organization see it." },
+          ],
+          [
+            { t: "strong", v: "Requested" },
+            { t: "text", v: " or " },
+            { t: "strong", v: "None yet" },
+            { t: "text", v: ": the badge prints without a photo." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Giving a photo" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Choose " },
+          { t: "strong", v: "Upload or take photo" },
+          {
+            t: "text",
+            v: " to pick a photo or take one with your camera. Drag the photo, or use the arrow keys and the zoom slider, to choose what shows in the 3 by 4 frame, then choose ",
+          },
+          { t: "strong", v: "Save photo" },
+          { t: "text", v: ". Nothing reads or detects your face; the crop is yours." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Use my profile photo" },
+          {
+            t: "text",
+            v: " copies your profile photo to the badge instead, when it is a JPEG or PNG of at most 2 MiB.",
+          },
+        ],
+      },
+      { t: "h2", v: "Who sees it, and taking it back" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The organization's credential staff see the photo, and so does anyone who sees your badge. Saving a photo records your consent for that organization. Choose ",
+          },
+          { t: "strong", v: "Remove" },
+          {
+            t: "text",
+            v: " at any time: the photo is deleted, your consent is withdrawn, and the organization prints your badge without it.",
+          },
+        ],
+      },
+    ],
     profile: [
       {
         t: "p",
@@ -3757,7 +3895,27 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Para agregar a alguien, pídele que cree una cuenta de Gateway; luego un Propietario o Administrador de la cuenta lo agrega por su cuenta. Los Propietarios y Administradores pueden quitar miembros aquí.",
+            v: "Un Propietario o Administrador de la cuenta invita a alguien por correo con un rol; solo un Propietario ofrece el rol de Propietario de la cuenta. Enviamos un correo a esa dirección, y la persona inicia sesión en Gateway con ella y acepta en Inicio. Las invitaciones pendientes aparecen aquí hasta que se aceptan, y los Propietarios y Administradores pueden revocarlas.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Un miembro marcado como " },
+          { t: "strong", v: "Sin confirmar" },
+          {
+            t: "text",
+            v: " se agregó sin invitación y aún no ha confirmado. Hasta que confirme en Inicio, no se le puede poner en una lista del equipo ni asignar a una contratación, y no se comparte nada sobre él.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un Miembro de la cuenta solo accede a las contrataciones que un Propietario o Administrador le asigna, en el Resumen de la contratación. Los Propietarios y Administradores pueden quitar miembros aquí.",
           },
         ],
       },
@@ -4185,6 +4343,44 @@ export const HELP_BODIES: HelpBodies = {
       {
         t: "p",
         c: [{ t: "text", v: "Las acreditaciones se emiten cuando pasa la incorporación." }],
+      },
+    ],
+    "engagement-crew": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Equipo es la lista de personas que trabajan en una contratación para tu empresa: los técnicos de un proveedor, una banda y su equipo de gira, o el personal de activación de un patrocinador. La ven quienes gestionan la lista: el artista en su propia contratación, el propietario y el administrador de la cuenta, un responsable de avance asignado a la contratación y el representante de un artista con el alcance de avance.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Agrega a alguien de tu equipo, o invita una dirección de correo para alguien que todavía no está en XOS; recibe un correo que le pide iniciar sesión en Gateway con esa dirección. Asigna a cada persona un puesto y, cuando lo sepas, su ventana de llegada en la zona horaria del proyecto. Envía la lista cuando esté lista; la organización acepta o devuelve a cada persona, y una entrada devuelta muestra el motivo para que la corrijas y la envíes de nuevo.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada persona acepta o rechaza su propia entrada en el Inicio de Gateway. No se comparte nada sobre ella hasta que acepta: entonces tu empresa puede ver su perfil y los datos del proyecto, y ella elige qué compartir con la organización. Ver perfil abre lo que comparte con tu empresa; cada vez que lo abres, la persona puede ver que lo hiciste. Las alergias solo aparecen como Registradas.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La lista se abre mientras la contratación está en incorporación y se cierra cuando se completa o se cancela. Para cambiar a alguien después de que lo aceptaron, retira su entrada y agrega el reemplazo.",
+          },
+        ],
       },
     ],
     "engagement-deliverables": [
@@ -6130,6 +6326,95 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: " envía tu motivo a la plataforma, que revisa cada reporte y le explica a la organización sus razones para cualquier medida.",
+          },
+        ],
+      },
+    ],
+    "profile-badge-photos": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las organizaciones que tienen una credencial vigente para ti imprimen una credencial con ella. Esta página muestra una tarjeta por organización, con la foto que imprime su credencial. Una organización puede pedirte una foto; la solicitud abre esta página.",
+          },
+        ],
+      },
+      { t: "h2", v: "Qué muestra cada tarjeta" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "En tu credencial" },
+            { t: "text", v: ": tu foto se imprime en la credencial." },
+          ],
+          [
+            { t: "strong", v: "En revisión" },
+            {
+              t: "text",
+              v: ": tu foto pasa por la revisión antivirus y se imprime en unos minutos.",
+            },
+          ],
+          [
+            { t: "strong", v: "No aceptada" },
+            { t: "text", v: ": la revisión rechazó tu foto. Sube otra." },
+          ],
+          [
+            { t: "strong", v: "Tu foto de perfil" },
+            {
+              t: "text",
+              v: ": no entregaste foto de credencial, así que se imprime la foto de tu ",
+            },
+            { t: "link", v: "perfil", href: "help:profile" },
+            {
+              t: "text",
+              v: ", cuando tu configuración de privacidad deja que la organización la vea.",
+            },
+          ],
+          [
+            { t: "strong", v: "Solicitada" },
+            { t: "text", v: " o " },
+            { t: "strong", v: "Aún no hay" },
+            { t: "text", v: ": la credencial se imprime sin foto." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Entregar una foto" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Elige " },
+          { t: "strong", v: "Subir o tomar foto" },
+          {
+            t: "text",
+            v: " para escoger una foto o tomarla con la cámara. Arrastra la foto, o usa las flechas y el control de zoom, para elegir lo que se ve en el marco de 3 por 4, y luego elige ",
+          },
+          { t: "strong", v: "Guardar foto" },
+          { t: "text", v: ". Nada lee ni detecta tu cara; el recorte es tuyo." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Usar mi foto de perfil" },
+          {
+            t: "text",
+            v: " copia tu foto de perfil a la credencial, cuando es un JPEG o PNG de 2 MiB como máximo.",
+          },
+        ],
+      },
+      { t: "h2", v: "Quién la ve y cómo retirarla" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El personal de credenciales de la organización ve la foto, y también cualquiera que vea tu credencial. Al guardar una foto se registra tu consentimiento para esa organización. Elige ",
+          },
+          { t: "strong", v: "Quitar" },
+          {
+            t: "text",
+            v: " cuando quieras: la foto se borra, tu consentimiento se retira y la organización imprime tu credencial sin ella.",
           },
         ],
       },

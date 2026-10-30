@@ -1,5 +1,6 @@
 import type { XosClient } from "../client.ts";
 import { getIssuedCredential } from "../credentials.ts";
+import { badgePhotos, loadBadgePhotoBytes } from "../credential-photos.ts";
 import {
   listChangeOrderLines,
   listChangeOrders,
@@ -18,8 +19,12 @@ import {
   listInspections,
 } from "../safety-permits.ts";
 import { getRunOfShow, listCallSheets, listCalls, listCues, listDaySheets } from "../show.ts";
+import { ATTACHMENTS_BUCKET } from "../attachments.ts";
+import { getSitePlan, listSitePlans, listSitePlanShapes, type SitePlan } from "../places.ts";
+import { listSigns, type Sign } from "../signage.ts";
 import type { DocumentKind } from "./model.ts";
-import type { DocumentDataMap, DocumentProject } from "./templates.ts";
+import { isEmbeddableImage } from "./render.ts";
+import type { BadgePhoto, DocumentDataMap, DocumentProject } from "./templates.ts";
 
 /**
  * Loads the data of one document from the existing records, through the caller's own client, so
@@ -50,6 +55,19 @@ export async function documentProject(
   });
 }
 
+/**
+ * The photo a badge prints, read as the caller (P5): the org's badge photo once Clean, else a profile photo the
+ * caller may see. A credential that is no longer live, or a photo that cannot be read, prints the placeholder.
+ */
+export async function credentialBadgePhoto(
+  db: XosClient,
+  credentialId: string,
+): Promise<BadgePhoto | null> {
+  const rows = await badgePhotos(db, [credentialId]);
+  if (!rows.ok) return null;
+  return (await loadBadgePhotoBytes(db, rows.data)).get(credentialId) ?? null;
+}
+
 async function personNames(
   db: XosClient,
   ids: readonly (string | null)[],
@@ -59,6 +77,62 @@ async function personNames(
   const { data, error } = await db.from("people").select("id, full_name").in("id", wanted);
   if (error) return fail(toDataError(error));
   return ok(new Map(data.flatMap((p) => (p.full_name ? [[p.id, p.full_name] as const] : []))));
+}
+
+/** The most artwork bytes a build sheet embeds per sign (ADR 0140): a thumbnail, not a print file. */
+export const MAX_ARTWORK_BYTES = 2 * 1024 * 1024;
+
+/**
+ * The bytes of a stored version read as the caller, when it is a Clean PNG or JPEG of a live attachment classified
+ * Public or Internal and no larger than `maxBytes`; otherwise null. A document never embeds a file above Internal
+ * (DOCUMENT_CLASSIFICATION), so a drawing or artwork raised later prints its frame or its name instead (ADR 0140 D3).
+ */
+export async function embeddableVersionBytes(
+  db: XosClient,
+  versionId: string,
+  maxBytes = Number.POSITIVE_INFINITY,
+): Promise<{ readonly bytes: Uint8Array | null; readonly filename: string }> {
+  const { data } = await db
+    .from("attachment_versions")
+    .select(
+      "object_name, filename, content_type, size_bytes, scan_status, deleted_at, attachments(classification, deleted_at)",
+    )
+    .eq("id", versionId)
+    .maybeSingle();
+  const row = data as unknown as {
+    object_name: string;
+    filename: string;
+    content_type: string;
+    size_bytes: number;
+    scan_status: string;
+    deleted_at: string | null;
+    attachments: { classification: string; deleted_at: string | null } | null;
+  } | null;
+  if (!row) return { bytes: null, filename: "" };
+  const drawable =
+    row.deleted_at === null &&
+    row.attachments?.deleted_at === null &&
+    (row.attachments.classification === "Public" ||
+      row.attachments.classification === "Internal") &&
+    row.scan_status === "Clean" &&
+    (row.content_type === "image/png" || row.content_type === "image/jpeg") &&
+    row.size_bytes <= maxBytes;
+  if (!drawable) return { bytes: null, filename: row.filename };
+  const { data: blob } = await db.storage.from(ATTACHMENTS_BUCKET).download(row.object_name);
+  const bytes = blob ? new Uint8Array(await blob.arrayBuffer()) : null;
+  return { bytes: bytes && isEmbeddableImage(bytes) ? bytes : null, filename: row.filename };
+}
+
+/** The drawing a plan shows, when it is stored and still drawable; a legacy web image is never fetched. */
+async function planDrawingBytes(db: XosClient, plan: SitePlan): Promise<Uint8Array | null> {
+  if (!plan.drawing || plan.drawing.unavailable) return null;
+  return (await embeddableVersionBytes(db, plan.drawing.shownVersionId)).bytes;
+}
+
+async function nameOf(db: XosClient, table: "venues" | "venue_levels", id: string | null) {
+  if (!id) return null;
+  const { data } = await db.from(table).select("name").eq("id", id).maybeSingle();
+  return (data as { name: string } | null)?.name ?? null;
 }
 
 type Loader<K extends DocumentKind> = (
@@ -175,7 +249,11 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
     if (!credential.ok) return credential;
     const project = await documentProject(db, orgId, credential.data.projectId);
     if (!project.ok) return project;
-    return ok({ project: project.data, credential: credential.data });
+    return ok({
+      project: project.data,
+      credential: credential.data,
+      photo: await credentialBadgePhoto(db, id),
+    });
   },
 
   "inspection-report": async (db, orgId, id) => {
@@ -257,6 +335,73 @@ const LOADERS: { readonly [K in DocumentKind]: Loader<K> } = {
       project = found.ok ? found.data : null;
     }
     return ok({ project, agreement: agreement.data });
+  },
+
+  /** A live site plan of the org (B1): its drawing as shown, its shapes and the signs at its pins. */
+  "site-plan": async (db, orgId, id) => {
+    const plan = await getSitePlan(db, id);
+    if (!plan.ok) return plan;
+    if (plan.data.archivedAt !== null) return fail({ kind: "not-found" });
+    const project = await documentProject(db, orgId, plan.data.projectId);
+    if (!project.ok) return project;
+    const [shapes, signs, venueName, levelName, drawing] = await Promise.all([
+      listSitePlanShapes(db, [id]),
+      listSigns(db, { orgId, projectId: plan.data.projectId }),
+      nameOf(db, "venues", plan.data.venueId),
+      nameOf(db, "venue_levels", plan.data.venueLevelId),
+      planDrawingBytes(db, plan.data),
+    ]);
+    if (!shapes.ok) return shapes;
+    if (!signs.ok) return signs;
+    const signsAtPins: Record<string, string[]> = {};
+    for (const sign of signs.data) {
+      if (!sign.sitePlanPinId) continue;
+      (signsAtPins[sign.sitePlanPinId] ??= []).push(`${sign.key} ${sign.title}`);
+    }
+    return ok({
+      project: project.data,
+      plan: plan.data,
+      venueName,
+      levelName,
+      shapes: shapes.data,
+      drawing,
+      signsAtPins,
+    });
+  },
+
+  /** The signage build sheet of a project (B1); its id is the project id. */
+  "signage-build-sheet": async (db, orgId, id) => {
+    const project = await documentProject(db, orgId, id);
+    if (!project.ok) return project;
+    const [signs, plans] = await Promise.all([
+      listSigns(db, { orgId, projectId: id }),
+      listSitePlans(db, { orgId, projectId: id }),
+    ]);
+    if (!signs.ok) return signs;
+    if (!plans.ok) return plans;
+    const pinned = new Set(
+      signs.data.map((s) => s.sitePlanPinId).filter((p): p is string => p !== null),
+    );
+    const holding = plans.data
+      .filter((p) => p.pins.some((pin) => pinned.has(pin.id)))
+      .sort((a, b) => a.title.localeCompare(b.title));
+    const withArt = signs.data.filter(
+      (s): s is Sign & { artworkVersionId: string } => s.artworkVersionId !== null,
+    );
+    const [drawings, art] = await Promise.all([
+      Promise.all(holding.map((plan) => planDrawingBytes(db, plan))),
+      Promise.all(
+        withArt.map((s) => embeddableVersionBytes(db, s.artworkVersionId, MAX_ARTWORK_BYTES)),
+      ),
+    ]);
+    return ok({
+      project: project.data,
+      signs: signs.data,
+      plans: holding.map((plan, i) => ({ plan, drawing: drawings[i] ?? null })),
+      artwork: Object.fromEntries(
+        withArt.map((s, i) => [s.id, art[i] ?? { bytes: null, filename: "" }]),
+      ),
+    });
   },
 };
 

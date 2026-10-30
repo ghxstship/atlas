@@ -2,7 +2,7 @@ import { generateDocument, watermarkText } from "@xos/data/documents/generate";
 import {
   DOCUMENT_CLASSIFICATION,
   isDocumentKind,
-  isPaper,
+  isPrintSizeFor,
   needsWatermark,
 } from "@xos/data/documents/model";
 import { isLocale } from "@xos/i18n";
@@ -11,12 +11,17 @@ import { getLocale } from "next-intl/server";
 import { atlasRecordPath } from "@/lib/documents/links";
 import { env } from "@/lib/env";
 import { getOrgContext } from "@/lib/shell/context";
+import { getShellSettings } from "@/lib/shell/org-settings";
 import { observability } from "@/lib/observability";
+import { unitSystemFor } from "@/lib/workforce/units";
 
 /**
  * A generated document as tagged PDF/UA-1 (Section 11.9, ADR 0031): the record is read with the
  * viewer's own row level security and must belong to this org, so anyone who cannot open the record
- * gets 404 (ADR 0003). `?paper=a4` prints on A4; US Letter otherwise. Rendered on the server only.
+ * gets 404 (ADR 0003). `?paper=a4` prints on A4, and the credential badge also on `a6` and `cr80` cards (P5); any
+ * other size prints on US Letter. The site plan and the signage build sheet also read their layers, legend and state
+ * filter from the query, and print lengths and sizes in the viewer's units (locale.units, B1). Rendered on the server
+ * only.
  * A Confidential or Restricted document carries the viewer's email and the time (Section 8.6).
  */
 export async function GET(
@@ -27,12 +32,18 @@ export async function GET(
   if (!isDocumentKind(kind)) return new Response(null, { status: 404 });
   const ctx = await getOrgContext(org);
   if (!ctx) return new Response(null, { status: 404 });
-  const paperParam = new URL(request.url).searchParams.get("paper") ?? "letter";
-  const paper = isPaper(paperParam) ? paperParam : "letter";
+  const search = new URL(request.url).searchParams;
+  const paperParam = search.get("paper") ?? "letter";
+  const paper = isPrintSizeFor(kind, paperParam) ? paperParam : "letter";
   const negotiated = await getLocale();
   const locale = isLocale(negotiated) ? negotiated : "en-US";
   const site = env().ATLAS_SITE_URL;
   const messages = (await loadMessages(locale)).documents;
+  const options: Record<string, string> = Object.fromEntries(search.entries());
+  if (kind === "site-plan" || kind === "signage-build-sheet") {
+    const shell = await getShellSettings(ctx.viewer.db, ctx.org.id, null);
+    options["units"] = unitSystemFor(shell.preferences.units, null, locale);
+  }
   const watermark = needsWatermark(DOCUMENT_CLASSIFICATION[kind])
     ? watermarkText(messages, locale, ctx.viewer.email ?? ctx.viewer.userId, new Date())
     : undefined;
@@ -45,6 +56,7 @@ export async function GET(
     locale,
     messages,
     paper,
+    options,
     ...(watermark ? { watermark } : {}),
     recordUrl: (record) =>
       new URL(atlasRecordPath(ctx.org.slug, kind, { id, ...record }), site).toString(),

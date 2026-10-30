@@ -1,0 +1,4 @@
+-- Shared pgTAP fixture for the B1 suites (2900 to 2903), included with \ir inside each test transaction.
+-- A03's domain world (0300_domain_world.psql) and the B1 parts (2900_places_parts.psql). Every name is fictional; nothing persists.
+\ir 0300_domain_world.psql
+\ir 2900_places_parts.psql

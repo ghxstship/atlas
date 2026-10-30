@@ -80,6 +80,9 @@ email_templates:
   - code: subprocessor_notice
     transactional: false
     description: Announces a Subprocessor List change at least 30 days before it applies.
+  - code: party_invitation
+    transactional: true
+    description: Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.
 
 categories:
   - code: mentions
@@ -435,6 +438,13 @@ kinds:
         test: supabase/tests/0805_workforce_recognition_help_desk.test.sql
       - emitter: supabase/migrations/0805_workforce_recognition_help_desk.sql#app.assign_help_desk_request
         test: supabase/tests/0805_workforce_recognition_help_desk.test.sql
+  # P5 (G-144): an issuer asks a credential holder for a badge photo; the Inbox item, email and push open
+  # /profile/badge-photos in Gateway (gatewayPath).
+  - kind: credential_photo.requested
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2822_credential_photo_functions.sql#app.request_credential_photos
+        test: supabase/tests/2822_credential_photo_functions.test.sql
   # Marketplace alerts and expiry reminders (A89: 1462 matcher, 1463 reminder job)
   - kind: opportunity.matched
     category: opportunities
@@ -457,3 +467,19 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1463_expiry_reminders.sql#private.send_expiry_reminders
         test: supabase/tests/1463_expiry_reminders.test.sql
+  # Crew roster (R4: 2642)
+  - kind: roster_entry.invited
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2642_roster_notifications.sql#private.notify_roster_entry_person
+        test: supabase/tests/2642_roster_notifications.test.sql
+  - kind: roster_entry.returned
+    category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/2642_roster_notifications.sql#private.notify_roster_entry_returned
+        test: supabase/tests/2642_roster_notifications.test.sql
+  - kind: roster_entry.declined
+    category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/2642_roster_notifications.sql#private.notify_roster_entry_declined
+        test: supabase/tests/2642_roster_notifications.test.sql

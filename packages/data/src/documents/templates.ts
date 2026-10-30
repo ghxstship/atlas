@@ -8,10 +8,24 @@ import type { FinalCostReport, FinalCostRow } from "../reports.ts";
 import type { Inspection, InspectionItem } from "../safety-permits.ts";
 import type { Call, CallSheet, Cue, DaySheet, RunOfShow } from "../show.ts";
 import type { Formatter, Translate } from "./format.ts";
-import type { DocumentBlock, DocumentKind } from "./model.ts";
+import {
+  isCardPaper,
+  PAPERS,
+  type DocumentBlock,
+  type DocumentKind,
+  type PrintSize,
+} from "./model.ts";
+import {
+  buildSignageSheet,
+  buildSitePlan,
+  type BuildSheetData,
+  type SitePlanDocumentData,
+} from "./places-templates.ts";
+import type { Orientation } from "./render.ts";
 
 /**
- * Versioned templates for the twelve Section 11.9 documents (ADR 0031). Each kind keeps every
+ * Versioned templates for the Section 11.9 record documents (ADR 0031): the twelve of 4.0 and, from B1, the site plan
+ * export and the signage build sheet (places-templates.ts). Each kind keeps every
  * version it has shipped. A record renders with the version in force when it was issued, so a
  * re-render of an old record looks the way it did then; a template change ships as a new version
  * with a later `effectiveFrom`, never as an edit to a shipped one.
@@ -57,7 +71,15 @@ export interface DocumentDataMap {
     readonly cues: readonly Cue[];
   };
   beo: { readonly project: DocumentProject; readonly beo: BeoDetail };
-  "credential-badge": { readonly project: DocumentProject; readonly credential: IssuedCredential };
+  "credential-badge": {
+    readonly project: DocumentProject;
+    readonly credential: IssuedCredential;
+    /**
+     * The photo the badge prints (P5): the org's badge photo once it scanned Clean, else the holder's profile photo
+     * the caller may see, else none. Read by version 2; version 1 prints no photo.
+     */
+    readonly photo?: BadgePhoto | null;
+  };
   "inspection-report": {
     readonly project: DocumentProject;
     readonly inspection: Inspection;
@@ -79,6 +101,14 @@ export interface DocumentDataMap {
     readonly project: DocumentProject | null;
     readonly agreement: AgreementDetail;
   };
+  "site-plan": SitePlanDocumentData;
+  "signage-build-sheet": BuildSheetData;
+}
+
+export interface BadgePhoto {
+  /** PNG or JPEG bytes. */
+  readonly bytes: Uint8Array;
+  readonly source: "Badge" | "Profile";
 }
 
 export type DocumentData = { [K in DocumentKind]: DocumentDataMap[K] }[DocumentKind];
@@ -88,6 +118,13 @@ export interface TemplateContext {
   readonly f: Formatter;
   /** When the document is generated; also the issue time of a record that is computed live. */
   readonly generatedAt: Date;
+  /** The size it prints on; a card layout (A6, CR80) takes its blocks in card order. */
+  readonly paper: PrintSize;
+  /**
+   * The request's search params, for the kinds whose content the reader chooses (the site plan's layers and legend,
+   * the build sheet's state filter, B1); every other kind ignores them.
+   */
+  readonly options: Readonly<Record<string, string | undefined>>;
 }
 
 export interface TemplateOutput {
@@ -99,22 +136,35 @@ export interface TemplateVersion<K extends DocumentKind> {
   readonly version: number;
   /** ISO instant from which a newly issued record of this kind uses this version. */
   readonly effectiveFrom: string;
+  /** The sizes the version prints on; Letter and A4 when not stated. */
+  readonly papers?: readonly PrintSize[];
   readonly build: (data: DocumentDataMap[K], ctx: TemplateContext) => TemplateOutput;
 }
 
 export type TemplateRegistry = { readonly [K in DocumentKind]: readonly TemplateVersion<K>[] };
 
 /**
- * The version a record issued at `issuedAt` renders with: the latest whose `effectiveFrom` is not
- * after the issue time, or the first version for a record issued before any template existed.
+ * The version a record issued at `issuedAt` renders with on a paper: among the versions that print on it, the
+ * latest whose `effectiveFrom` is not after the issue time, or the first of them for a record issued before any
+ * existed. A record issued under version 1 keeps it on Letter and A4 (ADR 0031 decision 3); a size added by a later
+ * version (the badge's A6 and CR80 cards, P5) renders that version for every record.
  */
 export function templateFor<K extends DocumentKind>(
   versions: readonly TemplateVersion<K>[],
   issuedAt: string,
+  paper: PrintSize = "letter",
 ): TemplateVersion<K> {
-  const sorted = [...versions].sort((a, b) => a.version - b.version);
+  const sorted = [...versions]
+    .filter((v) => (v.papers ?? PAPERS).includes(paper))
+    .sort((a, b) => a.version - b.version);
   const first = sorted[0];
-  if (!first) throw new Error("A document kind needs at least one template version.");
+  if (!first) {
+    throw new Error(
+      versions.length === 0
+        ? "A document kind needs at least one template version."
+        : `No template version prints on ${paper}.`,
+    );
+  }
   const at = Date.parse(issuedAt);
   if (Number.isNaN(at)) return sorted[sorted.length - 1] ?? first;
   let chosen = first;
@@ -125,12 +175,20 @@ export function templateFor<K extends DocumentKind>(
 /** A catalog key segment from a stored value ("Offer Letter" to "OfferLetter"). */
 export const keyOf = (value: string) => value.replace(/[^A-Za-z0-9]/g, "");
 
-/** How each record names itself on the page and when it was issued. Stable across versions. */
+/**
+ * How each record names itself on the page and when it was issued. Stable across versions. It runs after the loader,
+ * so a kind may also choose its page orientation from its data (the site plan follows its drawing, B1); kinds that
+ * name none print as the route asks.
+ */
 export const DESCRIBE: {
   readonly [K in DocumentKind]: (
     data: DocumentDataMap[K],
     generatedAt: Date,
-  ) => { readonly recordKey: string; readonly issuedAt: string };
+  ) => {
+    readonly recordKey: string;
+    readonly issuedAt: string;
+    readonly orientation?: Orientation;
+  };
 } = {
   "purchase-order": (d) => ({ recordKey: d.order.key, issuedAt: d.order.createdAt }),
   invoice: (d) => ({
@@ -171,6 +229,20 @@ export const DESCRIBE: {
     recordKey: keyed(d.project?.key ?? "", `AGR-${d.agreement.id.slice(0, 8)}`),
     issuedAt: d.agreement.signedAt ?? d.agreement.createdAt,
   }),
+  // Computed live, like the final cost report; landscape for a drawing at least as wide as it is tall (ADR 0140 D10).
+  "site-plan": (d, generatedAt) => ({
+    recordKey: keyed(d.project.key, `PLAN-${d.plan.id.slice(0, 8)}`),
+    issuedAt: generatedAt.toISOString(),
+    orientation:
+      d.drawing && d.plan.drawing && d.plan.drawing.widthPx >= d.plan.drawing.heightPx
+        ? "landscape"
+        : "portrait",
+  }),
+  "signage-build-sheet": (d, generatedAt) => ({
+    recordKey: keyed(d.project.key, "SGN"),
+    issuedAt: generatedAt.toISOString(),
+    orientation: "landscape",
+  }),
 };
 
 const field = (label: string, value: string) => ({ label, value });
@@ -194,6 +266,17 @@ function lineColumns(t: Translate) {
 }
 
 const V1 = "2026-01-01T00:00:00Z";
+
+/**
+ * When credential badge version 2 (the photo and the gate code, P5) takes effect for newly issued credentials on
+ * Letter and A4. A fixed instant no earlier than the planned production release that ships it (4.2b, January 2027):
+ * a credential issued on production before that release was issued under version 1 and keeps it on Letter and A4
+ * (ADR 0031 decision 3). A6 and CR80 never existed under version 1, so every credential renders version 2 there.
+ */
+export const BADGE_V2_FROM = "2027-02-01T00:00:00Z";
+
+/** The code a gate scans on a printed badge: the wallet pass form (ADR 0049), which Compass reads as the credential. */
+export const badgeScanPayload = (credentialNumber: string) => `XOSCR1:${credentialNumber}`;
 
 export const TEMPLATES: TemplateRegistry = {
   "purchase-order": [
@@ -595,6 +678,84 @@ export const TEMPLATES: TemplateRegistry = {
         ],
       }),
     },
+    {
+      version: 2,
+      effectiveFrom: BADGE_V2_FROM,
+      papers: ["letter", "a4", "a6", "cr80"],
+      build: ({ project, credential, photo }, { t, f, generatedAt, paper }) => {
+        const name = credential.holderName ?? t("common.none");
+        const portrait: DocumentBlock = {
+          kind: "portrait",
+          bytes: photo?.bytes ?? null,
+          alt: t("credentialBadge.photoAlt", { name }),
+          placeholder: t("credentialBadge.noPhoto"),
+        };
+        const scan: DocumentBlock = {
+          kind: "scan-code",
+          payload: badgeScanPayload(credential.number),
+          alt: t("credentialBadge.scanAlt", { number: credential.number }),
+          caption: t("credentialBadge.scanCaption"),
+        };
+        const validTo = credential.validTo
+          ? f.dateTime(credential.validTo)
+          : t("credentialBadge.noEnd");
+        const fields: DocumentBlock = {
+          kind: "fields",
+          caption: t("common.details"),
+          fields: [
+            field(
+              t("credentialBadge.category"),
+              `${credential.categoryName} (${credential.categoryCode})`,
+            ),
+            field(t("credentialBadge.number"), credential.number),
+            field(t("common.project"), projectLabel(project)),
+            field(t("credentialBadge.validFrom"), f.dateTime(credential.validFrom)),
+            field(t("credentialBadge.validTo"), validTo),
+            field(
+              t("common.state"),
+              t(`credentialBadge.statuses.${credentialStatus(credential, generatedAt)}`),
+            ),
+            field(t("credentialBadge.issuedBy"), credential.issuedByName ?? t("common.none")),
+          ],
+        };
+        const title = t("credentialBadge.title", { category: credential.categoryName });
+        if (isCardPaper(paper)) {
+          // Card order (render-card.ts): portrait, name, scan code, compact facts, and on A6 the fields.
+          return {
+            title,
+            blocks: [
+              portrait,
+              { kind: "heading", text: name },
+              scan,
+              {
+                kind: "paragraph",
+                text: `${credential.categoryName} (${credential.categoryCode})`,
+                size: "large",
+              },
+              { kind: "paragraph", text: credential.number },
+              {
+                kind: "paragraph",
+                text: t("credentialBadge.window", {
+                  from: f.dateTime(credential.validFrom),
+                  to: validTo,
+                }),
+              },
+              ...(paper === "a6" ? [fields] : []),
+            ],
+          };
+        }
+        return {
+          title,
+          blocks: [
+            portrait,
+            { kind: "paragraph", text: name, size: "large" },
+            scan,
+            fields,
+            { kind: "paragraph", text: t("credentialBadge.scanNoteV2") },
+          ],
+        };
+      },
+    },
   ],
   "inspection-report": [
     {
@@ -815,4 +976,6 @@ export const TEMPLATES: TemplateRegistry = {
       }),
     },
   ],
+  "site-plan": [{ version: 1, effectiveFrom: V1, build: buildSitePlan }],
+  "signage-build-sheet": [{ version: 1, effectiveFrom: V1, build: buildSignageSheet }],
 };

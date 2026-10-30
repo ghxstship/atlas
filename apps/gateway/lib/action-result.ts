@@ -39,6 +39,28 @@ export const KNOWN_REFUSALS = [
   // R2: the vendor submits a Proposed submittal or resubmits a Returned one, with a note (migration 2610).
   "submittal_response",
   "submittal_note_length",
+  // R4: the crew roster, account membership acceptance and invitations (migrations 2630 to 2638).
+  "roster_closed",
+  "roster_role_type",
+  "roster_person_not_in_team",
+  "roster_person_is_engaged",
+  "roster_person_duplicate",
+  "roster_arrival_window",
+  "roster_role_unknown",
+  "roster_entry_not_editable",
+  "roster_empty_submit",
+  "roster_self_entry_fixed",
+  "roster_entry_withdrawn",
+  "roster_replacement_invalid",
+  "roster_response_not_yours",
+  "roster_entry_not_accepted",
+  "invite_expiry_range",
+  "invitation_email",
+  "invitation_not_yours",
+  "invitation_closed",
+  "account_membership_not_yours",
+  "account_membership_unconfirmed",
+  "assignment_account_mismatch",
   // A86 settings surfaces: personal API tokens, step-up, company ownership and notification defaults.
   "personal_tokens_off",
   "personal_token_scope_not_held",
@@ -48,6 +70,10 @@ export const KNOWN_REFUSALS = [
   "step_up_required",
   "sole_account_owner",
   "notification_channel_outside",
+  // P5 badge photos (2822): the holder records a photo from their own folder while they hold a live credential.
+  "credential_photo_path",
+  "credential_photo_no_credential",
+  "credential_photo_notice",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

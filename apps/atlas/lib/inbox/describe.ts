@@ -79,6 +79,14 @@ const TARGETS: Readonly<Record<string, string>> = {
   report_deliveries: "reports",
 };
 
+/** Subjects that open their own row: the page and the query key it reads (B1: plans, their pins and shapes, signs). */
+const ROW_TARGETS: Readonly<Record<string, readonly [path: string, key: string]>> = {
+  "app.site_plans": ["places/site-plans", "peek"],
+  "app.site_plan_pins": ["places/site-plans", "pin"],
+  "app.site_plan_shapes": ["places/site-plans", "shape"],
+  "app.signs": ["places/signage", "peek"],
+};
+
 /** A record subject: app.records from the record emitters, records from a domain event an automation notice is about. */
 const RECORD_TABLES: ReadonlySet<string> = new Set(["app.records", "records"]);
 
@@ -108,6 +116,12 @@ export function inboxTarget(
     return item.subjectId
       ? `/${org}/import?import=${encodeURIComponent(item.subjectId)}`
       : `/${org}/import`;
+  }
+  const row = item.subjectTable ? ROW_TARGETS[item.subjectTable] : undefined;
+  if (row) {
+    return item.subjectId
+      ? `/${org}/${row[0]}?${row[1]}=${encodeURIComponent(item.subjectId)}`
+      : `/${org}/${row[0]}`;
   }
   const path = item.subjectTable ? TARGETS[item.subjectTable] : undefined;
   if (path) return `/${org}/${path}`;

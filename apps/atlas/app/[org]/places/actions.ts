@@ -9,6 +9,7 @@ import {
   createZone,
   freezeCapabilityDocument,
   moveSitePlanPin,
+  renameSitePlan,
   setPlaceArchived,
   setVenueLocation,
   updateCapabilityDocument,
@@ -115,6 +116,8 @@ const ARCHIVABLE: readonly PlacesTable[] = [
   "capability_documents",
   "site_plans",
   "site_plan_pins",
+  "venue_levels",
+  "site_plan_shapes",
 ];
 
 export async function setPlaceArchivedAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -158,13 +161,18 @@ export async function saveSpaceAction(_: ActionState, form: FormData): Promise<A
     urid: text(form, "urid"),
     areaSqFt: area === "invalid" ? null : area,
     capacity: capacity === "invalid" ? null : capacity,
+    venueLevelId: text(form, "venueLevelId"),
   };
   const id = text(form, "id");
+  // As for venues, an edit saves custom fields from the space's own section (A117, B1).
+  const custom = await customFieldsOf(ctx, "app.spaces", id === null ? form : undefined);
+  if (custom.fieldErrors) return { error: "invalid", fieldErrors: custom.fieldErrors };
   const saved =
     id === null
       ? await createSpace(ctx.viewer.db, { ...input, venueId: venueId.data })
       : await updateSpace(ctx.viewer.db, id, input);
   if (!saved.ok) return { error: errorKey(saved.error) };
+  if (id === null) await custom.save(saved.data.id);
   refresh(ctx.org.slug);
   return { ok: true, id: saved.data.id };
 }
@@ -261,15 +269,27 @@ export async function saveSitePlanAction(_: ActionState, form: FormData): Promis
   const projectId = uuid.safeParse(form.get("projectId"));
   const fieldErrors: Record<string, string> = {};
   if (!title || title.length > 200) fieldErrors["title"] = "title";
-  if (!imageUri) fieldErrors["imageUri"] = "imageUri";
+  // attachments/ names a stored drawing, which only the database derives (ADR 0140 D3).
+  if (imageUri !== null && imageUri.startsWith("attachments/"))
+    fieldErrors["imageUri"] = "imageUri";
   const id = text(form, "id");
   if (id === null && !projectId.success) fieldErrors["projectId"] = "project";
-  if (Object.keys(fieldErrors).length > 0 || !title || !imageUri) return { fieldErrors };
+  if (Object.keys(fieldErrors).length > 0 || !title) return { fieldErrors };
   const venueId = text(form, "venueId");
+  const venueLevelId = venueId ? text(form, "venueLevelId") : null;
+  // A plan outside Draft takes only its title (B1, ADR 0140 D1); a new plan waits for its drawing upload.
   const saved =
     id === null && projectId.success
-      ? await createSitePlan(ctx.viewer.db, { projectId: projectId.data, venueId, title, imageUri })
-      : await updateSitePlan(ctx.viewer.db, id ?? "", { venueId, title, imageUri });
+      ? await createSitePlan(ctx.viewer.db, {
+          projectId: projectId.data,
+          venueId,
+          venueLevelId,
+          title,
+          imageUri,
+        })
+      : text(form, "titleOnly") === "1"
+        ? await renameSitePlan(ctx.viewer.db, id ?? "", title)
+        : await updateSitePlan(ctx.viewer.db, id ?? "", { venueId, venueLevelId, title, imageUri });
   if (!saved.ok) return { error: errorKey(saved.error) };
   refresh(ctx.org.slug);
   return { ok: true, id: saved.data.id };

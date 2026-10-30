@@ -435,9 +435,73 @@ function PermitProperties({ row, t }: { row: PermitRow; t: Translate }) {
           label: t("permits.permits.fields.record"),
           value: row.record?.displayKey ?? t("permits.permits.untracked"),
         },
+        ...(row.factGroups.length > 0
+          ? [{ label: t("places.specs.venueFacts"), value: venueFacts(row, t) }]
+          : []),
       ]}
     />
   );
+}
+
+/**
+ * The venue facts a reviewer reads beside a rule (B1, ADR 0140 D9), or "Not recorded". Display only: which rules apply
+ * is decided by the permit engine alone, and an unknown fact never passes.
+ */
+function venueFacts(row: PermitRow, t: Translate): string {
+  const none = t("places.specs.notRecorded");
+  const f = row.facts;
+  const n = (v: number | null, unit = "") => (v === null ? none : `${v}${unit}`);
+  return row.factGroups
+    .map((group) => {
+      if (!f) return none;
+      switch (group) {
+        case "occupancy":
+          return t("places.specs.facts.occupancy", {
+            occupancy: n(f.occupantLoad),
+            spaces:
+              f.spaceCapacityTotal !== null
+                ? t("places.specs.facts.spacesOf", {
+                    known: f.spacesCapacityKnown,
+                    count: f.spacesCount,
+                    total: f.spaceCapacityTotal,
+                  })
+                : t("places.specs.facts.spacesPartial", {
+                    known: f.spacesCapacityKnown,
+                    count: f.spacesCount,
+                  }),
+          });
+        case "power":
+          return t("places.specs.facts.power", {
+            power:
+              f.housePowerAmps === null && f.housePowerVoltage === null
+                ? none
+                : [
+                    n(f.housePowerAmps, " A"),
+                    n(f.housePowerVoltage, " V"),
+                    f.housePowerPhase ? `${f.housePowerPhase}Φ` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · "),
+          });
+        case "rigging":
+          return t("places.specs.facts.rigging", {
+            rigging:
+              f.riggingPointCount === null && f.riggingTotalLoadLb === null
+                ? none
+                : [
+                    f.riggingPointCount !== null
+                      ? `${f.riggingPointCount} × ${n(f.riggingPointLoadLb, " lb")}`
+                      : null,
+                    f.riggingTotalLoadLb !== null ? `(${f.riggingTotalLoadLb} lb)` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" "),
+          });
+        default:
+          return t("places.specs.facts.dimensions", { height: n(f.clearHeightFt, " ft") });
+      }
+    })
+    .join("; ");
 }
 
 async function PermitBody({

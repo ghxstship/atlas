@@ -1,7 +1,9 @@
 {
   "actions": {
     "download": "Descargar PDF",
-    "downloadA4": "PDF (A4)"
+    "downloadA4": "PDF (A4)",
+    "size": "Tamaño de papel",
+    "downloadSize": "Descargar PDF"
   },
   "kinds": {
     "purchase-order": "Orden de compra",
@@ -16,7 +18,9 @@
     "incident-report": "Informe de incidente",
     "final-cost-report": "Informe de costo final",
     "agreement-certificate": "Certificado de firma",
-    "deletion-certificate": "Certificado de eliminación"
+    "deletion-certificate": "Certificado de eliminación",
+    "site-plan": "Plano del sitio",
+    "signage-build-sheet": "Hoja de montaje de señalización"
   },
   "facts": {
     "recordKey": "Clave del registro",
@@ -157,7 +161,14 @@
       "active": "Activa",
       "expired": "Vencida",
       "revoked": "Revocada"
-    }
+    },
+    "photoAlt": "Foto de {name}, titular de la credencial",
+    "noPhoto": "No hay foto registrada",
+    "scanAlt": "Código de acceso de la credencial {number}",
+    "scanCaption": "Escanear en el acceso",
+    "scanNoteV2": "Escanee el código de acceso para verificar esta credencial. El escaneo decide el acceso en el momento en que se hace, así que una credencial impresa nunca sobrevive a una revocación. El código del encabezado abre el registro.",
+    "window": "Válida del {from} al {to}",
+    "batchTitle": "Credenciales ({count})"
   },
   "inspectionReport": {
     "title": "Informe de inspección: {template}",
@@ -451,6 +462,111 @@
       "fringe": "Los beneficios complementarios se pagaron en efectivo o a planes, fondos o programas de beneficios complementarios de buena fe.",
       "wages": "A todos los trabajadores del proyecto se les pagó el salario semanal completo ganado, y no se hicieron ni se harán reembolsos ni deducciones, directa o indirectamente, salvo las deducciones permitidas según 29 CFR parte 3.",
       "warning": "La falsificación intencional de cualquiera de las declaraciones anteriores puede exponer al contratista o subcontratista a un proceso civil o penal (consulta la sección 1001 del título 18 y la sección 3729 del título 31 del Código de los Estados Unidos), así como a la inhabilitación para futuros contratos federales y con asistencia federal."
+    }
+  },
+  "paper": {
+    "letter": "Carta (EE. UU.)",
+    "a4": "A4",
+    "a6": "A6",
+    "cr80": "Tarjeta CR80"
+  },
+  "sitePlan": {
+    "title": "Plano del sitio {title}",
+    "venue": "Recinto",
+    "level": "Nivel",
+    "scale": "Escala",
+    "scaleValue": "Calibrada con una distancia conocida de {distance}",
+    "notCalibrated": "Sin calibrar",
+    "alt": "Plano del sitio {title} con {pins} marcadores y {shapes} formas dibujadas. La leyenda enumera cada uno.",
+    "drawingNotStored": "Dibujo no guardado en XOS",
+    "drawingClassified": "El dibujo tiene una clasificación superior a Interna, así que no se imprime aquí.",
+    "drawingRemoved": "El dibujo se eliminó, así que no se imprime aquí.",
+    "legend": "Leyenda",
+    "kind": "Tipo",
+    "count": "Cantidad",
+    "length": "Longitud",
+    "area": "Área",
+    "number": "N.º",
+    "label": "Etiqueta",
+    "measure": "Longitud o área",
+    "signs": "Letreros aquí",
+    "emptyLegend": "Todavía no hay nada dibujado en este plano.",
+    "pinTable": "Marcadores",
+    "across": "Horizontal (%)",
+    "down": "Vertical (%)",
+    "noPins": "Este plano no tiene marcadores.",
+    "kinds": {
+      "Pin": "Marcador",
+      "Route": "Ruta",
+      "Barrier": "Barrera",
+      "Area": "Área",
+      "Label": "Etiqueta"
+    },
+    "states": {
+      "Draft": "Borrador",
+      "Locked": "Bloqueado",
+      "Live": "Activo",
+      "Archived": "Archivado"
+    },
+    "units": {
+      "imperial": {
+        "length": "{value} ft",
+        "area": "{value} ft²"
+      },
+      "metric": {
+        "length": "{value} m",
+        "area": "{value} m²"
+      }
+    }
+  },
+  "buildSheet": {
+    "title": "Hoja de montaje de señalización {project}",
+    "showing": "Mostrando",
+    "count": "Letreros",
+    "signs": "Letreros por fabricar y colocar",
+    "key": "Clave",
+    "signTitle": "Letrero",
+    "type": "Tipo",
+    "sizeLabel": "Tamaño",
+    "quantity": "Cant.",
+    "substrate": "Material",
+    "location": "Ubicación",
+    "state": "Estado",
+    "placedInitials": "Colocado (iniciales)",
+    "noSigns": "Ningún letrero coincide con esta hoja.",
+    "atPin": "{plan}, marcador {n}: {label}",
+    "unlocated": "Sin ubicación todavía",
+    "planAlt": "Plano del sitio {title} con los {pins} marcadores donde van letreros, numerados como la columna Ubicación.",
+    "artwork": "Arte",
+    "artworkFor": "{key} {title}",
+    "artworkAlt": "Arte del letrero {key} {title}",
+    "artworkFile": "Archivo de arte: {name}",
+    "size": {
+      "imperial": "{width} × {height} in",
+      "metric": "{width} × {height} cm"
+    },
+    "filters": {
+      "open": "Letreros sin colocar",
+      "to-order": "Por pedir",
+      "ordered": "Pedido",
+      "printed": "Impreso",
+      "placed": "Colocado",
+      "all": "Todos los letreros"
+    },
+    "types": {
+      "Directional": "Direccional",
+      "Identification": "Identificación",
+      "Regulatory": "Normativo",
+      "Informational": "Informativo",
+      "Sponsor": "Patrocinador",
+      "Menu": "Menú",
+      "Digital": "Digital"
+    },
+    "states": {
+      "ToOrder": "Por pedir",
+      "Ordered": "Pedido",
+      "Printed": "Impreso",
+      "Placed": "Colocado"
     }
   }
 }

@@ -253,7 +253,16 @@ describe("spaces and zones", () => {
     await createSpace(db, { venueId: "v1", name: " Deck ", capacity: 10 });
     expect(calls[0]?.steps[0]).toEqual([
       "insert",
-      [{ venue_id: "v1", name: "Deck", urid: null, area_sq_ft: null, capacity: 10 }],
+      [
+        {
+          venue_id: "v1",
+          name: "Deck",
+          urid: null,
+          area_sq_ft: null,
+          capacity: 10,
+          venue_level_id: null,
+        },
+      ],
     ]);
     await updateSpace(db, "s1", { name: "Deck", urid: "4000.01.01", areaSqFt: 500 });
     await createZone(db, { venueId: "v1", code: " foh ", name: "Front" });
@@ -411,7 +420,15 @@ describe("site plans", () => {
     await createSitePlan(db, { projectId: "pr1", title: " Ground ", imageUri: " a.png " });
     expect(calls[0]?.steps[0]).toEqual([
       "insert",
-      [{ project_id: "pr1", venue_id: null, title: "Ground", image_uri: "a.png" }],
+      [
+        {
+          project_id: "pr1",
+          venue_id: null,
+          venue_level_id: null,
+          title: "Ground",
+          image_uri: "a.png",
+        },
+      ],
     ]);
     await updateSitePlan(db, "p1", { title: "G", imageUri: "b.png", venueId: "v1" });
     await addSitePlanPin(db, { sitePlanId: "p1", label: " Stage ", x: 0.5, y: 0.5 });

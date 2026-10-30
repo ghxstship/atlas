@@ -40,6 +40,7 @@ import {
   TravelTab,
 } from "./tabs-crew";
 import { ReportsTab } from "./tabs-reports";
+import { CrewTab } from "./tabs-roster";
 import {
   AdvanceTab,
   BidTab,
@@ -91,6 +92,7 @@ export const ENGAGEMENT_TABS: Readonly<Record<string, Tab>> = {
   "engagement.travel-and-lodging": TravelTab,
   "engagement.per-diem": PerDiemTab,
   "engagement.advance": AdvanceTab,
+  "engagement.crew": CrewTab,
   "engagement.rider": RiderTab,
   "engagement.set-times": SetTimesTab,
   "engagement.hospitality": HospitalityTab,

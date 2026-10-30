@@ -10077,7 +10077,8 @@
               "In Maintenance",
               "Damaged",
               "Lost",
-              "Retired"
+              "Retired",
+              "Returned"
             ],
             "description": "Asset lifecycle state.",
             "example": "Available"
@@ -10093,6 +10094,12 @@
             "format": "uuid",
             "description": "Identifier of the venue the unit returns to.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "receipt_line_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the receipt line the unit arrived on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -10106,7 +10113,8 @@
           "asset_tag",
           "asset_state",
           "condition_enum_id",
-          "home_venue_id"
+          "home_venue_id",
+          "receipt_line_id"
         ],
         "description": "An individual asset tracked by serial or asset tag (unit grain), with a nine-value lifecycle."
       },
@@ -21517,6 +21525,189 @@
         "required": ["expected_state", "to_state"],
         "description": "Request to move a lifecycle to another state."
       },
+      "PurchaseOrderReceiveResult": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": ["applied", "duplicate"],
+            "description": "applied for a new event; duplicate when the event was already recorded.",
+            "example": "applied"
+          },
+          "goods_receipt_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The goods receipt recorded.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "receipt_line_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "description": "Its receipt lines.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          },
+          "asset_unit_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "description": "Units that came in on them.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          },
+          "lot_movement_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "description": "Receipt movements into lots.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          }
+        },
+        "required": [
+          "outcome",
+          "goods_receipt_id",
+          "receipt_line_ids",
+          "asset_unit_ids",
+          "lot_movement_ids"
+        ],
+        "description": "What one receipt event recorded."
+      },
+      "PurchaseOrderReceiveRequest": {
+        "type": "object",
+        "properties": {
+          "lines": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PurchaseOrderReceiveLine" },
+            "minItems": 1,
+            "description": "Lines received."
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Note.",
+            "example": "Two cases dented."
+          }
+        },
+        "required": ["lines"],
+        "description": "One receipt event against an order."
+      },
+      "PurchaseOrderReceiveLine": {
+        "type": "object",
+        "properties": {
+          "po_line_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the order line received.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Quantity received.",
+            "example": 2
+          },
+          "asset_tags": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1, "maxLength": 100 },
+            "minItems": 1,
+            "description": "One asset tag per unit received, for an element with an asset class: each unit comes in Received. Needs assets.asset.write.",
+            "example": ["NWL-RAD-101", "NWL-RAD-102"]
+          },
+          "venue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the venue whose lot takes the quantity into stock; needs assets.asset.write.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "condition_enum_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Condition of the units: a row of the canon Asset Condition enumeration.",
+            "example": "ENM-017"
+          }
+        },
+        "required": ["po_line_id", "quantity"],
+        "description": "One order line received: by asset tags, into a lot at a venue, or neither."
+      },
+      "PurchaseOrderReturnResult": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": ["applied", "duplicate"],
+            "description": "applied for a new event; duplicate when the event was already recorded.",
+            "example": "applied"
+          },
+          "goods_return_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The goods return recorded.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "return_line_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "description": "Its return lines.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          }
+        },
+        "required": ["outcome", "goods_return_id", "return_line_ids"],
+        "description": "What one return event recorded."
+      },
+      "PurchaseOrderReturnRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "enum": ["Off Hire", "Defective", "Wrong Item", "Over Delivery"],
+            "description": "Why the goods go back. Off Hire applies only to rental lines.",
+            "example": "Off Hire"
+          },
+          "lines": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PurchaseOrderReturnLine" },
+            "minItems": 1,
+            "description": "Lines returned."
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Note.",
+            "example": "Collected by the vendor's driver."
+          }
+        },
+        "required": ["reason", "lines"],
+        "description": "One return to the vendor."
+      },
+      "PurchaseOrderReturnLine": {
+        "type": "object",
+        "properties": {
+          "receipt_line_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the receipt line of the same order that brought the goods in.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Quantity returned.",
+            "example": 1
+          },
+          "asset_unit_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "description": "The serialized units going back, one per unit, each received on that receipt line.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          },
+          "venue_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the venue whose lot the quantity leaves.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["receipt_line_id", "quantity"],
+        "description": "Goods of one receipt line going back: units, a quantity out of a lot, or a quantity."
+      },
       "PoLinePage": {
         "type": "object",
         "properties": {
@@ -21608,6 +21799,24 @@
             "minimum": 1,
             "description": "Order of the line within the purchase order.",
             "example": 1
+          },
+          "acquisition_kind": {
+            "type": "string",
+            "enum": ["Purchase", "Rental"],
+            "description": "Whether the line buys or hires its item.",
+            "example": "Rental"
+          },
+          "hire_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines: when the hire starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "hire_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines: when the hire ends and off-hire is due.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -21624,7 +21833,10 @@
           "quantity",
           "unit_basis",
           "unit_price_minor",
-          "line_number"
+          "line_number",
+          "acquisition_kind",
+          "hire_starts_at",
+          "hire_ends_at"
         ],
         "description": "A purchase order line."
       },
@@ -21666,6 +21878,24 @@
             "minimum": 1,
             "description": "Order of the line within the purchase order.",
             "example": 1
+          },
+          "acquisition_kind": {
+            "type": "string",
+            "enum": ["Purchase", "Rental"],
+            "description": "Whether the line buys or hires its item.",
+            "example": "Rental"
+          },
+          "hire_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines: when the hire starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "hire_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines: when the hire ends and off-hire is due.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": ["purchase_order_id", "description", "quantity"],
@@ -21703,9 +21933,50 @@
             "minimum": 1,
             "description": "Order of the line within the purchase order.",
             "example": 1
+          },
+          "acquisition_kind": {
+            "type": "string",
+            "enum": ["Purchase", "Rental"],
+            "description": "Whether the line buys or hires its item.",
+            "example": "Rental"
+          },
+          "hire_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines: when the hire starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "hire_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental lines: when the hire ends and off-hire is due.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "description": "Fields accepted when updating a PoLine. Omitted fields are unchanged."
+      },
+      "HireWindowWarnings": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "Delivery After Load In",
+                "Return Before Load Out",
+                "Hire Beyond Site Window",
+                "Delivery Docks Full",
+                "Return Docks Full"
+              ],
+              "description": "The window rule the hire breaks.",
+              "example": "Delivery After Load In"
+            },
+            "description": "Warnings, in rule order."
+          }
+        },
+        "required": ["data"],
+        "description": "Window warnings for a hire."
       },
       "PoChangeOrderPage": {
         "type": "object",
@@ -35916,9 +36187,23 @@
             "format": "date-time",
             "description": "End of account membership.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "accepted_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the person confirmed the membership; null until they do.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["id", "created_at", "updated_at", "person_id", "valid_from", "valid_to"],
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "person_id",
+          "valid_from",
+          "valid_to",
+          "accepted_at"
+        ],
         "description": "A person in an external organization's account."
       },
       "AccountMembershipCreate": {
@@ -49948,6 +50233,53 @@
         "required": ["outcome"],
         "description": "Decision on a requested guest."
       },
+      "AssetUnitHirePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetUnitHire" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AssetUnitHire": {
+        "type": "object",
+        "properties": {
+          "asset_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the asset unit.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "acquisition_kind": {
+            "type": "string",
+            "enum": ["Purchase", "Rental"],
+            "description": "Rental when the unit arrived on a rental order line; Purchase otherwise.",
+            "example": "Rental"
+          },
+          "hire_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Rental units: when the hire ends.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "off_hire_due": {
+            "type": "boolean",
+            "description": "True for a rental unit whose hire has ended and which has not been Returned.",
+            "example": false
+          }
+        },
+        "required": ["asset_unit_id", "acquisition_kind", "hire_ends_at", "off_hire_due"],
+        "description": "Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order."
+      },
       "Form1099NecRowPage": {
         "type": "object",
         "properties": {
@@ -50035,6 +50367,290 @@
           "payment_count"
         ],
         "description": "A payee paid $600 or more in approved USD payments in a tax year as an independent contractor, with the W-9 on file."
+      },
+      "GoodsReturnPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/GoodsReturn" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "GoodsReturn": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the goods return.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "purchase_order_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the purchase order the goods were received on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "returned_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the goods went back.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "returned_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who returned the goods.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "return_reason": {
+            "type": "string",
+            "enum": ["Off Hire", "Defective", "Wrong Item", "Over Delivery"],
+            "description": "Why the goods went back.",
+            "example": "Off Hire"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Condition or carrier noted at the return.",
+            "example": "Collected."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "purchase_order_id",
+          "returned_at",
+          "returned_by",
+          "return_reason",
+          "note"
+        ],
+        "description": "Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`."
+      },
+      "ReturnLinePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ReturnLine" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ReturnLine": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the return line.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "goods_return_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the goods return.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "receipt_line_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the receipt line that brought the goods in.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_unit_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the serialized unit returned.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "quantity_returned": {
+            "type": "number",
+            "description": "Quantity returned; 1 for a unit.",
+            "example": 1
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "goods_return_id",
+          "receipt_line_id",
+          "asset_unit_id",
+          "quantity_returned"
+        ],
+        "description": "What went back in a goods return, per receipt line: one row per serialized unit, or a quantity."
+      },
+      "PoLineHireWarningPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PoLineHireWarning" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "PoLineHireWarning": {
+        "type": "object",
+        "properties": {
+          "po_line_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the rental order line.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the order.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "purchase_order_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the purchase order.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "hire_starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the hire starts.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "hire_ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the hire ends.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "site_opens_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the site window opens; null when nothing sets it.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "site_closes_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the site window closes; null when nothing sets it.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "warning": {
+            "type": "string",
+            "enum": [
+              "Delivery After Load In",
+              "Return Before Load Out",
+              "Hire Beyond Site Window",
+              "Delivery Docks Full",
+              "Return Docks Full"
+            ],
+            "description": "The window rule the hire breaks.",
+            "example": "Delivery After Load In"
+          }
+        },
+        "required": [
+          "po_line_id",
+          "project_id",
+          "purchase_order_id",
+          "hire_starts_at",
+          "hire_ends_at",
+          "site_opens_at",
+          "site_closes_at",
+          "warning"
+        ],
+        "description": "A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line."
       },
       "InsuranceCertificateInsuredPage": {
         "type": "object",
@@ -52554,7 +53170,7 @@
           "engagement_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the engagement the share serves; the caller must be its person.",
+            "description": "Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "person_id": {
@@ -52588,6 +53204,12 @@
             "format": "date-time",
             "description": "When the person revoked it; null while it stands.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "roster_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the roster entry the share serves (R4): the caller's own entry on the engagement, the self entry for its person; null only on shares revoked before roster entries existed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -52602,9 +53224,10 @@
           "consent_record_id",
           "categories",
           "shared_at",
-          "revoked_at"
+          "revoked_at",
+          "roster_entry_id"
         ],
-        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them."
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged."
       },
       "WorkDetailCategory": {
         "type": "string",
@@ -52625,7 +53248,7 @@
           "engagement_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the engagement the share serves; the caller must be its person.",
+            "description": "Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "categories": {
@@ -52666,7 +53289,7 @@
           "person_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Person the engagement names.",
+            "description": "Person the engagement names, or the roster entry's person.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "org_id": {
@@ -52674,6 +53297,18 @@
             "format": "uuid",
             "description": "Engaging org.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "roster_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Roster entry read (R4): the engaged person's self entry; null when there is none.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reader": {
+            "type": "string",
+            "enum": ["org", "company"],
+            "description": "Who reads (R4): org, a member of the engaging org by capability; company, a roster manager of the account that rosters the person, who reads every category once the person accepted the entry.",
+            "example": "org"
           },
           "work_detail_share_id": {
             "type": ["string", "null"],
@@ -52731,6 +53366,8 @@
           "engagement_id",
           "person_id",
           "org_id",
+          "roster_entry_id",
+          "reader",
           "work_detail_share_id",
           "shared_at",
           "sharing_open",
@@ -52840,8 +53477,13 @@
           },
           "allergies": {
             "type": ["string", "null"],
-            "description": "Allergies.",
+            "description": "Allergies; null when masked for the reader (a company reader never reads them).",
             "example": "Peanuts, severe"
+          },
+          "allergies_on_file": {
+            "type": "boolean",
+            "description": "Whether allergies are recorded, even when masked.",
+            "example": true
           },
           "dietary_notes": {
             "type": ["string", "null"],
@@ -52849,7 +53491,7 @@
             "example": "No pork."
           }
         },
-        "required": ["dietary_needs", "allergies", "dietary_notes"],
+        "required": ["dietary_needs", "allergies", "allergies_on_file", "dietary_notes"],
         "description": "Dietary needs as an engaging org reads them."
       },
       "SharedAccessibilityNeeds": {
@@ -53017,6 +53659,12 @@
             "description": "Identifier of the engagement of a share, read or reveal.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
+          "roster_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the roster entry of a share, read or reveal (R4).",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
           "action": {
             "type": "string",
             "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
@@ -53055,6 +53703,7 @@
           "actor_person_id",
           "org_id",
           "engagement_id",
+          "roster_entry_id",
           "action",
           "categories",
           "changed_columns",
@@ -78701,7 +79350,8 @@
                       "asset_tag": "NWL-TR-0042",
                       "asset_state": "Available",
                       "condition_enum_id": "ENM-017",
-                      "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "receipt_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -78760,7 +79410,8 @@
                   "asset_tag": "NWL-TR-0042",
                   "asset_state": "Available",
                   "condition_enum_id": "ENM-017",
-                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "receipt_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetUnit" }
               }
@@ -78820,7 +79471,8 @@
                   "asset_tag": "NWL-TR-0042",
                   "asset_state": "Available",
                   "condition_enum_id": "ENM-017",
-                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "receipt_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetUnit" }
               }
@@ -78889,7 +79541,8 @@
                   "asset_tag": "NWL-TR-0042",
                   "asset_state": "Available",
                   "condition_enum_id": "ENM-017",
-                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "receipt_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetUnit" }
               }
@@ -78994,7 +79647,8 @@
                   "asset_tag": "NWL-TR-0042",
                   "asset_state": "Available",
                   "condition_enum_id": "ENM-017",
-                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "receipt_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetUnit" }
               }
@@ -79050,7 +79704,8 @@
                   "asset_tag": "NWL-TR-0042",
                   "asset_state": "Available",
                   "condition_enum_id": "ENM-017",
-                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "home_venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "receipt_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetUnit" }
               }
@@ -96955,6 +97610,154 @@
         }
       }
     },
+    "/purchase-orders/{id}/receive": {
+      "post": {
+        "operationId": "purchaseOrders.receive",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.purchase_orders",
+        "x-xos-capability": "procurement.receipt.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-rpc": "app.receive_goods",
+        "summary": "Receive goods against a purchase order",
+        "description": "Records one receipt event in one transaction (app.receive_goods): the goods receipt, a receipt line per entry and, for an element with an asset class, Received units by asset tag or a Receipt movement into the lot at a venue. Needs procurement.receipt.write on the project, and assets.asset.write to bring stock in. The order must be Approved or Sent, and receipts never exceed the quantity ordered (422 receipt_order_state, receipt_exceeds_order). A replay with the same Idempotency-Key returns the original response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the purchase order.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the purchase order.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "lines": [
+                  {
+                    "po_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "quantity": 2,
+                    "asset_tags": ["NWL-RAD-101", "NWL-RAD-102"],
+                    "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "condition_enum_id": "ENM-017"
+                  }
+                ],
+                "note": "Two cases dented."
+              },
+              "schema": { "$ref": "#/components/schemas/PurchaseOrderReceiveRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "applied",
+                  "goods_receipt_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "receipt_line_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                  "asset_unit_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                  "lot_movement_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+                },
+                "schema": { "$ref": "#/components/schemas/PurchaseOrderReceiveResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/purchase-orders/{id}/returns": {
+      "post": {
+        "operationId": "purchaseOrders.returnGoods",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.purchase_orders",
+        "x-xos-capability": "procurement.receipt.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-rpc": "app.return_goods",
+        "summary": "Return goods to the vendor",
+        "description": "Records one return event in one transaction (app.return_goods): return lines against the receipt lines that brought the goods in, never more than they received (422 return_exceeds_receipt). Serialized units must be Available, Damaged or In Maintenance and checked in; they become Returned. A quantity out of a lot writes a Vendor Return movement. Off Hire applies only to rental lines (422 return_off_hire_not_rental). Needs procurement.receipt.write on the project. A replay with the same Idempotency-Key returns the original response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the purchase order.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the purchase order.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "reason": "Off Hire",
+                "lines": [
+                  {
+                    "receipt_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "quantity": 1,
+                    "asset_unit_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                    "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  }
+                ],
+                "note": "Collected by the vendor's driver."
+              },
+              "schema": { "$ref": "#/components/schemas/PurchaseOrderReturnRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "applied",
+                  "goods_return_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "return_line_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+                },
+                "schema": { "$ref": "#/components/schemas/PurchaseOrderReturnResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/po-lines": {
       "get": {
         "operationId": "poLines.list",
@@ -96998,7 +97801,10 @@
                       "quantity": 24,
                       "unit_basis": "each",
                       "unit_price_minor": 4500,
-                      "line_number": 1
+                      "line_number": 1,
+                      "acquisition_kind": "Rental",
+                      "hire_starts_at": "2026-10-08T14:30:00Z",
+                      "hire_ends_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -97033,7 +97839,10 @@
                 "quantity": 24,
                 "unit_basis": "each",
                 "unit_price_minor": 4500,
-                "line_number": 1
+                "line_number": 1,
+                "acquisition_kind": "Rental",
+                "hire_starts_at": "2026-10-08T14:30:00Z",
+                "hire_ends_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/PoLineCreate" }
             }
@@ -97064,7 +97873,10 @@
                   "quantity": 24,
                   "unit_basis": "each",
                   "unit_price_minor": 4500,
-                  "line_number": 1
+                  "line_number": 1,
+                  "acquisition_kind": "Rental",
+                  "hire_starts_at": "2026-10-08T14:30:00Z",
+                  "hire_ends_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/PoLine" }
               }
@@ -97127,7 +97939,10 @@
                   "quantity": 24,
                   "unit_basis": "each",
                   "unit_price_minor": 4500,
-                  "line_number": 1
+                  "line_number": 1,
+                  "acquisition_kind": "Rental",
+                  "hire_starts_at": "2026-10-08T14:30:00Z",
+                  "hire_ends_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/PoLine" }
               }
@@ -97173,7 +97988,10 @@
                 "quantity": 24,
                 "unit_basis": "each",
                 "unit_price_minor": 4500,
-                "line_number": 1
+                "line_number": 1,
+                "acquisition_kind": "Rental",
+                "hire_starts_at": "2026-10-08T14:30:00Z",
+                "hire_ends_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/PoLineUpdate" }
             }
@@ -97204,7 +98022,10 @@
                   "quantity": 24,
                   "unit_basis": "each",
                   "unit_price_minor": 4500,
-                  "line_number": 1
+                  "line_number": 1,
+                  "acquisition_kind": "Rental",
+                  "hire_starts_at": "2026-10-08T14:30:00Z",
+                  "hire_ends_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/PoLine" }
               }
@@ -97245,6 +98066,76 @@
           "204": { "description": "The PO line moved to Trash." },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/po-lines/hire-window-warnings": {
+      "get": {
+        "operationId": "poLines.hireWindowWarnings",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.po_lines",
+        "x-xos-capability": "procurement.po.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-rpc": "app.hire_window_warnings",
+        "summary": "Window warnings for a hire",
+        "description": "The delivery and return window warnings a rental line with this hire would raise on the project before it is saved (app.hire_window_warnings, G-99): the same rules as `poLineHireWarnings`. Warnings never refuse a line. Needs procurement.po.read on the project; a hire that does not end after it starts is refused (422 hire_period_order). A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project the order is for.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project the order is for.",
+            "name": "project_id",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When the hire starts.",
+              "example": "2026-10-08T14:30:00Z"
+            },
+            "required": true,
+            "description": "When the hire starts.",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "When the hire ends.",
+              "example": "2026-10-08T14:30:00Z"
+            },
+            "required": true,
+            "description": "When the hire ends.",
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "data": ["Delivery After Load In"] },
+                "schema": { "$ref": "#/components/schemas/HireWindowWarnings" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
@@ -119302,7 +120193,8 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "valid_from": "2026-10-08T14:30:00Z",
-                      "valid_to": "2026-10-08T14:30:00Z"
+                      "valid_to": "2026-10-08T14:30:00Z",
+                      "accepted_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -119354,7 +120246,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/AccountMembership" }
               }
@@ -119409,7 +120302,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/AccountMembership" }
               }
@@ -140870,6 +141764,54 @@
         }
       }
     },
+    "/asset-unit-hire": {
+      "get": {
+        "operationId": "assetUnitHire.list",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_unit_hire",
+        "x-xos-capability": "assets.asset.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "x-xos-order": { "by": ["asset_unit_id"], "numeric": false },
+        "summary": "List unit hire rows",
+        "description": "Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order. Returns a cursor page of unit hire rows the caller may see. The default order is `asset_unit_id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of unit hire rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "acquisition_kind": "Rental",
+                      "hire_ends_at": "2026-10-08T14:30:00Z",
+                      "off_hire_due": false
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AssetUnitHirePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/form-1099-nec/rows": {
       "get": {
         "operationId": "form1099Nec.rows",
@@ -140926,6 +141868,284 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/goods-returns": {
+      "get": {
+        "operationId": "goodsReturns.list",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.goods_returns",
+        "x-xos-capability": "procurement.po.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-order": { "by": ["returned_at"], "numeric": false, "descending": true },
+        "summary": "List goods return rows",
+        "description": "Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`. Returns a cursor page of goods return rows the caller may see. The default order is `returned_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of goods return rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "returned_at": "2026-10-08T14:30:00Z",
+                      "returned_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "return_reason": "Off Hire",
+                      "note": "Collected."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/GoodsReturnPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/goods-returns/{id}": {
+      "get": {
+        "operationId": "goodsReturns.get",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.goods_returns",
+        "x-xos-capability": "procurement.po.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "summary": "Get a goods return",
+        "description": "Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`. Returns one goods return with its `ETag`. A goods return the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the goods return.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the goods return.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The goods return.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "returned_at": "2026-10-08T14:30:00Z",
+                  "returned_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "return_reason": "Off Hire",
+                  "note": "Collected."
+                },
+                "schema": { "$ref": "#/components/schemas/GoodsReturn" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/return-lines": {
+      "get": {
+        "operationId": "returnLines.list",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.return_lines",
+        "x-xos-capability": "procurement.po.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List return line rows",
+        "description": "What went back in a goods return, per receipt line: one row per serialized unit, or a quantity. Returns a cursor page of return line rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of return line rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "goods_return_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "receipt_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "quantity_returned": 1
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ReturnLinePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/return-lines/{id}": {
+      "get": {
+        "operationId": "returnLines.get",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.return_lines",
+        "x-xos-capability": "procurement.po.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "summary": "Get a return line",
+        "description": "What went back in a goods return, per receipt line: one row per serialized unit, or a quantity. Returns one return line with its `ETag`. A return line the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the return line.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the return line.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The return line.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "goods_return_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "receipt_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "quantity_returned": 1
+                },
+                "schema": { "$ref": "#/components/schemas/ReturnLine" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/po-line-hire-warnings": {
+      "get": {
+        "operationId": "poLineHireWarnings.list",
+        "tags": ["Procurement"],
+        "x-xos-table": "app.po_line_hire_warnings",
+        "x-xos-capability": "procurement.po.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["procurement"] }],
+        "x-xos-order": { "by": ["po_line_id"], "numeric": false },
+        "summary": "List hire warning rows",
+        "description": "A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line. Returns a cursor page of hire warning rows the caller may see. The default order is `po_line_id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of hire warning rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "po_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "purchase_order_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "hire_starts_at": "2026-10-08T14:30:00Z",
+                      "hire_ends_at": "2026-10-08T14:30:00Z",
+                      "site_opens_at": "2026-10-08T14:30:00Z",
+                      "site_closes_at": "2026-10-08T14:30:00Z",
+                      "warning": "Delivery After Load In"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/PoLineHireWarningPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -144038,7 +145258,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
         "summary": "List work detail share rows",
-        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -144070,7 +145290,8 @@
                       "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "categories": ["Dietary Needs", "Emergency Contacts"],
                       "shared_at": "2026-10-08T14:30:00Z",
-                      "revoked_at": "2026-10-08T14:30:00Z"
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -144091,7 +145312,7 @@
         "x-xos-capability": "me.work_details.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Create a work detail share",
-        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -144128,7 +145349,8 @@
                   "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -144150,7 +145372,7 @@
         "x-xos-capability": "opportunities.engagement.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
         "summary": "Get a work detail share",
-        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.",
         "parameters": [
           {
             "schema": {
@@ -144189,7 +145411,8 @@
                   "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -144208,7 +145431,7 @@
         "x-xos-capability": "me.work_details.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "summary": "Update a work detail share",
-        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
         "parameters": [
           {
             "schema": {
@@ -144256,7 +145479,8 @@
                   "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -144320,7 +145544,8 @@
                   "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "categories": ["Dietary Needs", "Emergency Contacts"],
                   "shared_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
               }
@@ -144373,6 +145598,8 @@
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reader": "org",
                   "work_detail_share_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shared_at": "2026-10-08T14:30:00Z",
                   "sharing_open": true,
@@ -144400,6 +145627,7 @@
                   "dietary": {
                     "dietary_needs": ["Vegetarian"],
                     "allergies": "Peanuts, severe",
+                    "allergies_on_file": true,
                     "dietary_notes": "No pork."
                   },
                   "accessibility": {
@@ -144532,6 +145760,7 @@
                       "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "action": "work_details.viewed",
                       "categories": ["Dietary Needs"],
                       "changed_columns": ["allergies"],

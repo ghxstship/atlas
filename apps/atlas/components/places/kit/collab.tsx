@@ -17,6 +17,7 @@ import {
   type CollabSubject,
 } from "./collab-actions";
 import { useCopy } from "./form";
+import { AttachmentPreview } from "@/components/files/file-preview";
 
 function useRun() {
   const router = useRouter();
@@ -187,6 +188,7 @@ export function CollabPanels({
                   >
                     {t(`collab.scan.${scan(a)}`)}
                   </Tag>
+                  <AttachmentPreview attachment={a} />
                   {a.current ? (
                     <Button
                       size="sm"

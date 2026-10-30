@@ -244,6 +244,18 @@ const guests = source("app.guest_list_entries", [
   "note",
   "project_id",
 ]);
+// R4: the crew roster, through the producing org's read view (the person resolved, no profile value).
+const crewRoster = source("app.roster_entry_people", [
+  "full_name",
+  "party_name",
+  "job_title",
+  "arrival_starts_at",
+  "arrival_ends_at",
+  "arrival_time_zone",
+  "entry_state",
+  "person_response",
+  "project_id",
+]);
 
 const custody = source("app.asset_custody", [
   "created_at",
@@ -467,6 +479,7 @@ const payments = source("app.payments", [
 export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "activity/feed": activity,
 
+  "advancing/crew": crewRoster,
   "advancing/packets": packets,
   "advancing/reconciliation": reconciliations,
   "advancing/riders": riders,
@@ -763,6 +776,7 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     riders: inProject(riders),
     reconciliation: inProject(reconciliations),
     guests: inProject(guests),
+    crew: inProject(crewRoster),
     submissions,
   }),
   "project/assets": inProject(custody),
@@ -878,7 +892,19 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
     "valid_to",
     "is_frozen",
   ]),
-  "places/site_plans": source("app.site_plans", ["title", "venue_id", "project_id"]),
+  "places/signage": source("app.signs", [
+    "sign_number",
+    "title",
+    "sign_type",
+    "quantity",
+    "width_in",
+    "height_in",
+    "substrate",
+    "location_text",
+    "needed_by",
+    "project_id",
+  ]),
+  "places/site_plans": source("app.site_plans", ["title", "venue_id", "project_id", "plan_state"]),
   "places/spaces_and_zones": source("app.spaces", [
     "name",
     "venue_id",

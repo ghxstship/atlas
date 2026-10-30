@@ -79,5 +79,20 @@
   "presence": {
     "label": "Also viewing",
     "viewing": "{count, plural, one {# other person here} other {# other people here}}"
+  },
+  "preview": {
+    "open": "Preview",
+    "loading": "Loading the preview…",
+    "failed": "The preview couldn't be loaded. Try again, or download the file.",
+    "office": "Office files can't be previewed here. Download the file to open it.",
+    "unsupported": "This file type can't be previewed. Download the file to open it.",
+    "tooLarge": "This file is too large to preview. Download the file to open it.",
+    "download": "Download",
+    "watermarked": "Confidential and Restricted files preview as they download: with your email and the time on every page.",
+    "pages": "{count, plural, one {# page} other {# pages}}",
+    "pageOf": "Page {page} of {count}",
+    "image": "Image",
+    "video": "Video",
+    "videoLabel": "Video: {name}"
   }
 }

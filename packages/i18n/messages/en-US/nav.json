@@ -41,13 +41,15 @@
         "packets": "Packets",
         "submissions": "Submissions",
         "riders": "Riders",
-        "reconciliation": "Reconciliation"
+        "reconciliation": "Reconciliation",
+        "crew": "Crew Roster"
       },
       "places": {
         "venues": "Venues",
         "spacesAndZones": "Spaces and Zones",
         "capabilityDocuments": "Capability Documents",
-        "sitePlans": "Site Plans"
+        "sitePlans": "Site Plans",
+        "signage": "Signage"
       },
       "logistics": {
         "shipments": "Shipments",
@@ -398,7 +400,8 @@
       "reports": "Reports",
       "invoices": "Invoices",
       "documents": "Documents",
-      "messages": "Messages"
+      "messages": "Messages",
+      "crew": "Crew"
     },
     "avatar": {
       "settings": "Settings",
@@ -447,6 +450,9 @@
       "companyProfile": "Company Profile",
       "advanceForm": "Advance Form",
       "agreementSigning": "Agreement Signing"
+    },
+    "profile": {
+      "badgePhotos": "Badge Photos"
     }
   },
   "compass": {

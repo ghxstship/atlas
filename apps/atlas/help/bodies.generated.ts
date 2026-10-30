@@ -66,6 +66,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Crew roster" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each party puts its people on its engagements: a vendor's technicians, a band and its touring crew, a sponsor's activation staff. Crew Roster lists them by party with their role, arrival, review state and whether they accepted. Accept or return each submitted entry, one by one or in bulk with one reason; you never review an entry you added or submitted. Open a person to see what they share, read and logged when you open it. Allergies show as on file unless you may read them.",
+          },
+        ],
+      },
       {
         t: "p",
         c: [
@@ -1311,6 +1321,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A venue's levels name its floors in order, with basements below zero; spaces and site plans name the level they are on. Its technical specs record house power, dock and access, dimensions, rigging and network facts. A blank spec is not recorded and never passes a check. Never enter a network password: share credentials in a Restricted capability document.",
+          },
+        ],
+      },
       { t: "h2", v: "Spaces and zones" },
       {
         t: "p",
@@ -1337,7 +1356,36 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "A site plan is a drawing of a venue with pins for spaces, assets and points of interest. Switch to the table view for an accessible list of every pin.",
+            v: "A site plan is a project's drawing of a venue with pins for spaces, assets and points of interest. Upload a PNG, JPEG or PDF as its drawing; from a PDF, the page you choose becomes the drawing. On a Draft plan, draw routes, barriers, areas and labels, set the scale from one known distance, and measure lengths and areas. Every tool also takes its points as Across and Down percentages, and the arrow keys nudge the selected point.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A plan moves from Draft to Locked when its layout is fixed, and to Live when crews work from it; one plan per venue and level is live. Comments, notes at a point, mentions and Resolve work in every state. Export PDF prints the drawing with the layers and legend you choose.",
+          },
+        ],
+      },
+      { t: "h2", v: "Signage" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The signage register lists each project's signs with their text, size, material, place and artwork. Mark a sign ordered, printed and placed, or link it to a purchase order line so the order says when it is ordered and received. The build sheet prints the signs to build and place, grouped by plan and pin.",
+          },
+        ],
+      },
+      { t: "h2", v: "Venue specs in advancing and permits" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "On a project's scope, Add venue specs as capabilities copies the venue's known power, rigging and connectivity specs into capabilities for reconciliation, documented when a current capability document backs them. Permits show the venue facts that matter to each rule; they never change which permits apply.",
           },
         ],
       },
@@ -2272,6 +2320,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Compara cada requisito del rider con los documentos de capacidad de la sede. Un requisito que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como una brecha para la próxima compuerta.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lista del equipo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada parte incluye a su gente en sus contrataciones: los técnicos de un proveedor, una banda y su equipo de gira, el personal de activación de un patrocinador. Lista del equipo los muestra por parte con su puesto, su llegada, el estado de revisión y si aceptaron. Acepte o devuelva cada entrada enviada, una por una o en bloque con un solo motivo; nunca revisa una entrada que usted agregó o envió. Abra a una persona para ver lo que comparte, que se lee y se registra al abrirlo. Las alergias aparecen como registradas salvo que usted pueda leerlas.",
           },
         ],
       },
@@ -3520,6 +3578,15 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los niveles de una sede nombran sus pisos en orden, con los sótanos por debajo de cero; los espacios y los planos del sitio indican el nivel en que están. Sus especificaciones técnicas registran energía, muelle y acceso, dimensiones, puntos de colgado y red. Una especificación en blanco no está registrada y nunca aprueba una revisión. No ingreses contraseñas de red: comparte las credenciales en un documento de capacidad Restringido.",
+          },
+        ],
+      },
       { t: "h2", v: "Espacios y zonas" },
       {
         t: "p",
@@ -3546,7 +3613,36 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Un plano del sitio es un dibujo de la sede con marcadores de espacios, activos y puntos de interés. La vista de tabla ofrece una lista accesible de cada marcador.",
+            v: "Un plano del sitio es el dibujo de una sede de un proyecto con marcadores de espacios, activos y puntos de interés. Sube un PNG, JPEG o PDF como dibujo; de un PDF, la página que elijas será el dibujo. En un plano en borrador, dibuja rutas, barreras, áreas y etiquetas, define la escala con una distancia conocida y mide longitudes y áreas. Cada herramienta también toma sus puntos como porcentajes horizontal y vertical, y las flechas mueven el punto seleccionado.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un plano pasa de Borrador a Bloqueado cuando su diseño queda fijo, y a Activo cuando los equipos lo usan; solo un plano por sede y nivel está activo. Los comentarios, las notas en un punto, las menciones y Resolver funcionan en todos los estados. Exportar PDF imprime el dibujo con las capas y la leyenda que elijas.",
+          },
+        ],
+      },
+      { t: "h2", v: "Señalización" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El registro de señalización enumera los letreros de cada proyecto con su texto, tamaño, material, ubicación y arte. Marca un letrero como pedido, impreso y colocado, o vincúlalo a una línea de orden de compra para que la orden indique cuándo se pide y se recibe. La hoja de montaje imprime los letreros por fabricar y colocar, agrupados por plano y marcador.",
+          },
+        ],
+      },
+      { t: "h2", v: "Especificaciones de la sede en la preparación de avanzada y los permisos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "En el alcance de un proyecto, Agregar especificaciones del recinto como capacidades copia la energía, los puntos de colgado y la conectividad conocidos de la sede como capacidades para la conciliación, documentadas cuando las respalda un documento de capacidad vigente. Los permisos muestran los datos de la sede que importan para cada regla; nunca cambian qué permisos aplican.",
           },
         ],
       },
