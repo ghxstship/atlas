@@ -210,8 +210,8 @@ export const CONDITIONS = [
   "offered-hospitality",
   "offered-guest-list",
   // Gateway, per engagement (R4, ADR 0101): the caller manages the engagement's crew roster: its roster area is open to
-  // them (the engaged person, the account's Owner or Admin, an Advancing Lead, an Advance representative) and it is
-  // rosterable.
+  // them (the artist on an Artist engagement, the account's Owner or Admin, an Advancing Lead, an Advance
+  // representative; never the worker a company engagement names) and it is rosterable.
   "roster-manager",
 ] as const;
 export type Condition = (typeof CONDITIONS)[number];

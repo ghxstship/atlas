@@ -1733,7 +1733,7 @@
           "type": "app.work_detail_category[]"
         }
       ],
-      "comment": "Crew roster entries the caller reaches (Section 8.7, ADR 0101): every entry of an engagement whose roster area is open to them (the engaged person, the supplying account's Owner or Admin, an assigned Advancing Lead, an Advance representative), and their own entries otherwise. The invited address shows only to a roster manager. Internal notes and rates never appear.",
+      "comment": "Crew roster entries the caller reaches (Section 8.7, ADR 0101): every entry of an engagement whose roster area is open to them (the engaged person of an Artist engagement, the supplying account's Owner or Admin, an assigned Advancing Lead, an Advance representative), and their own entries otherwise, as for the worker a company sends. The invited address shows only to a roster manager. Internal notes and rates never appear.",
       "kind": "view",
       "name": "engagement_roster",
       "partitioned": false,

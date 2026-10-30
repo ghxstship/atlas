@@ -95,7 +95,7 @@ begin
     left join app.organizations a on a.id = c.organization_id
     left join app.people ep on ep.id = e.person_id
     left join xpms.role xr on xr.role_code = r.role_code
-    where r.id = p_roster_entry_id));
+    where r.id = p_roster_entry_id), private.roster_entry_account(p_roster_entry_id));
   return v_id;
 end;
 $$;

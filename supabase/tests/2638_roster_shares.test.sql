@@ -3,7 +3,7 @@
 -- share on one engagement. The company reads every category of a person who accepted its roster entry, whatever they
 -- shared with the producing org, with the passport number masked and allergies NULL with allergies_on_file; before the
 -- person accepts, and after a decline or a withdrawal, it gets 42501, and the account consent follows. A Member-duty
--- assignee is refused. Producing-org readers read the shared categories their capabilities cover. Every read writes the
+-- assignee and the worker the engagement names are refused. Producing-org readers read the shared categories their capabilities cover. Every read writes the
 -- access log and the audit ledger, without dedupe. shared_work_details answers for the self entry and
 -- reveal_roster_passport_number needs step-up and a reason. An Advancing Lead is an engagement principal (R1's views).
 begin;
@@ -119,6 +119,8 @@ select throws_ok($$select pg_temp.read('mo', 'e_kai')$$, '42501', null, 'an Acco
 select throws_ok($$select pg_temp.read('fiona', 'e_kai')$$, '42501', null, 'Account Finance is refused');
 select throws_ok($$select pg_temp.read('kai', 'e_kai')$$, '42501', null, 'the person reads their own details elsewhere');
 select throws_ok($$select pg_temp.read('xavier', 'e_kai')$$, '42501', null, 'another tenant is refused');
+select throws_ok($$select pg_temp.read('sam', 'e_kai')$$, '42501', null,
+  'the worker the engagement names is refused: they are on the company''s roster, not its manager');
 
 -- Producing-org readers ---------------------------------------------------------------------------------------------------------
 select is(pg_temp.read('bob', 'e_kai') ->> 'reader', 'org', 'a member of the producing org reads as the org');
@@ -201,6 +203,34 @@ select is((select count(*)::int from api_external.per_diems where engagement_id 
 select pg_temp.as_user('mo');
 select is((select count(*)::int from api_external.per_diems where engagement_id = pg_temp.id('eng_vendor_a')), 0, 'the Member does not');
 select pg_temp.as_platform();
+
+-- Shares no roster entry keys (Client and Sponsor engagements, engagements closed before R4) ------------------------------------
+select pg_temp.as_user('alice');
+with x as (insert into app.engagements (project_id, person_id, counterparty_id, role_type, start_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('victor'), pg_temp.id('cp_v_a'), 'Client', '2027-06-01') returning id)
+insert into world select 'eng_client', id from x;
+select pg_temp.as_user('victor');
+select throws_like(format($$select app.share_work_details(%L, array['Uniform Sizes']::app.work_detail_category[])$$, pg_temp.id('eng_client')),
+  'work_detail_share_not_yours:%', 'the person of a Client engagement, which carries no roster entry, shares nothing (POST /work-detail-shares: 422)');
+select pg_temp.as_platform();
+-- A share made before R4, as 1340 allowed it.
+with c as (insert into app.consent_records (org_id, person_id, purpose_code, notice_version, source)
+  values (pg_temp.id('org_a'), pg_temp.id('victor'), 'work_details_sharing', '1.0.0', 'Web') returning id)
+insert into world select 'consent_client', id from c;
+alter table app.work_detail_shares disable trigger t41_guard_work_detail_share_entry;
+with s as (insert into app.work_detail_shares (engagement_id, person_id, consent_record_id, categories)
+  values (pg_temp.id('eng_client'), pg_temp.id('victor'), pg_temp.id('consent_client'), array['Uniform Sizes']::app.work_detail_category[])
+  returning id)
+insert into world select 'share_client', id from s;
+alter table app.work_detail_shares enable trigger t41_guard_work_detail_share_entry;
+select is(private.close_unkeyed_work_detail_shares(), 1, '2638 closes every live share no roster entry keys');
+select ok((select revoked_at is not null from app.work_detail_shares where id = pg_temp.id('share_client')), 'as a revocation');
+select ok((select withdrawn_at is not null from app.consent_records where id = pg_temp.id('consent_client')),
+  'withdrawing the org''s consent with its last live share');
+select is((select count(*)::int from app.work_detail_events where person_id = pg_temp.id('victor') and action = 'work_details.share_revoked'
+  and engagement_id = pg_temp.id('eng_client') and reason is not null), 1, 'logged in the person''s access log with the reason');
+select is((select count(*)::int from app.work_detail_shares where roster_entry_id is null and revoked_at is null and deleted_at is null), 0,
+  'no live share is left without an entry');
 
 select * from finish();
 rollback;

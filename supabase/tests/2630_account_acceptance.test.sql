@@ -1,7 +1,8 @@
 -- pgTAP: migration 2630 (R4), account membership acceptance and account invitations. The account creator is accepted at
 -- once; a membership app.add_account_member creates stays unconfirmed but keeps today's access; only the person confirms
 -- it. An Owner or Admin invites an address (only an Owner offers Owner, never their own address, 1 hour to 30 days), a
--- second invitation to the address replaces the first, and each queues one platform email. The invitee accepts only with
+-- second invitation to the address replaces the first, and each queues one platform email, in the language of the person
+-- the address belongs to, else of the inviter. The invitee accepts only with
 -- the confirmed matching email, which confirms a new membership with the role; expired, revoked and declined invitations
 -- are closed.
 begin;
@@ -153,6 +154,26 @@ select throws_like(format($$select app.respond_party_invitation('account', %L, t
   'invitation_closed:%', 'a declined invitation is closed');
 select pg_temp.as_platform();
 select is((pg_temp.membership('acct_v', 'quinn')).id, null, 'declining creates no membership');
+
+-- The email's language -------------------------------------------------------------------------------------------------------------
+create function pg_temp.email_locales(p_email text) returns text
+language sql as $$
+  select string_agg(distinct e.locale, ',' order by e.locale) from private.platform_emails e
+  where e.template = 'party_invitation' and e.to_email = p_email
+$$;
+select pg_temp.as_user('quinn');
+select app.set_personal_setting('locale.language', null, 'es-US');
+select pg_temp.as_user('victor');
+select app.invite_account_member(pg_temp.id('acct_v'), 'quinn@freelance.test', 'Account Member');
+select app.invite_account_member(pg_temp.id('acct_v'), 'newcomer@freelance.test', 'Account Member');
+select pg_temp.as_platform();
+select is(pg_temp.email_locales('quinn@freelance.test'), 'en-US,es-US', 'someone on the platform reads the invitation in their own language');
+select is(pg_temp.email_locales('newcomer@freelance.test'), 'en-US', 'anyone else in the inviter''s, en-US by default');
+select pg_temp.as_user('victor');
+select app.set_personal_setting('locale.language', null, 'es-US');
+select app.invite_account_member(pg_temp.id('acct_v'), 'newcomer@freelance.test', 'Account Member');
+select pg_temp.as_platform();
+select is(pg_temp.email_locales('newcomer@freelance.test'), 'en-US,es-US', 'and in Spanish when the inviter reads Spanish');
 
 select * from finish();
 rollback;

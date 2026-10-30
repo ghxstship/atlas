@@ -124,21 +124,29 @@ alter table private.platform_emails add constraint platform_emails_template
   check (template in ('subprocessor_confirm', 'subprocessor_notice', 'party_invitation'));
 comment on column private.platform_emails.template is 'Template: subprocessor_confirm, subprocessor_notice or party_invitation (packages/email).';
 
-create or replace function private.queue_party_invitation_email(p_kind text, p_email text, p_args jsonb)
+create or replace function private.queue_party_invitation_email(p_kind text, p_email text, p_args jsonb, p_account_id uuid)
 returns void
 language plpgsql
 volatile
 security definer
 set search_path = ''
 as $$
+declare
+  -- Someone already on the platform reads it in their own language; anyone else in the inviter's.
+  v_reader uuid := coalesce(
+    (select p.id from auth.users u join app.people p on p.user_id = u.id and p.deleted_at is null
+     where lower(u.email) = p_email order by p.created_at limit 1),
+    private.current_person_id());
 begin
   insert into private.platform_emails (template, to_email, locale, args)
-  values ('party_invitation', p_email, 'en-US', coalesce(p_args, '{}'::jsonb) || jsonb_build_object('kind', p_kind));
+  values ('party_invitation', p_email,
+    case when v_reader is null then 'en-US' else private.person_language(v_reader, p_account_id) end,
+    coalesce(p_args, '{}'::jsonb) || jsonb_build_object('kind', p_kind));
 end;
 $$;
 
-comment on function private.queue_party_invitation_email(text, text, jsonb) is 'Queues one party_invitation platform email (1382) to an invited address: kind account or roster, with the names to show. The worker links to Gateway sign-in; the address never goes into the link.';
-revoke all on function private.queue_party_invitation_email(text, text, jsonb) from public, anon, authenticated;
+comment on function private.queue_party_invitation_email(text, text, jsonb, uuid) is 'Queues one party_invitation platform email (1382) to an invited address: kind account or roster, with the names to show, in the language of the person the address belongs to, else of the inviter (private.person_language, in the inviting account when there is one). The worker links to Gateway sign-in; the address never goes into the link.';
+revoke all on function private.queue_party_invitation_email(text, text, jsonb, uuid) from public, anon, authenticated;
 
 create or replace function private.normalized_invitation_email(p_email text)
 returns text
@@ -228,7 +236,7 @@ begin
     'account_name', (select o.name from app.organizations o where o.id = p_account_id),
     'account_role', p_role,
     'inviter_name', (select p.full_name from app.people p where p.id = v_me),
-    'expires_at', now() + p_valid_for));
+    'expires_at', now() + p_valid_for), p_account_id);
   return v_id;
 end;
 $$;
