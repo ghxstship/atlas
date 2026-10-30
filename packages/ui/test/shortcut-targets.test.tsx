@@ -1,6 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { FilterBuilder, SidePeek, TemplateCollection, TemplateRecord } from "../src/index.ts";
+import {
+  Drawer,
+  FilterBuilder,
+  SidePeek,
+  TemplateCollection,
+  TemplateRecord,
+} from "../src/index.ts";
 import {
   SHORTCUT_REGION,
   regionScope,
@@ -69,6 +75,46 @@ describe("shortcut targets (Section 11.2)", () => {
     expect(onStateClick).toHaveBeenCalledTimes(1);
     // Nothing in this peek moves it to Trash, so the key goes on to the page.
     expect(runShortcut(peek, "record.trash")).toBe(false);
+  });
+
+  it("makes a drawer a record region, portaled as it is, with its footer's Open full", () => {
+    const openFull = vi.fn();
+    const moveState = vi.fn();
+    render(
+      <Drawer
+        title="VEN-12 Riggers Co."
+        open
+        shortcutScope="record"
+        footer={
+          <a href="#full" data-shortcut="record.open" onClick={openFull}>
+            Open full
+          </a>
+        }
+      >
+        <span data-shortcut="record.state" className="contents">
+          <button type="button" onClick={moveState}>
+            Approve
+          </button>
+        </span>
+      </Drawer>,
+    );
+    const drawer = screen.getByRole("dialog", { name: "VEN-12 Riggers Co." });
+    const inside = screen.getByRole("button", { name: "Approve" });
+    expect(shortcutRegion(inside)).toBe(drawer);
+    expect(regionScope(drawer)).toBe("record");
+    expect(runShortcut(drawer, "record.state")).toBe(true);
+    expect(runShortcut(drawer, "record.open")).toBe(true);
+    expect(moveState).toHaveBeenCalledTimes(1);
+    expect(openFull).toHaveBeenCalledTimes(1);
+  });
+
+  it("leaves a drawer without a scope out of every region", () => {
+    render(
+      <Drawer title="Filters" open>
+        <button type="button">Apply</button>
+      </Drawer>,
+    );
+    expect(shortcutRegion(screen.getByRole("button", { name: "Apply" }))).toBeNull();
   });
 
   it("focuses fields and marked wrappers, and selects a title's text", () => {
