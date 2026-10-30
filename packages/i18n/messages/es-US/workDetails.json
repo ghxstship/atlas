@@ -170,7 +170,17 @@
       "shareRevoked": "Lo compartido se revocó",
       "viewed": "Visto",
       "erased": "Datos de trabajo borrados",
-      "other": "Registrado"
+      "other": "Registrado",
+      "travelSaved": "Datos de viaje guardados",
+      "travelCleared": "Datos de viaje borrados",
+      "uniformSaved": "Tallas de uniforme guardadas",
+      "uniformCleared": "Tallas de uniforme borradas",
+      "vehicleSaved": "Vehículo guardado",
+      "vehicleCleared": "Vehículo borrado",
+      "projectFactsViewed": "Vio tus datos del proyecto",
+      "projectFactsCounted": "Contó tus fechas de viaje",
+      "projectFactsExpired": "Datos del proyecto eliminados después de cerrar la contratación",
+      "projectFactsErased": "Datos del proyecto eliminados"
     }
   },
   "org": {
@@ -214,12 +224,185 @@
     "invalid": "Revisa los campos marcados e inténtalo de nuevo.",
     "conflict": "Ya tienes este programa de lealtad.",
     "denied": "No puedes cambiar esto.",
-    "unexpected": "No se guardó. Inténtalo de nuevo."
+    "unexpected": "No se guardó. Inténtalo de nuevo.",
+    "project_fact_not_yours": "Solo la persona de esta entrada de la lista, o la empresa que la incluye, ingresa estos datos.",
+    "roster_entry_withdrawn": "Esta entrada de la lista fue retirada.",
+    "roster_entry_declined": "Esta entrada de la lista fue rechazada, así que no se ingresa nada más en ella.",
+    "project_fact_closed": "Esta contratación está completa o cancelada, así que sus datos del proyecto están cerrados.",
+    "offering_not_offered": "El proyecto no ofrece esto, así que no se pide.",
+    "project_fact_company_write_off": "Este proyecto pide a cada persona que ingrese sus propios datos.",
+    "project_fact_person_entered": "La persona ingresó estos datos por su cuenta, así que solo ella los cambia.",
+    "airport_unknown": "Elige un aeropuerto de la lista.",
+    "travel_dates_order": "El día de regreso es el mismo día de llegada o uno posterior.",
+    "project_fact_empty": "Da al menos un dato antes de guardar.",
+    "project_fact_text_length": "Ese texto es demasiado largo. Acórtalo y guarda de nuevo.",
+    "shoe_size_format": "Una talla de calzado va de 1 a 20 en medias tallas.",
+    "shoe_size_system_required": "Da la talla de calzado con su sistema de tallas.",
+    "pants_measure_range": "La cintura va de 20 a 70 pulgadas y el largo de entrepierna de 20 a 40.",
+    "vehicle_fields_required": "Da la marca, el modelo, la placa y la región que la emitió.",
+    "plate_format": "Una placa tiene de 1 a 10 letras y dígitos.",
+    "plate_region_format": "Da la región como un código como US-FL, o solo el código del país.",
+    "project_fact_kind_required": "Indica qué datos borrar."
   },
   "compass": {
     "edit": "Editar datos de trabajo",
     "offline": "Tus datos de trabajo se cargan cuando tienes conexión.",
     "failed": "Tus datos de trabajo no se cargaron. Vuelve a abrir tu perfil para reintentar.",
     "noSizes": "Aún no hay tallas de uniforme."
+  },
+  "allergiesOnFile": "Registradas",
+  "allergiesMasked": "Hay alergias registradas. No se te muestran.",
+  "projectFacts": {
+    "title": "Datos del proyecto",
+    "sentence": "Los datos de viaje, uniforme y vehículo que este proyecto te pide. Quedan en esta contratación, nunca en tu perfil, y se eliminan después de que la contratación cierra.",
+    "none": "Este proyecto no pide datos de viaje, uniforme ni vehículo.",
+    "wizardTitle": "Datos del proyecto para {projectName}",
+    "steps": {
+      "travel": "Viaje",
+      "uniform": "Uniforme",
+      "vehicle": "Vehículo",
+      "review": "Revisión"
+    },
+    "kinds": {
+      "travel": "Viaje",
+      "uniform": "Uniforme",
+      "vehicle": "Vehículo"
+    },
+    "kindsLower": {
+      "travel": "datos de viaje",
+      "uniform": "tallas de uniforme",
+      "vehicle": "datos del vehículo"
+    },
+    "next": "Guardar y continuar",
+    "back": "Atrás",
+    "finish": "Listo",
+    "saved": "Guardado.",
+    "clear": "Borrar",
+    "cleared": "Borrado.",
+    "notEntered": "Aún sin ingresar",
+    "moreFields": "Más datos",
+    "reviewSentence": "Esto es lo que ingresaste. Vuelve a cualquier paso para cambiarlo.",
+    "useLastDetails": "Usar mis últimos datos",
+    "lastDetailsNone": "No tienes datos anteriores de este tipo.",
+    "lastDetailsFilled": "Completado con tus últimos datos. Revísalos y luego guarda.",
+    "readOnly": "Ingresado por {name}. Solo esa persona cambia estos datos.",
+    "enterFor": "Ingresar en nombre de {name}",
+    "companyBanner": "{name} recibirá un aviso de lo que ingreses y podrá corregirlo.",
+    "drawerTitle": "Datos del proyecto de {name}",
+    "drawerOpen": "Datos del proyecto",
+    "byPerson": "Ingresado por la persona",
+    "byCompany": "Ingresado por {company} en su nombre",
+    "enteredBy": "Ingresado por {name}",
+    "notReadable": "Leer {kind} requiere {capability} en este proyecto.",
+    "chips": {
+      "onFile": "Registrado",
+      "missing": "Falta",
+      "notOffered": "No ofrecido"
+    },
+    "yes": "Sí",
+    "no": "No",
+    "shoeSizeSystems": {
+      "usMen": "EE. UU. hombre",
+      "usWomen": "EE. UU. mujer",
+      "eu": "UE",
+      "uk": "Reino Unido"
+    },
+    "airportSearch": "Busca por ciudad, aeropuerto o código",
+    "airportNoMatch": "Ningún aeropuerto coincide. Prueba con la ciudad o el código de tres letras.",
+    "fields": {
+      "inboundAirport": {
+        "label": "Llegada a",
+        "help": "El aeropuerto al que vuelas para el proyecto."
+      },
+      "inboundOn": {
+        "label": "Fecha de llegada",
+        "help": "El día que viajas al proyecto."
+      },
+      "outboundAirport": {
+        "label": "Regreso desde",
+        "help": "El aeropuerto desde el que vuelas de regreso."
+      },
+      "outboundOn": {
+        "label": "Fecha de salida",
+        "help": "El día que viajas de regreso."
+      },
+      "needsGroundTransport": {
+        "label": "Necesito traslado a la llegada",
+        "help": "Transporte terrestre desde el aeropuerto."
+      },
+      "needsLodging": {
+        "label": "Necesito habitación",
+        "help": "Alojamiento para las noches que estás en el sitio."
+      },
+      "seatPreference": {
+        "label": "Asiento",
+        "help": "Tu asiento preferido en el vuelo."
+      },
+      "mealPreference": {
+        "label": "Preferencia de comida",
+        "help": "Para el vuelo, hasta 100 caracteres."
+      },
+      "travelNotes": {
+        "label": "Notas para el equipo de viajes",
+        "help": "Cualquier otra cosa que deban saber, hasta 500 caracteres."
+      },
+      "shirtSize": {
+        "label": "Camisa",
+        "help": "Talla en letras."
+      },
+      "jacketSize": {
+        "label": "Chaqueta",
+        "help": "Talla en letras."
+      },
+      "pantsSize": {
+        "label": "Pantalón",
+        "help": "Talla en letras."
+      },
+      "shoeSize": {
+        "label": "Talla de calzado",
+        "help": "De 1 a 20 en medias tallas."
+      },
+      "shoeSizeSystem": {
+        "label": "Sistema de tallas de calzado",
+        "help": "El sistema de tu talla de calzado."
+      },
+      "gloveSize": {
+        "label": "Guantes",
+        "help": "Talla en letras."
+      },
+      "hatSize": {
+        "label": "Gorra",
+        "help": "Talla en letras."
+      },
+      "pantsWaistIn": {
+        "label": "Cintura (pulgadas)",
+        "help": "Pulgadas enteras, de 20 a 70."
+      },
+      "pantsInseamIn": {
+        "label": "Entrepierna (pulgadas)",
+        "help": "Pulgadas enteras, de 20 a 40."
+      },
+      "make": {
+        "label": "Marca",
+        "help": "Por ejemplo Ford."
+      },
+      "model": {
+        "label": "Modelo",
+        "help": "Por ejemplo Transit."
+      },
+      "color": {
+        "label": "Color",
+        "help": "Como lo describirías."
+      },
+      "plate": {
+        "label": "Placa",
+        "help": "Letras y dígitos; se quitan los espacios y guiones."
+      },
+      "plateRegion": {
+        "label": "Región de la placa",
+        "help": "Dónde se emitió la placa, como US-FL, o solo el código del país."
+      }
+    },
+    "offline": "Estás sin conexión. Los datos del proyecto solo se guardan en línea, así que conéctate para guardar."
   }
 }

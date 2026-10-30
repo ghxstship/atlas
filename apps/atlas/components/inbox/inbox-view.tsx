@@ -447,7 +447,7 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
                           // Shift+click selects a range, not the text between.
                           if (event.shiftKey) event.preventDefault();
                         }}
-                        className={`flex flex-wrap items-start justify-between gap-12 rounded-card border p-12 focus-visible:outline-(length:--stroke-width-focus) focus-visible:outline-focus-ring ${
+                        className={`flex items-start gap-12 rounded-card border p-12 focus-visible:outline-(length:--stroke-width-focus) focus-visible:outline-focus-ring ${
                           isCurrent ? "border-border-strong bg-bg-selected" : "border-border-subtle"
                         } ${isPicked ? "ring-(length:--stroke-width-focus) ring-inset ring-accent" : ""}`}
                       >
@@ -460,47 +460,51 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
                           onClick={(event) => toggle(row.id, event.shiftKey)}
                           onChange={() => undefined}
                         />
-                        <div className="flex min-w-0 flex-1 flex-col gap-2">
-                          <p className={`m-0 text-text-14 ${row.unread ? "font-semibold" : ""}`}>
-                            {row.summary}
-                          </p>
-                          <p className="m-0 text-text-13 text-text-secondary">{row.detail}</p>
-                          <p className="m-0 text-text-12 text-text-tertiary">{row.when}</p>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-4">
-                          {row.href ? (
-                            <NextLink
-                              href={row.href as Route}
-                              tabIndex={isCurrent ? 0 : -1}
-                              className="xos-hit inline-flex items-center px-8 text-text-13 font-medium text-accent-text no-underline hover:underline"
-                            >
-                              {t("inbox.open")}
-                            </NextLink>
-                          ) : null}
-                          {row.approvable ? (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="primary"
-                                onClick={() => act(row, "approve")}
+                        {/* The checkbox keeps its place beside the text, and the actions wrap below
+                            the text when both do not fit on one line, as on a phone. */}
+                        <div className="flex min-w-0 flex-1 flex-wrap items-start justify-between gap-12">
+                          <div className="flex min-w-0 grow flex-col gap-2">
+                            <p className={`m-0 text-text-14 ${row.unread ? "font-semibold" : ""}`}>
+                              {row.summary}
+                            </p>
+                            <p className="m-0 text-text-13 text-text-secondary">{row.detail}</p>
+                            <p className="m-0 text-text-12 text-text-tertiary">{row.when}</p>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-4">
+                            {row.href ? (
+                              <NextLink
+                                href={row.href as Route}
+                                tabIndex={isCurrent ? 0 : -1}
+                                className="xos-hit inline-flex items-center px-8 text-text-13 font-medium text-accent-text no-underline hover:underline"
                               >
-                                {t("inbox.approve")}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="secondary"
-                                onClick={() => setRejecting(row)}
-                              >
-                                {t("inbox.reject")}
-                              </Button>
-                            </>
-                          ) : null}
-                          <Button size="sm" variant="ghost" onClick={() => act(row, "done")}>
-                            {t("inbox.done")}
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => act(row, "snooze")}>
-                            {t("inbox.snooze")}
-                          </Button>
+                                {t("inbox.open")}
+                              </NextLink>
+                            ) : null}
+                            {row.approvable ? (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="primary"
+                                  onClick={() => act(row, "approve")}
+                                >
+                                  {t("inbox.approve")}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="secondary"
+                                  onClick={() => setRejecting(row)}
+                                >
+                                  {t("inbox.reject")}
+                                </Button>
+                              </>
+                            ) : null}
+                            <Button size="sm" variant="ghost" onClick={() => act(row, "done")}>
+                              {t("inbox.done")}
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => act(row, "snooze")}>
+                              {t("inbox.snooze")}
+                            </Button>
+                          </div>
                         </div>
                       </article>
                     </li>

@@ -4,7 +4,7 @@
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
--- 9 email templates, 15 categories, 55 kinds (217 kind and channel rows),
+-- 10 email templates, 15 categories, 60 kinds (237 kind and channel rows),
 -- 8 kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows of kinds the registry does not name are left in place and fail the
 -- drift test (2859_notification_kind_seed.test.sql); a kind that names its own channels loses the rows of
@@ -30,7 +30,8 @@ insert into private.email_templates (code, description, transactional) values
   ('import_finished', 'An import finished validating or committing.', true),
   ('dsar_received', 'Acknowledges a data subject request and states its due date.', true),
   ('subprocessor_confirm', 'Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).', true),
-  ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false)
+  ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false),
+  ('party_invitation', 'Invites an email address to an external account or onto a crew roster, with a link to sign in to Gateway.', true)
 on conflict (code) do update set description = excluded.description, transactional = excluded.transactional;
 
 -- Categories (orders move aside first, so a reordering never collides) -------
@@ -275,7 +276,27 @@ insert into private.notification_templates (kind, channel, category_code, email_
   ('document.expiring', 'In App'::app.notification_channel, 'expiry_reminders', null),
   ('document.expiring', 'Email'::app.notification_channel, 'expiry_reminders', 'notification'),
   ('document.expiring', 'SMS'::app.notification_channel, 'expiry_reminders', null),
-  ('document.expiring', 'Push'::app.notification_channel, 'expiry_reminders', null)
+  ('document.expiring', 'Push'::app.notification_channel, 'expiry_reminders', null),
+  ('roster_entry.invited', 'In App'::app.notification_channel, 'assignments', null),
+  ('roster_entry.invited', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('roster_entry.invited', 'SMS'::app.notification_channel, 'assignments', null),
+  ('roster_entry.invited', 'Push'::app.notification_channel, 'assignments', null),
+  ('roster_entry.returned', 'In App'::app.notification_channel, 'approvals', null),
+  ('roster_entry.returned', 'Email'::app.notification_channel, 'approvals', 'notification'),
+  ('roster_entry.returned', 'SMS'::app.notification_channel, 'approvals', null),
+  ('roster_entry.returned', 'Push'::app.notification_channel, 'approvals', null),
+  ('roster_entry.declined', 'In App'::app.notification_channel, 'assignments', null),
+  ('roster_entry.declined', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('roster_entry.declined', 'SMS'::app.notification_channel, 'assignments', null),
+  ('roster_entry.declined', 'Push'::app.notification_channel, 'assignments', null),
+  ('roster_entry.project_facts_entered', 'In App'::app.notification_channel, 'assignments', null),
+  ('roster_entry.project_facts_entered', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('roster_entry.project_facts_entered', 'SMS'::app.notification_channel, 'assignments', null),
+  ('roster_entry.project_facts_entered', 'Push'::app.notification_channel, 'assignments', null),
+  ('engagement.roster_lock_changed', 'In App'::app.notification_channel, 'assignments', null),
+  ('engagement.roster_lock_changed', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('engagement.roster_lock_changed', 'SMS'::app.notification_channel, 'assignments', null),
+  ('engagement.roster_lock_changed', 'Push'::app.notification_channel, 'assignments', null)
 on conflict (kind, channel) do update
   set category_code = excluded.category_code, email_template_code = excluded.email_template_code;
 

@@ -4,13 +4,15 @@ import type { PlatformDb } from "../stores.ts";
 
 /**
  * Emails the platform sends in its own name (Section 14.4, migration 1382): the double opt-in
- * confirmation for Subprocessor List change notices and the notices themselves. The
+ * confirmation for Subprocessor List change notices and the notices themselves, and invitations to an
+ * external account or onto a crew roster (R4, migrations 2630 and 2636), which link to Gateway sign-in. The
  * subprocessor-notices Edge Function claims them from private.platform_emails, renders them through
  * @xos/email in the recipient's language, sends them through the configured transport (recording by
  * default, Resend in production) and records each outcome; the database then forgets any token.
  */
 
-export type PlatformEmailTemplate = "subprocessor_confirm" | "subprocessor_notice";
+export type PlatformEmailTemplate =
+  "subprocessor_confirm" | "subprocessor_notice" | "party_invitation";
 
 export interface ClaimedPlatformEmail {
   readonly id: string;
@@ -33,6 +35,8 @@ export interface PlatformEmailStore {
 export interface PlatformEmailOptions {
   /** Atlas origin: the Subprocessor List and its confirmation and unsubscribe pages live there. */
   readonly appUrl: string;
+  /** Gateway origin: invitations link to its sign-in. The invited address never goes into the link. */
+  readonly gatewayUrl?: string;
   /** From address, for example notices@ghxstship.tech. */
   readonly from: string;
   /** The platform's postal address (CAN-SPAM, CASL). */
@@ -60,6 +64,15 @@ export function subprocessorLinks(appUrl: string) {
     confirm: (token: string) => `${list.toString()}?confirm=${encodeURIComponent(token)}`,
     unsubscribe: (token: string) => `${list.toString()}?unsubscribe=${encodeURIComponent(token)}`,
   };
+}
+
+/** Gateway sign-in, where an invitee signs in with the invited address and accepts on Home. */
+export function gatewaySignInUrl(gatewayUrl: string): string {
+  return new URL("/auth/sign-in", gatewayUrl).toString();
+}
+
+function text(value: unknown): string {
+  return typeof value === "string" ? value : "";
 }
 
 /** Claims due platform emails, sends each and records the outcome. A failure is recorded, never dropped. */
@@ -97,26 +110,40 @@ export async function dispatchPlatformEmails(
         deliveryId: claim.id,
       };
       const result =
-        claim.template === "subprocessor_confirm"
+        claim.template === "party_invitation"
           ? await sendEmail({
               ...common,
-              template: "subprocessor_confirm",
+              template: "party_invitation",
               props: {
-                confirmUrl: links.confirm(str(claim.args["confirm_token"], "confirm_token")),
+                kind: claim.args["kind"] === "roster" ? "roster" : "account",
+                inviterName: text(claim.args["inviter_name"]),
+                accountName: text(claim.args["account_name"]),
+                projectName: text(claim.args["project_name"]),
+                partyName: text(claim.args["party_name"]),
+                expiresAt: new Date(str(claim.args["expires_at"], "expires_at")),
+                signInUrl: gatewaySignInUrl(options.gatewayUrl ?? options.appUrl),
               },
             })
-          : await sendEmail({
-              ...common,
-              template: "subprocessor_notice",
-              props: {
-                listVersion: str(claim.args["list_version"], "list_version"),
-                summary: str(claim.args["summary"], "summary"),
-                effectiveOn: new Date(
-                  `${str(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
-                ),
-                listUrl: links.list,
-              },
-            });
+          : claim.template === "subprocessor_confirm"
+            ? await sendEmail({
+                ...common,
+                template: "subprocessor_confirm",
+                props: {
+                  confirmUrl: links.confirm(str(claim.args["confirm_token"], "confirm_token")),
+                },
+              })
+            : await sendEmail({
+                ...common,
+                template: "subprocessor_notice",
+                props: {
+                  listVersion: str(claim.args["list_version"], "list_version"),
+                  summary: str(claim.args["summary"], "summary"),
+                  effectiveOn: new Date(
+                    `${str(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
+                  ),
+                  listUrl: links.list,
+                },
+              });
       await store.finish(claim.id, true, result.providerMessageId, null);
       sent += 1;
     } catch (error) {

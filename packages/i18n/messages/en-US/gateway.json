@@ -41,7 +41,30 @@
       "submittal_response": "This submittal is not waiting for you. Reload the page to see where it stands.",
       "submittal_note_length": "Write a note of 1 to 500 characters.",
       "availability_poll_closed": "This poll has closed. Tell the org your availability directly.",
-      "availability_poll_answer": "Answer each day of the poll once, as Available, Tentative or Unavailable."
+      "availability_poll_answer": "Answer each day of the poll once, as Available, Tentative or Unavailable.",
+      "roster_closed": "This engagement is complete or canceled, so its roster is closed.",
+      "roster_role_type": "This engagement carries no crew roster. Only artist engagements and company engagements of a vendor, contractor, staffing company or sponsor do.",
+      "roster_person_not_in_team": "Add people who confirmed their membership in your company, or artists you represent. Invite anyone else by email.",
+      "roster_person_is_engaged": "The person this engagement names is on the roster through their own entry.",
+      "roster_person_duplicate": "This person is already on the roster.",
+      "roster_arrival_window": "Give the arrival a start, a later end and a time zone, or leave all three empty.",
+      "roster_role_unknown": "Choose a role from the list.",
+      "roster_entry_not_editable": "This entry is under review or accepted, so it can no longer change. Withdraw it and add a replacement.",
+      "roster_empty_submit": "Add or change someone on the roster before submitting it.",
+      "roster_self_entry_fixed": "The person this engagement names stays on the roster.",
+      "roster_entry_withdrawn": "This roster entry was withdrawn.",
+      "roster_replacement_invalid": "A replacement names a withdrawn entry of this engagement.",
+      "roster_response_not_yours": "Only the person on a roster entry answers it.",
+      "roster_entry_not_accepted": "Accept the roster entry on Home before sharing your work details with it.",
+      "invite_expiry_range": "An invitation stays open between 1 hour and 30 days.",
+      "invitation_email": "Enter one email address.",
+      "invitation_not_yours": "This invitation was sent to another address. Sign in with the address it was sent to.",
+      "invitation_closed": "This invitation was already answered, revoked or has expired. Ask for a new one.",
+      "account_membership_not_yours": "Only the person a membership names can confirm it.",
+      "account_membership_unconfirmed": "This member has not confirmed their membership yet, so they cannot be assigned.",
+      "assignment_account_mismatch": "Assign members of the company that supplies this engagement.",
+      "roster_locked": "Names are locked on this engagement. Ask the producing organization to change the roster.",
+      "roster_lock_engagement_closed": "This engagement is closed, so its names lock no longer changes."
     }
   },
   "common": {
@@ -342,7 +365,12 @@
         "settlementReason": "Write a short note or reason before answering.",
         "asset": "Choose approve, return or resubmit.",
         "assetReason": "Say what to change, so the organization can revise the asset.",
-        "submittalNote": "Write a note of up to 500 characters before submitting."
+        "submittalNote": "Write a note of up to 500 characters before submitting.",
+        "rosterPerson": "Choose who to add.",
+        "rosterArrival": "Give the arrival a start, a later end and a time zone, or leave all three empty.",
+        "rosterEmail": "Enter one email address.",
+        "assignMember": "Choose a member and a duty.",
+        "inviteEmail": "Enter one email address and choose a role."
       },
       "advance": {
         "answer": "Your answer",
@@ -442,6 +470,68 @@
         "reason": "What to change",
         "note": "Note to the organization",
         "done": "Answer sent."
+      },
+      "roster": {
+        "role": "Role",
+        "roleHint": "Search roles",
+        "roleNoMatch": "No role matches.",
+        "arrivalStarts": "Arrives from",
+        "arrivalEnds": "Arrives by",
+        "timeZone": "Time zone",
+        "timeZoneHelp": "The project's time zone unless you change it.",
+        "person": "Person",
+        "personHint": "Choose someone from your team",
+        "add": "Add to roster",
+        "added": "Added. They are asked to accept on Gateway Home.",
+        "addTitle": "Add someone from your team",
+        "email": "Email",
+        "emailHelp": "We send one email asking them to sign in to Gateway with this address.",
+        "invite": "Send invitation",
+        "invited": "Invitation sent.",
+        "inviteTitle": "Invite someone by email",
+        "save": "Save",
+        "saved": "Saved.",
+        "editTitle": "Edit role and arrival",
+        "viewProfile": "View profile",
+        "viewProfileOf": "View the profile of {name}",
+        "profile": {
+          "title": "{name}",
+          "sentence": "What this person shares with your company. Each time you open it, the person can see that you did.",
+          "close": "Close",
+          "none": "Not given",
+          "nothing": "Nothing is shared with you yet.",
+          "uniform": "Uniform sizes",
+          "dietary": "Dietary needs",
+          "allergies": "Allergies",
+          "onFile": "On file",
+          "accessibility": "Accessibility needs",
+          "emergency": "Emergency contacts",
+          "travel": "Travel profile",
+          "passport": "Passport",
+          "passportMasked": "Number ending {last4}"
+        }
+      },
+      "accountTeam": {
+        "assign": "Assign",
+        "assigned": "Assigned.",
+        "assignTitle": "Assign a member to this engagement",
+        "member": "Member",
+        "memberHint": "Choose a confirmed member",
+        "duty": "Duty",
+        "dutyMember": "Member",
+        "dutyLead": "Advancing Lead"
+      },
+      "teamInvite": {
+        "title": "Invite someone to your company",
+        "email": "Email",
+        "emailHelp": "We send one email. They sign in to Gateway with this address and accept on Home.",
+        "role": "Role",
+        "roleOwner": "Account Owner",
+        "roleAdmin": "Account Admin",
+        "roleFinance": "Account Finance",
+        "roleMember": "Account Member",
+        "submit": "Send invitation",
+        "done": "Invitation sent. It stays open for 14 days."
       }
     },
     "settlement": {
@@ -458,6 +548,42 @@
       "due": "Needed by {date}",
       "revision": "Revision {n}",
       "awaiting": "Awaiting your approval"
+    },
+    "crew": {
+      "sentence": "Who works this engagement for you. Add people from your team or invite them by email, then submit the roster. Each person accepts their own entry before anything about them is shared.",
+      "submit": "{n, plural, one {Submit roster (# entry)} other {Submit roster (# entries)}}",
+      "submitted": "Roster submitted for review.",
+      "empty": "Nobody is on this roster yet. Add someone from your team or invite them by email.",
+      "emptyAction": "Add someone",
+      "listLabel": "Crew roster",
+      "invitedSomeone": "Invited person",
+      "self": "Engaged person",
+      "representedArtist": "{name} (represented artist)",
+      "arrival": "Arrives {start} to {end}",
+      "noArrival": "Arrival not set",
+      "invitation": "Invited, open until {date}",
+      "sharing": "{n, plural, one {Shares # category} other {Shares # categories}}",
+      "notSharing": "Shares no work details yet",
+      "returned": "Returned: {reason}",
+      "reissue": "Send again",
+      "reissued": "Invitation sent again.",
+      "withdraw": "Withdraw",
+      "withdrawTitle": "Withdraw {name}?",
+      "withdrawSentence": "They come off this roster. A pending invitation is revoked and the work details they share on this entry stop being shared. This cannot be undone; add them again if you need them.",
+      "withdrawConfirm": "Withdraw",
+      "edit": "Edit role and arrival",
+      "addTitle": "Add from your team",
+      "noTalent": "Everyone on your team is on this roster, or nobody has confirmed their membership yet. Invite people by email below.",
+      "inviteTitle": "Invite by email",
+      "locksOn": "Names lock on {date}",
+      "lockedOn": "Names locked on {date}. Ask {orgName} to change the roster.",
+      "factsTitle": "Project details"
+    },
+    "accountTeam": {
+      "title": "Account team",
+      "sentence": "Account Members reach only the engagements you assign them. An Advancing Lead also manages the crew roster.",
+      "remove": "Remove",
+      "none": "Nobody from your account is assigned yet."
     }
   },
   "enums": {
@@ -809,6 +935,22 @@
       "methodStatement": "Method statement",
       "certificate": "Certificate",
       "other": "Other"
+    },
+    "rosterEntryState": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "accepted": "Accepted",
+      "returned": "Returned",
+      "withdrawn": "Withdrawn"
+    },
+    "rosterPersonResponse": {
+      "pending": "Not answered yet",
+      "accepted": "Accepted by them",
+      "declined": "Declined by them"
+    },
+    "accountEngagementDuty": {
+      "advancingLead": "Advancing Lead",
+      "member": "Member"
     }
   },
   "explore": {
@@ -1112,7 +1254,35 @@
         "onboardingExpiring": "{title} for {orgName} expires on {expiresOn}",
         "certificationExpiring": "Your {title} certification expires on {expiresOn}",
         "documentExpiring": "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires on {expiresOn}",
-        "availabilityRequested": "{orgName} asks for your availability: {title}"
+        "availabilityRequested": "{orgName} asks for your availability: {title}",
+        "projectFactsEntered": "{actorName} added your {kind, select, travel {travel details} uniform {uniform sizes} vehicle {vehicle details} other {project details}} for {projectName}. Check them and correct anything that is wrong."
+      }
+    },
+    "feed": {
+      "invitation": {
+        "account": "{account} invites you to their company account",
+        "roster": "{party} invites you onto their crew for {project}",
+        "consent": "Accepting lets the company see your profile and project facts",
+        "from": "From {name}",
+        "expires": "Open until {date}",
+        "accept": "Accept",
+        "decline": "Decline"
+      },
+      "membership": {
+        "title": "Confirm your membership in {account}",
+        "meta": "Until you confirm, you are not rostered or assigned to engagements",
+        "confirm": "Confirm",
+        "leave": "Leave",
+        "leaveTitle": "Leave {account}?",
+        "leaveSentence": "You lose access to the company's engagements at once. Only an Account Owner or Admin can add you back.",
+        "leaveConfirm": "Leave company"
+      },
+      "roster": {
+        "title": "{party} put you on their crew for {project}",
+        "consent": "Accepting lets the company see your profile and project facts",
+        "accept": "Accept",
+        "decline": "Decline",
+        "share": "Share work details"
       }
     }
   },
@@ -1511,11 +1681,16 @@
       "email": "Contact email",
       "profileUnavailable": "The company profile is managed by the organization's Atlas administrators. Ask an Account Owner to set it up.",
       "remove": "Remove",
-      "inviteNote": "To add a team member, ask them to create a Gateway account; an Account Owner or Admin then adds them by their account.",
+      "inviteNote": "An invited person signs in to Gateway with the address you invited and accepts on Home. Until then they are not rostered or assigned, and nothing about them is shared.",
       "noInsurance": "No insurance certificates on file. Organizations request them during onboarding; upload them there.",
       "toEngagements": "See engagements",
       "noRepresentation": "Your agency represents no artists yet.",
-      "proposeNote": "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway."
+      "proposeNote": "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway.",
+      "notConfirmed": "Not confirmed",
+      "invitations": "Pending invitations",
+      "invitationExpires": "Open until {date}",
+      "invited": "Invited",
+      "revokeInvitation": "Revoke"
     },
     "notes": {
       "connectedApps": "No apps are connected to your account. Organizations connect their own tools in Atlas.",
@@ -1736,7 +1911,12 @@
       "submit": "Claim submissions",
       "done": "Done: {advance, plural, one {# advance answer} other {# advance answers}} and {documents, plural, one {# signed document} other {# signed documents}} are now in your account.",
       "nothing": "No submissions were waiting for {email}. Anything you complete from now on is saved to this account.",
-      "home": "Go to Home"
+      "home": "Go to Home",
+      "invitations": "Invitations for this address",
+      "invitationAccount": "{account} invites you to their company account",
+      "invitationRoster": "{party} invites you onto their crew for {project}",
+      "accept": "Accept",
+      "decline": "Decline"
     },
     "errors": {
       "invalid_credentials": "That email and password do not match. Check both, or use a sign-in link instead.",

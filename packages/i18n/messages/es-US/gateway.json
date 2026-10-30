@@ -41,7 +41,30 @@
       "submittal_response": "Este entregable técnico no está esperando tu respuesta. Recarga la página para ver en qué estado está.",
       "submittal_note_length": "Escribe una nota de 1 a 500 caracteres.",
       "availability_poll_closed": "Esta encuesta ya cerró. Indique su disponibilidad directamente a la organización.",
-      "availability_poll_answer": "Responda cada día de la encuesta una vez, como Disponible, Provisional o No disponible."
+      "availability_poll_answer": "Responda cada día de la encuesta una vez, como Disponible, Provisional o No disponible.",
+      "roster_closed": "Esta contratación está completa o cancelada, así que su lista está cerrada.",
+      "roster_role_type": "Esta contratación no lleva lista de equipo. Solo la llevan las de artistas y las contrataciones de empresa de un proveedor, contratista, agencia de personal o patrocinador.",
+      "roster_person_not_in_team": "Agrega personas que confirmaron su membresía en tu empresa, o artistas que representas. Invita a cualquier otra persona por correo.",
+      "roster_person_is_engaged": "La persona que nombra esta contratación ya está en la lista con su propia entrada.",
+      "roster_person_duplicate": "Esta persona ya está en la lista.",
+      "roster_arrival_window": "Indica un inicio, un fin posterior y una zona horaria para la llegada, o deja los tres vacíos.",
+      "roster_role_unknown": "Elige un puesto de la lista.",
+      "roster_entry_not_editable": "Esta entrada está en revisión o aceptada, así que ya no puede cambiar. Retírala y agrega un reemplazo.",
+      "roster_empty_submit": "Agrega o cambia a alguien en la lista antes de enviarla.",
+      "roster_self_entry_fixed": "La persona que nombra esta contratación permanece en la lista.",
+      "roster_entry_withdrawn": "Esta entrada de la lista fue retirada.",
+      "roster_replacement_invalid": "Un reemplazo nombra una entrada retirada de esta contratación.",
+      "roster_response_not_yours": "Solo la persona de una entrada de la lista la responde.",
+      "roster_entry_not_accepted": "Acepta la entrada de la lista en el Inicio antes de compartir tus datos de trabajo.",
+      "invite_expiry_range": "Una invitación queda abierta entre 1 hora y 30 días.",
+      "invitation_email": "Escribe una sola dirección de correo.",
+      "invitation_not_yours": "Esta invitación se envió a otra dirección. Inicia sesión con la dirección a la que se envió.",
+      "invitation_closed": "Esta invitación ya se respondió, se revocó o venció. Pide una nueva.",
+      "account_membership_not_yours": "Solo la persona que nombra una membresía puede confirmarla.",
+      "account_membership_unconfirmed": "Este miembro aún no confirmó su membresía, así que no se le puede asignar.",
+      "assignment_account_mismatch": "Asigna miembros de la empresa que suministra esta contratación.",
+      "roster_locked": "Los nombres están cerrados en esta contratación. Pide a la organización productora que cambie la lista.",
+      "roster_lock_engagement_closed": "Esta contratación está cerrada, así que su cierre de nombres ya no cambia."
     }
   },
   "common": {
@@ -342,7 +365,12 @@
         "settlementReason": "Escribe una nota o un motivo breve antes de responder.",
         "asset": "Elija aprobar, devolver o volver a enviar.",
         "assetReason": "Indique qué cambiar para que la organización pueda revisar el recurso.",
-        "submittalNote": "Escribe una nota de hasta 500 caracteres antes de enviar."
+        "submittalNote": "Escribe una nota de hasta 500 caracteres antes de enviar.",
+        "rosterPerson": "Elige a quién agregar.",
+        "rosterArrival": "Indica un inicio, un fin posterior y una zona horaria para la llegada, o deja los tres vacíos.",
+        "rosterEmail": "Escribe una sola dirección de correo.",
+        "assignMember": "Elige un miembro y una función.",
+        "inviteEmail": "Escribe una sola dirección de correo y elige un rol."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -442,6 +470,68 @@
         "reason": "Qué cambiar",
         "note": "Nota para la organización",
         "done": "Respuesta enviada."
+      },
+      "roster": {
+        "role": "Puesto",
+        "roleHint": "Buscar puestos",
+        "roleNoMatch": "Ningún puesto coincide.",
+        "arrivalStarts": "Llega desde",
+        "arrivalEnds": "Llega antes de",
+        "timeZone": "Zona horaria",
+        "timeZoneHelp": "La zona horaria del proyecto, salvo que la cambies.",
+        "person": "Persona",
+        "personHint": "Elige a alguien de tu equipo",
+        "add": "Agregar a la lista",
+        "added": "Agregada. Se le pide que acepte en el Inicio de Gateway.",
+        "addTitle": "Agregar a alguien de tu equipo",
+        "email": "Correo",
+        "emailHelp": "Enviamos un correo pidiéndole que inicie sesión en Gateway con esta dirección.",
+        "invite": "Enviar invitación",
+        "invited": "Invitación enviada.",
+        "inviteTitle": "Invitar a alguien por correo",
+        "save": "Guardar",
+        "saved": "Guardado.",
+        "editTitle": "Editar puesto y llegada",
+        "viewProfile": "Ver perfil",
+        "viewProfileOf": "Ver el perfil de {name}",
+        "profile": {
+          "title": "{name}",
+          "sentence": "Lo que esta persona comparte con tu empresa. Cada vez que lo abres, la persona puede ver que lo hiciste.",
+          "close": "Cerrar",
+          "none": "Sin indicar",
+          "nothing": "Todavía no se comparte nada contigo.",
+          "uniform": "Tallas de uniforme",
+          "dietary": "Necesidades alimentarias",
+          "allergies": "Alergias",
+          "onFile": "Registradas",
+          "accessibility": "Necesidades de accesibilidad",
+          "emergency": "Contactos de emergencia",
+          "travel": "Perfil de viaje",
+          "passport": "Pasaporte",
+          "passportMasked": "Número terminado en {last4}"
+        }
+      },
+      "accountTeam": {
+        "assign": "Asignar",
+        "assigned": "Asignado.",
+        "assignTitle": "Asignar un miembro a esta contratación",
+        "member": "Miembro",
+        "memberHint": "Elige un miembro confirmado",
+        "duty": "Función",
+        "dutyMember": "Miembro",
+        "dutyLead": "Responsable de avance"
+      },
+      "teamInvite": {
+        "title": "Invitar a alguien a tu empresa",
+        "email": "Correo",
+        "emailHelp": "Enviamos un correo. Inicia sesión en Gateway con esta dirección y acepta en el Inicio.",
+        "role": "Rol",
+        "roleOwner": "Propietario de la cuenta",
+        "roleAdmin": "Administrador de la cuenta",
+        "roleFinance": "Finanzas de la cuenta",
+        "roleMember": "Miembro de la cuenta",
+        "submit": "Enviar invitación",
+        "done": "Invitación enviada. Queda abierta 14 días."
       }
     },
     "settlement": {
@@ -458,6 +548,42 @@
       "due": "Se necesita el {date}",
       "revision": "Revisión {n}",
       "awaiting": "Espera su aprobación"
+    },
+    "crew": {
+      "sentence": "Quién trabaja en esta contratación por ti. Agrega personas de tu equipo o invítalas por correo y luego envía la lista. Cada persona acepta su propia entrada antes de que se comparta algo sobre ella.",
+      "submit": "{n, plural, one {Enviar lista (# entrada)} other {Enviar lista (# entradas)}}",
+      "submitted": "Lista enviada para revisión.",
+      "empty": "Todavía no hay nadie en esta lista. Agrega a alguien de tu equipo o invítalo por correo.",
+      "emptyAction": "Agregar a alguien",
+      "listLabel": "Lista del equipo",
+      "invitedSomeone": "Persona invitada",
+      "self": "Persona contratada",
+      "representedArtist": "{name} (artista representado)",
+      "arrival": "Llega de {start} a {end}",
+      "noArrival": "Llegada sin definir",
+      "invitation": "Invitada, abierta hasta {date}",
+      "sharing": "{n, plural, one {Comparte # categoría} other {Comparte # categorías}}",
+      "notSharing": "Aún no comparte datos de trabajo",
+      "returned": "Devuelta: {reason}",
+      "reissue": "Enviar de nuevo",
+      "reissued": "Invitación enviada de nuevo.",
+      "withdraw": "Retirar",
+      "withdrawTitle": "¿Retirar a {name}?",
+      "withdrawSentence": "Sale de esta lista. Se revoca la invitación pendiente y deja de compartirse lo que comparte en esta entrada. No se puede deshacer; agrégalo de nuevo si lo necesitas.",
+      "withdrawConfirm": "Retirar",
+      "edit": "Editar puesto y llegada",
+      "addTitle": "Agregar de tu equipo",
+      "noTalent": "Todo tu equipo ya está en esta lista, o nadie ha confirmado su membresía. Invita personas por correo abajo.",
+      "inviteTitle": "Invitar por correo",
+      "locksOn": "Los nombres se cierran el {date}",
+      "lockedOn": "Nombres cerrados el {date}. Pide a {orgName} que cambie la lista.",
+      "factsTitle": "Datos del proyecto"
+    },
+    "accountTeam": {
+      "title": "Equipo de la cuenta",
+      "sentence": "Los miembros de la cuenta solo acceden a las contrataciones que les asignas. Un responsable de avance también gestiona la lista del equipo.",
+      "remove": "Quitar",
+      "none": "Todavía no hay nadie de tu cuenta asignado."
     }
   },
   "enums": {
@@ -809,6 +935,22 @@
       "methodStatement": "Procedimiento de trabajo",
       "certificate": "Certificado",
       "other": "Otro"
+    },
+    "rosterEntryState": {
+      "draft": "Borrador",
+      "submitted": "Enviada",
+      "accepted": "Aceptada",
+      "returned": "Devuelta",
+      "withdrawn": "Retirada"
+    },
+    "rosterPersonResponse": {
+      "pending": "Aún sin respuesta",
+      "accepted": "Aceptada por la persona",
+      "declined": "Rechazada por la persona"
+    },
+    "accountEngagementDuty": {
+      "advancingLead": "Responsable de avance",
+      "member": "Miembro"
     }
   },
   "explore": {
@@ -1112,7 +1254,35 @@
         "onboardingExpiring": "{title} para {orgName} vence el {expiresOn}",
         "certificationExpiring": "Su certificación {title} vence el {expiresOn}",
         "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}",
-        "availabilityRequested": "{orgName} le pide su disponibilidad: {title}"
+        "availabilityRequested": "{orgName} le pide su disponibilidad: {title}",
+        "projectFactsEntered": "{actorName} agregó tus {kind, select, travel {datos de viaje} uniform {tallas de uniforme} vehicle {datos del vehículo} other {datos del proyecto}} para {projectName}. Revísalos y corrige lo que esté mal."
+      }
+    },
+    "feed": {
+      "invitation": {
+        "account": "{account} te invita a su cuenta de empresa",
+        "roster": "{party} te invita a su equipo para {project}",
+        "consent": "Al aceptar, la empresa puede ver tu perfil y los datos del proyecto",
+        "from": "De {name}",
+        "expires": "Abierta hasta {date}",
+        "accept": "Aceptar",
+        "decline": "Rechazar"
+      },
+      "membership": {
+        "title": "Confirma tu membresía en {account}",
+        "meta": "Hasta que confirmes, no se te incluye en listas ni se te asignan contrataciones",
+        "confirm": "Confirmar",
+        "leave": "Salir",
+        "leaveTitle": "¿Salir de {account}?",
+        "leaveSentence": "Pierdes el acceso a las contrataciones de la empresa de inmediato. Solo un propietario o administrador de la cuenta puede volver a agregarte.",
+        "leaveConfirm": "Salir de la empresa"
+      },
+      "roster": {
+        "title": "{party} te incluyó en su equipo para {project}",
+        "consent": "Al aceptar, la empresa puede ver tu perfil y los datos del proyecto",
+        "accept": "Aceptar",
+        "decline": "Rechazar",
+        "share": "Compartir datos de trabajo"
       }
     }
   },
@@ -1511,11 +1681,16 @@
       "email": "Correo de contacto",
       "profileUnavailable": "El perfil de la empresa lo administran los administradores de Atlas de la organización. Pide a un propietario de la cuenta que lo configure.",
       "remove": "Quitar",
-      "inviteNote": "Para agregar a alguien al equipo, pídele que cree una cuenta de Gateway; luego un propietario o administrador lo agrega por su cuenta.",
+      "inviteNote": "La persona invitada inicia sesión en Gateway con la dirección que invitaste y acepta en Inicio. Hasta entonces no figura en ninguna lista del equipo ni tiene contrataciones asignadas, y no se comparte nada sobre ella.",
       "noInsurance": "No hay certificados de seguro registrados. Las organizaciones los piden durante la incorporación; súbelos ahí.",
       "toEngagements": "Ver contrataciones",
       "noRepresentation": "Tu agencia aún no representa a ningún artista.",
-      "proposeNote": "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway."
+      "proposeNote": "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway.",
+      "notConfirmed": "Sin confirmar",
+      "invitations": "Invitaciones pendientes",
+      "invitationExpires": "Abierta hasta {date}",
+      "invited": "Invitado",
+      "revokeInvitation": "Revocar"
     },
     "notes": {
       "connectedApps": "No hay aplicaciones conectadas a tu cuenta. Las organizaciones conectan sus herramientas en Atlas.",
@@ -1736,7 +1911,12 @@
       "submit": "Reclamar envíos",
       "done": "Listo: {advance, plural, one {# respuesta de avance} other {# respuestas de avance}} y {documents, plural, one {# documento firmado} other {# documentos firmados}} ya están en tu cuenta.",
       "nothing": "No había envíos pendientes para {email}. Todo lo que completes desde ahora se guarda en esta cuenta.",
-      "home": "Ir al inicio"
+      "home": "Ir al inicio",
+      "invitations": "Invitaciones para esta dirección",
+      "invitationAccount": "{account} te invita a su cuenta de empresa",
+      "invitationRoster": "{party} te invita a su equipo para {project}",
+      "accept": "Aceptar",
+      "decline": "Rechazar"
     },
     "errors": {
       "invalid_credentials": "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace de acceso.",

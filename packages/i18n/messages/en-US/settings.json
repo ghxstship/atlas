@@ -344,6 +344,14 @@
     "partnerLayout": {
       "label": "Partner console layout",
       "help": "Widen or narrow a partner console tile by dragging its edge, or with the arrow keys on its handle. Reset puts every tile back to its default width."
+    },
+    "projectFactsKeepDays": {
+      "label": "Keep project details for (days)",
+      "help": "How long the travel, uniform and vehicle details people enter on a roster entry stay after the engagement is complete or canceled. 30 to 365 days."
+    },
+    "companyMaySubmitProjectFacts": {
+      "label": "Companies may enter project details for their people",
+      "help": "When on, the company that rosters someone may enter their travel, uniform and vehicle details for them. The person is notified and can correct anything they did not enter themselves."
     }
   },
   "choices": {

@@ -2,7 +2,8 @@
 
 import { useLive, type LivePacing, type LiveTopic } from "@xos/ui";
 import { useRouter } from "next/navigation";
-import { useEffect, useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
+import { forgetWaitingRefresh, holdLiveRefresh, refreshWhenFree } from "./live-hold";
 
 /**
  * Forms on the page holding input not yet saved. A refresh then would re-render a form's hidden
@@ -44,21 +45,36 @@ function editing(): boolean {
 /**
  * Rereads the page when rows it shows change (Section 11.7, ADR 0044). The page renders on the
  * server as always; a batch of changes refreshes it in a transition, which keeps client state such
- * as a selection or an open menu. While a form holds unsaved input the refresh waits. Pass topics
+ * as a selection or an open menu. While a form holds unsaved input the refresh waits, and while a
+ * dialog holds refreshes (`useHoldLiveRefresh`) it runs once the dialog closes. Pass topics
  * narrowed to the org or the record, for example `{ table: "records", filter: "org_id=eq.<id>" }`.
  */
 export function useLiveRefresh(topics: readonly LiveTopic[] | null, pacing?: LivePacing): void {
   const router = useRouter();
   const [, startTransition] = useTransition();
+  const key = useRef({});
   useEffect(trackForms, []);
+  useEffect(() => {
+    const page = key.current;
+    return () => forgetWaitingRefresh(page);
+  }, []);
   useLive(
     topics,
     () => {
       if (editing()) return;
-      startTransition(() => router.refresh());
+      refreshWhenFree(key.current, () => startTransition(() => router.refresh()));
     },
     pacing,
   );
+}
+
+/**
+ * Holds the page's live refreshes while `active`. For a dialog showing something a refresh would
+ * unmount for good, such as a link and access code shown only once; a change that arrives
+ * meanwhile rereads the page once the hold ends.
+ */
+export function useHoldLiveRefresh(active: boolean): void {
+  useEffect(() => (active ? holdLiveRefresh() : undefined), [active]);
 }
 
 /** `useLiveRefresh` for server pages: renders nothing. */

@@ -68,7 +68,14 @@
     "guest_entry_stamped": "Decision and check-in times are set automatically.",
     "sod_guest_requester": "You requested this guest, so someone else must approve or decline them.",
     "rider_engagement_artist": "A rider can belong to an artist booked as a person whose engagement is still open. Choose another artist or an organization.",
-    "same_project": "That artist is engaged on another project. Choose an artist on this rider's project."
+    "same_project": "That artist is engaged on another project. Choose an artist on this rider's project.",
+    "sod_roster_reviewer": "Someone other than the person who added or submitted an entry reviews it.",
+    "roster_entry_not_submitted": "Only a submitted entry is reviewed. Reload to see its current state.",
+    "roster_review_reason": "Say what to change, in 1 to 500 characters.",
+    "roster_review_outcome": "Accept or return the entry.",
+    "roster_lock_engagement_closed": "Set a names lock while the engagement is onboarding, active or closing.",
+    "roster_lock_rpc": "Set the names lock from Crew review.",
+    "roster_locked": "Names are locked on this engagement."
   },
   "projectTab": {
     "scope": "Advancing for {key} · {name}.",
@@ -409,5 +416,118 @@
       "edit": "Edit {name}",
       "remove": "Remove {name}"
     }
+  },
+  "crew": {
+    "sentence": "The people each party puts on its engagements. Accept or return each submitted entry.",
+    "empty": "No party has put anyone on a roster yet.",
+    "columns": {
+      "person": "Person",
+      "party": "Party",
+      "role": "Role",
+      "arrival": "Arrival",
+      "state": "Entry state",
+      "response": "Response",
+      "shared": "Profile shared"
+    },
+    "responses": {
+      "pending": "Not answered",
+      "accepted": "Accepted",
+      "declined": "Declined"
+    },
+    "states": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "accepted": "Accepted",
+      "returned": "Returned",
+      "withdrawn": "Withdrawn"
+    },
+    "invited": "Invited: {email}",
+    "self": "Engaged person",
+    "shared": "{n, plural, =0 {None} one {# category} other {# categories}}",
+    "accept": "Accept",
+    "return": "Return",
+    "returnTitle": "Return {name}",
+    "returnReason": "What should change",
+    "returnSubmit": "Return entry",
+    "cancel": "Cancel",
+    "profileTitle": "Shared profile",
+    "profileNone": "No shared work details you can read.",
+    "noArrival": "Not set",
+    "lock": {
+      "locksOn": "Names lock {date}",
+      "lockedOn": "Names locked {date}",
+      "none": "No names lock",
+      "set": "Set names lock",
+      "title": "Names lock for {party}",
+      "sentence": "After this time the company can no longer add, invite, edit draft entries or submit new names. Returned entries stay editable.",
+      "field": "Names lock at",
+      "fieldHelp": "In the project time zone, {zone}.",
+      "save": "Save lock",
+      "clear": "Clear lock",
+      "cancel": "Cancel",
+      "saved": "Names lock saved.",
+      "cleared": "Names lock cleared."
+    },
+    "factColumns": {
+      "travel": "Travel",
+      "uniform": "Uniform",
+      "vehicle": "Vehicle"
+    },
+    "factChips": {
+      "onFile": "On file",
+      "missing": "Missing",
+      "notOffered": "Not offered"
+    }
+  },
+  "travelParty": {
+    "title": "Travel party",
+    "sentence": "Everyone on a submitted or accepted roster who travels for this project, with what is arranged. Each view is logged in the person's access log.",
+    "empty": "Nobody on the rosters of this project has travel offered yet.",
+    "columns": {
+      "person": "Person",
+      "party": "Party",
+      "role": "Role",
+      "arrive": "Arrive",
+      "depart": "Depart",
+      "airports": "Airports",
+      "room": "Room",
+      "pickup": "Pickup",
+      "pass": "Pass"
+    },
+    "chips": {
+      "missing": "Missing",
+      "assigned": "Assigned",
+      "booked": "Booked",
+      "issued": "Issued",
+      "notOffered": "Not offered",
+      "notNeeded": "Not needed",
+      "notVisible": "Not visible"
+    },
+    "filters": {
+      "label": "Show",
+      "all": "Everyone",
+      "needsRoom": "Needs room",
+      "needsPickup": "Needs pickup",
+      "travelMissing": "Travel missing"
+    },
+    "counts": {
+      "title": "By day",
+      "arriving": "Arriving",
+      "departing": "Departing",
+      "onSite": "On site",
+      "rooms": "Rooms",
+      "pickups": "Pickups",
+      "truncated": "Showing the first 120 days."
+    },
+    "actions": {
+      "assignRoom": "Assign room",
+      "addPickup": "Add pickup",
+      "issueLodging": "Issue room",
+      "issueTravel": "Issue pickup"
+    },
+    "noBlock": "Add an accommodation block on the Hospitality page first.",
+    "noFulfillment": "Add a Travel fulfillment on the Hospitality page first.",
+    "airports": "{inbound} to {outbound}",
+    "loadFailed": "The travel party did not load. Reload the page to try again."
   }
 }

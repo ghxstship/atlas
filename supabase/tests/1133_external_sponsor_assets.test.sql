@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(24);
+select plan(25);
 
 create function pg_temp.n(p_who text, p_sql text) returns integer
 language plpgsql as $$
@@ -51,7 +51,19 @@ select ok((select awaiting_sponsor from api_external.sponsor_assets), 'awaiting 
 select is((select entitlement_description from api_external.sponsor_assets), 'Main stage banner placement', 'with its entitlement');
 select pg_temp.as_platform();
 select hasnt_column('api_external', 'sponsor_assets', 'decided_by', 'who decided on the org side never appears');
-select is(pg_temp.n('lena', 'select 1 from api_external.sponsor_assets'), 1, 'an Account Member reads it too');
+select is(pg_temp.n('lena', 'select 1 from api_external.sponsor_assets'), 0,
+  'an Account Member nobody assigned reads nothing (R4, owner decision 6)');
+-- Lena confirms her membership and Sol assigns her to the sponsor engagement (2631).
+select pg_temp.as_user('lena');
+select app.accept_account_membership((select m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_s')
+  and m.person_id = pg_temp.id('lena')));
+select pg_temp.as_platform();
+insert into world select 'lena_membership', m.id from app.account_memberships m where m.org_id = pg_temp.id('acct_s')
+  and m.person_id = pg_temp.id('lena');
+select pg_temp.as_user('sol');
+select app.assign_engagement_member(pg_temp.id('eng_sponsor'), pg_temp.id('lena_membership'), 'Member');
+select pg_temp.as_platform();
+select is(pg_temp.n('lena', 'select 1 from api_external.sponsor_assets'), 1, 'an assigned Account Member reads it too');
 select is(pg_temp.n('victor', 'select 1 from api_external.sponsor_assets'), 0, 'denial: another account');
 select is(pg_temp.n('xavier', 'select 1 from api_external.sponsor_assets'), 0, 'denial: another tenant');
 select pg_temp.as_anon();

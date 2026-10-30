@@ -1,0 +1,26 @@
+appId: pro.ghxstship.compass
+# Project details in Compass (R5, ADR 0100 decision 7): the Demo Road Crew (seed 1490) opens More > Project
+# details. It lists their live roster entries, read online with their session; an entry opens its Travel, Uniform
+# and Vehicle cards for what the project offers. Nothing is kept on the phone, so the screen reads from the server.
+# Named after its file: config.yaml orders flows by name.
+name: project-details
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: road.crew@example.com
+- assertVisible:
+    id: "today"
+- tapOn:
+    id: "tab-more"
+- scrollUntilVisible:
+    element:
+      id: "more-project-details"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: "more-project-details"
+- extendedWaitUntil:
+    visible:
+      id: "project-details-entries|project-details-empty"
+    timeout: 30000

@@ -1184,6 +1184,51 @@ export const COMPASS_HELP: HelpContent = {
         ],
       },
       {
+        slug: "project-details",
+        title: "Project details",
+        summary: "Enter the travel, uniform sizes and vehicle a project asks of you.",
+        kind: "page",
+        nodes: ["project-details"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "More" },
+              { t: "text", v: " > " },
+              { t: "strong", v: "Project details" },
+              {
+                t: "text",
+                v: " lists the projects you are on a roster for. Open one to see what it asks of you: your travel request (the airport codes and dates you fly in and home, and whether you need a pickup or a room), your uniform sizes, or the vehicle you park on site. A project asks only for what it offers.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Project details save only when you are online, and they are never kept on your phone. Offline, the save buttons are off until you connect again.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "These details stay on that roster entry and are never written to your profile. Each time someone else reads them, your access log in Gateway shows it, and they are deleted after the engagement closes. Gateway's ",
+              },
+              { t: "strong", v: "Project details" },
+              {
+                t: "text",
+                v: " tab on the engagement holds the same details, with a search for airports by city.",
+              },
+            ],
+          },
+        ],
+      },
+      {
         slug: "record",
         title: "A record from Atlas",
         summary: "A record someone sent you from Atlas, and opening it in Compass or on the web.",
@@ -4320,6 +4365,51 @@ export const COMPASS_HELP: HelpContent = {
               { t: "text", v: " o " },
               { t: "strong", v: "Administrar en Atlas" },
               { t: "text", v: "." },
+            ],
+          },
+        ],
+      },
+      {
+        slug: "project-details",
+        title: "Datos del proyecto",
+        summary: "Ingresa el viaje, las tallas de uniforme y el vehículo que un proyecto te pide.",
+        kind: "page",
+        nodes: ["project-details"],
+        order: 1,
+        body: [
+          {
+            t: "p",
+            c: [
+              { t: "strong", v: "Más" },
+              { t: "text", v: " > " },
+              { t: "strong", v: "Datos del proyecto" },
+              {
+                t: "text",
+                v: " muestra los proyectos en cuya lista estás. Abre uno para ver lo que te pide: tu solicitud de viaje (los códigos de aeropuerto y las fechas de llegada y de regreso, y si necesitas que te recojan o una habitación), tus tallas de uniforme o el vehículo que estacionas en el sitio. Un proyecto solo pide lo que ofrece.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Los datos del proyecto solo se guardan cuando tienes conexión y nunca se quedan en tu teléfono. Sin conexión, los botones de guardar están desactivados hasta que vuelvas a conectarte.",
+              },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Estos datos se quedan en esa entrada de la lista y nunca se escriben en tu perfil. Cada vez que otra persona los lee, tu registro de accesos en Gateway lo muestra, y se eliminan después de que la contratación se cierra. La pestaña ",
+              },
+              { t: "strong", v: "Datos del proyecto" },
+              {
+                t: "text",
+                v: " de la contratación en Gateway tiene los mismos datos, con una búsqueda de aeropuertos por ciudad.",
+              },
             ],
           },
         ],

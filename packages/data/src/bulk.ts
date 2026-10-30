@@ -4,7 +4,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
  * Bulk edit (Section 11.7, ADR 0044) over the transactional bulk RPCs (migrations 1451, 2150,
- * 2151 and 2852): one property across a selection, previewed, all or nothing, with the inverse rows that undo
+ * 2151, 2635 and 2852): one property across a selection, previewed, all or nothing, with the inverse rows that undo
  * it. Each resource has its own RPC; adding one is a row function, a registry row and a name here.
  */
 
@@ -20,6 +20,7 @@ export const BULK_RESOURCES = [
   "accommodation_blocks",
   "guest_list_entries",
   "cues",
+  "engagement_roster_entries",
 ] as const;
 export type BulkResource = (typeof BULK_RESOURCES)[number];
 
@@ -112,6 +113,7 @@ const RPC = {
   accommodation_blocks: "bulk_update_accommodation_blocks",
   guest_list_entries: "bulk_update_guest_list_entries",
   cues: "bulk_update_cues",
+  engagement_roster_entries: "bulk_update_roster_entries",
 } as const satisfies Record<BulkResource, string>;
 
 /**
