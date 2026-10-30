@@ -8,6 +8,7 @@ import {
   parseNamePartsForm,
   parsePassportForm,
   parseShareForm,
+  shareFormError,
   workDetailErrorKey,
 } from "../src/work-details-forms.ts";
 
@@ -174,6 +175,18 @@ describe("work details form parsers", () => {
       fields: ["engagementId"],
     });
     expect(parseShareForm(form([["engagementId", ID]]))).toMatchObject({ fields: ["categories"] });
+    // Contact goes with another category (2664): API v1 lists at least one beside it.
+    expect(
+      parseShareForm(
+        form([
+          ["engagementId", ID],
+          ["categories", "Contact"],
+        ]),
+      ),
+    ).toMatchObject({ fields: ["contactAlone"] });
+    expect(shareFormError(["contactAlone"])).toBe("work_detail_share_contact_alone");
+    expect(shareFormError(["categories"])).toBe("work_detail_share_categories");
+    expect(shareFormError(["engagementId"])).toBe("invalid");
     expect(
       parseNamePartsForm(
         form([
@@ -195,6 +208,9 @@ describe("work details form parsers", () => {
     expect(
       workDetailErrorKey({ kind: "refusal", rule: "work_detail_category_retired", message: "" }),
     ).toBe("work_detail_category_retired");
+    expect(
+      workDetailErrorKey({ kind: "refusal", rule: "work_detail_share_contact_alone", message: "" }),
+    ).toBe("work_detail_share_contact_alone");
     expect(workDetailErrorKey({ kind: "refusal", rule: "something_else", message: "" })).toBe(
       "unexpected",
     );

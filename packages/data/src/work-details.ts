@@ -54,6 +54,8 @@ export const WORK_DETAIL_RULES = [
   // R6a (2664): uniform sizes and travel preferences are entered per roster entry now.
   "work_detail_field_moved",
   "work_detail_category_retired",
+  // R6a (2664): Contact is shared with at least one other category.
+  "work_detail_share_contact_alone",
 ] as const;
 
 /**

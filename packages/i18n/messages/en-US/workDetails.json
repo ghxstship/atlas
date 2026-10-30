@@ -214,6 +214,7 @@
     "org_read_only": "This organization is canceled and read-only, so nothing more is shared with it.",
     "work_detail_field_moved": "Uniform sizes and travel preferences are no longer kept on your profile. Enter them on each project you are rostered on.",
     "work_detail_category_retired": "Uniform sizes are no longer shared from your profile. Enter them on the project.",
+    "work_detail_share_contact_alone": "Share your contact together with at least one other category.",
     "phone": "Enter a phone number with its country code, for example +1 305 555 0142.",
     "invalid": "Check the highlighted fields and try again.",
     "conflict": "You already have this loyalty program.",

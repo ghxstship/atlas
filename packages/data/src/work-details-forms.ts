@@ -156,7 +156,15 @@ export function parseShareForm(
   const categories = pickAll(SHAREABLE_WORK_DETAIL_CATEGORIES, form, "categories");
   if (!engagementId) return bad(["engagementId"]);
   if (categories.length === 0) return bad(["categories"]);
+  // Contact goes with another category (2664): API v1 lists at least one beside it.
+  if (categories.length === 1 && categories[0] === "Contact") return bad(["contactAlone"]);
   return good({ engagementId, categories });
+}
+
+/** The `workDetails.errors.*` key for a share form parseShareForm refused. */
+export function shareFormError(fields: readonly string[]): string {
+  if (fields.includes("contactAlone")) return "work_detail_share_contact_alone";
+  return fields.includes("categories") ? "work_detail_share_categories" : "invalid";
 }
 
 export function parseNamePartsForm(

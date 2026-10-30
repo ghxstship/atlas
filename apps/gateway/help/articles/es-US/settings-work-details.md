@@ -10,6 +10,6 @@ Configuración, Datos laborales reúne lo que las organizaciones necesitan para 
 
 Las tallas de uniforme y tu asiento, comida y aeropuerto de origen ya no se guardan aquí. Cada producción te los pide en el proyecto en cuya lista estás y los guarda solo para ese proyecto: abre la contratación y elige **Datos del proyecto**.
 
-Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, y el Propietario de la organización, pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso.
+Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, y el Propietario de la organización, pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso. Contacto, tu correo y teléfono de inicio de sesión, se comparte junto con al menos otra categoría.
 
 Tus habilidades, certificaciones, tarifas y disponibilidad están en [Configuración del perfil](help:settings-profile).

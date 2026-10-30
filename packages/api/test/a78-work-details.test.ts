@@ -436,6 +436,16 @@ describe("Identity: work detail shares and the access log", () => {
     expect(
       (await http.post("/work-detail-shares", { engagement_id: id(42), categories: [] })).status,
     ).toBe(422);
+    // A share of Contact alone would read back with no categories, so v1 never makes one (2664).
+    expect(
+      (
+        await http.post("/work-detail-shares", {
+          engagement_id: id(42),
+          categories: [],
+          share_contact: true,
+        })
+      ).status,
+    ).toBe(422);
     db.fail("rpc:share_work_details", refusal("work_detail_share_closed"));
     expect(
       (await http.post("/work-detail-shares", { engagement_id: id(43), categories: ["Passport"] }))

@@ -23,6 +23,7 @@ import {
   parseNamePartsForm,
   parsePassportForm,
   parseShareForm,
+  shareFormError,
   workDetailErrorKey,
   type Parsed,
 } from "@xos/data/work-details-forms";
@@ -144,9 +145,7 @@ export async function removeLoyaltyAction(_: State, form: FormData): Promise<Sta
 export async function shareAction(_: State, form: FormData): Promise<State> {
   const parsed = parseShareForm(form);
   if (!parsed.ok) {
-    return {
-      error: parsed.fields.includes("categories") ? "work_detail_share_categories" : "invalid",
-    };
+    return { error: shareFormError(parsed.fields) };
   }
   const { db } = await viewerPerson();
   return done(form, await shareWorkDetails(db, parsed.value.engagementId, parsed.value.categories));

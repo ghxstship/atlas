@@ -3412,7 +3412,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "An organization sees a category only while you share it with that engagement. Your allergies are restricted: only the catering lead and on-site medical on the project, and the organization's Owner, can read them, and every time they do it shows in your access log.",
+            v: "An organization sees a category only while you share it with that engagement. Your allergies are restricted: only the catering lead and on-site medical on the project, and the organization's Owner, can read them, and every time they do it shows in your access log. Contact, your sign-in email and phone, is shared together with at least one other category.",
           },
         ],
       },
@@ -7111,7 +7111,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, y el Propietario de la organización, pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso.",
+            v: "Una organización ve una categoría solo mientras la compartes con esa contratación. Tus alergias están restringidas: solo el responsable de catering y el personal médico en el lugar del proyecto, y el Propietario de la organización, pueden leerlas, y cada vez que lo hacen aparece en tu registro de acceso. Contacto, tu correo y teléfono de inicio de sesión, se comparte junto con al menos otra categoría.",
           },
         ],
       },

@@ -214,6 +214,7 @@
     "org_read_only": "Esta organización está cancelada y en solo lectura, así que no se comparte nada más con ella.",
     "work_detail_field_moved": "Las tallas de uniforme y las preferencias de viaje ya no se guardan en tu perfil. Ingrésalas en cada proyecto en cuya lista estás.",
     "work_detail_category_retired": "Las tallas de uniforme ya no se comparten desde tu perfil. Ingrésalas en el proyecto.",
+    "work_detail_share_contact_alone": "Comparte tu contacto junto con al menos otra categoría.",
     "phone": "Escribe un número de teléfono con su código de país, por ejemplo +1 305 555 0142.",
     "invalid": "Revisa los campos marcados e inténtalo de nuevo.",
     "conflict": "Ya tienes este programa de lealtad.",
