@@ -109,6 +109,11 @@ describe("Timeline", () => {
     // States read as labels, never as the raw state code.
     expect(within(table).getByText("Blocked")).toBeTruthy();
     expect(within(table).queryByText("blocked")).toBeNull();
+    // A bar's name truncates, so it carries its whole text as a title (gate 16).
+    const bar = [...container.querySelectorAll("span.truncate")].find(
+      (s) => s.textContent === "Sign-off",
+    );
+    expect(bar?.getAttribute("title")).toBe("Sign-off");
     expect(container.querySelectorAll("svg path[marker-end]")).toHaveLength(2);
     await expectAccessible(container);
   });

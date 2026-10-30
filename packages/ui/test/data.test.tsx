@@ -233,6 +233,12 @@ describe("RecordRow and RecordList", () => {
         .getAllByRole("columnheader")
         .map((h) => h.textContent),
     ).toEqual(["State", "Key", "Record", "Labels", "Next date", "Owner", "Action"]);
+    // A record's name truncates, so it carries its whole text as a title (gate 16).
+    expect(
+      within(rowsEls[1] as HTMLElement)
+        .getByText("Load-in")
+        .getAttribute("title"),
+    ).toBe("Load-in");
     act(() => grid.focus());
     expect(document.activeElement).toBe(rowsEls[0]);
     await userEvent.keyboard("x");
