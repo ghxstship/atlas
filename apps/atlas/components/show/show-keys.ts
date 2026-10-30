@@ -43,3 +43,26 @@ export function showKeyAction(
   if (isCharacterKey(chord) && !singleKeys) return null;
   return showActionOf(id);
 }
+
+/**
+ * The cue Previous or Next puts on standby, as an index into the position-ordered cues, or undefined when there is
+ * none that way. They move from the picked cue, else the standby cue, else the current cue, so with nothing on
+ * standby the first Next stands by the next cue rather than the one after it; called cues are passed over and
+ * skipped ones are not.
+ */
+export function stepTarget(
+  cues: readonly { readonly calledAt: string | null }[],
+  at: {
+    readonly picked: number;
+    readonly current: number;
+    readonly next: number;
+    readonly standby: boolean;
+  },
+  direction: -1 | 1,
+): number | undefined {
+  const from = at.picked >= 0 ? at.picked : at.standby ? at.next : at.current;
+  const uncalled = cues.flatMap((c, i) => (c.calledAt === null ? [i] : []));
+  return direction === 1
+    ? uncalled.find((i) => i > from)
+    : [...uncalled].reverse().find((i) => i < from);
+}

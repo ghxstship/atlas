@@ -651,7 +651,9 @@ export function RunBody({
         {/* The current and standby lines are the only live regions; each changes once per call. */}
         <p role="status" className="m-0 text-heading-16 font-semibold">
           {progress.complete
-            ? t("live.complete")
+            ? progress.skipped.length > 0
+              ? t("live.completeSkipped", { count: progress.skipped.length })
+              : t("live.complete")
             : current
               ? t("live.current", { label: current.label })
               : t("live.notStarted")}

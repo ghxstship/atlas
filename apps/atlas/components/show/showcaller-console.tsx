@@ -20,7 +20,7 @@ import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-u
 import { formatScheduleTime, formatStartTime } from "@/components/work/format";
 import { useScheduleView } from "@/components/work/use-schedule-view";
 import { callCueAction, shiftCuePlanAction, standbyCueAction } from "./actions";
-import { showKeyAction, type ShowAction } from "./show-keys";
+import { showKeyAction, stepTarget, type ShowAction } from "./show-keys";
 
 /**
  * The showcaller console (G-75, G-77, ADR 0131): live mode for a person who calls cues. runs.tsx loads
@@ -125,11 +125,7 @@ export function ShowcallerConsole({
     action.run(() => standbyCueAction(org, run.id, cue.id));
   };
   const step = (direction: -1 | 1) => {
-    const from = selected >= 0 ? selected : progress.current;
-    const to =
-      direction === 1
-        ? uncalled.find((i) => i > from)
-        : [...uncalled].reverse().find((i) => i < from);
+    const to = stepTarget(cues, { ...progress, picked: pickedIndex }, direction);
     if (to !== undefined) standby(cues[to]);
   };
   const nudge = (seconds: number) => action.run(() => shiftCuePlanAction(org, run.id, seconds));

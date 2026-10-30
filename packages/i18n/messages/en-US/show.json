@@ -97,6 +97,7 @@
     "callShortcut": "Space",
     "standby": "Standby: {label}",
     "complete": "Every cue is called. The show is complete.",
+    "completeSkipped": "The show is complete. {count, plural, one {# skipped cue is} other {# skipped cues are}} still uncalled.",
     "notStarted": "No cue called yet. Call the first cue to start the show.",
     "current": "Current cue: {label}",
     "nextIn": "Next cue in {time}",

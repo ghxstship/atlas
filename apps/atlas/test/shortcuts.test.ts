@@ -6,7 +6,7 @@ import { allCapabilities, grantsByRole, loadCapabilityRegistry } from "@xos/sche
 import { SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
 import { sitemap } from "../ia/sitemap.generated";
 import { installShellKeys, type KeyState } from "../components/shell/key-dispatch";
-import { showActionOf, showKeyAction } from "../components/show/show-keys";
+import { showActionOf, showKeyAction, stepTarget } from "../components/show/show-keys";
 import { CREATE_KINDS, createItems } from "../lib/shell/create-menu";
 import { orderForPage, type CreateItem } from "../lib/shell/create-order";
 import { buildShellNav, orderByLayout, sidebarNodeIds } from "../lib/shell/nav-model";
@@ -161,6 +161,23 @@ describe("showcaller console keys (ADR 0131)", () => {
     expect(showKeyAction("]", scoped, false)).toBeNull();
     expect(showKeyAction("F15", scoped, false)).toBe("previous");
     expect(showKeyAction("F16", scoped, false)).toBe("next");
+  });
+
+  it("moves the standby from the picked cue, else the standby cue, else the current cue", () => {
+    const called = "2027-03-13T20:00:00Z";
+    const fresh = [null, null, null].map((calledAt) => ({ calledAt }));
+    const none = { picked: -1, current: -1, next: 0, standby: false };
+    // Before the first call, Next stands by cue 1 and Previous has nowhere to go.
+    expect(stepTarget(fresh, none, 1)).toBe(0);
+    expect(stepTarget(fresh, none, -1)).toBeUndefined();
+    // With cue 1 on standby, Next moves on to cue 2; a picked cue wins over the standby.
+    expect(stepTarget(fresh, { ...none, standby: true }, 1)).toBe(1);
+    expect(stepTarget(fresh, { ...none, picked: 1, standby: true }, 1)).toBe(2);
+    // Cue 2 called past a skipped cue 1: Next passes the called cue, Previous returns to the skipped one.
+    const jumped = [{ calledAt: null }, { calledAt: called }, { calledAt: null }];
+    const after = { picked: -1, current: 1, next: 2, standby: false };
+    expect(stepTarget(jumped, after, 1)).toBe(2);
+    expect(stepTarget(jumped, after, -1)).toBe(0);
   });
 
   it("leaves Space to RunOfShowLive and ignores keys of other scopes", () => {

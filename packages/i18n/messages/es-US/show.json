@@ -97,6 +97,7 @@
     "callShortcut": "Espacio",
     "standby": "En espera: {label}",
     "complete": "Todos los cues se llamaron. El show terminó.",
+    "completeSkipped": "El show terminó. {count, plural, one {# cue omitido sigue} other {# cues omitidos siguen}} sin llamarse.",
     "notStarted": "Aún no se llama ningún cue. Llame el primero para iniciar el show.",
     "current": "Cue actual: {label}",
     "nextIn": "Siguiente cue en {time}",
