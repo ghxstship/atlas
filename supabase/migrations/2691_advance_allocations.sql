@@ -811,6 +811,16 @@ create trigger t90_emit_reservation_released after update of released_at on app.
   for each row when (old.released_at is null and new.released_at is not null)
   execute function private.emit_row_event('reservation.released', 'project_id', 'release_reason', 'quantity');
 
+-- The allocations list follows changes live (as 1450, 2170 and 2633).
+do $$
+begin
+  if exists (select 1 from pg_catalog.pg_publication where pubname = 'supabase_realtime')
+     and not exists (select 1 from pg_catalog.pg_publication_tables p
+                     where p.pubname = 'supabase_realtime' and p.schemaname = 'app' and p.tablename = 'advance_allocations') then
+    alter publication supabase_realtime add table app.advance_allocations;
+  end if;
+end $$;
+
 insert into private.trash_excluded_tables (table_name, rationale) values
   ('advance_allocations', 'An allocation is declined or withdrawn through its lifecycle, never deleted and restored.'),
   ('asset_reservations', 'A hold is released, never deleted; a new hold is made by approving or reserving again.'),

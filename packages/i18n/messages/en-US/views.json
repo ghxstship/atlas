@@ -505,7 +505,16 @@
       "worked_minutes": "Worked minutes",
       "worker_classification": "Classification",
       "xyz": "XYZ",
-      "zone_id": "Zone"
+      "zone_id": "Zone",
+      "item_name": "Item",
+      "display_status": "Status",
+      "allocation_state": "Decision",
+      "origin": "Origin",
+      "needed_time_zone": "Time zone",
+      "reserved_quantity": "Held",
+      "issued_quantity": "Issued",
+      "returned_quantity": "Returned",
+      "decline_reason": "Decline reason"
     }
   }
 }

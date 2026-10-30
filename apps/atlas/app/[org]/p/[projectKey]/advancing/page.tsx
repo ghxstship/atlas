@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Route } from "next";
+import { AllocationsCollection } from "@/components/advancing/allocations";
 import { advancingProjectTab } from "@/components/advancing/context";
 import { CrewRoster } from "@/components/advancing/crew-roster";
 import { PacketsCollection } from "@/components/advancing/packets";
@@ -18,6 +19,7 @@ const SECTIONS = [
   "reconciliation",
   "guests",
   "crew",
+  "allocations",
   "travel-party",
 ] as const;
 
@@ -67,6 +69,8 @@ export default async function ProjectAdvancingPage({
       </nav>
       {section === "travel-party" ? (
         <TravelParty actx={actx} project={actx.project} path={path} search={search} title={title} />
+      ) : section === "allocations" ? (
+        <AllocationsCollection actx={actx} path={path} search={search} title={title} />
       ) : section === "crew" ? (
         <CrewRoster actx={actx} path={path} search={search} title={title} />
       ) : section === "guests" ? (

@@ -9,6 +9,7 @@ import { findIdByKey, instantToLocal } from "@xos/data/logistics";
 import type { RecordState } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
 import {
@@ -21,6 +22,9 @@ import {
   updateBeoAction,
 } from "@/app/[org]/hospitality/actions";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
+
+// Roster counts (R7) load with the record that shows them, and read only when asked for (each read is logged).
+const BeoRosterCounts = dynamic(() => import("./roster-counts").then((m) => m.BeoRosterCounts));
 import { nodeHref } from "@/lib/shell/sitemap";
 import { OperationsCalendar, OperationsList, OperationsTable, ViewSwitcher } from "./client";
 import { ActionButton, FormDrawer, InlineForm, type FieldSpec } from "./forms";
@@ -214,6 +218,14 @@ export async function BeosSection({
               },
               { label: t("beos.fields.eventAt"), value: format.dateTime(b.eventAt, b.timeZone) },
               { label: t("beos.fields.guestCount"), value: b.guestCount ?? tc("notSet") },
+              ...(b.fulfillmentId
+                ? [
+                    {
+                      label: t("beos.rosterCounts.title"),
+                      value: <BeoRosterCounts org={org} fulfillmentId={b.fulfillmentId} />,
+                    },
+                  ]
+                : []),
               {
                 label: t("beos.fields.approval"),
                 value: b.approvedAt

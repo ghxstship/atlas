@@ -867,6 +867,8 @@ export async function recordAssetCustody(
     ...(note ? { p_note: note } : {}),
     ...(input.rosterEntryId ? { p_roster_entry_id: input.rosterEntryId } : {}),
     ...(input.reservationId ? { p_reservation_id: input.reservationId } : {}),
+    ...(input.rosterEntryId ? { p_roster_entry_id: input.rosterEntryId } : {}),
+    ...(input.reservationId ? { p_reservation_id: input.reservationId } : {}),
   });
   if (error) return fail(toDataError(error));
   return ok({ id: data });
@@ -1168,6 +1170,10 @@ export interface ScanEventInput {
   readonly note?: string | null;
   /** Lots only: how many move. */
   readonly quantity?: number | null;
+  /** The person on the custodian engagement's roster who takes or returns the item (R7). */
+  readonly rosterEntryId?: string | null;
+  /** The allocation hold the hand-over is issued against (R7). */
+  readonly reservationId?: string | null;
 }
 
 export interface ScanEventResult {

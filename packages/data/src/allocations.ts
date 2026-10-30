@@ -826,19 +826,21 @@ export interface ReservationConflict {
 export async function listReservationConflicts(
   db: XosClient,
   scope: {
-    readonly orgId: string;
+    readonly orgId?: string | null;
     readonly projectId?: string | null;
     readonly assetUnitId?: string | null;
+    readonly assetClassId?: string | null;
   },
 ): Promise<Result<ReservationConflict[]>> {
   let query = db
     .from("asset_reservation_conflicts")
     .select(
       "reservation_id, allocation_id, project_id, asset_class_id, asset_unit_id, asset_lot_id, po_line_id, quantity, conflict",
-    )
-    .eq("org_id", scope.orgId);
+    );
+  if (scope.orgId) query = query.eq("org_id", scope.orgId);
   if (scope.projectId) query = query.eq("project_id", scope.projectId);
   if (scope.assetUnitId) query = query.eq("asset_unit_id", scope.assetUnitId);
+  if (scope.assetClassId) query = query.eq("asset_class_id", scope.assetClassId);
   const { data, error } = await query.limit(500);
   if (error) return fail(toDataError(error));
   return ok(
