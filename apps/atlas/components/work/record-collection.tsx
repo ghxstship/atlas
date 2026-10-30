@@ -15,7 +15,6 @@ import {
   RecordRow,
   Select,
   TemplateCollection,
-  Timeline,
   rememberOverlayOpener,
   type RecordKind,
 } from "@xos/ui";
@@ -38,6 +37,13 @@ import { useBulk } from "@/components/bulk/use-bulk";
 import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 import type { RecordQuickAddProps } from "@/components/quick-add/record-quick-add";
+import { Timeline } from "@/components/lazy-ui/timeline";
+import { timelineView } from "@/components/schedule/timeline-view";
+
+// Drag to reschedule on the timeline (A133), for people who may change it; loads with that view.
+const RescheduleTimeline = dynamic(() =>
+  import("@/components/schedule/timeline-reschedule").then((m) => m.RescheduleTimeline),
+);
 
 // Shown only to people who may create records; its date parser loads with it (ADR 0027).
 const RecordQuickAdd = dynamic(() =>
@@ -82,6 +88,8 @@ export function RecordCollection({
   today,
   timeZone,
   timeline,
+  canReschedule = false,
+  backlog = [],
   canCreate,
   create,
   peek,
@@ -108,6 +116,10 @@ export function RecordCollection({
   today: string;
   timeZone: string;
   timeline: TimelineModel | null;
+  /** Timeline bars move and resize (A133). */
+  canReschedule?: boolean;
+  /** Undated records to place on the timeline, beside it (P8); only with canReschedule. */
+  backlog?: readonly { id: string; label: string }[];
   canCreate: boolean;
   create?: ReactNode;
   peek?: ReactNode;
@@ -477,32 +489,13 @@ export function RecordCollection({
     );
   } else if (view === "timeline") {
     body =
-      timeline && timeline.bars.length > 0 ? (
+      timeline && (timeline.bars.length > 0 || (canReschedule && backlog.length > 0)) ? (
         <div className="min-w-0">
-          <Timeline
-            label={label}
-            days={timeline.days.map((d) => ({
-              dow: format.dateTime(new Date(`${d.day}T12:00:00Z`), {
-                weekday: "narrow",
-                timeZone: "UTC",
-              }),
-              date: d.date,
-              weekend: d.weekend,
-            }))}
-            dayWidth={timeline.days.length > 60 ? 16 : 32}
-            {...(timeline.today !== undefined ? { today: timeline.today } : {})}
-            rows={timeline.bars.map((b) => ({
-              key: b.record.key,
-              title: b.record.title,
-              state: stateToken(b.record.state),
-              start: b.start,
-              end: b.end,
-              ...(b.milestone ? { milestone: true } : {}),
-              ...(b.dependsOn !== undefined ? { dependsOn: b.dependsOn } : {}),
-              ...(b.baselineStart !== undefined ? { baselineStart: b.baselineStart } : {}),
-              ...(b.baselineEnd !== undefined ? { baselineEnd: b.baselineEnd } : {}),
-            }))}
-          />
+          {canReschedule ? (
+            <RescheduleTimeline org={org} label={label} timeline={timeline} backlog={backlog} />
+          ) : (
+            <Timeline label={label} {...timelineView(timeline, format)} />
+          )}
         </div>
       ) : (
         <EmptyState

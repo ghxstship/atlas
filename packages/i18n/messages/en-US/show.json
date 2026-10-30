@@ -149,5 +149,21 @@
     "table": "Table",
     "timeline": "Timeline",
     "calendar": "Calendar"
+  },
+  "cueShift": {
+    "title": "Shift cues still to come",
+    "pick": "Cues to shift",
+    "all": "Select all cues still to come ({count})",
+    "cue": "{position} {label}, {time}",
+    "minutes": "Minutes",
+    "minutesHelp": "Later with +, earlier with -, up to 1,440.",
+    "invalid": "Enter whole minutes other than 0, such as +5 or -10, up to 1,440.",
+    "previewButton": "Preview",
+    "apply": "Shift {count, plural, one {# cue} other {# cues}}",
+    "preview": "{count, plural, one {# cue moves} other {# cues move}} {minutes} min; {called, plural, one {# called cue stays} other {# called cues stay}}.",
+    "refused": "{count, plural, one {# cue can't move, so nothing changes} other {# cues can't move, so nothing changes}}",
+    "done": "{count, plural, one {Shifted # cue} other {Shifted # cues}} {minutes} min.",
+    "undone": "The cue times are back as they were.",
+    "failed": "The cues could not be shifted. Try again."
   }
 }

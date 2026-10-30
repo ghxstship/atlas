@@ -9,6 +9,7 @@ import {
 } from "@xos/data/crew";
 import { startOfDayIn, todayIn } from "@xos/data/calendar";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import { EmptyStateLink, ButtonLink } from "@/components/ui";
@@ -50,7 +51,18 @@ import { scheduleViewOf } from "@/components/work/format";
 import { displayTimeZone } from "@xos/ui/preferences";
 import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getOrgTimeZone, getOrgWeekStart } from "@/lib/shell/time-zone";
-import { claimingRule, listShiftClaims } from "@xos/data/crew";
+import {
+  availabilityPollResults,
+  claimingRule,
+  fillRate,
+  listAvailabilityPolls,
+  listPollablePeople,
+  listShiftClaims,
+  listShiftIdsWithWaitingClaims,
+  listShiftPlanningProjectIds,
+  listShiftTemplates,
+  pollIsOpen,
+} from "@xos/data/crew";
 import { resolveSettings } from "@xos/data/settings";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
@@ -64,12 +76,18 @@ import { FilterSelect } from "./views-filter-select";
 // The table and calendar views and the drawers render only in some states (A24-009).
 import { DrawerForm, PeekCalendar, PeekTable, ShiftQuickAdd } from "./lazy";
 import { LiveRefresh } from "@/components/live/live-refresh";
+import { createShiftsFromTemplateAction } from "@/app/[org]/crew/scheduling-actions";
+import { FillMeter } from "./fill-meter";
+// The drag board loads only for planners on the resource schedule (A132).
+import { AvailabilityPollResults, SchedulingBoard } from "./lazy-scheduling";
 
 /**
  * Shifts in every view the registry offers (resource schedule, list, table, calendar), for the org
  * (Crew > Schedule and Crew > Shifts) and for one project (the project Crew tab). Planners create,
  * edit, publish and cancel shifts; the person assigned accepts; any crew member may claim a published
- * open shift; the person on a shift asks to swap it and clocks in from here or from Compass.
+ * open shift; the person on a shift asks to swap it and clocks in from here or from Compass. Planners also lay a
+ * shift template onto days, and on the resource schedule drag members ranked by availability onto open shifts
+ * while a fill-rate meter shows how much of the week is staffed (A132, ADR 0063).
  */
 export async function ShiftsCollection(props: {
   node: string;
@@ -111,16 +129,26 @@ export async function ShiftsCollection(props: {
   const stateFilter = ["Draft", "Published", "Accepted", "Canceled"].find(
     (s) => s === search["state"],
   );
-  const result = await listShifts(db, {
-    orgId: crew.orgId,
-    from: startOfDayIn(from, zone),
-    to: startOfDayIn(to, zone),
-    ...(projectFilter ? { projectId: projectFilter.id } : {}),
-    ...(stateFilter ? { states: [stateFilter as Shift["state"]] } : {}),
-  });
-  if (!result.ok) throw new Error(`Cannot list shifts: ${result.error.kind}`);
-  const shifts = result.data;
   const canWrite = crew.can("crew.shift.write");
+  // Planners also read the org's shift templates, for "Plan from template", and the projects they may staff,
+  // for the drag board (A132), alongside the shifts rather than after them.
+  const [result, templates, planning] = await Promise.all([
+    listShifts(db, {
+      orgId: crew.orgId,
+      from: startOfDayIn(from, zone),
+      to: startOfDayIn(to, zone),
+      ...(projectFilter ? { projectId: projectFilter.id } : {}),
+      ...(stateFilter ? { states: [stateFilter as Shift["state"]] } : {}),
+    }),
+    canWrite ? listShiftTemplates(db, crew.orgId) : null,
+    canWrite && view === "resource-schedule" ? listShiftPlanningProjectIds(db, crew.orgId) : null,
+  ]);
+  if (!result.ok) throw new Error(`Cannot list shifts: ${result.error.kind}`);
+  if (planning && !planning.ok) {
+    throw new Error(`Cannot read the projects to staff: ${planning.error.kind}`);
+  }
+  const shifts = result.data;
+  const staffable = planning?.ok ? planning.data : new Set<string>();
   const drafts = shifts.filter((s) => s.state === "Draft");
 
   const rules = new Map<string, number | null>();
@@ -488,8 +516,59 @@ export async function ShiftsCollection(props: {
     ];
   };
   const swapShift = search["swap"] ? (shifts.find((s) => s.id === search["swap"]) ?? null) : null;
+  // Shift templates the org keeps (Settings, Scheduling), for "Plan from template" (A132).
+  const templateList = templates?.ok ? templates.data : [];
   const drawer =
-    search["create"] === "1" && canWrite && projects.length > 0 ? (
+    search["template"] === "1" && canWrite && projects.length > 0 && templateList.length > 0 ? (
+      <DrawerForm
+        title={t("crew.scheduling.fromTemplate.title")}
+        submitLabel={t("crew.scheduling.fromTemplate.submit")}
+        action={createShiftsFromTemplateAction}
+        openKeys={["template"]}
+        fields={[
+          { kind: "hidden", name: "org", value: crew.slug },
+          {
+            kind: "select",
+            name: "templateId",
+            label: t("crew.scheduling.fromTemplate.template"),
+            value: templateList[0]?.id ?? "",
+            options: templateList.map((tp) => ({
+              value: tp.id,
+              label: t("crew.scheduling.fromTemplate.option", {
+                name: tp.name,
+                call: tp.callTime,
+                wrap: tp.wrapTime,
+                count: tp.headcount,
+              }),
+            })),
+          },
+          crew.project
+            ? { kind: "hidden", name: "projectId", value: crew.project.id }
+            : {
+                kind: "select",
+                name: "projectId",
+                label: t("crew.fields.project"),
+                value: defaultProject?.id ?? "",
+                options: projects.map((p) => ({ value: p.id, label: `${p.key} · ${p.name}` })),
+              },
+          {
+            kind: "date",
+            name: "from",
+            label: t("crew.scheduling.fromTemplate.from"),
+            value: week,
+            required: true,
+          },
+          {
+            kind: "date",
+            name: "to",
+            label: t("crew.scheduling.fromTemplate.to"),
+            value: addDays(week, 6),
+            required: true,
+            help: t("crew.scheduling.fromTemplate.toHelp"),
+          },
+        ]}
+      />
+    ) : search["create"] === "1" && canWrite && projects.length > 0 ? (
       <DrawerForm
         title={t("crew.shifts.createTitle")}
         submitLabel={t("crew.shifts.create")}
@@ -525,6 +604,40 @@ export async function ShiftsCollection(props: {
       />
     ) : null;
 
+  // Availability polls (P8): with ?poll=1 a planner sees the polls of their projects, each a person-by-day grid,
+  // and asks for more. Read only then, and the components load on demand (lazy-scheduling.tsx).
+  let polls: ReactNode = null;
+  if (canWrite && search["poll"] === "1" && projects.length > 0) {
+    const scoped = projectFilter ? [projectFilter] : projects;
+    const [people, list] = await Promise.all([
+      listPollablePeople(db, crew.orgId),
+      listAvailabilityPolls(
+        db,
+        scoped.map((p) => p.id),
+      ),
+    ]);
+    const shown = (list.ok ? list.data : []).slice(0, 10);
+    const results = await Promise.all(shown.map((p) => availabilityPollResults(db, p.id)));
+    const label = new Map(projects.map((p) => [p.id, `${p.key} · ${p.name}`]));
+    polls = (
+      <AvailabilityPollResults
+        org={crew.slug}
+        today={today}
+        projects={scoped.map((p) => ({ id: p.id, label: `${p.key} · ${p.name}` }))}
+        people={people.ok ? people.data : []}
+        polls={shown.map((p, i) => ({
+          id: p.id,
+          title: p.title,
+          projectLabel: label.get(p.projectId) ?? "",
+          closesAt: p.closesAt,
+          open: pollIsOpen(p),
+          days: p.days,
+          results: results[i]?.ok ? results[i].data : [],
+        }))}
+      />
+    );
+  }
+
   // Warnings: double bookings and overtime risk before publishing.
   const clashes = doubleBookings(shifts);
   const actions = canWrite ? (
@@ -537,6 +650,16 @@ export async function ShiftsCollection(props: {
           action={publishShiftsAction}
           hidden={{ org: crew.slug, ids: drafts.map((d) => d.id).join(",") }}
         />
+      ) : null}
+      {projects.length > 0 ? (
+        <ButtonLink href={withParams(base, search, { poll: "1" })} size="sm">
+          {t("crew.scheduling.polls.ask")}
+        </ButtonLink>
+      ) : null}
+      {projects.length > 0 && templateList.length > 0 ? (
+        <ButtonLink href={withParams(base, search, { template: "1" })} size="sm">
+          {t("crew.scheduling.fromTemplate.open")}
+        </ButtonLink>
       ) : null}
       {projects.length > 0 ? (
         <ButtonLink href={withParams(base, search, { create: "1" })} variant="primary" size="sm">
@@ -645,15 +768,58 @@ export async function ShiftsCollection(props: {
       />
     );
   } else if (view === "resource-schedule") {
+    // Crew fill (Section 11.11): planners get the drag board with its live meter; readers see the meter.
+    const fill = fillRate(shifts.map((s) => ({ state: s.state, assigned: s.member !== null })));
+    const fillText = t("crew.scheduling.fill.value", { ...fill });
+    // Open shifts on projects the planner may staff: crew.shift.write can reach some projects only (2252).
+    const staffableOpen = canWrite
+      ? shifts.filter(
+          (s) => s.member === null && s.state !== "Canceled" && staffable.has(s.projectId),
+        )
+      : [];
+    // A shift with claims waiting (1322 approval and seniority rules) is decided on the shift, not dropped on:
+    // app.assign_open_shift refuses it (shift_claims_waiting), so the board lists it apart, linked to the shift.
+    const claimed = await listShiftIdsWithWaitingClaims(
+      db,
+      staffableOpen.map((s) => s.id),
+    );
+    if (!claimed.ok) throw new Error(`Cannot read the waiting claims: ${claimed.error.kind}`);
+    const boardShift = (s: Shift) => ({
+      id: s.id,
+      label: t("crew.common.pair", { a: roleName(s.roleCode), b: when(s) }),
+      projectKey: s.projectKey,
+    });
     body = (
-      <ScheduleGrid
-        shifts={shifts}
-        weekStart={week}
-        roleTitles={roles}
-        peekHref={peekHref}
-        label={t("crew.shifts.gridLabel")}
-        overtimeHours={rules}
-      />
+      <div className="flex flex-col gap-12">
+        {canWrite ? (
+          <SchedulingBoard
+            org={crew.slug}
+            weekStart={week}
+            filled={fill.filled}
+            total={fill.total}
+            openShifts={staffableOpen.filter((s) => !claimed.data.has(s.id)).map(boardShift)}
+            claimedShifts={staffableOpen
+              .filter((s) => claimed.data.has(s.id))
+              .map((s) => ({ ...boardShift(s), href: peekHref(s.id) }))}
+          />
+        ) : (
+          <FillMeter
+            label={t("crew.scheduling.fill.label")}
+            filled={fill.filled}
+            total={fill.total}
+            percent={fill.percent}
+            valueText={fillText}
+          />
+        )}
+        <ScheduleGrid
+          shifts={shifts}
+          weekStart={week}
+          roleTitles={roles}
+          peekHref={peekHref}
+          label={t("crew.shifts.gridLabel")}
+          overtimeHours={rules}
+        />
+      </div>
     );
   } else if (view === "calendar") {
     body = (
@@ -779,6 +945,7 @@ export async function ShiftsCollection(props: {
           {t("crew.shifts.clashBody")}
         </InlineAlert>
       ) : null}
+      {polls}
       {/* Quick add (Section 11.7): planners plan a shift from one line, in the filtered project. */}
       {canWrite && projects.length > 0 ? (
         <ShiftQuickAdd org={crew.slug} timeZone={zone} projectId={projectFilter?.id ?? null} />

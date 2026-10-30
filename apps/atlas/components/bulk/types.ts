@@ -25,6 +25,11 @@ export interface BulkConfig {
   readonly resource: BulkResource;
   /** At most four properties show as actions; the bar holds five buttons. */
   readonly fields: readonly BulkField[];
+  /**
+   * Records only: a Shift time action that moves the selection by minutes and pushes successors
+   * (app.shift_records, P8). It takes one of the four action places.
+   */
+  readonly shift?: true;
 }
 
 /** A selectable row: its id and the name refusals and checkboxes use, such as its key. */

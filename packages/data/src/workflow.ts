@@ -864,6 +864,8 @@ export async function applyTemplate(
     readonly timeZone: string | null;
     readonly startsOn: string | null;
     readonly venueId: string | null;
+    /** Every templated record is created undated, for the schedule's Unscheduled list (P8). */
+    readonly withoutDates?: boolean;
   },
 ): Promise<Result<{ applicationId: string; projectId: string }>> {
   const applied = await call(
@@ -876,6 +878,7 @@ export async function applyTemplate(
       p_time_zone: input.timeZone,
       p_starts_on: input.startsOn,
       p_venue_id: input.venueId,
+      ...(input.withoutDates ? { p_without_dates: true } : {}),
     },
     str,
   );
@@ -889,12 +892,23 @@ export async function applyTemplate(
 
 export async function createTemplateFromProject(
   db: XosClient,
-  input: { readonly projectId: string; readonly name: string; readonly description: string | null },
+  input: {
+    readonly projectId: string;
+    readonly name: string;
+    readonly description: string | null;
+    /** False saves every record item without a due offset (P8); due dates are kept by default. */
+    readonly keepDates?: boolean;
+  },
 ): Promise<Result<string>> {
   return call(
     db,
     "create_template_from_project",
-    { p_project_id: input.projectId, p_name: input.name.trim(), p_description: input.description },
+    {
+      p_project_id: input.projectId,
+      p_name: input.name.trim(),
+      p_description: input.description,
+      ...(input.keepDates === false ? { p_keep_dates: false } : {}),
+    },
     str,
   );
 }
