@@ -23,8 +23,6 @@ import {
   parseNamePartsForm,
   parsePassportForm,
   parseShareForm,
-  parseTravelForm,
-  parseUniformForm,
   workDetailErrorKey,
   type Parsed,
 } from "@xos/data/work-details-forms";
@@ -36,8 +34,9 @@ import { redirect } from "next/navigation";
 import { getOrgContext, getViewer } from "@/lib/shell/context";
 
 /**
- * Server actions for Work Details (Section 4.5.6 item 10, migration 1340): the viewer's own sizes,
- * needs, travel profile, passport, emergency contacts and loyalty programs, their per-engagement
+ * Server actions for Work Details (Section 4.5.6 item 10, migration 1340): the viewer's own needs,
+ * passport, emergency contacts and loyalty programs (sizes and travel preferences are asked per
+ * project since R6a), their per-engagement
  * shares, their Section 15 name parts, and the engaging org's passport reveal. Each runs with the
  * viewer's client, so the owner-only policies and the RPCs decide; the field parsers are shared with
  * Gateway (@xos/data/work-details-forms) and refusals come back as `workDetails.errors.*` keys.
@@ -80,20 +79,12 @@ async function savePatch(form: FormData, parsed: Parsed<WorkDetailsPatch>): Prom
 
 // Work details ------------------------------------------------------------------------------------------
 
-export async function saveUniformAction(_: State, form: FormData): Promise<State> {
-  return savePatch(form, parseUniformForm(form));
-}
-
 export async function saveDietaryAction(_: State, form: FormData): Promise<State> {
   return savePatch(form, parseDietaryForm(form));
 }
 
 export async function saveAccessibilityAction(_: State, form: FormData): Promise<State> {
   return savePatch(form, parseAccessibilityForm(form));
-}
-
-export async function saveTravelAction(_: State, form: FormData): Promise<State> {
-  return savePatch(form, parseTravelForm(form));
 }
 
 export async function savePassportAction(_: State, form: FormData): Promise<State> {

@@ -9,7 +9,7 @@ import { DEMO_ORG, signInAs } from "./a36-support";
  *   - a submitted entry is returned with a reason from its row's dialog;
  *   - two submitted entries are accepted in one bulk change after a preview;
  *   - the profile peek reads the shared work details of a person who accepted their entry, with
- *     their allergies, which the Owner reads by today's category rule (decision 5 moves to R6a).
+ *     their allergies, which the Owner reads as a holder of data.restricted.read.medical (R6a).
  * The agency builds and submits its rosters through the same RPCs Gateway calls, as postgres on the
  * local stack under the agency owner's claims. Each run makes its own engagements and removes them,
  * with their entries and share, afterwards.

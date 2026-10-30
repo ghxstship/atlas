@@ -54,6 +54,8 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   // A99's account notices (1560, 1561), as private.notify_account stores them.
   "account.recovery_code_used": { remaining: "9" },
   "account.session_signed_out": { count: "2" },
+  // R6a's one-time move (2664), as private.move_profile_work_details stores it.
+  "account.work_details_moved": { moved: "both" },
   "announcement.posted": { title: "Wristband Change Friday" },
   "approval.requested": { title: "Purchase Order 41", actorName: "Demo Producer" },
   "approval.decided": { title: "Purchase Order 41", actorName: "Demo Admin", decision: "approved" },
