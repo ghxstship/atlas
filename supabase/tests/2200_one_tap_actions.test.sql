@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(49);
+select plan(59);
 
 create temporary table k (key text primary key, id uuid, token text);
 grant select, insert, update on k to public;
@@ -169,6 +169,39 @@ select pg_temp.as_user('frank');
 select throws_ok(format($$select app.decline_shift(%L)$$, pg_temp.id('sh1')), 'XR001', null,
   'an accepted shift is no longer declined');
 
+-- 3b. Nobody else declines an engaged worker's shift or an open one ---------------------------------------------------------
+select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Active');
+select pg_temp.as_user('alice');
+with x as (insert into app.shifts (project_id, engagement_id, role_code, starts_at, ends_at, time_zone)
+  values (pg_temp.id('prj_a'), pg_temp.id('eng_ivy_a'), '5000.51.02', now() + interval '6 days', now() + interval '6 days 8 hours',
+    'America/New_York') returning id) insert into k select 'sh_eng', id from x;
+with x as (insert into app.shifts (project_id, role_code, starts_at, ends_at, time_zone)
+  values (pg_temp.id('prj_a'), '0000.50.01', now() + interval '7 days', now() + interval '7 days 8 hours',
+    'America/New_York') returning id) insert into k select 'sh_open', id from x;
+select app.publish_shifts(array[(select id from k where key = 'sh_eng'), (select id from k where key = 'sh_open')]);
+select pg_temp.as_platform();
+insert into world select key, id from k where key in ('sh_eng', 'sh_open');
+select pg_temp.as_user('frank');
+select throws_ok(format($$select app.decline_shift(%L, 'Not mine.')$$, pg_temp.id('sh_eng')), '42501', null,
+  'a member of the org does not decline an engaged worker''s shift');
+select throws_ok(format($$select app.decline_shift(%L, 'Not mine.')$$, pg_temp.id('sh_open')), '42501', null,
+  'nor an open shift nobody holds');
+select pg_temp.as_user('xavier');
+select throws_ok(format($$select app.decline_shift(%L, 'Not mine.')$$, pg_temp.id('sh_eng')), '42501', null,
+  'nor does a member of another org');
+select pg_temp.as_user('ivy');
+select throws_ok(format($$select app.decline_shift(%L, 'Not mine.')$$, pg_temp.id('sh_open')), '42501', null,
+  'an engaged worker does not decline an open shift either');
+select pg_temp.as_platform();
+select is((select array_agg(shift_state::text order by starts_at) from app.shifts where id in (pg_temp.id('sh_eng'), pg_temp.id('sh_open'))),
+  array['Published', 'Published'], 'both shifts are still published');
+select pg_temp.as_user('ivy');
+select lives_ok(format($$select app.decline_shift(%L, 'Booked elsewhere.')$$, pg_temp.id('sh_eng')),
+  'the engaged worker declines their own shift');
+select pg_temp.as_platform();
+select is((select shift_state::text from app.shifts where id = pg_temp.id('sh_eng')), 'Draft',
+  'and it goes back to Draft for the scheduler');
+
 -- 4. A message, answered from the notification ---------------------------------------------------------------------------
 select pg_temp.as_user('carol');
 insert into k select 'conv', app.start_direct_conversation(pg_temp.id('org_a'), pg_temp.id('frank@org_a'));
@@ -190,23 +223,32 @@ select pg_temp.as_user('carol');
 with o as (insert into app.opportunities (project_id, role_type, role_code, title, visibility, starts_on, ends_on, requisition_id)
   values (pg_temp.id('prj_a'), 'Crew', '5000.51.02', 'Summer Series Riggers', 'Invited', '2027-06-01', '2027-06-03', pg_temp.id('requisition_a'))
   returning id) insert into k select 'opp', id from o;
-insert into app.opportunity_invitations (opportunity_id, person_id) values ((select id from k where key = 'opp'), pg_temp.id('quinn'));
+insert into app.opportunity_invitations (opportunity_id, person_id) values ((select id from k where key = 'opp'), pg_temp.id('quinn')),
+  ((select id from k where key = 'opp'), pg_temp.id('ivy'));
 select app.transition_opportunity((select id from k where key = 'opp'), 'Draft', 'Pending Approval', 'Ready.');
 select app.transition_opportunity((select id from k where key = 'opp'), 'Pending Approval', 'Published', 'Approved.');
 select pg_temp.as_user('quinn');
 with a as (insert into app.applications (opportunity_id, applicant_person_id, availability_confirmed)
   values ((select id from k where key = 'opp'), pg_temp.id('quinn'), true) returning id) insert into k select 'app_q', id from a;
+select pg_temp.as_user('ivy');
+with a as (insert into app.applications (opportunity_id, applicant_person_id, availability_confirmed)
+  values ((select id from k where key = 'opp'), pg_temp.id('ivy'), true) returning id) insert into k select 'app_i', id from a;
 select pg_temp.as_user('alice');
 select app.transition_application((select id from k where key = 'app_q'), 'Submitted', 'In Review', 'Screening.');
+select app.transition_application((select id from k where key = 'app_i'), 'Submitted', 'In Review', 'Screening.');
 select pg_temp.as_platform();
 select ok(pg_temp.id('org_a') not in (select private.party_org_ids(pg_temp.id('quinn'))),
   'before an offer, the applicant does not work with the org');
 select pg_temp.as_user('carol');
 insert into k select 'offer', app.send_offer((select id from k where key = 'app_q'), 'Day', 90000, 'USD', '2027-06-01', '2027-06-03',
   'Welcome aboard.', null);
+insert into k select 'offer_i', app.send_offer((select id from k where key = 'app_i'), 'Day', 85000, 'USD', '2027-06-01', '2027-06-03',
+  'Hope you can join us.', null);
 select pg_temp.as_platform();
 insert into world select 'offer', id from k where key = 'offer';
 insert into world select 'n_offer', pg_temp.note('quinn', 'offer.sent', 'offer');
+insert into world select 'offer_i', id from k where key = 'offer_i';
+insert into world select 'n_offer_i', pg_temp.note('ivy', 'offer.sent', 'offer_i');
 select is((select message_args ->> 'title' from app.notifications where id = pg_temp.id('n_offer')), 'Summer Series Riggers',
   'the applicant is told about the offer');
 select set_eq(format($$select channel::text from app.notification_deliveries where notification_id = %L$$, pg_temp.id('n_offer')),
@@ -218,6 +260,14 @@ select lives_ok(format($$select app.act_on_notification(%L, 'accept')$$, pg_temp
   'the applicant accepts the offer from the notification');
 select pg_temp.as_platform();
 select is((select offer_state::text from app.offers where id = pg_temp.id('offer')), 'Accepted', 'the offer is accepted');
+select pg_temp.as_user('quinn');
+select throws_ok(format($$select app.act_on_notification(%L, 'decline', 'Not for me.')$$, pg_temp.id('n_offer_i')), '42501', null,
+  'nobody declines another applicant''s offer from their notification');
+select pg_temp.as_user('ivy');
+select lives_ok(format($$select app.act_on_notification(%L, 'decline', 'Booked that week.')$$, pg_temp.id('n_offer_i')),
+  'the other applicant declines their offer from the notification');
+select pg_temp.as_platform();
+select is((select offer_state::text from app.offers where id = pg_temp.id('offer_i')), 'Declined', 'the offer is declined');
 
 -- 6. An external party clears and snoozes their own notifications; approving stays a member's ---------------------------
 select pg_temp.as_user('ivy');

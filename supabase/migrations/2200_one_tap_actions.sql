@@ -333,16 +333,21 @@ security definer
 set search_path = ''
 as $$
 declare
+  v_person uuid := private.require_person();
   v_shift app.shifts;
   v_reason text := coalesce(nullif(btrim(coalesce(p_reason, '')), ''), 'No reason given.');
+  v_assigned boolean;
 begin
-  perform private.require_person();
   select * into v_shift from app.shifts s where s.id = p_shift_id and s.deleted_at is null for update;
-  if v_shift.id is null
-     or not (v_shift.membership_id in (select private.my_membership_ids())
-       or (v_shift.membership_id is null and v_shift.engagement_id is not null
-         and (select e.person_id from app.engagements e where e.id = v_shift.engagement_id) = private.current_person_id()
-         and v_shift.engagement_id in (select private.my_engagement_ids('operational')))) then
+  -- The shift's member, or its engaged worker while the operational area is open. Every test is written so it is never
+  -- null: an open or engaged shift has no membership, and `null in (...)` would let anyone through a negated check.
+  v_assigned := v_shift.id is not null and (
+    (v_shift.membership_id is not null
+      and exists (select 1 from private.my_membership_ids() m (id) where m.id = v_shift.membership_id))
+    or (v_shift.membership_id is null and v_shift.engagement_id is not null
+      and exists (select 1 from app.engagements e where e.id = v_shift.engagement_id and e.person_id = v_person)
+      and exists (select 1 from private.my_engagement_ids('operational') x (id) where x.id = v_shift.engagement_id)));
+  if not coalesce(v_assigned, false) then
     raise exception using errcode = '42501', message = 'only the person assigned declines a shift';
   end if;
   if v_shift.shift_state <> 'Published' then
