@@ -29,6 +29,31 @@ async function expectAccessible(page: Page): Promise<void> {
   ).toEqual([]);
 }
 
+/**
+ * Presses a Stream Deck key. Playwright's US keyboard layout stops at F12 and refuses F13 to F20, so the key is
+ * dispatched to the focused element with the `key` and `code` a Stream Deck Hotkey action sends, which is what
+ * chordOf reads.
+ */
+async function pressDeckKey(
+  page: Page,
+  key: `F${13 | 14 | 15 | 16 | 17 | 18 | 19 | 20}`,
+): Promise<void> {
+  await page.evaluate((k) => {
+    const target = document.activeElement ?? document.body;
+    for (const type of ["keydown", "keyup"]) {
+      target.dispatchEvent(
+        new KeyboardEvent(type, {
+          key: k,
+          code: k,
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+        }),
+      );
+    }
+  }, key);
+}
+
 async function newOwnerOrg(page: Page): Promise<string> {
   const id = uniqueId();
   const slug = `p2s-${id}`;
@@ -95,6 +120,26 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
   );
   await expectAccessible(page);
 
+  // A failed save keeps the editor open with what was typed and says why: a call past 2000 characters is
+  // refused by the action (the field's own limit is lifted to reach it).
+  await page.getByRole("button", { name: "Edit Headliner On" }).click();
+  const failing = page.getByRole("form", { name: "Edit cue Headliner On" });
+  const video = failing.getByLabel("Video call");
+  await video.evaluate((el) => el.removeAttribute("maxlength"));
+  const tooLong = "Roll the walk-on reel. ".repeat(90).slice(0, 2001);
+  await video.fill(tooLong);
+  await failing.getByRole("button", { name: "Save" }).click();
+  await expect(failing.getByRole("alert")).toContainText(
+    "Each department's call can be up to 2000 characters.",
+  );
+  await expect(failing).toBeVisible();
+  await expect(video).toHaveValue(tooLong);
+  await failing.getByRole("button", { name: "Cancel" }).click();
+  await expect(failing).toBeHidden();
+  await expect(list.getByRole("listitem").filter({ hasText: "Headliner On" })).not.toContainText(
+    "Video ·",
+  );
+
   // Move to position puts cue 5 at position 2 in one step.
   await page.getByRole("button", { name: "Move House Lights Up to a position" }).click();
   const move = page.getByRole("dialog", { name: "Move House Lights Up" });
@@ -117,19 +162,24 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
   await watch.goto(`${runUrl}&live=1`);
   await expect(watch.getByRole("status").filter({ hasText: "No cue called yet" })).toBeVisible();
 
-  // The caller goes live; the console has focus. F16 moves the standby on, F14 puts it on standby.
+  // The caller goes live; the console has focus. F16 puts the next cue on standby, then moves the standby
+  // on; F14 puts the selection on standby. The follower sees each standby within 2 s.
   await page.getByRole("button", { name: "Run live" }).click();
   const console_ = page.getByRole("region", { name: "Showcaller console" });
   await expect(console_).toBeFocused();
-  await page.keyboard.press("F16");
+  await pressDeckKey(page, "F16");
+  await expect(watch.getByRole("status").filter({ hasText: "Standby: House to Half" })).toBeVisible(
+    { timeout: 2_000 },
+  );
+  await pressDeckKey(page, "F16");
   await expect(
     watch.getByRole("status").filter({ hasText: "Standby: House Lights Up" }),
   ).toBeVisible({
     timeout: 2_000,
   });
-  await page.keyboard.press("F14");
-  // F13 calls the selected cue.
-  await page.keyboard.press("F13");
+  await pressDeckKey(page, "F14");
+  // F13 calls the selected cue; House to Half, jumped past, is now skipped.
+  await pressDeckKey(page, "F13");
   await expect(
     page.getByRole("status").filter({ hasText: "Current cue: House Lights Up" }),
   ).toBeVisible();
@@ -148,15 +198,16 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
     { timeout: 10_000 },
   );
 
-  // The console shows the overrun and the curfew warning.
-  await expect(console_.getByTestId("console-overrun")).toHaveText(/behind|ahead|On time/);
-  await expect(console_.getByTestId("console-curfew")).toContainText("curfew");
+  // The show is dated 2027 and its cues are called today, so it runs months ahead of the plan and ends well before
+  // the curfew; the near and over tones are covered by showClock's unit tests.
+  await expect(console_.getByTestId("console-overrun")).toHaveText(/^\d+:\d{2}:\d{2} ahead$/);
+  await expect(console_.getByTestId("console-curfew")).toContainText("Ends before the curfew.");
 
   // F17 nudges the remaining plan one minute later: the uncalled cue's planned time moves.
   const skippedRow = console_.getByRole("listitem").filter({ hasText: "Walk-in Music Out" });
   const before = (await skippedRow.textContent()) ?? "";
   await console_.focus();
-  await page.keyboard.press("F17");
+  await pressDeckKey(page, "F17");
   await expect(skippedRow).not.toHaveText(before, { timeout: 10_000 });
 
   // Filtering by Lighting shows only its lines.
@@ -166,7 +217,8 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
   await expectAccessible(watch);
   await follower.close();
 
-  // With single-key shortcuts off, J and K do nothing while F15 still moves the standby.
+  // With single-key shortcuts off, J and K do nothing while F15 still moves the standby: with nothing on
+  // standby it starts from the current cue, Headliner On, and stands by Host Welcome, skipped before it.
   await page.goto(`/${slug}/me/keyboard-shortcuts`);
   const toggle = page
     .getByRole("switch", { name: "Keyboard shortcuts" })
@@ -179,11 +231,11 @@ test("show calling: TBC, inline calls, one-step moves, the console and Stream De
   await page.keyboard.press("j");
   await page.keyboard.press("k");
   await expect(standbyLine).toHaveText(shown ?? "");
-  await page.keyboard.press("F15");
-  await expect(page.getByRole("status").filter({ hasText: /^Standby:/ })).toBeVisible();
+  await pressDeckKey(page, "F15");
+  await expect(page.getByRole("status").filter({ hasText: "Standby: Host Welcome" })).toBeVisible();
   // Keys do nothing while typing in a field.
   await page.getByRole("region", { name: "Showcaller console" }).getByLabel("Department").focus();
-  await page.keyboard.press("F19");
+  await pressDeckKey(page, "F19");
   await expect(page.getByRole("dialog", { name: "Jump to cue" })).toBeHidden();
 });
 
