@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-27
 - Decider: A124 (RRR-169), trace row S4.10-02
-- Migrations: 2180, 2181, 2182
+- Migrations: 2180, 2181, 2182, 2183
 
 ## Context
 
@@ -47,6 +47,9 @@ and `venue.restored` (0420) follow `archived_at`, and the triggers move before t
 emits nothing. A venue's name is unique among live, unarchived venues, so an archived venue's name
 can be reused; unarchiving it while a live venue holds the name is refused as `archive_name_taken`.
 Spaces, zones, capability documents, site plans and pins keep archiving through `deleted_at`.
+The venue list now reads the shared `archived=include|only` parameter; it still honors the older
+`archive=archived|all` that the other Places collections use, so saved views and bookmarks of it open
+as they did.
 Every reader that offered venues by filtering `deleted_at` alone now also leaves archived venues out:
 the Event record venue picker, the asset venue picker, a partner's view of a client's venues, the
 import worker's venue lookup by id or name, and import duplicate review (`private.fuzzy_candidates`,
@@ -60,7 +63,16 @@ other value is the default. `packages/data/src/archive.ts` applies it in the lis
 `ArchivedFilter` select sets it, and exports keep the same default through a presence filter (2380).
 Global search and recent items (2181, restating 1440) leave archived records and documents out;
 `is:archived` (es: `archivado`) searches only them, so an archived row can be found and unarchived;
-a document hit under `is:archived` opens with `archived=only` so its peek can show it.
+a document hit under `is:archived` opens with `archived=only` so its peek can show it. An exact
+record key (NWL-12) finds its record archived or not, since the key names one row the way a link
+does; `is:archived` still leaves a live record out.
+
+The lists that read `app.records` outside the collection loaders leave archived records out too:
+Home's Today, Overdue, Blocked, Recent and alerts and their counts (so each page matches its export),
+My Work, the person card's open count, and the records offered when filing project mail. The records
+an org shares with an engaged external party (`api_external.records`, restated in 2183 from 0750)
+leave them out as well, so the party's Gateway schedule and calendar feed (1410) drop an archived
+record until it is unarchived.
 
 The default applies to lists only. A lookup of known rows passes `archived: "include"`: a record's
 parent and sub-records, the records at the other end of its dependencies, a baseline's items and the
@@ -82,8 +94,10 @@ No archive action is added to the API in this change.
 
 ## Consequences
 
-- An archived row is still counted by anything that reads the table directly (reports, plan limits,
-  RLS-scoped views); only the loaders, the API lists, search and exports filter it.
+- An archived row is still counted by anything that reads the table directly for an aggregate
+  (reports, the coordinate coverage counts of a project and the coordinate matrix, plan limits,
+  RLS-scoped views): archived work still covered its coordinate. The lists named in decision 4, the
+  API lists, search and exports filter it.
 - The punch list export reads `app.punch_items`, which has no `archived_at`, so it still lists the
   punch items whose records are archived.
 - The `record-archive-removed` correction (ADR 0023) stays: v1 still has no `records.archive`.
