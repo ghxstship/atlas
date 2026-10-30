@@ -41,6 +41,7 @@ import {
   type AdvancingState,
 } from "./actions";
 import { DraftEntry } from "@/components/aurora/entry/draft-entry";
+import { riderPartyChoices, type PartyChoice } from "@/lib/advancing/rider-party";
 import { useCopy } from "./use-copy";
 import { useQueryHref } from "./views";
 
@@ -919,20 +920,24 @@ export function CreateRiderDialog({
 }: {
   org: string;
   projects: readonly Option[];
-  parties: readonly Option[];
+  parties: readonly PartyChoice[];
   defaultProjectId: string | null;
   defaultOpen: boolean;
 }) {
   const t = useCopy("advancing.riders.create");
+  const riders = useCopy("advancing.riders");
   const common = useCopy("advancing.common");
   const router = useRouter();
   const href = useQueryHref();
   const [open, setOpen] = useState(defaultOpen);
   const [state, action, pending] = useActionState(createRiderAction, INITIAL);
+  const [projectId, setProjectId] = useState(defaultProjectId ?? "");
   const formId = useId();
   useEffect(() => {
     if (state.ok && state.id) router.push(href({ create: null, peek: state.id, full: "1" }));
   }, [state, router, href]);
+  // An artist's engagement is offered only once its project is the one chosen.
+  const offered = riderPartyChoices(parties, projectId);
   return (
     <Dialog
       title={t("title")}
@@ -968,6 +973,7 @@ export function CreateRiderDialog({
           value={defaultProjectId ?? ""}
           placeholder={t("projectHint")}
           options={[...projects]}
+          onChange={(e) => setProjectId(e.target.value)}
           error={state.fieldErrors?.["projectId"] ? t("projectError") : ""}
         />
         <Input
@@ -982,10 +988,11 @@ export function CreateRiderDialog({
         />
         <Select
           id={`${formId}-party`}
-          name="counterpartyId"
-          label={t("party")}
+          name="party"
+          label={riders("fields.party")}
           value=""
-          options={[{ value: "", label: t("noParty") }, ...parties]}
+          options={[{ value: "", label: riders("partyNone") }, ...offered]}
+          error={state.fieldErrors?.["party"] ? riders("partyError") : ""}
         />
       </form>
     </Dialog>
@@ -996,18 +1003,20 @@ export function RiderDetailsForm({
   org,
   riderId,
   title,
-  counterpartyId,
+  party,
   parties,
   disabled,
 }: {
   org: string;
   riderId: string;
   title: string;
-  counterpartyId: string | null;
+  /** Whose rider it is: "", "c:<counterparty id>" or "e:<engagement id>" (R2). */
+  party: string;
   parties: readonly Option[];
   disabled: boolean;
 }) {
   const t = useCopy("advancing.riders.details");
+  const riders = useCopy("advancing.riders");
   const common = useCopy("advancing.common");
   const [state, action, pending] = useActionState(updateRiderAction, INITIAL);
   const id = useId();
@@ -1029,11 +1038,12 @@ export function RiderDetailsForm({
       />
       <Select
         id={`${id}-party`}
-        name="counterpartyId"
-        label={t("party")}
-        value={counterpartyId ?? ""}
+        name="party"
+        label={riders("fields.party")}
+        value={party}
         disabled={disabled}
-        options={[{ value: "", label: t("noParty") }, ...parties]}
+        options={[{ value: "", label: riders("partyNone") }, ...parties]}
+        error={state.fieldErrors?.["party"] ? riders("partyError") : ""}
       />
       {disabled ? null : (
         <div className="flex items-center gap-12">

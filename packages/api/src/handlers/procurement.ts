@@ -17,6 +17,7 @@ import {
 import type { HandlerSet } from "../runtime/handler.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
 import { rfqSealedResponseHandlers } from "./parts/rfq-sealed-responses.ts";
+import { fieldHistory } from "./parts/bulk-edit-and-history.ts";
 import { mergeBy, sumMinor, withTransition } from "./support/enrich.ts";
 import {
   from,
@@ -220,4 +221,8 @@ export const handlers = defineHandlers("Procurement", {
     );
     return ok((await invoiceMatches.read(context, params.id)) as never);
   },
+
+  // Field history (A106, migration 1452).
+  "purchaseOrders.fieldHistory": async ({ params, query }, context) =>
+    ok((await fieldHistory(context, "app.purchase_orders", params.id, query.limit)) as never),
 });

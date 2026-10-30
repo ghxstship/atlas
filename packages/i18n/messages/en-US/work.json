@@ -589,6 +589,7 @@
     "notFound": "This item is gone or you can no longer see it. Reload the page.",
     "conflict": "Something with the same value already exists.",
     "invalid": "Some values are not valid.",
+    "customFields": "A custom field needs attention. Check the fields marked and try again.",
     "unexpected": "Something went wrong on our side. Try again in a moment.",
     "reasonRequired": "Write a reason for the move.",
     "checklistLabel": "Write the checklist item first.",
@@ -632,7 +633,9 @@
       "sod_approval_requester": "Someone other than the requester must decide this approval.",
       "approval_decided": "A decided approval is final. Raise a new approval instead.",
       "approval_not_eligible": "Only someone who may edit this project's records can decide its approvals.",
-      "time_zone_unknown": "Choose a time zone from the list."
+      "time_zone_unknown": "Choose a time zone from the list.",
+      "engagement_cue_artist_only": "Set times belong to artist engagements. Choose an artist.",
+      "engagement_cue_project_mismatch": "That artist is engaged on another project. Choose an artist of this show's project."
     },
     "quickAdd": {
       "capability": "You cannot create this here.",

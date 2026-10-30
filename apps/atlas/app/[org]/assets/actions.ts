@@ -28,6 +28,7 @@ import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { getOrgContext, getViewer } from "@/lib/shell/context";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import { minorUnits } from "@/lib/assets/money";
 import { observability } from "@/lib/observability";
 
@@ -179,8 +180,12 @@ export async function createUnitAction(
   if (!parsed.success) {
     return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "assetTag") };
   }
+  const custom = await customFieldsOf(ctx, "app.asset_units", form);
+  const problem = Object.keys(custom.fieldErrors ?? {})[0];
+  if (problem) return { error: "invalid", field: problem };
   const result = await createAssetUnit(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
   if (!result.ok) return errorKey(result.error);
+  await custom.save(result.data.id);
   return { ...done(ctx.org.slug), assetTag: result.data.assetTag };
 }
 
@@ -312,6 +317,8 @@ const SCAN_RULES = new Set([
   "asset_scan_state_conflict",
   "asset_scan_unavailable",
   "asset_scan_event_reused",
+  "asset_scan_engagement_closed",
+  "asset_scan_engagement_project",
 ]);
 
 /**
@@ -328,7 +335,11 @@ export async function custodyScanAction(
       eventId: z.uuid(),
       code: text(200),
       action: z.enum(SCAN_ACTIONS),
-      membershipId: optionalId,
+      // The Custodian select sends m:<membership id> or e:<engagement id>.
+      custodian: z
+        .union([z.string().regex(/^[me]:[0-9a-f-]{36}$/), z.literal("")])
+        .optional()
+        .transform((v) => (v ? v : null)),
       venueId: optionalId,
       projectId: optionalId,
       note: optionalText(1000),
@@ -342,7 +353,7 @@ export async function custodyScanAction(
         "eventId",
         "code",
         "action",
-        "membershipId",
+        "custodian",
         "venueId",
         "projectId",
         "note",
@@ -352,7 +363,13 @@ export async function custodyScanAction(
   if (!parsed.success) {
     return { error: "invalid", field: String(parsed.error.issues[0]?.path[0] ?? "code") };
   }
-  const result = await applyAssetScanEvent(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
+  const { custodian, ...scan } = parsed.data;
+  const result = await applyAssetScanEvent(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    ...scan,
+    membershipId: custodian?.startsWith("m:") ? custodian.slice(2) : null,
+    engagementId: custodian?.startsWith("e:") ? custodian.slice(2) : null,
+  });
   if (!result.ok) {
     if (result.error.kind === "refusal" && SCAN_RULES.has(result.error.rule)) {
       return { error: result.error.rule };

@@ -2,6 +2,8 @@
  * Applied only while a core-screen baseline is captured (Section 18, gate 9). It hides what is not
  * part of the screen: the next dev indicator, the text caret, and the help panel's one-time tour and
  * tip cards, which appear until a person dismisses them and so depend on what ran before.
+ * The recent projects under Projects (A113) depend on the projects opened before, so they leave the
+ * shot entirely rather than leave a gap.
  */
 nextjs-portal,
 [data-help-card] {
@@ -10,4 +12,8 @@ nextjs-portal,
 
 * {
   caret-color: transparent !important;
+}
+
+[data-sidebar-subitems] {
+  display: none !important;
 }

@@ -114,7 +114,8 @@
         "rateCards": "Tarifarios",
         "payPeriods": "Periodos de pago",
         "payrollExports": "Exportaciones de nómina",
-        "timeOff": "Ausencias"
+        "timeOff": "Ausencias",
+        "perDiems": "Viáticos"
       },
       "finance": {
         "budgets": "Presupuestos",
@@ -534,6 +535,7 @@
     "group": "Consola de operaciones",
     "tenants": "Organizaciones",
     "tenant": "Organización",
+    "metrics": "Métricas",
     "flags": "Indicadores de funciones",
     "support": "Sesiones de soporte",
     "supportSession": "Sesión de soporte",

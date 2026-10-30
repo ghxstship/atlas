@@ -589,6 +589,7 @@
     "notFound": "Este elemento ya no existe o ya no puede verlo. Vuelva a cargar la página.",
     "conflict": "Ya existe algo con el mismo valor.",
     "invalid": "Algunos valores no son válidos.",
+    "customFields": "Un campo personalizado necesita atención. Revise los campos marcados e inténtelo de nuevo.",
     "unexpected": "Algo falló de nuestro lado. Inténtelo de nuevo en un momento.",
     "reasonRequired": "Escriba un motivo para el cambio.",
     "checklistLabel": "Escriba primero el elemento de la lista.",
@@ -632,7 +633,9 @@
       "sod_approval_requester": "Alguien distinto al solicitante debe decidir esta aprobación.",
       "approval_decided": "Una aprobación decidida es definitiva. Solicite una nueva aprobación.",
       "approval_not_eligible": "Solo quien puede editar los registros de este proyecto puede decidir sus aprobaciones.",
-      "time_zone_unknown": "Elija una zona horaria de la lista."
+      "time_zone_unknown": "Elija una zona horaria de la lista.",
+      "engagement_cue_artist_only": "Los horarios de set pertenecen a contrataciones de artistas. Elija un artista.",
+      "engagement_cue_project_mismatch": "Ese artista está contratado en otro proyecto. Elija un artista del proyecto de este show."
     },
     "quickAdd": {
       "capability": "No puedes crear esto aquí.",
