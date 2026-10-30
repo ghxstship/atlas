@@ -155,8 +155,9 @@ const fieldsSchema = z.object({
   dueAt: instant,
 });
 
+// A record always has a title (records.title is not null), so a save may change it but never clear it.
 const versionedSchema = z.object({
-  set: fieldsSchema,
+  set: fieldsSchema.refine((set) => set.title !== null, { path: ["title"] }),
   expect: fieldsSchema.partial().optional(),
   version: z.string().min(1).max(64).nullable().optional(),
   replanReason: z.string().trim().min(1).max(500).nullable().optional(),
