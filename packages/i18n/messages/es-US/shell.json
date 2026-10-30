@@ -1302,6 +1302,7 @@
       "status": "Un estado, abierto o cerrado",
       "after": "Cambiado después de una fecha, hoy o hace 7 días",
       "due": "Vence en 7 días, hoy o vencido",
+      "archived": "Registros y documentos archivados, que la búsqueda excluye de otro modo",
       "phrase": "Palabras juntas entre comillas; un signo menos excluye una palabra"
     }
   },

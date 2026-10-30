@@ -63,6 +63,7 @@
     "transition_reason_required": "Indique un motivo para el cambio de estado.",
     "production_closed": "La producción de este proyecto está cerrada, así que no se le puede agregar nada nuevo.",
     "enumeration_domain": "Ese resultado no es uno de los resultados de inspección del canon. Elija uno de la lista.",
+    "archive_name_taken": "Un recinto activo ya tiene este nombre. Cambie el nombre de uno de los dos y luego restaure este.",
     "commentRequired": "Escriba algo antes de publicar.",
     "fileRequired": "Elija un archivo para subir.",
     "fileTooLarge": "Los archivos pueden pesar como máximo 50 MB. Elija un archivo más pequeño.",

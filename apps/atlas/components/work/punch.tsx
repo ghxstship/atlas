@@ -25,6 +25,7 @@ import { formatWhen, fromLocalInput, stateToken, withQuery } from "./format";
 import { createPunchItemAction } from "./work-order-actions";
 import { useRecordKeyHovers } from "@/components/hover/use-hover-cards";
 import { CollectionViews } from "@/components/views/collection-views";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
 
 /**
  * Work > Punch lists (Section 4.5.5): punch items, each a Task record of subtype Execute titled
@@ -97,17 +98,20 @@ export function PunchCollection({
     />
   );
   const filters = (
-    <Select
-      key={`state-${state}`}
-      id="punch-state"
-      label={t("collection.state")}
-      value={state}
-      options={[
-        { value: "", label: t("collection.allStates") },
-        ...states.map((s) => ({ value: s.state, label: t(`states.${s.state}`) })),
-      ]}
-      onChange={(e) => go({ state: e.target.value || null })}
-    />
+    <>
+      <Select
+        key={`state-${state}`}
+        id="punch-state"
+        label={t("collection.state")}
+        value={state}
+        options={[
+          { value: "", label: t("collection.allStates") },
+          ...states.map((s) => ({ value: s.state, label: t(`states.${s.state}`) })),
+        ]}
+        onChange={(e) => go({ state: e.target.value || null })}
+      />
+      <ArchivedFilter id="punch-archived" />
+    </>
   );
 
   let body: ReactNode;

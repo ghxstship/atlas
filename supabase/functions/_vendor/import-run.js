@@ -945,6 +945,7 @@ function supabaseImportStore(client) {
           .select("id")
           .eq("org_id", orgId)
           .is("deleted_at", null)
+          .is("archived_at", null)
           .limit(1);
         const row = await one(
           UUID.test(idOrName) ? query.eq("id", idOrName) : query.ilike("name", idOrName),

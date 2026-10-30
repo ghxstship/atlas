@@ -483,7 +483,7 @@ export interface ClientVenue {
 
 /**
  * The client's venues as the caller may read them: none for partner staff without a support session,
- * the client's venues while one is open (row level security decides).
+ * the client's live venues while one is open (row level security decides; archived ones are left out).
  */
 export async function listClientVenues(
   db: XosClient,
@@ -495,6 +495,7 @@ export async function listClientVenues(
       .select("id, name, locality")
       .eq("org_id", clientOrgId)
       .is("deleted_at", null)
+      .is("archived_at", null)
       .order("name")
       .limit(50),
   );

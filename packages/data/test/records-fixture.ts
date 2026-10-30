@@ -25,6 +25,7 @@ export function recordRow(over: Record<string, unknown> = {}) {
     created_at: "2027-05-01T00:00:00Z",
     updated_at: "2027-05-02T00:00:00Z",
     deleted_at: null,
+    archived_at: null,
     project: { project_key: "NWL", name: "Northwind Summer Series", time_zone: "America/New_York" },
     owner: { full_name: "Dana Reyes" },
     ...over,

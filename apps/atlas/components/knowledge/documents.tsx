@@ -10,6 +10,9 @@ import {
 import { CoEditLauncher } from "@/components/coedit/coedit-launcher";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
+import { ArchiveControls } from "@/components/archive/archive-controls";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
+import { archivedOf } from "@/lib/archive/param";
 import { PresenceFor } from "@/components/presence/presence-for";
 import { emptyFor } from "@/components/collection-kit/empty";
 import {
@@ -60,7 +63,7 @@ export async function DocumentsSection({
   const [t, format, all, projects] = await Promise.all([
     getCopy("knowledge"),
     getFormatter(),
-    listDocuments(db, ctx.org.id),
+    listDocuments(db, ctx.org.id, archivedOf(search)),
     listProjectOptions(db, ctx.org.id),
   ]);
   const title = projectId ? t("documents.projectTitle") : t("documents.title");
@@ -90,20 +93,30 @@ export async function DocumentsSection({
         : t("documents.noVersions"),
     },
   ];
-  const actions = (d: KnowledgeDocument) =>
-    canWrite ? (
-      <ActionButton
-        action={deleteDocumentAction}
-        hidden={{ org: ctx.org.slug, id: d.id }}
-        label={t("documents.delete")}
-        variant="danger"
-        confirm={{
-          title: t("documents.deleteTitle", { title: d.title }),
-          body: t("documents.deleteBody"),
-        }}
-        refusals={REFUSALS}
+  const actions = (d: KnowledgeDocument) => (
+    <>
+      <ArchiveControls
+        org={ctx.org.slug}
+        entity="documents"
+        id={d.id}
+        archivedAt={d.archivedAt}
+        canWrite={canWrite}
       />
-    ) : null;
+      {canWrite ? (
+        <ActionButton
+          action={deleteDocumentAction}
+          hidden={{ org: ctx.org.slug, id: d.id }}
+          label={t("documents.delete")}
+          variant="danger"
+          confirm={{
+            title: t("documents.deleteTitle", { title: d.title }),
+            body: t("documents.deleteBody"),
+          }}
+          refusals={REFUSALS}
+        />
+      ) : null}
+    </>
+  );
   const versions = (d: KnowledgeDocument, tr: Copy) => (
     <KitSection id={`versions-${d.id}`} title={tr("documents.versionHistory")}>
       {d.versions.length === 0 ? (
@@ -297,6 +310,7 @@ export async function DocumentsSection({
         { key: "updated", label: t("documents.updated") },
       ]}
       rows={rows}
+      filters={<ArchivedFilter id="documents-archived" />}
       actions={
         canWrite ? (
           <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">

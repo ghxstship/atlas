@@ -1,14 +1,15 @@
 -- pgTAP: migration 1410, calendar feeds served, rotated and revoked (A84, RRR-129, finding A65-018, Section 4.6.5).
 -- The token RPC behind /ical/{feedToken}.ics returns one JSON document: a member feed shows the member's own shifts
 -- and assigned records, a project feed what the member may see on the project, and a person feed what Gateway shows
--- an external party. Rotation replaces the token in place, revocation is final, retired tokens never count as failed
--- guesses, and the per-token and per-address limits hold.
+-- an external party. An archived record leaves member and project feeds until it is unarchived. Rotation replaces
+-- the token in place, revocation is final, retired tokens never count as failed guesses, and the per-token and
+-- per-address limits hold.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(54);
+select plan(58);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update on k to public;
@@ -120,6 +121,18 @@ select ok(pg_temp.id('frank_shift') in (select pg_temp.event_ids('dave_project')
   'a coordinator who reads the project''s shifts sees every shift of the project');
 select ok(pg_temp.id('dave_shift') not in (select pg_temp.event_ids('frank_project')),
   'a field member''s project feed leaves out other people''s shifts');
+
+-- An archived record leaves member and project feeds until it is unarchived (A124, 2184).
+select pg_temp.as_user('carol');
+select app.archive_row('records', pg_temp.id('milestone'));
+select pg_temp.as_anon();
+select ok(pg_temp.id('milestone') not in (select pg_temp.event_ids('frank')), 'an archived milestone leaves the member feed');
+select ok(pg_temp.id('milestone') not in (select pg_temp.event_ids('dave_project')), 'and the project feed');
+select pg_temp.as_user('carol');
+select app.unarchive_row('records', pg_temp.id('milestone'));
+select pg_temp.as_anon();
+select ok(pg_temp.id('milestone') in (select pg_temp.event_ids('frank')), 'unarchived, it is back in the member feed');
+select ok(pg_temp.id('milestone') in (select pg_temp.event_ids('dave_project')), 'and in the project feed');
 
 -- Rotation --------------------------------------------------------------------------------------------------------------
 insert into k (key, val) select 'frank_old', val from k where key = 'frank';

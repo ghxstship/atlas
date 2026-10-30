@@ -555,6 +555,10 @@ restated:
     parent: app.shipments.project_id
     kind: own
     note: The slot's project; the shipment link is optional.
+  - column: app.documents.archived_at
+    parent: app.projects.archived_at
+    kind: own
+    note: When the document was archived; it and its project are archived apart (ADR 0085).
   - column: app.email_digest_queue.sent_at
     parent: app.notification_deliveries.sent_at
     kind: own
@@ -949,6 +953,10 @@ restated:
     parent: app.memberships.valid_to
     kind: own
     note: When project access ends.
+  - column: app.projects.archived_at
+    parent: app.venues.archived_at
+    kind: own
+    note: When the project was archived; it and its venue are archived apart.
   - column: app.projects.jurisdiction_id
     parent: app.venues.jurisdiction_id
     kind: own
@@ -989,6 +997,10 @@ restated:
     parent: app.records.time_zone
     kind: own
     note: Zone the rule is evaluated in, set even when the record follows the project's zone.
+  - column: app.records.archived_at
+    parent: app.projects.archived_at
+    kind: own
+    note: When the record was archived; it and its project are archived apart (ADR 0085).
   - column: app.records.project_id
     parent: app.scope_nodes.project_id
     kind: own
@@ -1328,6 +1340,18 @@ restated:
     parent: app.work_orders.estimated_hours
     kind: own
     note: Hours the bidder estimates.
+  - column: app.work_orders.archived_at
+    parent: app.projects.archived_at
+    kind: own
+    note: When the work order was archived; it and its project are archived apart (ADR 0085).
+  - column: app.work_orders.archived_at
+    parent: app.records.archived_at
+    kind: own
+    note: When the work order was archived; it and the record it serves are archived apart (ADR 0085).
+  - column: app.work_orders.archived_by
+    parent: app.records.archived_by
+    kind: own
+    note: Who archived the work order, not who archived the record it serves (ADR 0085).
   - column: app.work_orders.currency_code
     parent: app.work_order_bids.currency_code
     kind: own

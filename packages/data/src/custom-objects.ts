@@ -1,3 +1,4 @@
+import { applyArchived, type ArchivedFilter } from "./archive.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { num, numOrNull, rows, str, strOrNull, writtenId, type Raw } from "./platform-common.ts";
@@ -216,6 +217,8 @@ export interface ObjectRecord {
   readonly title: string;
   readonly createdAt: string;
   readonly updatedAt: string;
+  /** When the record was archived (A124); archived records leave the list unless asked for. */
+  readonly archivedAt: string | null;
   /** Values by field id; a field without a value is absent. */
   readonly values: Readonly<Record<string, FieldValue>>;
 }
@@ -261,16 +264,23 @@ function toValue(field: ObjectField | undefined, v: Raw): FieldValue | null {
   }
 }
 
+/** Records of a custom object type, newest first; archived ones only when asked for (A124). */
 export async function listObjectRecords(
   db: XosClient,
   type: ObjectType,
+  archived: ArchivedFilter = "exclude",
 ): Promise<Result<ObjectRecord[]>> {
   const result = await rows(
-    untyped(db)
-      .from("custom_object_records")
-      .select(`id, title, created_at, updated_at, custom_object_values (${VALUE_COLUMNS})`)
-      .eq("custom_object_type_id", type.id)
-      .is("deleted_at", null)
+    applyArchived(
+      untyped(db)
+        .from("custom_object_records")
+        .select(
+          `id, title, created_at, updated_at, archived_at, custom_object_values (${VALUE_COLUMNS})`,
+        )
+        .eq("custom_object_type_id", type.id)
+        .is("deleted_at", null),
+      archived,
+    )
       .order("created_at", { ascending: false })
       .limit(500),
   );
@@ -290,6 +300,7 @@ export async function listObjectRecords(
         title: str(r["title"]),
         createdAt: str(r["created_at"]),
         updatedAt: str(r["updated_at"]),
+        archivedAt: strOrNull(r["archived_at"]),
         values,
       };
     }),

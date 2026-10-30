@@ -1302,6 +1302,7 @@
       "status": "A state, open or closed",
       "after": "Changed after a date, today or 7 days ago",
       "due": "Due within 7 days, today or overdue",
+      "archived": "Archived records and documents, which search leaves out otherwise",
       "phrase": "Words together in quotes; a minus leaves a word out"
     }
   },
