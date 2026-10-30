@@ -324,14 +324,9 @@ describe("Allocations contract: parity", () => {
       p_allocation_id: SHARE,
       p_radio_channel_ids: [CHANNEL],
     });
-    const free = (await expectContract(
-      await success(
-        http.get(
-          `/asset-classes/${CLASS}/availability?from=2027-06-01T12:00:00Z&to=2027-06-05T12:00:00Z`,
-        ),
-      ),
-      "assetClasses.availability",
-    )) as Row;
+    const window = "from=2027-06-01T12:00:00Z&to=2027-06-05T12:00:00Z";
+    const availability = await success(http.get(`/asset-classes/${CLASS}/availability?${window}`));
+    const free = (await expectContract(availability, "assetClasses.availability")) as Row;
     expect(free).toMatchObject({ total: 6, available: 0, unit_basis: "each" });
   });
 
