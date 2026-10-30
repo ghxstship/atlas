@@ -48,7 +48,8 @@
         "venues": "Venues",
         "spacesAndZones": "Spaces and Zones",
         "capabilityDocuments": "Capability Documents",
-        "sitePlans": "Site Plans"
+        "sitePlans": "Site Plans",
+        "signage": "Signage"
       },
       "logistics": {
         "shipments": "Shipments",

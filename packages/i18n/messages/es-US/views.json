@@ -505,7 +505,14 @@
       "worked_minutes": "Minutos trabajados",
       "worker_classification": "Clasificación",
       "xyz": "XYZ",
-      "zone_id": "Zona"
+      "zone_id": "Zona",
+      "sign_number": "Número de letrero",
+      "sign_type": "Tipo de letrero",
+      "width_in": "Ancho (in)",
+      "height_in": "Alto (in)",
+      "substrate": "Material",
+      "needed_by": "Se necesita para",
+      "plan_state": "Estado del plano"
     }
   }
 }

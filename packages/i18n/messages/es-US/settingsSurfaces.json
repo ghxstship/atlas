@@ -246,7 +246,9 @@
       "asset_units": "Unidades de activos",
       "purchase_orders": "Órdenes de compra",
       "invoices": "Facturas",
-      "incidents": "Incidentes"
+      "incidents": "Incidentes",
+      "spaces": "Espacios",
+      "signs": "Letreros"
     }
   },
   "canon": {

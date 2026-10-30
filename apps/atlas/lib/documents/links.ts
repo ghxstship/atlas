@@ -41,5 +41,9 @@ export function atlasRecordPath(
       return `${o}/reports/final-cost-report?project=${encodeURIComponent(record.projectKey ?? "")}`;
     case "agreement-certificate":
       return `${o}/people/agreements?peek=${id}`;
+    case "site-plan":
+      return `${o}/places/site-plans?peek=${id}`;
+    case "signage-build-sheet":
+      return `${o}/places/signage?project=${id}`;
   }
 }

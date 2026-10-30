@@ -81,3 +81,41 @@ The owner approved the competitor parity audit on 2026-10-28; gap G-144 asks for
 5. **The badge photo.** The badge prints, in resolution order computed at read time (`app.credential_photo_states`, 2822): the org's badge photo for the holder once its object scanned Clean; else the holder's profile photo when the caller may see the photo section of the profile, no block stands between them (ADR 0033 decision 57), and it is a JPEG or PNG of at most 2 MiB; else the placeholder "No photo on file". The holder gives the badge photo in Gateway (Profile, Badge photos), from an upload they crop by hand or their own profile photo, with a `credential_photo` consent record, and withdraws it there; an issuer may ask for one (`credential_photo.requested`) or remove it. There is no capture at a desk. The photo is Internal, like the badge it prints on (no Section 8.6 watermark), and no machine learning reads it.
 6. **Batch printing.** `GET /{org}/documents/badges?id=…&paper=…` prints 1 to 100 credentials in one file: one `Document` root, a `Sect` per badge starting on a new page, each with its own facts and page numbers. Credentials the viewer cannot read, of another org (ADR 0003), revoked or expired are left out and counted in `X-Badges-Skipped`. A run of 100 badges with photos is larger than Vercel's 4.5 MB buffered function response, so the route streams the PDF: each badge's pages are written as soon as it is drawn. If streaming is found not to lift the cap on the deployed functions, the batch maximum is lowered until the worst case fits, and this amendment and the print panel notice record the new cap.
 7. **veraPDF** also renders, per locale, CR80 and A6 badges with and without a photo, version 2 on Letter and A4 with a photo, and 3-badge batches on CR80 and Letter (16 more files); the per-kind loop keeps the version 1 badge, issued before `BADGE_V2_FROM`.
+
+## Amendment (B1, G-19 and G-24)
+
+The owner approved the competitor parity audit and its deferred themes on 2026-10-28. Gaps G-19 (a site plan export
+with a configurable legend) and G-24 (a signage build sheet) add two record kinds; ADR 0140 records the plan and
+signage decisions behind them.
+
+1. **Two kinds.** `DOCUMENT_KINDS` appends `site-plan` and `signage-build-sheet`, both Internal: they embed only a
+   drawing or artwork whose attachment is Public or Internal, and treat any other as not stored (ADR 0140 D3). Both are
+   computed from live records when generated, so their issue time is the generation time, as for the final cost
+   report, and version 1 takes effect at `V1`. Gateway offers neither.
+2. **The plan block.** `DocumentBlock` adds `plan`: PNG or JPEG bytes (or none), the drawing's pixel size, alternative
+   text, overlays and a note. The renderer fits the drawing to the content box without cropping and draws the overlays
+   as vectors (numbered pins, routes, dashed and heavier barriers, translucent areas, labels on a white ground) inside
+   one `Figure` with its alternative text, so the overlays can never drift from the drawing. Overlay colors are the
+   light theme's values of the design tokens a shape tone names, each at least 3:1 on the white frame. With no stored
+   drawing it draws a ruled frame of the drawing's proportions (16:10 for a legacy plan, whose pins were placed on
+   that frame) and prints the note, "Drawing not stored in XOS" or that the drawing is classified or removed, as a
+   paragraph. The legend is a separate `Table` with a `Caption` and `TH` cells scoped to their column. An `image`
+   block may name a `maxHeight`, so the build sheet prints artwork as thumbnails.
+3. **Orientation after the loader.** `DESCRIBE[kind]` runs after the loader and may return an orientation, which wins
+   over the route's: the site plan is landscape for a stored drawing at least as wide as it is tall and portrait
+   otherwise and for legacy plans; the build sheet is landscape for its nine columns. Every other kind returns none.
+4. **Options.** `GenerateInput.options` carries the request's search params to the template context
+   (`TemplateContext.options`); kinds other than these two ignore them. The site plan reads
+   `layers=pins,routes,barriers,areas,labels`, `legend=kinds|items|none` and `pins=0|1`
+   (`parseSitePlanExportOptions`); the build sheet reads `state=to-order|ordered|printed|placed|all`, by default every
+   sign not yet placed (`parseBuildSheetOptions`). Unknown values take the defaults. The Atlas route adds the viewer's
+   unit system (locale.units), so lengths, areas and sizes print in feet and inches or meters and centimeters.
+5. **Content.** The site plan prints its project, venue, level, state and scale, the plan block, the legend (one row
+   per kind with counts and totals, or every pin and shape numbered with its label, length or area and the signs at
+   each pin) and an optional pin table. The build sheet lists signs grouped by plan and pin, then location in words,
+   then unlocated, with key, title, type, size, quantity, material, location, state and a blank "Placed (initials)"
+   column; one plan figure per plan with sign-bearing pins, numbered to match; and artwork as a thumbnail when it is a
+   Clean PNG or JPEG of at most 2 MiB classified Public or Internal, otherwise its file name. The record link opens
+   the plan's peek, or the project's signage page.
+6. **veraPDF** also renders, per locale, site plans with a landscape and a portrait drawing and a legacy plan without
+   one, with the kinds and items legends, and build sheets with and without artwork, on Letter and A4.

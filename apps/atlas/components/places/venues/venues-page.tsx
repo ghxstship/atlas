@@ -1,6 +1,9 @@
 import {
+  getPlaceSpec,
   getVenue,
+  listCapabilityDocuments,
   listJurisdictions,
+  listVenueLevels,
   listVenues,
   type ArchiveFilter,
   type Jurisdiction,
@@ -37,6 +40,8 @@ import {
 import { InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
 import { MapView } from "@/components/platform/client/map-view";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
+import { LevelsSection } from "./levels-section";
+import { PlaceSpecForm } from "./place-spec-form";
 import { VenueForm } from "./venue-form";
 
 const NODE = "places.venues";
@@ -116,6 +121,8 @@ export async function VenuesPage({
         db={db}
         me={ctx.viewer.person?.id ?? null}
         org={ctx.org.slug}
+        orgId={ctx.org.id}
+        held={held}
         id={peekId}
         backHref={withQuery(path, search, { peek: undefined, full: undefined })}
         jurisdictions={jurisdictions.data}
@@ -151,6 +158,8 @@ export async function VenuesPage({
           db={db}
           me={ctx.viewer.person?.id ?? null}
           org={ctx.org.slug}
+          orgId={ctx.org.id}
+          held={held}
           id={peekId}
           openFullHref={withQuery(path, search, { full: "1" })}
           jurisdictions={jurisdictions.data}
@@ -275,6 +284,8 @@ interface DetailProps {
   db: XosClient;
   me: string | null;
   org: string;
+  orgId: string;
+  held: ReadonlySet<string>;
   id: string;
   jurisdictions: readonly Jurisdiction[];
   canWrite: boolean;
@@ -401,6 +412,46 @@ function ArchiveControl({ org, venue, t }: { org: string; venue: Venue; t: Trans
   );
 }
 
+/** A venue's levels and technical specs (B1, G-06 and G-92): levels write with places.space.write, specs with places.venue.write. */
+async function VenueDepth({
+  db,
+  org,
+  orgId,
+  venueId,
+  held,
+}: {
+  db: XosClient;
+  org: string;
+  orgId: string;
+  venueId: string;
+  held: ReadonlySet<string>;
+}) {
+  const [levels, spec, documents] = await Promise.all([
+    listVenueLevels(db, { venueId }),
+    getPlaceSpec(db, { venueId }),
+    listCapabilityDocuments(db, { orgId, venueId }),
+  ]);
+  if (!levels.ok || !spec.ok || !documents.ok) return null;
+  return (
+    <>
+      <LevelsSection
+        org={org}
+        venueId={venueId}
+        levels={levels.data}
+        canWrite={held.has("places.space.write")}
+      />
+      <PlaceSpecForm
+        org={org}
+        spec={spec.data}
+        documents={documents.data
+          .filter((d) => d.archivedAt === null)
+          .map((d) => ({ id: d.id, title: d.title }))}
+        canWrite={held.has("places.venue.write")}
+      />
+    </>
+  );
+}
+
 /** The venue peek: properties, links, capabilities, edit and archive. */
 async function VenueDetail(props: DetailProps & { openFullHref: string }) {
   const { org, id, jurisdictions, canWrite, t, params } = props;
@@ -431,6 +482,13 @@ async function VenueDetail(props: DetailProps & { openFullHref: string }) {
       <VenueLinks venue={venue} t={t} params={params} />
       <ProvidedCapabilities statements={statements} t={t} />
       <CustomFieldsPanel org={org} table="app.venues" id={venue.id} />
+      <VenueDepth
+        db={props.db}
+        org={org}
+        orgId={props.orgId}
+        venueId={venue.id}
+        held={props.held}
+      />
       {canWrite ? (
         <RecordSection id="venue-edit" title={t("places.kit.edit")}>
           <VenueForm org={org} venue={venue} jurisdictions={jurisdictions} />
@@ -485,6 +543,13 @@ async function VenueRecord(props: DetailProps & { backHref: string }) {
         <VenueLinks venue={venue} t={t} params={params} />
         <ProvidedCapabilities statements={statements} t={t} />
         <CustomFieldsPanel org={org} table="app.venues" id={venue.id} />
+        <VenueDepth
+          db={props.db}
+          org={org}
+          orgId={props.orgId}
+          venueId={venue.id}
+          held={props.held}
+        />
         {canWrite ? (
           <RecordSection id="venue-edit" title={t("places.kit.edit")}>
             <VenueForm org={org} venue={venue} jurisdictions={jurisdictions} />

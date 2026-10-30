@@ -13,6 +13,7 @@ import { heldCapabilities } from "../kit/access";
 import { ActionButton } from "../kit/buttons";
 import { RecordSection } from "../kit/parts";
 import { InlineAlert, ReconciliationTable, Tag } from "../kit/ui";
+import { ProvideSpecsForm } from "./provide-specs-form";
 import { ReconcileForm, StatementForm } from "./statement-form";
 
 /**
@@ -176,6 +177,13 @@ export async function ReconciliationPanel({
                   <Tag tone={s.assertionWord === "UNKNOWN" ? "warning" : "neutral"}>
                     {t(`places.reconciliation.words.${s.assertionWord}`)}
                   </Tag>
+                  {s.placeSpecField ? <Tag tone="accent">{t("places.specs.fromSpecs")}</Tag> : null}
+                  {s.specsChanged ? (
+                    <Tag tone="warning">{t("places.specs.specsChanged")}</Tag>
+                  ) : null}
+                  {s.documentExpired ? (
+                    <Tag tone="warning">{t("places.specs.documentExpired")}</Tag>
+                  ) : null}
                 </span>
                 {canWrite ? (
                   <ActionButton
@@ -190,6 +198,7 @@ export async function ReconciliationPanel({
             ))}
           </ul>
         )}
+        {canWrite ? <ProvideSpecsForm org={ctx.org.slug} projectId={projectId} /> : null}
         {canWrite && venueOptions.length > 0 ? (
           <StatementForm
             org={ctx.org.slug}

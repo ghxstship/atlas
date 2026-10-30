@@ -505,7 +505,14 @@
       "worked_minutes": "Worked minutes",
       "worker_classification": "Classification",
       "xyz": "XYZ",
-      "zone_id": "Zone"
+      "zone_id": "Zone",
+      "sign_number": "Sign number",
+      "sign_type": "Sign type",
+      "width_in": "Width (in)",
+      "height_in": "Height (in)",
+      "substrate": "Material",
+      "needed_by": "Needed by",
+      "plan_state": "Plan state"
     }
   }
 }

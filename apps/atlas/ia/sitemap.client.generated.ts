@@ -135,6 +135,7 @@ export const clientSitemap: Sitemap = {
         ["spaces-and-zones", "page"],
         ["capability-documents", "page"],
         ["site-plans", "page"],
+        ["signage", "page"],
       ],
     ],
     [
@@ -513,6 +514,7 @@ export const listNodes: ReadonlySet<string> = new Set([
   "places.spaces-and-zones",
   "places.capability-documents",
   "places.site-plans",
+  "places.signage",
   "logistics.shipments",
   "logistics.dock-schedule",
   "logistics.marshalling-yard-log",

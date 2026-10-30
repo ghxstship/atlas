@@ -597,6 +597,13 @@ export const sitemap: Sitemap = {
               route: "/{org}/places/site-plans",
               list: { views: ["gallery", "site-plan", "list"], default: "gallery" },
             },
+            {
+              id: "places.signage",
+              kind: "page",
+              label: "nav.atlas.pages.places.signage",
+              route: "/{org}/places/signage",
+              list: { views: ["list", "table", "board"], default: "list" },
+            },
           ],
         },
         {

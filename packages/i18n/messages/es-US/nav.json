@@ -48,7 +48,8 @@
         "venues": "Recintos",
         "spacesAndZones": "Espacios y zonas",
         "capabilityDocuments": "Documentos de capacidades",
-        "sitePlans": "Planos del sitio"
+        "sitePlans": "Planos del sitio",
+        "signage": "Señalización"
       },
       "logistics": {
         "shipments": "Envíos",
