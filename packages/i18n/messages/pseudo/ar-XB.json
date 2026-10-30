@@ -545,15 +545,15 @@
       }
     },
     "recordStates": {
-      "proposed": "‮Þŕöþöšéð‬",
-      "ready": "‮Ŕéàðý‬",
-      "scheduled": "‮Šçĥéðûļéð‬",
-      "active": "‮Àçţîṽé‬",
-      "blocked": "‮Ɓļöçķéð‬",
-      "inReview": "‮Îñ Ŕéṽîéŵ‬",
-      "complete": "‮Çöɱþļéţé‬",
-      "deferred": "‮Ðéƒéŕŕéð‬",
-      "canceled": "‮Çàñçéļéð‬"
+      "proposed": "‮Ԁɹodosǝp‬",
+      "ready": "‮ꓤǝɐpʎ‬",
+      "scheduled": "‮Sɔɥǝpnlǝp‬",
+      "active": "‮∀ɔʇıʌǝ‬",
+      "blocked": "‮ꓭloɔʞǝp‬",
+      "inReview": "‮Iu ꓤǝʌıǝʍ‬",
+      "complete": "‮Ɔoɯdlǝʇǝ‬",
+      "deferred": "‮ꓷǝɟǝɹɹǝp‬",
+      "canceled": "‮Ɔɐuɔǝlǝp‬"
     }
   }
 }
