@@ -189,6 +189,7 @@ describe("navigation from the sitemap", () => {
       "per-diem",
       "travel-and-lodging",
       "onboarding",
+      "project-details",
       "offline-queue",
       "profile",
       "settings",

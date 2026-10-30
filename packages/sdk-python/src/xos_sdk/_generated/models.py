@@ -245,6 +245,7 @@ __all__ = [
     "AssetClass",
     "AssetClassCreate",
     "AssetClassUpdate",
+    "AssetClassAvailability",
     "AssetUnitPage",
     "AssetUnit",
     "AssetUnitCreate",
@@ -511,10 +512,17 @@ __all__ = [
     "PurchaseOrderUpdate",
     "PurchaseOrderApproveRequest",
     "PurchaseOrderTransitionRequest",
+    "PurchaseOrderReceiveResult",
+    "PurchaseOrderReceiveRequest",
+    "PurchaseOrderReceiveLine",
+    "PurchaseOrderReturnResult",
+    "PurchaseOrderReturnRequest",
+    "PurchaseOrderReturnLine",
     "PoLinePage",
     "PoLine",
     "PoLineCreate",
     "PoLineUpdate",
+    "HireWindowWarnings",
     "PoChangeOrderPage",
     "PoChangeOrder",
     "PoChangeOrderCreate",
@@ -673,6 +681,7 @@ __all__ = [
     "EngagementState",
     "EngagementCreate",
     "EngagementTransitionRequest",
+    "RosterLockRequest",
     "EngagementDocumentPage",
     "EngagementDocument",
     "EngagementDocumentCreate",
@@ -1241,13 +1250,71 @@ __all__ = [
     "CueCall",
     "CueCallCreate",
     "CueCallUpdate",
+    "RosterEntryPage",
+    "RosterEntry",
+    "RosterEntryState",
+    "RosterPersonResponse",
+    "RosterProjectFacts",
+    "RosterFactOfferings",
+    "RosterFactPresence",
+    "RosterFactProvenance",
+    "ProjectFactKind",
+    "RosterTravelRequest",
+    "RosterUniformSizes",
+    "ShoeSizeSystem",
+    "RosterVehicle",
+    "SavedProjectFact",
+    "RosterTravelRequestInput",
+    "RosterUniformSizesInput",
+    "RosterVehicleInput",
+    "ClearedProjectFact",
+    "ClearProjectFactRequest",
+    "TravelPartyMemberPage",
+    "TravelPartyMember",
+    "TravelPartyRoom",
+    "TravelPartyPickup",
+    "TravelPartyPass",
+    "TravelDayCountPage",
+    "TravelDayCount",
+    "AdvanceAllocationPage",
+    "AdvanceAllocation",
+    "AdvanceAllocationRequest",
+    "AdvanceAllocationAssign",
+    "AllocationSource",
+    "AdvanceAllocationDecision",
+    "AdvanceAllocationReserve",
+    "AdvanceAllocationSplitResult",
+    "AdvanceAllocationSplit",
+    "AdvanceAllocationSplitPart",
+    "AdvanceAllocationUnsplitResult",
+    "AdvanceAllocationUnsplit",
+    "AdvanceAllocationWithdraw",
+    "AdvanceAllocationIssueResult",
+    "AdvanceAllocationIssue",
+    "AdvanceAllocationIssueItem",
+    "AllocationAllowancePage",
+    "AllocationAllowance",
+    "AllocationRadioChannels",
+    "AssetReservationConflictPage",
+    "AssetReservationConflict",
     "GuestListEntryPage",
     "GuestListEntry",
     "GuestListEntryCreate",
     "GuestListEntryUpdate",
     "GuestDecisionRequest",
+    "AssetUnitHirePage",
+    "AssetUnitHire",
+    "AssetReservationPage",
+    "AssetReservation",
+    "AssetReservationRelease",
     "Form1099NecRowPage",
     "Form1099NecRow",
+    "GoodsReturnPage",
+    "GoodsReturn",
+    "ReturnLinePage",
+    "ReturnLine",
+    "PoLineHireWarningPage",
+    "PoLineHireWarning",
     "InsuranceCertificateInsuredPage",
     "InsuranceCertificateInsured",
     "InsuranceCertificateInsuredCreate",
@@ -1316,8 +1383,10 @@ __all__ = [
     "WorkDetailShareUpdate",
     "SharedWorkDetails",
     "SharedEmergencyContact",
+    "SharedContact",
     "SharedUniformSizes",
     "SharedDietaryNeeds",
+    "SharedMedicalNeeds",
     "SharedAccessibilityNeeds",
     "SharedTravelProfile",
     "SharedLoyaltyProgram",
@@ -5223,15 +5292,22 @@ class AssetClass(TypedDict):
     name: str
     #: Canon element the class is.
     element_id: str
+    #: Offering the class answers for; null for site assets.
+    offering: Optional[Literal["Radios", "Carts"]]
 
 
-class AssetClassCreate(TypedDict):
-    """Fields accepted when creating a AssetClass."""
-
+class _AssetClassCreateRequired(TypedDict):
     #: Asset class name.
     name: str
     #: Canon element the class is.
     element_id: str
+
+
+class AssetClassCreate(_AssetClassCreateRequired, total=False):
+    """Fields accepted when creating a AssetClass."""
+
+    #: Offering the class answers for; null for site assets.
+    offering: Optional[Literal["Radios", "Carts"]]
 
 
 class AssetClassUpdate(TypedDict, total=False):
@@ -5241,6 +5317,27 @@ class AssetClassUpdate(TypedDict, total=False):
     name: str
     #: Canon element the class is.
     element_id: str
+    #: Offering the class answers for; null for site assets.
+    offering: Optional[Literal["Radios", "Carts"]]
+
+
+class AssetClassAvailability(TypedDict):
+    """How many of an asset class are free over a window (G-93)."""
+
+    #: Serviceable owned units.
+    serviceable_units: float
+    #: Owned lot quantity.
+    lot_quantity: float
+    #: Quantity on order that covers the window.
+    on_order_quantity: float
+    #: All the class can supply over the window.
+    total: float
+    #: Most held at once over the window.
+    peak_reserved: float
+    #: Total less the peak, never below 0.
+    available: float
+    #: Unit of the class element.
+    unit_basis: str
 
 
 class AssetUnitPage(TypedDict):
@@ -5272,11 +5369,13 @@ class AssetUnit(TypedDict):
     #: Asset tag (a code that is ours).
     asset_tag: str
     #: Asset lifecycle state.
-    asset_state: Literal["Proposed", "Received", "Available", "Reserved", "Deployed", "In Maintenance", "Damaged", "Lost", "Retired"]
+    asset_state: Literal["Proposed", "Received", "Available", "Reserved", "Deployed", "In Maintenance", "Damaged", "Lost", "Retired", "Returned"]
     #: Condition: a row of the canon Asset Condition enumeration.
     condition_enum_id: Optional[str]
     #: Identifier of the venue the unit returns to.
     home_venue_id: Optional[str]
+    #: Identifier of the receipt line the unit arrived on.
+    receipt_line_id: Optional[str]
 
 
 class _AssetUnitCreateRequired(TypedDict):
@@ -7560,21 +7659,28 @@ class CredentialCategory(TypedDict):
     updated_by: Optional[str]
     #: Category name.
     name: str
+    #: Access badge or parking pass.
+    category_kind: Literal["Access", "Parking"]
     #: Identifier of the project.
     project_id: str
     #: Category code, unique per project.
     code: str
 
 
-class CredentialCategoryCreate(TypedDict):
-    """Fields accepted when creating a CredentialCategory."""
-
+class _CredentialCategoryCreateRequired(TypedDict):
     #: Category name.
     name: str
     #: Identifier of the project.
     project_id: str
     #: Category code, unique per project.
     code: str
+
+
+class CredentialCategoryCreate(_CredentialCategoryCreateRequired, total=False):
+    """Fields accepted when creating a CredentialCategory."""
+
+    #: Access badge or parking pass.
+    category_kind: Literal["Access", "Parking"]
 
 
 class CredentialCategoryUpdate(TypedDict, total=False):
@@ -7582,6 +7688,8 @@ class CredentialCategoryUpdate(TypedDict, total=False):
 
     #: Category name.
     name: str
+    #: Access badge or parking pass.
+    category_kind: Literal["Access", "Parking"]
     #: Category code, unique per project.
     code: str
 
@@ -9656,6 +9764,92 @@ class PurchaseOrderTransitionRequest(_PurchaseOrderTransitionRequestRequired, to
     reason: str
 
 
+class PurchaseOrderReceiveResult(TypedDict):
+    """What one receipt event recorded."""
+
+    #: applied for a new event; duplicate when the event was already recorded.
+    outcome: Literal["applied", "duplicate"]
+    #: The goods receipt recorded.
+    goods_receipt_id: str
+    #: Its receipt lines.
+    receipt_line_ids: List[str]
+    #: Units that came in on them.
+    asset_unit_ids: List[str]
+    #: Receipt movements into lots.
+    lot_movement_ids: List[str]
+
+
+class _PurchaseOrderReceiveRequestRequired(TypedDict):
+    #: Lines received.
+    lines: List[PurchaseOrderReceiveLine]
+
+
+class PurchaseOrderReceiveRequest(_PurchaseOrderReceiveRequestRequired, total=False):
+    """One receipt event against an order."""
+
+    #: Note.
+    note: Optional[str]
+
+
+class _PurchaseOrderReceiveLineRequired(TypedDict):
+    #: Identifier of the order line received.
+    po_line_id: str
+    #: Quantity received.
+    quantity: float
+
+
+class PurchaseOrderReceiveLine(_PurchaseOrderReceiveLineRequired, total=False):
+    """One order line received: by asset tags, into a lot at a venue, or neither."""
+
+    #: One asset tag per unit received, for an element with an asset class: each unit comes in Received. Needs assets.asset.write.
+    asset_tags: List[str]
+    #: Identifier of the venue whose lot takes the quantity into stock; needs assets.asset.write.
+    venue_id: Optional[str]
+    #: Condition of the units: a row of the canon Asset Condition enumeration.
+    condition_enum_id: Optional[str]
+
+
+class PurchaseOrderReturnResult(TypedDict):
+    """What one return event recorded."""
+
+    #: applied for a new event; duplicate when the event was already recorded.
+    outcome: Literal["applied", "duplicate"]
+    #: The goods return recorded.
+    goods_return_id: str
+    #: Its return lines.
+    return_line_ids: List[str]
+
+
+class _PurchaseOrderReturnRequestRequired(TypedDict):
+    #: Why the goods go back. Off Hire applies only to rental lines.
+    reason: Literal["Off Hire", "Defective", "Wrong Item", "Over Delivery"]
+    #: Lines returned.
+    lines: List[PurchaseOrderReturnLine]
+
+
+class PurchaseOrderReturnRequest(_PurchaseOrderReturnRequestRequired, total=False):
+    """One return to the vendor."""
+
+    #: Note.
+    note: Optional[str]
+
+
+class _PurchaseOrderReturnLineRequired(TypedDict):
+    #: Identifier of the receipt line of the same order that brought the goods in.
+    receipt_line_id: str
+    #: Quantity returned.
+    quantity: float
+
+
+class PurchaseOrderReturnLine(_PurchaseOrderReturnLineRequired, total=False):
+    """Goods of one receipt line going back: units, a quantity out of a lot, or a quantity."""
+
+    #: The serialized units going back, one per unit, each received on that receipt line.
+    asset_unit_ids: List[str]
+    #: Identifier of the venue whose lot the quantity leaves.
+    venue_id: Optional[str]
+
+
 class PoLinePage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -9694,6 +9888,12 @@ class PoLine(TypedDict):
     unit_price_minor: Optional[int]
     #: Order of the line within the purchase order.
     line_number: int
+    #: Whether the line buys or hires its item.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental lines: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines: when the hire ends and off-hire is due.
+    hire_ends_at: Optional[str]
 
 
 class _PoLineCreateRequired(TypedDict):
@@ -9716,6 +9916,12 @@ class PoLineCreate(_PoLineCreateRequired, total=False):
     unit_price_minor: Optional[int]
     #: Order of the line within the purchase order.
     line_number: int
+    #: Whether the line buys or hires its item.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental lines: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines: when the hire ends and off-hire is due.
+    hire_ends_at: Optional[str]
 
 
 class PoLineUpdate(TypedDict, total=False):
@@ -9733,6 +9939,19 @@ class PoLineUpdate(TypedDict, total=False):
     unit_price_minor: Optional[int]
     #: Order of the line within the purchase order.
     line_number: int
+    #: Whether the line buys or hires its item.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental lines: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines: when the hire ends and off-hire is due.
+    hire_ends_at: Optional[str]
+
+
+class HireWindowWarnings(TypedDict):
+    """Window warnings for a hire."""
+
+    #: Warnings, in rule order.
+    data: List[Literal["Delivery After Load In", "Return Before Load Out", "Hire Beyond Site Window", "Delivery Docks Full", "Return Docks Full"]]
 
 
 class PoChangeOrderPage(TypedDict):
@@ -12194,6 +12413,8 @@ class Engagement(TypedDict):
     activated_at: Optional[str]
     #: When it became Complete.
     completed_at: Optional[str]
+    #: Names lock: after this instant the company side can no longer name new crew; null means no lock.
+    roster_locks_at: Optional[str]
     #: Identifier of the accepted application the engagement came from.
     application_id: Optional[str]
     #: Worker classification, from xpms.worker_classification; null for Client and Sponsor engagements.
@@ -12242,6 +12463,13 @@ class EngagementTransitionRequest(_EngagementTransitionRequestRequired, total=Fa
 
     #: Reason, required by some transitions.
     reason: str
+
+
+class RosterLockRequest(TypedDict):
+    """The names lock of an engagement."""
+
+    #: When names lock; null clears the lock.
+    locks_at: Optional[str]
 
 
 class EngagementDocumentPage(TypedDict):
@@ -15248,6 +15476,8 @@ class AccountMembership(TypedDict):
     valid_from: str
     #: End of account membership.
     valid_to: Optional[str]
+    #: When the person confirmed the membership; null until they do.
+    accepted_at: Optional[str]
 
 
 class AccountMembershipCreate(TypedDict):
@@ -20494,6 +20724,737 @@ class CueCallUpdate(TypedDict, total=False):
     instruction: str
 
 
+class RosterEntryPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[RosterEntry]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class RosterEntry(TypedDict):
+    """A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs."""
+
+    #: Identifier of the roster entry.
+    id: str
+    #: Identifier of the producing org.
+    org_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the engagement the person works under.
+    engagement_id: str
+    #: Supplying account, else the engaged person.
+    party_name: Optional[str]
+    #: External role type of the engagement.
+    role_type: str
+    #: True for the engaged person's own entry.
+    is_self: bool
+    #: Identifier of the resolved person; null for an unclaimed invitation.
+    person_id: Optional[str]
+    #: Name of the person.
+    full_name: Optional[str]
+    #: Address of the pending invitation.
+    invited_email: Optional[str]
+    #: When the pending invitation lapses.
+    invitation_expires_at: Optional[str]
+    #: Role worked, from the Roles Library.
+    role_code: Optional[str]
+    #: Job title of the role.
+    job_title: Optional[str]
+    #: Arrival window start.
+    arrival_starts_at: Optional[str]
+    #: Arrival window end.
+    arrival_ends_at: Optional[str]
+    #: IANA time zone of the arrival window.
+    arrival_time_zone: Optional[str]
+    entry_state: RosterEntryState
+    person_response: RosterPersonResponse
+    #: When the person last answered.
+    responded_at: Optional[str]
+    #: What the reviewer asked to change, while Returned.
+    return_reason: Optional[str]
+    #: Identifier of the withdrawn entry this one replaces.
+    replaces_entry_id: Optional[str]
+    #: Work details categories the person shares on this entry.
+    share_categories: List[str]
+
+
+class RosterProjectFacts(TypedDict):
+    """The project facts of a roster entry as the caller may read them (R5). Each Company or Producer read of a value is written to the person's access log, and a Producer read to the producing org's audit ledger."""
+
+    #: Roster entry.
+    roster_entry_id: str
+    #: Engagement.
+    engagement_id: str
+    #: Producing org.
+    org_id: str
+    #: Person the entry resolves to.
+    person_id: Optional[str]
+    #: Who reads: Person, the entry's own person; Company, a roster manager of the account that rosters them; Producer, a member of the producing org by capability.
+    standing: Literal["Person", "Company", "Producer"]
+    offered: RosterFactOfferings
+    present: RosterFactPresence
+    entered_by_person: RosterFactProvenance
+    #: Kinds the caller reads; the others come back null.
+    readable: List[ProjectFactKind]
+    travel: Optional[RosterTravelRequest]
+    uniform: Optional[RosterUniformSizes]
+    vehicle: Optional[RosterVehicle]
+
+
+class RosterFactOfferings(TypedDict):
+    """Which offerings the project turns on for the engagement."""
+
+    #: Travel is offered.
+    travel: bool
+    #: Lodging is offered.
+    lodging: bool
+    #: Uniforms are offered.
+    uniforms: bool
+    #: Parking is offered.
+    parking: bool
+
+
+class RosterFactPresence(TypedDict):
+    """Which kinds are on file."""
+
+    #: A live row exists for Travel.
+    travel: bool
+    #: A live row exists for Uniform.
+    uniform: bool
+    #: A live row exists for Vehicle.
+    vehicle: bool
+
+
+class RosterFactProvenance(TypedDict):
+    """Which kinds the person entered themselves; the others were entered by their company."""
+
+    #: The person entered Travel.
+    travel: bool
+    #: The person entered Uniform.
+    uniform: bool
+    #: The person entered Vehicle.
+    vehicle: bool
+
+
+class RosterTravelRequest(TypedDict):
+    """The travel a rostered person asks for on one project (R5)."""
+
+    #: Identifier of the travel request.
+    id: str
+    #: IATA code of the airport the person flies into.
+    inbound_airport_code: Optional[str]
+    #: Name of that airport.
+    inbound_airport_name: Optional[str]
+    #: IATA code of the airport the person flies home from.
+    outbound_airport_code: Optional[str]
+    #: Name of that airport.
+    outbound_airport_name: Optional[str]
+    #: Day the person travels to the project.
+    inbound_on: Optional[str]
+    #: Day the person travels home.
+    outbound_on: Optional[str]
+    #: Preferred seat.
+    seat_preference: Optional[Literal["Window", "Aisle", "No Preference"]]
+    #: Meal preference.
+    meal_preference: Optional[str]
+    #: The person needs a pickup on arrival.
+    needs_ground_transport: bool
+    #: The person needs a room.
+    needs_lodging: bool
+    #: Notes for the travel desk.
+    travel_notes: Optional[str]
+    #: When the request was last saved.
+    updated_at: str
+
+
+class RosterUniformSizes(TypedDict):
+    """The uniform sizes a rostered person gives for one project (R5)."""
+
+    #: Identifier of the uniform sizes.
+    id: str
+    #: Letter size.
+    shirt_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    jacket_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    pants_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    glove_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    hat_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Pants waist in inches.
+    pants_waist_in: Optional[int]
+    #: Pants inseam in inches.
+    pants_inseam_in: Optional[int]
+    #: Shoe size in half sizes.
+    shoe_size: Optional[float]
+    shoe_size_system: Optional[ShoeSizeSystem]
+    #: When the sizes were last saved.
+    updated_at: str
+
+
+class RosterVehicle(TypedDict):
+    """The vehicle a rostered person brings to one project (R5)."""
+
+    #: Identifier of the vehicle.
+    id: str
+    #: Vehicle make.
+    make: str
+    #: Vehicle model.
+    model: str
+    #: Vehicle color.
+    color: Optional[str]
+    #: License plate, letters and digits.
+    plate: str
+    #: ISO 3166-2 region that issued the plate.
+    plate_region: str
+    #: When the vehicle was last saved.
+    updated_at: str
+
+
+class SavedProjectFact(TypedDict):
+    """The live row a project fact save wrote."""
+
+    #: Identifier of the saved row.
+    id: str
+
+
+class _RosterTravelRequestInputRequired(TypedDict):
+    #: IATA code of the airport the person flies into; uppercased.
+    inbound_airport_code: Optional[str]
+    #: IATA code of the airport the person flies home from; uppercased.
+    outbound_airport_code: Optional[str]
+    #: Day the person travels to the project.
+    inbound_on: Optional[str]
+    #: Day the person travels home; on or after inbound_on.
+    outbound_on: Optional[str]
+
+
+class RosterTravelRequestInput(_RosterTravelRequestInputRequired, total=False):
+    """A full replacement of a roster entry's travel request. At least an airport or a date."""
+
+    #: Preferred seat.
+    seat_preference: Optional[Literal["Window", "Aisle", "No Preference"]]
+    #: Meal preference.
+    meal_preference: Optional[str]
+    #: A pickup is needed on arrival.
+    needs_ground_transport: bool
+    #: A room is needed; only while lodging is offered.
+    needs_lodging: bool
+    #: Notes for the travel desk.
+    travel_notes: Optional[str]
+
+
+class RosterUniformSizesInput(TypedDict, total=False):
+    """A full replacement of a roster entry's uniform sizes. At least one size."""
+
+    #: Letter size.
+    shirt_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    jacket_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    pants_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    glove_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Letter size.
+    hat_size: Optional[Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]]
+    #: Waist in inches, 20 to 70.
+    pants_waist_in: Optional[int]
+    #: Inseam in inches, 20 to 40.
+    pants_inseam_in: Optional[int]
+    #: Shoe size, 1 to 20 in half sizes.
+    shoe_size: Optional[float]
+    shoe_size_system: Optional[ShoeSizeSystem]
+
+
+class _RosterVehicleInputRequired(TypedDict):
+    #: Vehicle make.
+    make: str
+    #: Vehicle model.
+    model: str
+    #: License plate; uppercased with spaces and hyphens removed.
+    plate: str
+    #: ISO 3166-2 region of the plate.
+    plate_region: str
+
+
+class RosterVehicleInput(_RosterVehicleInputRequired, total=False):
+    """A full replacement of a roster entry's vehicle."""
+
+    #: Vehicle color.
+    color: Optional[str]
+
+
+class ClearedProjectFact(TypedDict, total=False):
+    """Nothing; the kind is cleared."""
+
+    #: Identifier of the saved row.
+    id: str
+
+
+class ClearProjectFactRequest(TypedDict):
+    """The project fact kind to clear."""
+
+    kind: ProjectFactKind
+
+
+class TravelPartyMemberPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TravelPartyMember]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+# A rostered person of a project's travel party with what hospitality has arranged (R5, G-175).
+TravelPartyMember = TypedDict(
+    "TravelPartyMember",
+    {
+    "roster_entry_id": str,
+    "engagement_id": str,
+    "party_name": Optional[str],
+    "person_id": str,
+    "person_name": Optional[str],
+    "role_code": Optional[str],
+    "arrival_starts_at": Optional[str],
+    "arrival_ends_at": Optional[str],
+    "arrival_time_zone": Optional[str],
+    "travel": Optional[RosterTravelRequest],
+    "room": TravelPartyRoom,
+    "pickup": TravelPartyPickup,
+    "pass": Optional[TravelPartyPass],
+    },
+    total=True,
+)
+
+
+class TravelPartyRoom(TypedDict):
+    """The person's room on the project, if assigned."""
+
+    #: A room is assigned on one of the project's blocks.
+    assigned: bool
+    #: Check-in day.
+    check_in_on: Optional[str]
+    #: Check-out day.
+    check_out_on: Optional[str]
+    #: Title of the block.
+    block_name: Optional[str]
+
+
+class TravelPartyPickup(TypedDict):
+    """Whether the person's pickup is booked."""
+
+    #: A ground segment is booked on the arrival day.
+    booked: bool
+
+
+class TravelPartyPass(TypedDict):
+    """Whether the person's pass is issued; null without credentials.credential.read."""
+
+    #: A live credential is issued on the engagement.
+    issued: bool
+
+
+class TravelDayCountPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[TravelDayCount]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class TravelDayCount(TypedDict):
+    """One day of a project's travel counts (R5, G-175)."""
+
+    #: Day.
+    day: str
+    #: People arriving.
+    arriving: int
+    #: People departing.
+    departing: int
+    #: People on site, arrival to departure day.
+    on_site: int
+    #: Rooms needed that night.
+    rooms_needed: int
+    #: Pickups needed that day.
+    pickups_needed: int
+    #: The range ran past 120 days and was cut.
+    truncated: bool
+
+
+class AdvanceAllocationPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AdvanceAllocation]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AdvanceAllocation(TypedDict):
+    """What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project."""
+
+    #: Identifier of the allocation.
+    allocation_id: str
+    #: Identifier of the producing org.
+    org_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the party pool's engagement; null when a person holds it.
+    holder_engagement_id: Optional[str]
+    #: Identifier of the roster entry of the person who holds it; null for a pool.
+    roster_entry_id: Optional[str]
+    #: Identifier of the pool a share was split from.
+    parent_allocation_id: Optional[str]
+    #: What the allocation gives.
+    kind: Literal["Credential", "Parking Pass", "Asset", "Catering", "Lodging", "Travel", "Per Diem"]
+    #: Offering it draws on; null for a badge or a site asset.
+    offering: Optional[Literal["Travel", "Lodging", "Catering", "Parking", "Uniforms", "Per Diem", "Radios", "Carts", "Guest List"]]
+    #: Category, class, catering or block name; null for Travel and Per Diem.
+    item_name: Optional[str]
+    #: Quantity allocated.
+    quantity: float
+    #: Stored state.
+    allocation_state: Literal["Requested", "Approved", "Declined", "Withdrawn"]
+    #: How the allocation came to be.
+    origin: Literal["Requested", "Assigned", "Split"]
+    #: When it is first needed.
+    needed_from: str
+    #: When it is no longer needed.
+    needed_to: str
+    #: IANA time zone of the window.
+    needed_time_zone: str
+    #: Identifier of the person who requested or assigned it.
+    requested_by: Optional[str]
+    #: When it was approved or declined.
+    decided_at: Optional[str]
+    #: Identifier of the person who approved or declined it.
+    decided_by: Optional[str]
+    #: Why it was declined.
+    decline_reason: Optional[str]
+    #: Quantity of live holds.
+    reserved_quantity: float
+    #: Order-line holds on Approved or Sent orders not yet received.
+    on_order_quantity: float
+    #: Every ordering order behind its holds was acknowledged.
+    confirmed: bool
+    #: An order behind its holds is still Proposed.
+    awaiting_order: bool
+    #: Received on the order lines behind its holds.
+    received_quantity: float
+    #: Issued from the possession rows.
+    issued_quantity: float
+    #: Issued and checked in since.
+    returned_quantity: float
+    #: Issued units that went Lost.
+    lost_quantity: float
+    #: Issued credentials since revoked.
+    revoked_quantity: float
+    #: The computed status.
+    display_status: Literal["Requested", "Approved", "Reserved", "Awaiting Order", "On Order", "Confirmed", "Received", "Partly Issued", "Issued", "Returned", "Revoked", "Declined", "Withdrawn"]
+
+
+class _AdvanceAllocationRequestRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Quantity.
+    quantity: float
+    #: When it is first needed.
+    needed_from: str
+    #: When it is no longer needed.
+    needed_to: str
+    #: IANA time zone of the window.
+    time_zone: str
+
+
+class AdvanceAllocationRequest(_AdvanceAllocationRequestRequired, total=False):
+    """One allocation: one holder and one target."""
+
+    #: Identifier of the party pool's engagement; give this or roster_entry_id.
+    engagement_id: str
+    #: Identifier of the roster entry of one person; give this or engagement_id.
+    roster_entry_id: str
+    #: Identifier of the badge or parking category.
+    credential_category_id: str
+    #: Identifier of the asset class, such as the org's radios.
+    asset_class_id: str
+    #: Identifier of the catering fulfillment.
+    fulfillment_id: str
+    #: Identifier of the accommodation block.
+    accommodation_block_id: str
+    #: Travel or Per Diem.
+    service_kind: Literal["Travel", "Per Diem"]
+    #: Note; above the allowance with overflow at review, the reason for an assignment.
+    note: str
+
+
+class _AdvanceAllocationAssignRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Quantity.
+    quantity: float
+    #: When it is first needed.
+    needed_from: str
+    #: When it is no longer needed.
+    needed_to: str
+    #: IANA time zone of the window.
+    time_zone: str
+
+
+class AdvanceAllocationAssign(_AdvanceAllocationAssignRequired, total=False):
+    """One allocation assigned directly, with its holds for an asset."""
+
+    #: Identifier of the party pool's engagement; give this or roster_entry_id.
+    engagement_id: str
+    #: Identifier of the roster entry of one person; give this or engagement_id.
+    roster_entry_id: str
+    #: Identifier of the badge or parking category.
+    credential_category_id: str
+    #: Identifier of the asset class, such as the org's radios.
+    asset_class_id: str
+    #: Identifier of the catering fulfillment.
+    fulfillment_id: str
+    #: Identifier of the accommodation block.
+    accommodation_block_id: str
+    #: Travel or Per Diem.
+    service_kind: Literal["Travel", "Per Diem"]
+    #: Note; above the allowance with overflow at review, the reason for an assignment.
+    note: str
+    #: Holds for an asset allocation, summing to its quantity. Left out, class stock holds it when the class has units, else its only lot.
+    sources: List[AllocationSource]
+
+
+class _AllocationSourceRequired(TypedDict):
+    #: Where the stock comes from.
+    source: Literal["Class Stock", "Unit", "Lot", "Order Line"]
+    #: Quantity held from it.
+    quantity: float
+
+
+class AllocationSource(_AllocationSourceRequired, total=False):
+    """One hold source; mixed supply is one source each."""
+
+    #: Identifier of the unit, for a Unit source.
+    asset_unit_id: str
+    #: Identifier of the lot, for a Lot source.
+    asset_lot_id: str
+    #: Identifier of the order line, for an Order Line source.
+    po_line_id: str
+
+
+class _AdvanceAllocationDecisionRequired(TypedDict):
+    #: Approve, or reject (decline).
+    decision: Literal["Approved", "Rejected"]
+
+
+class AdvanceAllocationDecision(_AdvanceAllocationDecisionRequired, total=False):
+    """A decision on a Requested allocation."""
+
+    #: Required to decline, and to approve above the allowance with overflow at review.
+    reason: str
+    #: Holds for an asset allocation, summing to its quantity. Left out, class stock holds it when the class has units, else its only lot.
+    sources: List[AllocationSource]
+
+
+class AdvanceAllocationReserve(TypedDict):
+    """Holds that replace an approved asset allocation's holds."""
+
+    #: The new holds.
+    sources: List[AllocationSource]
+
+
+class AdvanceAllocationSplitResult(TypedDict):
+    """The shares written."""
+
+    #: The shares, in the order given.
+    allocation_ids: List[str]
+
+
+class AdvanceAllocationSplit(TypedDict):
+    """Shares of an approved party pool for its people."""
+
+    parts: List[AdvanceAllocationSplitPart]
+
+
+class _AdvanceAllocationSplitPartRequired(TypedDict):
+    #: Identifier of the roster entry on the pool's engagement.
+    roster_entry_id: str
+    #: Quantity for the person.
+    quantity: float
+
+
+class AdvanceAllocationSplitPart(_AdvanceAllocationSplitPartRequired, total=False):
+    """One person's share."""
+
+    #: Units pinned to the person.
+    asset_unit_ids: List[str]
+
+
+class AdvanceAllocationUnsplitResult(TypedDict):
+    """What went back."""
+
+    #: Quantity returned to the pool.
+    quantity: float
+
+
+class AdvanceAllocationUnsplit(TypedDict, total=False):
+    """A share returned to its pool."""
+
+    #: How much goes back; all of it when left out.
+    quantity: float
+
+
+class AdvanceAllocationWithdraw(TypedDict, total=False):
+    """Withdrawing an allocation."""
+
+    #: Why it is withdrawn.
+    reason: str
+
+
+class AdvanceAllocationIssueResult(TypedDict):
+    """What one issue event wrote."""
+
+    #: applied, or duplicate for a replay.
+    outcome: Literal["applied", "duplicate"]
+    #: Ids of the possession rows written, by table.
+    possession: Dict[str, List[str]]
+
+
+class AdvanceAllocationIssue(TypedDict):
+    """One issue event."""
+
+    #: Items handed over.
+    items: List[AdvanceAllocationIssueItem]
+
+
+class AdvanceAllocationIssueItem(TypedDict, total=False):
+    """One item handed over; the keys depend on the kind."""
+
+    #: Badge or pass: valid from; the window start by default.
+    valid_from: str
+    #: Badge or pass: valid until; the window end by default.
+    valid_to: str
+    #: Identifier of the parking pass: the holder's roster vehicle.
+    roster_vehicle_id: str
+    #: Identifier of the unit issued.
+    asset_unit_id: str
+    #: Unit issued, by tag.
+    asset_tag: str
+    #: Identifier of the lot a quantity is issued from.
+    asset_lot_id: str
+    #: Identifier of the hold the item is issued against; picked when left out.
+    reservation_id: str
+    #: Lot or catering quantity.
+    quantity: float
+    #: Catering: what is provided.
+    description: str
+    #: Lodging: first night.
+    check_in_on: str
+    #: Lodging: departure date.
+    check_out_on: str
+    #: Travel: mode.
+    travel_mode: Literal["Flight", "Ground"]
+    #: Travel: airline or operator.
+    operator_name: str
+    #: Travel: flight or service number.
+    service_identifier: str
+    #: Travel: booking confirmation.
+    confirmation_identifier: str
+    #: Travel: departure place.
+    departs_from: str
+    #: Travel: departure time.
+    departs_at: str
+    #: Travel: zone of the departure.
+    departs_time_zone: str
+    #: Travel: arrival place.
+    arrives_at_place: str
+    #: Travel: arrival time.
+    arrives_at: str
+    #: Travel: zone of the arrival.
+    arrives_time_zone: str
+    #: Per diem: the day, inside the window.
+    day: str
+    #: Per diem: amount in minor units.
+    amount_minor: Optional[int]
+    #: Per diem: ISO 4217 currency.
+    currency_code: str
+
+
+class AllocationAllowancePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AllocationAllowance]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AllocationAllowance(TypedDict):
+    """What remains of an offering's cap for a pool or a person (G-174)."""
+
+    #: Offering.
+    offering: Literal["Travel", "Lodging", "Catering", "Parking", "Uniforms", "Per Diem", "Radios", "Carts", "Guest List"]
+    #: Identifier of the roster entry; null for the pool row.
+    roster_entry_id: Optional[str]
+    #: How the offering reaches the engagement.
+    mode: str
+    #: Cap; null for none.
+    cap: Optional[float]
+    #: Live Requested quantity under it.
+    requested: float
+    #: Live Approved quantity under it.
+    approved: float
+    #: Cap less requested and approved, never below 0.
+    remaining: Optional[float]
+    #: How far requested and approved go beyond the cap.
+    beyond: Optional[float]
+
+
+class AllocationRadioChannels(TypedDict):
+    """The radio channels a radio allocation is programmed with, as a whole."""
+
+    #: The project's channels, 0 to 16.
+    radio_channel_ids: List[str]
+
+
+class AssetReservationConflictPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AssetReservationConflict]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AssetReservationConflict(TypedDict):
+    """A live hold that no longer fits what can supply it (G-93), one row per conflict: the pinned unit is Damaged, In Maintenance, Lost, Retired or Returned; the class or lot is over reserved; or the order behind it is Canceled or short. Computed, never stored."""
+
+    #: Identifier of the hold.
+    reservation_id: str
+    #: Identifier of the allocation the hold serves.
+    allocation_id: str
+    #: Identifier of the org.
+    org_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the class held.
+    asset_class_id: str
+    #: Identifier of the pinned unit.
+    asset_unit_id: Optional[str]
+    #: Identifier of the lot.
+    asset_lot_id: Optional[str]
+    #: Identifier of the order line.
+    po_line_id: Optional[str]
+    #: Quantity held.
+    quantity: float
+    #: What no longer fits.
+    conflict: Literal["Unit Unavailable", "Class Over Reserved", "Lot Over Reserved", "Order Short"]
+
+
 class GuestListEntryPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -20584,6 +21545,77 @@ class GuestDecisionRequest(TypedDict):
     outcome: Literal["Approved", "Declined"]
 
 
+class AssetUnitHirePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AssetUnitHire]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AssetUnitHire(TypedDict):
+    """Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order."""
+
+    #: Identifier of the asset unit.
+    asset_unit_id: str
+    #: Rental when the unit arrived on a rental order line; Purchase otherwise.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental units: when the hire ends.
+    hire_ends_at: Optional[str]
+    #: True for a rental unit whose hire has ended and which has not been Returned.
+    off_hire_due: bool
+
+
+class AssetReservationPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AssetReservation]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AssetReservation(TypedDict):
+    """A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions."""
+
+    #: Identifier of the asset reservation.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the project of the allocation.
+    project_id: str
+    #: Identifier of the allocation the hold serves.
+    advance_allocation_id: str
+    #: Identifier of the pinned unit.
+    asset_unit_id: Optional[str]
+    #: Identifier of the lot held from.
+    asset_lot_id: Optional[str]
+    #: Identifier of the order line held on.
+    po_line_id: Optional[str]
+    #: Quantity held.
+    quantity: float
+    #: When the hold was released.
+    released_at: Optional[str]
+    #: Why it was released.
+    release_reason: Optional[Literal["Withdrawn", "Entry Removed", "Engagement Ended", "Split", "Released By Reviewer"]]
+
+
+class AssetReservationRelease(TypedDict, total=False):
+    """Releasing a hold."""
+
+    #: Why the hold is released.
+    reason: str
+
+
 class Form1099NecRowPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -20614,6 +21646,106 @@ class Form1099NecRow(TypedDict):
     amount_minor: Optional[int]
     #: Payments counted.
     payment_count: int
+
+
+class GoodsReturnPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[GoodsReturn]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class GoodsReturn(TypedDict):
+    """Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`."""
+
+    #: Identifier of the goods return.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the purchase order the goods were received on.
+    purchase_order_id: str
+    #: When the goods went back.
+    returned_at: str
+    #: Identifier of the person who returned the goods.
+    returned_by: Optional[str]
+    #: Why the goods went back.
+    return_reason: Literal["Off Hire", "Defective", "Wrong Item", "Over Delivery"]
+    #: Condition or carrier noted at the return.
+    note: Optional[str]
+
+
+class ReturnLinePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ReturnLine]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ReturnLine(TypedDict):
+    """What went back in a goods return, per receipt line: one row per serialized unit, or a quantity."""
+
+    #: Identifier of the return line.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the goods return.
+    goods_return_id: str
+    #: Identifier of the receipt line that brought the goods in.
+    receipt_line_id: str
+    #: Identifier of the serialized unit returned.
+    asset_unit_id: Optional[str]
+    #: Quantity returned; 1 for a unit.
+    quantity_returned: float
+
+
+class PoLineHireWarningPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[PoLineHireWarning]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class PoLineHireWarning(TypedDict):
+    """A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line."""
+
+    #: Identifier of the rental order line.
+    po_line_id: str
+    #: Identifier of the project of the order.
+    project_id: str
+    #: Identifier of the purchase order.
+    purchase_order_id: str
+    #: When the hire starts.
+    hire_starts_at: str
+    #: When the hire ends.
+    hire_ends_at: str
+    #: When the site window opens; null when nothing sets it.
+    site_opens_at: Optional[str]
+    #: When the site window closes; null when nothing sets it.
+    site_closes_at: Optional[str]
+    #: The window rule the hire breaks.
+    warning: Literal["Delivery After Load In", "Return Before Load Out", "Hire Beyond Site Window", "Delivery Docks Full", "Return Docks Full"]
 
 
 class InsuranceCertificateInsuredPage(TypedDict):
@@ -21214,7 +22346,7 @@ class WorkDetailsPage(TypedDict):
 
 
 class WorkDetails(TypedDict):
-    """The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second)."""
+    """The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second)."""
 
     #: Identifier of the work details.
     id: str
@@ -21224,20 +22356,23 @@ class WorkDetails(TypedDict):
     updated_at: str
     #: Identifier of the person the work details belong to; always the caller.
     person_id: str
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     shirt_size: Optional[GarmentLetterSize]
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     jacket_size: Optional[GarmentLetterSize]
-    #: Pants size as the person writes it.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     pants_size: Optional[str]
-    #: Shoe size with its system.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     shoe_size: Optional[str]
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     glove_size: Optional[GarmentLetterSize]
-    #: Hat size as the person writes it.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     hat_size: Optional[str]
-    #: Anything else about fit.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     uniform_notes: Optional[str]
     #: Dietary needs, each once, in enum order.
     dietary_needs: List[DietaryNeed]
-    #: Allergies in the person's words, with how severe.
+    #: Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.
     allergies: Optional[str]
     #: Other dietary notes.
     dietary_notes: Optional[str]
@@ -21245,10 +22380,11 @@ class WorkDetails(TypedDict):
     accessibility_needs: List[AccessibilityNeed]
     #: Accessibility needs in the person's words.
     accessibility_notes: Optional[str]
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     seat_preference: Optional[SeatPreference]
-    #: Preferred in-flight meal.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     meal_preference: Optional[str]
-    #: IATA airport code.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     home_airport: Optional[str]
     passport_number: Optional[Union[str, Masked]]
     #: Last four characters of the passport number.
@@ -21264,20 +22400,23 @@ class WorkDetails(TypedDict):
 class WorkDetailsCreate(TypedDict, total=False):
     """Fields accepted when creating a WorkDetails."""
 
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     shirt_size: Optional[GarmentLetterSize]
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     jacket_size: Optional[GarmentLetterSize]
-    #: Pants size as the person writes it.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     pants_size: Optional[str]
-    #: Shoe size with its system.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     shoe_size: Optional[str]
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     glove_size: Optional[GarmentLetterSize]
-    #: Hat size as the person writes it.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     hat_size: Optional[str]
-    #: Anything else about fit.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     uniform_notes: Optional[str]
     #: Dietary needs, each once, in enum order.
     dietary_needs: List[DietaryNeed]
-    #: Allergies in the person's words, with how severe.
+    #: Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.
     allergies: Optional[str]
     #: Other dietary notes.
     dietary_notes: Optional[str]
@@ -21285,10 +22424,11 @@ class WorkDetailsCreate(TypedDict, total=False):
     accessibility_needs: List[AccessibilityNeed]
     #: Accessibility needs in the person's words.
     accessibility_notes: Optional[str]
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     seat_preference: Optional[SeatPreference]
-    #: Preferred in-flight meal.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     meal_preference: Optional[str]
-    #: IATA airport code.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     home_airport: Optional[str]
     #: Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.
     passport_number: Optional[str]
@@ -21303,20 +22443,23 @@ class WorkDetailsCreate(TypedDict, total=False):
 class WorkDetailsUpdate(TypedDict, total=False):
     """Fields accepted when updating a WorkDetails. Omitted fields are unchanged."""
 
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     shirt_size: Optional[GarmentLetterSize]
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     jacket_size: Optional[GarmentLetterSize]
-    #: Pants size as the person writes it.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     pants_size: Optional[str]
-    #: Shoe size with its system.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     shoe_size: Optional[str]
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     glove_size: Optional[GarmentLetterSize]
-    #: Hat size as the person writes it.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     hat_size: Optional[str]
-    #: Anything else about fit.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     uniform_notes: Optional[str]
     #: Dietary needs, each once, in enum order.
     dietary_needs: List[DietaryNeed]
-    #: Allergies in the person's words, with how severe.
+    #: Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.
     allergies: Optional[str]
     #: Other dietary notes.
     dietary_notes: Optional[str]
@@ -21324,10 +22467,11 @@ class WorkDetailsUpdate(TypedDict, total=False):
     accessibility_needs: List[AccessibilityNeed]
     #: Accessibility needs in the person's words.
     accessibility_notes: Optional[str]
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     seat_preference: Optional[SeatPreference]
-    #: Preferred in-flight meal.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     meal_preference: Optional[str]
-    #: IATA airport code.
+    #: Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
     home_airport: Optional[str]
     #: Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.
     passport_number: Optional[str]
@@ -21483,7 +22627,7 @@ class WorkDetailSharePage(TypedDict):
 
 
 class WorkDetailShare(TypedDict):
-    """The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them."""
+    """The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged."""
 
     #: Identifier of the work detail share.
     id: str
@@ -21497,45 +22641,60 @@ class WorkDetailShare(TypedDict):
     updated_at: str
     #: Identifier of the person who last updated the row.
     updated_by: Optional[str]
-    #: Identifier of the engagement the share serves; the caller must be its person.
+    #: Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).
     engagement_id: str
     #: Identifier of the person sharing.
     person_id: str
     #: Identifier of the work_details_sharing consent record for the org.
     consent_record_id: str
-    #: Categories shared.
+    #: Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.
     categories: List[WorkDetailCategory]
     #: When the share was given.
     shared_at: str
     #: When the person revoked it; null while it stands.
     revoked_at: Optional[str]
+    #: Identifier of the roster entry the share serves (R4): the caller's own entry on the engagement, the self entry for its person; null only on shares revoked before roster entries existed.
+    roster_entry_id: Optional[str]
+    #: The share names the person's own contact: their verified sign-in email and phone (R6a).
+    contact_shared: bool
 
 
-class WorkDetailShareCreate(TypedDict):
+class _WorkDetailShareCreateRequired(TypedDict):
+    #: Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).
+    engagement_id: str
+    #: Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.
+    categories: List[WorkDetailCategory]
+
+
+class WorkDetailShareCreate(_WorkDetailShareCreateRequired, total=False):
     """Fields accepted when creating a WorkDetailShare."""
 
-    #: Identifier of the engagement the share serves; the caller must be its person.
-    engagement_id: str
-    #: Categories shared.
-    categories: List[WorkDetailCategory]
+    #: Whether to share the caller's own contact, their verified sign-in email and phone (R6a), besides the categories. Omitted on update, the share keeps what it had.
+    share_contact: bool
 
 
 class WorkDetailShareUpdate(TypedDict, total=False):
     """Fields accepted when updating a WorkDetailShare. Omitted fields are unchanged."""
 
-    #: Categories shared.
+    #: Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.
     categories: List[WorkDetailCategory]
+    #: Whether to share the caller's own contact, their verified sign-in email and phone (R6a), besides the categories. Omitted on update, the share keeps what it had.
+    share_contact: bool
 
 
 class SharedWorkDetails(TypedDict):
-    """What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked."""
+    """What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked; allergies are masked unless the caller holds data.restricted.read.medical on the project (R6a)."""
 
     #: Engagement.
     engagement_id: str
-    #: Person the engagement names.
+    #: Person the engagement names, or the roster entry's person.
     person_id: Optional[str]
     #: Engaging org.
     org_id: str
+    #: Roster entry read (R4): the engaged person's self entry; null when there is none.
+    roster_entry_id: Optional[str]
+    #: Who reads (R4): org, a member of the engaging org by capability; company, a roster manager of the account that rosters the person, who reads every category once the person accepted the entry.
+    reader: Literal["org", "company"]
     #: Live share; null when none stands.
     work_detail_share_id: Optional[str]
     #: When the share was given.
@@ -21544,11 +22703,13 @@ class SharedWorkDetails(TypedDict):
     sharing_open: bool
     #: Categories the person shared.
     categories: List[WorkDetailCategory]
-    #: Shared categories the caller's project capabilities cover; the others come back null.
+    #: Shared categories the caller's project capabilities cover; the others come back null. The person's contact is readable when contact is not null.
     readable: List[WorkDetailCategory]
     emergency_contacts: Optional[List[SharedEmergencyContact]]
+    contact: Optional[SharedContact]
     uniform: Optional[SharedUniformSizes]
     dietary: Optional[SharedDietaryNeeds]
+    medical: Optional[SharedMedicalNeeds]
     accessibility: Optional[SharedAccessibilityNeeds]
     travel: Optional[SharedTravelProfile]
     passport: Optional[SharedPassport]
@@ -21571,19 +22732,31 @@ class SharedEmergencyContact(TypedDict):
     sort_order: int
 
 
-class SharedUniformSizes(TypedDict):
-    """Uniform sizes as an engaging org reads them."""
+class SharedContact(TypedDict):
+    """The person's own contact as an engaging org reads it (R6a): only verified sign-in addresses, null when none is verified. Read by engagement and safety readers, and by the company."""
 
+    #: The person's verified sign-in email.
+    email: Optional[str]
+    #: The person's verified sign-in phone. E.164 format.
+    phone: Optional[str]
+
+
+class SharedUniformSizes(TypedDict):
+    """Uniform sizes as an engaging org read them before R6a. Always null now: no live share names Uniform Sizes, and sizes are read per roster entry (projectFacts)."""
+
+    #: Retired: always null; entered per roster entry since R6a.
     shirt_size: Optional[GarmentLetterSize]
+    #: Retired: always null; entered per roster entry since R6a.
     jacket_size: Optional[GarmentLetterSize]
-    #: Pants size.
+    #: Retired: always null; entered per roster entry since R6a.
     pants_size: Optional[str]
-    #: Shoe size.
+    #: Retired: always null; entered per roster entry since R6a.
     shoe_size: Optional[str]
+    #: Retired: always null; entered per roster entry since R6a.
     glove_size: Optional[GarmentLetterSize]
-    #: Hat size.
+    #: Retired: always null; entered per roster entry since R6a.
     hat_size: Optional[str]
-    #: Fit notes.
+    #: Retired: always null; entered per roster entry since R6a.
     uniform_notes: Optional[str]
 
 
@@ -21591,10 +22764,21 @@ class SharedDietaryNeeds(TypedDict):
     """Dietary needs as an engaging org reads them."""
 
     dietary_needs: List[DietaryNeed]
-    #: Allergies.
+    #: Allergies; null when masked for the reader. Restricted: only a holder of data.restricted.read.medical on the project reads them, and each such read is logged; a company reader never does.
     allergies: Optional[str]
+    #: Allergies are recorded and withheld from this reader (R6a).
+    allergies_masked: bool
+    #: Whether allergies are recorded, even when masked.
+    allergies_on_file: bool
     #: Other dietary notes.
     dietary_notes: Optional[str]
+
+
+class SharedMedicalNeeds(TypedDict):
+    """The Restricted medical read (R6a): present when the share names Dietary Needs and the caller holds data.restricted.read.medical on the project (the org Owner, and by default the catering lead and on-site medical roles worked there), even without hospitality.fulfillment.read; null otherwise. Each read is logged as allergies.viewed."""
+
+    #: Allergies, unmasked.
+    allergies: Optional[str]
 
 
 class SharedAccessibilityNeeds(TypedDict):
@@ -21606,12 +22790,13 @@ class SharedAccessibilityNeeds(TypedDict):
 
 
 class SharedTravelProfile(TypedDict):
-    """The travel profile as an engaging org reads it."""
+    """The travel profile as an engaging org reads it: the loyalty programs since R6a."""
 
+    #: Retired: always null; entered per roster entry since R6a.
     seat_preference: Optional[SeatPreference]
-    #: Preferred in-flight meal.
+    #: Retired: always null; entered per roster entry since R6a.
     meal_preference: Optional[str]
-    #: IATA airport code.
+    #: Retired: always null; entered per roster entry since R6a.
     home_airport: Optional[str]
     loyalty_programs: List[SharedLoyaltyProgram]
 
@@ -21672,10 +22857,16 @@ class WorkDetailEvent(TypedDict):
     org_id: Optional[str]
     #: Identifier of the engagement of a share, read or reveal.
     engagement_id: Optional[str]
-    #: What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.
+    #: Identifier of the roster entry of a share, read or reveal (R4).
+    roster_entry_id: Optional[str]
+    #: Project fact kinds the act covered (R5): project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and changes to roster_travel_requests, roster_uniform_sizes and roster_vehicles.
+    fact_kinds: List[ProjectFactKind]
+    #: What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, work_details.fields_removed, allergies.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.
     action: str
     #: Categories the act covered.
     categories: List[WorkDetailCategory]
+    #: The act covered the person's own contact, shared since R6a outside the category list.
+    includes_contact: bool
     #: Columns an owner change touched, never their values.
     changed_columns: List[str]
     #: Reason an org member gave for revealing the passport number.
@@ -25628,6 +26819,18 @@ ExportFormat = Literal["CSV", "XLSX", "PDF"]
 #: Import row result state.
 ImportRowState = Literal["Valid", "Invalid", "Written", "Refused", "Skipped"]
 
+#: Review state of a roster entry.
+RosterEntryState = Literal["Draft", "Submitted", "Accepted", "Returned", "Withdrawn"]
+
+#: The rostered person's own answer.
+RosterPersonResponse = Literal["Pending", "Accepted", "Declined"]
+
+#: A kind of project fact a rostered person enters on their roster entry, asked only while its offering (Travel, Uniforms, Parking) is on.
+ProjectFactKind = Literal["Travel", "Uniform", "Vehicle"]
+
+#: Sizing system of a shoe size.
+ShoeSizeSystem = Literal["US Men", "US Women", "EU", "UK"]
+
 #: An Aurora AI feature (Section 4.7).
 AiFeature = Literal["assistant", "plain_language", "extraction", "drafting", "summaries", "mapping"]
 
@@ -25652,7 +26855,7 @@ SeatPreference = Literal["Window", "Aisle", "No Preference"]
 #: Kind of travel loyalty program.
 LoyaltyProgramKind = Literal["Airline", "Hotel", "Car Rental", "Rail"]
 
-#: A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.
+#: A category of work details shared with an engaging org on its own. The person's own contact (R6a) is shared with share_contact rather than as a category. Uniform Sizes is retired: sizes are entered per roster entry (projectFacts), and sharing it is refused with 422 work_detail_category_retired. Travel Profile is the loyalty programs; Passport is the passport details.
 WorkDetailCategory = Literal["Emergency Contacts", "Uniform Sizes", "Dietary Needs", "Accessibility Needs", "Travel Profile", "Passport"]
 
 #: One condition: a path of the event, an API filter operator (ADR 0003) and a text value. Numbers compare numerically, strings by code point; contains folds ASCII case or finds an array element; every operator but is_null is false on a missing value.

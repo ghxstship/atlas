@@ -103,7 +103,7 @@ The scripts refuse anything that is not local:
 The restore drill proves:
 
 1. the archive checksum matches the manifest;
-2. pg_restore reports no errors (it creates the service roles the fresh image lacks, without login or password);
+2. pg_restore reports no errors (it creates the service roles the fresh image lacks, without login or password). It restores pg_cron's job table last, in a second pass, so the target's pg_cron cannot run a restored job, such as `xos_ensure_realtime_channel_policies`, against a half-restored database. Restore a production archive the same way;
 3. the latest migration matches;
 4. every table in `xpms`, `app`, `private`, `api_public`, `api_external` and `supabase_migrations` has exactly the source row count;
 5. the 25 key tables in `infra/drills/key-tables.sql` (identity and tenancy, projects and records, engagements, time, purchase orders and invoices, audit and domain events, plans and capabilities, the canon, storage and the migration history) have the source row count and content checksum. The checksum is the MD5 of every row's MD5 in sorted order, so one changed value in one row fails it;
