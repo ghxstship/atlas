@@ -18,7 +18,7 @@ import {
   listSectionVisibility,
   PROFILE_SECTIONS,
 } from "@xos/data/profiles";
-import { listMyPersonCalendarFeeds } from "@xos/data/calendar-feeds";
+import { DEFAULT_FEED_SOURCES, listMyPersonCalendarFeeds } from "@xos/data/calendar-feeds";
 import { getAccountNotificationDefaults } from "@xos/data/company-settings";
 import { getMyQuietHours, listMyNotificationPreferences } from "@xos/data/party-notifications";
 import { resolveSettings } from "@xos/data/settings";
@@ -690,8 +690,9 @@ async function PayoutTaxSection(props: SectionProps & { account?: boolean }) {
 
 /**
  * The person's own calendar feeds across every org they work with (Section 4.5.8 Work, Upcoming
- * "with a calendar feed"; Section 4.6.5; A84, migration 1410): each with the last four characters
- * of its link, a new link and revoke, and a form to add one. Links are shown once, when made.
+ * "with a calendar feed"; Section 4.6.5; A84, migration 1410): each with its name (B7), what it
+ * shows and the last four characters of its link, Edit, a new link and revoke, and a form to add
+ * one. Links are shown once, when made.
  */
 async function CalendarFeedsSection(props: SectionProps) {
   const { ctx, t, locale } = props;
@@ -711,8 +712,13 @@ async function CalendarFeedsSection(props: SectionProps) {
           label={t(`${C}.listLabel`)}
           items={feeds.data.map((feed) => ({
             id: feed.id,
-            title: t(`${C}.feedName`),
+            title: feed.name ?? t(`${C}.feedName`),
             meta: [
+              t(`${C}.filterSummary`, {
+                sources: (feed.sources ?? DEFAULT_FEED_SOURCES)
+                  .map((s) => t(`${C}.sources.${s.toLowerCase()}`))
+                  .join(", "),
+              }),
               t(`${C}.hint`, { hint: feed.tokenHint }),
               feed.rotatedAt
                 ? t(`${C}.rotated`, { date: formatDate(locale, feed.rotatedAt) })
@@ -721,7 +727,14 @@ async function CalendarFeedsSection(props: SectionProps) {
                 ? t(`${C}.lastFetched`, { date: formatDate(locale, feed.lastAccessedAt) })
                 : t(`${C}.neverFetched`),
             ],
-            action: <PersonFeedActions id={feed.id} hint={feed.tokenHint} />,
+            action: (
+              <PersonFeedActions
+                id={feed.id}
+                hint={feed.tokenHint}
+                name={feed.name}
+                sources={feed.sources}
+              />
+            ),
           }))}
         />
       )}

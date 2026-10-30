@@ -215,7 +215,7 @@ export async function listMyCalendarFeeds(
   return ok(
     data.map((f) => ({
       id: f.id,
-      name: f.name,
+      name: f.name ?? null,
       sources: sourcesOf(f.sources),
       audience: f.team_id
         ? { kind: "team" as const, teamId: f.team_id }
@@ -299,7 +299,7 @@ export async function listMyPersonCalendarFeeds(
   return ok(
     data.map((f) => ({
       id: f.id,
-      name: f.name,
+      name: f.name ?? null,
       sources: sourcesOf(f.sources),
       audience: null,
       cueCallKind: null,

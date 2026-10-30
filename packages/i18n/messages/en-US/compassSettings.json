@@ -134,7 +134,8 @@
     "share": "Copy or Share Link",
     "linkHelp": "Copy or share the link now. It's shown only once; after you leave this screen you can only get a new one.",
     "rotated": "New link issued. The old link stopped working.",
-    "revoked": "Feed revoked. Its link stopped working."
+    "revoked": "Feed revoked. Its link stopped working.",
+    "cancelEdit": "Cancel Edit"
   },
   "connections": {
     "gone": "That's no longer there. The list is up to date.",

@@ -1571,10 +1571,27 @@
       "copied": "Link copied.",
       "openInCalendar": "Open in my calendar app",
       "subscribe": "Subscribe in a calendar app",
+      "nameLabel": "Name",
+      "nameHelp": "Up to 80 characters. Your calendar app shows the feed under this name.",
+      "contentLabel": "Shows",
+      "sources": {
+        "shifts": "Shifts",
+        "meetings": "Meetings",
+        "milestones": "Milestones",
+        "deadlines": "Deadlines",
+        "cues": "Cues"
+      },
+      "filterSummary": "Shows {sources}",
+      "edit": "Edit",
+      "editLabel": "Edit the feed ending in {hint}",
+      "editTitle": "Edit feed",
+      "save": "Save",
       "errors": {
         "calendar_feed_limit": "You have 20 feeds. Revoke one before you add another.",
         "denied": "That feed is not available to you.",
-        "unexpected": "Something went wrong. Try again."
+        "unexpected": "Something went wrong. Try again.",
+        "calendar_feed_name": "Give the feed a name of 1 to 80 characters that none of your other feeds uses.",
+        "calendar_feed_sources": "Choose at least one thing for the feed to show."
       }
     },
     "surfaces": {

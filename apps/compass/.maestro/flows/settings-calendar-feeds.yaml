@@ -1,6 +1,7 @@
 appId: pro.ghxstship.compass
 # Settings, Calendar Feeds works natively (A112): the Demo Field Tech adds a feed and sees its link once, gets a new
-# link, then revokes the feed, which leaves the list empty again for the next run.
+# link, then revokes the feed, which leaves the list empty again for the next run. B7: the feed is named and shows
+# cues too, and the list shows its name.
 # Named after its file: config.yaml orders flows by name.
 name: settings-calendar-feeds
 ---
@@ -18,6 +19,20 @@ name: settings-calendar-feeds
     timeout: 30000
 - scrollUntilVisible:
     element:
+      id: "settings-feeds-name"
+    direction: DOWN
+- tapOn:
+    id: "settings-feeds-name"
+- inputText: "My gigs"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: "settings-feeds-source-cues"
+    direction: DOWN
+- tapOn:
+    id: "settings-feeds-source-cues"
+- scrollUntilVisible:
+    element:
       id: "settings-feeds-add"
     direction: DOWN
 - tapOn:
@@ -32,6 +47,10 @@ name: settings-calendar-feeds
     id: "settings-feeds-link-share"
 - assertVisible:
     id: "settings-feeds-link-open"
+- scrollUntilVisible:
+    element:
+      text: "My gigs"
+    direction: DOWN
 - scrollUntilVisible:
     element:
       id: "settings-feed-rotate"
