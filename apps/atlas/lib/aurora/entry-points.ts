@@ -43,6 +43,10 @@ export const AI_ENTRY_POINTS: Readonly<Record<AiFeature, readonly EntryPoint[]>>
       consumer: "apps/atlas/components/aurora/entry/draft-entry.tsx#DraftEntry",
       test: "apps/atlas/e2e/a95-ai-entry-points.spec.ts",
     },
+    {
+      consumer: "apps/atlas/components/aurora/entry/list-draft-entry.tsx#ListDraftEntry",
+      test: "apps/atlas/e2e/p6-drafted-lists.spec.ts",
+    },
   ],
   summaries: [
     {

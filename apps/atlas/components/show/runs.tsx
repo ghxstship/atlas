@@ -39,6 +39,7 @@ import {
 } from "./actions";
 import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
+import { ListDraftEntry } from "@/components/aurora/entry/list-draft-entry";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 
 /**
@@ -479,6 +480,7 @@ export function RunBody({
   live,
   canEdit,
   canCall,
+  draftable = false,
   setTimes = [],
   artists = [],
   children,
@@ -490,6 +492,11 @@ export function RunBody({
   live: boolean;
   canEdit: boolean;
   canCall: boolean;
+  /**
+   * Whether Aurora may draft into this running order (P6): it has no cue, also none the viewer
+   * cannot see, and the viewer may write to its project (app.drafted_list_is_empty).
+   */
+  draftable?: boolean;
   /** Cues marked as an artist's set time (app.engagement_cues), for the Set for control. */
   setTimes?: readonly CueEngagement[];
   /** The run's project's Artist engagements a cue can be set for. */
@@ -626,9 +633,26 @@ export function RunBody({
         </h3>
         <ActionErrorAlert error={cueAction.error} />
         {cues.length === 0 ? (
-          <p className="m-0 text-text-13 text-text-secondary">
-            {canEdit ? t("cues.empty") : t("cues.emptyReadOnly")}
-          </p>
+          <div className="flex flex-col gap-8">
+            <p className="m-0 text-text-13 text-text-secondary">
+              {canEdit ? t("cues.empty") : t("cues.emptyReadOnly")}
+            </p>
+            {canEdit && draftable ? (
+              <ListDraftEntry
+                kind="run_of_show"
+                target={{ collection: "run-of-show", id: runOfShow.id, label: runOfShow.name }}
+                context={[
+                  {
+                    collection: "projects",
+                    id: runOfShow.projectId,
+                    label: runOfShow.projectKey,
+                  },
+                ]}
+                timeZone={tz}
+                showDate={runOfShow.showDate}
+              />
+            ) : null}
+          </div>
         ) : (
           <ol
             aria-label={t("cues.listLabel", { name: runOfShow.name })}
