@@ -422,9 +422,10 @@ begin
   end if;
   select t.destination, true into v_destination, v_named from private.import_targets t where t.code = p_target_code;
   -- A target with a destination and none named is refused by the destination guard (import_destination_required).
+  -- An org-wide target has a NULL destination, so the comparisons are NULL-safe: it is always checked.
   if p_target_code is null or v_named is null
-     or (not (v_destination = 'run_of_show_id' and p_run_of_show_id is null)
-         and not (v_destination = 'project_id' and p_project_id is null)
+     or (not (v_destination is not distinct from 'run_of_show_id' and p_run_of_show_id is null)
+         and not (v_destination is not distinct from 'project_id' and p_project_id is null)
          and not private.import_job_allowed(v_job.org_id, p_target_code, p_project_id, p_run_of_show_id)) then
     perform private.refuse('import_target_not_allowed', 'You cannot import into that target in this organization.');
   end if;

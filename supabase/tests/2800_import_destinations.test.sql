@@ -10,7 +10,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(75);
+select plan(77);
 
 create function pg_temp.path(p_person text) returns text
 language sql as $$ select pg_temp.id(p_person) || '/' || gen_random_uuid() || '.csv' $$;
@@ -250,6 +250,15 @@ select throws_ok($$select app.import_detected_sheet((select id from world where 
   'XR001', 'import_destination_required: Choose the running order the rows go into.', 'a detected sheet imported as cues names its running order');
 select throws_ok($$select app.import_detected_sheet((select id from world where key = 'sheet_run'), 'cues', null, (select id from world where key = 'ros_a2'))$$,
   'XR001', 'import_target_not_allowed: You cannot import into that target in this organization.', 'one he may import into');
+-- An org-wide target is checked as in 1402: the member holds assets.asset.write only where assigned, and
+-- places.venue.write org-wide.
+select throws_ok($$select app.import_detected_sheet((select id from world where key = 'sheet_run'), 'asset_units')$$,
+  'XR001', 'import_target_not_allowed: You cannot import into that target in this organization.',
+  'another sheet goes into an org-wide target only with its capability org-wide');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.import_jobs where import_job_sheet_id = pg_temp.id('sheet_run')), 0,
+  'so no import of it is created');
+select pg_temp.as_user('dave');
 insert into world select 'job_sheet', app.import_detected_sheet(pg_temp.id('sheet_run'), 'cues', null, pg_temp.id('ros_a'));
 select ok((select run_of_show_id = pg_temp.id('ros_a') and target_code = 'cues' from app.import_jobs where id = pg_temp.id('job_sheet')),
   'and the new import carries it');
