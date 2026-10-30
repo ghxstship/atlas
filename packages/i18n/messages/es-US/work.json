@@ -471,7 +471,8 @@
     "links": "Vinculado desde objetos personalizados"
   },
   "duplicate": {
-    "button": "Duplicar"
+    "button": "Duplicar",
+    "withoutDates": "Duplicar sin fechas"
   },
   "trash": {
     "move": "Mover a la papelera",
@@ -641,7 +642,11 @@
       "approval_not_eligible": "Solo quien puede editar los registros de este proyecto puede decidir sus aprobaciones.",
       "time_zone_unknown": "Elija una zona horaria de la lista.",
       "engagement_cue_artist_only": "Los horarios de set pertenecen a contrataciones de artistas. Elija un artista.",
-      "engagement_cue_project_mismatch": "Ese artista está contratado en otro proyecto. Elija un artista del proyecto de este show."
+      "engagement_cue_project_mismatch": "Ese artista está contratado en otro proyecto. Elija un artista del proyecto de este show.",
+      "shift_empty": "Seleccione al menos un registro para mover.",
+      "shift_too_large": "Este cambio mueve más de 500 registros con sus sucesores. Mueva menos a la vez.",
+      "place_dated": "Este registro ya tiene fechas; arrastre su barra en su lugar.",
+      "cue_called": "Un cue ya llamado conserva su hora. Quítelo de la selección."
     },
     "quickAdd": {
       "capability": "No puedes crear esto aquí.",
@@ -652,7 +657,8 @@
       "scope": "No puedes abrir ese alcance.",
       "scopeProject": "Ese alcance pertenece a otro proyecto.",
       "project": "Indica el proyecto con ~ y un alcance, por ejemplo ~NWS-E01."
-    }
+    },
+    "shiftMinutes": "Escriba minutos enteros distintos de 0, hasta siete días en cualquier sentido."
   },
   "grammar": {
     "Approval": "Una frase nominal que nombra lo que se aprueba, por ejemplo Aprobación del Plan de Rigging.",

@@ -67,5 +67,33 @@
   },
   "reschedule": {
     "offView": "{count, plural, one {Se mueve # registro más fuera de esta vista.} other {Se mueven # registros más fuera de esta vista.}}"
+  },
+  "backlog": {
+    "title": "Sin programar ({count})",
+    "help": "Registros sin fechas. Arrastre uno a un día o pulse Programar para elegir el día.",
+    "empty": "Todos los registros de aquí tienen fechas.",
+    "schedule": "Programar",
+    "scheduleOne": "Programar {record}",
+    "placing": "Programar {record}",
+    "day": "Día para {record}",
+    "previewButton": "Vista previa",
+    "preview": "{record} va de 09:00 a 17:00 el {day} (un hito vence a las 17:00), hora del proyecto.",
+    "pushes": "{count, plural, one {Desplaza # sucesor:} other {Desplaza # sucesores:}}",
+    "apply": "Aplicar",
+    "cancel": "Cancelar",
+    "placed": "Se programó {record} el {day}.",
+    "undoFailed": "No se pudo deshacer la programación. Vuelva a cargar para ver el registro."
+  },
+  "retime": {
+    "title": "Ajustar por minutos",
+    "move": "Mover",
+    "length": "Cambiar duración",
+    "offsetHelp": "Horas y minutos, como +1:30 o -0:15.",
+    "invalid": "Escriba horas y minutos como +1:30, hasta 14 días.",
+    "preview": "Vista previa",
+    "previewAlone": "Solo se mueve este registro.",
+    "previewPushes": "{count, plural, one {También desplaza # sucesor.} other {También desplaza # sucesores.}}",
+    "apply": "Aplicar",
+    "done": "{count, plural, one {Se movió # registro.} other {Se movieron # registros.}}"
   }
 }

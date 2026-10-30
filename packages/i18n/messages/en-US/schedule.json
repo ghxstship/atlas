@@ -67,5 +67,33 @@
   },
   "reschedule": {
     "offView": "{count, plural, one {# more record outside this view moves.} other {# more records outside this view move.}}"
+  },
+  "backlog": {
+    "title": "Unscheduled ({count})",
+    "help": "Records with no dates. Drag one onto a day, or press Schedule to choose the day.",
+    "empty": "Every record here has dates.",
+    "schedule": "Schedule",
+    "scheduleOne": "Schedule {record}",
+    "placing": "Schedule {record}",
+    "day": "Day for {record}",
+    "previewButton": "Preview",
+    "preview": "{record} runs 09:00 to 17:00 on {day} (a milestone is due at 17:00), project time.",
+    "pushes": "{count, plural, one {It pushes # successor:} other {It pushes # successors:}}",
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "placed": "Scheduled {record} on {day}.",
+    "undoFailed": "The placement could not be undone. Reload to see the record."
+  },
+  "retime": {
+    "title": "Retime by minutes",
+    "move": "Move by",
+    "length": "Change length by",
+    "offsetHelp": "Hours and minutes, such as +1:30 or -0:15.",
+    "invalid": "Enter hours and minutes such as +1:30, up to 14 days.",
+    "preview": "Preview",
+    "previewAlone": "Only this record moves.",
+    "previewPushes": "{count, plural, one {This also pushes # successor.} other {This also pushes # successors.}}",
+    "apply": "Apply",
+    "done": "{count, plural, one {Moved # record.} other {Moved # records.}}"
   }
 }

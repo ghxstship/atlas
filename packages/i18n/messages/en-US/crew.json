@@ -153,7 +153,14 @@
     "per_diem_day_taken": "A per diem is already recorded for a day in that range. Remove it or choose other days.",
     "engagement_worker_person": "Time, shifts and per diems go to an engagement that names a person, not a company engagement. Choose a person.",
     "engagement_not_working": "External crew record time and receive per diems only while their engagement is Active or Closing.",
-    "payroll_holiday_code_missing": "A paid holiday falls in this pay period. Add a holiday earning code in Payroll and Time Off settings, then calculate again."
+    "payroll_holiday_code_missing": "A paid holiday falls in this pay period. Add a holiday earning code in Payroll and Time Off settings, then calculate again.",
+    "availability_poll_days": "Ask about 1 to 31 different days, none of them in the past.",
+    "availability_poll_inside_notice": "Some days fall inside the org's availability notice period, which is locked. Ask only about later days.",
+    "availability_poll_recipients": "Ask 1 to 200 different people.",
+    "availability_poll_recipient": "Someone you chose is neither a member of this org nor engaged by it. Remove them and send again.",
+    "availability_poll_closed": "This poll has closed. Tell your planner your availability directly.",
+    "availability_poll_answer": "Answer each day of the poll once, as Available, Tentative or Unavailable.",
+    "availability_poll_project": "A poll stays on its project."
   },
   "states": {
     "shift": {
@@ -711,6 +718,59 @@
         "breakMinutes": "The break is a whole number of minutes, shorter than the shift.",
         "duplicate": "Another template already has this name. Choose another."
       }
+    },
+    "polls": {
+      "ask": "Ask for availability",
+      "title": "Ask for availability",
+      "cancel": "Cancel",
+      "send": "Ask {count, plural, one {# person} other {# people}}",
+      "project": "Project",
+      "pollTitle": "Title",
+      "first": "First day",
+      "last": "Last day",
+      "tooManyDays": "Ask about 31 days at most.",
+      "dayCount": "{count, plural, one {Asks about # day.} other {Asks about # days.}}",
+      "recipients": "People to ask ({count})",
+      "search": "Search people",
+      "noPeople": "No member or engaged person matches.",
+      "engagedPerson": "{name} (engaged)",
+      "unnamed": "Unnamed person",
+      "message": "Message (optional)",
+      "closesOn": "Closes on (optional)",
+      "closesOnHelp": "Answers stop at the end of this day. Leave blank to keep the poll open.",
+      "listTitle": "Availability polls",
+      "listHelp": "What each person said for each day. Answers are shared with this org's planners; notes never show.",
+      "open": "New poll",
+      "none": "No poll yet. Ask your crew which days they can work.",
+      "closes": "Open until {when}",
+      "openNoClose": "Open",
+      "closed": "Closed",
+      "gridCaption": "Availability for {title}, by person and day",
+      "person": "Person",
+      "responded": "Last answered",
+      "notYet": "Not yet",
+      "kinds": {
+        "Available": "Available",
+        "Tentative": "Tentative",
+        "Unavailable": "Unavailable",
+        "Unstated": "Not stated"
+      },
+      "requests": {
+        "title": "{count, plural, one {Availability request} other {Availability requests}}",
+        "shared": "Your answers go on your availability for this org and are shared with its planners.",
+        "closes": "Answer by {when}",
+        "locked": "{day}: {answer}, locked by the notice period",
+        "choose": "Choose",
+        "save": "Send answers",
+        "saved": "{count, plural, one {Saved # answer.} other {Saved # answers.}}",
+        "savedSomeLocked": "{count, plural, one {Saved # answer;} other {Saved # answers;}} {locked, plural, one {# day was already locked by the notice period.} other {# days were already locked by the notice period.}}",
+        "kinds": {
+          "Available": "Available",
+          "Tentative": "Tentative",
+          "Unavailable": "Unavailable",
+          "Unstated": "Not stated"
+        }
+      }
     }
   },
   "perDiems": {
@@ -806,7 +866,30 @@
       "editCalendar": "Edit {name}",
       "retireCalendar": "Retire {name}",
       "addCalendarTitle": "Add a holiday calendar",
-      "addCalendar": "Add calendar"
+      "addCalendar": "Add calendar",
+      "workedMultiplier": "Worked holiday pay",
+      "workedMultiplierHelp": "Work on these holidays pays this multiple of the rate, 1 to 3, such as 1.5. Blank pays no premium. An org pay policy, not state overtime.",
+      "workedMultiplierShown": "Work on a holiday pays {multiplier}x",
+      "preset": {
+        "label": "Add US federal holidays to {name}",
+        "year": "Year",
+        "button": "Add US federal holidays",
+        "help": "Adds the 11 federal holidays on their observed days, each paying 8 hours, and skips days already on the calendar. Payroll needs a holiday earning code, or it refuses with payroll_holiday_code_missing.",
+        "result": "{added} added, {existing} already on the calendar.",
+        "us_federal": {
+          "new_years_day": "New Year's Day",
+          "mlk_day": "Birthday of Martin Luther King, Jr.",
+          "washingtons_birthday": "Washington's Birthday",
+          "memorial_day": "Memorial Day",
+          "juneteenth": "Juneteenth National Independence Day",
+          "independence_day": "Independence Day",
+          "labor_day": "Labor Day",
+          "columbus_day": "Columbus Day",
+          "veterans_day": "Veterans Day",
+          "thanksgiving": "Thanksgiving Day",
+          "christmas_day": "Christmas Day"
+        }
+      }
     }
   }
 }

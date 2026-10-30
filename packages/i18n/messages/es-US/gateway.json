@@ -39,7 +39,9 @@
       "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
       "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
       "submittal_response": "Este entregable técnico no está esperando tu respuesta. Recarga la página para ver en qué estado está.",
-      "submittal_note_length": "Escribe una nota de 1 a 500 caracteres."
+      "submittal_note_length": "Escribe una nota de 1 a 500 caracteres.",
+      "availability_poll_closed": "Esta encuesta ya cerró. Indique su disponibilidad directamente a la organización.",
+      "availability_poll_answer": "Responda cada día de la encuesta una vez, como Disponible, Provisional o No disponible."
     }
   },
   "common": {
@@ -1108,7 +1110,8 @@
         "opportunityMatched": "Nueva coincidencia para {searchName}: {title}",
         "onboardingExpiring": "{title} para {orgName} vence el {expiresOn}",
         "certificationExpiring": "Su certificación {title} vence el {expiresOn}",
-        "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}"
+        "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}",
+        "availabilityRequested": "{orgName} le pide su disponibilidad: {title}"
       }
     }
   },
@@ -1310,7 +1313,24 @@
       "account": "Escribe el nombre de la empresa y una dirección web de 2 a 48 letras minúsculas, números y guiones.",
       "company": "Revisa el usuario y la visibilidad.",
       "website": "Escribe una dirección web completa que empiece con https://.",
-      "email": "Escribe un correo como equipo@empresa.com."
+      "email": "Escribe un correo como equipo@empresa.com.",
+      "availabilityAnswer": "Elija Disponible, Provisional o No disponible para al menos un día."
+    },
+    "availabilityRequests": {
+      "title": "Solicitudes de disponibilidad",
+      "shared": "Sus respuestas se guardan en su disponibilidad para esa organización y se comparten con sus planificadores.",
+      "closes": "Responda antes del {when}",
+      "locked": "{day}: {answer}, bloqueado por el período de aviso",
+      "formLabel": "Responder {title}",
+      "choose": "Elegir",
+      "save": "Enviar respuestas",
+      "saved": "Respuestas guardadas.",
+      "kinds": {
+        "Available": "Disponible",
+        "Tentative": "Provisional",
+        "Unavailable": "No disponible",
+        "Unstated": "Sin indicar"
+      }
     }
   },
   "documents": {

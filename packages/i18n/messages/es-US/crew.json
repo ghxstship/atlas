@@ -153,7 +153,14 @@
     "per_diem_day_taken": "Ya hay un viático registrado para un día de ese rango. Quítelo o elija otros días.",
     "engagement_worker_person": "El tiempo, los turnos y los viáticos van a una contratación que nombra a una persona, no a una contratación de empresa. Elija una persona.",
     "engagement_not_working": "El personal externo registra tiempo y recibe viáticos solo mientras su contratación está Activa o En cierre.",
-    "payroll_holiday_code_missing": "Un feriado pagado cae en este periodo de pago. Agregue un código de ingreso de feriado en la configuración de Nómina y tiempo libre, y calcule de nuevo."
+    "payroll_holiday_code_missing": "Un feriado pagado cae en este periodo de pago. Agregue un código de ingreso de feriado en la configuración de Nómina y tiempo libre, y calcule de nuevo.",
+    "availability_poll_days": "Pregunte por 1 a 31 días distintos, ninguno en el pasado.",
+    "availability_poll_inside_notice": "Algunos días caen dentro del período de aviso de disponibilidad de la organización, que está bloqueado. Pregunte solo por días posteriores.",
+    "availability_poll_recipients": "Pregunte a entre 1 y 200 personas distintas.",
+    "availability_poll_recipient": "Alguien que eligió no es miembro de esta organización ni está contratado por ella. Quítelo y vuelva a enviar.",
+    "availability_poll_closed": "Esta encuesta ya cerró. Indique su disponibilidad directamente a su planificador.",
+    "availability_poll_answer": "Responda cada día de la encuesta una vez, como Disponible, Provisional o No disponible.",
+    "availability_poll_project": "Una encuesta se queda en su proyecto."
   },
   "states": {
     "shift": {
@@ -711,6 +718,59 @@
         "breakMinutes": "El descanso es un número entero de minutos, más corto que el turno.",
         "duplicate": "Otra plantilla ya tiene este nombre. Elija otro."
       }
+    },
+    "polls": {
+      "ask": "Pedir disponibilidad",
+      "title": "Pedir disponibilidad",
+      "cancel": "Cancelar",
+      "send": "Preguntar a {count, plural, one {# persona} other {# personas}}",
+      "project": "Proyecto",
+      "pollTitle": "Título",
+      "first": "Primer día",
+      "last": "Último día",
+      "tooManyDays": "Pregunte por 31 días como máximo.",
+      "dayCount": "{count, plural, one {Pregunta por # día.} other {Pregunta por # días.}}",
+      "recipients": "Personas a las que preguntar ({count})",
+      "search": "Buscar personas",
+      "noPeople": "Ningún miembro ni persona contratada coincide.",
+      "engagedPerson": "{name} (contratada)",
+      "unnamed": "Persona sin nombre",
+      "message": "Mensaje (opcional)",
+      "closesOn": "Cierra el (opcional)",
+      "closesOnHelp": "Las respuestas se cierran al final de este día. Déjelo en blanco para mantener la encuesta abierta.",
+      "listTitle": "Encuestas de disponibilidad",
+      "listHelp": "Lo que cada persona respondió para cada día. Las respuestas se comparten con los planificadores de esta organización; las notas nunca se muestran.",
+      "open": "Nueva encuesta",
+      "none": "Aún no hay encuestas. Pregunte a su equipo qué días puede trabajar.",
+      "closes": "Abierta hasta {when}",
+      "openNoClose": "Abierta",
+      "closed": "Cerrada",
+      "gridCaption": "Disponibilidad para {title}, por persona y día",
+      "person": "Persona",
+      "responded": "Última respuesta",
+      "notYet": "Aún no",
+      "kinds": {
+        "Available": "Disponible",
+        "Tentative": "Provisional",
+        "Unavailable": "No disponible",
+        "Unstated": "Sin indicar"
+      },
+      "requests": {
+        "title": "{count, plural, one {Solicitud de disponibilidad} other {Solicitudes de disponibilidad}}",
+        "shared": "Sus respuestas se guardan en su disponibilidad para esta organización y se comparten con sus planificadores.",
+        "closes": "Responda antes del {when}",
+        "locked": "{day}: {answer}, bloqueado por el período de aviso",
+        "choose": "Elegir",
+        "save": "Enviar respuestas",
+        "saved": "{count, plural, one {Se guardó # respuesta.} other {Se guardaron # respuestas.}}",
+        "savedSomeLocked": "{count, plural, one {Se guardó # respuesta;} other {Se guardaron # respuestas;}} {locked, plural, one {# día ya estaba bloqueado por el período de aviso.} other {# días ya estaban bloqueados por el período de aviso.}}",
+        "kinds": {
+          "Available": "Disponible",
+          "Tentative": "Provisional",
+          "Unavailable": "No disponible",
+          "Unstated": "Sin indicar"
+        }
+      }
     }
   },
   "perDiems": {
@@ -806,7 +866,30 @@
       "editCalendar": "Editar {name}",
       "retireCalendar": "Retirar {name}",
       "addCalendarTitle": "Agregar un calendario de feriados",
-      "addCalendar": "Agregar calendario"
+      "addCalendar": "Agregar calendario",
+      "workedMultiplier": "Pago por trabajar en feriado",
+      "workedMultiplierHelp": "El trabajo en estos feriados se paga a este múltiplo de la tarifa, de 1 a 3, como 1.5. En blanco no paga prima. Es una política de pago de la organización, no horas extra estatales.",
+      "workedMultiplierShown": "El trabajo en feriado paga {multiplier}x",
+      "preset": {
+        "label": "Agregar los feriados federales de EE. UU. a {name}",
+        "year": "Año",
+        "button": "Agregar feriados federales de EE. UU.",
+        "help": "Agrega los 11 feriados federales en sus días observados, cada uno con 8 horas pagadas, y omite los días que ya están en el calendario. La nómina necesita un código de ingreso de feriado; si no, se rechaza con payroll_holiday_code_missing.",
+        "result": "{added} agregados, {existing} ya estaban en el calendario.",
+        "us_federal": {
+          "new_years_day": "Año Nuevo",
+          "mlk_day": "Natalicio de Martin Luther King, Jr.",
+          "washingtons_birthday": "Natalicio de Washington",
+          "memorial_day": "Día de los Caídos",
+          "juneteenth": "Día Nacional de la Independencia de Juneteenth",
+          "independence_day": "Día de la Independencia",
+          "labor_day": "Día del Trabajo",
+          "columbus_day": "Día de Colón",
+          "veterans_day": "Día de los Veteranos",
+          "thanksgiving": "Día de Acción de Gracias",
+          "christmas_day": "Navidad"
+        }
+      }
     }
   }
 }

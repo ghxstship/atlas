@@ -128,7 +128,10 @@
     "holiday_calendar_taken": "Another holiday calendar already has this name. Choose a different name.",
     "holiday_calendar_applies_taken": "Another calendar already applies across the org for this state, or for no state. Change that one, or leave Applies across the org unchecked.",
     "holiday_day_taken": "This calendar already has a holiday on that day. Remove it first, or choose another day.",
-    "holiday_venue_taken": "That venue already has a holiday calendar. Unassign it there first."
+    "holiday_venue_taken": "That venue already has a holiday calendar. Unassign it there first.",
+    "holiday_preset_unknown": "Choose the US federal holidays.",
+    "holiday_preset_year": "Choose a year from 2021 to 2100.",
+    "holiday_preset_names": "A holiday name is 1 to 100 characters."
   },
   "partner": {
     "sections": "Partner console sections",
@@ -669,6 +672,9 @@
       "shift": {
         "assigned": "Shift assigned",
         "changed": "Shift changed"
+      },
+      "availability": {
+        "requested": "Availability requested"
       },
       "survey": {
         "opened": "Survey opened"

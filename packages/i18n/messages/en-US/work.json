@@ -471,7 +471,8 @@
     "links": "Linked from custom objects"
   },
   "duplicate": {
-    "button": "Duplicate"
+    "button": "Duplicate",
+    "withoutDates": "Duplicate without dates"
   },
   "trash": {
     "move": "Move to Trash",
@@ -641,7 +642,11 @@
       "approval_not_eligible": "Only someone who may edit this project's records can decide its approvals.",
       "time_zone_unknown": "Choose a time zone from the list.",
       "engagement_cue_artist_only": "Set times belong to artist engagements. Choose an artist.",
-      "engagement_cue_project_mismatch": "That artist is engaged on another project. Choose an artist of this show's project."
+      "engagement_cue_project_mismatch": "That artist is engaged on another project. Choose an artist of this show's project.",
+      "shift_empty": "Select at least one record to shift.",
+      "shift_too_large": "This shift moves more than 500 records with their successors. Shift fewer at a time.",
+      "place_dated": "This record already has dates; drag its bar instead.",
+      "cue_called": "A called cue keeps its time. Clear it from the selection."
     },
     "quickAdd": {
       "capability": "You cannot create this here.",
@@ -652,7 +657,8 @@
       "scope": "That scope is not one you can open.",
       "scopeProject": "That scope belongs to another project.",
       "project": "Name the project with ~ and a scope, for example ~NWS-E01."
-    }
+    },
+    "shiftMinutes": "Enter whole minutes other than 0, up to seven days either way."
   },
   "grammar": {
     "Approval": "A noun phrase naming what is approved, for example Rigging Plan Sign-Off.",
