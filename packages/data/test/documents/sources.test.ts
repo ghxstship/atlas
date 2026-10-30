@@ -190,9 +190,14 @@ describe("loaders read each record as the caller", () => {
     const day = fakeClient({
       "from:day_sheets": [okResponse([sheet])],
       "from:projects": [project],
+      "from:shifts": [okResponse([])],
+      "from:records": [okResponse([])],
+      "from:run_of_show": [okResponse([])],
     });
     const d = await loadDocumentData(day.db, ORG, "day-sheet", "s1");
     expect(d.ok && d.data.sheet.body).toBe("Gates at 16:00");
+    expect(d.ok && d.data.schedule).toEqual({ calls: [], records: [], runs: [] });
+    expect(d.ok && d.data.audience).toBeUndefined();
 
     const call = fakeClient({
       "from:call_sheets": [okResponse([sheet])],

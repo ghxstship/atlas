@@ -7,7 +7,7 @@ import { documentTranslator, formatter } from "./format.ts";
 import type { DocumentKind, DocumentLogo, DocumentModel, Paper, PrintSize } from "./model.ts";
 import type { Orientation } from "./render.ts";
 import { isEmbeddableImage, MAX_BATCH, renderDocumentPdf, streamDocumentsPdf } from "./render.ts";
-import { documentProject, loadDocumentData } from "./sources.ts";
+import { documentProject, loadDocumentData, type LoadOptions } from "./sources.ts";
 import { loadExternalDocumentData, type ExternalDocumentKind } from "./sources-external.ts";
 import {
   DESCRIBE,
@@ -69,7 +69,10 @@ export function buildDocumentModel<K extends DocumentKind>(
   const timeZone = "project" in data && data.project ? data.project.timeZone : "UTC";
   const f = formatter(options.locale, timeZone, t);
   const paper = options.paper ?? "letter";
-  const template = templateFor((options.registry ?? TEMPLATES)[kind], issuedAt, paper);
+  const audience = "audience" in data && data.audience !== null && data.audience !== undefined;
+  const template = templateFor((options.registry ?? TEMPLATES)[kind], issuedAt, paper, {
+    audience,
+  });
   const out = template.build(data, { t, f, generatedAt: now, paper });
   return {
     kind,
@@ -225,6 +228,8 @@ export interface GenerateInput {
   /** The Section 8.6 watermark text, set for Confidential and Restricted documents. */
   readonly watermark?: string;
   readonly orientation?: Orientation;
+  /** What the loader needs beyond the id: a day sheet's audience, the wrap-up's ledger reach and units (B7). */
+  readonly load?: LoadOptions;
 }
 
 export interface GeneratedDocument {
@@ -233,14 +238,24 @@ export interface GeneratedDocument {
   readonly templateVersion: number;
 }
 
-/** File names keep letters, digits, dots and dashes. */
-export function documentFileName(kind: DocumentKind, recordKey: string, paper: PrintSize): string {
-  const key = recordKey.replace(/[^A-Za-z0-9.-]+/g, "-").replace(/^-+|-+$/g, "");
-  return `${kind}-${key || "document"}-${paper}.pdf`;
+/** A name as a file name part: letters, digits, dots and dashes. */
+export const fileNamePart = (text: string) =>
+  text.replace(/[^A-Za-z0-9.-]+/g, "-").replace(/^-+|-+$/g, "");
+
+/** File names keep letters, digits, dots and dashes; a copy for an audience carries its slug (B7). */
+export function documentFileName(
+  kind: DocumentKind,
+  recordKey: string,
+  paper: PrintSize,
+  audience?: string | null,
+): string {
+  const key = fileNamePart(recordKey);
+  const slug = audience ? fileNamePart(audience.toLowerCase()) : "";
+  return `${kind}-${key || "document"}${slug ? `-${slug}` : ""}-${paper}.pdf`;
 }
 
 export async function generateDocument(input: GenerateInput): Promise<Result<GeneratedDocument>> {
-  const data = await loadDocumentData(input.db, input.orgId, input.kind, input.id);
+  const data = await loadDocumentData(input.db, input.orgId, input.kind, input.id, input.load);
   if (!data.ok) return data;
   return renderLoaded(input, input.kind, data.data, input.orgId, input.orgName);
 }
@@ -286,9 +301,14 @@ async function renderLoaded<K extends DocumentKind>(
       paper: input.paper,
       ...(input.orientation ? { orientation: input.orientation } : {}),
     });
+    const audience =
+      "audience" in data && data.audience
+        ? (data.audience.label ??
+          (data.audience.showDepartment ? data.audience.showDepartment : null))
+        : null;
     return ok({
       bytes,
-      fileName: documentFileName(kind, model.facts.recordKey, input.paper),
+      fileName: documentFileName(kind, model.facts.recordKey, input.paper, audience),
       templateVersion: model.facts.templateVersion,
     });
   } catch (error) {

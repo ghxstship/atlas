@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import type { CueCallKind } from "./cue-calls.ts";
 import { writeICalendar, type ICalEvent, type ICalEventStatus } from "./ical.ts";
 import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
@@ -14,6 +15,9 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * - `calendarFeedResponse` answers `/ical/{token}.ics` for both apps: it calls the
  *   `api_public.calendar_feed` token RPC as anon, with the client address the platform's proxy
  *   reported, and writes RFC 5545 through ./ical.ts.
+ * - A feed has a name, saved content sources (cues included) and, on a project feed, an audience
+ *   of people, one team or one department and a show department (B7, migrations 2960 to 2962,
+ *   ADR 0146). Null sources serve the 4.0 set; the database refuses every bad configuration.
  */
 
 /** A feed token: `xcal_` and 256 random bits in hex. */
@@ -35,7 +39,62 @@ export function webcalUrl(url: string): string {
   return url.replace(/^https?:/, "webcal:");
 }
 
-export interface CalendarFeedSummary {
+/** What a feed serves (app.calendar_feed_source). */
+export const CALENDAR_FEED_SOURCES = [
+  "Shifts",
+  "Meetings",
+  "Milestones",
+  "Deadlines",
+  "Cues",
+] as const;
+export type CalendarFeedSource = (typeof CALENDAR_FEED_SOURCES)[number];
+
+/** The sources a feed without saved sources serves: the 4.0 set. */
+export const DEFAULT_FEED_SOURCES: readonly CalendarFeedSource[] = [
+  "Shifts",
+  "Meetings",
+  "Milestones",
+  "Deadlines",
+];
+
+/** A project feed's audience: named people, one team or one canon department. */
+export type FeedAudience =
+  | { readonly kind: "people"; readonly personIds: readonly string[] }
+  | { readonly kind: "team"; readonly teamId: string }
+  | { readonly kind: "department"; readonly departmentCode: string };
+
+/** A feed's saved configuration. A member feed takes only a name and sources without Cues. */
+export interface FeedConfiguration {
+  /** Null uses the default name. */
+  readonly name: string | null;
+  /** Null serves the default set. */
+  readonly sources: readonly CalendarFeedSource[] | null;
+  readonly audience: FeedAudience | null;
+  /** Only cues with this department's call, and its instruction. */
+  readonly cueCallKind: CueCallKind | null;
+}
+
+export const EMPTY_FEED_CONFIGURATION: FeedConfiguration = {
+  name: null,
+  sources: null,
+  audience: null,
+  cueCallKind: null,
+};
+
+/** The refusal rules of the feed RPCs, each with its own copy in Atlas, Gateway and Compass. */
+export const CALENDAR_FEED_RULES = [
+  "calendar_feed_limit",
+  "calendar_feed_name",
+  "calendar_feed_filter_scope",
+  "calendar_feed_audience",
+  "calendar_feed_people_limit",
+  "calendar_feed_sources",
+] as const;
+
+/** The most people a feed's audience may hold (2961). */
+export const MAX_FEED_PEOPLE = 50;
+
+export interface CalendarFeedSummary extends FeedConfiguration {
   readonly id: string;
   /** Null for the member's own schedule. */
   readonly projectId: string | null;
@@ -45,6 +104,30 @@ export interface CalendarFeedSummary {
   readonly createdAt: string;
   readonly rotatedAt: string | null;
   readonly lastAccessedAt: string | null;
+}
+
+const SOURCE_SET = new Set<string>(CALENDAR_FEED_SOURCES);
+
+function sourcesOf(value: unknown): CalendarFeedSource[] | null {
+  if (!Array.isArray(value)) return null;
+  const list = value.filter(
+    (v): v is CalendarFeedSource => typeof v === "string" && SOURCE_SET.has(v),
+  );
+  return list.length > 0 ? list : null;
+}
+
+/** The RPC arguments of a configuration (2961): null where nothing is set. */
+export function configurationArgs(config: FeedConfiguration): Record<string, unknown> {
+  const audience = config.audience;
+  const name = config.name?.trim() ?? "";
+  return {
+    p_name: name === "" ? null : name,
+    p_sources: config.sources === null ? null : [...config.sources],
+    p_person_ids: audience?.kind === "people" ? [...audience.personIds] : null,
+    p_team_id: audience?.kind === "team" ? audience.teamId : null,
+    p_department_code: audience?.kind === "department" ? audience.departmentCode : null,
+    p_cue_call_kind: config.cueCallKind,
+  };
 }
 
 export interface NewFeedToken {
@@ -62,19 +145,21 @@ function tokenRow(data: unknown): NewFeedToken | null {
     : null;
 }
 
+function rpcOf(db: XosClient) {
+  return db as unknown as {
+    rpc(
+      f: string,
+      a: Record<string, unknown>,
+    ): PromiseLike<{ data: unknown; error: DatabaseErrorLike | null }>;
+  };
+}
+
 async function tokenCall(
   db: XosClient,
   fn: string,
   args: Record<string, unknown>,
 ): Promise<Result<NewFeedToken>> {
-  const { data, error } = await (
-    db as unknown as {
-      rpc(
-        f: string,
-        a: Record<string, unknown>,
-      ): PromiseLike<{ data: unknown; error: DatabaseErrorLike | null }>;
-    }
-  ).rpc(fn, args);
+  const { data, error } = await rpcOf(db).rpc(fn, args);
   if (error) return fail(toDataError(error));
   const row = tokenRow(data);
   return row ? ok(row) : fail({ kind: "unexpected", message: `${fn} returned no token` });
@@ -89,7 +174,9 @@ export async function listMyCalendarFeeds(
 ): Promise<Result<CalendarFeedSummary[]>> {
   const { data, error } = await db
     .from("calendar_feeds")
-    .select("id, project_id, token_hint, created_at, rotated_at, last_accessed_at")
+    .select(
+      "id, project_id, token_hint, created_at, rotated_at, last_accessed_at, name, sources, team_id, department_code, cue_call_kind",
+    )
     .eq("org_id", orgId)
     .is("revoked_at", null)
     .is("deleted_at", null)
@@ -102,9 +189,42 @@ export async function listMyCalendarFeeds(
     if (read.error) return fail(toDataError(read.error));
     for (const p of read.data) projects.set(p.id, { name: p.name, key: p.project_key });
   }
+  // A people audience is kept as memberships of the org (2960); read back as their people.
+  const feedIds = data
+    .filter((f) => f.project_id && !f.team_id && !f.department_code)
+    .map((f) => f.id);
+  const people = new Map<string, string[]>();
+  if (feedIds.length > 0) {
+    const read = await db
+      .from("calendar_feed_members")
+      .select("calendar_feed_id, membership:memberships!inner(person_id)")
+      .in("calendar_feed_id", feedIds)
+      .is("deleted_at", null);
+    if (read.error) return fail(toDataError(read.error));
+    for (const row of read.data as unknown as {
+      calendar_feed_id: string;
+      membership: { person_id: string } | null;
+    }[]) {
+      if (!row.membership) continue;
+      people.set(row.calendar_feed_id, [
+        ...(people.get(row.calendar_feed_id) ?? []),
+        row.membership.person_id,
+      ]);
+    }
+  }
   return ok(
     data.map((f) => ({
       id: f.id,
+      name: f.name,
+      sources: sourcesOf(f.sources),
+      audience: f.team_id
+        ? { kind: "team" as const, teamId: f.team_id }
+        : f.department_code
+          ? { kind: "department" as const, departmentCode: f.department_code }
+          : people.has(f.id)
+            ? { kind: "people" as const, personIds: people.get(f.id) ?? [] }
+            : null,
+      cueCallKind: (f.cue_call_kind as CueCallKind | null) ?? null,
       projectId: f.project_id,
       projectName: f.project_id ? (projects.get(f.project_id)?.name ?? null) : null,
       projectKey: f.project_id ? (projects.get(f.project_id)?.key ?? null) : null,
@@ -116,16 +236,34 @@ export async function listMyCalendarFeeds(
   );
 }
 
-/** Creates a feed of the member's own schedule, or of one project they can read. */
+/**
+ * Creates a feed of the member's own schedule, or of one project they can read, with an optional
+ * configuration saved in the same call. Without one it is a 4.0 feed.
+ */
 export function createCalendarFeed(
   db: XosClient,
   orgId: string,
   projectId: string | null,
+  config?: FeedConfiguration,
 ): Promise<Result<NewFeedToken>> {
   return tokenCall(db, "create_calendar_feed", {
     p_org_id: orgId,
     ...(projectId === null ? {} : { p_project_id: projectId }),
+    ...(config === undefined ? {} : configurationArgs(config)),
   });
+}
+
+/** Replaces the configuration of one of the member's live feeds; its link stays. */
+export async function configureCalendarFeed(
+  db: XosClient,
+  id: string,
+  config: FeedConfiguration,
+): Promise<Result<void>> {
+  const { error } = await rpcOf(db).rpc("configure_calendar_feed", {
+    p_calendar_feed_id: id,
+    ...configurationArgs(config),
+  });
+  return error ? fail(toDataError(error)) : ok(undefined);
 }
 
 /** Issues a new token for one of the member's feeds; the old link stops at once. */
@@ -153,7 +291,7 @@ export async function listMyPersonCalendarFeeds(
 ): Promise<Result<CalendarFeedSummary[]>> {
   const { data, error } = await db
     .from("person_calendar_feeds")
-    .select("id, token_hint, created_at, rotated_at, last_accessed_at")
+    .select("id, token_hint, created_at, rotated_at, last_accessed_at, name, sources")
     .is("revoked_at", null)
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
@@ -161,6 +299,10 @@ export async function listMyPersonCalendarFeeds(
   return ok(
     data.map((f) => ({
       id: f.id,
+      name: f.name,
+      sources: sourcesOf(f.sources),
+      audience: null,
+      cueCallKind: null,
       projectId: null,
       projectName: null,
       projectKey: null,
@@ -172,8 +314,39 @@ export async function listMyPersonCalendarFeeds(
   );
 }
 
-export function createPersonCalendarFeed(db: XosClient): Promise<Result<NewFeedToken>> {
-  return tokenCall(db, "create_person_calendar_feed", {});
+/** A person feed's configuration: a name and sources only. */
+export type PersonFeedConfiguration = Pick<FeedConfiguration, "name" | "sources">;
+
+function personArgs(config: PersonFeedConfiguration): Record<string, unknown> {
+  const name = config.name?.trim() ?? "";
+  return {
+    p_name: name === "" ? null : name,
+    p_sources: config.sources === null ? null : [...config.sources],
+  };
+}
+
+export function createPersonCalendarFeed(
+  db: XosClient,
+  config?: PersonFeedConfiguration,
+): Promise<Result<NewFeedToken>> {
+  return tokenCall(
+    db,
+    "create_person_calendar_feed",
+    config === undefined ? {} : personArgs(config),
+  );
+}
+
+/** Replaces the name and sources of one of the person's own live feeds; its link stays. */
+export async function configurePersonCalendarFeed(
+  db: XosClient,
+  id: string,
+  config: PersonFeedConfiguration,
+): Promise<Result<void>> {
+  const { error } = await rpcOf(db).rpc("configure_person_calendar_feed", {
+    p_calendar_feed_id: id,
+    ...personArgs(config),
+  });
+  return error ? fail(toDataError(error)) : ok(undefined);
 }
 
 export function rotatePersonCalendarFeed(db: XosClient, id: string): Promise<Result<NewFeedToken>> {
@@ -203,11 +376,13 @@ export interface FeedMeta {
   readonly projectKey: string | null;
   readonly timeZone: string;
   readonly locale: string;
+  /** The name the owner gave the feed, or null for the default name. */
+  readonly name: string | null;
 }
 
 export interface FeedEvent {
   readonly id: string;
-  readonly kind: "shift" | "meeting" | "milestone" | "deadline";
+  readonly kind: "shift" | "meeting" | "milestone" | "deadline" | "cue";
   readonly title: string;
   readonly startsAt: string;
   readonly endsAt: string | null;
@@ -223,6 +398,11 @@ export interface FeedEvent {
   readonly scopeNodeName: string | null;
   /** All-day dates on the place's calendar (the project's zone, A71), or null for a timed event. */
   readonly allDay: { readonly start: string; readonly end: string } | null;
+  /** A cue's run of show; null for every other kind. */
+  readonly runId: string | null;
+  readonly runName: string | null;
+  /** The filtered show department's call on a cue. */
+  readonly callInstruction: string | null;
 }
 
 export type CalendarFeedDocument =
@@ -231,7 +411,7 @@ export type CalendarFeedDocument =
   | { readonly status: "rate_limited"; readonly retryAfterSeconds: number };
 
 const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
-const KINDS = new Set(["shift", "meeting", "milestone", "deadline"]);
+const KINDS = new Set(["shift", "meeting", "milestone", "deadline", "cue"]);
 const STATUSES = new Set(["tentative", "confirmed", "cancelled"]);
 const SCOPES = new Set(["member", "project", "person"]);
 
@@ -290,6 +470,9 @@ export function parseCalendarFeedDocument(value: unknown): CalendarFeedDocument 
       recordKey: str(e["record_key"]),
       scopeNodeName: str(e["scope_node_name"]),
       allDay: allDayOf(e),
+      runId: str(e["run_id"]),
+      runName: str(e["run_name"]),
+      callInstruction: str(e["call_instruction"]),
     });
   }
   return {
@@ -302,6 +485,7 @@ export function parseCalendarFeedDocument(value: unknown): CalendarFeedDocument 
       projectKey: str(feed["project_key"]),
       timeZone: str(feed["time_zone"]) ?? "UTC",
       locale: str(feed["locale"]) ?? "en-US",
+      name: str(feed["name"]),
     },
     events,
   };
@@ -342,6 +526,8 @@ function eventUrl(feed: FeedMeta, event: FeedEvent, links: FeedLinks): string | 
   const gateway = links.gatewayOrigin?.replace(/\/+$/, "");
   if (feed.scope === "person") return gateway ? `${gateway}/work/upcoming` : null;
   if (!atlas || !feed.orgSlug) return null;
+  if (event.kind === "cue" && event.runId && feed.scope === "project")
+    return `${atlas}/${feed.orgSlug}/show/run-of-show?peek=${event.runId}`;
   if (event.recordKey) return `${atlas}/${feed.orgSlug}/r/${event.recordKey}`;
   if (feed.scope === "project" && feed.projectKey)
     return `${atlas}/${feed.orgSlug}/p/${feed.projectKey}/schedule`;
@@ -357,8 +543,12 @@ export function feedEvents(feed: FeedMeta, events: readonly FeedEvent[], links: 
         ? [e.title || e.projectName || "", project && e.title ? project : null]
             .filter((part): part is string => Boolean(part))
             .join(" · ")
-        : e.title;
-    const description = [e.orgName, project, e.scopeNodeName, e.recordKey]
+        : e.kind === "cue"
+          ? [e.runName ? `${e.runName} · ${e.title}` : e.title, project]
+              .filter((part): part is string => Boolean(part))
+              .join(" · ")
+          : e.title;
+    const description = [e.orgName, project, e.scopeNodeName, e.recordKey, e.callInstruction]
       .filter((part): part is string => Boolean(part))
       .join("\n");
     return {
@@ -380,13 +570,14 @@ export function feedEvents(feed: FeedMeta, events: readonly FeedEvent[], links: 
 }
 
 /**
- * The calendar's display name from the `platform.calendarFeeds.feed` messages (member, project,
- * person), in the feed owner's language.
+ * The calendar's display name: the name the owner gave the feed, else the default from the
+ * `platform.calendarFeeds.feed` messages (member, project, person), in the feed owner's language.
  */
 export function calendarFeedName(
   feed: FeedMeta,
   t: (key: FeedScope, values: Record<string, string>) => string,
 ): string {
+  if (feed.name) return feed.name;
   const org = feed.orgName ?? "";
   if (feed.scope === "project") return t("project", { project: feed.projectName ?? "", org });
   if (feed.scope === "member") return t("member", { org });

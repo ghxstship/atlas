@@ -541,6 +541,8 @@ export async function listDaySheets(
     readonly from?: string;
     readonly to?: string;
     readonly id?: string;
+    /** Only published sheets (B7 books). */
+    readonly publishedOnly?: boolean;
   },
 ): Promise<Result<DaySheet[]>> {
   let q = untyped(db)
@@ -554,6 +556,7 @@ export async function listDaySheets(
   if (query.from) q = q.gte("day", query.from);
   if (query.to) q = q.lte("day", query.to);
   if (query.id) q = q.eq("id", query.id);
+  if (query.publishedOnly) q = q.not("published_at", "is", null);
   const { data, error } = await q.order("day").limit(500);
   if (error) return fail(toDataError(error));
   return ok(
@@ -671,6 +674,8 @@ export async function listCallSheets(
     readonly from?: string;
     readonly to?: string;
     readonly id?: string;
+    /** Only published sheets (B7 books). */
+    readonly publishedOnly?: boolean;
   },
 ): Promise<Result<CallSheet[]>> {
   let q = db
@@ -682,6 +687,7 @@ export async function listCallSheets(
   if (query.from) q = q.gte("day", query.from);
   if (query.to) q = q.lte("day", query.to);
   if (query.id) q = q.eq("id", query.id);
+  if (query.publishedOnly) q = q.not("published_at", "is", null);
   const { data, error } = await q.order("day").limit(500);
   if (error) return fail(toDataError(error));
   return ok(
@@ -716,6 +722,8 @@ export interface Call {
   readonly roleCode: string | null;
   readonly roleTitle: string | null;
   readonly personName: string | null;
+  /** Null for an open shift. */
+  readonly membershipId: string | null;
 }
 
 /**
@@ -731,7 +739,7 @@ export async function listCalls(
   const { data, error } = await db
     .from("shifts")
     .select(
-      "id, starts_at, ends_at, role_code, membership:memberships(person:people!memberships_person_id_fkey(full_name))",
+      "id, starts_at, ends_at, role_code, membership_id, membership:memberships(person:people!memberships_person_id_fkey(full_name))",
     )
     .eq("project_id", input.projectId)
     .gte("starts_at", start)
@@ -744,6 +752,7 @@ export async function listCalls(
     starts_at: string;
     ends_at: string;
     role_code: string | null;
+    membership_id: string | null;
     membership: { person: { full_name: string | null } | null } | null;
   }[];
   const codes = [...new Set(rows.flatMap((r) => (r.role_code ? [r.role_code] : [])))];
@@ -765,8 +774,118 @@ export async function listCalls(
       roleCode: r.role_code,
       roleTitle: r.role_code ? (titles.get(r.role_code) ?? null) : null,
       personName: r.membership?.person?.full_name ?? null,
+      membershipId: r.membership_id,
     })),
   );
+}
+
+// Day schedules (B7, ADR 0146 decisions 2 and 3) ------------------------------------------------------------
+
+export type DayRecordKind = "Meeting" | "Milestone" | "Deadline";
+
+/** A meeting, milestone or deadline of a project day, as a day sheet lists it. */
+export interface DayRecord {
+  readonly id: string;
+  readonly kind: DayRecordKind;
+  readonly title: string;
+  /** The start, else the due time. */
+  readonly at: string;
+  readonly startTbc: boolean;
+  readonly state: string;
+  readonly recordKey: string;
+}
+
+/**
+ * The project's Meeting, Milestone and Deadline records that start, or without a start are due, on a local day of
+ * the project's zone, read as the caller.
+ */
+export async function listDayRecords(
+  db: XosClient,
+  input: { readonly projectId: string; readonly day: string; readonly timeZone: string },
+): Promise<Result<DayRecord[]>> {
+  const start = zonedMidnight(input.day, input.timeZone);
+  const end = zonedMidnight(nextDay(input.day), input.timeZone);
+  const { data, error } = await db
+    .from("records")
+    .select(
+      "id, record_kind, title, starts_at, due_at, start_tbc, record_state, record_number, project:projects!records_project_id_fkey(project_key)",
+    )
+    .eq("project_id", input.projectId)
+    .in("record_kind", ["Meeting", "Milestone", "Deadline"])
+    .is("deleted_at", null)
+    .or(
+      `and(starts_at.gte.${start},starts_at.lt.${end}),and(starts_at.is.null,due_at.gte.${start},due_at.lt.${end})`,
+    )
+    .limit(500);
+  if (error) return fail(toDataError(error));
+  const rows = data as unknown as {
+    id: string;
+    record_kind: DayRecordKind;
+    title: string;
+    starts_at: string | null;
+    due_at: string | null;
+    start_tbc: boolean;
+    record_state: string;
+    record_number: number;
+    project: { project_key: string } | null;
+  }[];
+  return ok(
+    rows
+      .map((r) => ({
+        id: r.id,
+        kind: r.record_kind,
+        title: r.title,
+        at: (r.starts_at ?? r.due_at) as string,
+        startTbc: r.start_tbc && r.starts_at !== null,
+        state: r.record_state,
+        recordKey: r.project
+          ? `${r.project.project_key}-${r.record_number}`
+          : String(r.record_number),
+      }))
+      .sort((a, b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id)),
+  );
+}
+
+/** A day sheet's audience: one team or one canon department (app.day_sheet_schedule). */
+export type DaySheetAudienceInput =
+  | { readonly teamId: string; readonly departmentCode?: undefined }
+  | { readonly departmentCode: string; readonly teamId?: undefined };
+
+/** What a day sheet's audience may print: its name and the ids of its shifts and records that day. */
+export interface DaySheetAudienceSchedule {
+  readonly audienceName: string;
+  readonly shiftIds: readonly string[];
+  readonly recordIds: readonly string[];
+}
+
+/**
+ * The audience's part of a day sheet's day, through app.day_sheet_schedule: the audience rule lives in SQL alone,
+ * shared with calendar feeds. A team of another org, or a sheet the caller cannot read, is not found; two audiences
+ * or an unknown department are refused (day_sheet_audience).
+ */
+export async function readDaySheetSchedule(
+  db: XosClient,
+  daySheetId: string,
+  audience: DaySheetAudienceInput,
+): Promise<Result<DaySheetAudienceSchedule>> {
+  const { data, error } = await untyped(db).rpc("day_sheet_schedule", {
+    p_day_sheet_id: daySheetId,
+    p_team_id: audience.teamId ?? null,
+    p_department_code: audience.departmentCode ?? null,
+  });
+  if (error) return fail(toDataError(error));
+  const doc = (data ?? {}) as {
+    audience_name?: unknown;
+    shift_ids?: unknown;
+    record_ids?: unknown;
+  };
+  const ids = (v: unknown) =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+  return ok({
+    audienceName: typeof doc.audience_name === "string" ? doc.audience_name : "",
+    shiftIds: ids(doc.shift_ids),
+    recordIds: ids(doc.record_ids),
+  });
 }
 
 function nextDay(day: string): string {

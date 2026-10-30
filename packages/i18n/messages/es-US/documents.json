@@ -18,7 +18,9 @@
     "incident-report": "Informe de incidente",
     "final-cost-report": "Informe de costo final",
     "agreement-certificate": "Certificado de firma",
-    "deletion-certificate": "Certificado de eliminación"
+    "deletion-certificate": "Certificado de eliminación",
+    "wrap-up-report": "Informe de cierre",
+    "document-book": "Libro"
   },
   "facts": {
     "recordKey": "Clave del registro",
@@ -110,7 +112,28 @@
   "daySheet": {
     "title": "Hoja del día {project}, {day}",
     "body": "Notas del día",
-    "emptyBody": "Esta hoja del día aún no tiene notas."
+    "emptyBody": "Esta hoja del día aún no tiene notas.",
+    "titleFor": "Hoja del día {project}, {day}, para {audience}",
+    "for": "Para",
+    "department": "Departamento del show",
+    "notes": "Notas del día",
+    "calls": "Llamados",
+    "schedule": "Agenda",
+    "cues": "Cues",
+    "cuesOf": "Cues: {name}",
+    "open": "Abierto",
+    "noCalls": "No hay llamados este día.",
+    "noRecords": "No hay reuniones, hitos ni plazos este día.",
+    "noCues": "No hay cues este día.",
+    "time": "Hora",
+    "kind": "Tipo",
+    "item": "Elemento",
+    "canceled": "{title} (Cancelado)",
+    "kinds": {
+      "Meeting": "Reunión",
+      "Milestone": "Hito",
+      "Deadline": "Plazo"
+    }
   },
   "callSheet": {
     "title": "Hoja de llamados {project}, {day}",
@@ -478,5 +501,117 @@
     "a4": "A4",
     "a6": "A6",
     "cr80": "Tarjeta CR80"
+  },
+  "book": {
+    "contents": "Contenido",
+    "kind": "Tipo",
+    "dates": "Fechas",
+    "range": "Del {from} al {to}",
+    "wholeProject": "Todo el proyecto",
+    "sections": "Secciones",
+    "documents": "Documentos",
+    "noDocuments": "Este libro no contiene documentos.",
+    "leftOutUnreadable": "Registros que no puede abrir, omitidos: {count}.",
+    "leftOutUnpublished": "Hojas del día y de llamado aún sin publicar, omitidas: {count}.",
+    "kinds": {
+      "TourBook": "Libro de gira",
+      "ProductionBook": "Libro de producción"
+    },
+    "sectionKinds": {
+      "daysheet": "Hojas del día",
+      "callsheet": "Hojas de llamado",
+      "runofshow": "Escaletas",
+      "beo": "Órdenes de evento de banquete",
+      "inspectionreport": "Informes de inspección",
+      "incidentreport": "Informes de incidentes",
+      "finalcostreport": "Informe de costo final",
+      "wrapupreport": "Informe de cierre"
+    }
+  },
+  "wrapUp": {
+    "title": "Informe de cierre {project}",
+    "state": "Balance",
+    "states": {
+      "notStarted": "Sin empezar",
+      "open": "Abierto",
+      "completed": "Completado"
+    },
+    "completedBy": "Completado por",
+    "completedOn": "Completado el",
+    "sections": {
+      "summary": "Resumen para la dirección",
+      "budget": "Presupuesto frente a costos reales",
+      "attendance": "Asistencia",
+      "sustainability": "Sostenibilidad y carbono",
+      "incidents": "Incidentes",
+      "debrief": "Balance"
+    },
+    "aiReviewed": "Redactado con Aurora y revisado por {name} el {date}",
+    "writtenBy": "Escrito por {name} el {date}",
+    "noSummary": "Aún no hay resumen para la dirección.",
+    "notIncluded": "No incluido: no puede leer {section}.",
+    "unmeasured": "Sin medir",
+    "figure": "{value} {unit}",
+    "metric": "Medida",
+    "target": "Meta",
+    "measured": "Medido",
+    "outcome": "Resultado",
+    "noMeasurements": "No hay medidas en esta familia.",
+    "severity": "Gravedad",
+    "count": "Cantidad",
+    "totalIncidents": "Total",
+    "openIncidents": "Abiertos",
+    "noIncidents": "No se reportaron incidentes.",
+    "area": "Área",
+    "kind": "Tipo",
+    "point": "Punto",
+    "owner": "Responsable",
+    "noOwner": "Sin responsable",
+    "noPoints": "Aún no hay puntos del balance.",
+    "outcomes": {
+      "Met": "Cumplido",
+      "NotMet": "No cumplido",
+      "Incomplete": "Incompleto",
+      "Unmeasured": "Sin medir"
+    },
+    "metrics": {
+      "waste_generated": "Residuos generados",
+      "waste_diverted": "Residuos desviados",
+      "energy_used": "Energía usada",
+      "water_used": "Agua usada",
+      "transport_emissions": "Emisiones del transporte",
+      "attendance": "Asistencia",
+      "online_audience": "Audiencia en línea"
+    },
+    "units": {
+      "kg": "kg",
+      "t": "t",
+      "lb": "lb",
+      "short_ton": "toneladas cortas",
+      "l": "L",
+      "m3": "m³",
+      "gal": "gal",
+      "kwh": "kWh",
+      "mwh": "MWh",
+      "kg_co2e": "kg CO2e",
+      "t_co2e": "t CO2e",
+      "count": "personas",
+      "percent": "%"
+    },
+    "areas": {
+      "schedule": "Calendario",
+      "budget": "Presupuesto",
+      "safety": "Seguridad",
+      "audience": "Público",
+      "sustainability": "Sostenibilidad",
+      "crew": "Equipo",
+      "vendors": "Proveedores",
+      "other": "Otro"
+    },
+    "kinds": {
+      "wentWell": "Salió bien",
+      "toImprove": "Por mejorar",
+      "action": "Acción"
+    }
   }
 }

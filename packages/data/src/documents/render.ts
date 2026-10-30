@@ -1,5 +1,11 @@
-import type { DocumentBlock, DocumentColumn, DocumentModel, PrintSize } from "./model.ts";
-import { isCardPaper } from "./model.ts";
+import type { DocumentBlock, DocumentColumn, DocumentModel, Paper, PrintSize } from "./model.ts";
+import {
+  DOCUMENT_CLASSIFICATION,
+  isCardPaper,
+  MAX_BATCH,
+  MAX_BOOK_DOCUMENTS,
+  needsWatermark,
+} from "./model.ts";
 import { qrMatrix } from "./qr.ts";
 
 /** Page orientation: portrait by default; wide forms such as the WH-347 and OSHA 300 print landscape. */
@@ -41,8 +47,16 @@ export const SIZES: Record<PrintSize, string | [number, number]> = {
   cr80: [153.01, 242.65],
 };
 
-/** The most documents one batch PDF holds (P5: a print run of credential badges). */
-export const MAX_BATCH = 100;
+export { MAX_BATCH };
+
+/** Book page numbering of one document (B7): its first page's place in the book and the book's page count. */
+export interface BookPagination {
+  readonly offset: number;
+  readonly total: number;
+}
+
+/** The fixed width of a contents entry's page column, so a page number never changes a line break. */
+const CONTENTS_PAGE_WIDTH = 40;
 
 let fontCache: { regular: Buffer; semibold: Buffer } | null = null;
 
@@ -252,13 +266,46 @@ async function drawModel(
   parent: StructElement,
   model: DocumentModel,
   paper: PrintSize,
+  pagination?: BookPagination,
 ): Promise<void> {
   if (isCardPaper(paper)) {
     const { CardRenderer } = await import("./render-card.ts");
     new CardRenderer(doc, model, parent, paper).render();
   } else {
-    new Renderer(doc, model, parent).render();
+    new Renderer(doc, model, parent, pagination).render();
   }
+}
+
+/**
+ * Draws documents one after another under the Document root: each a Sect starting on a new page, its pages
+ * written out as soon as it is drawn (P5). With bookmarks, each also gets an outline item; with pagination, its
+ * footers number the whole book (B7). Returns each document's page count.
+ */
+async function writeSections(
+  doc: Doc,
+  root: StructElement,
+  models: readonly DocumentModel[],
+  paper: PrintSize,
+  options: {
+    readonly bookmarks?: boolean;
+    readonly pagination?: readonly BookPagination[];
+  } = {},
+): Promise<number[]> {
+  const counts: number[] = [];
+  for (const [i, model] of models.entries()) {
+    if (i > 0) doc.addPage();
+    const before = doc.bufferedPageRange();
+    const first = before.start + before.count - 1;
+    if (options.bookmarks) doc.outline.addItem(model.title);
+    const section = doc.struct("Sect");
+    root.add(section);
+    await drawModel(doc, section, model, paper, options.pagination?.[i]);
+    section.end();
+    const after = doc.bufferedPageRange();
+    counts.push(after.start + after.count - first);
+    doc.flushPages();
+  }
+  return counts;
 }
 
 export async function renderDocumentPdf(
@@ -330,13 +377,145 @@ export function streamDocumentsPdf(
         const ended = new Promise<void>((resolve) => doc.on("end", resolve));
         const root = doc.struct("Document");
         doc.addStructure(root);
-        for (const [i, model] of models.entries()) {
-          if (i > 0) doc.addPage();
-          const section = doc.struct("Sect");
-          root.add(section);
-          await drawModel(doc, section, model, options.paper);
-          section.end();
-          doc.flushPages();
+        await writeSections(doc, root, models, options.paper);
+        root.end();
+        doc.end();
+        await ended;
+        controller.close();
+      } catch (error) {
+        controller.error(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+  });
+}
+
+export interface BookOptions {
+  /** Books print on Letter and A4 only. */
+  readonly paper: Paper;
+  /** The PDF title: the book's name. */
+  readonly title: string;
+  /** The shared language of the cover and every document. */
+  readonly lang: string;
+}
+
+/** The cover with each contents entry's page set; entries follow the documents in order. */
+function withPages(cover: DocumentModel, pages: readonly number[]): DocumentModel {
+  let next = 0;
+  return {
+    ...cover,
+    blocks: cover.blocks.map((block) =>
+      block.kind === "contents"
+        ? { ...block, entries: block.entries.map((e) => ({ ...e, page: pages[next++] ?? 0 })) }
+        : block,
+    ),
+  };
+}
+
+function bookSetup(cover: DocumentModel, options: BookOptions): PdfSetup {
+  return {
+    paper: options.paper,
+    orientation: "portrait",
+    margins: marginsFor(options.paper),
+    lang: options.lang,
+    title: options.title,
+    author: cover.brand.legalEntity ?? cover.brand.name,
+    subject: `${cover.facts.recordKey} v${cover.facts.templateVersion}`,
+    createdAt: cover.facts.generatedAtIso,
+  };
+}
+
+/** A book's page plan: each part's page count (the cover first), the book page each starts on, and the total. */
+export interface BookLayout {
+  readonly counts: readonly number[];
+  readonly starts: readonly number[];
+  readonly total: number;
+}
+
+/**
+ * Pass 1 of a book (B7): draws the cover, its contents with placeholder page numbers, and every document into a
+ * counting PDF that is thrown away, and returns where each part starts. The page column is fixed-width, so the real
+ * numbers drawn in pass 2 cannot move a line.
+ */
+export async function bookLayout(
+  cover: DocumentModel,
+  sections: readonly DocumentModel[],
+  options: BookOptions,
+): Promise<BookLayout> {
+  assertBook(cover, sections, options.paper);
+  const counting = await openPdf(bookSetup(cover, options));
+  counting.on("data", () => undefined);
+  const counted = new Promise<void>((resolve, reject) => {
+    counting.on("end", resolve);
+    counting.on("error", reject);
+  });
+  const root = counting.struct("Document");
+  counting.addStructure(root);
+  const counts = await writeSections(counting, root, [cover, ...sections], options.paper);
+  root.end();
+  counting.end();
+  await counted;
+  const starts: number[] = [];
+  let page = 1;
+  for (const count of counts) {
+    starts.push(page);
+    page += count;
+  }
+  return { counts, starts, total: page - 1 };
+}
+
+function assertBook(cover: DocumentModel, sections: readonly DocumentModel[], paper: string): void {
+  if (paper !== "letter" && paper !== "a4")
+    throw new Error(`A book prints on Letter or A4, not ${paper}.`);
+  if (sections.length < 1 || sections.length > MAX_BOOK_DOCUMENTS) {
+    throw new Error(`A book holds 1 to ${MAX_BOOK_DOCUMENTS} documents and its cover.`);
+  }
+  for (const model of [cover, ...sections]) {
+    // Every book section kind prints only Internal columns today; a Confidential or Restricted one would need the
+    // viewer watermark on its pages, which a compiled book does not carry (ADR 0146 decision 4).
+    if (needsWatermark(DOCUMENT_CLASSIFICATION[model.kind]) || model.watermark) {
+      throw new Error(`A book cannot hold a ${model.kind}: it needs the viewer watermark.`);
+    }
+  }
+}
+
+/**
+ * A book (B7, ADR 0146 decision 4): the cover with its contents, then each document, in one tagged PDF/UA-1 file.
+ * Pass 1 draws everything, the contents with placeholder page numbers, into a counting PDF that is thrown away, to
+ * learn each document's page count; the page column is fixed-width, so the real numbers cannot move a line. Pass 2
+ * streams one Document root, the cover Sect with the TOC, then a Sect per document on a new page, each with an
+ * outline item and footers that number the whole book ("Page n of N").
+ */
+export function streamBookPdf(
+  cover: DocumentModel,
+  sections: readonly DocumentModel[],
+  options: BookOptions,
+): ReadableStream<Uint8Array> {
+  return new ReadableStream<Uint8Array>({
+    start: async (controller) => {
+      try {
+        // Pass 1: count the pages.
+        const { counts, starts, total } = await bookLayout(cover, sections, options);
+        const pagination = starts.map((offset) => ({ offset, total }));
+
+        // Pass 2: stream the book.
+        const doc = await openPdf(bookSetup(cover, options));
+        doc.on("data", (chunk: Uint8Array) => controller.enqueue(new Uint8Array(chunk)));
+        doc.on("error", (error: unknown) => controller.error(error));
+        const ended = new Promise<void>((resolve) => doc.on("end", resolve));
+        const root = doc.struct("Document");
+        doc.addStructure(root);
+        const drawn = await writeSections(
+          doc,
+          root,
+          [withPages(cover, starts.slice(1)), ...sections],
+          options.paper,
+          {
+            bookmarks: true,
+            pagination,
+          },
+        );
+        if (drawn.some((count, i) => count !== counts[i])) {
+          throw new Error("A book's page count changed between its two passes.");
         }
         root.end();
         doc.end();
@@ -347,6 +526,15 @@ export function streamDocumentsPdf(
       }
     },
   });
+}
+
+/** A book as one buffer, for tests and the veraPDF check. */
+export async function renderBookPdf(
+  cover: DocumentModel,
+  sections: readonly DocumentModel[],
+  options: BookOptions,
+): Promise<Uint8Array> {
+  return new Uint8Array(await new Response(streamBookPdf(cover, sections, options)).arrayBuffer());
 }
 
 /** The batch PDF as one buffer, for tests and the veraPDF check. */
@@ -500,6 +688,13 @@ export class TaggedWriter {
 }
 
 class Renderer extends TaggedWriter {
+  private readonly pagination: BookPagination | undefined;
+
+  constructor(doc: Doc, model: DocumentModel, parent: StructElement, pagination?: BookPagination) {
+    super(doc, model, parent);
+    this.pagination = pagination;
+  }
+
   private ensure(height: number): void {
     if (this.doc.y + height > this.bottom) {
       this.doc.addPage();
@@ -671,6 +866,10 @@ class Renderer extends TaggedWriter {
         );
         return;
       }
+      case "contents": {
+        this.contents(block);
+        return;
+      }
       case "table": {
         if (block.rows.length === 0) {
           this.style("semibold", 10);
@@ -685,6 +884,67 @@ class Renderer extends TaggedWriter {
         return;
       }
     }
+  }
+
+  /**
+   * A book's contents (B7) as a TOC with one TOCI per entry, each a P holding the title and record key and the page
+   * number in a fixed-width column at the end of its first line; dot leaders between them are artifacts.
+   */
+  private contents(block: Extract<DocumentBlock, { kind: "contents" }>): void {
+    const { doc } = this;
+    this.style("semibold", 12);
+    this.ensure(48);
+    doc.y += 4;
+    this.text(this.root, "H2", block.caption);
+    doc.y += 4;
+    if (block.entries.length === 0) {
+      this.style("regular", BODY, MUTED);
+      this.text(this.root, "P", block.empty);
+      doc.y += GAP;
+      return;
+    }
+    const toc = doc.struct("TOC");
+    this.root.add(toc);
+    const textWidth = this.width - CONTENTS_PAGE_WIDTH - GAP;
+    const pageX = this.left + this.width - CONTENTS_PAGE_WIDTH;
+    for (const entry of block.entries) {
+      this.style("regular", BODY);
+      const label = this.safe(`${entry.title}  ${entry.recordKey}`) || " ";
+      const height = doc.heightOfString(label, { width: textWidth });
+      this.ensure(height + 4);
+      const y = doc.y;
+      const item = doc.struct("TOCI");
+      toc.add(item);
+      item.add(
+        doc.struct("P", () => {
+          doc.text(label, this.left, y, { width: textWidth });
+          doc.text(String(entry.page), pageX, y, {
+            width: CONTENTS_PAGE_WIDTH,
+            align: "right",
+            lineBreak: false,
+          });
+        }),
+      );
+      item.end();
+      const firstLine = doc.widthOfString(label);
+      if (firstLine < textWidth - 8) {
+        this.artifact(() => {
+          const lineY = y + BODY * 0.95;
+          doc
+            .moveTo(this.left + firstLine + 4, lineY)
+            .lineTo(pageX - 4, lineY)
+            .lineWidth(0.6)
+            .dash(0.6, { space: 2.4 })
+            .strokeColor(RULE)
+            .stroke()
+            .undash();
+        });
+      }
+      doc.x = this.left;
+      doc.y = y + height + 4;
+    }
+    toc.end();
+    doc.y += GAP;
   }
 
   /** A PNG or JPEG fitted to the page width and the space left, as a Figure with alternative text. */
@@ -859,8 +1119,13 @@ class Renderer extends TaggedWriter {
           width: this.width / 2,
           lineBreak: false,
         });
+        const local = i - this.firstPage + 1;
         doc.text(
-          this.safe(model.facts.labels.page(i - this.firstPage + 1, end - this.firstPage)),
+          this.safe(
+            this.pagination
+              ? model.facts.labels.page(this.pagination.offset + local - 1, this.pagination.total)
+              : model.facts.labels.page(local, end - this.firstPage),
+          ),
           this.left + this.width / 2,
           y,
           { width: this.width / 2, align: "right", lineBreak: false },

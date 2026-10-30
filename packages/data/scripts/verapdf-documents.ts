@@ -7,7 +7,8 @@ import { certifiedPayrollModel } from "../src/certified-payroll.ts";
 import { buildDeletionCertificateModel } from "../src/documents/deletion-certificate.ts";
 import { buildDocumentModel, sharedImageModel, watermarkText } from "../src/documents/generate.ts";
 import { DOCUMENT_KINDS, PAPERS, type PrintSize } from "../src/documents/model.ts";
-import { renderDocumentPdf, renderDocumentsPdf } from "../src/documents/render.ts";
+import { bookCoverModel } from "../src/documents/books.ts";
+import { renderBookPdf, renderDocumentPdf, renderDocumentsPdf } from "../src/documents/render.ts";
 import { osha300Model, osha300aModel, osha301Model } from "../src/osha.ts";
 import {
   CASES,
@@ -19,6 +20,7 @@ import {
 import {
   BADGE_V2,
   BRAND,
+  DAY_SHEET_V2,
   DELETION_CERTIFICATE,
   FIXTURES,
   LOGO_PNG,
@@ -34,8 +36,11 @@ import {
  * shared image), so the watermark keeps the files compliant, and the Section 14.5 compliance forms
  * (OSHA Forms 300, 300A and 301 and the WH-347, ADR 0041), and the P5 credential badges: CR80 and A6 cards
  * with and without a photo, version 2 on Letter and A4 with a photo, and 3-badge batches on CR80 and Letter
- * (8 files per locale). The per-kind loop keeps the version 1 badge, issued before BADGE_V2_FROM. Exits 1 when
- * any file is not compliant or veraPDF cannot run.
+ * (8 files per locale). The per-kind loop keeps the version 1 badge, issued before BADGE_V2_FROM, and holds the
+ * wrap-up report (B7). B7 adds, per locale, day sheet version 2 unfiltered on Letter and filtered for a team with a
+ * show department on A4, a Tour Book on Letter (cover, contents, 3 day sheets, a call sheet and a run of show) and
+ * a Production Book on A4 (with the final cost report and the wrap-up). Exits 1 when any file is not compliant or
+ * veraPDF cannot run.
  *
  *   pnpm --filter @xos/data documents:verapdf [--keep]
  */
@@ -112,6 +117,93 @@ for (const locale of LOCALES) {
     );
     files.push(name);
   }
+  // B7: day sheet version 2, unfiltered and for an audience, and both kinds of book.
+  const doc = (kind: Parameters<typeof buildDocumentModel>[0], data: unknown, paper: PrintSize) =>
+    buildDocumentModel(kind, data as never, {
+      locale,
+      messages,
+      brand: BRAND,
+      recordUrl: `https://atlas.example.test/northwind/documents/${kind}`,
+      now: NOW,
+      paper,
+    });
+  for (const [name, model, paper] of [
+    [`day-sheet-v2.${locale}.letter.pdf`, doc("day-sheet", DAY_SHEET_V2, "letter"), "letter"],
+    [
+      `day-sheet-v2-team-lighting.${locale}.a4.pdf`,
+      doc(
+        "day-sheet",
+        { ...DAY_SHEET_V2, audience: { label: "Load-In Crew", showDepartment: "Lighting" } },
+        "a4",
+      ),
+      "a4",
+    ],
+  ] as const) {
+    writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
+    files.push(name);
+  }
+  const days = ["2026-10-22", "2026-10-23", "2026-10-24"];
+  for (const [kind, paper, sections] of [
+    [
+      "Tour Book",
+      "letter",
+      [
+        ...days.map((day) =>
+          doc("day-sheet", { ...DAY_SHEET_V2, sheet: { ...DAY_SHEET_V2.sheet, day } }, "letter"),
+        ),
+        doc("call-sheet", FIXTURES["call-sheet"], "letter"),
+        doc("run-of-show", FIXTURES["run-of-show"], "letter"),
+      ],
+    ],
+    [
+      "Production Book",
+      "a4",
+      [
+        doc("day-sheet", DAY_SHEET_V2, "a4"),
+        doc("final-cost-report", FIXTURES["final-cost-report"], "a4"),
+        doc("wrap-up-report", FIXTURES["wrap-up-report"], "a4"),
+      ],
+    ],
+  ] as const) {
+    const cover = bookCoverModel(
+      {
+        project: FIXTURES["day-sheet"].project,
+        book: {
+          id: "b0000000-0000-4000-8000-000000000001",
+          name: `${kind}: Northwind Festival`,
+          kind,
+          startsOn: kind === "Tour Book" ? "2026-10-22" : null,
+          endsOn: kind === "Tour Book" ? "2026-10-24" : null,
+          sections:
+            kind === "Tour Book"
+              ? ["day-sheet", "call-sheet", "run-of-show"]
+              : ["day-sheet", "final-cost-report", "wrap-up-report"],
+          createdAt: "2026-10-01T00:00:00Z",
+        },
+        contents: sections.map((m) => ({ title: m.title, recordKey: m.facts.recordKey, page: 0 })),
+        unreadable: 1,
+        unpublished: 1,
+      },
+      {
+        locale,
+        messages,
+        brand: BRAND,
+        now: NOW,
+        paper,
+        recordUrl: "https://atlas.example.test/northwind/p/NWF26/documents?book=b0000000",
+      },
+    );
+    const name = `book-${kind === "Tour Book" ? "tour" : "production"}.${locale}.${paper}.pdf`;
+    writeFileSync(
+      join(dir, name),
+      await renderBookPdf(cover, sections, { paper, title: cover.title, lang: locale }),
+      {
+        mode: 0o644,
+      },
+    );
+    files.push(name);
+  }
+
   // The platform's deletion certificate (A79, Section 14.7) goes through the same renderer and gate.
   const certificate = buildDeletionCertificateModel(DELETION_CERTIFICATE, {
     locale,

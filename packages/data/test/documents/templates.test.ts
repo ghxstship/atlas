@@ -117,7 +117,8 @@ describe("template versions", () => {
   });
 
   it("ships at least version 1 of every Section 11.9 document", () => {
-    expect(DOCUMENT_KINDS).toHaveLength(12);
+    // The twelve of 4.0 and the wrap-up report (B7).
+    expect(DOCUMENT_KINDS).toHaveLength(13);
     for (const kind of DOCUMENT_KINDS) {
       expect(TEMPLATES[kind].map((v) => v.version)).toContain(1);
       const numbers = TEMPLATES[kind].map((v) => v.version);
