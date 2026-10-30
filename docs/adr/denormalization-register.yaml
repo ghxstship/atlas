@@ -545,6 +545,10 @@ restated:
     parent: app.custom_object_field_choices.custom_object_field_id
     kind: own
     note: Field the value is for; `private.guard_custom_object_value` requires a chosen choice to be one of the field's.
+  - column: app.day_template_applications.project_id
+    parent: app.run_of_show.project_id
+    kind: own
+    note: The project the template was laid onto; the running order link is optional and checked to be of the same project.
   - column: app.delegations.valid_from
     parent: app.memberships.valid_from
     kind: own
@@ -943,6 +947,26 @@ restated:
     parent: app.engagements.person_id
     kind: own
     note: Person sharing; the engagement link is optional.
+  - column: app.project_days.project_id
+    parent: app.scope_nodes.project_id
+    kind: own
+    note: The days project; the optional Show node narrows it and is checked to be of the same project.
+  - column: app.project_days.time_zone
+    parent: app.projects.time_zone
+    kind: own
+    note: The zone of a segment held somewhere else, such as a Travel day; NULL means the projects zone.
+  - column: app.project_days.time_zone
+    parent: app.venues.time_zone
+    kind: own
+    note: Stored only when no venue applies (check and private.guard_project_day), so it never restates a venues zone.
+  - column: app.project_days.venue_id
+    parent: app.projects.venue_id
+    kind: own
+    note: The venue of one segment, which can differ from the projects, as on a touring Load In.
+  - column: app.project_days.venue_id
+    parent: app.scope_nodes.venue_id
+    kind: own
+    note: Set only when no Show node is named (check), so it never restates the nodes venue.
   - column: app.project_measurement_corrections.measured_on
     parent: app.project_measurements.measured_on
     kind: fact
