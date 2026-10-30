@@ -2,11 +2,27 @@
  * Model Context Protocol over JSON-RPC 2.0, revision 2025-06-18: lifecycle (initialize,
  * notifications/initialized, ping) and tools (tools/list, tools/call). Transport-agnostic: each
  * incoming message is one parsed JSON value, and the answer is a response or nothing.
+ *
+ * A session is stateful on stdio: tools wait for initialize and notifications/initialized. The hosted
+ * Streamable HTTP endpoint (http.ts, B16) is stateless: every request is its own session, so tools need
+ * no prior initialize and the protocol version comes from the MCP-Protocol-Version header.
  */
 
 export const PROTOCOL_VERSION = "2025-06-18";
 /** Revisions this server can speak, newest first. */
 export const SUPPORTED_VERSIONS = ["2025-06-18", "2025-03-26", "2024-11-05"] as const;
+/**
+ * Revisions served over Streamable HTTP, newest first. 2024-11-05 named the older HTTP with SSE
+ * transport, which the hosted endpoint does not serve.
+ */
+export const HTTP_VERSIONS = ["2025-06-18", "2025-03-26"] as const;
+
+export interface SessionOptions {
+  /** stateful (stdio, the default) or stateless (one HTTP request is the whole session). */
+  readonly lifecycle?: "stateful" | "stateless";
+  /** The negotiated revision a stateless session answers with, from the request's header. */
+  readonly protocolVersion?: string;
+}
 
 export const ERROR = {
   parse: -32700,
@@ -92,10 +108,13 @@ export class McpSession {
   #version: string = PROTOCOL_VERSION;
   readonly #info: ServerInfo;
   readonly #tools: ToolProvider;
+  readonly #stateless: boolean;
 
-  constructor(info: ServerInfo, tools: ToolProvider) {
+  constructor(info: ServerInfo, tools: ToolProvider, options: SessionOptions = {}) {
     this.#info = info;
     this.#tools = tools;
+    this.#stateless = options.lifecycle === "stateless";
+    if (options.protocolVersion !== undefined) this.#version = options.protocolVersion;
   }
 
   get negotiatedVersion(): string {
@@ -180,9 +199,8 @@ export class McpSession {
         const requested = params["protocolVersion"];
         if (typeof requested !== "string")
           throw new InvalidParams("initialize needs protocolVersion.");
-        this.#version = (SUPPORTED_VERSIONS as readonly string[]).includes(requested)
-          ? requested
-          : PROTOCOL_VERSION;
+        const offered: readonly string[] = this.#stateless ? HTTP_VERSIONS : SUPPORTED_VERSIONS;
+        this.#version = offered.includes(requested) ? requested : PROTOCOL_VERSION;
         return success(id, {
           protocolVersion: this.#version,
           capabilities: { tools: { listChanged: false } },
@@ -215,7 +233,7 @@ export class McpSession {
   }
 
   #requireInitialized(): void {
-    if (!this.#initialized) {
+    if (!this.#initialized && !this.#stateless) {
       throw new NotInitialized(
         "The session is not initialized: send initialize, then notifications/initialized.",
       );

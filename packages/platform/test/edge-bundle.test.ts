@@ -71,6 +71,8 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   // A87: plain fetch to PostgREST and Supabase's built-in gte-small model, no package.
   "search-embed": { boot: [], lazy: [] },
   "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
+  // B16: the storage providers and their OAuth renewal, plain fetch to Google and Microsoft.
+  "storage-browse": { boot: ["@supabase/supabase-js"], lazy: [] },
   "stripe-webhook": { boot: [], lazy: ["stripe"] },
   "subprocessor-notices": {
     boot: ["intl-messageformat", "zod"],
@@ -113,6 +115,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   scim: 92,
   "search-embed": 24,
   "sms-webhook": 145,
+  // B16, a new function (not a raise): the shared core, the three storage providers with their file metadata and
+  // folder walks, and the OAuth renewal; 98.5 KB on 2026-10-30, about 25 percent above that like the others.
+  "storage-browse": 125,
   "stripe-webhook": 84,
   "subprocessor-notices": 115,
   "upload-scan": 100,

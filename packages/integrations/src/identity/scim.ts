@@ -32,6 +32,11 @@ export interface ScimStore {
     active: boolean,
     groups: readonly string[],
   ): Promise<string | null>;
+  /**
+   * Whether the org's blocklist would refuse this email (app.scim_email_blocked, B16, 3050). Asked before the auth
+   * user is created, so a refused person gets neither a user nor a membership; false for a current member.
+   */
+  emailBlocked(providerId: string, email: string): Promise<boolean>;
 }
 
 /** Finds the auth user with an email or creates it (Supabase Auth admin API in production). */
@@ -319,6 +324,15 @@ async function upsertUser(
       "A provisioned user keeps its email address; deprovision it and provision the new address.",
       "mutability",
     );
+  // A blocked address (3050) is refused before its auth user exists. Like every refusal, it is a 400 invalidValue:
+  // SCIM keeps 409 for uniqueness.
+  if (!existing && parsed.active && (await store.emailBlocked(providerId, parsed.email))) {
+    return scimError(
+      400,
+      "You cannot join this organization. Ask one of its administrators.",
+      "invalidValue",
+    );
+  }
   const userId = existing?.userId ?? (await admin.findOrCreateUser(parsed.email, parsed.fullName));
   const id =
     existing?.externalId ??
@@ -663,6 +677,13 @@ export function supabaseScimStore(db: DbClient): ScimStore {
           .order("user_name"),
       );
       return rows.map(toIdentity).filter((i): i is ScimIdentity => i !== null);
+    },
+    async emailBlocked(providerId, email) {
+      return (
+        (await unwrap<boolean | null>(
+          db.rpc("scim_email_blocked", { p_identity_provider_id: providerId, p_email: email }),
+        )) === true
+      );
     },
     async provision(providerId, externalId, userName, userId, active, groups) {
       return unwrap<string | null>(

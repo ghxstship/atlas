@@ -4,6 +4,12 @@ import { StoreError, unwrap, type DbClient } from "../../framework/db.ts";
 import { errorForStatus, IntegrationError } from "../../framework/errors.ts";
 import { callJson, type HttpRequest } from "../../framework/http.ts";
 import { sha256Hex } from "../../framework/support.ts";
+import {
+  credentialJson,
+  freshAccessToken,
+  type OAuthClient,
+  type OAuthStorageProvider,
+} from "./oauth.ts";
 
 /** The attachments bucket cap (migration 0590): imports larger than this are refused before download. */
 export const MAX_IMPORT_BYTES = 52_428_800;
@@ -36,7 +42,14 @@ export interface StorageSource {
   refresh(linkId: string, meta: FileMeta): Promise<void>;
   beginImport(linkId: string): Promise<{ readonly objectName: string }>;
   finishImport(linkId: string, checksum: string, version: string): Promise<string>;
+  /** Stores a refreshed OAuth credential (app.store_integration_credential, service role; B16). */
+  storeCredential(connectionId: string, json: string): Promise<void>;
 }
+
+/** The platform OAuth apps of the providers that sign in (B16), null for one not set up on this XOS. */
+export type StorageOAuthClients = Readonly<
+  Partial<Record<OAuthStorageProvider, OAuthClient | null>>
+>;
 
 /** Where imported bytes are stored: the private attachments bucket (Supabase Storage in production). */
 export interface BlobStore {
@@ -51,7 +64,15 @@ export interface StorageProvider {
   download(context: SyncContext, file: FileMeta): Promise<Uint8Array>;
   /** Files and folders inside a folder, for the link picker. */
   listFolder(context: SyncContext, folderId: string | null): Promise<readonly FileMeta[]>;
+  /**
+   * Whether a file or folder lies inside the linking folder (B16): it is the folder, or one of its ancestors is,
+   * walking at most 20 parents. storage-browse lists and links only what is.
+   */
+  inFolder?(context: SyncContext, externalFileId: string, folderId: string): Promise<boolean>;
 }
+
+/** How many parents an ancestry walk follows before giving up. */
+export const MAX_FOLDER_DEPTH = 20;
 
 function token(context: SyncContext): string {
   if (context.credential === null) {
@@ -191,6 +212,21 @@ export const googleDriveProvider: StorageProvider = {
     });
     return page.files.map(driveMeta);
   },
+  async inFolder(context, externalFileId, folderId) {
+    let current = externalFileId;
+    for (let depth = 0; depth <= MAX_FOLDER_DEPTH; depth += 1) {
+      if (current === folderId) return true;
+      const file = await callJson<{ parents?: string[] }>(context.http, "Google Drive", {
+        method: "GET",
+        url: `${DRIVE}/files/${encodeURIComponent(current)}?fields=parents&supportsAllDrives=true`,
+        token: token(context),
+      });
+      const parent = file.parents?.[0];
+      if (parent === undefined) return false;
+      current = parent;
+    }
+    return false;
+  },
 };
 
 // OneDrive and SharePoint ---------------------------------------------------------------------------------------------------
@@ -208,7 +244,7 @@ interface DriveItem {
   file?: { mimeType?: string };
   folder?: unknown;
   deleted?: unknown;
-  parentReference?: { driveId?: string };
+  parentReference?: { driveId?: string; id?: string };
 }
 
 /** OneDrive and SharePoint files are addressed as "<drive id>/<item id>". */
@@ -273,6 +309,24 @@ export const oneDriveProvider: StorageProvider = {
       token: token(context),
     });
     return page.value.map((i) => graphMeta(i, drive));
+  },
+  async inFolder(context, externalFileId, folderId) {
+    const { drive } = splitItem(externalFileId);
+    const root = splitItem(folderId);
+    if (root.drive !== drive) return false;
+    let current = splitItem(externalFileId).item;
+    for (let depth = 0; depth <= MAX_FOLDER_DEPTH; depth += 1) {
+      if (current === root.item) return true;
+      const item = await callJson<DriveItem>(context.http, "Microsoft OneDrive", {
+        method: "GET",
+        url: `${GRAPH}/drives/${encodeURIComponent(drive)}/items/${encodeURIComponent(current)}?$select=id,parentReference`,
+        token: token(context),
+      });
+      const parent = item.parentReference?.id;
+      if (parent === undefined) return false;
+      current = parent;
+    }
+    return false;
   },
 };
 
@@ -350,16 +404,54 @@ export const dropboxProvider: StorageProvider = {
 
 // Connector ------------------------------------------------------------------------------------------------------------------
 
+/**
+ * The context with an OAuth connection's access token renewed when it is within 5 minutes of expiring, the rotated
+ * credential stored first (B16). A pasted token, and every provider that does not sign in, pass through.
+ */
+export async function withFreshToken(
+  context: SyncContext,
+  source: Pick<StorageSource, "storeCredential">,
+  clients: StorageOAuthClients,
+): Promise<SyncContext> {
+  const credential = context.credential;
+  const provider = context.connection.providerCode;
+  if (
+    credential === null ||
+    (provider !== "google_drive" && provider !== "onedrive_sharepoint") ||
+    credential.fields["refresh_token"] === undefined
+  ) {
+    return context;
+  }
+  const access = await freshAccessToken(
+    context.http,
+    provider,
+    clients[provider] ?? null,
+    credentialJson({
+      access_token: credential.token,
+      refresh_token: credential.fields["refresh_token"],
+      expires_at: credential.fields["expires_at"] ?? new Date(0).toISOString(),
+      scope: credential.fields["scope"] ?? "",
+    }),
+    (json) => source.storeCredential(context.connection.id, json),
+    context.now(),
+  );
+  return access === credential.token
+    ? context
+    : { ...context, credential: { ...credential, token: access } };
+}
+
 /** Keeps linked files current and imports new revisions of Import links through the scanned attachment pipeline. */
 export function storageConnector(
   provider: StorageProvider,
   source: StorageSource,
   blobs: BlobStore,
+  clients: StorageOAuthClients = {},
 ): Connector {
   return {
     provider: provider.provider,
     scopes: ["File Import"],
-    async sync(context) {
+    async sync(given) {
+      const context = await withFreshToken(given, source, clients);
       const tally = new ItemTally(context);
       for (const link of await source.links(context.connection.id)) {
         tally.read += 1;
@@ -427,9 +519,21 @@ export function storageConnector(
   };
 }
 
-export function storageConnectors(source: StorageSource, blobs: BlobStore): Connector[] {
+export function storageConnectors(
+  source: StorageSource,
+  blobs: BlobStore,
+  clients: StorageOAuthClients = {},
+): Connector[] {
   return [googleDriveProvider, oneDriveProvider, dropboxProvider].map((p) =>
-    storageConnector(p, source, blobs),
+    storageConnector(p, source, blobs, clients),
+  );
+}
+
+/** The storage provider of a provider code, or null for one that is not storage. */
+export function storageProviderFor(code: string): StorageProvider | null {
+  return (
+    [googleDriveProvider, oneDriveProvider, dropboxProvider].find((p) => p.provider === code) ??
+    null
   );
 }
 
@@ -495,6 +599,17 @@ export function supabaseStorageSource(db: DbClient): StorageSource {
           p_link_id: linkId,
           p_checksum_sha256: checksum,
           p_imported_version: version,
+        }),
+      );
+    },
+    async storeCredential(connectionId, json) {
+      // The refresh token's own lifetime is unknown; the access token's expiry lives inside the JSON.
+      await unwrap(
+        db.rpc("store_integration_credential", {
+          p_connection_id: connectionId,
+          p_secret: json,
+          p_kind: "OAuth Token",
+          p_expires_at: null,
         }),
       );
     },

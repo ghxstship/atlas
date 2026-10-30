@@ -184,6 +184,9 @@ export function billingStore(db: PlatformDb): BillingStore {
         p_current_period_end: input.currentPeriodEnd?.toISOString() ?? null,
         p_livemode: input.livemode,
         p_extra_seats: input.extraSeats,
+        p_pause_collection: input.pauseCollection !== null,
+        p_pause_resumes_at: input.pauseCollection?.resumesAt?.toISOString() ?? null,
+        p_event_created_at: input.eventCreatedAt.toISOString(),
       });
       return String(state);
     },
