@@ -95,12 +95,24 @@ test("a purchase order preview names the orders a change refuses, and applies no
     .click();
   const dialog = page.getByRole("dialog", { name: /Change State on 2 rows/ });
 
-  // Only a Sent order closes and only an Approved order is sent, so whatever states the demo
-  // orders are in, one of the two moves refuses at least one of them.
-  const [target, from] = states.every((s) => s === "Sent")
-    ? ["Sent", "Approved"]
-    : ["Closed", "Sent"];
-  const refused = keys.filter((_, i) => states[i] !== from);
+  // An order already in the target state is unchanged, not refused, and an order in the move's
+  // source state may pass, so the refusals certain to show are the orders in neither. Only a Sent
+  // order closes, only an Approved one is sent and only a Draft one is approved: if no order is
+  // certain to refuse closing or sending, both are Sent, and approving refuses both.
+  const moves = (
+    [
+      ["Closed", "Sent"],
+      ["Sent", "Approved"],
+      ["Approved", "Draft"],
+    ] as const
+  ).map(([target, from]) => ({
+    target,
+    refused: keys.filter((_, i) => states[i] !== target && states[i] !== from),
+  }));
+  const { target, refused } = moves.find((m) => m.refused.length > 0) ?? {
+    target: "Closed",
+    refused: [],
+  };
   expect(refused.length).toBeGreaterThan(0);
   await dialog.getByLabel("New State").selectOption({ label: target });
   await dialog.getByLabel("Reason").fill("Weekly procurement review.");
