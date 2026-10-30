@@ -15,7 +15,8 @@
 --     Information list leaves out
 --   * app.decline_shift: the worker declines a published shift, which returns to Draft for the scheduler
 --   * offer.sent: the applicant is told when an org sends or revises an offer; while it waits on them the org counts as
---     one they work with (private.party_org_ids), so the notice reaches them by email and push
+--     one they work with (private.party_org_ids), so the notice reaches them by email and push, and they keep the
+--     notice itself after they answer (private.offer_notice_mine, in the notifications policy)
 --   * shift notices say the shift's state (shiftState), so a push offers Accept only on a shift still to accept
 --   * inbox snoozes are the recipient's own wherever the notification came from, so Gateway's For Your Information
 --     list snoozes an external party's notifications too
@@ -499,6 +500,57 @@ as $$
 $$;
 comment on function private.party_org_ids(uuid) is 'Orgs a person works with as an external party: through an engagement of their own, an active membership in an external account the org holds as a counterparty, or an application of their own with an offer still open (A127), so the offer''s notices reach them.';
 revoke all on function private.party_org_ids(uuid) from public, anon, authenticated;
+
+-- An applicant keeps their own offer's notices once they answer it. Accepting or declining ends the offer's wait, so
+-- the org no longer counts through private.party_org_ids, and without this the notice would leave their reach the
+-- moment they act on it: a push Accept would act and then find nothing to show.
+create or replace function private.offer_notice_mine(p_kind text, p_subject_table text, p_subject_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select p_kind = 'offer.sent' and p_subject_table = 'app.offers' and exists (
+    select 1 from app.offers o
+    join app.applications a on a.id = o.application_id and a.deleted_at is null
+    where o.id = p_subject_id and o.deleted_at is null and a.applicant_person_id = private.current_person_id()
+  );
+$$;
+comment on function private.offer_notice_mine(text, text, uuid) is 'True for an offer.sent notification about an offer on the signed-in person''s own application, whatever the offer''s state (A127), for the notifications read policy: an applicant keeps the notice after accepting or declining. It never answers for anyone else.';
+revoke all on function private.offer_notice_mine(text, text, uuid) from public, anon;
+grant execute on function private.offer_notice_mine(text, text, uuid) to authenticated, service_role;
+
+-- From 1461: the read and update policy and private.is_my_notification also admit the applicant's own offer notices.
+call private.install_policies('app.notifications',
+  $$recipient_person_id = (select private.current_person_id())
+    and (org_id in (select private.my_org_ids()) or org_id in (select private.my_party_org_ids())
+      or (kind = 'opportunity.matched' and private.marketplace_notice_open_to_me(kind, subject_table, subject_id))
+      or (kind = 'offer.sent' and private.offer_notice_mine(kind, subject_table, subject_id)))$$,
+  null,
+  $$recipient_person_id = (select private.current_person_id())
+    and (org_id in (select private.my_org_ids()) or org_id in (select private.my_party_org_ids())
+      or (kind = 'opportunity.matched' and private.marketplace_notice_open_to_me(kind, subject_table, subject_id))
+      or (kind = 'offer.sent' and private.offer_notice_mine(kind, subject_table, subject_id)))$$);
+
+create or replace function private.is_my_notification(p_notification_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from app.notifications n
+    where n.id = p_notification_id and n.recipient_person_id = private.current_person_id()
+      and (n.org_id in (select private.my_org_ids()) or n.org_id in (select private.my_party_org_ids())
+        or (n.kind = 'opportunity.matched' and private.marketplace_notice_open_to_me(n.kind, n.subject_table, n.subject_id))
+        or (n.kind = 'offer.sent' and private.offer_notice_mine(n.kind, n.subject_table, n.subject_id)))
+  );
+$$;
+comment on function private.is_my_notification(uuid) is 'True when the signed-in person is the recipient of a notification and still belongs to its org, works with it as an external party (1131), for a marketplace match may still see the listing it is about (A89), or for an offer notice is the applicant the offer was made to (A127). Takes the id as an argument (ADR 0016 rule 14).';
+revoke all on function private.is_my_notification(uuid) from public, anon;
+grant execute on function private.is_my_notification(uuid) to authenticated;
 
 create or replace function private.notify_offer_sent()
 returns trigger

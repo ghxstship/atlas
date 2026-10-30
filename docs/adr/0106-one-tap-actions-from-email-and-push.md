@@ -45,7 +45,10 @@ notification at all. Gateway Home showed what needs the person, and a short Upda
    button therefore resolve the member's standing in the link's org (`read_notification_action` names it) through
    `resolveMembership`, as `/{org}/inbox` does, before the button shows and again before it acts: a network the
    org's IP allow-list refuses goes to the network notice, a second factor its MFA policy requires goes to verify,
-   and a session past its lifetime or idle timeout goes to sign in again, each returning to the link. A member's
+   and a session past its lifetime or idle timeout goes to sign in again, each returning to the link. The idle
+   timeout judges the device's previous request: the proxy has already recorded this one in the `xos-last-seen`
+   cookie, so it forwards the one before in `x-xos-previous-seen` (set or removed on every request, never taken
+   from the browser), and the gate reads that, as the proxy itself does for `/{org}`. A member's
    link (audience Atlas) does nothing once the person is no longer a member. Gateway confirms only an external
    party's or an applicant's link (audience Gateway), which needs no membership.
 5. **Expiry and retries.** A link lives 7 days. A retried delivery mints fresh links and revokes the earlier
@@ -66,7 +69,15 @@ notification at all. Gateway Home showed what needs the person, and a short Upda
 7. **Offers reach the applicant.** A trigger on `app.offer_versions` sends `offer.sent` when the org's terms wait on
    the applicant (a new offer or revised terms). While an offer is Sent or Countered, `private.party_org_ids`
    counts the offering org as one the applicant works with, so `private.notify` and
-   `app.claim_notification_deliveries` deliver it by email and push without being redefined.
+   `app.claim_notification_deliveries` deliver it by email and push without being redefined. Because
+   `private.party_org_ids` takes only the person, that window counts for every caller of it, not only for
+   `offer.sent`: while the offer waits, the org's other notices to the applicant reach them, and the orgs a
+   person-level notice may be filed under (the expiry reminders' home org, 1463, and account notices, 1560) include
+   it. The window closes when the applicant answers or the org withdraws the offer. Answering ends the window, so the
+   notifications read policy and `private.is_my_notification` also admit an `offer.sent` notice about an offer on the
+   person's own application, whatever its state (`private.offer_notice_mine`): the applicant keeps the notice after
+   accepting or declining, and `notifications.act`, which reads the notification back after acting, answers with it
+   rather than 404.
 8. **Gateway's For Your Information.** Gateway Home lists `app.inbox_items` in For Your Information across every org
    that notified the person, with Done and Snooze buttons and the keys E, H, J and K on a roving-focus list, in place
    of the Updates list. A published shift the person works or an offer awaiting them still needs their answer
