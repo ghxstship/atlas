@@ -68,6 +68,10 @@ var refusals = {
   state_label_state_immutable: "Clear this label and label the other state instead.",
   projects_key_format: "Use 2 to 5 letters for the project key.",
   scope_node_code_format: "Use capital letters, digits and hyphens for the code suffix.",
+  sod_document_creator:
+    "You created this document, and your organization does not let its creator decide a step. Someone else decides it.",
+  sod_change_order_requester_steps:
+    "You requested this change order, and your organization does not let its requester decide a step. Someone else decides it.",
 };
 var documentTypes = {
   "Purchase Order": "Purchase order",

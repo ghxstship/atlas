@@ -13,6 +13,9 @@ import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter } from "next-intl/server";
 import { requireNode } from "@/lib/shell/require-node";
+import { CustomFieldList } from "@/components/custom-fields/list";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
+import { customFieldList } from "@/lib/custom-fields/server";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { setPlaceArchivedAction } from "@/app/[org]/places/actions";
@@ -86,11 +89,12 @@ export async function VenuesPage({
   const ctx = await requireNode(NODE, params);
   const db = ctx.viewer.db;
   const archive = archiveOf(search);
-  const [venues, jurisdictions, t, held] = await Promise.all([
+  const [venues, jurisdictions, t, held, custom] = await Promise.all([
     listVenues(db, ctx.org.id, archive),
     listJurisdictions(db),
     getTranslate(),
     heldCapabilities(ctx),
+    customFieldList(ctx, "app.venues", search),
   ]);
   if (!venues.ok) throw new Error(`Cannot list venues: ${JSON.stringify(venues.error)}`);
   if (!jurisdictions.ok) {
@@ -99,8 +103,9 @@ export async function VenuesPage({
   const canWrite = held.has("places.venue.write");
   const path = nodeHref(NODE, params) ?? "/";
   const q = param(search, "q");
-  const rows = venues.data.filter((v) =>
-    matchesSearch(q, v.name, v.locality, v.jurisdictionId, v.streetAddress),
+  const rows = venues.data.filter(
+    (v) =>
+      custom.keep(v.id) && matchesSearch(q, v.name, v.locality, v.jurisdictionId, v.streetAddress),
   );
   const peekId = param(search, "peek");
   const full = param(search, "full") === "1";
@@ -240,7 +245,7 @@ export async function VenuesPage({
     );
   }
 
-  return (
+  const collection = (
     <Collection
       title={t("places.venues.title")}
       count={rows.length}
@@ -260,6 +265,9 @@ export async function VenuesPage({
     >
       {body}
     </Collection>
+  );
+  return (
+    <CustomFieldList value={await custom.view(rows.map((v) => v.id))}>{collection}</CustomFieldList>
   );
 }
 
@@ -422,6 +430,7 @@ async function VenueDetail(props: DetailProps & { openFullHref: string }) {
       <VenueProperties venue={venue} t={t} />
       <VenueLinks venue={venue} t={t} params={params} />
       <ProvidedCapabilities statements={statements} t={t} />
+      <CustomFieldsPanel org={org} table="app.venues" id={venue.id} />
       {canWrite ? (
         <RecordSection id="venue-edit" title={t("places.kit.edit")}>
           <VenueForm org={org} venue={venue} jurisdictions={jurisdictions} />
@@ -475,6 +484,7 @@ async function VenueRecord(props: DetailProps & { backHref: string }) {
       >
         <VenueLinks venue={venue} t={t} params={params} />
         <ProvidedCapabilities statements={statements} t={t} />
+        <CustomFieldsPanel org={org} table="app.venues" id={venue.id} />
         {canWrite ? (
           <RecordSection id="venue-edit" title={t("places.kit.edit")}>
             <VenueForm org={org} venue={venue} jurisdictions={jurisdictions} />

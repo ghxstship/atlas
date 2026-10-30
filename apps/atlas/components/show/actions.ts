@@ -8,11 +8,13 @@ import {
   deleteRunOfShow,
   deleteSheet,
   getRunOfShow,
+  linkCueToEngagement,
   moveCue,
   publishSheet,
   removeCue,
   restoreSheet,
   saveDaySheet,
+  unlinkCueEngagement,
   updateCue,
   updateRunOfShow,
 } from "@xos/data/show";
@@ -154,6 +156,34 @@ export async function moveCueAction(
   const ctx = await context(org);
   if (!id.safeParse(runId).success || !id.safeParse(cueId).success) return invalid();
   const result = await moveCue(ctx.viewer.db, runId, cueId, direction === "up" ? "up" : "down");
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
+/**
+ * Marks a cue as an artist's set time (Set for). The database refuses a non-Artist engagement
+ * (engagement_cue_artist_only) and another project's cue (engagement_cue_project_mismatch); a cue
+ * already set for the artist comes back as a conflict.
+ */
+export async function linkCueAction(
+  org: string,
+  cueId: string,
+  engagementId: string,
+): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!id.safeParse(cueId).success || !id.safeParse(engagementId).success) return invalid();
+  const result = await linkCueToEngagement(ctx.viewer.db, { cueId, engagementId });
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
+/** Removes a cue's set time. */
+export async function unlinkCueAction(org: string, engagementCueId: string): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!id.safeParse(engagementCueId).success) return invalid();
+  const result = await unlinkCueEngagement(ctx.viewer.db, engagementCueId);
   if (!result.ok) return failed(result.error);
   refresh(org);
   return done(null);

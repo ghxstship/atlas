@@ -12,6 +12,7 @@ import { getOrgAuthStatus, orgAuthDecision, type OrgAuthDecision } from "@xos/da
 import { orgAllowsPersonalTokens } from "@xos/data/developer";
 import { getPersona, listDisabledModules } from "@xos/data/settings";
 import type { Condition, NavContext } from "@xos/ia";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { LAST_SEEN_COOKIE, parseLastSeen } from "@/lib/auth/assurance";
 import { clientIp } from "@/lib/auth/legal";
 
@@ -24,7 +25,7 @@ import { clientIp } from "@/lib/auth/legal";
 export interface Membership {
   readonly org: MyOrganization;
   readonly role: SystemRoleCode | null;
-  readonly capabilities: ReadonlySet<string>;
+  readonly capabilities: ReadonlySet<CapabilityCode>;
   readonly nav: NavContext;
   /** The persona the person chose for this org (Preferences), or null to follow the role. */
   readonly persona: string | null;

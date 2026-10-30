@@ -46,6 +46,8 @@ const KNOWN_RULES = new Set([
   "accommodation_assignment_duplicate",
   "travel_fulfillment_kind",
   "time_zone_unknown",
+  "same_project",
+  "person_not_on_project",
 ]);
 
 export function errorKey(error: DataError): string {

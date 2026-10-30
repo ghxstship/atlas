@@ -33,6 +33,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { rememberView } from "@/lib/shell/recents";
 import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { formatScheduleTime, scheduleViewOf, slipAmount, type ScheduleView } from "./format";
 import { getShellSettings } from "@/lib/shell/org-settings";
 import { PresenceFor } from "@/components/presence/presence-for";
@@ -325,6 +326,7 @@ export async function RecordBody({
         currencies={detail.currencies}
         canEdit={detail.canWrite}
       />
+      <CustomFieldsPanel org={org} table="app.records" id={record.id} editable={detail.canWrite} />
       <ChecklistEditor
         org={org}
         recordId={record.id}

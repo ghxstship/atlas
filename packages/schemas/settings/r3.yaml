@@ -1,0 +1,129 @@
+# Settings registry: R3 (org and project offerings, RRR-181). Section 4.5.6, owner decision 7.
+# Field reference: see a30.yaml.
+#
+# Whether the org's Gateway offers each service to the people it engages. Every offering defaults to Not Offered
+# (decision 7; an absent claim resolves as a refusal), the org sets its default and may lock it, and a project
+# overrides an unlocked value. Audience rules (app.offering_rules, per role type and vendor class, with caps) and
+# vendor class entitlements sit between the locked org value and these values; private.effective_offerings
+# resolves all of them for an engagement, and Gateway shows the Travel and lodging, Per diem, Hospitality and
+# Guest list tabs from its answer.
+contributor: r3
+settings:
+  # Gateway and marketplace -----------------------------------------------------------------------------------------
+  - key: offerings.travel
+    type: choice
+    choices: [not-offered, provided, reimbursed, buyout]
+    default: not-offered
+    scopes: [organization, project]
+    lockable: true
+    capability: projects.settings.write
+    label: settings.fields.offeringsTravel.label
+    help: settings.fields.offeringsTravel.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2622_offering_resolver.sql#private.effective_offerings
+        test: supabase/tests/2620_offerings.test.sql
+  - key: offerings.lodging
+    type: choice
+    choices: [not-offered, provided, reimbursed, buyout]
+    default: not-offered
+    scopes: [organization, project]
+    lockable: true
+    capability: projects.settings.write
+    label: settings.fields.offeringsLodging.label
+    help: settings.fields.offeringsLodging.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2622_offering_resolver.sql#private.effective_offerings
+        test: supabase/tests/2620_offerings.test.sql
+  - key: offerings.catering
+    type: choice
+    choices: [not-offered, provided, reimbursed, buyout]
+    default: not-offered
+    scopes: [organization, project]
+    lockable: true
+    capability: projects.settings.write
+    label: settings.fields.offeringsCatering.label
+    help: settings.fields.offeringsCatering.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2622_offering_resolver.sql#private.effective_offerings
+        test: supabase/tests/2620_offerings.test.sql
+  - key: offerings.parking
+    type: choice
+    choices: [not-offered, provided, reimbursed, buyout]
+    default: not-offered
+    scopes: [organization, project]
+    lockable: true
+    capability: projects.settings.write
+    label: settings.fields.offeringsParking.label
+    help: settings.fields.offeringsParking.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2622_offering_resolver.sql#private.effective_offerings
+        test: supabase/tests/2620_offerings.test.sql
+  - key: offerings.uniforms
+    type: choice
+    choices: [not-offered, provided, reimbursed, buyout]
+    default: not-offered
+    scopes: [organization, project]
+    lockable: true
+    capability: projects.settings.write
+    label: settings.fields.offeringsUniforms.label
+    help: settings.fields.offeringsUniforms.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2622_offering_resolver.sql#private.effective_offerings
+        test: supabase/tests/2620_offerings.test.sql
+  - key: offerings.per_diem
+    type: choice
+    choices: [not-offered, provided, reimbursed, buyout]
+    default: not-offered
+    scopes: [organization, project]
+    lockable: true
+    capability: projects.settings.write
+    label: settings.fields.offeringsPerDiem.label
+    help: settings.fields.offeringsPerDiem.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2622_offering_resolver.sql#private.effective_offerings
+        test: supabase/tests/2620_offerings.test.sql
+  - key: offerings.radios
+    type: choice
+    choices: [not-offered, provided, reimbursed, buyout]
+    default: not-offered
+    scopes: [organization, project]
+    lockable: true
+    capability: projects.settings.write
+    label: settings.fields.offeringsRadios.label
+    help: settings.fields.offeringsRadios.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2622_offering_resolver.sql#private.effective_offerings
+        test: supabase/tests/2620_offerings.test.sql
+  - key: offerings.carts
+    type: choice
+    choices: [not-offered, provided, reimbursed, buyout]
+    default: not-offered
+    scopes: [organization, project]
+    lockable: true
+    capability: projects.settings.write
+    label: settings.fields.offeringsCarts.label
+    help: settings.fields.offeringsCarts.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2622_offering_resolver.sql#private.effective_offerings
+        test: supabase/tests/2620_offerings.test.sql
+  - key: offerings.guest_list
+    type: choice
+    choices: [not-offered, provided, reimbursed, buyout]
+    default: not-offered
+    scopes: [organization, project]
+    lockable: true
+    capability: projects.settings.write
+    label: settings.fields.offeringsGuestList.label
+    help: settings.fields.offeringsGuestList.help
+    pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/2622_offering_resolver.sql#private.effective_offerings
+        test: supabase/tests/2620_offerings.test.sql
