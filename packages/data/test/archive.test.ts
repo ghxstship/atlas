@@ -9,6 +9,7 @@ import {
 } from "../src/home.ts";
 import { listMyWork } from "../src/my-work.ts";
 import { getPersonCard } from "../src/person-card.ts";
+import { getObjectRecord, type ObjectType } from "../src/custom-objects.ts";
 import { listFilingTargets } from "../src/project-inbox.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
@@ -102,5 +103,55 @@ describe("archive (A124)", () => {
     const reads = calls.filter((c) => c.target === "from:records");
     expect(reads).toHaveLength(8);
     for (const read of reads) expect(read.steps).toContainEqual(["is", ["archived_at", null]]);
+  });
+
+  it("reads one custom object record by id, archived or not, with its ordinal for its key", async () => {
+    const type: ObjectType = {
+      id: "t1",
+      key: "props",
+      label: "Props",
+      icon: "Box",
+      defaultView: "List",
+      fields: [],
+    };
+    const row = {
+      id: "r9",
+      title: "Breakaway chair",
+      created_at: "2027-01-02T00:00:00Z",
+      updated_at: "2027-01-03T00:00:00Z",
+      archived_at: "2027-01-03T00:00:00Z",
+      custom_object_values: [],
+    };
+    const { db, calls } = fakeClient({
+      "from:custom_object_records": [
+        okResponse(row),
+        { ...okResponse(null), count: 612 } as ReturnType<typeof okResponse>,
+        okResponse(null),
+      ],
+    });
+    const found = await getObjectRecord(db, type, "r9");
+    expect(found).toEqual({
+      ok: true,
+      data: {
+        record: {
+          id: "r9",
+          title: "Breakaway chair",
+          createdAt: "2027-01-02T00:00:00Z",
+          updatedAt: "2027-01-03T00:00:00Z",
+          archivedAt: "2027-01-03T00:00:00Z",
+          values: {},
+        },
+        ordinal: 612,
+      },
+    });
+    // No archived_at filter and no 500-row limit: the record is read by id among every record.
+    expect(calls[0]?.steps).toContainEqual(["eq", ["id", "r9"]]);
+    expect(calls[0]?.steps.map(([m]) => m)).not.toContain("limit");
+    expect(calls[0]?.steps.flatMap(([, a]) => a)).not.toContain("archived_at");
+    expect(calls[1]?.steps).toContainEqual(["lte", ["created_at", "2027-01-02T00:00:00Z"]]);
+    expect(await getObjectRecord(db, type, "gone")).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
   });
 });

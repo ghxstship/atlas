@@ -4,6 +4,7 @@ import { getFieldHistory } from "@xos/data/field-history";
 import {
   boardField,
   calendarField,
+  getObjectRecord,
   getObjectType,
   listObjectRecords,
   type FieldValue,
@@ -100,11 +101,15 @@ function historyValue(f: ObjectField | undefined, v: Json, fmt: Formatters): str
   }
 }
 
+/** The key of an object's n-th record by when it was created, OBJECT-n. */
+function keyAt(object: ObjectType, n: number): string {
+  return `${object.key.toUpperCase().replaceAll("_", "-")}-${n}`;
+}
+
 /** Each record's key, OBJECT-n by when it was created among these records. */
 function keysOf(object: ObjectType, records: readonly ObjectRecord[]): Map<string, string> {
   const ordered = [...records].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
-  const prefix = object.key.toUpperCase().replaceAll("_", "-");
-  return new Map(ordered.map((r, i) => [r.id, `${prefix}-${i + 1}`]));
+  return new Map(ordered.map((r, i) => [r.id, keyAt(object, i + 1)]));
 }
 
 /**
@@ -210,10 +215,13 @@ async function ObjectRecords({
   let peeked = state.peek ? (records.data.find((r) => r.id === state.peek) ?? null) : null;
   if (state.peek && !peeked) {
     // A link names a record the list leaves out, such as an archived one from a record's Related
-    // links (A124): it still opens, keyed as it is among every record of the object.
-    const every = await listObjectRecords(ctx.viewer.db, object, "include");
-    peeked = every.ok ? (every.data.find((r) => r.id === state.peek) ?? null) : null;
-    if (peeked && every.ok) keyOf.set(peeked.id, keysOf(object, every.data).get(peeked.id) ?? "");
+    // links or a Favorite (A124): it is read by its id, keyed as it is among every record of the
+    // object.
+    const found = await getObjectRecord(ctx.viewer.db, object, state.peek);
+    if (found.ok) {
+      peeked = found.data.record;
+      keyOf.set(peeked.id, keyAt(object, found.data.ordinal));
+    }
   }
   let paths: AccessPath[] | null = null;
   let conversation: Conversation | null = null;
