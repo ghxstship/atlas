@@ -39195,7 +39195,7 @@ export interface WorkDetailsPage {
 }
 
 /**
- * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second).
+ * The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second).
  */
 export interface WorkDetails {
   /**
@@ -39218,26 +39218,35 @@ export interface WorkDetails {
    * Format: `uuid`.
    */
   readonly person_id: string;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly shirt_size: GarmentLetterSize | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly jacket_size: GarmentLetterSize | null;
   /**
-   * Pants size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly pants_size: string | null;
   /**
-   * Shoe size with its system.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly shoe_size: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly glove_size: GarmentLetterSize | null;
   /**
-   * Hat size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly hat_size: string | null;
   /**
-   * Anything else about fit.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 500.
    */
   readonly uniform_notes: string | null;
@@ -39246,7 +39255,7 @@ export interface WorkDetails {
    */
   readonly dietary_needs: ReadonlyArray<DietaryNeed>;
   /**
-   * Allergies in the person's words, with how severe.
+   * Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.
    * Length: 1 to 500.
    */
   readonly allergies: string | null;
@@ -39264,14 +39273,17 @@ export interface WorkDetails {
    * Length: 1 to 1000.
    */
   readonly accessibility_notes: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly seat_preference: SeatPreference | null;
   /**
-   * Preferred in-flight meal.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 100.
    */
   readonly meal_preference: string | null;
   /**
-   * IATA airport code.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly home_airport: string | null;
@@ -39342,26 +39354,35 @@ export type SeatPreference = "Window" | "Aisle" | "No Preference";
  * Fields accepted when creating a WorkDetails.
  */
 export interface WorkDetailsCreate {
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly shirt_size?: GarmentLetterSize | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly jacket_size?: GarmentLetterSize | null;
   /**
-   * Pants size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly pants_size?: string | null;
   /**
-   * Shoe size with its system.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly shoe_size?: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly glove_size?: GarmentLetterSize | null;
   /**
-   * Hat size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly hat_size?: string | null;
   /**
-   * Anything else about fit.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 500.
    */
   readonly uniform_notes?: string | null;
@@ -39370,7 +39391,7 @@ export interface WorkDetailsCreate {
    */
   readonly dietary_needs?: ReadonlyArray<DietaryNeed>;
   /**
-   * Allergies in the person's words, with how severe.
+   * Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.
    * Length: 1 to 500.
    */
   readonly allergies?: string | null;
@@ -39388,14 +39409,17 @@ export interface WorkDetailsCreate {
    * Length: 1 to 1000.
    */
   readonly accessibility_notes?: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly seat_preference?: SeatPreference | null;
   /**
-   * Preferred in-flight meal.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 100.
    */
   readonly meal_preference?: string | null;
   /**
-   * IATA airport code.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly home_airport?: string | null;
@@ -39425,26 +39449,35 @@ export interface WorkDetailsCreate {
  * Fields accepted when updating a WorkDetails. Omitted fields are unchanged.
  */
 export interface WorkDetailsUpdate {
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly shirt_size?: GarmentLetterSize | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly jacket_size?: GarmentLetterSize | null;
   /**
-   * Pants size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly pants_size?: string | null;
   /**
-   * Shoe size with its system.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly shoe_size?: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly glove_size?: GarmentLetterSize | null;
   /**
-   * Hat size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly hat_size?: string | null;
   /**
-   * Anything else about fit.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 500.
    */
   readonly uniform_notes?: string | null;
@@ -39453,7 +39486,7 @@ export interface WorkDetailsUpdate {
    */
   readonly dietary_needs?: ReadonlyArray<DietaryNeed>;
   /**
-   * Allergies in the person's words, with how severe.
+   * Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.
    * Length: 1 to 500.
    */
   readonly allergies?: string | null;
@@ -39471,14 +39504,17 @@ export interface WorkDetailsUpdate {
    * Length: 1 to 1000.
    */
   readonly accessibility_notes?: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly seat_preference?: SeatPreference | null;
   /**
-   * Preferred in-flight meal.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 100.
    */
   readonly meal_preference?: string | null;
   /**
-   * IATA airport code.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly home_airport?: string | null;
@@ -39825,7 +39861,7 @@ export interface WorkDetailShare {
    */
   readonly consent_record_id: string;
   /**
-   * Categories shared.
+   * Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.
    */
   readonly categories: ReadonlyArray<WorkDetailCategory>;
   /**
@@ -39843,10 +39879,14 @@ export interface WorkDetailShare {
    * Format: `uuid`.
    */
   readonly roster_entry_id: string | null;
+  /**
+   * The share names the person's own contact: their verified sign-in email and phone (R6a).
+   */
+  readonly contact_shared: boolean;
 }
 
 /**
- * A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.
+ * A category of work details shared with an engaging org on its own. The person's own contact (R6a) is shared with share_contact rather than as a category. Uniform Sizes is retired: sizes are entered per roster entry (projectFacts), and sharing it is refused with 422 work_detail_category_retired. Travel Profile is the loyalty programs; Passport is the passport details.
  */
 export type WorkDetailCategory =
   | "Emergency Contacts"
@@ -39866,9 +39906,13 @@ export interface WorkDetailShareCreate {
    */
   readonly engagement_id: string;
   /**
-   * Categories shared.
+   * Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.
    */
   readonly categories: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * Whether to share the caller's own contact, their verified sign-in email and phone (R6a), besides the categories. Omitted on update, the share keeps what it had.
+   */
+  readonly share_contact?: boolean;
 }
 
 /**
@@ -39876,13 +39920,17 @@ export interface WorkDetailShareCreate {
  */
 export interface WorkDetailShareUpdate {
   /**
-   * Categories shared.
+   * Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.
    */
   readonly categories?: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * Whether to share the caller's own contact, their verified sign-in email and phone (R6a), besides the categories. Omitted on update, the share keeps what it had.
+   */
+  readonly share_contact?: boolean;
 }
 
 /**
- * What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked.
+ * What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked; allergies are masked unless the caller holds data.restricted.read.medical on the project (R6a).
  */
 export interface SharedWorkDetails {
   /**
@@ -39928,12 +39976,14 @@ export interface SharedWorkDetails {
    */
   readonly categories: ReadonlyArray<WorkDetailCategory>;
   /**
-   * Shared categories the caller's project capabilities cover; the others come back null.
+   * Shared categories the caller's project capabilities cover; the others come back null. The person's contact is readable when contact is not null.
    */
   readonly readable: ReadonlyArray<WorkDetailCategory>;
   readonly emergency_contacts: ReadonlyArray<SharedEmergencyContact> | null;
+  readonly contact: SharedContact | null;
   readonly uniform: SharedUniformSizes | null;
   readonly dietary: SharedDietaryNeeds | null;
+  readonly medical: SharedMedicalNeeds | null;
   readonly accessibility: SharedAccessibilityNeeds | null;
   readonly travel: SharedTravelProfile | null;
   readonly passport: SharedPassport | null;
@@ -39972,26 +40022,51 @@ export interface SharedEmergencyContact {
 }
 
 /**
- * Uniform sizes as an engaging org reads them.
+ * The person's own contact as an engaging org reads it (R6a): only verified sign-in addresses, null when none is verified. Read by engagement and safety readers, and by the company.
+ */
+export interface SharedContact {
+  /**
+   * The person's verified sign-in email.
+   * Format: `email`.
+   */
+  readonly email: string | null;
+  /**
+   * The person's verified sign-in phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly phone: string | null;
+}
+
+/**
+ * Uniform sizes as an engaging org read them before R6a. Always null now: no live share names Uniform Sizes, and sizes are read per roster entry (projectFacts).
  */
 export interface SharedUniformSizes {
+  /**
+   * Retired: always null; entered per roster entry since R6a.
+   */
   readonly shirt_size: GarmentLetterSize | null;
+  /**
+   * Retired: always null; entered per roster entry since R6a.
+   */
   readonly jacket_size: GarmentLetterSize | null;
   /**
-   * Pants size.
+   * Retired: always null; entered per roster entry since R6a.
    */
   readonly pants_size: string | null;
   /**
-   * Shoe size.
+   * Retired: always null; entered per roster entry since R6a.
    */
   readonly shoe_size: string | null;
+  /**
+   * Retired: always null; entered per roster entry since R6a.
+   */
   readonly glove_size: GarmentLetterSize | null;
   /**
-   * Hat size.
+   * Retired: always null; entered per roster entry since R6a.
    */
   readonly hat_size: string | null;
   /**
-   * Fit notes.
+   * Retired: always null; entered per roster entry since R6a.
    */
   readonly uniform_notes: string | null;
 }
@@ -40002,9 +40077,13 @@ export interface SharedUniformSizes {
 export interface SharedDietaryNeeds {
   readonly dietary_needs: ReadonlyArray<DietaryNeed>;
   /**
-   * Allergies; null when masked for the reader (a company reader never reads them).
+   * Allergies; null when masked for the reader. Restricted: only a holder of data.restricted.read.medical on the project reads them, and each such read is logged; a company reader never does.
    */
   readonly allergies: string | null;
+  /**
+   * Allergies are recorded and withheld from this reader (R6a).
+   */
+  readonly allergies_masked: boolean;
   /**
    * Whether allergies are recorded, even when masked.
    */
@@ -40013,6 +40092,16 @@ export interface SharedDietaryNeeds {
    * Other dietary notes.
    */
   readonly dietary_notes: string | null;
+}
+
+/**
+ * The Restricted medical read (R6a): present when the share names Dietary Needs and the caller holds data.restricted.read.medical on the project (the org Owner, and by default the catering lead and on-site medical roles worked there), even without hospitality.fulfillment.read; null otherwise. Each read is logged as allergies.viewed.
+ */
+export interface SharedMedicalNeeds {
+  /**
+   * Allergies, unmasked.
+   */
+  readonly allergies: string | null;
 }
 
 /**
@@ -40027,16 +40116,19 @@ export interface SharedAccessibilityNeeds {
 }
 
 /**
- * The travel profile as an engaging org reads it.
+ * The travel profile as an engaging org reads it: the loyalty programs since R6a.
  */
 export interface SharedTravelProfile {
+  /**
+   * Retired: always null; entered per roster entry since R6a.
+   */
   readonly seat_preference: SeatPreference | null;
   /**
-   * Preferred in-flight meal.
+   * Retired: always null; entered per roster entry since R6a.
    */
   readonly meal_preference: string | null;
   /**
-   * IATA airport code.
+   * Retired: always null; entered per roster entry since R6a.
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly home_airport: string | null;
@@ -40154,7 +40246,7 @@ export interface WorkDetailEvent {
    */
   readonly fact_kinds: ReadonlyArray<ProjectFactKind>;
   /**
-   * What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.
+   * What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, work_details.fields_removed, allergies.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.
    * Pattern: `^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$`.
    */
   readonly action: string;
@@ -40162,6 +40254,10 @@ export interface WorkDetailEvent {
    * Categories the act covered.
    */
   readonly categories: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * The act covered the person's own contact, shared since R6a outside the category list.
+   */
+  readonly includes_contact: boolean;
   /**
    * Columns an owner change touched, never their values.
    */

@@ -35519,7 +35519,7 @@ export class WorkDetailsResource extends $Resource {
   /**
    * List work details rows
    *
-   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /work-details` (operation `workDetails.list`).
    * Requires the capability `me.work_details.write`.
@@ -35535,7 +35535,7 @@ export class WorkDetailsResource extends $Resource {
   /**
    * List work details rows
    *
-   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -35556,7 +35556,7 @@ export class WorkDetailsResource extends $Resource {
   /**
    * Create a work details
    *
-   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Creates a work details. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   * The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Creates a work details. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
    *
    * `POST /work-details` (operation `workDetails.create`).
    * Requires the capability `me.work_details.write`.
@@ -35568,7 +35568,7 @@ export class WorkDetailsResource extends $Resource {
   /**
    * Get a work details
    *
-   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns one work details with its `ETag`. A work details the caller may not see returns 404.
+   * The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns one work details with its `ETag`. A work details the caller may not see returns 404.
    *
    * `GET /work-details/{id}` (operation `workDetails.get`).
    * Requires the capability `me.work_details.write`.
@@ -35588,7 +35588,7 @@ export class WorkDetailsResource extends $Resource {
   /**
    * Update a work details
    *
-   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   * The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
    *
    * `PATCH /work-details/{id}` (operation `workDetails.update`).
    * Requires the capability `me.work_details.write`.
@@ -35608,7 +35608,7 @@ export class WorkDetailsResource extends $Resource {
   /**
    * Delete a work details
    *
-   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Soft-deletes the work details: it moves to Trash and can be restored for its table's retention period.
+   * The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Soft-deletes the work details: it moves to Trash and can be restored for its table's retention period.
    *
    * `DELETE /work-details/{id}` (operation `workDetails.delete`).
    * Requires the capability `me.work_details.write`.
@@ -36006,7 +36006,7 @@ export class WorkDetailSharesResource extends $Resource {
   /**
    * Read what the share's person shared
    *
-   * For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement readers and shift editors for uniform sizes, hospitality readers for the rest), through `app.shared_work_details`. Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Each read is logged in the person's access log and the org's audit ledger. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement and safety readers for the person's contact, hospitality readers for the rest), through `app.shared_work_details`. Allergies are Restricted: a holder of data.restricted.read.medical on the project reads them, in dietary and in medical (the medical read, also without hospitality.fulfillment.read); anyone else reads them masked (allergies_masked). Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Every read is logged in the person's access log and the org's audit ledger, and every unmasked allergy read also as allergies.viewed. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `GET /work-detail-shares/{id}/details` (operation `workDetailShares.details`).
    * Requires the capability `opportunities.engagement.read`.
@@ -36022,7 +36022,7 @@ export class WorkDetailSharesResource extends $Resource {
   /**
    * Reveal a shared passport number
    *
-   * For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Allergies, the other Restricted value, come back through details for medical readers (data.restricted.read.medical), logged on every read. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /work-detail-shares/{id}/reveal-passport` (operation `workDetailShares.revealPassport`).
    * Requires the capability `data.restricted.read.government_id`.

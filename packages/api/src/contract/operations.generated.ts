@@ -7644,9 +7644,11 @@ export interface Components {
     accessibility_needs: Array<Components["AccessibilityNeed"]>;
     accessibility_notes: string | null;
   };
+  SharedContact: { email: string | null; phone: string | null };
   SharedDietaryNeeds: {
     dietary_needs: Array<Components["DietaryNeed"]>;
     allergies: string | null;
+    allergies_masked: boolean;
     allergies_on_file: boolean;
     dietary_notes: string | null;
   };
@@ -7663,6 +7665,7 @@ export interface Components {
     program_name: string;
     member_number: string;
   };
+  SharedMedicalNeeds: { allergies: string | null };
   SharedPassport: {
     passport_number: null;
     passport_number_last4: string | null;
@@ -7699,8 +7702,10 @@ export interface Components {
     categories: Array<Components["WorkDetailCategory"]>;
     readable: Array<Components["WorkDetailCategory"]>;
     emergency_contacts: Array<Components["SharedEmergencyContact"]> | null;
+    contact: Components["SharedContact"] | null;
     uniform: Components["SharedUniformSizes"] | null;
     dietary: Components["SharedDietaryNeeds"] | null;
+    medical: Components["SharedMedicalNeeds"] | null;
     accessibility: Components["SharedAccessibilityNeeds"] | null;
     travel: Components["SharedTravelProfile"] | null;
     passport: Components["SharedPassport"] | null;
@@ -9569,6 +9574,7 @@ export interface Components {
     fact_kinds: Array<Components["ProjectFactKind"]>;
     action: string;
     categories: Array<Components["WorkDetailCategory"]>;
+    includes_contact: boolean;
     changed_columns: Array<string>;
     reason: string | null;
     created_at: string;
@@ -9588,13 +9594,18 @@ export interface Components {
     shared_at: string;
     revoked_at: string | null;
     roster_entry_id: string | null;
+    contact_shared: boolean;
   };
   WorkDetailShareCreate: {
     engagement_id: string;
     categories: Array<Components["WorkDetailCategory"]>;
+    share_contact?: boolean;
   };
   WorkDetailSharePage: { data: Array<Components["WorkDetailShare"]>; next_cursor: string | null };
-  WorkDetailShareUpdate: { categories?: Array<Components["WorkDetailCategory"]> };
+  WorkDetailShareUpdate: {
+    categories?: Array<Components["WorkDetailCategory"]>;
+    share_contact?: boolean;
+  };
   WorkDetails: {
     id: string;
     created_at: string;
