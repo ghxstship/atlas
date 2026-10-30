@@ -43,6 +43,9 @@ import {
   parseRecordKey,
   parseRrule,
   removeChecklistItem,
+  replaceRecurrence,
+  restoreAssignment,
+  restoreChecklistItem,
   replanShift,
   resolveXyz,
   restoreRecord,
@@ -812,6 +815,34 @@ describe("checklist", () => {
     });
   });
 
+  it("brings a removed item back in its place, or at the end when its place was taken", async () => {
+    const { db, calls } = moduleClient({
+      "from:record_checklist_items": [
+        okResponse([{ id: "i1" }]),
+        errorResponse("23505", "position"),
+        okResponse([{ id: "i3", position: 4, label: "Ropes", checked_at: null, checker: null }]),
+        okResponse([{ id: "i1" }]),
+        okResponse([]),
+        errorResponse("XX000", "boom"),
+      ],
+    });
+    expect(await restoreChecklistItem(db, { recordId: "r1", itemId: "i1" })).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(stepsOf(calls[0], "update")[0]?.[0]).toEqual({ deleted_at: null });
+    expect(await restoreChecklistItem(db, { recordId: "r1", itemId: "i1" })).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(stepsOf(calls[3], "update")[0]?.[0]).toEqual({ deleted_at: null, position: 5 });
+    expect(await restoreChecklistItem(db, { recordId: "r1", itemId: "i1" })).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
+    expect((await restoreChecklistItem(db, { recordId: "r1", itemId: "i1" })).ok).toBe(false);
+  });
+
   it("surfaces checklist errors", async () => {
     const { db } = moduleClient({
       "from:record_checklist_items": [
@@ -844,7 +875,7 @@ describe("assignments and watchers", () => {
         ]),
         okResponse([{ id: "a2", membership_id: "m2", membership: null }]),
         errorResponse("XX000", "boom"),
-        okResponse(null),
+        okResponse({ id: "a3" }),
         errorResponse("23505", "dup"),
         okResponse([{ id: "a1" }]),
         okResponse([]),
@@ -856,9 +887,10 @@ describe("assignments and watchers", () => {
     const unnamed = await listAssignments(db, "r1");
     expect(unnamed.ok && unnamed.data[0]?.name).toBeNull();
     expect((await listAssignments(db, "r1")).ok).toBe(false);
-    expect((await assignRecord(db, { orgId: "o1", recordId: "r1", membershipId: "m1" })).ok).toBe(
-      true,
-    );
+    expect(await assignRecord(db, { orgId: "o1", recordId: "r1", membershipId: "m1" })).toEqual({
+      ok: true,
+      data: { id: "a3" },
+    });
     expect(await assignRecord(db, { orgId: "o1", recordId: "r1", membershipId: "m1" })).toEqual({
       ok: false,
       error: { kind: "conflict", message: "dup" },
@@ -868,13 +900,30 @@ describe("assignments and watchers", () => {
     expect((await unassignRecord(db, "a1")).ok).toBe(false);
   });
 
+  it("brings a removed assignment back, and refuses when the person was assigned again", async () => {
+    const { db, calls } = moduleClient({
+      "from:record_assignments": [
+        okResponse([{ id: "a1" }]),
+        okResponse([]),
+        errorResponse("23505", "dup"),
+      ],
+    });
+    expect(await restoreAssignment(db, "a1")).toEqual({ ok: true, data: null });
+    expect(stepsOf(calls[0], "update")[0]?.[0]).toEqual({ deleted_at: null });
+    expect(await restoreAssignment(db, "a1")).toEqual({ ok: false, error: { kind: "not-found" } });
+    expect(await restoreAssignment(db, "a1")).toEqual({
+      ok: false,
+      error: { kind: "conflict", message: "dup" },
+    });
+  });
+
   it("watches and unwatches, treating a repeat watch as done", async () => {
     const { db } = moduleClient({
       "from:record_watchers": [
         okResponse({ id: "w1" }),
         okResponse(null),
         errorResponse("XX000", "boom"),
-        okResponse(null),
+        okResponse({ id: "a3" }),
         errorResponse("23505", "dup"),
         errorResponse("42501", "denied"),
         okResponse(null),
@@ -968,6 +1017,47 @@ describe("recurrence", () => {
     ).toBe(false);
     const clear = moduleClient({ "from:record_recurrences": [okResponse(null)] });
     expect((await clearRecurrence(clear.db, "r1")).ok).toBe(true);
+  });
+
+  it("replaces a rule only while it is still the one expected", async () => {
+    const to = { rrule: "FREQ=WEEKLY", timeZone: "UTC", untilAt: null };
+    const { db, calls } = moduleClient({
+      "from:record_recurrences": [
+        okResponse([{ id: "c1" }]),
+        okResponse(null),
+        okResponse([]),
+        okResponse([{ id: "c2" }]),
+        errorResponse("23505", "record_recurrences_record_key"),
+        okResponse([]),
+        okResponse([{ id: "c3" }]),
+      ],
+    });
+    const base = { orgId: "o1", recordId: "r1" };
+    expect(await replaceRecurrence(db, { ...base, from: "FREQ=DAILY", to })).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(stepsOf(calls[0], "eq")).toContainEqual(["rrule", "FREQ=DAILY"]);
+    expect(stepsOf(calls[1], "insert")[0]?.[0]).toMatchObject({ rrule: "FREQ=WEEKLY" });
+    // Someone changed the rule since: nothing is written.
+    expect(await replaceRecurrence(db, { ...base, from: "FREQ=DAILY", to })).toEqual({
+      ok: false,
+      error: { kind: "conflict", message: "recurrence_changed" },
+    });
+    expect(await replaceRecurrence(db, { ...base, from: "FREQ=WEEKLY", to: null })).toEqual({
+      ok: true,
+      data: null,
+    });
+    // No rule expected, but someone set one since: the insert is refused.
+    expect((await replaceRecurrence(db, { ...base, from: null, to })).ok).toBe(false);
+    expect(await replaceRecurrence(db, { ...base, from: null, to: null })).toEqual({
+      ok: true,
+      data: null,
+    });
+    expect(await replaceRecurrence(db, { ...base, from: null, to: null })).toEqual({
+      ok: false,
+      error: { kind: "conflict", message: "recurrence_changed" },
+    });
   });
 
   it("builds, parses and expands rules", () => {

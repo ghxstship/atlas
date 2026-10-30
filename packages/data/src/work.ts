@@ -1119,6 +1119,35 @@ export async function removeChecklistItem(db: XosClient, itemId: string): Promis
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
+/**
+ * Brings a removed item back (the undo of a remove, Section 11.7), tick and all. It keeps its place when that is
+ * still free; when an item added since holds it, it goes to the end.
+ */
+export async function restoreChecklistItem(
+  db: XosClient,
+  input: { readonly recordId: string; readonly itemId: string },
+): Promise<Result<null>> {
+  const back = async (patch: { deleted_at: null; position?: number }) => {
+    const { data, error } = await db
+      .from("record_checklist_items")
+      .update(patch)
+      .eq("id", input.itemId)
+      .eq("record_id", input.recordId)
+      .not("deleted_at", "is", null)
+      .select("id");
+    if (error) return fail(toDataError(error));
+    return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+  };
+  const kept = await back({ deleted_at: null });
+  if (kept.ok || kept.error.kind !== "conflict") return kept;
+  const current = await listChecklist(db, input.recordId);
+  if (!current.ok) return current;
+  return back({
+    deleted_at: null,
+    position: Math.max(0, ...current.data.map((i) => i.position)) + 1,
+  });
+}
+
 // Assignments and watchers -----------------------------------------------------------------------------
 
 export interface Assignment {
@@ -1157,13 +1186,17 @@ export async function listAssignments(
 export async function assignRecord(
   db: XosClient,
   input: { readonly orgId: string; readonly recordId: string; readonly membershipId: string },
-): Promise<Result<null>> {
-  const { error } = await db.from("record_assignments").insert({
-    org_id: input.orgId,
-    record_id: input.recordId,
-    membership_id: input.membershipId,
-  });
-  return error ? fail(toDataError(error)) : ok(null);
+): Promise<Result<{ id: string }>> {
+  const { data, error } = await db
+    .from("record_assignments")
+    .insert({
+      org_id: input.orgId,
+      record_id: input.recordId,
+      membership_id: input.membershipId,
+    })
+    .select("id")
+    .single();
+  return error ? fail(toDataError(error)) : ok({ id: data.id });
 }
 
 export async function unassignRecord(db: XosClient, assignmentId: string): Promise<Result<null>> {
@@ -1171,6 +1204,24 @@ export async function unassignRecord(db: XosClient, assignmentId: string): Promi
     .from("record_assignments")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", assignmentId)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
+}
+
+/**
+ * Brings a removed assignment back (the undo of a remove, Section 11.7), without a second assignment notice. When
+ * the person was assigned again since, it is a conflict.
+ */
+export async function restoreAssignment(
+  db: XosClient,
+  assignmentId: string,
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("record_assignments")
+    .update({ deleted_at: null })
+    .eq("id", assignmentId)
+    .not("deleted_at", "is", null)
     .select("id");
   if (error) return fail(toDataError(error));
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
@@ -1323,6 +1374,56 @@ export async function clearRecurrence(db: XosClient, recordId: string): Promise<
     .update({ deleted_at: new Date().toISOString() })
     .eq("record_id", recordId)
     .is("deleted_at", null);
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/**
+ * Replaces the record's rule only while it is still `from` (null: no rule), for the undo and redo of a recurrence
+ * edit (Section 11.7). A rule someone else set or cleared since is a conflict and nothing changes.
+ */
+export async function replaceRecurrence(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly recordId: string;
+    readonly from: string | null;
+    readonly to: {
+      readonly rrule: string;
+      readonly timeZone: string;
+      readonly untilAt: string | null;
+    } | null;
+  },
+): Promise<Result<null>> {
+  if (input.from !== null) {
+    const { data, error } = await db
+      .from("record_recurrences")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("record_id", input.recordId)
+      .eq("rrule", input.from)
+      .is("deleted_at", null)
+      .select("id");
+    if (error) return fail(toDataError(error));
+    if (data.length !== 1) return fail({ kind: "conflict", message: "recurrence_changed" });
+  }
+  if (input.to === null) {
+    if (input.from !== null) return ok(null);
+    // Clearing a rule that was not there: it is a conflict only when someone set one since.
+    const { data, error } = await db
+      .from("record_recurrences")
+      .select("id")
+      .eq("record_id", input.recordId)
+      .is("deleted_at", null);
+    if (error) return fail(toDataError(error));
+    return data.length === 0 ? ok(null) : fail({ kind: "conflict", message: "recurrence_changed" });
+  }
+  // With no rule expected, a rule set since holds the record's one active slot and the insert is refused.
+  const { error } = await db.from("record_recurrences").insert({
+    org_id: input.orgId,
+    record_id: input.recordId,
+    rrule: input.to.rrule,
+    time_zone: input.to.timeZone,
+    until_at: input.to.untilAt,
+  });
   return error ? fail(toDataError(error)) : ok(null);
 }
 
