@@ -1,5 +1,7 @@
 "use client";
 
+import type { WorkflowSignal } from "@xos/data/product-workflows";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { Button, InlineAlert } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { startTransition, useActionState, useEffect, useRef, type ReactNode } from "react";
@@ -28,6 +30,7 @@ export function ActionForm({
   variant = "primary",
   layout = "stack",
   resetOnSuccess = false,
+  signals,
   children,
 }: {
   action: FormAction;
@@ -38,6 +41,8 @@ export function ActionForm({
   variant?: "primary" | "secondary" | "danger" | "ghost";
   layout?: "stack" | "inline";
   resetOnSuccess?: boolean;
+  /** Workflow funnel signals (A146): when the form is submitted, and when the action succeeds. */
+  signals?: { readonly submit?: WorkflowSignal; readonly done?: WorkflowSignal };
   children?: ReactNode;
 }) {
   const [state, run, pending] = useActionState(action, {});
@@ -48,6 +53,14 @@ export function ActionForm({
   useEffect(() => {
     if (state.ok && resetOnSuccess) form.current?.reset();
   }, [state, resetOnSuccess]);
+  // The form stays on the page with its result, so the result's own effect sends the funnel signal (A146).
+  const done = signals?.done;
+  const signaled = useRef(state);
+  useEffect(() => {
+    if (!state.ok || signaled.current === state) return;
+    signaled.current = state;
+    if (done) emitWorkflow(done);
+  }, [state, done]);
 
   return (
     <form
@@ -61,6 +74,7 @@ export function ActionForm({
       }}
       noValidate
       className={layout === "inline" ? "flex flex-wrap items-end gap-8" : "flex flex-col gap-12"}
+      data-workflow={signals?.submit}
     >
       {Object.entries(hidden).map(([name, value]) => (
         <input key={name} type="hidden" name={name} value={value} />

@@ -2,6 +2,7 @@
 
 import { CommandMenu, type IconName } from "@xos/ui";
 import { parseSearchQuery, type SearchToken } from "@xos/data/search-query";
+import { emitWorkflow } from "@xos/data/workflow-signal";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
@@ -86,6 +87,15 @@ export function ShellCommand({ open, onOpenChange, commands, locale, go }: Shell
   const [query, setQuery] = useState("");
   const [answer, setAnswer] = useState<Answer>({ query: "", groups: [] });
   const parsed = useMemo(() => parseSearchQuery(query), [query]);
+  // The Settings funnel (A146, "any setting reached in 1 search"): the menu opens, the person searches, and a setting
+  // is chosen from what it found.
+  const searched = query.trim() !== "";
+  useEffect(() => {
+    if (open) emitWorkflow("atlas.settings:start");
+  }, [open]);
+  useEffect(() => {
+    if (open && searched) emitWorkflow("atlas.settings:step1");
+  }, [open, searched]);
 
   useEffect(() => {
     if (!open || org === "" || org === "auth" || org === "partner") return;
@@ -105,6 +115,10 @@ export function ShellCommand({ open, onOpenChange, commands, locale, go }: Shell
   }, [open, org, query]);
 
   const close = () => onOpenChange(false);
+  const reached = (href: string | undefined) => {
+    if (searched && href && /^\/[^/]+\/settings(\/|$)/.test(href))
+      emitWorkflow("atlas.settings:done");
+  };
   // A peek where the shell opens it, else the record page (lib/shell/peek).
   const peekHref = (key: string) => shellPeekHref(org, pathname, search.toString(), key);
   // An action that opens a page shows that page's navigation shortcut, as the page entry does.
@@ -124,6 +138,7 @@ export function ShellCommand({ open, onOpenChange, commands, locale, go }: Shell
         ...(shortcut ? { shortcut } : {}),
         onSelect: () => {
           close();
+          if (!item.peek) reached(item.href);
           go(item.peek ? peekHref(item.peek) : (item.href ?? pathname));
         },
       };
@@ -145,6 +160,7 @@ export function ShellCommand({ open, onOpenChange, commands, locale, go }: Shell
           ...(item.shortcut ? { shortcut: item.shortcut } : {}),
           onSelect: () => {
             onOpenChange(false);
+            reached(item.href);
             go(item.href);
           },
         })),

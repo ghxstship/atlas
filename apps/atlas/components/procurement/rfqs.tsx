@@ -8,6 +8,7 @@ import {
   type RfqState,
 } from "@xos/data/procurement";
 import { listTransitionRules, listVendors } from "@xos/data/vendors";
+import { workflowMarker } from "@xos/data/workflow-signal";
 import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { getFormatter } from "next-intl/server";
 import {
@@ -366,6 +367,8 @@ async function RfqRecord({
           <p className="m-0 text-text-13 text-text-secondary">{t("rfqs.noResponses")}</p>
         ) : (
           <>
+            {/* The quotes side by side are the Procurement funnel's step (A146). */}
+            <span hidden {...workflowMarker("atlas.procurement:step1")} />
             <DataTable
               caption={t("rfqs.comparison")}
               columns={[
@@ -405,6 +408,7 @@ async function RfqRecord({
                     variant="primary"
                     confirm={{ title: t("rfqs.orderTitle"), body: t("rfqs.orderBody") }}
                     refusals={REFUSALS}
+                    signal="atlas.procurement:done"
                   />
                 ))}
                 <KitLink href={purchaseOrdersPath} size="sm">

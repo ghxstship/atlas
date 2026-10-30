@@ -35319,6 +35319,75 @@ export type Database = {
         };
         Relationships: [];
       };
+      product_funnel_alerts: {
+        Row: {
+          acknowledged_at: string | null;
+          acknowledged_by: string | null;
+          baseline_rate: number | null;
+          below_baseline: boolean;
+          below_target: boolean;
+          completed_sessions: number;
+          completion_rate: number;
+          id: string;
+          last_checked_at: string;
+          owning_team: string;
+          raised_at: string;
+          resolved_at: string | null;
+          started_sessions: number;
+          target_completion: number;
+          window_end: string;
+          window_start: string;
+          workflow_code: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          acknowledged_at?: string | null;
+          acknowledged_by?: string | null;
+          baseline_rate?: number | null;
+          below_baseline: boolean;
+          below_target: boolean;
+          completed_sessions: number;
+          completion_rate: number;
+          id?: string;
+          last_checked_at?: string;
+          owning_team: string;
+          raised_at?: string;
+          resolved_at?: string | null;
+          started_sessions: number;
+          target_completion: number;
+          window_end: string;
+          window_start: string;
+          workflow_code: string;
+        };
+        Update: {
+          acknowledged_at?: string | null;
+          acknowledged_by?: string | null;
+          baseline_rate?: number | null;
+          below_baseline?: boolean;
+          below_target?: boolean;
+          completed_sessions?: number;
+          completion_rate?: number;
+          id?: string;
+          last_checked_at?: string;
+          owning_team?: string;
+          raised_at?: string;
+          resolved_at?: string | null;
+          started_sessions?: number;
+          target_completion?: number;
+          window_end?: string;
+          window_start?: string;
+          workflow_code?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "product_funnel_alerts_acknowledged_by_fkey";
+            columns: ["acknowledged_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       production_state_transitions: {
         Row: {
           created_at: string;
@@ -61695,6 +61764,7 @@ export type Database = {
       confirm_minimum_age: { Args: { p_client_ip?: unknown; p_surface: string }; Returns: string };
       consent_oauth_request: { Args: { p_authorization_id: string }; Returns: string };
       consent_to_case_study: { Args: { p_case_study_id: string }; Returns: undefined };
+      console_acknowledge_funnel_alert: { Args: { p_alert_id: string }; Returns: string };
       console_action_log: {
         Args: { p_limit?: number; p_target_org_id?: string };
         Returns: {
@@ -61819,6 +61889,7 @@ export type Database = {
       };
       console_org_detail: { Args: { p_org_id: string }; Returns: Json };
       console_platform_metrics: { Args: { p_weeks?: number }; Returns: Json };
+      console_product_funnels: { Args: Record<PropertyKey, never>; Returns: Json };
       console_revoke_operator: {
         Args: { p_operator_id: string; p_reason: string };
         Returns: string;
