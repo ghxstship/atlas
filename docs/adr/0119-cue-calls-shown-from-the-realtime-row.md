@@ -27,10 +27,13 @@ token (ADR 0044, item 1). A cue is called once: `called_at` is set by `app.call_
 1. **A live change carries its row.** `@xos/data/live` hands a watcher's listener the row of an INSERT or UPDATE as
    Realtime sent it (`LiveChange.row`), the latest one when a batch holds several changes to the same row. A DELETE
    and a `RESYNC` carry none. Nothing new reaches the browser: the hub passes on what the socket already received.
-2. **The reread stays the source of truth.** A page may show a change from its row only until its next server read
-   lands. Show mode keeps the calls it heard (cue id to `called_at`) beside the server's progress they were heard
-   against, and drops them as soon as a newer server read arrives. Because a call never changes once made, a heard
-   call cannot show something the reread then takes back.
+2. **The reread stays the source of truth.** A page may show a change from its row only until a server read carries
+   it. Show mode keeps the calls it heard (cue id to `called_at`, `withHeardCalls` and `unconfirmedCalls` in
+   `@xos/data/show`) and fills each cue a read still shows uncalled; it drops a heard call once a read shows that
+   cue called. A read can start before a call and land after it (the 15-second pull, an earlier batch's reread, the
+   console's own refresh), so the page never drops a heard call just because a newer read arrived. Because
+   `called_at` is set once (`app.call_cue` refuses a second call) and never cleared, a heard call cannot show
+   something a read then takes back.
 3. **The call action renders nothing.** `callCueAction` answers with the database's call time and no longer
    revalidates the layout. The showcaller console (ADR 0131) hands that time to the running order, which shows the
    call from it and rereads itself; every other device follows through Realtime. No server render competes with the
@@ -55,4 +58,4 @@ token (ADR 0044, item 1). A cue is called once: `called_at` is set by `app.call_
   `private.realtime_channel_policies`, migration 2060) would bypass the poll. It needs a migration, which A145 has no
   block for, and is left to a follow-up with one.
 - Other pages keep rereading on each batch, as ADR 0044 decided. A page that adopts the row pattern must keep the
-  same rule: show it only until the next server read.
+  same rule: show the row's change only until a server read carries it, and only for a change no later write undoes.
