@@ -14,19 +14,26 @@ interface BulkBody {
   readonly reason?: string | undefined;
 }
 
-/** Previews or applies a bulk change; the answer is the RPC's, field for field. */
+/**
+ * Previews or applies a bulk change; the answer is the RPC's, field for field, except that a stale row's refusal
+ * leaves out `current` (migration 2120), which the frozen BulkEditRefusal does not describe (ADR 0077).
+ */
 export async function bulkEdit(
   context: RequestContext,
   resource: BulkResource,
   body: BulkBody,
   preview: boolean,
 ) {
-  return unwrap(
+  const outcome = unwrap(
     await bulkUpdate(context.db, resource, body.rows as readonly BulkRow[], {
       preview,
       reason: body.reason ?? null,
     }),
   );
+  return {
+    ...outcome,
+    refused: outcome.refused.map(({ id, rule, message }) => ({ id, rule, message })),
+  };
 }
 
 /** The field history of one row, one entry per event, newest first, as a page without a cursor. */
