@@ -149,5 +149,21 @@
     "table": "Tabla",
     "timeline": "Cronograma",
     "calendar": "Calendario"
+  },
+  "cueShift": {
+    "title": "Mover los cues pendientes",
+    "pick": "Cues que mover",
+    "all": "Seleccionar todos los cues pendientes ({count})",
+    "cue": "{position} {label}, {time}",
+    "minutes": "Minutos",
+    "minutesHelp": "Más tarde con +, más temprano con -, hasta 1.440.",
+    "invalid": "Escriba minutos enteros distintos de 0, como +5 o -10, hasta 1.440.",
+    "previewButton": "Vista previa",
+    "apply": "Mover {count, plural, one {# cue} other {# cues}}",
+    "preview": "{count, plural, one {Se mueve # cue} other {Se mueven # cues}} {minutes} min; {called, plural, one {# cue ya llamado se queda} other {# cues ya llamados se quedan}}.",
+    "refused": "{count, plural, one {# cue no se puede mover, así que no cambia nada} other {# cues no se pueden mover, así que no cambia nada}}",
+    "done": "{count, plural, one {Se movió # cue} other {Se movieron # cues}} {minutes} min.",
+    "undone": "Las horas de los cues volvieron a como estaban.",
+    "failed": "No se pudieron mover los cues. Inténtelo de nuevo."
   }
 }

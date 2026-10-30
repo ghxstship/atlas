@@ -17,6 +17,8 @@ const KINDS: Readonly<Record<string, string>> = {
   "onboarding.item_expiring": "onboardingExpiring",
   "certification.expiring": "certificationExpiring",
   "document.expiring": "documentExpiring",
+  // P8 (2853): an org asks for the person's availability; it links to /profile#availability-requests.
+  "availability.requested": "availabilityRequested",
 };
 
 /**
@@ -42,6 +44,7 @@ export async function Updates({ db, t, locale }: { db: XosClient; t: Translate; 
             searchName: n.args["searchName"] ?? "",
             expiresOn: n.args["expiresOn"] ?? "",
             kind: n.args["kind"] ?? "other",
+            projectName: n.args["projectName"] ?? "",
           });
           const path = n.args["gatewayPath"];
           return (

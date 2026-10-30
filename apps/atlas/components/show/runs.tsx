@@ -21,6 +21,7 @@ import {
 } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useLocale } from "next-intl";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "@/components/work/action-ui";
@@ -40,6 +41,9 @@ import {
 import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
 import { useRowMenu } from "@/components/menus/use-row-menu";
+
+// Shift the cues still to come (P8), for people who edit the run of show; loads on demand.
+const CueShift = dynamic(() => import("./cue-shift").then((m) => m.CueShift));
 
 /**
  * Show > Run of show (Section 4.5.5): running orders as a list, table or timeline by show day.
@@ -690,6 +694,14 @@ export function RunBody({
             ))}
           </ol>
         )}
+        {canEdit && cues.some((c) => !c.calledAt && c.plannedAt) ? (
+          <CueShift
+            org={org}
+            runId={runOfShow.id}
+            cues={cues}
+            label={(c) => time(c.plannedAt) ?? ""}
+          />
+        ) : null}
         {canEdit ? (
           <form
             className="flex flex-wrap items-end gap-8"

@@ -28,6 +28,7 @@ import {
 } from "@xos/data/work";
 import { InlineAlert, PropertyList } from "./ui";
 import { getFormatter, getLocale } from "next-intl/server";
+import dynamic from "next/dynamic";
 import { SummaryEntryRow } from "@/components/aurora/entry/summary-entry";
 import { ActualsForm, DependencyEditor } from "@/components/schedule/schedule-panels";
 import type { OrgContext } from "@/lib/shell/context";
@@ -54,6 +55,11 @@ import {
   type KindField,
 } from "./record-panels";
 import { RelatedRecords, type RecordRelations } from "./related-records";
+
+// Minute retime of a dated record (P8), for people who may change the timeline; loads on demand.
+const RecordRetime = dynamic(() =>
+  import("@/components/schedule/record-retime").then((m) => m.RecordRetime),
+);
 
 /**
  * Everything the record peek and the record full page show (Record template, Section 11.6), read
@@ -381,6 +387,9 @@ export async function RecordBody({
           ) : undefined
         }
       />
+      {detail.canSchedule && (record.startsAt || record.endsAt || record.dueAt) ? (
+        <RecordRetime org={org} recordId={record.id} />
+      ) : null}
       {dated ? (
         <ActualsForm
           org={org}

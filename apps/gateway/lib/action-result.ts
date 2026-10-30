@@ -48,6 +48,9 @@ export const KNOWN_REFUSALS = [
   "step_up_required",
   "sole_account_owner",
   "notification_channel_outside",
+  // P8: an availability poll takes answers until it closes, for its own days only (migration 2853).
+  "availability_poll_closed",
+  "availability_poll_answer",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

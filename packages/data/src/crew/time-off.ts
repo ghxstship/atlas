@@ -11,6 +11,9 @@ import {
 /**
  * Time off policies and requests (migration 0341). The requester never approves their own request
  * (sod_time_off_requester); the requester or an approver can cancel a proposed or approved request.
+ * A request's day count skips holidays on the org's holiday calendar (computed field
+ * app.time_off_day_count, 2270); policies are edited in Payroll and Time Off settings
+ * (./payroll-settings.ts).
  */
 
 export type TimeOffState = Database["app"]["Enums"]["time_off_state"];
@@ -56,12 +59,14 @@ export interface TimeOffRequest {
   readonly startsOn: string;
   readonly endsOn: string;
   readonly hours: number;
+  /** Days the request takes: every day from first to last less the org calendar's holidays. */
+  readonly dayCount: number;
   readonly state: TimeOffState;
   readonly createdBy: string | null;
   readonly createdAt: string;
 }
 
-const REQUEST_SELECT = `id, time_off_policy_id, membership_id, starts_on, ends_on, hours, time_off_state, created_by, created_at, policy:time_off_policies!time_off_requests_time_off_policy_id_fkey(name), membership:memberships!time_off_requests_membership_id_fkey(${MEMBERSHIP_EMBED})`;
+const REQUEST_SELECT = `id, time_off_policy_id, membership_id, starts_on, ends_on, hours, time_off_day_count, time_off_state, created_by, created_at, policy:time_off_policies!time_off_requests_time_off_policy_id_fkey(name), membership:memberships!time_off_requests_membership_id_fkey(${MEMBERSHIP_EMBED})`;
 
 interface RequestRow {
   id: string;
@@ -70,11 +75,21 @@ interface RequestRow {
   starts_on: string;
   ends_on: string;
   hours: number;
+  time_off_day_count: number | null;
   time_off_state: TimeOffState;
   created_by: string | null;
   created_at: string;
   policy: { name: string } | null;
   membership: { id: string; person_id: string; person: { full_name: string | null } | null } | null;
+}
+
+/** Days from first to last, both counted: the day count before any holiday is taken out. */
+export function dayCountBetween(startsOn: string, endsOn: string): number {
+  return (
+    Math.round(
+      (Date.parse(`${endsOn}T00:00:00Z`) - Date.parse(`${startsOn}T00:00:00Z`)) / 86_400_000,
+    ) + 1
+  );
 }
 
 function toRequest(r: RequestRow): TimeOffRequest {
@@ -86,6 +101,7 @@ function toRequest(r: RequestRow): TimeOffRequest {
     startsOn: r.starts_on,
     endsOn: r.ends_on,
     hours: Number(r.hours),
+    dayCount: r.time_off_day_count ?? dayCountBetween(r.starts_on, r.ends_on),
     state: r.time_off_state,
     createdBy: r.created_by,
     createdAt: r.created_at,

@@ -30,6 +30,16 @@ const EXPLAINED = new Set([
   "dependency_cycle",
   "dependency_project",
   "baseline_locked",
+  "reschedule_cycle",
+  "reschedule_locked",
+  "reschedule_canceled",
+  "reschedule_window",
+  "reschedule_single_date",
+  "reschedule_undated",
+  "shift_empty",
+  "shift_too_large",
+  "place_dated",
+  "cue_called",
   "cue_already_called",
   "cue_call_capability",
   "sheet_publish_capability",
@@ -53,7 +63,8 @@ const EXPLAINED = new Set([
 ]);
 
 /** Refusals whose database sentence is the correction the person needs. */
-const WITH_DETAIL = new Set(["record_title_grammar", "record_xyz_basis"]);
+/* reschedule_locked names the record that would move, which the view may not draw. */
+const WITH_DETAIL = new Set(["record_title_grammar", "record_xyz_basis", "reschedule_locked"]);
 
 export function toActionError(error: DataError): ActionError {
   switch (error.kind) {

@@ -49,6 +49,12 @@
         "body": "Tu turno {title} ahora empieza el {startsAt, date, full} a las {startsAt, time, short}."
       }
     },
+    "availability": {
+      "requested": {
+        "subject": "{orgName} te pide tu disponibilidad: {title}",
+        "body": "{orgName} te pregunta qué días puedes trabajar en {projectName}: {dayCount, plural, one {# día} other {# días}} del {firstDay} al {lastDay}. Tus respuestas se comparten con sus planificadores."
+      }
+    },
     "invoice": {
       "approved": {
         "subject": "Factura aprobada: {title}",

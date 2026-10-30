@@ -122,7 +122,16 @@
     "integration_disconnected": "Esa conexión está desconectada y no puede cambiar.",
     "moderation_appeal_window": "Las apelaciones se aceptan durante seis meses después de una decisión; esta es más antigua.",
     "moderation_appeal_grounds": "Explica por qué la decisión es incorrecta, en hasta 4,000 caracteres.",
-    "moderation_appeal_exists": "Esta decisión ya se apeló."
+    "moderation_appeal_exists": "Esta decisión ya se apeló.",
+    "earning_code_taken": "Otro código de ingreso ya usa este código. Elija un código diferente.",
+    "time_off_policy_taken": "Otra política de tiempo libre ya tiene este nombre. Elija un nombre diferente.",
+    "holiday_calendar_taken": "Otro calendario de feriados ya tiene este nombre. Elija un nombre diferente.",
+    "holiday_calendar_applies_taken": "Otro calendario ya se aplica en toda la organización para este estado, o sin estado. Cambie ese, o deje sin marcar Se aplica en toda la organización.",
+    "holiday_day_taken": "Este calendario ya tiene un feriado ese día. Quítelo primero o elija otro día.",
+    "holiday_venue_taken": "Ese recinto ya tiene un calendario de feriados. Desasígnelo allí primero.",
+    "holiday_preset_unknown": "Elija los feriados federales de EE. UU.",
+    "holiday_preset_year": "Elija un año de 2021 a 2100.",
+    "holiday_preset_names": "El nombre de un feriado tiene de 1 a 100 caracteres."
   },
   "partner": {
     "sections": "Secciones de la consola de socio",
@@ -663,6 +672,9 @@
       "shift": {
         "assigned": "Turno asignado",
         "changed": "Turno modificado"
+      },
+      "availability": {
+        "requested": "Disponibilidad solicitada"
       },
       "survey": {
         "opened": "Encuesta abierta"
