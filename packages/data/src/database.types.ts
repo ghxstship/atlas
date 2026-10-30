@@ -63076,6 +63076,7 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: {
           has_profile_photo: boolean;
+          holds_credential: boolean;
           org_id: string;
           org_name: string;
           photo_path: string;
@@ -64232,7 +64233,10 @@ export type Database = {
       };
       release_vehicle: { Args: { p_gate_queue_id: string }; Returns: string };
       remove_account_role: { Args: { p_account_membership_role_id: string }; Returns: undefined };
-      remove_credential_photo: { Args: { p_org_id: string; p_person_id: string }; Returns: string };
+      remove_credential_photo: {
+        Args: { p_org_id: string; p_person_id: string };
+        Returns: string[];
+      };
       reorder_favorites: { Args: { p_favorite_ids: string[]; p_org_id: string }; Returns: number };
       replace_project_inbox: { Args: { p_project_id: string }; Returns: string };
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };

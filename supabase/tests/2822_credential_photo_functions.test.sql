@@ -218,10 +218,23 @@ select is(pg_temp.state('alice', 'cred_frank'), 'Provided', 'a new photo scanned
 select is(pg_temp.removed('dave', 'frank'), (select string_agg(name, ',' order by name) from paths where key in ('one', 'five')),
   'an issuer removes a Clean photo and gets it, with the older Clean copy, to delete');
 select is(pg_temp.removed('dave', 'frank'), '', 'removing again finds nothing');
-select pg_temp.as_user('dave');
-select ok((select bool_and(private.credential_photo_removable(name)) from paths where key in ('one', 'five')),
-  'and the storage policy lets that issuer delete both objects now no live photo names them');
-delete from storage.objects where bucket_id = 'credential-photos' and name = (select name from paths where key = 'five');
+create function pg_temp.deleted(p_who text, p_key text) returns integer
+language plpgsql as $$
+declare v integer;
+begin
+  perform pg_temp.as_user(p_who);
+  with d as (
+    delete from storage.objects o
+    where o.bucket_id = 'credential-photos' and o.name = (select name from paths where key = p_key)
+    returning 1
+  )
+  select count(*)::int into v from d;
+  perform pg_temp.as_platform();
+  return v;
+end $$;
+
+select is(pg_temp.deleted('dave', 'five'), 1,
+  'and the storage policy lets that issuer delete the removed photo''s object now no live photo names it');
 select pg_temp.as_platform();
 select is(pg_temp.state('alice', 'cred_frank'), 'Missing', 'the badge reads Missing again');
 select is((select withdrawn_at from app.consent_records where person_id = pg_temp.id('frank') and purpose_code = 'credential_photo'), null,
