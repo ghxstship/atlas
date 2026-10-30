@@ -1,7 +1,7 @@
 import { getRosterProjectFacts } from "@xos/data/roster-facts";
 import { listEngagementRoster } from "@xos/data/roster";
-import { InlineAlert } from "@xos/ui";
 import { RegionError, Section } from "@/components/page/page";
+import { InlineAlert } from "@/components/ui";
 import { ProjectFactsWizard } from "@/components/roster/project-facts-wizard";
 import type { TabProps } from "./tab-context";
 

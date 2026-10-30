@@ -8,10 +8,10 @@ import {
   type RosterEntry,
 } from "@xos/data/roster";
 import { listRosterFactStatus, rosterFactChip } from "@xos/data/roster-facts";
-import { Button, InlineAlert, StateChip } from "@xos/ui";
 import dynamic from "next/dynamic";
 import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
+import { Button, InlineAlert, StateChip } from "@/components/ui";
 import {
   reissueRosterInvitationAction,
   submitRosterAction,
