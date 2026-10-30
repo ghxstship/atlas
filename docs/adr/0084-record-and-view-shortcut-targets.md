@@ -19,19 +19,33 @@ changed default left them wrong (finding A65-007).
 
 ### 1. A shortcut finds its control by attribute, in the region around focus
 
-The record full page (`TemplateRecord`), the side peek (`SidePeek`) and every collection
-(`TemplateCollection`) mark their region with `data-shortcut-scope` (`record` or `view`). The control
-that does an action carries `data-shortcut="<registry id>"`, on itself or on a wrapper. The Atlas key
-handler looks the key up in the focused region's scope and asks `@xos/ui/shortcut-targets` for the
-control: it clicks a button, focuses a field (selecting a title's text, opening a select's picker
-where the browser allows) or focuses the first control of a wrapper marked `data-shortcut-focus`. A
-region without the control leaves the key alone. A side peek is a dialog, so the shell's single keys
-stay quiet in it, but the peek's own record keys answer; a menu open inside it silences both.
+A region answers for a scope. The record full page (`TemplateRecord`) and every collection
+(`TemplateCollection`) are regions by the template root they already carry (`data-template="record"`
+for `record`, `data-template="collection"` for `view`), so the templates and the pages that load them
+gain no bytes. Any other region carries `data-shortcut-scope`: the side peek (`SidePeek`) and the
+finance peek mark themselves `record`. The control that does an action carries
+`data-shortcut="<registry id>"`, on itself or on a wrapper. The Atlas key handler, which loads on
+demand, looks the key up in the focused region's scope and asks `@xos/ui/shortcut-targets` for the
+control: it clicks a button, opens a menu trigger with the arrow key, focuses a field (selecting a
+title's text, opening a select's picker where the browser allows), focuses the selected option of a
+radio group or tab list (the view switcher), or focuses the first control of a wrapper marked
+`data-shortcut-focus` (a row of state moves). A region without the control leaves the key alone, with
+one exception: Copy link on a record that shows no Copy link control (a full page) copies the address
+on screen, which is the record's. Open full page does nothing on the full page itself. A side peek is
+a dialog, so the shell's single keys stay quiet in it, but the peek's own record keys answer; a menu
+open inside it silences both.
 
 A feature binds its control to a shortcut by carrying the attribute; nothing in the handler changes.
-An action whose only control sits in a menu (Save view) keeps a `hidden` button with the attribute as
-its target. Alternative: each component registers a handler with the shell. Rejected: every module
-would import shell code, and controls in `packages/ui` cannot reach Atlas's shell.
+The marked controls are shared ones, so each covers many record pages: the collection kit's state
+moves (`TransitionButtons`), finance's (`TransitionBar`), logistics' move form and record delete,
+the permit, asset unit, engagement and project state moves, Work's state, owner, title and Trash
+controls, both shared comment composers, and the side peek's Open full, Copy link and clickable
+state. A record page whose module has no such control (most have no inline title, owner or Trash
+control) leaves that key alone. Open the filters presses the filter builder's Add filter (A117), which
+loads with the filter bar, not with the page; Export is A102's control. Save view's only control sits
+in the saved-views menu, so the view switcher keeps a `hidden` button with the attribute as its target.
+Alternative: each component registers a handler with the shell. Rejected: every module would import
+shell code, and controls in `packages/ui` cannot reach Atlas's shell.
 
 ### 2. Gateway's letter keys come from the server
 
@@ -51,6 +65,10 @@ docs site reads the Markdown files itself, and generated lists keep the files re
 ## Consequences
 
 - Record and view keys hold their letters against global shortcuts (a person cannot bind S globally),
-  as list keys already do; two region scopes never meet, so a record and a view may reuse a letter.
+  as list keys already do. A list can sit in any region and takes its keys first, so no scope may bind
+  J, K, X or the other list keys. Two other region scopes never meet, so a record and a view may reuse
+  a letter.
+- A person's stored binding that the registry now refuses (its keys now belong to a new shortcut) is
+  dropped, and Personal settings, Keyboard Shortcuts names those shortcuts above the list.
 - A shortcut that changes a default key regenerates the articles in the same change; a package that
   adds a shortcut after another merged must rerun both help generators.
