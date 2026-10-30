@@ -267,6 +267,8 @@ export const NATIVE_MORE: ReadonlySet<string> = new Set([
   "settlement",
   "reports",
   "proof-of-performance",
+  // R5: project facts on the person's own roster entries, online only.
+  "project-details",
 ]);
 
 export interface MoreSections {

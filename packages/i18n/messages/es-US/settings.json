@@ -332,6 +332,14 @@
     "partnerLayout": {
       "label": "Diseño de la consola de socios",
       "help": "Ensancha o estrecha un mosaico de la consola de socios arrastrando su borde, o con las teclas de flecha en su control. Restablecer devuelve cada mosaico a su ancho predeterminado."
+    },
+    "projectFactsKeepDays": {
+      "label": "Conservar los datos del proyecto (días)",
+      "help": "Cuánto tiempo se conservan los datos de viaje, uniforme y vehículo que las personas ingresan en una entrada de la lista después de que la contratación se completa o cancela. De 30 a 365 días."
+    },
+    "companyMaySubmitProjectFacts": {
+      "label": "Las empresas pueden ingresar datos del proyecto por su personal",
+      "help": "Cuando está activado, la empresa que incluye a alguien en la lista puede ingresar sus datos de viaje, uniforme y vehículo. La persona recibe un aviso y puede corregir lo que no ingresó por su cuenta."
     }
   },
   "choices": {

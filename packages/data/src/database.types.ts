@@ -1028,6 +1028,7 @@ export type Database = {
           rate_minor: number | null;
           role_code: string | null;
           role_type: Database["app"]["Enums"]["external_role_type"] | null;
+          roster_locks_at: string | null;
           start_date: string | null;
         };
         ComputedFields: never;
@@ -5870,6 +5871,31 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      airports: {
+        Row: {
+          country_code: string;
+          iata_code: string;
+          is_active: boolean;
+          municipality: string | null;
+          name: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          country_code: string;
+          iata_code: string;
+          is_active?: boolean;
+          municipality?: string | null;
+          name: string;
+        };
+        Update: {
+          country_code?: string;
+          iata_code?: string;
+          is_active?: boolean;
+          municipality?: string | null;
+          name?: string;
+        };
+        Relationships: [];
       };
       api_keys: {
         Row: {
@@ -17428,6 +17454,7 @@ export type Database = {
           project_id: string;
           role_code: string | null;
           role_type: Database["app"]["Enums"]["external_role_type"];
+          roster_locks_at: string | null;
           start_date: string;
           updated_at: string;
           updated_by: string | null;
@@ -17456,6 +17483,7 @@ export type Database = {
           project_id: string;
           role_code?: string | null;
           role_type: Database["app"]["Enums"]["external_role_type"];
+          roster_locks_at?: string | null;
           start_date: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -17483,6 +17511,7 @@ export type Database = {
           project_id?: string;
           role_code?: string | null;
           role_type?: Database["app"]["Enums"]["external_role_type"];
+          roster_locks_at?: string | null;
           start_date?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -44572,6 +44601,299 @@ export type Database = {
           },
         ];
       };
+      roster_travel_requests: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          inbound_airport_code: string | null;
+          inbound_on: string | null;
+          meal_preference: string | null;
+          needs_ground_transport: boolean;
+          needs_lodging: boolean;
+          org_id: string;
+          outbound_airport_code: string | null;
+          outbound_on: string | null;
+          roster_entry_id: string;
+          seat_preference: Database["app"]["Enums"]["seat_preference"] | null;
+          travel_notes: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          inbound_airport_code?: string | null;
+          inbound_on?: string | null;
+          meal_preference?: string | null;
+          needs_ground_transport?: boolean;
+          needs_lodging?: boolean;
+          org_id: string;
+          outbound_airport_code?: string | null;
+          outbound_on?: string | null;
+          roster_entry_id: string;
+          seat_preference?: Database["app"]["Enums"]["seat_preference"] | null;
+          travel_notes?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          inbound_airport_code?: string | null;
+          inbound_on?: string | null;
+          meal_preference?: string | null;
+          needs_ground_transport?: boolean;
+          needs_lodging?: boolean;
+          org_id?: string;
+          outbound_airport_code?: string | null;
+          outbound_on?: string | null;
+          roster_entry_id?: string;
+          seat_preference?: Database["app"]["Enums"]["seat_preference"] | null;
+          travel_notes?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "roster_travel_requests_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_travel_requests_inbound_airport_code_fkey";
+            columns: ["inbound_airport_code"];
+            isOneToOne: false;
+            referencedRelation: "airports";
+            referencedColumns: ["iata_code"];
+          },
+          {
+            foreignKeyName: "roster_travel_requests_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_travel_requests_outbound_airport_code_fkey";
+            columns: ["outbound_airport_code"];
+            isOneToOne: false;
+            referencedRelation: "airports";
+            referencedColumns: ["iata_code"];
+          },
+          {
+            foreignKeyName: "roster_travel_requests_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_travel_requests_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_travel_requests_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      roster_uniform_sizes: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          glove_size: Database["app"]["Enums"]["garment_letter_size"] | null;
+          hat_size: Database["app"]["Enums"]["garment_letter_size"] | null;
+          id: string;
+          jacket_size: Database["app"]["Enums"]["garment_letter_size"] | null;
+          org_id: string;
+          pants_inseam_in: number | null;
+          pants_size: Database["app"]["Enums"]["garment_letter_size"] | null;
+          pants_waist_in: number | null;
+          roster_entry_id: string;
+          shirt_size: Database["app"]["Enums"]["garment_letter_size"] | null;
+          shoe_size: number | null;
+          shoe_size_system: Database["app"]["Enums"]["shoe_size_system"] | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          glove_size?: Database["app"]["Enums"]["garment_letter_size"] | null;
+          hat_size?: Database["app"]["Enums"]["garment_letter_size"] | null;
+          id?: string;
+          jacket_size?: Database["app"]["Enums"]["garment_letter_size"] | null;
+          org_id: string;
+          pants_inseam_in?: number | null;
+          pants_size?: Database["app"]["Enums"]["garment_letter_size"] | null;
+          pants_waist_in?: number | null;
+          roster_entry_id: string;
+          shirt_size?: Database["app"]["Enums"]["garment_letter_size"] | null;
+          shoe_size?: number | null;
+          shoe_size_system?: Database["app"]["Enums"]["shoe_size_system"] | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          glove_size?: Database["app"]["Enums"]["garment_letter_size"] | null;
+          hat_size?: Database["app"]["Enums"]["garment_letter_size"] | null;
+          id?: string;
+          jacket_size?: Database["app"]["Enums"]["garment_letter_size"] | null;
+          org_id?: string;
+          pants_inseam_in?: number | null;
+          pants_size?: Database["app"]["Enums"]["garment_letter_size"] | null;
+          pants_waist_in?: number | null;
+          roster_entry_id?: string;
+          shirt_size?: Database["app"]["Enums"]["garment_letter_size"] | null;
+          shoe_size?: number | null;
+          shoe_size_system?: Database["app"]["Enums"]["shoe_size_system"] | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "roster_uniform_sizes_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_uniform_sizes_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_uniform_sizes_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_uniform_sizes_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_uniform_sizes_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      roster_vehicles: {
+        Row: {
+          color: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          make: string;
+          model: string;
+          org_id: string;
+          plate: string;
+          plate_region: string;
+          roster_entry_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          color?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          make: string;
+          model: string;
+          org_id: string;
+          plate: string;
+          plate_region: string;
+          roster_entry_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          color?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          make?: string;
+          model?: string;
+          org_id?: string;
+          plate?: string;
+          plate_region?: string;
+          roster_entry_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "roster_vehicles_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_vehicles_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_vehicles_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_roster_entries";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_vehicles_roster_entry_id_fkey";
+            columns: ["roster_entry_id"];
+            isOneToOne: false;
+            referencedRelation: "roster_entry_people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "roster_vehicles_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       run_of_show: {
         Row: {
           created_at: string;
@@ -56813,6 +57135,7 @@ export type Database = {
           changed_columns: string[];
           created_at: string;
           engagement_id: string | null;
+          fact_kinds: Database["app"]["Enums"]["project_fact_kind"][];
           id: string;
           org_id: string | null;
           person_id: string;
@@ -56828,6 +57151,7 @@ export type Database = {
           changed_columns?: string[];
           created_at?: string;
           engagement_id?: string | null;
+          fact_kinds?: Database["app"]["Enums"]["project_fact_kind"][];
           id?: string;
           org_id?: string | null;
           person_id: string;
@@ -56842,6 +57166,7 @@ export type Database = {
           changed_columns?: string[];
           created_at?: string;
           engagement_id?: string | null;
+          fact_kinds?: Database["app"]["Enums"]["project_fact_kind"][];
           id?: string;
           org_id?: string | null;
           person_id?: string;
@@ -62506,6 +62831,10 @@ export type Database = {
         Args: { p_org_id?: string; p_setting_key: string };
         Returns: boolean;
       };
+      clear_roster_project_fact: {
+        Args: { p_kind: Database["app"]["Enums"]["project_fact_kind"]; p_roster_entry_id: string };
+        Returns: undefined;
+      };
       clear_setting: {
         Args: {
           p_org_id: string;
@@ -63912,6 +64241,10 @@ export type Database = {
           project_name: string;
         }[];
       };
+      my_previous_roster_facts: {
+        Args: { p_kind: Database["app"]["Enums"]["project_fact_kind"] };
+        Returns: Json;
+      };
       my_project_role_capabilities: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -65237,7 +65570,38 @@ export type Database = {
       revoke_supplier_diversity_share: { Args: { p_share_id: string }; Returns: undefined };
       revoke_web_push: { Args: { p_endpoint: string }; Returns: number };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
+      roster_project_fact_status: {
+        Args: { p_engagement_id: string };
+        Returns: {
+          has_travel: boolean;
+          has_uniform: boolean;
+          has_vehicle: boolean;
+          lodging_offered: boolean;
+          parking_offered: boolean;
+          roster_entry_id: string;
+          travel_entered_by_person: boolean;
+          travel_offered: boolean;
+          uniform_entered_by_person: boolean;
+          uniforms_offered: boolean;
+          vehicle_entered_by_person: boolean;
+        }[];
+      };
+      roster_project_facts: { Args: { p_roster_entry_id: string }; Returns: Json };
+      roster_project_facts_for_engagement: { Args: { p_engagement_id: string }; Returns: Json[] };
       roster_shared_work_details: { Args: { p_roster_entry_id: string }; Returns: Json };
+      roster_travel_day_counts: {
+        Args: { p_project_id: string };
+        Returns: {
+          arriving: number;
+          day: string;
+          departing: number;
+          on_site: number;
+          pickups_needed: number;
+          rooms_needed: number;
+          truncated: boolean;
+        }[];
+      };
+      roster_travel_party: { Args: { p_project_id: string }; Returns: Json[] };
       rotate_calendar_feed: {
         Args: { p_calendar_feed_id: string };
         Returns: {
@@ -65289,6 +65653,47 @@ export type Database = {
           p_name: string;
           p_venue_id: string;
           p_zone_id: string;
+        };
+        Returns: string;
+      };
+      save_roster_travel_request: {
+        Args: {
+          p_inbound_airport_code: string;
+          p_inbound_on: string;
+          p_meal_preference?: string;
+          p_needs_ground_transport?: boolean;
+          p_needs_lodging?: boolean;
+          p_outbound_airport_code: string;
+          p_outbound_on: string;
+          p_roster_entry_id: string;
+          p_seat_preference?: Database["app"]["Enums"]["seat_preference"];
+          p_travel_notes?: string;
+        };
+        Returns: string;
+      };
+      save_roster_uniform_sizes: {
+        Args: {
+          p_glove_size: Database["app"]["Enums"]["garment_letter_size"];
+          p_hat_size: Database["app"]["Enums"]["garment_letter_size"];
+          p_jacket_size: Database["app"]["Enums"]["garment_letter_size"];
+          p_pants_inseam_in: number;
+          p_pants_size: Database["app"]["Enums"]["garment_letter_size"];
+          p_pants_waist_in: number;
+          p_roster_entry_id: string;
+          p_shirt_size: Database["app"]["Enums"]["garment_letter_size"];
+          p_shoe_size: number;
+          p_shoe_size_system: Database["app"]["Enums"]["shoe_size_system"];
+        };
+        Returns: string;
+      };
+      save_roster_vehicle: {
+        Args: {
+          p_color: string;
+          p_make: string;
+          p_model: string;
+          p_plate: string;
+          p_plate_region: string;
+          p_roster_entry_id: string;
         };
         Returns: string;
       };
@@ -65509,6 +65914,10 @@ export type Database = {
           p_value_text?: string;
         };
         Returns: string;
+      };
+      set_roster_lock: {
+        Args: { p_engagement_id: string; p_locks_at: string };
+        Returns: undefined;
       };
       set_saved_view_default: { Args: { p_saved_view_id: string }; Returns: string };
       set_separation_of_duties_option: {
@@ -66768,6 +67177,7 @@ export type Database = {
         | "links"
         | "organizations";
       profile_visibility: "Private" | "Network" | "Public";
+      project_fact_kind: "Travel" | "Uniform" | "Vehicle";
       project_role: "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
       project_state: "Proposed" | "Active" | "Blocked" | "Complete" | "Canceled";
       punch_kind: "In" | "Break Start" | "Break End" | "Out";
@@ -66816,6 +67226,7 @@ export type Database = {
       shift_claim_state: "Requested" | "Approved" | "Rejected" | "Withdrawn" | "Superseded";
       shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
       shipment_direction: "Inbound" | "Outbound";
+      shoe_size_system: "US Men" | "US Women" | "EU" | "UK";
       shortcut_shell: "Atlas" | "Gateway";
       sms_consent_action: "Opt In" | "Opt Out" | "Help";
       sort_direction: "Ascending" | "Descending";
@@ -73411,6 +73822,7 @@ export const Constants = {
         "organizations",
       ],
       profile_visibility: ["Private", "Network", "Public"],
+      project_fact_kind: ["Travel", "Uniform", "Vehicle"],
       project_role: ["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"],
       project_state: ["Proposed", "Active", "Blocked", "Complete", "Canceled"],
       punch_kind: ["In", "Break Start", "Break End", "Out"],
@@ -73459,6 +73871,7 @@ export const Constants = {
       shift_claim_state: ["Requested", "Approved", "Rejected", "Withdrawn", "Superseded"],
       shift_state: ["Draft", "Published", "Accepted", "Canceled"],
       shipment_direction: ["Inbound", "Outbound"],
+      shoe_size_system: ["US Men", "US Women", "EU", "UK"],
       shortcut_shell: ["Atlas", "Gateway"],
       sms_consent_action: ["Opt In", "Opt Out", "Help"],
       sort_direction: ["Ascending", "Descending"],

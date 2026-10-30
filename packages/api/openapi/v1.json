@@ -28057,6 +28057,12 @@
             "description": "When it became Complete.",
             "example": "2026-10-08T14:30:00Z"
           },
+          "roster_locks_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Names lock: after this instant the company side can no longer name new crew; null means no lock.",
+            "example": "2026-10-08T14:30:00Z"
+          },
           "application_id": {
             "type": ["string", "null"],
             "format": "uuid",
@@ -28117,6 +28123,7 @@
           "engagement_state",
           "activated_at",
           "completed_at",
+          "roster_locks_at",
           "application_id",
           "worker_classification",
           "pay_basis",
@@ -28202,6 +28209,19 @@
         },
         "required": ["expected_state", "to_state"],
         "description": "Request to move a lifecycle to another state."
+      },
+      "RosterLockRequest": {
+        "type": "object",
+        "properties": {
+          "locks_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When names lock; null clears the lock.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["locks_at"],
+        "description": "The names lock of an engagement."
       },
       "EngagementDocumentPage": {
         "type": "object",
@@ -49718,6 +49738,929 @@
         },
         "description": "Fields accepted when updating a CueCall. Omitted fields are unchanged."
       },
+      "RosterEntryPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RosterEntry" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "RosterEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the roster entry.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the producing org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the engagement the person works under.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "party_name": {
+            "type": ["string", "null"],
+            "description": "Supplying account, else the engaged person.",
+            "example": "Bayside Audio"
+          },
+          "role_type": {
+            "type": "string",
+            "description": "External role type of the engagement.",
+            "example": "Vendor"
+          },
+          "is_self": {
+            "type": "boolean",
+            "description": "True for the engaged person's own entry.",
+            "example": false
+          },
+          "person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the resolved person; null for an unclaimed invitation.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "full_name": {
+            "type": ["string", "null"],
+            "description": "Name of the person.",
+            "example": "Kai Morgan"
+          },
+          "invited_email": {
+            "type": ["string", "null"],
+            "description": "Address of the pending invitation.",
+            "example": "kai@example.com"
+          },
+          "invitation_expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the pending invitation lapses.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "role_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Role worked, from the Roles Library.",
+            "example": "9000.50.02"
+          },
+          "job_title": {
+            "type": ["string", "null"],
+            "description": "Job title of the role.",
+            "example": "Audio Technician"
+          },
+          "arrival_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Arrival window start.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "arrival_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Arrival window end.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "arrival_time_zone": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone of the arrival window.",
+            "example": "America/New_York"
+          },
+          "entry_state": { "$ref": "#/components/schemas/RosterEntryState" },
+          "person_response": { "$ref": "#/components/schemas/RosterPersonResponse" },
+          "responded_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the person last answered.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "return_reason": {
+            "type": ["string", "null"],
+            "description": "What the reviewer asked to change, while Returned.",
+            "example": "Add the arrival."
+          },
+          "replaces_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the withdrawn entry this one replaces.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "share_categories": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Work details categories the person shares on this entry.",
+            "example": ["Uniform Sizes"]
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "project_id",
+          "engagement_id",
+          "party_name",
+          "role_type",
+          "is_self",
+          "person_id",
+          "full_name",
+          "invited_email",
+          "invitation_expires_at",
+          "role_code",
+          "job_title",
+          "arrival_starts_at",
+          "arrival_ends_at",
+          "arrival_time_zone",
+          "entry_state",
+          "person_response",
+          "responded_at",
+          "return_reason",
+          "replaces_entry_id",
+          "share_categories"
+        ],
+        "description": "A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs."
+      },
+      "RosterEntryState": {
+        "type": "string",
+        "enum": ["Draft", "Submitted", "Accepted", "Returned", "Withdrawn"],
+        "description": "Review state of a roster entry.",
+        "example": "Draft"
+      },
+      "RosterPersonResponse": {
+        "type": "string",
+        "enum": ["Pending", "Accepted", "Declined"],
+        "description": "The rostered person's own answer.",
+        "example": "Pending"
+      },
+      "RosterProjectFacts": {
+        "type": "object",
+        "properties": {
+          "roster_entry_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Roster entry.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Engagement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Producing org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person the entry resolves to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "standing": {
+            "type": "string",
+            "enum": ["Person", "Company", "Producer"],
+            "description": "Who reads: Person, the entry's own person; Company, a roster manager of the account that rosters them; Producer, a member of the producing org by capability.",
+            "example": "Producer"
+          },
+          "offered": { "$ref": "#/components/schemas/RosterFactOfferings" },
+          "present": { "$ref": "#/components/schemas/RosterFactPresence" },
+          "entered_by_person": { "$ref": "#/components/schemas/RosterFactProvenance" },
+          "readable": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectFactKind" },
+            "description": "Kinds the caller reads; the others come back null.",
+            "example": ["Travel"]
+          },
+          "travel": {
+            "anyOf": [{ "$ref": "#/components/schemas/RosterTravelRequest" }, { "type": "null" }]
+          },
+          "uniform": {
+            "anyOf": [{ "$ref": "#/components/schemas/RosterUniformSizes" }, { "type": "null" }]
+          },
+          "vehicle": {
+            "anyOf": [{ "$ref": "#/components/schemas/RosterVehicle" }, { "type": "null" }]
+          }
+        },
+        "required": [
+          "roster_entry_id",
+          "engagement_id",
+          "org_id",
+          "person_id",
+          "standing",
+          "offered",
+          "present",
+          "entered_by_person",
+          "readable",
+          "travel",
+          "uniform",
+          "vehicle"
+        ],
+        "description": "The project facts of a roster entry as the caller may read them (R5). Each Company or Producer read of a value is written to the person's access log, and a Producer read to the producing org's audit ledger."
+      },
+      "RosterFactOfferings": {
+        "type": "object",
+        "properties": {
+          "travel": { "type": "boolean", "description": "Travel is offered.", "example": true },
+          "lodging": { "type": "boolean", "description": "Lodging is offered.", "example": true },
+          "uniforms": {
+            "type": "boolean",
+            "description": "Uniforms are offered.",
+            "example": true
+          },
+          "parking": { "type": "boolean", "description": "Parking is offered.", "example": true }
+        },
+        "required": ["travel", "lodging", "uniforms", "parking"],
+        "description": "Which offerings the project turns on for the engagement."
+      },
+      "RosterFactPresence": {
+        "type": "object",
+        "properties": {
+          "travel": {
+            "type": "boolean",
+            "description": "A live row exists for Travel.",
+            "example": true
+          },
+          "uniform": {
+            "type": "boolean",
+            "description": "A live row exists for Uniform.",
+            "example": true
+          },
+          "vehicle": {
+            "type": "boolean",
+            "description": "A live row exists for Vehicle.",
+            "example": true
+          }
+        },
+        "required": ["travel", "uniform", "vehicle"],
+        "description": "Which kinds are on file."
+      },
+      "RosterFactProvenance": {
+        "type": "object",
+        "properties": {
+          "travel": {
+            "type": "boolean",
+            "description": "The person entered Travel.",
+            "example": true
+          },
+          "uniform": {
+            "type": "boolean",
+            "description": "The person entered Uniform.",
+            "example": true
+          },
+          "vehicle": {
+            "type": "boolean",
+            "description": "The person entered Vehicle.",
+            "example": true
+          }
+        },
+        "required": ["travel", "uniform", "vehicle"],
+        "description": "Which kinds the person entered themselves; the others were entered by their company."
+      },
+      "ProjectFactKind": {
+        "type": "string",
+        "enum": ["Travel", "Uniform", "Vehicle"],
+        "description": "A kind of project fact a rostered person enters on their roster entry, asked only while its offering (Travel, Uniforms, Parking) is on.",
+        "example": "Travel"
+      },
+      "RosterTravelRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the travel request.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "inbound_airport_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z]{3}$",
+            "description": "IATA code of the airport the person flies into.",
+            "example": "MIA"
+          },
+          "inbound_airport_name": {
+            "type": ["string", "null"],
+            "description": "Name of that airport.",
+            "example": "Miami International Airport"
+          },
+          "outbound_airport_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z]{3}$",
+            "description": "IATA code of the airport the person flies home from.",
+            "example": "MIA"
+          },
+          "outbound_airport_name": {
+            "type": ["string", "null"],
+            "description": "Name of that airport.",
+            "example": "Miami International Airport"
+          },
+          "inbound_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Day the person travels to the project.",
+            "example": "2026-10-08"
+          },
+          "outbound_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Day the person travels home.",
+            "example": "2026-10-08"
+          },
+          "seat_preference": {
+            "type": ["string", "null"],
+            "enum": ["Window", "Aisle", "No Preference", null],
+            "description": "Preferred seat.",
+            "example": "Aisle"
+          },
+          "meal_preference": {
+            "type": ["string", "null"],
+            "description": "Meal preference.",
+            "example": "Vegetarian"
+          },
+          "needs_ground_transport": {
+            "type": "boolean",
+            "description": "The person needs a pickup on arrival.",
+            "example": true
+          },
+          "needs_lodging": {
+            "type": "boolean",
+            "description": "The person needs a room.",
+            "example": false
+          },
+          "travel_notes": {
+            "type": ["string", "null"],
+            "description": "Notes for the travel desk.",
+            "example": "Arriving with a guitar case."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the request was last saved.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "inbound_airport_code",
+          "inbound_airport_name",
+          "outbound_airport_code",
+          "outbound_airport_name",
+          "inbound_on",
+          "outbound_on",
+          "seat_preference",
+          "meal_preference",
+          "needs_ground_transport",
+          "needs_lodging",
+          "travel_notes",
+          "updated_at"
+        ],
+        "description": "The travel a rostered person asks for on one project (R5)."
+      },
+      "RosterUniformSizes": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the uniform sizes.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "shirt_size": {
+            "type": ["string", "null"],
+            "enum": ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", null],
+            "description": "Letter size.",
+            "example": "M"
+          },
+          "jacket_size": {
+            "type": ["string", "null"],
+            "enum": ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", null],
+            "description": "Letter size.",
+            "example": "M"
+          },
+          "pants_size": {
+            "type": ["string", "null"],
+            "enum": ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", null],
+            "description": "Letter size.",
+            "example": "M"
+          },
+          "glove_size": {
+            "type": ["string", "null"],
+            "enum": ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", null],
+            "description": "Letter size.",
+            "example": "M"
+          },
+          "hat_size": {
+            "type": ["string", "null"],
+            "enum": ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", null],
+            "description": "Letter size.",
+            "example": "M"
+          },
+          "pants_waist_in": {
+            "type": ["integer", "null"],
+            "minimum": 20,
+            "maximum": 70,
+            "description": "Pants waist in inches.",
+            "example": 32
+          },
+          "pants_inseam_in": {
+            "type": ["integer", "null"],
+            "minimum": 20,
+            "maximum": 40,
+            "description": "Pants inseam in inches.",
+            "example": 32
+          },
+          "shoe_size": {
+            "type": ["number", "null"],
+            "minimum": 1,
+            "maximum": 20,
+            "description": "Shoe size in half sizes.",
+            "example": 10.5
+          },
+          "shoe_size_system": {
+            "anyOf": [{ "$ref": "#/components/schemas/ShoeSizeSystem" }, { "type": "null" }]
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the sizes were last saved.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "shirt_size",
+          "jacket_size",
+          "pants_size",
+          "glove_size",
+          "hat_size",
+          "pants_waist_in",
+          "pants_inseam_in",
+          "shoe_size",
+          "shoe_size_system",
+          "updated_at"
+        ],
+        "description": "The uniform sizes a rostered person gives for one project (R5)."
+      },
+      "ShoeSizeSystem": {
+        "type": "string",
+        "enum": ["US Men", "US Women", "EU", "UK"],
+        "description": "Sizing system of a shoe size.",
+        "example": "US Men"
+      },
+      "RosterVehicle": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the vehicle.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "make": { "type": "string", "description": "Vehicle make.", "example": "Ford" },
+          "model": { "type": "string", "description": "Vehicle model.", "example": "Transit" },
+          "color": {
+            "type": ["string", "null"],
+            "description": "Vehicle color.",
+            "example": "White"
+          },
+          "plate": {
+            "type": "string",
+            "description": "License plate, letters and digits.",
+            "example": "ABC1234"
+          },
+          "plate_region": {
+            "type": "string",
+            "description": "ISO 3166-2 region that issued the plate.",
+            "example": "US-FL"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the vehicle was last saved.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["id", "make", "model", "color", "plate", "plate_region", "updated_at"],
+        "description": "The vehicle a rostered person brings to one project (R5)."
+      },
+      "SavedProjectFact": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the saved row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["id"],
+        "description": "The live row a project fact save wrote."
+      },
+      "RosterTravelRequestInput": {
+        "type": "object",
+        "properties": {
+          "inbound_airport_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z]{3}$",
+            "description": "IATA code of the airport the person flies into; uppercased.",
+            "example": "MIA"
+          },
+          "outbound_airport_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z]{3}$",
+            "description": "IATA code of the airport the person flies home from; uppercased.",
+            "example": "MIA"
+          },
+          "inbound_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Day the person travels to the project.",
+            "example": "2026-10-08"
+          },
+          "outbound_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Day the person travels home; on or after inbound_on.",
+            "example": "2026-10-08"
+          },
+          "seat_preference": {
+            "type": ["string", "null"],
+            "enum": ["Window", "Aisle", "No Preference", null],
+            "description": "Preferred seat.",
+            "example": "Aisle"
+          },
+          "meal_preference": {
+            "type": ["string", "null"],
+            "maxLength": 100,
+            "description": "Meal preference.",
+            "example": "Vegetarian"
+          },
+          "needs_ground_transport": {
+            "type": "boolean",
+            "description": "A pickup is needed on arrival.",
+            "example": true
+          },
+          "needs_lodging": {
+            "type": "boolean",
+            "description": "A room is needed; only while lodging is offered.",
+            "example": false
+          },
+          "travel_notes": {
+            "type": ["string", "null"],
+            "maxLength": 500,
+            "description": "Notes for the travel desk.",
+            "example": "Two bags."
+          }
+        },
+        "required": ["inbound_airport_code", "outbound_airport_code", "inbound_on", "outbound_on"],
+        "description": "A full replacement of a roster entry's travel request. At least an airport or a date."
+      },
+      "RosterUniformSizesInput": {
+        "type": "object",
+        "properties": {
+          "shirt_size": {
+            "type": ["string", "null"],
+            "enum": ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", null],
+            "description": "Letter size.",
+            "example": "M"
+          },
+          "jacket_size": {
+            "type": ["string", "null"],
+            "enum": ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", null],
+            "description": "Letter size.",
+            "example": "M"
+          },
+          "pants_size": {
+            "type": ["string", "null"],
+            "enum": ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", null],
+            "description": "Letter size.",
+            "example": "M"
+          },
+          "glove_size": {
+            "type": ["string", "null"],
+            "enum": ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", null],
+            "description": "Letter size.",
+            "example": "M"
+          },
+          "hat_size": {
+            "type": ["string", "null"],
+            "enum": ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL", null],
+            "description": "Letter size.",
+            "example": "M"
+          },
+          "pants_waist_in": {
+            "type": ["integer", "null"],
+            "description": "Waist in inches, 20 to 70.",
+            "example": 32
+          },
+          "pants_inseam_in": {
+            "type": ["integer", "null"],
+            "description": "Inseam in inches, 20 to 40.",
+            "example": 32
+          },
+          "shoe_size": {
+            "type": ["number", "null"],
+            "description": "Shoe size, 1 to 20 in half sizes.",
+            "example": 10.5
+          },
+          "shoe_size_system": {
+            "anyOf": [{ "$ref": "#/components/schemas/ShoeSizeSystem" }, { "type": "null" }]
+          }
+        },
+        "description": "A full replacement of a roster entry's uniform sizes. At least one size."
+      },
+      "RosterVehicleInput": {
+        "type": "object",
+        "properties": {
+          "make": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "Vehicle make.",
+            "example": "Ford"
+          },
+          "model": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "Vehicle model.",
+            "example": "Transit"
+          },
+          "color": {
+            "type": ["string", "null"],
+            "maxLength": 30,
+            "description": "Vehicle color.",
+            "example": "White"
+          },
+          "plate": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "License plate; uppercased with spaces and hyphens removed.",
+            "example": "ABC 1234"
+          },
+          "plate_region": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 6,
+            "description": "ISO 3166-2 region of the plate.",
+            "example": "US-FL"
+          }
+        },
+        "required": ["make", "model", "plate", "plate_region"],
+        "description": "A full replacement of a roster entry's vehicle."
+      },
+      "ClearedProjectFact": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the saved row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "description": "Nothing; the kind is cleared."
+      },
+      "ClearProjectFactRequest": {
+        "type": "object",
+        "properties": { "kind": { "$ref": "#/components/schemas/ProjectFactKind" } },
+        "required": ["kind"],
+        "description": "The project fact kind to clear."
+      },
+      "TravelPartyMemberPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TravelPartyMember" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "TravelPartyMember": {
+        "type": "object",
+        "properties": {
+          "roster_entry_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Roster entry.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Engagement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "party_name": {
+            "type": ["string", "null"],
+            "description": "Supplying account, else the engaged person.",
+            "example": "Bayside Audio"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Person.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_name": {
+            "type": ["string", "null"],
+            "description": "Name of the person.",
+            "example": "Kai Morgan"
+          },
+          "role_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Role worked.",
+            "example": "9000.50.02"
+          },
+          "arrival_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Arrival window start.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "arrival_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Arrival window end.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "arrival_time_zone": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone of the arrival window.",
+            "example": "America/New_York"
+          },
+          "travel": {
+            "anyOf": [{ "$ref": "#/components/schemas/RosterTravelRequest" }, { "type": "null" }]
+          },
+          "room": { "$ref": "#/components/schemas/TravelPartyRoom" },
+          "pickup": { "$ref": "#/components/schemas/TravelPartyPickup" },
+          "pass": {
+            "anyOf": [{ "$ref": "#/components/schemas/TravelPartyPass" }, { "type": "null" }]
+          }
+        },
+        "required": [
+          "roster_entry_id",
+          "engagement_id",
+          "party_name",
+          "person_id",
+          "person_name",
+          "role_code",
+          "arrival_starts_at",
+          "arrival_ends_at",
+          "arrival_time_zone",
+          "travel",
+          "room",
+          "pickup",
+          "pass"
+        ],
+        "description": "A rostered person of a project's travel party with what hospitality has arranged (R5, G-175)."
+      },
+      "TravelPartyRoom": {
+        "type": "object",
+        "properties": {
+          "assigned": {
+            "type": "boolean",
+            "description": "A room is assigned on one of the project's blocks.",
+            "example": false
+          },
+          "check_in_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Check-in day.",
+            "example": "2026-10-08"
+          },
+          "check_out_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Check-out day.",
+            "example": "2026-10-08"
+          },
+          "block_name": {
+            "type": ["string", "null"],
+            "description": "Title of the block.",
+            "example": "Hotel Cadillac"
+          }
+        },
+        "required": ["assigned", "check_in_on", "check_out_on", "block_name"],
+        "description": "The person's room on the project, if assigned."
+      },
+      "TravelPartyPickup": {
+        "type": "object",
+        "properties": {
+          "booked": {
+            "type": "boolean",
+            "description": "A ground segment is booked on the arrival day.",
+            "example": false
+          }
+        },
+        "required": ["booked"],
+        "description": "Whether the person's pickup is booked."
+      },
+      "TravelPartyPass": {
+        "type": "object",
+        "properties": {
+          "issued": {
+            "type": "boolean",
+            "description": "A live credential is issued on the engagement.",
+            "example": false
+          }
+        },
+        "required": ["issued"],
+        "description": "Whether the person's pass is issued; null without credentials.credential.read."
+      },
+      "TravelDayCountPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/TravelDayCount" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "TravelDayCount": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "string",
+            "format": "date",
+            "description": "Day.",
+            "example": "2026-10-08"
+          },
+          "arriving": { "type": "integer", "description": "People arriving.", "example": 1 },
+          "departing": { "type": "integer", "description": "People departing.", "example": 0 },
+          "on_site": {
+            "type": "integer",
+            "description": "People on site, arrival to departure day.",
+            "example": 1
+          },
+          "rooms_needed": {
+            "type": "integer",
+            "description": "Rooms needed that night.",
+            "example": 1
+          },
+          "pickups_needed": {
+            "type": "integer",
+            "description": "Pickups needed that day.",
+            "example": 1
+          },
+          "truncated": {
+            "type": "boolean",
+            "description": "The range ran past 120 days and was cut.",
+            "example": false
+          }
+        },
+        "required": [
+          "day",
+          "arriving",
+          "departing",
+          "on_site",
+          "rooms_needed",
+          "pickups_needed",
+          "truncated"
+        ],
+        "description": "One day of a project's travel counts (R5, G-175)."
+      },
       "GuestListEntryPage": {
         "type": "object",
         "properties": {
@@ -53063,10 +54006,16 @@
             "description": "Identifier of the roster entry of a share, read or reveal (R4).",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
+          "fact_kinds": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectFactKind" },
+            "description": "Project fact kinds the act covered (R5): project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and changes to roster_travel_requests, roster_uniform_sizes and roster_vehicles.",
+            "example": ["Travel"]
+          },
           "action": {
             "type": "string",
             "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
-            "description": "What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.",
+            "description": "What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.",
             "example": "work_details.viewed"
           },
           "categories": {
@@ -53102,6 +54051,7 @@
           "org_id",
           "engagement_id",
           "roster_entry_id",
+          "fact_kinds",
           "action",
           "categories",
           "changed_columns",
@@ -107585,6 +108535,7 @@
                       "engagement_state": "Onboarding",
                       "activated_at": "2026-10-08T14:30:00Z",
                       "completed_at": "2026-10-08T14:30:00Z",
+                      "roster_locks_at": "2026-10-08T14:30:00Z",
                       "application_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "worker_classification": "INDEPENDENT_CONTRACTOR",
                       "pay_basis": "Day Rate",
@@ -107656,6 +108607,7 @@
                   "engagement_state": "Onboarding",
                   "activated_at": "2026-10-08T14:30:00Z",
                   "completed_at": "2026-10-08T14:30:00Z",
+                  "roster_locks_at": "2026-10-08T14:30:00Z",
                   "application_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "worker_classification": "INDEPENDENT_CONTRACTOR",
                   "pay_basis": "Day Rate",
@@ -107726,6 +108678,7 @@
                   "engagement_state": "Onboarding",
                   "activated_at": "2026-10-08T14:30:00Z",
                   "completed_at": "2026-10-08T14:30:00Z",
+                  "roster_locks_at": "2026-10-08T14:30:00Z",
                   "application_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "worker_classification": "INDEPENDENT_CONTRACTOR",
                   "pay_basis": "Day Rate",
@@ -107808,6 +108761,89 @@
                   "engagement_state": "Onboarding",
                   "activated_at": "2026-10-08T14:30:00Z",
                   "completed_at": "2026-10-08T14:30:00Z",
+                  "roster_locks_at": "2026-10-08T14:30:00Z",
+                  "application_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "worker_classification": "INDEPENDENT_CONTRACTOR",
+                  "pay_basis": "Day Rate",
+                  "arrangement": "Per Engagement",
+                  "start_date": "2026-10-08",
+                  "end_date": "2026-10-08",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/Engagement" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/engagements/{id}/roster-lock": {
+      "post": {
+        "operationId": "engagements.setRosterLock",
+        "tags": ["Opportunities"],
+        "x-xos-table": "app.engagements",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.set_roster_lock",
+        "summary": "Set an engagement's names lock",
+        "description": "Sets or clears the names lock through `app.set_roster_lock` (R5, G-142): after `locks_at` the company side can no longer add, invite, edit Draft entries or submit new names; Returned entries stay editable. Null clears the lock and a past instant locks at once. Needs advancing.packet.write on the project; 422 roster_lock_engagement_closed unless the engagement is Onboarding, Blocked, Active or Closing. Each roster manager is notified. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the engagement.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the engagement.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "locks_at": "2026-10-08T14:30:00Z" },
+              "schema": { "$ref": "#/components/schemas/RosterLockRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "offer_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "role_type": "Crew",
+                  "engagement_state": "Onboarding",
+                  "activated_at": "2026-10-08T14:30:00Z",
+                  "completed_at": "2026-10-08T14:30:00Z",
+                  "roster_locks_at": "2026-10-08T14:30:00Z",
                   "application_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "worker_classification": "INDEPENDENT_CONTRACTOR",
                   "pay_basis": "Day Rate",
@@ -140464,6 +141500,637 @@
         }
       }
     },
+    "/roster-entries": {
+      "get": {
+        "operationId": "rosterEntries.list",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.roster_entry_people",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["engagement_id", "id"], "numeric": false },
+        "summary": "List roster entry rows",
+        "description": "A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs. Returns a cursor page of roster entry rows the caller may see. The default order is `engagement_id`, then `id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of roster entry rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "party_name": "Bayside Audio",
+                      "role_type": "Vendor",
+                      "is_self": false,
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "full_name": "Kai Morgan",
+                      "invited_email": "kai@example.com",
+                      "invitation_expires_at": "2026-10-08T14:30:00Z",
+                      "role_code": "9000.50.02",
+                      "job_title": "Audio Technician",
+                      "arrival_starts_at": "2026-10-08T14:30:00Z",
+                      "arrival_ends_at": "2026-10-08T14:30:00Z",
+                      "arrival_time_zone": "America/New_York",
+                      "entry_state": "Draft",
+                      "person_response": "Pending",
+                      "responded_at": "2026-10-08T14:30:00Z",
+                      "return_reason": "Add the arrival.",
+                      "replaces_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "share_categories": ["Uniform Sizes"]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/RosterEntryPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/roster-entries/{id}": {
+      "get": {
+        "operationId": "rosterEntries.get",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.roster_entry_people",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Get a roster entry",
+        "description": "A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs. Returns one roster entry with its `ETag`. A roster entry the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the roster entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the roster entry.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The roster entry.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "party_name": "Bayside Audio",
+                  "role_type": "Vendor",
+                  "is_self": false,
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "full_name": "Kai Morgan",
+                  "invited_email": "kai@example.com",
+                  "invitation_expires_at": "2026-10-08T14:30:00Z",
+                  "role_code": "9000.50.02",
+                  "job_title": "Audio Technician",
+                  "arrival_starts_at": "2026-10-08T14:30:00Z",
+                  "arrival_ends_at": "2026-10-08T14:30:00Z",
+                  "arrival_time_zone": "America/New_York",
+                  "entry_state": "Draft",
+                  "person_response": "Pending",
+                  "responded_at": "2026-10-08T14:30:00Z",
+                  "return_reason": "Add the arrival.",
+                  "replaces_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "share_categories": ["Uniform Sizes"]
+                },
+                "schema": { "$ref": "#/components/schemas/RosterEntry" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/roster-entries/{id}/project-facts": {
+      "get": {
+        "operationId": "rosterEntries.projectFacts",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.roster_entry_people",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "x-xos-rpc": "app.roster_project_facts",
+        "summary": "Read a roster entry's project facts",
+        "description": "The travel request, uniform sizes and vehicle of a roster entry as the caller may read them, through `app.roster_project_facts`. The person and the company that rosters them read every kind; a producer reads the kinds its project capabilities cover (Travel hospitality.fulfillment.read, Uniform opportunities.engagement.read or crew.shift.write, Vehicle credentials.credential.read) on Submitted, Accepted and Returned entries. Every Company or Producer read of a value is logged in the person's access log. 404 without standing. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the roster entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the roster entry.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "standing": "Producer",
+                  "offered": { "travel": true, "lodging": true, "uniforms": true, "parking": true },
+                  "present": { "travel": true, "uniform": true, "vehicle": true },
+                  "entered_by_person": { "travel": true, "uniform": true, "vehicle": true },
+                  "readable": ["Travel"],
+                  "travel": {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "inbound_airport_code": "MIA",
+                    "inbound_airport_name": "Miami International Airport",
+                    "outbound_airport_code": "MIA",
+                    "outbound_airport_name": "Miami International Airport",
+                    "inbound_on": "2026-10-08",
+                    "outbound_on": "2026-10-08",
+                    "seat_preference": "Aisle",
+                    "meal_preference": "Vegetarian",
+                    "needs_ground_transport": true,
+                    "needs_lodging": false,
+                    "travel_notes": "Arriving with a guitar case.",
+                    "updated_at": "2026-10-08T14:30:00Z"
+                  },
+                  "uniform": {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "shirt_size": "M",
+                    "jacket_size": "M",
+                    "pants_size": "M",
+                    "glove_size": "M",
+                    "hat_size": "M",
+                    "pants_waist_in": 32,
+                    "pants_inseam_in": 32,
+                    "shoe_size": 10.5,
+                    "shoe_size_system": "US Men",
+                    "updated_at": "2026-10-08T14:30:00Z"
+                  },
+                  "vehicle": {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "make": "Ford",
+                    "model": "Transit",
+                    "color": "White",
+                    "plate": "ABC1234",
+                    "plate_region": "US-FL",
+                    "updated_at": "2026-10-08T14:30:00Z"
+                  }
+                },
+                "schema": { "$ref": "#/components/schemas/RosterProjectFacts" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/roster-entries/{id}/save-travel-request": {
+      "post": {
+        "operationId": "rosterEntries.saveTravelRequest",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.roster_entry_people",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.save_roster_travel_request",
+        "summary": "Save a roster entry's travel request",
+        "description": "Replaces the live travel request through `app.save_roster_travel_request`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, airport_unknown, travel_dates_order, project_fact_empty and project_fact_text_length. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the roster entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the roster entry.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "inbound_airport_code": "MIA",
+                "outbound_airport_code": "MIA",
+                "inbound_on": "2026-10-08",
+                "outbound_on": "2026-10-08",
+                "seat_preference": "Aisle",
+                "meal_preference": "Vegetarian",
+                "needs_ground_transport": true,
+                "needs_lodging": false,
+                "travel_notes": "Two bags."
+              },
+              "schema": { "$ref": "#/components/schemas/RosterTravelRequestInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/SavedProjectFact" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/roster-entries/{id}/save-uniform-sizes": {
+      "post": {
+        "operationId": "rosterEntries.saveUniformSizes",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.roster_entry_people",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.save_roster_uniform_sizes",
+        "summary": "Save a roster entry's uniform sizes",
+        "description": "Replaces the live uniform sizes through `app.save_roster_uniform_sizes`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, project_fact_empty, shoe_size_format, shoe_size_system_required and pants_measure_range. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the roster entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the roster entry.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "shirt_size": "M",
+                "jacket_size": "M",
+                "pants_size": "M",
+                "glove_size": "M",
+                "hat_size": "M",
+                "pants_waist_in": 32,
+                "pants_inseam_in": 32,
+                "shoe_size": 10.5,
+                "shoe_size_system": "US Men"
+              },
+              "schema": { "$ref": "#/components/schemas/RosterUniformSizesInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/SavedProjectFact" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/roster-entries/{id}/save-vehicle": {
+      "post": {
+        "operationId": "rosterEntries.saveVehicle",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.roster_entry_people",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.save_roster_vehicle",
+        "summary": "Save a roster entry's vehicle",
+        "description": "Replaces the live vehicle through `app.save_roster_vehicle`. Refusals answer 422 with the rule: project_fact_not_yours, roster_entry_withdrawn, roster_entry_declined, project_fact_closed, org_read_only, offering_not_offered, project_fact_company_write_off and project_fact_person_entered, vehicle_fields_required, plate_format, plate_region_format and project_fact_text_length. A company write notifies the person. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the roster entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the roster entry.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "make": "Ford",
+                "model": "Transit",
+                "color": "White",
+                "plate": "ABC 1234",
+                "plate_region": "US-FL"
+              },
+              "schema": { "$ref": "#/components/schemas/RosterVehicleInput" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/SavedProjectFact" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/roster-entries/{id}/clear-project-fact": {
+      "post": {
+        "operationId": "rosterEntries.clearProjectFact",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.roster_entry_people",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.clear_roster_project_fact",
+        "summary": "Clear a project fact of a roster entry",
+        "description": "Soft-deletes the live row of one kind through `app.clear_roster_project_fact`. The person clears at any time; the company only rows the person did not enter (422 project_fact_person_entered) while it manages the roster (422 project_fact_not_yours). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the roster entry.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the roster entry.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "kind": "Travel" },
+              "schema": { "$ref": "#/components/schemas/ClearProjectFactRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+                "schema": { "$ref": "#/components/schemas/ClearedProjectFact" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/roster-entries/travel-party": {
+      "get": {
+        "operationId": "rosterEntries.travelParty",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.roster_entry_people",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "x-xos-rpc": "app.roster_travel_party",
+        "summary": "Read a project's travel party",
+        "description": "Every rostered person of the project the producer reads (live entries Submitted, Accepted or Returned on engagements Onboarding to Closing with Travel offered), with their travel request and whether a room is assigned, a pickup booked and a pass issued, through `app.roster_travel_party`. Needs hospitality.fulfillment.read on the project (404 otherwise). Every travel value returned is logged. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Project whose travel party is read.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Project whose travel party is read.",
+            "name": "project_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "party_name": "Bayside Audio",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "person_name": "Kai Morgan",
+                      "role_code": "9000.50.02",
+                      "arrival_starts_at": "2026-10-08T14:30:00Z",
+                      "arrival_ends_at": "2026-10-08T14:30:00Z",
+                      "arrival_time_zone": "America/New_York",
+                      "travel": {
+                        "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                        "inbound_airport_code": "MIA",
+                        "inbound_airport_name": "Miami International Airport",
+                        "outbound_airport_code": "MIA",
+                        "outbound_airport_name": "Miami International Airport",
+                        "inbound_on": "2026-10-08",
+                        "outbound_on": "2026-10-08",
+                        "seat_preference": "Aisle",
+                        "meal_preference": "Vegetarian",
+                        "needs_ground_transport": true,
+                        "needs_lodging": false,
+                        "travel_notes": "Arriving with a guitar case.",
+                        "updated_at": "2026-10-08T14:30:00Z"
+                      },
+                      "room": {
+                        "assigned": false,
+                        "check_in_on": "2026-10-08",
+                        "check_out_on": "2026-10-08",
+                        "block_name": "Hotel Cadillac"
+                      },
+                      "pickup": { "booked": false },
+                      "pass": { "issued": false }
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/TravelPartyMemberPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/roster-entries/travel-day-counts": {
+      "get": {
+        "operationId": "rosterEntries.travelDayCounts",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.roster_entry_people",
+        "x-xos-capability": "hospitality.fulfillment.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
+        "x-xos-rpc": "app.roster_travel_day_counts",
+        "summary": "Count a project's travel party by day",
+        "description": "Arrivals, departures, people on site, rooms and pickups needed per day from the first arrival to the last departure, at most 120 days, through `app.roster_travel_day_counts`. Needs hospitality.fulfillment.read on the project. Each call is logged. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Project whose travel party is read.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Project whose travel party is read.",
+            "name": "project_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "day": "2026-10-08",
+                      "arriving": 1,
+                      "departing": 0,
+                      "on_site": 1,
+                      "rooms_needed": 1,
+                      "pickups_needed": 1,
+                      "truncated": false
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/TravelDayCountPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/guest-list-entries": {
       "get": {
         "operationId": "guestListEntries.list",
@@ -144591,6 +146258,7 @@
                       "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "fact_kinds": ["Travel"],
                       "action": "work_details.viewed",
                       "categories": ["Dietary Needs"],
                       "changed_columns": ["allergies"],

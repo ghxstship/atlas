@@ -76,6 +76,20 @@ const LOG_KEYS: Readonly<Record<string, string>> = {
   "work_details.share_revoked": "shareRevoked",
   "work_details.viewed": "viewed",
   "work_details.erased": "erased",
+  // Project facts on a roster entry (R5, 2654 to 2657).
+  "roster_travel_requests.insert": "travelSaved",
+  "roster_travel_requests.update": "travelSaved",
+  "roster_travel_requests.delete": "travelCleared",
+  "roster_uniform_sizes.insert": "uniformSaved",
+  "roster_uniform_sizes.update": "uniformSaved",
+  "roster_uniform_sizes.delete": "uniformCleared",
+  "roster_vehicles.insert": "vehicleSaved",
+  "roster_vehicles.update": "vehicleSaved",
+  "roster_vehicles.delete": "vehicleCleared",
+  "project_facts.viewed": "projectFactsViewed",
+  "project_facts.counted": "projectFactsCounted",
+  "project_facts.expired": "projectFactsExpired",
+  "project_facts.erased": "projectFactsErased",
 };
 
 /** The `workDetails.log.actions.*` key of an access log action; unknown actions are `other`. */

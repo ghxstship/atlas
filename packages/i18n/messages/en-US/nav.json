@@ -400,7 +400,8 @@
       "invoices": "Invoices",
       "documents": "Documents",
       "messages": "Messages",
-      "crew": "Crew"
+      "crew": "Crew",
+      "projectDetails": "Project Details"
     },
     "avatar": {
       "settings": "Settings",
@@ -476,7 +477,8 @@
       "reference": "Reference",
       "offlineQueue": "Offline Queue",
       "profile": "Profile and Certifications",
-      "settings": "Settings"
+      "settings": "Settings",
+      "projectDetails": "Project Details"
     },
     "reference": {
       "emergencyCodes": "Emergency Codes",
