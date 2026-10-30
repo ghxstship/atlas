@@ -2,13 +2,14 @@
 -- is the signed-in person's own: their engagements, the documents and threads of those engagements, the org-level
 -- conversations they are the party of, and opportunities they applied to or that are open to them in an org they work
 -- with. Another party, an org member with no external relationship, anon and an org they have no relationship with
--- get nothing; a custom domain's org keeps its own rows only; words, phrases, exclusions and types narrow it.
+-- get nothing; a custom domain's org keeps its own rows only; a closed documents area and deleted rows hide them; words,
+-- phrases, exclusions and types narrow it.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(23);
+select plan(28);
 
 -- The results a person gets, as type:title, sorted.
 create function pg_temp.found(p_who text, p_query jsonb, p_org text default null) returns text
@@ -112,6 +113,28 @@ select is(pg_temp.found('ivy', '{"terms": ["''):*|!"]}'), '', 'punctuation never
 
 -- A custom domain keeps its org's rows only --------------------------------------------------------------------------------
 select is(pg_temp.found('ivy', '{"terms": ["rigging"]}', 'org_b'), '', 'on org_b''s domain, org_a''s rows never show');
+select is(pg_temp.found('ivy', '{"terms": ["rigging"]}', 'org_a'),
+  'document:Pier Rigging Agreement,message:Autumn Series,opportunity:Rigging Lead Crew Call',
+  'on org_a''s domain, org_a''s rows still come back');
+select is(pg_temp.found('quinn', '{"terms": ["rigging"]}', 'org_b'), 'document:Harbor Rigging Agreement,message:Rigging Notes',
+  'and on org_b''s domain, quinn finds his own org_b rows');
+
+-- A closed documents area and deleted rows -------------------------------------------------------------------------------
+-- noah is an Account Member of Bayside Audio: he reaches the engagement area of eng_vendor_a but not its documents.
+select pg_temp.new_user('noah', 'noah@bayside-audio.test', 'Noah Lind');
+select pg_temp.as_user('victor');
+select app.add_account_member(pg_temp.id('acct_v'), pg_temp.id('noah'), 'Account Member');
+select pg_temp.as_user('alice');
+insert into app.engagement_documents (engagement_id, document_kind, title) values (pg_temp.id('eng_vendor_a'), 'Agreement', 'Bayside Supply Agreement');
+insert into app.engagement_threads (engagement_id, subject) values (pg_temp.id('eng_vendor_a'), 'Bayside Supply Schedule');
+select pg_temp.as_platform();
+select is(pg_temp.found('victor', '{"terms": ["bayside"]}'), 'document:Bayside Supply Agreement,message:Bayside Supply Schedule',
+  'the vendor account''s owner finds the engagement''s document and thread');
+select is(pg_temp.found('noah', '{"terms": ["bayside"]}'), 'message:Bayside Supply Schedule',
+  'an Account Member finds the thread, never a document of an engagement whose documents area is closed to him');
+update app.engagement_documents set deleted_at = now() where engagement_id = pg_temp.id('eng_vendor_a');
+update app.engagement_threads set deleted_at = now() where engagement_id = pg_temp.id('eng_vendor_a');
+select is(pg_temp.found('victor', '{"terms": ["bayside"]}'), '', 'a deleted document or thread is never found');
 
 select * from finish();
 rollback;
