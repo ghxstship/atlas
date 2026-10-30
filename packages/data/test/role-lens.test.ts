@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   GATEWAY_LENS_SCOPE,
@@ -57,7 +58,7 @@ describe("lensCapabilities", () => {
 
   it("leaves nothing for a role that shares nothing with the person", () => {
     expect(lensCapabilities(new Set(["a"]), ["b"]).size).toBe(0);
-    expect(lensCapabilities(new Set(), ["a", "b"]).size).toBe(0);
+    expect(lensCapabilities(new Set<string>(), ["a", "b"]).size).toBe(0);
   });
 });
 
@@ -162,5 +163,100 @@ describe("the Inbox under a lens", () => {
     const incident = { kind: "incident.reported", subjectTable: "app.incidents" };
     expect(inboxItemInLens(incident, member)).toBe(false);
     expect(inboxItemInLens(incident, new Set(["safety.incident.dispatch"]))).toBe(true);
+  });
+});
+
+// Each role-routed kind against the latest migration that sends it: the capability the sender picks recipients by
+// is the one the lens keeps the notice for, so a role shows exactly the notices it brought.
+describe("the role-routed kinds follow their senders", () => {
+  const dir = new URL("../../../supabase/migrations/", import.meta.url);
+  // Every migration's text, in file order.
+  const migrations = readdirSync(dir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort()
+    .map((f) => readFileSync(new URL(f, dir), "utf8"));
+  const notifyOf = (kind: string) => new RegExp(`notify\\([^;]*?'${kind.replaceAll(".", "\\.")}'`);
+  const capabilityPick =
+    /(?:project_member_people_with\([^,]+,|person_capability_reach\([^,]+,[^,]+,)\s*'([a-z_]+\.[a-z_]+\.[a-z_]+)'/g;
+
+  /** The latest definition of a private helper, from its create to the end of its body. */
+  function helperBody(name: string): string {
+    const head = `create or replace function private.${name}(`;
+    const body = migrations.filter((m) => m.includes(head)).at(-1) ?? "";
+    expect(body, name).not.toBe("");
+    const at = body.indexOf(head);
+    return body.slice(at, body.indexOf("$$;", at));
+  }
+
+  /** The recipient query of a kind's latest sender: from the loop that picks people to the notify call. */
+  function recipients(kind: string): string {
+    const body = migrations.filter((m) => notifyOf(kind).test(m)).at(-1) ?? "";
+    expect(body, kind).not.toBe("");
+    const at = body.search(notifyOf(kind));
+    return body.slice(body.lastIndexOf("for v_", at), at);
+  }
+
+  function pickedCapabilities(kind: string): string[] {
+    const query = recipients(kind);
+    const helpers = [...query.matchAll(/private\.(\w+_ids)\(/g)].map((m) => helperBody(m[1] ?? ""));
+    const picked = [query, ...helpers].flatMap((s) =>
+      [...s.matchAll(capabilityPick)].map((m) => m[1] ?? ""),
+    );
+    return [...new Set(picked)].sort();
+  }
+
+  const byCapability = [
+    "incident.reported",
+    "occupancy.threshold",
+    "content_report.filed",
+    "content_report.overdue",
+    "billing.payment_failed",
+    "billing.read_only",
+    "billing.trial_ending",
+    "billing.trial_ended",
+    "partner.client_left",
+  ];
+  const byOwnerRole = [
+    "organization.deletion_requested",
+    "organization.deletion_recovered",
+    "organization.white_label_reverting",
+    "organization.white_label_reverted",
+  ];
+
+  it("keeps each capability-picked notice for the capability its sender picks by", () => {
+    for (const kind of byCapability) {
+      expect([...(ROLE_ROUTED_KINDS[kind] ?? [])].sort(), kind).toEqual(pickedCapabilities(kind));
+    }
+  });
+
+  it("routes the trial notices like the other billing notices, by org.billing.read", () => {
+    expect(pickedCapabilities("billing.trial_ending")).toEqual(["org.billing.read"]);
+    const billingOnly = new Set(["org.billing.read"]);
+    const deleteOnly = new Set(["org.organization.delete"]);
+    for (const kind of ["billing.trial_ending", "billing.trial_ended"]) {
+      expect(inboxItemInLens({ kind, subjectTable: "app.subscriptions" }, billingOnly)).toBe(true);
+      expect(inboxItemInLens({ kind, subjectTable: "app.subscriptions" }, deleteOnly)).toBe(false);
+    }
+  });
+
+  it("routes the Owner's notices by a capability only the Owner role is sent them for", () => {
+    for (const kind of byOwnerRole) {
+      expect(recipients(kind), kind).toContain("private.org_owner_ids(");
+      expect(ROLE_ROUTED_KINDS[kind], kind).toEqual(["org.organization.delete"]);
+    }
+    expect(recipients("access.break_glass_started")).toContain("r.code in ('owner', 'admin')");
+  });
+
+  it("lists every routed kind under one of the checks", () => {
+    expect(Object.keys(ROLE_ROUTED_KINDS).sort()).toEqual(
+      [...byCapability, ...byOwnerRole, "access.break_glass_started"].sort(),
+    );
+  });
+
+  it("shows a weather alert under every lens, since project roles a weather plan names receive it too", () => {
+    expect(recipients("weather.alert")).toContain("app.weather_alert_roles");
+    expect(
+      inboxItemCapabilities({ kind: "weather.alert", subjectTable: "app.weather_alerts" }),
+    ).toBeNull();
   });
 });

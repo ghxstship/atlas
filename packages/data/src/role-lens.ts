@@ -4,7 +4,7 @@ import { rpc, str, type Raw } from "./platform-common.ts";
 import type { Reach } from "./access.ts";
 
 /**
- * The role lens of the context switcher (Section 4.8.1, ADR 0089): All roles, or one role the person holds in
+ * The role lens of the context switcher (Section 4.8.1, ADR 0107): All roles, or one role the person holds in
  * the org. A lens narrows what the shell shows (Home, My Work, Inbox, navigation and which controls appear) to
  * that role's capabilities, intersected with the person's own, so it never shows more than the person may already
  * do. Row level security and the RPCs decide every read and write with the person's full standing, as before.
@@ -42,11 +42,16 @@ export function parseRoleLensCookie(
 
 /**
  * The capabilities a lens leaves: those of the chosen role that the person holds anyway. It is never wider than
- * `own`, whatever `role` contains.
+ * `own`, whatever `role` contains, and keeps `own`'s type (Atlas types capabilities by their registered codes).
  */
-export function lensCapabilities(own: ReadonlySet<string>, role: Iterable<string>): Set<string> {
-  const out = new Set<string>();
-  for (const capability of role) if (own.has(capability)) out.add(capability);
+export function lensCapabilities<C extends string>(
+  own: ReadonlySet<C>,
+  role: Iterable<string>,
+): Set<C> {
+  const held: ReadonlySet<string> = own;
+  const out = new Set<C>();
+  // Only codes `own` holds are added, so each is one of its members.
+  for (const capability of role) if (held.has(capability)) out.add(capability as C);
   return out;
 }
 
@@ -109,17 +114,22 @@ export const SPEND_APPROVE_CAPABILITY: Readonly<Record<string, string>> = {
  * Notification kinds a person receives because of a capability a role gives them, and those capabilities (any
  * one admits the item), as each kind's sender picks its recipients. Every other kind is addressed to the person
  * (a mention, an assignment, their own shift, account notice or report) and shows under every lens.
+ *
+ * The senders that pick by capability are checked against their latest definitions in the migrations
+ * (test/role-lens.test.ts). Deletion and white-label notices go to the Owner role (private.org_owner_ids) and
+ * break-glass notices to Owner and Admin, so each takes a capability those roles hold. weather.alert is left out:
+ * it also reaches the project roles a weather plan names, which are the person's own assignments, not an org
+ * role, so it shows under every lens.
  */
 export const ROLE_ROUTED_KINDS: Readonly<Record<string, readonly string[]>> = {
   "incident.reported": ["safety.incident.dispatch"],
-  "occupancy.threshold": ["safety.incident.dispatch", "safety.incident.write"],
-  "weather.alert": ["safety.incident.dispatch", "safety.incident.write"],
+  "occupancy.threshold": ["safety.incident.dispatch"],
   "content_report.filed": ["org.communication.write"],
   "content_report.overdue": ["org.communication.write"],
   "billing.payment_failed": ["org.billing.read"],
   "billing.read_only": ["org.billing.read"],
-  "billing.trial_ending": ["org.organization.delete"],
-  "billing.trial_ended": ["org.organization.delete"],
+  "billing.trial_ending": ["org.billing.read"],
+  "billing.trial_ended": ["org.billing.read"],
   "organization.deletion_requested": ["org.organization.delete"],
   "organization.deletion_recovered": ["org.organization.delete"],
   "organization.white_label_reverting": ["org.organization.delete"],
