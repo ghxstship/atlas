@@ -2241,8 +2241,7 @@ export const COMPASS_HELP: HelpContent = {
       {
         slug: "settings-work-details",
         title: "Work details",
-        summary:
-          "Your work phone, uniform sizes, dietary and accessibility needs, travel profile and emergency contacts.",
+        summary: "Your work phone, dietary and accessibility needs and emergency contacts.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,
@@ -2252,7 +2251,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Settings, Work Details holds what organizations need to equip, feed, book and look after you.",
+                v: "Settings, Work Details holds what organizations need to feed and look after you.",
               },
             ],
           },
@@ -2264,13 +2263,9 @@ export const COMPASS_HELP: HelpContent = {
                 { t: "text", v: ": saves on this phone offline, like your other settings." },
               ],
               [
-                { t: "strong", v: "Uniform sizes" },
-                { t: "text", v: ", " },
                 { t: "strong", v: "Dietary needs" },
-                { t: "text", v: ", " },
-                { t: "strong", v: "Accessibility needs" },
                 { t: "text", v: " and " },
-                { t: "strong", v: "Travel profile" },
+                { t: "strong", v: "Accessibility needs" },
                 { t: "text", v: ": change what applies and tap " },
                 { t: "strong", v: "Save" },
                 { t: "text", v: " on that card." },
@@ -2289,7 +2284,18 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement.",
+                v: "Uniform sizes and your seat, meal and home airport are no longer kept here. Each production asks for them on the project you are rostered on, in ",
+              },
+              { t: "strong", v: "Project details" },
+              { t: "text", v: ", and keeps them only for that project." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Work details other than the work phone need a connection and never stay on this phone. An organization sees them only when you share them with an engagement, and your allergies only reach the catering lead and on-site medical on the project.",
               },
             ],
           },
@@ -2301,7 +2307,7 @@ export const COMPASS_HELP: HelpContent = {
                 v: "Your passport, loyalty programs, what you share with each engagement and your access log open in Gateway. Your ",
               },
               { t: "link", v: "profile", href: "help:profile" },
-              { t: "text", v: " shows your contacts and sizes." },
+              { t: "text", v: " shows your contacts." },
             ],
           },
         ],
@@ -5454,7 +5460,7 @@ export const COMPASS_HELP: HelpContent = {
         slug: "settings-work-details",
         title: "Datos de trabajo",
         summary:
-          "Tu teléfono de trabajo, tallas de uniforme, necesidades alimentarias y de accesibilidad, perfil de viaje y contactos de emergencia.",
+          "Tu teléfono de trabajo, necesidades alimentarias y de accesibilidad y contactos de emergencia.",
         kind: "page",
         nodes: ["settings.work-details"],
         order: 1,
@@ -5464,7 +5470,7 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Ajustes, Datos de trabajo reúne lo que las organizaciones necesitan para equiparte, alimentarte, reservar tus viajes y cuidarte.",
+                v: "Ajustes, Datos de trabajo reúne lo que las organizaciones necesitan para alimentarte y cuidarte.",
               },
             ],
           },
@@ -5479,13 +5485,9 @@ export const COMPASS_HELP: HelpContent = {
                 },
               ],
               [
-                { t: "strong", v: "Tallas de uniforme" },
-                { t: "text", v: ", " },
                 { t: "strong", v: "Necesidades alimentarias" },
-                { t: "text", v: ", " },
-                { t: "strong", v: "Necesidades de accesibilidad" },
                 { t: "text", v: " y " },
-                { t: "strong", v: "Perfil de viaje" },
+                { t: "strong", v: "Necesidades de accesibilidad" },
                 { t: "text", v: ": cambia lo que corresponda y toca " },
                 { t: "strong", v: "Guardar" },
                 { t: "text", v: " en esa tarjeta." },
@@ -5504,7 +5506,18 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación.",
+                v: "Las tallas de uniforme y tu asiento, comida y aeropuerto de origen ya no se guardan aquí. Cada producción te los pide en el proyecto en cuya lista estás, en ",
+              },
+              { t: "strong", v: "Datos del proyecto" },
+              { t: "text", v: ", y los guarda solo para ese proyecto." },
+            ],
+          },
+          {
+            t: "p",
+            c: [
+              {
+                t: "text",
+                v: "Los datos de trabajo, salvo el teléfono de trabajo, necesitan conexión y nunca se quedan en este teléfono. Una organización solo los ve cuando los compartes con una contratación, y tus alergias solo llegan al responsable de catering y al personal médico en el lugar del proyecto.",
               },
             ],
           },
@@ -5516,7 +5529,7 @@ export const COMPASS_HELP: HelpContent = {
                 v: "Tu pasaporte, tus programas de lealtad, lo que compartes con cada contratación y tu registro de acceso se abren en Gateway. Tu ",
               },
               { t: "link", v: "perfil", href: "help:profile" },
-              { t: "text", v: " muestra tus contactos y tallas." },
+              { t: "text", v: " muestra tus contactos." },
             ],
           },
         ],
