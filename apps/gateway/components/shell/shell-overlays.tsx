@@ -1,8 +1,9 @@
 "use client";
 
-import { Button, CommandMenu, Dialog, Drawer } from "@xos/ui";
+import { Button, CommandMenu, Dialog, Drawer, InlineAlert } from "@xos/ui";
 import { isBetaLocale } from "@xos/i18n/locales";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { setActing, setLocale, setRoleLens, setTheme } from "@/lib/shell/actions";
 import type { ThemePreference } from "@/lib/theme";
 import type { FrameAvatarEntry, FrameLink, GatewayLensOptions } from "./gateway-frame";
@@ -45,6 +46,8 @@ export interface ShellOverlaysProps {
 export function ShellOverlays(props: ShellOverlaysProps) {
   const t = useTranslations() as unknown as Translate;
   const { go, refresh } = props;
+  // A lens the server refuses (the role types could not be read, or the person no longer holds one) says so here.
+  const [lensFailed, setLensFailed] = useState(false);
   return (
     <>
       <CommandMenu
@@ -219,6 +222,9 @@ export function ShellOverlays(props: ShellOverlaysProps) {
             <p className="m-0 text-text-12 text-text-secondary">
               {t("gateway.shell.roleLens.hint")}
             </p>
+            {lensFailed ? (
+              <InlineAlert tone="danger">{t("gateway.shell.roleLens.failed")}</InlineAlert>
+            ) : null}
             {[{ id: "all", label: t("gateway.shell.roleLens.all") }, ...props.lens.roles].map(
               (r) => {
                 const active = (props.lens.current ?? "all") === r.id;
@@ -231,7 +237,13 @@ export function ShellOverlays(props: ShellOverlaysProps) {
                     data-testid={`role-lens-${r.id}`}
                     className="w-full justify-start"
                     onClick={async () => {
-                      await setRoleLens(r.id);
+                      try {
+                        await setRoleLens(r.id);
+                      } catch {
+                        setLensFailed(true);
+                        return;
+                      }
+                      setLensFailed(false);
                       props.setSwitchOpen(false);
                       refresh();
                     }}

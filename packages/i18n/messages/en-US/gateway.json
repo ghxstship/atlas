@@ -1637,7 +1637,8 @@
     "roleLens": {
       "title": "Role",
       "hint": "Narrow Home, Work and navigation to one of your roles. Your access does not change.",
-      "all": "All roles"
+      "all": "All roles",
+      "failed": "That role could not be chosen. Reload the page and try again."
     }
   },
   "system": {

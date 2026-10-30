@@ -1637,7 +1637,8 @@
     "roleLens": {
       "title": "Rol",
       "hint": "Limita Inicio, Trabajo y la navegación a uno de tus roles. Tu acceso no cambia.",
-      "all": "Todos los roles"
+      "all": "Todos los roles",
+      "failed": "No se pudo elegir ese rol. Vuelve a cargar la página e inténtalo de nuevo."
     }
   },
   "system": {
