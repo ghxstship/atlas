@@ -32,19 +32,27 @@ token (ADR 0044, item 1). A cue is called once: `called_at` is set by `app.call_
    against, and drops them as soon as a newer server read arrives. Because a call never changes once made, a heard
    call cannot show something the reread then takes back.
 3. **The call action renders nothing.** `callCueAction` answers with the database's call time and no longer
-   revalidates the layout. The caller's page shows the call from that time and rereads itself; every other device
-   follows through Realtime. No server render competes with the change reaching the other devices.
+   revalidates the layout. The showcaller console (ADR 0131) hands that time to the running order, which shows the
+   call from it and rereads itself; every other device follows through Realtime. No server render competes with the
+   change reaching the other devices.
+4. **The journey asserts every call at a show's pace.** A show calls its cues seconds to minutes apart, so the
+   journey waits a jittered two to five seconds before each call and asserts the slowest of all six calls, the first
+   one included, against 500 ms. Every call's span and its parts stay on the test as annotations.
 
 ## Consequences
 
-- On the local stack the running cue sequence now syncs in about 200 to 230 ms: about 110 ms to the call's
-  commit, about 70 ms for Realtime to deliver it, and one frame to show it. The journey asserts the median of the
-  sequence's calls under 500 ms and keeps every call on the test as an annotation.
-- The first call after a quiet spell of a few seconds still takes up to about 650 ms. Realtime finds Postgres changes
-  by polling, and it polls less often while nothing changes, so the change waits in the database for up to half a
-  second. The application cannot shorten that wait. Broadcasting each call from the database to a private
-  `show:<run id>` channel (a trigger on `app.cues` with an authorization policy on `realtime.messages`) would
-  bypass the poll; it needs a migration and is left to a follow-up. Until then the journey keeps that call's span
-  and its parts, unasserted.
+- From the stage manager's press, the call commits in about 110 ms and the other device shows it one frame after
+  Realtime delivers it. What remains is Realtime's own delivery of the change.
+- Realtime finds Postgres changes by polling the replication slot (`poll_interval_ms` 100 on the local tenant).
+  Measured on 2026-10-30 against a local stack on a machine running about 40 other containers (load average 12),
+  commit-to-delivery spread evenly from about 15 to 500 ms at every spacing tried, 0.2 s to 6 s apart: the poll
+  answered about three times a second, not ten. An earlier draft of this record read it as Realtime slowing after a
+  quiet spell, and paced the journey's calls 800 ms apart; that pacing landed each change just before a poll, which
+  is why those calls looked fast. The journey no longer paces its calls on a fixed period or leaves any call out.
+- On a loaded machine the slowest call can therefore miss 500 ms, and the journey fails there: that failure is the
+  target not being met, not noise to filter. Broadcasting each call from the database to a private
+  `show:<run id>` channel (a trigger on `app.cues` with an authorization policy on `realtime.messages`, kept by
+  `private.realtime_channel_policies`, migration 2060) would bypass the poll. It needs a migration, which A145 has no
+  block for, and is left to a follow-up with one.
 - Other pages keep rereading on each batch, as ADR 0044 decided. A page that adopts the row pattern must keep the
   same rule: show it only until the next server read.
