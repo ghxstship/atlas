@@ -3,16 +3,15 @@ import { useRouter, type Href } from "expo-router";
 import { useMemo, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { TextInput, View } from "react-native";
-import { access, operationalEngagements, type Feature } from "../domain/access";
+import { access } from "../domain/access";
 import {
-  actionDocs,
   groupHits,
   searchLocal,
   type LocalSearchDoc,
   type LocalSearchKind,
 } from "../domain/search";
+import { searchDocs, type SEARCH_TABLES } from "../domain/searchDocs";
 import { scheduleZone } from "../domain/settings";
-import { isMine, type ShiftRow } from "../domain/shifts";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { Card, Icon, IconButton, ListRow, Text, useTheme } from "../ui";
 import { typography } from "../ui/primitives";
@@ -30,7 +29,8 @@ const ICON: Readonly<Record<LocalSearchKind, string>> = {
 /**
  * Search at the top of Today (Section 11.10 item 1, A126): shifts, tasks, records, people, reference and
  * actions, found in the device's offline store, so it answers with no signal. The store is read only
- * while there is something typed; src/domain/search.ts ranks the results as the command menus do.
+ * while there is something typed; src/domain/searchDocs.ts builds what is searched, with the filters of
+ * the screens the results open, and src/domain/search.ts ranks it as the command menus do.
  */
 export function TodaySearch(): ReactElement {
   const { t } = useTranslation();
@@ -82,185 +82,39 @@ export function TodaySearch(): ReactElement {
   );
 }
 
-type Named = Row & { name?: string | null; title?: string | null };
-
-/** The results for what is typed, from the offline store. Mounted only while there is a query. */
-function SearchResults({ query }: { readonly query: string }): ReactElement {
-  const { t } = useTranslation();
-  const router = useRouter();
-  const roleTitle = useRoleTitle();
-  const { resolved, projectId, orgSettings, status } = useCompass();
-  const identity = resolved?.identity;
-  const { rows: shifts } = useRows<ShiftRow & Row>("shifts");
-  const { rows: projects } = useRows<Row & { name?: string }>("projects");
-  const { rows: onboarding } = useRows<
-    Named & { satisfied?: boolean | null; submitted_at?: string | null; expires_on?: string | null }
-  >("onboarding_items");
-  const { rows: deliverables } = useRows<
-    Named & { deliverable_state?: string | null; due_at?: string | null }
-  >("deliverables");
-  const { rows: shared } = useRows<
-    Named & {
-      record_kind?: string | null;
-      record_state?: string | null;
-      starts_at?: string | null;
-      due_at?: string | null;
-    }
-  >("shared_records");
-  const { rows: orders } = useRows<
-    Row & {
-      po_number?: number | string | null;
-      project_name?: string | null;
-      sent_at?: string | null;
-    }
-  >("purchase_orders");
-  const { rows: incidents } = useRows<
-    Named & {
-      project_id?: string;
-      incident_number?: number | string | null;
-      occurred_at?: string | null;
-    }
-  >("incidents", (i) => i.project_id === projectId);
-  const { rows: roster } = useRows<Row & { display_name?: string | null }>("kiosk_roster");
-  const { rows: sops } = useRows<Named & { code?: string | null; body?: string | null }>("sops");
-  const { rows: codes } = useRows<Row & { code?: string | null; label?: string | null }>(
-    "emergency_codes",
-  );
-  const { rows: channels } = useRows<
-    Row & { project_id?: string; channel_number?: number | string | null; name?: string | null }
-  >("radio_channels", (c) => c.project_id === projectId);
-  const { rows: zones } = useRows<Row & { code?: string | null; name?: string | null }>("zones");
-
-  const docs = useMemo((): LocalSearchDoc[] => {
-    if (!identity) return [];
-    const allowed = (feature: Feature) => access(identity, feature, projectId).allowed;
-    const me = {
-      membershipId: identity.membershipId,
-      engagementIds: operationalEngagements(identity, null).map((e) => e.id),
+/** The rows of each table search reads, from the active org, kept live. */
+function useSearchRows(): (table: string) => readonly Row[] {
+  const shifts = useRows("shifts").rows;
+  const projects = useRows("projects").rows;
+  const onboarding = useRows("onboarding_items").rows;
+  const deliverables = useRows("deliverables").rows;
+  const shared = useRows("shared_records").rows;
+  const orders = useRows("purchase_orders").rows;
+  const incidents = useRows("incidents").rows;
+  const roster = useRows("kiosk_roster").rows;
+  const sops = useRows("sops").rows;
+  const codes = useRows("emergency_codes").rows;
+  const canon = useRows("canon_emergency_codes").rows;
+  const channels = useRows("radio_channels").rows;
+  return useMemo(() => {
+    const byTable: Readonly<Record<(typeof SEARCH_TABLES)[number], readonly Row[]>> = {
+      shifts,
+      projects,
+      onboarding_items: onboarding,
+      deliverables,
+      shared_records: shared,
+      purchase_orders: orders,
+      incidents,
+      kiosk_roster: roster,
+      sops,
+      emergency_codes: codes,
+      canon_emergency_codes: canon,
+      radio_channels: channels,
     };
-    const projectName = new Map(projects.map((p) => [p.id, String(p.name ?? "")]));
-    const text = (value: unknown) => (value === null || value === undefined ? "" : String(value));
-    const out: LocalSearchDoc[] = [];
-    for (const s of shifts) {
-      if (!isMine(s, me) || s.shift_state === "Draft") continue;
-      const zone = scheduleZone(s.time_zone, orgSettings);
-      out.push({
-        kind: "shift",
-        id: s.id,
-        title: roleTitle(s) || t("compass.schedule.myShifts"),
-        body: projectName.get(s.project_id) ?? "",
-        subtitle: t("compassSearch.when", {
-          day: formatDay(s.starts_at, zone),
-          time: t("compass.schedule.timeRange", {
-            start: formatTime(s.starts_at, zone),
-            end: formatTime(s.ends_at, zone),
-          }),
-        }),
-        at: s.starts_at,
-        href: "/schedule",
-      });
-    }
-    for (const o of onboarding) {
-      if (o.satisfied) continue;
-      out.push({
-        kind: "task",
-        id: o.id,
-        title: text(o.name),
-        at: o.expires_on ?? null,
-        href: "/onboarding",
-      });
-    }
-    for (const d of deliverables) {
-      if (d.deliverable_state === "Accepted") continue;
-      out.push({
-        kind: "task",
-        id: d.id,
-        title: text(d.title),
-        at: d.due_at ?? null,
-        href: "/deliverables",
-      });
-    }
-    for (const r of shared) {
-      out.push({
-        kind: r.record_kind === "Task" ? "task" : "record",
-        id: r.id,
-        title: text(r.title),
-        body: text(r.record_kind),
-        at: r.due_at ?? r.starts_at ?? null,
-        href: "/submittals",
-      });
-    }
-    for (const p of orders) {
-      out.push({
-        kind: "record",
-        id: p.id,
-        title: t("compassSearch.purchaseOrder", { number: text(p.po_number) }),
-        body: text(p.project_name),
-        code: text(p.po_number),
-        at: p.sent_at ?? null,
-        href: "/purchase-orders",
-      });
-    }
-    for (const i of incidents) {
-      out.push({
-        kind: "record",
-        id: i.id,
-        title: text(i.title),
-        code: text(i.incident_number),
-        at: i.occurred_at ?? null,
-        href: "/incidents",
-      });
-    }
-    const people = allowed("crew.board") ? "/crew" : "/workforce/directory";
-    for (const p of roster) {
-      if (!p.display_name) continue;
-      out.push({ kind: "person", id: p.id, title: p.display_name, href: people });
-    }
-    for (const s of sops) {
-      out.push({
-        kind: "reference",
-        id: s.id,
-        title: text(s.title),
-        body: text(s.body),
-        code: text(s.code),
-        href: "/reference/sops",
-      });
-    }
-    for (const c of codes) {
-      out.push({
-        kind: "reference",
-        id: c.id,
-        title: text(c.label),
-        code: text(c.code),
-        href: "/reference/emergency-codes",
-      });
-    }
-    for (const c of channels) {
-      out.push({
-        kind: "reference",
-        id: c.id,
-        title: text(c.name),
-        code: text(c.channel_number),
-        subtitle: t("compassSearch.channel", { number: text(c.channel_number) }),
-        href: "/reference/radio-channels",
-      });
-    }
-    for (const z of zones) {
-      out.push({
-        kind: "reference",
-        id: z.id,
-        title: text(z.name),
-        code: text(z.code),
-        href: "/reference/venue-maps",
-      });
-    }
-    out.push(...actionDocs(allowed, (key) => t(`compassSearch.actions.${key}`)));
-    return out;
+    return (table: string) => byTable[table as (typeof SEARCH_TABLES)[number]] ?? [];
   }, [
-    identity,
-    projectId,
-    projects,
     shifts,
+    projects,
     onboarding,
     deliverables,
     shared,
@@ -269,12 +123,42 @@ function SearchResults({ query }: { readonly query: string }): ReactElement {
     roster,
     sops,
     codes,
+    canon,
     channels,
-    zones,
-    orgSettings,
-    roleTitle,
-    t,
   ]);
+}
+
+/** The results for what is typed, from the offline store. Mounted only while there is a query. */
+function SearchResults({ query }: { readonly query: string }): ReactElement {
+  const { t } = useTranslation();
+  const router = useRouter();
+  const roleTitle = useRoleTitle();
+  const { resolved, projectId, orgSettings, status } = useCompass();
+  const identity = resolved?.identity;
+  const rows = useSearchRows();
+
+  const docs = useMemo((): LocalSearchDoc[] => {
+    if (!identity) return [];
+    return searchDocs({
+      identity,
+      projectId,
+      rows,
+      allowed: (feature) => access(identity, feature, projectId).allowed,
+      t: (key, values) => t(key, { ...values }),
+      shiftTitle: roleTitle,
+      shiftWhen: (s) => {
+        const zone = scheduleZone(s.time_zone, orgSettings);
+        return t("compassSearch.when", {
+          day: formatDay(s.starts_at, zone),
+          time: t("compass.schedule.timeRange", {
+            start: formatTime(s.starts_at, zone),
+            end: formatTime(s.ends_at, zone),
+          }),
+        });
+      },
+      now: Date.now(),
+    });
+  }, [identity, projectId, rows, orgSettings, roleTitle, t]);
 
   const groups = groupHits(searchLocal(docs, query, { now: Date.now() }));
   const count = groups.reduce((n, g) => n + g.hits.length, 0);
