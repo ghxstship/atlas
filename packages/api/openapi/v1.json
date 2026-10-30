@@ -47849,6 +47849,119 @@
         },
         "description": "Fields accepted when creating a CalendarFeed."
       },
+      "CalendarFeedConfiguration": {
+        "type": "object",
+        "properties": {
+          "calendar_feed_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the calendar feed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Name of the feed and of the subscribed calendar; null for the default name.",
+            "example": "Lighting crew"
+          },
+          "sources": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "string",
+              "enum": ["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"],
+              "description": "What the feed shows.",
+              "example": "Cues"
+            },
+            "minItems": 1,
+            "maxItems": 5,
+            "description": "What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.",
+            "example": ["Shifts", "Cues"]
+          },
+          "audience": {
+            "anyOf": [{ "$ref": "#/components/schemas/CalendarFeedAudience" }, { "type": "null" }]
+          },
+          "cue_call_kind": {
+            "type": ["string", "null"],
+            "enum": ["Audio", "Lighting", "Video", "Special Effects", "Stage", null],
+            "description": "Show department filter: only cues with this department's call, and its instruction.",
+            "example": "Lighting"
+          }
+        },
+        "required": ["calendar_feed_id", "name", "sources", "audience", "cue_call_kind"],
+        "description": "A calendar feed's name, content sources, audience and show department (ADR 0146). A member feed takes only a name and sources without Cues."
+      },
+      "CalendarFeedAudience": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["people", "team", "department"],
+            "description": "Who the feed follows.",
+            "example": "team"
+          },
+          "person_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the person in the audience.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "maxItems": 50,
+            "description": "With kind people: 1 to 50 members of the feed's org."
+          },
+          "team_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the team the feed follows.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "department_code": {
+            "type": "string",
+            "pattern": "^[0-9]000$",
+            "description": "With kind department: a canon department code.",
+            "example": "5000"
+          }
+        },
+        "required": ["kind"],
+        "description": "A project feed's audience: only these people's, this team's or this department's shifts and records, never more than the feed's owner may see."
+      },
+      "CalendarFeedConfigureRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Name of the feed and of the subscribed calendar; null for the default name.",
+            "example": "Lighting crew"
+          },
+          "sources": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "string",
+              "enum": ["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"],
+              "description": "What the feed shows.",
+              "example": "Cues"
+            },
+            "minItems": 1,
+            "maxItems": 5,
+            "description": "What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.",
+            "example": ["Shifts", "Cues"]
+          },
+          "audience": {
+            "anyOf": [{ "$ref": "#/components/schemas/CalendarFeedAudience" }, { "type": "null" }]
+          },
+          "cue_call_kind": {
+            "type": ["string", "null"],
+            "enum": ["Audio", "Lighting", "Video", "Special Effects", "Stage", null],
+            "description": "Show department filter: only cues with this department's call, and its instruction.",
+            "example": "Lighting"
+          }
+        },
+        "description": "The whole configuration of a feed; a field left out is cleared. Refusals answer 422 with their rule: calendar_feed_name, calendar_feed_filter_scope, calendar_feed_audience, calendar_feed_people_limit and calendar_feed_sources."
+      },
       "TrashItemPage": {
         "type": "object",
         "properties": {
@@ -49570,6 +49683,337 @@
         ],
         "description": "Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero."
       },
+      "ProjectDebriefPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectDebrief" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ProjectDebrief": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project debrief.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the debrief wraps up.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "completed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the debrief was completed; points and summary lock until reopened.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "completed_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who completed the debrief.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "completed_at",
+          "completed_by"
+        ],
+        "description": "The debrief of a project's wrap-up (2965, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from."
+      },
+      "ProjectDebriefSaveRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project whose debrief to start or save.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "management_summary": {
+            "type": ["string", "null"],
+            "maxLength": 4000,
+            "description": "The management summary: text to save it, blank to clear it, null or left out to leave it as it is.",
+            "example": "Delivered on budget; attendance 9,800 against a target of 9,000."
+          },
+          "ai_request_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the the caller's own Answered Aurora summaries request about this project the summary was drafted from (debrief_ai_request: 422 otherwise).",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["project_id"],
+        "description": "Starts the project's debrief when there is none and saves its management summary. Refusals answer 422: debrief_completed, debrief_ai_request and debrief_summary."
+      },
+      "ProjectDebriefItemPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectDebriefItem" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ProjectDebriefItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project debrief item.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "debrief_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the debrief the point belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "area": {
+            "type": "string",
+            "enum": [
+              "Schedule",
+              "Budget",
+              "Safety",
+              "Audience",
+              "Sustainability",
+              "Crew",
+              "Vendors",
+              "Other"
+            ],
+            "description": "Area of the project the point is about.",
+            "example": "Safety"
+          },
+          "item_kind": {
+            "type": "string",
+            "enum": ["Went Well", "To Improve", "Action"],
+            "description": "Kind of point.",
+            "example": "Action"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "The point.",
+            "example": "Add a second spotter on the downstage truss."
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order in the debrief, from 1; the next free one when omitted.",
+            "example": 1
+          },
+          "owner_membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the member who owns an Action; only Actions have an owner.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "debrief_id",
+          "area",
+          "item_kind",
+          "body",
+          "position",
+          "owner_membership_id"
+        ],
+        "description": "A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash."
+      },
+      "ProjectDebriefItemCreate": {
+        "type": "object",
+        "properties": {
+          "debrief_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the debrief the point belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "area": {
+            "type": "string",
+            "enum": [
+              "Schedule",
+              "Budget",
+              "Safety",
+              "Audience",
+              "Sustainability",
+              "Crew",
+              "Vendors",
+              "Other"
+            ],
+            "description": "Area of the project the point is about.",
+            "example": "Safety"
+          },
+          "item_kind": {
+            "type": "string",
+            "enum": ["Went Well", "To Improve", "Action"],
+            "description": "Kind of point.",
+            "example": "Action"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "The point.",
+            "example": "Add a second spotter on the downstage truss."
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order in the debrief, from 1; the next free one when omitted.",
+            "example": 1
+          },
+          "owner_membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the member who owns an Action; only Actions have an owner.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["debrief_id", "area", "item_kind", "body", "position"],
+        "description": "Fields accepted when creating a ProjectDebriefItem."
+      },
+      "ProjectDebriefItemUpdate": {
+        "type": "object",
+        "properties": {
+          "area": {
+            "type": "string",
+            "enum": [
+              "Schedule",
+              "Budget",
+              "Safety",
+              "Audience",
+              "Sustainability",
+              "Crew",
+              "Vendors",
+              "Other"
+            ],
+            "description": "Area of the project the point is about.",
+            "example": "Safety"
+          },
+          "item_kind": {
+            "type": "string",
+            "enum": ["Went Well", "To Improve", "Action"],
+            "description": "Kind of point.",
+            "example": "Action"
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "The point.",
+            "example": "Add a second spotter on the downstage truss."
+          },
+          "position": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Order in the debrief, from 1; the next free one when omitted.",
+            "example": 1
+          },
+          "owner_membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the member who owns an Action; only Actions have an owner.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "description": "Fields accepted when updating a ProjectDebriefItem. Omitted fields are unchanged."
+      },
       "CueCallPage": {
         "type": "object",
         "properties": {
@@ -50954,7 +51398,7 @@
         "properties": {
           "kind": {
             "type": "string",
-            "enum": ["record_activity", "project_week", "gate_readiness"],
+            "enum": ["record_activity", "project_week", "gate_readiness", "project_wrap_up"],
             "description": "What to summarize.",
             "example": "project_week"
           },
@@ -51151,7 +51595,7 @@
           },
           "kind": {
             "type": "string",
-            "enum": ["record_activity", "project_week", "gate_readiness"],
+            "enum": ["record_activity", "project_week", "gate_readiness", "project_wrap_up"],
             "description": "For summaries, what is summarized.",
             "example": "gate_readiness"
           },
@@ -55778,6 +56222,65 @@
           "rotated_at"
         ],
         "description": "A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good."
+      },
+      "PersonCalendarFeedConfiguration": {
+        "type": "object",
+        "properties": {
+          "calendar_feed_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the calendar feed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Name of the feed and of the subscribed calendar; null for the default name.",
+            "example": "Lighting crew"
+          },
+          "sources": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "string",
+              "enum": ["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"],
+              "description": "What the feed shows.",
+              "example": "Cues"
+            },
+            "minItems": 1,
+            "maxItems": 5,
+            "description": "What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.",
+            "example": ["Shifts", "Cues"]
+          }
+        },
+        "required": ["calendar_feed_id", "name", "sources"],
+        "description": "A personal feed's name and content sources (ADR 0146)."
+      },
+      "PersonCalendarFeedConfigureRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 80,
+            "description": "Name of the feed and of the subscribed calendar; null for the default name.",
+            "example": "Lighting crew"
+          },
+          "sources": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "string",
+              "enum": ["Shifts", "Meetings", "Milestones", "Deadlines", "Cues"],
+              "description": "What the feed shows.",
+              "example": "Cues"
+            },
+            "minItems": 1,
+            "maxItems": 5,
+            "description": "What the feed shows, each once; null for the default set (shifts, meetings, milestones and deadlines). Cues only on a project feed.",
+            "example": ["Shifts", "Cues"]
+          }
+        },
+        "description": "The name and sources of a personal feed; a field left out is cleared. Refusals answer 422: calendar_feed_name and calendar_feed_sources."
       },
       "ProjectInboxPage": {
         "type": "object",
@@ -138272,6 +138775,142 @@
         }
       }
     },
+    "/calendar-feeds/{id}/configure": {
+      "post": {
+        "operationId": "calendarFeeds.configure",
+        "tags": ["Platform"],
+        "x-xos-table": "app.calendar_feeds",
+        "x-xos-capability": "me.calendar_feeds.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.configure_calendar_feed",
+        "summary": "Configure a calendar feed",
+        "description": "Replaces the name, sources, audience and show department of one of the caller's live feeds (app.configure_calendar_feed). The subscription URL stays. Another member's or a revoked feed is not found. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the calendar feed.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the calendar feed.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "name": "Lighting crew",
+                "sources": ["Shifts", "Cues"],
+                "audience": {
+                  "kind": "team",
+                  "person_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                  "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "department_code": "5000"
+                },
+                "cue_call_kind": "Lighting"
+              },
+              "schema": { "$ref": "#/components/schemas/CalendarFeedConfigureRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "calendar_feed_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Lighting crew",
+                  "sources": ["Shifts", "Cues"],
+                  "audience": {
+                    "kind": "team",
+                    "person_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                    "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "department_code": "5000"
+                  },
+                  "cue_call_kind": "Lighting"
+                },
+                "schema": { "$ref": "#/components/schemas/CalendarFeedConfiguration" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/calendar-feeds/{id}/configuration": {
+      "get": {
+        "operationId": "calendarFeeds.configuration",
+        "tags": ["Platform"],
+        "x-xos-table": "app.calendar_feeds",
+        "x-xos-capability": "me.calendar_feeds.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Read a calendar feed's configuration",
+        "description": "The name, sources, audience and show department of one of the caller's live feeds. Another member's feed is not found. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the calendar feed.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the calendar feed.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "calendar_feed_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Lighting crew",
+                  "sources": ["Shifts", "Cues"],
+                  "audience": {
+                    "kind": "team",
+                    "person_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                    "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "department_code": "5000"
+                  },
+                  "cue_call_kind": "Lighting"
+                },
+                "schema": { "$ref": "#/components/schemas/CalendarFeedConfiguration" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/trash": {
       "get": {
         "operationId": "trashItems.list",
@@ -140148,6 +140787,577 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-debriefs": {
+      "get": {
+        "operationId": "projectDebriefs.list",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_debriefs",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List project debrief rows",
+        "description": "The debrief of a project's wrap-up (2965, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from. Returns a cursor page of project debrief rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of project debrief rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "completed_at": "2026-10-08T14:30:00Z",
+                      "completed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectDebriefPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-debriefs/{id}": {
+      "get": {
+        "operationId": "projectDebriefs.get",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_debriefs",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a project debrief",
+        "description": "The debrief of a project's wrap-up (2965, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from. Returns one project debrief with its `ETag`. A project debrief the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project debrief.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project debrief.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The project debrief.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "completed_at": "2026-10-08T14:30:00Z",
+                  "completed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectDebrief" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-debriefs/save": {
+      "post": {
+        "operationId": "projectDebriefs.save",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_debriefs",
+        "x-xos-capability": "projects.project.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "app.save_project_debrief",
+        "summary": "Start or save a project debrief",
+        "description": "Creates the project's debrief when there is none and saves its management summary (app.save_project_debrief). Answers the debrief. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "management_summary": "Delivered on budget; attendance 9,800 against a target of 9,000.",
+                "ai_request_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/ProjectDebriefSaveRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "completed_at": "2026-10-08T14:30:00Z",
+                  "completed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectDebrief" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-debriefs/{id}/complete": {
+      "post": {
+        "operationId": "projectDebriefs.complete",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_debriefs",
+        "x-xos-capability": "projects.project.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "app.complete_project_debrief",
+        "summary": "Complete a project debrief",
+        "description": "Stamps completion once (app.complete_project_debrief); points and the summary lock until it is reopened. An already completed debrief answers debrief_completed (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project debrief.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project debrief.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "completed_at": "2026-10-08T14:30:00Z",
+                  "completed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectDebrief" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-debriefs/{id}/reopen": {
+      "post": {
+        "operationId": "projectDebriefs.reopen",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_debriefs",
+        "x-xos-capability": "projects.project.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "app.reopen_project_debrief",
+        "summary": "Reopen a project debrief",
+        "description": "Clears completion (app.reopen_project_debrief) so the points and summary can change again. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project debrief.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project debrief.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "completed_at": "2026-10-08T14:30:00Z",
+                  "completed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectDebrief" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-debrief-items": {
+      "get": {
+        "operationId": "projectDebriefItems.list",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_debrief_items",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List project debrief item rows",
+        "description": "A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Returns a cursor page of project debrief item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of project debrief item rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "debrief_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "area": "Safety",
+                      "item_kind": "Action",
+                      "body": "Add a second spotter on the downstage truss.",
+                      "position": 1,
+                      "owner_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectDebriefItemPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "projectDebriefItems.create",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_debrief_items",
+        "x-xos-capability": "projects.project.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Create a project debrief item",
+        "description": "A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Creates a project debrief item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "debrief_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "area": "Safety",
+                "item_kind": "Action",
+                "body": "Add a second spotter on the downstage truss.",
+                "position": 1,
+                "owner_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/ProjectDebriefItemCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created project debrief item.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "debrief_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "area": "Safety",
+                  "item_kind": "Action",
+                  "body": "Add a second spotter on the downstage truss.",
+                  "position": 1,
+                  "owner_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectDebriefItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-debrief-items/{id}": {
+      "get": {
+        "operationId": "projectDebriefItems.get",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_debrief_items",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a project debrief item",
+        "description": "A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Returns one project debrief item with its `ETag`. A project debrief item the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project debrief item.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project debrief item.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The project debrief item.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "debrief_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "area": "Safety",
+                  "item_kind": "Action",
+                  "body": "Add a second spotter on the downstage truss.",
+                  "position": 1,
+                  "owner_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectDebriefItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "projectDebriefItems.update",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_debrief_items",
+        "x-xos-capability": "projects.project.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Update a project debrief item",
+        "description": "A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project debrief item.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project debrief item.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "area": "Safety",
+                "item_kind": "Action",
+                "body": "Add a second spotter on the downstage truss.",
+                "position": 1,
+                "owner_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/ProjectDebriefItemUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated project debrief item.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "debrief_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "area": "Safety",
+                  "item_kind": "Action",
+                  "body": "Add a second spotter on the downstage truss.",
+                  "position": 1,
+                  "owner_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectDebriefItem" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "projectDebriefItems.delete",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_debrief_items",
+        "x-xos-capability": "projects.project.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Delete a project debrief item",
+        "description": "A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Soft-deletes the project debrief item: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project debrief item.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project debrief item.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The project debrief item moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -148763,6 +149973,118 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/person-calendar-feeds/{id}/configure": {
+      "post": {
+        "operationId": "personCalendarFeeds.configure",
+        "tags": ["Platform"],
+        "x-xos-table": "app.person_calendar_feeds",
+        "x-xos-capability": "me.calendar_feeds.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.configure_person_calendar_feed",
+        "summary": "Configure a personal calendar feed",
+        "description": "Replaces the name and sources of one of the caller's own live feeds (app.configure_person_calendar_feed). The subscription URL stays. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the person calendar feed.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the person calendar feed.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "name": "Lighting crew", "sources": ["Shifts", "Cues"] },
+              "schema": { "$ref": "#/components/schemas/PersonCalendarFeedConfigureRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "calendar_feed_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Lighting crew",
+                  "sources": ["Shifts", "Cues"]
+                },
+                "schema": { "$ref": "#/components/schemas/PersonCalendarFeedConfiguration" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/person-calendar-feeds/{id}/configuration": {
+      "get": {
+        "operationId": "personCalendarFeeds.configuration",
+        "tags": ["Platform"],
+        "x-xos-table": "app.person_calendar_feeds",
+        "x-xos-capability": "me.calendar_feeds.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Read a personal calendar feed's configuration",
+        "description": "The name and sources of one of the caller's own live feeds. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the person calendar feed.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the person calendar feed.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "calendar_feed_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "name": "Lighting crew",
+                  "sources": ["Shifts", "Cues"]
+                },
+                "schema": { "$ref": "#/components/schemas/PersonCalendarFeedConfiguration" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }

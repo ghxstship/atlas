@@ -347,6 +347,8 @@ from .resources import (
     ProjectMeasurementCorrectionsResource,
     EarnedMediaItemsResource,
     ProjectMeasurementSummaryResource,
+    ProjectDebriefsResource,
+    ProjectDebriefItemsResource,
     CueCallsResource,
     GuestListEntriesResource,
     Form1099NecResource,
@@ -777,6 +779,8 @@ class XosClient(XosClientCore):
     project_measurement_corrections: ProjectMeasurementCorrectionsResource
     earned_media_items: EarnedMediaItemsResource
     project_measurement_summary: ProjectMeasurementSummaryResource
+    project_debriefs: ProjectDebriefsResource
+    project_debrief_items: ProjectDebriefItemsResource
     cue_calls: CueCallsResource
     guest_list_entries: GuestListEntriesResource
     form1099_nec: Form1099NecResource
@@ -1195,6 +1199,8 @@ class XosClient(XosClientCore):
         self.project_measurement_corrections = ProjectMeasurementCorrectionsResource(self)
         self.earned_media_items = EarnedMediaItemsResource(self)
         self.project_measurement_summary = ProjectMeasurementSummaryResource(self)
+        self.project_debriefs = ProjectDebriefsResource(self)
+        self.project_debrief_items = ProjectDebriefItemsResource(self)
         self.cue_calls = CueCallsResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
         self.form1099_nec = Form1099NecResource(self)

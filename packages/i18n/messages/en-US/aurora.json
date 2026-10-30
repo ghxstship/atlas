@@ -222,7 +222,8 @@
       "kind": {
         "record_activity": "This record's activity",
         "project_week": "This week",
-        "gate_readiness": "Gate readiness"
+        "gate_readiness": "Gate readiness",
+        "project_wrap_up": "Wrap-up"
       },
       "itemsError": "We could not read what to summarize. Close the panel and try again.",
       "nothing": "There is nothing to summarize yet.",

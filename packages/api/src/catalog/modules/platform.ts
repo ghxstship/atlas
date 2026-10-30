@@ -17,6 +17,7 @@ import { a36Actions, a36Capabilities, a36Corrections, a36Resources } from "./par
 import { a79Capabilities, a79Resources } from "./parts/a79.ts";
 import { shareLinkCapabilities, shareLinkResources } from "./parts/share-links.ts";
 import { a84Actions, a84Capabilities, a84Resources, CalendarFeedToken } from "./parts/a84.ts";
+import { b7Actions, b7PlatformCapabilities } from "./parts/b7.ts";
 import {
   automationActions,
   automationCapabilities,
@@ -66,10 +67,22 @@ export const additions = defineAdditions("Platform", {
     ...a36Resources,
     ...a79Resources,
     ...shareLinkResources,
-    ...a84Resources,
+    // B7's configure and configuration join a84's new personCalendarFeeds resource.
+    ...a84Resources.map((spec) =>
+      spec.op === "personCalendarFeeds"
+        ? { ...spec, actions: [...spec.actions, ...(b7Actions["personCalendarFeeds"] ?? [])] }
+        : spec,
+    ),
     ...automationResources,
   ],
-  actions: { ...workflowActions, ...a36Actions, ...a84Actions, ...automationActions },
+  actions: {
+    ...workflowActions,
+    ...a36Actions,
+    ...a84Actions,
+    ...automationActions,
+    // B7 adds actions to the frozen calendarFeeds, which a84 also extends.
+    calendarFeeds: [...(a84Actions["calendarFeeds"] ?? []), ...(b7Actions["calendarFeeds"] ?? [])],
+  },
   capabilities: {
     ...viewsHelpSupportCapabilities,
     ...workflowCapabilities,
@@ -78,6 +91,19 @@ export const additions = defineAdditions("Platform", {
     ...shareLinkCapabilities,
     ...a84Capabilities,
     ...automationCapabilities,
+    calendarFeeds: {
+      actions: {
+        ...a84Capabilities["calendarFeeds"]?.actions,
+        ...b7PlatformCapabilities["calendarFeeds"]?.actions,
+      },
+    },
+    personCalendarFeeds: {
+      ...a84Capabilities["personCalendarFeeds"],
+      actions: {
+        ...a84Capabilities["personCalendarFeeds"]?.actions,
+        ...b7PlatformCapabilities["personCalendarFeeds"]?.actions,
+      },
+    },
   },
   corrections: [
     ...workflowCorrections,

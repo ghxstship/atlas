@@ -268,8 +268,8 @@ async function readItems(
   api: PublicApi,
   specs: readonly ResourceSpec[],
   items: readonly { collection: string; id: string }[],
-): Promise<{ id: string; table: string; data: Row }[]> {
-  const out: { id: string; table: string; data: Row }[] = [];
+): Promise<{ id: string; table: string; data: Row; composed?: true }[]> {
+  const out: { id: string; table: string; data: Row; composed?: true }[] = [];
   for (const item of items) {
     const spec = specs.find((s) => s.path === `/${item.collection}`);
     if (!spec) continue;
@@ -281,11 +281,24 @@ async function readItems(
   return out;
 }
 
-type SummaryKind = "record_activity" | "project_week" | "gate_readiness";
+type SummaryKind = "record_activity" | "project_week" | "gate_readiness" | "project_wrap_up";
+
+/** A record read for a summary. `composed` marks facts the summary adds under the subject's id (never the subject). */
+type ReadItem = { id: string; table: string; data: Row; composed?: true };
+
+/** The tables whose rows make up the final cost report: never-send on any of them keeps its figures back (B7). */
+const BUDGET_SOURCES = [
+  "app.budgets",
+  "app.budget_lines",
+  "app.posting_lines",
+  "app.change_orders",
+];
 
 /**
- * What a summary reads: the named items, and for a project's gate readiness the criteria of its next
- * gate with whether evidence satisfies each (projects.gateReadiness), cited by the project's id.
+ * What a summary reads: the named items; for a project's gate readiness the criteria of its next gate with
+ * whether evidence satisfies each (projects.gateReadiness); and for a project's wrap-up (B7) the final cost report,
+ * the incident counts and the measurement summary, each cited by the project's id under its real relation, so the
+ * org's never-send list applies to it, and each only when the caller may read it (200).
  */
 async function summaryItems(
   api: PublicApi,
@@ -296,8 +309,9 @@ async function summaryItems(
     subject_id?: string | undefined;
     items: readonly { collection: string; id: string }[];
   },
-): Promise<{ id: string; table: string; data: Row }[]> {
-  const items = await readItems(api, specs, body.items);
+  neverSend: NeverSendList,
+): Promise<ReadItem[]> {
+  const items: ReadItem[] = await readItems(api, specs, body.items);
   if (body.kind === "gate_readiness" && body.subject_collection === "projects" && body.subject_id) {
     const readiness = await api.get(`/projects/${body.subject_id}/gate-readiness`, {});
     const rows = (readiness.body as { data?: unknown } | null)?.data;
@@ -306,8 +320,40 @@ async function summaryItems(
         id: body.subject_id,
         table: "app.gate_criteria_status",
         data: { gate_readiness: rows as unknown[] },
+        composed: true,
       });
     }
+  }
+  if (
+    body.kind === "project_wrap_up" &&
+    body.subject_collection === "projects" &&
+    body.subject_id
+  ) {
+    const project = body.subject_id;
+    const [budget, incidents, measurements] = await Promise.all([
+      BUDGET_SOURCES.some((t) => neverSend.excludesTable(t))
+        ? Promise.resolve(null)
+        : api.get("/reports/final-cost-report", { project_id: project }),
+      api.get("/reports/incident-rates", { project_id: project }),
+      api.get("/project-measurement-summary", { "filter[project_id][eq]": project, limit: "100" }),
+    ]);
+    const add = (
+      table: string,
+      key: string,
+      response: { status: number; body: unknown } | null,
+    ) => {
+      if (response === null || response.status !== 200) return;
+      const page = (response.body as { data?: unknown } | null)?.data;
+      items.push({
+        id: project,
+        table,
+        data: { [key]: Array.isArray(page) ? page : response.body },
+        composed: true,
+      });
+    };
+    add("app.budgets", "final_cost_report", budget);
+    add("app.incidents", "incident_counts", incidents);
+    add("app.project_measurement_summary", "measurements", measurements);
   }
   return items;
 }
@@ -333,15 +379,14 @@ async function readVocabulary(api: PublicApi): Promise<VocabularyTerm[]> {
 /** Each named record as the model would see it: the fields sent, the fields withheld, the values. */
 export function previewRecords(
   named: readonly { collection: string; id: string }[],
-  read: readonly { id: string; table: string; data: Row }[],
+  read: readonly { id: string; table: string; data: Row; composed?: true }[],
   specs: readonly ResourceSpec[],
   neverSend: NeverSendList,
 ) {
-  // The gate readiness a gate summary adds carries the project's id; it never stands in for the
-  // project record the request names.
-  const byId = new Map(
-    read.filter((r) => r.table !== "app.gate_criteria_status").map((r) => [r.id, r]),
-  );
+  // The facts a summary adds (gate readiness, the wrap-up's figures) carry the project's id; they never stand in
+  // for the project record the request names. They are marked, not recognised by table: the wrap-up's tables are
+  // real collections too.
+  const byId = new Map(read.filter((r) => r.composed !== true).map((r) => [r.id, r]));
   const preview = (
     collection: string,
     record: { id: string; table: string; data: Row } | undefined,
@@ -365,9 +410,11 @@ export function previewRecords(
     ...preview(item.collection, byId.get(item.id)),
     id: item.id,
   }));
-  // The gate readiness a gate summary adds is cited by the project's id but is its own record.
-  for (const extra of read.filter((r) => r.table === "app.gate_criteria_status")) {
-    const spec = specs.find((s) => s.def.table === "app.projects");
+  // The facts a summary adds are cited by the project's id but are their own records.
+  for (const extra of read.filter((r) => r.composed === true)) {
+    const spec =
+      specs.find((s) => s.def.table === extra.table) ??
+      specs.find((s) => s.def.table === "app.projects");
     out.push({ ...preview(spec ? spec.path.slice(1) : "projects", extra), id: extra.id });
   }
   return out;
@@ -613,7 +660,7 @@ export function auroraHandlers(
       const { neverSend, specs, api } = await readSetup(context);
       const drafting = body.feature === "drafting";
       const [read, vocabulary] = await Promise.all([
-        drafting ? readItems(api, specs, body.items) : summaryItems(api, specs, body),
+        drafting ? readItems(api, specs, body.items) : summaryItems(api, specs, body, neverSend),
         drafting ? readVocabulary(api) : Promise.resolve([]),
       ]);
       return ok({
@@ -631,7 +678,7 @@ export function auroraHandlers(
       };
       const { ctx, neverSend, specs, api } = await setup(context);
       const subjectSpec = specs.find((s) => s.path === `/${body.subject_collection}`);
-      const items = await summaryItems(api, specs, body);
+      const items = await summaryItems(api, specs, body, neverSend);
       return toResponse(
         await summarize(ctx, {
           kind: body.kind,

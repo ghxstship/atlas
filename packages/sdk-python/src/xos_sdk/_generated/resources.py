@@ -218,6 +218,8 @@ if TYPE_CHECKING:
         Calendar,
         CalendarCreate,
         CalendarFeed,
+        CalendarFeedConfiguration,
+        CalendarFeedConfigureRequest,
         CalendarFeedCreate,
         CalendarFeedPage,
         CalendarFeedToken,
@@ -879,6 +881,8 @@ if TYPE_CHECKING:
         PermitTransitionRequest,
         Person,
         PersonCalendarFeed,
+        PersonCalendarFeedConfiguration,
+        PersonCalendarFeedConfigureRequest,
         PersonCalendarFeedPage,
         PersonPage,
         PersonProfile,
@@ -942,6 +946,13 @@ if TYPE_CHECKING:
         ProjectAuthority,
         ProjectAuthorityPage,
         ProjectCreate,
+        ProjectDebrief,
+        ProjectDebriefItem,
+        ProjectDebriefItemCreate,
+        ProjectDebriefItemPage,
+        ProjectDebriefItemUpdate,
+        ProjectDebriefPage,
+        ProjectDebriefSaveRequest,
         ProjectInbox,
         ProjectInboxCreate,
         ProjectInboxPage,
@@ -30981,6 +30992,38 @@ class CalendarFeedsResource(Resource):
         """
         return self._client.request(OPERATIONS["calendarFeeds.rotate"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
+    def configure(
+        self,
+        id: str,
+        body: CalendarFeedConfigureRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CalendarFeedConfiguration]:
+        """Configure a calendar feed
+
+        Replaces the name, sources, audience and show department of one of the caller's live feeds (app.configure_calendar_feed). The subscription URL stays. Another member's or a revoked feed is not found. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /calendar-feeds/{id}/configure`` (operation ``calendarFeeds.configure``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["calendarFeeds.configure"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def configuration(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CalendarFeedConfiguration]:
+        """Read a calendar feed's configuration
+
+        The name, sources, audience and show department of one of the caller's live feeds. Another member's feed is not found. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /calendar-feeds/{id}/configuration`` (operation ``calendarFeeds.configuration``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["calendarFeeds.configuration"], path={"id": id}, options=options)
+
 
 class TrashItemsResource(Resource):
     """Operations on ``trashItems``, in the Platform module."""
@@ -31832,6 +31875,220 @@ class ProjectMeasurementSummaryResource(Resource):
         Requires the capability ``projects.gate.read``.
         """
         return self._client.paginate(OPERATIONS["projectMeasurementSummary.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class ProjectDebriefsResource(Resource):
+    """Operations on ``projectDebriefs``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectDebrief]:
+        """List project debrief rows
+
+        The debrief of a project's wrap-up (2965, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from. Returns a cursor page of project debrief rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-debriefs`` (operation ``projectDebriefs.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectDebriefs.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectDebrief]:
+        """List project debrief rows
+
+        The debrief of a project's wrap-up (2965, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from. Returns a cursor page of project debrief rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-debriefs`` (operation ``projectDebriefs.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectDebriefs.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectDebrief]:
+        """Get a project debrief
+
+        The debrief of a project's wrap-up (2965, ADR 0146): one live debrief per project, started and saved by projectDebriefs.save, completed once and reopened when it needs a change. Its points are project-debrief-items; its management summary prints on the wrap-up report for readers of every fact it is drafted from. Returns one project debrief with its `ETag`. A project debrief the caller may not see returns 404.
+
+        ``GET /project-debriefs/{id}`` (operation ``projectDebriefs.get``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["projectDebriefs.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def save(
+        self,
+        body: ProjectDebriefSaveRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectDebrief]:
+        """Start or save a project debrief
+
+        Creates the project's debrief when there is none and saves its management summary (app.save_project_debrief). Answers the debrief. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /project-debriefs/save`` (operation ``projectDebriefs.save``).
+        Requires the capability ``projects.project.write``.
+        """
+        return self._client.request(OPERATIONS["projectDebriefs.save"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def complete(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectDebrief]:
+        """Complete a project debrief
+
+        Stamps completion once (app.complete_project_debrief); points and the summary lock until it is reopened. An already completed debrief answers debrief_completed (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /project-debriefs/{id}/complete`` (operation ``projectDebriefs.complete``).
+        Requires the capability ``projects.project.write``.
+        """
+        return self._client.request(OPERATIONS["projectDebriefs.complete"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def reopen(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectDebrief]:
+        """Reopen a project debrief
+
+        Clears completion (app.reopen_project_debrief) so the points and summary can change again. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /project-debriefs/{id}/reopen`` (operation ``projectDebriefs.reopen``).
+        Requires the capability ``projects.project.write``.
+        """
+        return self._client.request(OPERATIONS["projectDebriefs.reopen"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class ProjectDebriefItemsResource(Resource):
+    """Operations on ``projectDebriefItems``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectDebriefItem]:
+        """List project debrief item rows
+
+        A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Returns a cursor page of project debrief item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-debrief-items`` (operation ``projectDebriefItems.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectDebriefItems.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectDebriefItem]:
+        """List project debrief item rows
+
+        A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Returns a cursor page of project debrief item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-debrief-items`` (operation ``projectDebriefItems.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectDebriefItems.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ProjectDebriefItemCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectDebriefItem]:
+        """Create a project debrief item
+
+        A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Creates a project debrief item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /project-debrief-items`` (operation ``projectDebriefItems.create``).
+        Requires the capability ``projects.project.write``.
+        """
+        return self._client.request(OPERATIONS["projectDebriefItems.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectDebriefItem]:
+        """Get a project debrief item
+
+        A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Returns one project debrief item with its `ETag`. A project debrief item the caller may not see returns 404.
+
+        ``GET /project-debrief-items/{id}`` (operation ``projectDebriefItems.get``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["projectDebriefItems.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: ProjectDebriefItemUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectDebriefItem]:
+        """Update a project debrief item
+
+        A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /project-debrief-items/{id}`` (operation ``projectDebriefItems.update``).
+        Requires the capability ``projects.project.write``.
+        """
+        return self._client.request(OPERATIONS["projectDebriefItems.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a project debrief item
+
+        A point of a project debrief (2965): an area, Went Well, To Improve or Action, the point, and an owner for an Action only. Changes are refused while the debrief is completed (debrief_completed: 422); a deleted point is in Trash. Soft-deletes the project debrief item: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /project-debrief-items/{id}`` (operation ``projectDebriefItems.delete``).
+        Requires the capability ``projects.project.write``.
+        """
+        return self._client.request(OPERATIONS["projectDebriefItems.delete"], path={"id": id}, options=options)
 
 
 class CueCallsResource(Resource):
@@ -35067,6 +35324,38 @@ class PersonCalendarFeedsResource(Resource):
         Requires the capability ``me.calendar_feeds.write``.
         """
         return self._client.request(OPERATIONS["personCalendarFeeds.rotate"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def configure(
+        self,
+        id: str,
+        body: PersonCalendarFeedConfigureRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PersonCalendarFeedConfiguration]:
+        """Configure a personal calendar feed
+
+        Replaces the name and sources of one of the caller's own live feeds (app.configure_person_calendar_feed). The subscription URL stays. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /person-calendar-feeds/{id}/configure`` (operation ``personCalendarFeeds.configure``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["personCalendarFeeds.configure"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def configuration(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PersonCalendarFeedConfiguration]:
+        """Read a personal calendar feed's configuration
+
+        The name and sources of one of the caller's own live feeds. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /person-calendar-feeds/{id}/configuration`` (operation ``personCalendarFeeds.configuration``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["personCalendarFeeds.configuration"], path={"id": id}, options=options)
 
 
 class ProjectInboxesResource(Resource):

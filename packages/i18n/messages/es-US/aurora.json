@@ -222,7 +222,8 @@
       "kind": {
         "record_activity": "La actividad de este registro",
         "project_week": "Esta semana",
-        "gate_readiness": "Preparación de la compuerta"
+        "gate_readiness": "Preparación de la compuerta",
+        "project_wrap_up": "Cierre"
       },
       "itemsError": "No pudimos leer qué resumir. Cierre el panel e inténtelo de nuevo.",
       "nothing": "Todavía no hay nada que resumir.",

@@ -17,10 +17,11 @@ import {
 import type { Components } from "../contract/operations.generated.ts";
 import { conflict, notFound, preconditionFailed, refused } from "../problem.ts";
 import { versionFromIfMatch } from "../runtime/etag.ts";
-import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
+import { created, defineHandlers, noContent, ok, type HandlerSet } from "../runtime/handler.ts";
 import { listPage } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
 import { requireOrg } from "../runtime/context.ts";
+import { b7ProjectHandlers } from "./parts/b7.ts";
 import { measurementHandlers } from "./parts/measurements.ts";
 import { tableHandlers } from "./support/table.ts";
 
@@ -431,4 +432,7 @@ export const handlers = defineHandlers("Projects", {
 
   // Project measurement (A98): see ./parts/measurements.ts.
   ...measurementHandlers,
+
+  // Project debriefs (B7): see ./parts/b7.ts.
+  ...(b7ProjectHandlers as unknown as HandlerSet<"Projects">),
 });
