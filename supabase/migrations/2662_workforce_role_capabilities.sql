@@ -10,7 +10,9 @@
 --     current assignment of the signed-in person to a mapped role on the project, in one of their orgs, within API-key
 --     scopes. The reach is computed at read time and never stored. Every other branch is 1205's, unchanged.
 --   * private.guard_role_assignment refuses sod_self_grant when a signed-in person makes their own assignment to a
---     mapped role Active (Section 8.2): someone else with people.role.write activates it.
+--     mapped role Active, or widens their own Active one (an earlier first day, a later or cleared last day, or a
+--     restore from soft delete) (Section 8.2): someone else with people.role.write does it. Narrowing it, or
+--     ending it, stays the person's own.
 --   * The org-wide capability still decides app.medical_encounters_masked (0353:440): a project holder never unmasks
 --     incident treatment notes.
 -- packages/schemas/capabilities.yaml notes this beside data.restricted.read.medical; 0203 stays the generator's output.
@@ -131,16 +133,21 @@ begin
         and m.valid_from <= now() and (m.valid_to is null or m.valid_to > now())) then
     perform private.refuse('role_assignment_person', 'Assign an active member of the org; external people work through engagements.');
   end if;
-  -- A role that adds a capability (R6a: medical reads) is made Active by someone else (Section 8.2).
+  -- A role that adds a capability (R6a: medical reads) is made Active, or given more days, by someone else
+  -- (Section 8.2): project_ids_with reads an Active, live assignment within its dates.
   if auth.uid() is not null and new.person_id = private.current_person_id()
+     and new.assignment_state = 'Active' and new.deleted_at is null
      and exists (select 1 from private.workforce_role_capabilities w where w.role_code = new.role_code)
-     and ((tg_op = 'INSERT' and new.assignment_state = 'Active')
-          or (tg_op = 'UPDATE' and new.assignment_state = 'Active' and old.assignment_state is distinct from 'Active')) then
+     and (tg_op = 'INSERT'
+          or old.assignment_state is distinct from 'Active'
+          or old.deleted_at is not null
+          or (old.starts_on is not null and (new.starts_on is null or new.starts_on < old.starts_on))
+          or (old.ends_on is not null and (new.ends_on is null or new.ends_on > old.ends_on))) then
     perform private.refuse('sod_self_grant', 'A person cannot grant themselves a role or capability.');
   end if;
   return new;
 end;
 $$;
 
-comment on function private.guard_role_assignment() is 'Role assignments: project, person and role fixed; the staffing basis agrees with canon; scope node and requisition from the same project; the person is an active member of the org; and nobody signed in makes their own assignment to a role that adds a capability (private.workforce_role_capabilities, R6a) Active, which is refused with sod_self_grant.';
+comment on function private.guard_role_assignment() is 'Role assignments: project, person and role fixed; the staffing basis agrees with canon; scope node and requisition from the same project; the person is an active member of the org; and nobody signed in makes their own assignment to a role that adds a capability (private.workforce_role_capabilities, R6a) Active, or widens their own Active one (an earlier first day, a later or cleared last day, a restore from soft delete), which is refused with sod_self_grant.';
 revoke all on function private.guard_role_assignment() from public, anon, authenticated;

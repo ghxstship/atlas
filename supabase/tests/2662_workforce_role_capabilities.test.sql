@@ -2,13 +2,14 @@
 -- lead (8000.51.01) and on-site medical (7000.51.01) hold data.restricted.read.medical on a project while their
 -- assignment there is Active and current, in one of their orgs and within API-key scopes; never on another project,
 -- while Proposed, after it ends, or for a role the mapping does not name. Nobody activates their own mapped
--- assignment (sod_self_grant); another manager does. 1110, 1204 and 1205 keep their own project_ids_with tests.
+-- assignment (sod_self_grant), nor widens their own Active one (its dates or a restore); another manager does.
+-- 1110, 1204 and 1205 keep their own project_ids_with tests.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(19);
+select plan(25);
 
 -- The capability as someone sees it on a project, back as the platform.
 create function pg_temp.medical(p_who text, p_project text) returns boolean
@@ -90,6 +91,29 @@ select lives_ok(format($$select app.transition_role_assignment(%L, 'Proposed', '
   'another manager activates it');
 select pg_temp.as_platform();
 select ok(pg_temp.medical('carol', 'prj_a'), 'and the capability follows');
+
+-- Nor gives their own Active assignment back its reach: dates and soft delete are someone else's too.
+update app.role_assignments set starts_on = current_date - 10, ends_on = current_date - 1 where id = pg_temp.id('ra_carol');
+select ok(not pg_temp.medical('carol', 'prj_a'), 'past its last day, the capability is gone');
+select pg_temp.as_user('carol');
+select throws_like(format($$update app.role_assignments set ends_on = null where id = %L$$, pg_temp.id('ra_carol')),
+  'sod_self_grant:%', 'the person never clears the last day of their own Active assignment');
+select throws_like(format($$update app.role_assignments set ends_on = current_date + 5 where id = %L$$, pg_temp.id('ra_carol')),
+  'sod_self_grant:%', 'nor moves it later');
+select lives_ok(format($$update app.role_assignments set ends_on = current_date - 2 where id = %L$$, pg_temp.id('ra_carol')),
+  'moving it earlier narrows the assignment, which is theirs to do');
+select pg_temp.as_platform();
+update app.role_assignments set starts_on = current_date + 3, ends_on = null where id = pg_temp.id('ra_carol');
+select pg_temp.as_user('carol');
+select throws_like(format($$update app.role_assignments set starts_on = current_date where id = %L$$, pg_temp.id('ra_carol')),
+  'sod_self_grant:%', 'nor brings its first day forward');
+select pg_temp.as_platform();
+update app.role_assignments set starts_on = null, deleted_at = now() where id = pg_temp.id('ra_carol');
+select pg_temp.as_user('carol');
+select throws_like(format($$update app.role_assignments set deleted_at = null where id = %L$$, pg_temp.id('ra_carol')),
+  'sod_self_grant:%', 'nor restores it from soft delete');
+select pg_temp.as_platform();
+update app.role_assignments set deleted_at = null where id = pg_temp.id('ra_carol');
 select pg_temp.as_user('carol');
 select lives_ok(format($$select app.transition_role_assignment(%L, 'Active', 'Complete', 'Done.')$$, pg_temp.id('ra_carol')),
   'the person still ends their own assignment');
