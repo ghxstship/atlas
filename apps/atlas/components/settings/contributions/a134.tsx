@@ -29,7 +29,8 @@ import type { SettingsContribution, SettingsPanelProps } from "./types";
  *                        takes its day out of time off day counts and pays its hours in payroll runs
  * Everyone in the org reads them; forms appear with org.payroll.write, and row level security decides each write
  * (migrations 0341 and 2270). Each form is the platform ActionForm, which keeps typed input after a refusal and names
- * a taken code, name or day from `platform.refusals`; edit forms sit in closed disclosures.
+ * a taken code, name or day from `platform.refusals`; edit forms sit in closed disclosures. The three panels are
+ * peers, so their add buttons are secondary: one screen holds at most one primary action (gate 27).
  */
 
 const P = "crew.payrollSettings";
@@ -190,6 +191,7 @@ async function EarningCodesPanel({ ctx }: SettingsPanelProps) {
             label={t(`${P}.earningCodes.addTitle`)}
             submitLabel={t(`${P}.earningCodes.add`)}
             success={t(`${P}.added`)}
+            submitVariant="secondary"
           >
             <EarningCodeFields t={t} idPrefix="code-new" />
           </ActionForm>
@@ -309,6 +311,7 @@ async function TimeOffPoliciesPanel({ ctx }: SettingsPanelProps) {
             label={t(`${P}.policies.addTitle`)}
             submitLabel={t(`${P}.policies.add`)}
             success={t(`${P}.added`)}
+            submitVariant="secondary"
           >
             <PolicyFields t={t} idPrefix="policy-new" />
           </ActionForm>
@@ -565,6 +568,7 @@ async function HolidayCalendarsPanel({ ctx }: SettingsPanelProps) {
             label={t(`${P}.holidays.addCalendarTitle`)}
             submitLabel={t(`${P}.holidays.addCalendar`)}
             success={t(`${P}.added`)}
+            submitVariant="secondary"
           >
             <CalendarFields t={t} idPrefix="calendar-new" />
           </ActionForm>
