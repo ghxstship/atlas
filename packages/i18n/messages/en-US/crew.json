@@ -58,6 +58,8 @@
   "refusals": {
     "shift_accept_rpc": "Only the person on the shift accepts it, or a crew member claims it while it is open.",
     "shift_already_claimed": "Someone already holds this shift. Choose another open shift.",
+    "shift_already_filled": "Someone was put on this shift since you opened the schedule. Pick another open shift.",
+    "shift_claims_waiting": "Members claimed this shift. Approve or reject their claims on the shift before putting someone else on it.",
     "shift_not_published": "Only a published open shift can be claimed. Ask the planner to publish it.",
     "shift_double_booked": "You already hold a shift that overlaps this one. Swap or release that shift first.",
     "shift_state_conflict": "The shift changed state since you opened it. Reload to see its current state.",
@@ -142,6 +144,9 @@
     "sod_shift_claim_self": "You cannot approve your own claim. Another supervisor decides it.",
     "punch_location_required": "This project needs your location to clock in. Clock in on site from Compass with location on.",
     "punch_outside_geofence": "You are outside the project's geofence. Clock in on site.",
+    "shift_template_unknown": "That shift template is gone or belongs to another organization. Pick one of this organization's templates.",
+    "shift_template_days": "Pick between 1 and 31 different days to plan.",
+    "availability_inside_notice": "Availability inside your organization's notice period is locked, and nobody can change it. If you cannot work a shift in that period, tell your planner so they can reassign it.",
     "per_diem_one_worker": "Choose one person for the per diems.",
     "per_diem_range": "Per diems cover 1 to 62 days. Check the first and last day.",
     "per_diem_member_org": "That member no longer belongs to this organization. Choose a current member.",
@@ -603,6 +608,106 @@
       "approval": "A supervisor approves each claim on this project.",
       "seniority": "Claims wait, and the shift goes to the most senior claimant.",
       "first-come": "The first person to claim the shift gets it."
+    }
+  },
+  "scheduling": {
+    "title": "Staff open shifts",
+    "help": "Drag a person onto an open shift, or choose a shift and press Assign. People are ranked for the chosen shift: free at that time first, then by the availability they stated, then those who worked the role, then the fewest hours this week.",
+    "fill": {
+      "label": "Fill rate",
+      "value": "{filled} of {total} shifts filled ({percent}%)"
+    },
+    "noOpenShifts": "Every shift this week has someone on it.",
+    "noShifts": "No shifts are planned this week.",
+    "noStaffableShifts": "No open shift this week can be staffed here: the rest are on projects you cannot staff, or members claimed them.",
+    "openShifts": "Open shifts ({count})",
+    "ranked": "Ranked crew",
+    "rankedFor": "Ranked for {shift}",
+    "loading": "Ranking crew for this shift.",
+    "noCandidates": "No other member of the organization can take this shift.",
+    "unnamed": "Unnamed member",
+    "availability": {
+      "Available": "Available",
+      "Tentative": "Tentative or partly available",
+      "Unstated": "Availability not stated",
+      "Unavailable": "Unavailable",
+      "title": "Your availability for {org}",
+      "required": "Your organization asks members to state their availability for the next {horizon} days. Periods in the next {notice} days are locked, and only you can change your availability after that. If you cannot work a shift in the next {notice} days, tell your planner so they can reassign it.",
+      "optional": "Stating your availability is optional. Planners see it when they staff shifts.",
+      "zone": "Times are in {zone}.",
+      "unstated": "{count, plural, one {# day} other {# days}} from {from} to {to} {count, plural, one {has} other {have}} no availability stated.",
+      "periods": "Your availability periods",
+      "remove": "Remove",
+      "removeLabel": "Remove the period starting {start}",
+      "add": "Add period",
+      "added": "Period added.",
+      "addLabel": "New availability period",
+      "kind": "Availability",
+      "errors": {
+        "kind": "Choose Available, Tentative or Unavailable."
+      }
+    },
+    "overdue": "Availability overdue",
+    "conflict": "On another shift then",
+    "workedRole": "Worked this role",
+    "weekHours": "{hours} h this week",
+    "assign": "Assign",
+    "assignTo": "Assign {name} to {shift}",
+    "assigned": "{name} is on {shift}. {fill}.",
+    "assignFailed": "{name} was not assigned. {error}",
+    "dropConflict": "{name} is on another shift during {shift}, so they were not assigned. That shift is now chosen: check the ranking, then press Assign to put them on it anyway.",
+    "dropNotRanked": "{name} is not among the people ranked for {shift}, so they were not assigned. That shift is now chosen.",
+    "claimsWaiting": {
+      "title": "Claims waiting ({count})",
+      "help": "Members claimed these shifts. Open one to approve or reject its claims; nobody else can be put on it until they are decided.",
+      "decide": "Decide the claims on {shift}"
+    },
+    "fromTemplate": {
+      "open": "Plan from template",
+      "title": "Plan shifts from a template",
+      "submit": "Plan shifts",
+      "template": "Template",
+      "option": "{name} · {call} to {wrap} · {count, plural, one {# person} other {# people}}",
+      "from": "First day",
+      "to": "Last day",
+      "toHelp": "Each day from the first to the last gets the template's shifts as open drafts, up to 31 days."
+    },
+    "errors": {
+      "template": "Choose a template.",
+      "toAfterFrom": "The last day is on or after the first.",
+      "tooManyDays": "Plan at most 31 days at once."
+    },
+    "templates": {
+      "title": "Shift templates",
+      "description": "Shifts planners lay onto days from the crew schedule: a role, call and wrap times, how many people and the break. A wrap at or before the call ends the next day.",
+      "loadFailed": "The shift templates did not load. Reload the page.",
+      "empty": "Your organization has no shift templates yet.",
+      "emptyEditor": "No shift templates yet. Add the shifts you plan most often below.",
+      "name": "Name",
+      "hours": "Hours",
+      "headcount": "People",
+      "break": "Break",
+      "breakField": "Break (minutes)",
+      "call": "Call time",
+      "wrap": "Wrap time",
+      "span": "{call} to {wrap}",
+      "spanOvernight": "{call} to {wrap} the next day",
+      "minutes": "{minutes} min",
+      "actions": "Actions",
+      "trash": "Move to Trash",
+      "trashLabel": "Move {name} to Trash",
+      "add": "Add template",
+      "added": "Template added.",
+      "addLabel": "New shift template",
+      "errors": {
+        "name": "Enter a name of up to 120 characters.",
+        "roleCode": "Choose a canon role, or no role.",
+        "callTime": "Enter the call time.",
+        "wrapTime": "Enter a wrap time other than the call time.",
+        "headcount": "People is a whole number from 1 to 50.",
+        "breakMinutes": "The break is a whole number of minutes, shorter than the shift.",
+        "duplicate": "Another template already has this name. Choose another."
+      }
     }
   },
   "perDiems": {

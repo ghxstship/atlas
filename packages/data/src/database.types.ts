@@ -46697,6 +46697,77 @@ export type Database = {
           },
         ];
       };
+      shift_templates: {
+        Row: {
+          break_minutes: number;
+          call_time: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          headcount: number;
+          id: string;
+          name: string;
+          org_id: string;
+          role_code: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          wrap_time: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          break_minutes?: number;
+          call_time: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          headcount?: number;
+          id?: string;
+          name: string;
+          org_id: string;
+          role_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          wrap_time: string;
+        };
+        Update: {
+          break_minutes?: number;
+          call_time?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          headcount?: number;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          role_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          wrap_time?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shift_templates_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_templates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_templates_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       shifts: {
         Row: {
           created_at: string;
@@ -61103,6 +61174,7 @@ export type Database = {
         };
         Returns: string;
       };
+      assign_open_shift: { Args: { p_membership_id: string; p_shift_id: string }; Returns: string };
       assign_training: {
         Args: {
           p_course_id: string;
@@ -62156,6 +62228,10 @@ export type Database = {
           token: string;
         }[];
       };
+      create_shifts_from_template: {
+        Args: { p_days: string[]; p_project_id: string; p_template_id: string };
+        Returns: string[];
+      };
       create_survey: {
         Args: {
           p_audience_kind?: Database["app"]["Enums"]["audience_kind"];
@@ -62421,6 +62497,10 @@ export type Database = {
           p_subject_entity?: Database["app"]["Enums"]["integration_entity"];
           p_subject_id?: string;
         };
+        Returns: string;
+      };
+      ensure_member_availability_calendar: {
+        Args: { p_org_id: string; p_time_zone?: string };
         Returns: string;
       };
       ensure_my_profile: { Args: Record<PropertyKey, never>; Returns: string };
@@ -62884,6 +62964,18 @@ export type Database = {
           label: string;
         }[];
       };
+      my_availability_status: {
+        Args: { p_org_id: string };
+        Returns: {
+          availability_calendar_id: string;
+          horizon_days: number;
+          locked_until: string;
+          notice_days: number;
+          required: boolean;
+          time_zone: string;
+          unstated_days: string[];
+        }[];
+      };
       my_blocks: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -63058,6 +63150,12 @@ export type Database = {
           signed_in_at: string;
           surface: string;
           user_agent: string;
+        }[];
+      };
+      my_shift_planning_projects: {
+        Args: { p_org_id: string };
+        Returns: {
+          project_id: string;
         }[];
       };
       my_sms_status: {
@@ -63480,6 +63578,20 @@ export type Database = {
       queue_subprocessor_notice: {
         Args: { p_effective_on: string; p_list_version: string; p_summary: string };
         Returns: number;
+      };
+      rank_shift_candidates: {
+        Args: { p_shift_id: string; p_week_start?: string };
+        Returns: {
+          availability: string;
+          candidate_rank: number;
+          conflict: boolean;
+          full_name: string;
+          membership_id: string;
+          overdue: boolean;
+          person_id: string;
+          week_minutes: number;
+          worked_role: boolean;
+        }[];
       };
       react_to_feed_post: {
         Args: { p_on?: boolean; p_post_id: string; p_reaction_code: string };
