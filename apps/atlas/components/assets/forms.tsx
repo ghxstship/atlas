@@ -3,6 +3,7 @@
 import { Button, Input, Select, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
+import { CustomFieldInputs } from "@/components/custom-fields/inputs";
 import { useState, useTransition } from "react";
 import {
   countLotAction,
@@ -169,6 +170,7 @@ export function NewUnitForm({
         value=""
         options={[none(t("common.noVenue")), ...venues]}
       />
+      <CustomFieldInputs table="app.asset_units" />
     </ActionDialog>
   );
 }

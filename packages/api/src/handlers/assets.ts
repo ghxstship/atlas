@@ -9,6 +9,7 @@ import { applyAssetScanEvent, resolveAssetScan, type ScanAction } from "@xos/dat
 import { refused } from "../problem.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { defineHandlers, noContent, ok } from "../runtime/handler.ts";
+import { bulkEdit, fieldHistory } from "./parts/bulk-edit-and-history.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap, type Row } from "./support/table.ts";
 
 const classes = tableResource("assetClasses", { verbs: ["list", "get", "create", "update"] });
@@ -128,6 +129,13 @@ export const handlers = defineHandlers("Assets", {
     };
     return ok(response as never);
   },
+  // Bulk edit and field history (A106, migrations 1451 and 1452).
+  "assetUnits.bulkPreview": async ({ body }, context) =>
+    ok((await bulkEdit(context, "asset_units", body, true)) as never),
+  "assetUnits.bulkUpdate": async ({ body }, context) =>
+    ok((await bulkEdit(context, "asset_units", body, false)) as never),
+  "assetUnits.fieldHistory": async ({ params, query }, context) =>
+    ok((await fieldHistory(context, "app.asset_units", params.id, query.limit)) as never),
 
   ...handlersFor("Assets", lots),
   ...handlersFor("Assets", identifiers),

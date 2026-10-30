@@ -29,11 +29,23 @@ import type { TabProps } from "./tab-context";
  * list and settlement, and the representative's roster of artists.
  */
 
+/**
+ * Riders of this engagement: one Atlas assigned to the engagement itself (an artist booked as a
+ * person, R2), or the rider of the account that supplies it. The view holds every rider the viewer
+ * may read on the project, so another engagement's rider is filtered out here.
+ */
 export async function RiderTab({ view, t, engagementKey }: TabProps) {
-  const riders = await readView(view.ctx.db, "riders", {
+  const read = await readView(view.ctx.db, "riders", {
     eq: { project_id: view.engagement.projectId },
   });
-  if (!riders.ok) return <RegionError />;
+  if (!read.ok) return <RegionError />;
+  const riders = {
+    data: read.data.filter(
+      (r) =>
+        r.engagement_id === view.engagement.id ||
+        (r.account_id !== null && r.account_id === view.engagement.accountId),
+    ),
+  };
   const ids = riders.data.flatMap((r) => (r.id ? [r.id] : []));
   const lines = await readView(view.ctx.db, "rider_lines", { in: ["rider_id", ids] });
   if (!lines.ok) return <RegionError />;
@@ -148,7 +160,7 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
   if (!hasArea(view, "operational")) {
     return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
-  const [hospitality, lodging] = await Promise.all([
+  const [hospitality, lodging, travel] = await Promise.all([
     readView(view.ctx.db, "hospitality", {
       eq: { project_id: view.engagement.projectId },
       order: ["starts_at", "asc"],
@@ -157,9 +169,38 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
       eq: { project_id: view.engagement.projectId },
       order: ["check_in_on", "asc"],
     }),
+    // Flights and ground transport booked under the engagement (R1), as the crew Travel tab reads them.
+    readView(view.ctx.db, "travel", {
+      eq: { engagement_id: view.engagement.id },
+      order: ["departs_at", "asc"],
+    }),
   ]);
-  if (!hospitality.ok || !lodging.ok) return <RegionError />;
+  if (!hospitality.ok || !lodging.ok || !travel.ok) return <RegionError />;
   const rows = [
+    ...travel.data.map((s) => ({
+      id: `travel-${s.id}`,
+      title: t("gateway.engagement.travel.route", {
+        from: s.departs_from ?? "",
+        to: s.arrives_at_place ?? "",
+      }),
+      meta: [
+        [s.operator_name, s.service_identifier].filter(Boolean).join(" "),
+        s.travel_mode ? t(enumLabelKey("travelMode", s.travel_mode)) : null,
+        s.departs_at
+          ? t("gateway.engagement.travel.departs", {
+              time: formatDateTime(locale, s.departs_at, s.departs_time_zone),
+            })
+          : null,
+        s.arrives_at
+          ? t("gateway.engagement.travel.arrives", {
+              time: formatDateTime(locale, s.arrives_at, s.arrives_time_zone),
+            })
+          : null,
+        s.confirmation_identifier
+          ? t("gateway.engagement.travel.confirmation", { code: s.confirmation_identifier })
+          : null,
+      ],
+    })),
     ...lodging.data.map((l) => ({
       id: `lodging-${l.id}`,
       title: l.hotel_name ?? l.block_title ?? "",

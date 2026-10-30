@@ -7,6 +7,15 @@ order: 9
 
 `xos` is the command line for the public API. Every operation in the reference is a command, and its output is JSON in scripts and a table in a terminal.
 
+## Install
+
+`xos` needs Node.js 22.12 or later.
+
+```bash
+npm install --global @ghxstship/xos-cli
+xos --version
+```
+
 ## Sign in
 
 ```bash

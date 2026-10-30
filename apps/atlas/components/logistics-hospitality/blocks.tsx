@@ -21,7 +21,7 @@ import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { OperationsCalendar, OperationsList, OperationsTable, ViewSwitcher } from "./client";
 import { ActionButton, FormDrawer, InlineForm, type FieldSpec } from "./forms";
-import { currencyOptions, guestOptions } from "./fulfillments";
+import { currencyOptions, guestNames, guestOptions } from "./fulfillments";
 import {
   calendarMonth,
   getZonedFormat,
@@ -213,7 +213,12 @@ export async function BlocksSection({
       const full = param(search, "full") === "1";
       const org = scope.ctx.org.slug;
       const canWrite = scope.access.can(b.projectId, "hospitality.accommodation.write");
-      const guests = await guestOptions(scope);
+      const [guests, names] = await Promise.all([
+        guestOptions(scope, b.projectId),
+        guestNames(scope, b.projectId),
+      ]);
+      const guestName = (a: { personId: string; personName: string | null }) =>
+        a.personName ?? names.get(a.personId) ?? tc("unnamed");
       record = (
         <>
           <RecordView
@@ -332,7 +337,7 @@ export async function BlocksSection({
                       className="flex flex-wrap items-center justify-between gap-8 py-8"
                     >
                       <span className="flex flex-col gap-2">
-                        <span className="text-text-14">{a.personName ?? tc("unnamed")}</span>
+                        <span className="text-text-14">{guestName(a)}</span>
                         <span className="text-text-12 text-text-secondary">
                           {t("blocks.assignments.stay", {
                             from: format.date(a.checkInOn) ?? "",
@@ -343,7 +348,7 @@ export async function BlocksSection({
                       {canWrite ? (
                         <ActionButton
                           label={t("blocks.assignments.remove", {
-                            name: a.personName ?? tc("unnamed"),
+                            name: guestName(a),
                           })}
                           variant="ghost"
                           run={removeRoomAssignmentAction.bind(null, org, a.id)}

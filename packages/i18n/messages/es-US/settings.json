@@ -30,7 +30,10 @@
     "workspaceWorkspace": "Definido para este espacio de trabajo.",
     "workspaceTeam": "Definido para un equipo.",
     "workspaceProject": "Definido para un proyecto.",
-    "workspaceDefault": "Valor de la plataforma. Al guardar se reemplaza para este espacio de trabajo."
+    "workspaceDefault": "Valor de la plataforma. Al guardar se reemplaza para este espacio de trabajo.",
+    "projectProject": "Definido para este proyecto.",
+    "projectOrganization": "Heredado de la organización. Al guardar se reemplaza para este proyecto.",
+    "projectDefault": "Valor de la plataforma. Al guardar se reemplaza para este proyecto."
   },
   "errors": {
     "setting_locked": "Tu organización bloqueó este ajuste. Pide a un administrador que lo desbloquee.",
@@ -289,6 +292,50 @@
     "keepPhotoLocation": {
       "label": "Conservar la ubicación de las fotos",
       "help": "Conservar en el archivo de la foto dónde se tomó en Compass. Si está desactivado, Compass quita la ubicación al reducir la foto."
+    },
+    "offeringsTravel": {
+      "label": "Viajes",
+      "help": "Vuelos y transporte terrestre para las personas que contratas. Si se ofrece, las pestañas Viajes y alojamiento y Hospitalidad aparecen en sus contrataciones de Gateway."
+    },
+    "offeringsLodging": {
+      "label": "Alojamiento",
+      "help": "Habitaciones de hotel para las personas que contratas. Si se ofrece, las pestañas Viajes y alojamiento y Hospitalidad aparecen en sus contrataciones de Gateway."
+    },
+    "offeringsCatering": {
+      "label": "Catering",
+      "help": "Comidas para las personas que contratas. Si se ofrece, la pestaña Hospitalidad aparece en las contrataciones de artistas en Gateway."
+    },
+    "offeringsParking": {
+      "label": "Estacionamiento",
+      "help": "Pases de estacionamiento para las personas que contratas."
+    },
+    "offeringsUniforms": {
+      "label": "Uniformes",
+      "help": "Uniformes para las personas que contratas."
+    },
+    "offeringsPerDiem": {
+      "label": "Viáticos",
+      "help": "Asignaciones diarias para las personas que contratas. Si se ofrece, la pestaña Viáticos aparece en las contrataciones de equipo en Gateway y se pueden agregar viáticos para ellas."
+    },
+    "offeringsRadios": {
+      "label": "Radios",
+      "help": "Radios entregados a las personas que contratas."
+    },
+    "offeringsCarts": {
+      "label": "Carritos",
+      "help": "Carritos entregados a las personas que contratas."
+    },
+    "offeringsGuestList": {
+      "label": "Lista de invitados",
+      "help": "Lugares en la lista de invitados para las personas que contratas. Si se ofrece, la pestaña Lista de invitados aparece en las contrataciones de artistas en Gateway."
+    },
+    "homeLayout": {
+      "label": "Diseño de Inicio",
+      "help": "Ensancha o estrecha un mosaico de Inicio arrastrando su borde, o con las teclas de flecha en su control. Restablecer devuelve cada mosaico a su ancho predeterminado."
+    },
+    "partnerLayout": {
+      "label": "Diseño de la consola de socios",
+      "help": "Ensancha o estrecha un mosaico de la consola de socios arrastrando su borde, o con las teclas de flecha en su control. Restablecer devuelve cada mosaico a su ancho predeterminado."
     }
   },
   "choices": {
@@ -379,6 +426,60 @@
       "system": "Igual que el dispositivo",
       "reduce": "Reducir el movimiento",
       "full": "Movimiento completo"
+    },
+    "offerings_travel": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_lodging": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_catering": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_parking": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_uniforms": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_per_diem": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_radios": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_carts": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
+    },
+    "offerings_guest_list": {
+      "not-offered": "No se ofrece",
+      "provided": "Incluido",
+      "reimbursed": "Reembolsado",
+      "buyout": "Pago fijo"
     }
   },
   "brand": {
@@ -1059,5 +1160,7 @@
       "vendor_entitlements": "Derechos por clase de proveedor",
       "verbiage": "Biblioteca de terminología"
     }
-  }
+  },
+  "layoutCustom": "Organizaste este panel. Restablecer devuelve sus mosaicos a su ancho predeterminado.",
+  "layoutDefault": "Diseño predeterminado. Organiza los mosaicos en el propio panel."
 }
