@@ -97,6 +97,15 @@ export interface VarianceRow {
   readonly actualMinor: number;
   /** Revised minus actual; null while the revised budget is null. */
   readonly varianceMinor: number | null;
+  /**
+   * What approved purchase orders commit against the group's lines (app.budget_line_commitments);
+   * null by the silence rule when any line in the group is withheld from the viewer or blank.
+   */
+  readonly committedMinor: number | null;
+  /** Lines whose committed amount the viewer may not see (no procurement.po.read). */
+  readonly committedWithheldCount: number;
+  /** Purchase order lines in another currency drawing on the group's lines: counted, never summed. */
+  readonly committedOtherCurrencyCount: number;
   /** Budget lines behind the row, for drill-through. */
   readonly budgetLineIds: readonly string[];
 }
@@ -115,6 +124,9 @@ interface LineFact {
   readonly extendedMinor: number | null;
   readonly actualMinor: number;
   readonly elementId: string | null;
+  readonly committedMinor: number | null;
+  readonly committedWithheld: boolean;
+  readonly committedOtherCurrencyCount: number;
 }
 
 interface ChangeFact {
@@ -155,6 +167,9 @@ async function lineFacts(
       extendedMinor: numOrNull(r["extended_minor"]),
       actualMinor: num(r["actual_minor"]),
       elementId: strOrNull(r["element_id"]),
+      committedMinor: numOrNull(r["committed_minor"]),
+      committedWithheld: r["is_committed_withheld"] === true,
+      committedOtherCurrencyCount: num(r["other_currency_po_line_count"]),
     })),
   );
 }
@@ -229,6 +244,9 @@ function groupVariance(
       actual: number;
       change: number;
       changeCount: number;
+      committed: number | null;
+      withheld: number;
+      otherCurrency: number;
       ids: string[];
     }
   >();
@@ -241,6 +259,9 @@ function groupVariance(
       actual: 0,
       change: 0,
       changeCount: 0,
+      committed: 0,
+      withheld: 0,
+      otherCurrency: 0,
       ids: [],
     };
     groups.set(id, g);
@@ -250,6 +271,12 @@ function groupVariance(
     const g = groupFor(keyOfLine(l), l.currency);
     g.amounts.push(l.extendedMinor);
     g.actual += l.actualMinor;
+    if (l.committedWithheld) g.withheld += 1;
+    g.committed =
+      g.committed === null || l.committedWithheld || l.committedMinor === null
+        ? null
+        : g.committed + l.committedMinor;
+    g.otherCurrency += l.committedOtherCurrencyCount;
     g.ids.push(l.budgetLineId);
   }
   for (const c of changes) {
@@ -272,6 +299,9 @@ function groupVariance(
         pricedRevisedMinor: pricedPlus(g.amounts, g.change, g.changeCount),
         actualMinor: g.actual,
         varianceMinor: revised === null ? null : revised - g.actual,
+        committedMinor: g.committed,
+        committedWithheldCount: g.withheld,
+        committedOtherCurrencyCount: g.otherCurrency,
         budgetLineIds: g.ids,
       };
     })

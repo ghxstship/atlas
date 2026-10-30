@@ -102,6 +102,62 @@ describe("budget versus actual", () => {
     });
   });
 
+  it("sums committed per group, blank when any line is withheld or unpriced", async () => {
+    const { db } = fakeClient({
+      "from:projects": [okResponse([project])],
+      "from:budget_line_facts": [
+        okResponse([
+          fact({ committed_minor: 600, other_currency_po_line_count: 1 }),
+          fact({ budget_line_id: "l2", committed_minor: 0 }),
+          fact({
+            budget_line_id: "l3",
+            account_code: "5600",
+            committed_minor: null,
+            is_committed_withheld: true,
+          }),
+          fact({ budget_line_id: "l4", account_code: "5700", committed_minor: null }),
+        ]),
+      ],
+      "from:change_order_line_facts": [okResponse([])],
+    });
+    const result = await budgetVersusActual(db, { orgId: "o1", dimension: "account" });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.data.rows).toEqual([
+      expect.objectContaining({
+        key: "5500",
+        committedMinor: 600,
+        committedWithheldCount: 0,
+        committedOtherCurrencyCount: 1,
+      }),
+      expect.objectContaining({ key: "5600", committedMinor: null, committedWithheldCount: 1 }),
+      expect.objectContaining({ key: "5700", committedMinor: null, committedWithheldCount: 0 }),
+    ]);
+    expect(result.data.totals[0]).toMatchObject({
+      committedMinor: null,
+      committedWithheldCount: 1,
+      committedOtherCurrencyCount: 1,
+    });
+  });
+
+  it("totals committed when every line is readable", async () => {
+    const { db } = fakeClient({
+      "from:projects": [okResponse([project])],
+      "from:budget_line_facts": [
+        okResponse([
+          fact({ committed_minor: 600 }),
+          fact({ budget_line_id: "l2", account_code: "5600", committed_minor: 150 }),
+        ]),
+      ],
+      "from:change_order_line_facts": [okResponse([])],
+    });
+    const result = await budgetVersusActual(db, { orgId: "o1", dimension: "account" });
+    expect(result.ok && result.data.totals[0]).toMatchObject({
+      committedMinor: 750,
+      committedWithheldCount: 0,
+    });
+  });
+
   it("groups by every dimension, resolving change cost centers", async () => {
     for (const dimension of ["costCenter", "urid", "department", "project"] as const) {
       const { db } = fakeClient({

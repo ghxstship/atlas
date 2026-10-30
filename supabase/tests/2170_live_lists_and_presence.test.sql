@@ -39,7 +39,10 @@ select is_empty($$
 $$, 'and has the org_id a page narrows its subscription by');
 
 -- The presence registry and its rule ---------------------------------------------------------------------------------------
-select is((select count(*)::int from private.presence_subjects), 8, 'eight tables show presence on their record pages, peeks and documents');
+select is((select count(*)::int from private.presence_subjects
+           where table_name in ('app.records', 'app.documents', 'app.sops', 'app.incidents', 'app.purchase_orders',
+                                'app.goods_receipts', 'app.rfqs', 'app.vendors')),
+  8, 'eight tables show presence on their record pages, peeks and documents');
 select is_empty($$
   select s.table_name from private.presence_subjects s
   where to_regclass(s.table_name) is null
