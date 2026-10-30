@@ -1009,7 +1009,11 @@ export const EXPORT_SOURCES: Readonly<Record<string, ExportEntry>> = {
   "schedule/milestones": source(
     "app.records",
     ["record_number", "title", "record_state", "due_at", "project_id"],
-    { filters: { state: "record_state" }, fixed: { record_kind: "Milestone" } },
+    {
+      filters: { state: "record_state" },
+      fixed: { record_kind: "Milestone" },
+      presence: [ARCHIVED],
+    },
   ),
   "schedule/timeline": records,
 

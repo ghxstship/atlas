@@ -174,7 +174,10 @@ describe("the plan of an export", () => {
     if (!milestones) throw new Error("no milestones source");
     expect(
       planExport(milestones, "/acme/schedule/milestones", new URLSearchParams())?.filters,
-    ).toEqual([{ operator: "eq", column: "record_kind", value: "Milestone" }]);
+    ).toEqual([
+      { operator: "eq", column: "record_kind", value: "Milestone" },
+      { operator: "is_null", column: "archived_at" },
+    ]);
     const work = exportSourceFor("project/work", new URLSearchParams());
     if (!work) throw new Error("no project work source");
     expect(planExport(work, "/acme/p/NWL/work", new URLSearchParams())?.projectKey).toBe("NWL");

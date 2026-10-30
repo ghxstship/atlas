@@ -130,6 +130,8 @@ export async function searchCommandMenu(input: {
   const visible = (node: string) => isNodeVisible(sitemap, node, ctx.nav);
   const parsed = parseSearchQuery(query);
   const words = [...parsed.terms, ...parsed.phrases];
+  // Under is:archived every document hit is archived, and the documents list shows it only when asked.
+  const documentScope = parsed.is.includes("archived") ? "&archived=only" : "";
 
   /** Where a result opens, or null when its page is not one the person may open. */
   const target = (item: Item): Pick<CommandResultItem, "href" | "peek"> | null => {
@@ -146,7 +148,7 @@ export async function searchCommandMenu(input: {
           : null;
       case "document":
         return visible("knowledge.documents")
-          ? { href: `/${org}/knowledge/documents?peek=${item.id}` }
+          ? { href: `/${org}/knowledge/documents?peek=${item.id}${documentScope}` }
           : null;
       case "sop":
         return visible("knowledge.sops")

@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-10-27
 - Decider: A124 (RRR-169), trace row S4.10-02
-- Migrations: 2180, 2181
+- Migrations: 2180, 2181, 2182
 
 ## Context
 
@@ -23,7 +23,8 @@ no column backed it.
 stays readable, opens from a link and can still be edited. Only lists and search leave it out by
 default. Trash keeps `deleted_at` and its own Restore. A punch item is a Task record (0410), so it is
 archived through that record; `app.archive_row('punch_items', id)` accepts the punch item id for
-callers that hold it, and a person with `work.punch_list.write` on the project may archive it.
+callers that hold it, and a person with `work.punch_list.write` on the project may archive it; the
+punch item's record page and peek show Archive to that person too.
 
 Alternative: archive as a record state. Rejected: the nine record states are canon, and archive
 applies to tables with other lifecycles or none.
@@ -46,6 +47,11 @@ and `venue.restored` (0420) follow `archived_at`, and the triggers move before t
 emits nothing. A venue's name is unique among live, unarchived venues, so an archived venue's name
 can be reused; unarchiving it while a live venue holds the name is refused as `archive_name_taken`.
 Spaces, zones, capability documents, site plans and pins keep archiving through `deleted_at`.
+Every reader that offered venues by filtering `deleted_at` alone now also leaves archived venues out:
+the Event record venue picker, the asset venue picker, a partner's view of a client's venues, the
+import worker's venue lookup by id or name, and import duplicate review (`private.fuzzy_candidates`,
+restated in 2182). Without that, a live and an archived venue sharing a name could bind an import row
+to the archived one.
 
 ### 4. Lists and search leave archived rows out unless asked
 
@@ -53,7 +59,15 @@ The query parameter is `archived=include` (every row) or `archived=only` (the ar
 other value is the default. `packages/data/src/archive.ts` applies it in the list loaders, the
 `ArchivedFilter` select sets it, and exports keep the same default through a presence filter (2380).
 Global search and recent items (2181, restating 1440) leave archived records and documents out;
-`is:archived` (es: `archivado`) searches only them, so an archived row can be found and unarchived.
+`is:archived` (es: `archivado`) searches only them, so an archived row can be found and unarchived;
+a document hit under `is:archived` opens with `archived=only` so its peek can show it.
+
+The default applies to lists only. A lookup of known rows passes `archived: "include"`: a record's
+parent and sub-records, the records at the other end of its dependencies, a baseline's items and the
+records of recurrence rules, and the vendor names an RFQ's invitations show. Those rows are related to
+something the person is looking at, and leaving them out would show a readable record as one outside
+their view. Pickers that offer rows for a new link (the dependency picker, the RFQ invite picker) still
+leave archived rows out.
 
 ### 5. The API list operations gain an optional parameter
 

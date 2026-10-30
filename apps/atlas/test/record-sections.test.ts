@@ -76,7 +76,11 @@ describe("the shared record loaders", () => {
     // r9 is outside the viewer's view: row level security leaves it out.
     data.records.mockResolvedValue(ok([record("r5", 5)]));
     const { relations, dependencies } = await loadRelations(ctx, "r1");
-    expect(data.records).toHaveBeenCalledWith({}, { orgId: "o1", ids: ["r5", "r9"] });
+    // Dependency ends are known records, so archived ones are named too (A124).
+    expect(data.records).toHaveBeenCalledWith(
+      {},
+      { orgId: "o1", ids: ["r5", "r9"], archived: "include" },
+    );
     expect(relations.parent?.key).toBe("NWS-1");
     expect(relations.children.map((c) => c.key)).toEqual(["NWS-3"]);
     expect(relations.waitsOn).toEqual([
