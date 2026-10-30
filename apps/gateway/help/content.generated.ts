@@ -156,6 +156,14 @@ export const HELP_CONTENT: HelpIndex = {
         order: 1,
       },
       {
+        slug: "engagement-crew",
+        title: "Crew",
+        summary: "Put your people on an engagement, submit the roster and see who accepted.",
+        kind: "page",
+        nodes: ["engagement.crew"],
+        order: 1,
+      },
+      {
         slug: "engagement-deliverables",
         title: "Deliverables",
         summary: "What you owe from your scope, with due dates and fees, and submitting each one.",
@@ -831,6 +839,14 @@ export const HELP_CONTENT: HelpIndex = {
           "Las acreditaciones emitidas para ti en el proyecto, y cómo descargar tu credencial.",
         kind: "page",
         nodes: ["engagement.credentials"],
+        order: 1,
+      },
+      {
+        slug: "engagement-crew",
+        title: "Equipo",
+        summary: "Incluye a tu gente en una contratación, envía la lista y ve quién aceptó.",
+        kind: "page",
+        nodes: ["engagement.crew"],
         order: 1,
       },
       {

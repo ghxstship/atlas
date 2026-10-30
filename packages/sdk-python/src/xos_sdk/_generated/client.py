@@ -349,7 +349,11 @@ from .resources import (
     ProjectMeasurementSummaryResource,
     CueCallsResource,
     GuestListEntriesResource,
+    AssetUnitHireResource,
     Form1099NecResource,
+    GoodsReturnsResource,
+    ReturnLinesResource,
+    PoLineHireWarningsResource,
     InsuranceCertificateInsuredsResource,
     RequiredAdditionalInsuredsResource,
     CanonStdEmergencyProtocolsResource,
@@ -779,7 +783,11 @@ class XosClient(XosClientCore):
     project_measurement_summary: ProjectMeasurementSummaryResource
     cue_calls: CueCallsResource
     guest_list_entries: GuestListEntriesResource
+    asset_unit_hire: AssetUnitHireResource
     form1099_nec: Form1099NecResource
+    goods_returns: GoodsReturnsResource
+    return_lines: ReturnLinesResource
+    po_line_hire_warnings: PoLineHireWarningsResource
     insurance_certificate_insureds: InsuranceCertificateInsuredsResource
     required_additional_insureds: RequiredAdditionalInsuredsResource
     canon_std_emergency_protocols: CanonStdEmergencyProtocolsResource
@@ -1197,7 +1205,11 @@ class XosClient(XosClientCore):
         self.project_measurement_summary = ProjectMeasurementSummaryResource(self)
         self.cue_calls = CueCallsResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
+        self.asset_unit_hire = AssetUnitHireResource(self)
         self.form1099_nec = Form1099NecResource(self)
+        self.goods_returns = GoodsReturnsResource(self)
+        self.return_lines = ReturnLinesResource(self)
+        self.po_line_hire_warnings = PoLineHireWarningsResource(self)
         self.insurance_certificate_insureds = InsuranceCertificateInsuredsResource(self)
         self.required_additional_insureds = RequiredAdditionalInsuredsResource(self)
         self.canon_std_emergency_protocols = CanonStdEmergencyProtocolsResource(self)

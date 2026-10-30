@@ -300,6 +300,20 @@
         "subject": "{orgName} te pide tu foto de credencial",
         "body": "{actorName}, de {orgName}, pidió una foto para imprimir en tu credencial. Agrégala en Gateway, en Perfil, Fotos de credencial."
       }
+    },
+    "roster_entry": {
+      "invited": {
+        "subject": "Estás en el equipo de {partyName} para {projectName}",
+        "body": "Abre el Inicio de Gateway para aceptar o rechazar."
+      },
+      "returned": {
+        "subject": "Devolvieron a {personName} en la lista de {projectName}",
+        "body": "Motivo: {reason}"
+      },
+      "declined": {
+        "subject": "{personName} rechazó la lista de {projectName}",
+        "body": "Agrega a otra persona o retira la entrada."
+      }
     }
   },
   "notification": {
@@ -365,5 +379,11 @@
   "deletionCertificate": {
     "subject": "Certificado de eliminación de {org}",
     "body": "Los datos de {org} se eliminaron de XOS el {date}, según el ciclo de vida de la organización.\n\nSe adjunta su certificado de eliminación. Su id es {id}. También puede descargarlo desde Atlas mientras tenga una cuenta.\n\nLas copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario."
+  },
+  "party_invitation": {
+    "accountSubject": "{inviterName} te invita a {accountName} en XOS",
+    "rosterSubject": "{inviterName} te invita al equipo de {partyName} para {projectName}",
+    "how": "Inicia sesión en Gateway con este correo y acepta en el Inicio antes del {expiresAt, date, long}. La empresa verá tu perfil y los datos del proyecto. ¿No lo esperabas? Ignóralo.",
+    "action": "Iniciar sesión en Gateway"
   }
 }

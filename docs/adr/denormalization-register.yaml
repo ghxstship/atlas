@@ -126,6 +126,13 @@ derived:
     refresh: Written only with the ciphertext, by the encrypting RPC (`app.set_org_legal_entity_tax_identifier`, `app.set_my_passport_number`, `app.set_supplier_diversity_certificate_number`, `app.set_vendor_bank_account`); each table's guard trigger refuses a write of either outside it (1200, 1340, 2010, 2011)
     reason: The number is Restricted and encrypted under a Vault key no signed-in caller holds, so the last four cannot be computed when a row is read; readers tell records apart by it, as the v1 API's `account_last4` does (ADR 0057)
     adr: "0057"
+  - objects:
+      - app.work_detail_shares.engagement_id
+      - app.work_detail_shares.person_id
+    source: "The roster entry the share serves: its engagement and the person `private.roster_people` resolves (the engagement's person on the self entry)"
+    refresh: Written from the entry by `app.share_work_details`; `private.guard_work_detail_share_entry` refuses any row whose engagement or person differs from the entry's (migration 2638, R4)
+    reason: The frozen WorkDetailShare resource of API v1 returns both, and the share's readers filter by them without the resolver; the contract change waits for R6b
+    adr: "0103"
 
 # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
 # never follows a foreign key made only of them.
@@ -338,6 +345,10 @@ restated:
     parent: app.engagements.project_id
     kind: own
     note: Project the quantity is out for; the custodian's engagement can be for another project or for none.
+  - column: app.asset_lot_movements.receipt_line_id
+    parent: app.return_lines.receipt_line_id
+    kind: own
+    note: Set only on a Receipt movement, the receipt line the quantity came in on; a Vendor Return movement leaves it NULL and names its return line instead (asset_lot_movements_direction, migration 2681).
   - column: app.attachment_versions.checksum_sha256
     parent: app.document_versions.checksum_sha256
     kind: own
@@ -563,6 +574,14 @@ restated:
     parent: app.notification_deliveries.sent_at
     kind: own
     note: When the digest went out; the delivery's is when the provider accepted the message.
+  - column: app.engagement_roster_entries.person_id
+    parent: app.engagements.person_id
+    kind: own
+    note: The rostered person, never the engaged person (`roster_person_is_engaged`); NULL on the self entry, which `private.roster_people` resolves to the engagement's person (migration 2633, R4).
+  - column: app.engagement_roster_entries.role_code
+    parent: app.engagements.role_code
+    kind: own
+    note: The role this person works on the engagement, chosen per entry; the engagement's own role may be NULL (1624) and is never copied (migration 2633, R4).
   - column: app.engagements.currency_code
     parent: app.applications.currency_code
     kind: fact
@@ -1021,6 +1040,10 @@ restated:
     parent: app.projects.starts_on
     kind: own
     note: First day of the work, not of the production.
+  - column: app.return_lines.receipt_line_id
+    parent: app.asset_units.receipt_line_id
+    kind: own
+    note: The receipt line the goods go back against, required on every return line, a quantity with no unit included; for a unit, `app.return_goods` requires the unit's own receipt line (migration 2681).
   - column: app.riders.counterparty_id
     parent: app.engagements.counterparty_id
     kind: own
@@ -1310,20 +1333,34 @@ restated:
     kind: finding
     note: The reading is required and is for one project, so the alert's project is the reading's.
     finding: A108-003
+  - column: app.work_detail_events.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: fact
+    note: The engagement of a share, read or reveal as it was when logged, in the person's append-only access log (migration 2638, R4).
+  - column: app.work_detail_events.person_id
+    parent: app.engagement_roster_entries.person_id
+    kind: fact
+    note: Whose details were touched, as logged; the entry's person is NULL on a self entry, so the log keeps its own (migration 2638, R4).
   - column: app.work_detail_events.person_id
     parent: app.engagements.person_id
     kind: own
     note: Person whose details were touched; the engagement link is optional.
+  - column: app.work_detail_shares.engagement_id
+    parent: app.engagement_roster_entries.engagement_id
+    kind: registered
+    note: Written from the roster entry by `app.share_work_details` and guarded by `private.guard_work_detail_share_entry` (derived entry, migration 2638).
   - column: app.work_detail_shares.person_id
     parent: app.consent_records.person_id
-    kind: finding
-    note: The consent record is required and names one person, so the share's person is the consent's.
-    finding: A108-003
+    kind: registered
+    note: The sharer, written from the roster entry with their own work_details_sharing consent (derived entry, migration 2638); moved from finding A108-003 by R4.
+  - column: app.work_detail_shares.person_id
+    parent: app.engagement_roster_entries.person_id
+    kind: registered
+    note: The entry's resolved person, written by `app.share_work_details` and guarded by `private.guard_work_detail_share_entry` (derived entry, migration 2638).
   - column: app.work_detail_shares.person_id
     parent: app.engagements.person_id
-    kind: finding
-    note: The engagement is required and names one person, so the share's person is the engagement's.
-    finding: A108-003
+    kind: own
+    note: The sharer is the engagement's person only on the self entry; on another roster entry it is the rostered person (R4, migration 2638). Moved from finding A108-003.
   - column: app.work_order_bids.currency_code
     parent: app.work_orders.currency_code
     kind: own

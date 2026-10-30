@@ -511,10 +511,17 @@ __all__ = [
     "PurchaseOrderUpdate",
     "PurchaseOrderApproveRequest",
     "PurchaseOrderTransitionRequest",
+    "PurchaseOrderReceiveResult",
+    "PurchaseOrderReceiveRequest",
+    "PurchaseOrderReceiveLine",
+    "PurchaseOrderReturnResult",
+    "PurchaseOrderReturnRequest",
+    "PurchaseOrderReturnLine",
     "PoLinePage",
     "PoLine",
     "PoLineCreate",
     "PoLineUpdate",
+    "HireWindowWarnings",
     "PoChangeOrderPage",
     "PoChangeOrder",
     "PoChangeOrderCreate",
@@ -1246,8 +1253,16 @@ __all__ = [
     "GuestListEntryCreate",
     "GuestListEntryUpdate",
     "GuestDecisionRequest",
+    "AssetUnitHirePage",
+    "AssetUnitHire",
     "Form1099NecRowPage",
     "Form1099NecRow",
+    "GoodsReturnPage",
+    "GoodsReturn",
+    "ReturnLinePage",
+    "ReturnLine",
+    "PoLineHireWarningPage",
+    "PoLineHireWarning",
     "InsuranceCertificateInsuredPage",
     "InsuranceCertificateInsured",
     "InsuranceCertificateInsuredCreate",
@@ -5272,11 +5287,13 @@ class AssetUnit(TypedDict):
     #: Asset tag (a code that is ours).
     asset_tag: str
     #: Asset lifecycle state.
-    asset_state: Literal["Proposed", "Received", "Available", "Reserved", "Deployed", "In Maintenance", "Damaged", "Lost", "Retired"]
+    asset_state: Literal["Proposed", "Received", "Available", "Reserved", "Deployed", "In Maintenance", "Damaged", "Lost", "Retired", "Returned"]
     #: Condition: a row of the canon Asset Condition enumeration.
     condition_enum_id: Optional[str]
     #: Identifier of the venue the unit returns to.
     home_venue_id: Optional[str]
+    #: Identifier of the receipt line the unit arrived on.
+    receipt_line_id: Optional[str]
 
 
 class _AssetUnitCreateRequired(TypedDict):
@@ -9656,6 +9673,92 @@ class PurchaseOrderTransitionRequest(_PurchaseOrderTransitionRequestRequired, to
     reason: str
 
 
+class PurchaseOrderReceiveResult(TypedDict):
+    """What one receipt event recorded."""
+
+    #: applied for a new event; duplicate when the event was already recorded.
+    outcome: Literal["applied", "duplicate"]
+    #: The goods receipt recorded.
+    goods_receipt_id: str
+    #: Its receipt lines.
+    receipt_line_ids: List[str]
+    #: Units that came in on them.
+    asset_unit_ids: List[str]
+    #: Receipt movements into lots.
+    lot_movement_ids: List[str]
+
+
+class _PurchaseOrderReceiveRequestRequired(TypedDict):
+    #: Lines received.
+    lines: List[PurchaseOrderReceiveLine]
+
+
+class PurchaseOrderReceiveRequest(_PurchaseOrderReceiveRequestRequired, total=False):
+    """One receipt event against an order."""
+
+    #: Note.
+    note: Optional[str]
+
+
+class _PurchaseOrderReceiveLineRequired(TypedDict):
+    #: Identifier of the order line received.
+    po_line_id: str
+    #: Quantity received.
+    quantity: float
+
+
+class PurchaseOrderReceiveLine(_PurchaseOrderReceiveLineRequired, total=False):
+    """One order line received: by asset tags, into a lot at a venue, or neither."""
+
+    #: One asset tag per unit received, for an element with an asset class: each unit comes in Received. Needs assets.asset.write.
+    asset_tags: List[str]
+    #: Identifier of the venue whose lot takes the quantity into stock; needs assets.asset.write.
+    venue_id: Optional[str]
+    #: Condition of the units: a row of the canon Asset Condition enumeration.
+    condition_enum_id: Optional[str]
+
+
+class PurchaseOrderReturnResult(TypedDict):
+    """What one return event recorded."""
+
+    #: applied for a new event; duplicate when the event was already recorded.
+    outcome: Literal["applied", "duplicate"]
+    #: The goods return recorded.
+    goods_return_id: str
+    #: Its return lines.
+    return_line_ids: List[str]
+
+
+class _PurchaseOrderReturnRequestRequired(TypedDict):
+    #: Why the goods go back. Off Hire applies only to rental lines.
+    reason: Literal["Off Hire", "Defective", "Wrong Item", "Over Delivery"]
+    #: Lines returned.
+    lines: List[PurchaseOrderReturnLine]
+
+
+class PurchaseOrderReturnRequest(_PurchaseOrderReturnRequestRequired, total=False):
+    """One return to the vendor."""
+
+    #: Note.
+    note: Optional[str]
+
+
+class _PurchaseOrderReturnLineRequired(TypedDict):
+    #: Identifier of the receipt line of the same order that brought the goods in.
+    receipt_line_id: str
+    #: Quantity returned.
+    quantity: float
+
+
+class PurchaseOrderReturnLine(_PurchaseOrderReturnLineRequired, total=False):
+    """Goods of one receipt line going back: units, a quantity out of a lot, or a quantity."""
+
+    #: The serialized units going back, one per unit, each received on that receipt line.
+    asset_unit_ids: List[str]
+    #: Identifier of the venue whose lot the quantity leaves.
+    venue_id: Optional[str]
+
+
 class PoLinePage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -9694,6 +9797,12 @@ class PoLine(TypedDict):
     unit_price_minor: Optional[int]
     #: Order of the line within the purchase order.
     line_number: int
+    #: Whether the line buys or hires its item.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental lines: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines: when the hire ends and off-hire is due.
+    hire_ends_at: Optional[str]
 
 
 class _PoLineCreateRequired(TypedDict):
@@ -9716,6 +9825,12 @@ class PoLineCreate(_PoLineCreateRequired, total=False):
     unit_price_minor: Optional[int]
     #: Order of the line within the purchase order.
     line_number: int
+    #: Whether the line buys or hires its item.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental lines: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines: when the hire ends and off-hire is due.
+    hire_ends_at: Optional[str]
 
 
 class PoLineUpdate(TypedDict, total=False):
@@ -9733,6 +9848,19 @@ class PoLineUpdate(TypedDict, total=False):
     unit_price_minor: Optional[int]
     #: Order of the line within the purchase order.
     line_number: int
+    #: Whether the line buys or hires its item.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental lines: when the hire starts.
+    hire_starts_at: Optional[str]
+    #: Rental lines: when the hire ends and off-hire is due.
+    hire_ends_at: Optional[str]
+
+
+class HireWindowWarnings(TypedDict):
+    """Window warnings for a hire."""
+
+    #: Warnings, in rule order.
+    data: List[Literal["Delivery After Load In", "Return Before Load Out", "Hire Beyond Site Window", "Delivery Docks Full", "Return Docks Full"]]
 
 
 class PoChangeOrderPage(TypedDict):
@@ -15248,6 +15376,8 @@ class AccountMembership(TypedDict):
     valid_from: str
     #: End of account membership.
     valid_to: Optional[str]
+    #: When the person confirmed the membership; null until they do.
+    accepted_at: Optional[str]
 
 
 class AccountMembershipCreate(TypedDict):
@@ -20584,6 +20714,28 @@ class GuestDecisionRequest(TypedDict):
     outcome: Literal["Approved", "Declined"]
 
 
+class AssetUnitHirePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AssetUnitHire]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AssetUnitHire(TypedDict):
+    """Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order."""
+
+    #: Identifier of the asset unit.
+    asset_unit_id: str
+    #: Rental when the unit arrived on a rental order line; Purchase otherwise.
+    acquisition_kind: Literal["Purchase", "Rental"]
+    #: Rental units: when the hire ends.
+    hire_ends_at: Optional[str]
+    #: True for a rental unit whose hire has ended and which has not been Returned.
+    off_hire_due: bool
+
+
 class Form1099NecRowPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -20614,6 +20766,106 @@ class Form1099NecRow(TypedDict):
     amount_minor: Optional[int]
     #: Payments counted.
     payment_count: int
+
+
+class GoodsReturnPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[GoodsReturn]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class GoodsReturn(TypedDict):
+    """Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`."""
+
+    #: Identifier of the goods return.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the purchase order the goods were received on.
+    purchase_order_id: str
+    #: When the goods went back.
+    returned_at: str
+    #: Identifier of the person who returned the goods.
+    returned_by: Optional[str]
+    #: Why the goods went back.
+    return_reason: Literal["Off Hire", "Defective", "Wrong Item", "Over Delivery"]
+    #: Condition or carrier noted at the return.
+    note: Optional[str]
+
+
+class ReturnLinePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ReturnLine]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ReturnLine(TypedDict):
+    """What went back in a goods return, per receipt line: one row per serialized unit, or a quantity."""
+
+    #: Identifier of the return line.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the goods return.
+    goods_return_id: str
+    #: Identifier of the receipt line that brought the goods in.
+    receipt_line_id: str
+    #: Identifier of the serialized unit returned.
+    asset_unit_id: Optional[str]
+    #: Quantity returned; 1 for a unit.
+    quantity_returned: float
+
+
+class PoLineHireWarningPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[PoLineHireWarning]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class PoLineHireWarning(TypedDict):
+    """A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line."""
+
+    #: Identifier of the rental order line.
+    po_line_id: str
+    #: Identifier of the project of the order.
+    project_id: str
+    #: Identifier of the purchase order.
+    purchase_order_id: str
+    #: When the hire starts.
+    hire_starts_at: str
+    #: When the hire ends.
+    hire_ends_at: str
+    #: When the site window opens; null when nothing sets it.
+    site_opens_at: Optional[str]
+    #: When the site window closes; null when nothing sets it.
+    site_closes_at: Optional[str]
+    #: The window rule the hire breaks.
+    warning: Literal["Delivery After Load In", "Return Before Load Out", "Hire Beyond Site Window", "Delivery Docks Full", "Return Docks Full"]
 
 
 class InsuranceCertificateInsuredPage(TypedDict):
@@ -21483,7 +21735,7 @@ class WorkDetailSharePage(TypedDict):
 
 
 class WorkDetailShare(TypedDict):
-    """The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them."""
+    """The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Since R4 (migration 2638) a share serves the caller's roster entry on the engagement: its person's own entry, which Client and Sponsor engagements do not carry, or an entry the caller accepted (422 roster_entry_not_accepted); anyone else, the person of a Client or Sponsor engagement included, gets 422 work_detail_share_not_yours. Live shares on Client and Sponsor engagements, and on engagements closed before R4, were revoked by that migration and the revocation logged."""
 
     #: Identifier of the work detail share.
     id: str
@@ -21497,7 +21749,7 @@ class WorkDetailShare(TypedDict):
     updated_at: str
     #: Identifier of the person who last updated the row.
     updated_by: Optional[str]
-    #: Identifier of the engagement the share serves; the caller must be its person.
+    #: Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).
     engagement_id: str
     #: Identifier of the person sharing.
     person_id: str
@@ -21509,12 +21761,14 @@ class WorkDetailShare(TypedDict):
     shared_at: str
     #: When the person revoked it; null while it stands.
     revoked_at: Optional[str]
+    #: Identifier of the roster entry the share serves (R4): the caller's own entry on the engagement, the self entry for its person; null only on shares revoked before roster entries existed.
+    roster_entry_id: Optional[str]
 
 
 class WorkDetailShareCreate(TypedDict):
     """Fields accepted when creating a WorkDetailShare."""
 
-    #: Identifier of the engagement the share serves; the caller must be its person.
+    #: Identifier of the engagement the share serves; the caller must be its person or on its roster (R4).
     engagement_id: str
     #: Categories shared.
     categories: List[WorkDetailCategory]
@@ -21532,10 +21786,14 @@ class SharedWorkDetails(TypedDict):
 
     #: Engagement.
     engagement_id: str
-    #: Person the engagement names.
+    #: Person the engagement names, or the roster entry's person.
     person_id: Optional[str]
     #: Engaging org.
     org_id: str
+    #: Roster entry read (R4): the engaged person's self entry; null when there is none.
+    roster_entry_id: Optional[str]
+    #: Who reads (R4): org, a member of the engaging org by capability; company, a roster manager of the account that rosters the person, who reads every category once the person accepted the entry.
+    reader: Literal["org", "company"]
     #: Live share; null when none stands.
     work_detail_share_id: Optional[str]
     #: When the share was given.
@@ -21591,8 +21849,10 @@ class SharedDietaryNeeds(TypedDict):
     """Dietary needs as an engaging org reads them."""
 
     dietary_needs: List[DietaryNeed]
-    #: Allergies.
+    #: Allergies; null when masked for the reader (a company reader never reads them).
     allergies: Optional[str]
+    #: Whether allergies are recorded, even when masked.
+    allergies_on_file: bool
     #: Other dietary notes.
     dietary_notes: Optional[str]
 
@@ -21672,6 +21932,8 @@ class WorkDetailEvent(TypedDict):
     org_id: Optional[str]
     #: Identifier of the engagement of a share, read or reveal.
     engagement_id: Optional[str]
+    #: Identifier of the roster entry of a share, read or reveal (R4).
+    roster_entry_id: Optional[str]
     #: What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.
     action: str
     #: Categories the act covered.

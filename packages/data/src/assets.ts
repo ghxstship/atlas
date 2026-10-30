@@ -15,7 +15,7 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
 
 export type AssetState = Database["app"]["Enums"]["asset_state"];
 
-/** The nine asset states in lifecycle order, from the generated enum (Section 3.15, rule 3). */
+/** The ten asset states in lifecycle order, from the generated enum (Section 3.15, rule 3; Returned is R7a's). */
 export const ASSET_STATES: readonly AssetState[] = Constants.app.Enums.asset_state;
 
 export function isAssetState(value: string): value is AssetState {
@@ -707,7 +707,7 @@ async function lotBalances(
   );
 }
 
-export type LotMovementKind = "Count" | "Check Out" | "Check In";
+export type LotMovementKind = Database["app"]["Enums"]["asset_lot_movement_kind"];
 
 export interface LotMovement {
   readonly id: string;
@@ -1231,4 +1231,156 @@ export async function countAssetLot(
   if (error) return fail(toDataError(error));
   // A count that matches what is on hand returns null.
   return ok({ movementId: (data as string | null) ?? null });
+}
+
+// Provenance and hire (R7a) ---------------------------------------------------------------------------------
+
+export interface AssetUnitProvenance {
+  readonly receiptLineId: string;
+  readonly goodsReceiptId: string;
+  readonly receivedAt: string;
+  readonly purchaseOrderId: string;
+  readonly poNumber: number;
+  readonly projectId: string;
+  readonly vendorId: string;
+  readonly acquisitionKind: Database["app"]["Enums"]["acquisition_kind"];
+  /** Rental units: when the hire ends and the unit is due back (ISO instant). */
+  readonly hireEndsAt: string | null;
+  readonly unitPriceMinor: number | null;
+  readonly currencyCode: string;
+}
+
+/** The upper bound of a tstzrange as PostgREST returns it, as an ISO instant. */
+function rangeEnd(value: unknown): string | null {
+  const match = typeof value === "string" ? value.match(/,"?([^",)\]]+)"?[)\]]$/) : null;
+  if (!match?.[1]) return null;
+  const at = new Date(match[1].replace(" ", "T").replace(/([+-]\d\d)$/, "$1:00"));
+  return Number.isNaN(at.getTime()) ? null : at.toISOString();
+}
+
+/**
+ * Where a unit came from (app.asset_unit_provenance): its receipt, order, vendor and price. The view runs as the
+ * reader, so a person without procurement.po.read on the order's project gets null and never sees cost.
+ */
+export async function getAssetUnitProvenance(
+  db: XosClient,
+  assetUnitId: string,
+): Promise<Result<AssetUnitProvenance | null>> {
+  const { data, error } = await db
+    .from("asset_unit_provenance")
+    .select(
+      "receipt_line_id, goods_receipt_id, received_at, purchase_order_id, po_number, project_id, vendor_id, acquisition_kind, hire_period, unit_price_minor, currency_code",
+    )
+    .eq("asset_unit_id", assetUnitId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data) return ok(null);
+  return ok({
+    receiptLineId: data.receipt_line_id ?? "",
+    goodsReceiptId: data.goods_receipt_id ?? "",
+    receivedAt: data.received_at ?? "",
+    purchaseOrderId: data.purchase_order_id ?? "",
+    poNumber: data.po_number ?? 0,
+    projectId: data.project_id ?? "",
+    vendorId: data.vendor_id ?? "",
+    acquisitionKind: data.acquisition_kind ?? "Purchase",
+    hireEndsAt: rangeEnd(data.hire_period),
+    unitPriceMinor: data.unit_price_minor,
+    currencyCode: data.currency_code ?? "",
+  });
+}
+
+export interface AssetUnitHire {
+  readonly assetUnitId: string;
+  readonly acquisitionKind: Database["app"]["Enums"]["acquisition_kind"];
+  readonly hireEndsAt: string | null;
+  readonly offHireDue: boolean;
+}
+
+/**
+ * Whether each unit of an org is hired in and when it goes back (app.asset_unit_hire, G-96). Readable with
+ * assets.asset.read alone: it carries no vendor, cost or order.
+ */
+export async function listAssetUnitHire(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<AssetUnitHire[]>> {
+  const { data, error } = await db
+    .from("asset_unit_hire")
+    .select("asset_unit_id, acquisition_kind, hire_ends_at, off_hire_due")
+    .eq("org_id", orgId);
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).flatMap((r) =>
+      r.asset_unit_id === null
+        ? []
+        : [
+            {
+              assetUnitId: r.asset_unit_id,
+              acquisitionKind: r.acquisition_kind ?? "Purchase",
+              hireEndsAt: r.hire_ends_at,
+              offHireDue: r.off_hire_due ?? false,
+            },
+          ],
+    ),
+  );
+}
+
+export interface ReceiptUnit {
+  readonly id: string;
+  readonly assetTag: string;
+  readonly receiptLineId: string;
+  readonly state: AssetState;
+}
+
+/** The units that arrived on some receipt lines (R7a), by tag, for the receipt page and the return dialog. */
+export async function listReceiptUnits(
+  db: XosClient,
+  receiptLineIds: readonly string[],
+): Promise<Result<ReceiptUnit[]>> {
+  if (receiptLineIds.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("asset_units")
+    .select("id, asset_tag, receipt_line_id, asset_state")
+    .in("receipt_line_id", [...receiptLineIds])
+    .is("deleted_at", null)
+    .order("asset_tag");
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((u) => ({
+      id: u.id,
+      assetTag: u.asset_tag,
+      receiptLineId: u.receipt_line_id ?? "",
+      state: u.asset_state,
+    })),
+  );
+}
+
+export interface ReceiptStock {
+  readonly receiptLineId: string;
+  readonly venueId: string;
+}
+
+/**
+ * Where some receipt lines brought a quantity into stock (their Receipt movements, R7a), for the return dialog: a
+ * line goes back the way it came in, so a stocked line goes back out of a lot and any other quantity without one.
+ */
+export async function listReceiptStock(
+  db: XosClient,
+  receiptLineIds: readonly string[],
+): Promise<Result<ReceiptStock[]>> {
+  if (receiptLineIds.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("asset_lot_movements")
+    .select("receipt_line_id, lot:asset_lots!asset_lot_movements_asset_lot_id_fkey(venue_id)")
+    .in("receipt_line_id", [...receiptLineIds])
+    .eq("movement_kind", "Receipt");
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).flatMap((m) =>
+      m.receipt_line_id === null || !m.lot
+        ? []
+        : [{ receiptLineId: m.receipt_line_id, venueId: m.lot.venue_id }],
+    ),
+  );
 }

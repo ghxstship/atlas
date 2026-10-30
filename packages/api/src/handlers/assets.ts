@@ -142,4 +142,13 @@ export const handlers = defineHandlers("Assets", {
   ...handlersFor("Assets", custody),
   ...handlersFor("Assets", maintenance),
   ...handlersFor("Assets", damage),
+  // Hired-in units (R7a, G-96): no vendor, cost or order, so assets.asset.read is enough.
+  ...handlersFor(
+    "Assets",
+    tableResource("assetUnitHire", {
+      softDelete: false,
+      key: "asset_unit_id",
+      scope: (q, context) => (context.org === null ? q : q.eq("org_id", context.org.id)),
+    }),
+  ),
 });
