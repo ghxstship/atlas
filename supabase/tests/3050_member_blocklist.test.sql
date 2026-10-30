@@ -37,8 +37,7 @@ select is((select count(*)::integer from app.member_blocklist_entries), 0, 'anot
 select pg_temp.as_user('bob');
 select throws_ok($$insert into app.member_blocklist_entries (org_id, entry_kind, entry_value) values (pg_temp.id('org_a'), 'Email', 'x@y.test')$$,
   '42501', null, 'a direct insert is refused');
-select is((select count(*)::integer from (update app.member_blocklist_entries set reason = 'x' returning 1) u), 0,
-  'a direct update changes nothing');
+select throws_ok($$update app.member_blocklist_entries set reason = 'x'$$, '42501', null, 'a direct update is refused');
 select throws_ok($$select * from app.add_blocklist_entry(pg_temp.id('org_a'), 'Email', 'not an address')$$, 'XR001',
   'blocklist_value_invalid: Enter an email address such as name@example.com, or a domain such as example.com.', 'a malformed address is refused');
 select throws_ok($$select * from app.add_blocklist_entry(pg_temp.id('org_a'), 'Domain', 'localhost')$$, 'XR001', null, 'a domain needs a dot');

@@ -145,9 +145,10 @@ select is((select count(*)::integer from app.subscription_pauses where org_id = 
 
 -- Scheduled: still writable -------------------------------------------------------------------------------------------
 select is(private.org_read_only_reason(pg_temp.id('org_a')), null, 'before the pause starts the org is writable');
-select pg_temp.as_user('dave');
+select pg_temp.as_user('alice');
 select lives_ok($$insert into app.workspaces (org_id, slug, name) values (pg_temp.id('org_a'), 'before', 'Before the pause')$$,
-  'and members write as usual');
+  'and people write as usual');
+select pg_temp.as_user('dave');
 select is((select coalesce(read_only_reason, 'none') || ' ' || (pause_starts_at is null)::text from app.org_banner_status(pg_temp.id('org_a'))),
   'none true', 'a member without billing access sees no scheduled pause');
 select pg_temp.as_user('alice');
@@ -160,14 +161,14 @@ select is(private.org_read_only_reason(pg_temp.id('org_a')), 'paused', 'from sta
 select pg_temp.as_user('dave');
 select ok((select pause_starts_at is not null and pause_resumes_at is not null and read_only_reason = 'paused'
            from app.org_banner_status(pg_temp.id('org_a'))), 'every member sees the started pause in the banner');
+select pg_temp.as_user('alice');
 select throws_ok($$insert into app.workspaces (org_id, slug, name) values (pg_temp.id('org_a'), 'north', 'North')$$, 'XR001',
   'org_read_only: This organization is paused and read-only. The Owner can resume it in Settings, Billing and plan; no data is deleted.',
   'a person''s write is refused with the paused sentence');
-select pg_temp.as_user('alice');
 select throws_ok($$select * from app.create_share_link((select id from k where key = 'file'), now() + interval '7 days')$$, 'XR001',
   'org_read_only: This organization is paused and read-only. The Owner can resume it in Settings, Billing and plan; no data is deleted.',
   'making a share link names the pause');
-select lives_ok($$select app.record_legal_acceptances(pg_temp.id('org_a'), array['terms-of-service'], array['1.0.1'])$$,
+select lives_ok($$select app.record_legal_acceptances(pg_temp.id('org_a'), array['terms-of-service'], array['1.0.0'])$$,
   'a paused member still accepts a new legal version');
 select pg_temp.as_user('dave');
 select lives_ok($$insert into app.favorites (org_id, person_id, node_id) values (pg_temp.id('org_a'), pg_temp.id('dave'), 'projects')$$,
