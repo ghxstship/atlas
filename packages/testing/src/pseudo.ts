@@ -7,7 +7,8 @@ import { describe, hardCoded, type Found, type KnownText } from "./pseudo-text.t
  * web shell's pseudo-locale suites share (Atlas, Gateway, the operator console and the docs site).
  *
  * The hard-coded check reads every visible text and labelling attribute outside an en-XA wrap and
- * keeps what is not data (pseudo-text.ts). The truncation check finds text cut off by its box
+ * keeps what is not data (pseudo-text.ts). Text inside an element marked `data-pseudo-content` (a
+ * docs article body) may be any run of the long-form content; elsewhere only whole values count. The truncation check finds text cut off by its box
  * (overflow hidden or clip, or an ellipsis) that offers no title or tooltip with the full text, the
  * failure the 40 percent padding of en-XA provokes. Both run in the page (this package compiles with
  * the DOM library for them).
@@ -35,7 +36,7 @@ export const PSEUDO_VIEWPORTS = [
 /** Visible text and labelling attributes that sit outside every en-XA wrap. */
 export async function unwrappedText(page: Page): Promise<Found[]> {
   return page.evaluate(() => {
-    const out: { text: string; where: string }[] = [];
+    const out: { text: string; where: string; content?: boolean }[] = [];
     const inlineDisplays = new Set(["inline", "inline-block", "inline-flex", "inline-grid"]);
     const skip =
       "script, style, noscript, template, kbd, code, nextjs-portal, [data-pseudo-exempt]";
@@ -53,6 +54,8 @@ export async function unwrappedText(page: Page): Promise<Found[]> {
       const s = getComputedStyle(el);
       return r.width > 0 && r.height > 0 && s.visibility !== "hidden" && s.opacity !== "0";
     };
+    /** Marks text inside a content region (KnownText.content). */
+    const region = (el: Element) => (el.closest("[data-pseudo-content]") ? { content: true } : {});
     const blockOf = (el: Element): Element => {
       for (let n: Element | null = el; n; n = n.parentElement) {
         if (!inlineDisplays.has(getComputedStyle(n).display)) return n;
@@ -101,8 +104,9 @@ export async function unwrappedText(page: Page): Promise<Found[]> {
       const flags = outside(whole);
       let offset = 0;
       for (const t of texts) {
+        const parent = t.parentElement as Element;
         for (const run of runsOf(t.data, flags, offset)) {
-          out.push({ text: run, where: path(t.parentElement as Element) });
+          out.push({ text: run, where: path(parent), ...region(parent) });
         }
         offset += [...t.data].length;
       }
@@ -120,13 +124,13 @@ export async function unwrappedText(page: Page): Promise<Found[]> {
         const code = el.querySelector("code, kbd")?.textContent?.trim();
         if (code && code === value.trim()) continue;
         for (const run of runsOf(value, outside(value), 0)) {
-          out.push({ text: run, where: `${path(el)} @${attribute}` });
+          out.push({ text: run, where: `${path(el)} @${attribute}`, ...region(el) });
         }
       }
       if (el instanceof HTMLSelectElement && el.selectedOptions[0]) {
         const value = el.selectedOptions[0].text;
         for (const run of runsOf(value, outside(value), 0)) {
-          out.push({ text: run, where: `${path(el)} option` });
+          out.push({ text: run, where: `${path(el)} option`, ...region(el) });
         }
       }
     }

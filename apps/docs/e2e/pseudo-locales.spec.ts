@@ -3,13 +3,15 @@ import { join } from "node:path";
 import { expect, test } from "@playwright/test";
 import {
   contentText,
-  jsonStrings,
   navigationStatus,
   pseudoProblems,
   PSEUDO_VIEWPORTS,
   type KnownText,
   type PseudoLocale,
 } from "@xos/testing/pseudo";
+import { HELP_SHELLS, guides, helpArticles, type Page } from "../lib/content.ts";
+import { firstSentence, loadDictionary, tableSlug } from "../lib/dictionary.ts";
+import { loadReference } from "../lib/openapi.ts";
 
 /**
  * Gate 16 (Section 15) on every docs route, on next dev (E2E_NEXT_DEV=1):
@@ -19,9 +21,12 @@ import {
  *          and 375 px (en-XA pads each message by 40 percent; ar-XB lays the page right to left)
  * Each route template is visited with seeded instances that differ in shape (a table and a view, a
  * list and a create operation), and every developer guide in full. A pseudo-locale renders the en-US
- * Markdown and reference data: article bodies, the OpenAPI document and the data dictionary are
- * content, translated per locale as files, so their text is known content rather than a finding.
- * Production builds serve no pseudo-locale (lib/i18n.ts), so the suite skips against one.
+ * Markdown and reference data, which are content, translated per locale as files. Inside a rendered
+ * article body (marked data-pseudo-content) any run of the Markdown is known text; everywhere else
+ * (the shell, headings, the reference and dictionary tables) a text counts as content only when it
+ * is a whole value of the models the pages render, so a short hard-coded label cannot pass as part
+ * of some article. Production builds serve no pseudo-locale (lib/i18n.ts), so the suite skips
+ * against one.
  */
 
 test.use({ reducedMotion: "reduce" });
@@ -47,23 +52,56 @@ function files(dir: string, extension: string): string[] {
     .map((f) => readFileSync(join(dir, f), "utf8"));
 }
 
+/** Every string value inside a model (its keys are code, never shown). */
+function values(value: unknown): string[] {
+  if (typeof value === "string") return [value.trim()];
+  if (Array.isArray(value)) return value.flatMap(values);
+  if (typeof value === "object" && value !== null) return Object.values(value).flatMap(values);
+  return [];
+}
+
+/** A guide's or help article's strings outside its body, and the h2 headings its outline lists. */
+function page(p: Page): string[] {
+  return [
+    ...values({ ...p, body: [] }),
+    ...p.body.flatMap((block) => (block.t === "h2" ? [block.v] : [])),
+  ];
+}
+
 /**
- * The en-US sources a pseudo-locale page renders: Markdown, the OpenAPI document, the dictionary.
- * They name tables, columns and operations, so their identifiers are content too.
+ * What the pages show as content, in en-US as every pseudo-locale renders it. Whole values: each
+ * string of the reference and dictionary models, the names pages derive from them, a guide's or help
+ * article's title, summary and outline, and the sample languages a code block is labelled with. Any
+ * run: the Markdown of the guides and help articles, for text inside an article body. Both name
+ * tables, columns and operations, so their identifiers are content too.
  */
 function content(): KnownText {
-  const json = (file: string) => jsonStrings(JSON.parse(readFileSync(file, "utf8")));
-  return contentText(
-    [
-      ...files(join(APP, "content", "guides", "en-US"), ".md"),
-      ...["atlas", "gateway", "compass"].flatMap((shell) =>
-        files(join(APP, "..", shell, "help", "articles", "en-US"), ".md"),
-      ),
-      ...json(join(APP, "..", "..", "packages", "api", "openapi", "v1.json")),
-      ...json(join(APP, "content", "data-dictionary.json")),
-    ],
-    { identifiers: true },
-  );
+  const dictionary = loadDictionary();
+  const whole = new Set([
+    ...values(loadReference()),
+    ...values(dictionary),
+    ...dictionary.tables.flatMap((table) => [tableSlug(table), firstSentence(table.comment)]),
+    ...guides("en-US").flatMap(page),
+    ...HELP_SHELLS.flatMap((shell) => helpArticles("en-US", shell).flatMap(page)),
+    // components/operation.tsx labels each code sample with its language or tool.
+    "curl",
+    "TypeScript",
+    "Python",
+    "xos",
+  ]);
+  return {
+    has: (text) => whole.has(text.trim()),
+    identifiers: true,
+    content: contentText(
+      [
+        ...files(join(APP, "content", "guides", "en-US"), ".md"),
+        ...HELP_SHELLS.flatMap((shell) =>
+          files(join(APP, "..", shell, "help", "articles", "en-US"), ".md"),
+        ),
+      ],
+      { identifiers: true },
+    ),
+  };
 }
 
 const GUIDES = readdirSync(join(APP, "content", "guides", "en-US"))

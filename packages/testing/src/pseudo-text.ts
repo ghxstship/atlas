@@ -8,12 +8,19 @@
  * Intl formatting produces; what is left is a finding. The browser side is in pseudo.ts.
  */
 
+import { readFileSync, readdirSync } from "node:fs";
+
 /** Text found on a page. */
 export interface Found {
   /** The text, trimmed and shortened. */
   readonly text: string;
   /** Where it is: a short element path, and the attribute when the text is one. */
   readonly where: string;
+  /**
+   * True inside a content region (an element marked `data-pseudo-content`): long-form text a page
+   * renders from files, such as a docs article body.
+   */
+  readonly content?: boolean;
 }
 
 /** The text a page shows as data: database values, or the content files a docs page renders. */
@@ -30,6 +37,12 @@ export interface KnownText {
    * file, which the file itself carries.
    */
   readonly shownAsWritten?: (text: string) => boolean;
+  /**
+   * What a content region may show, any run of it (contentText). Consulted only for text found
+   * inside such a region, so a short label elsewhere on the page ("Search", "Next") cannot pass as
+   * a run of some article: outside a region only whole values count.
+   */
+  readonly content?: KnownText;
 }
 
 /** Shapes en-US Intl formatting gives data: dates, times, relative times, numbers and money. */
@@ -55,6 +68,32 @@ const RAW_KEY = /^[a-z][a-z0-9]*(?:[._][a-z0-9]+)+$/;
 /** A host name with a common top-level domain (example.com, docs.ghxstship.tech). */
 const HOST = /^([a-z0-9-]+\.)+(com|org|net|io|dev|app|co|us|tech|pro|edu|gov)(\/\S*)?$/i;
 
+let keys: Set<string> | undefined;
+
+/**
+ * Whether text is an en-US catalog key with its namespace, as next-intl shows a message it lacks.
+ * Some keys end in a segment that is also a top-level domain (console.plans.pro), so a host-shaped
+ * text is checked against them before it counts as a host.
+ */
+export function isCatalogKey(text: string): boolean {
+  if (!keys) {
+    const found = new Set<string>();
+    const walk = (value: unknown, path: string) => {
+      if (typeof value !== "object" || value === null) {
+        found.add(path);
+        return;
+      }
+      for (const [k, v] of Object.entries(value)) walk(v, `${path}.${k}`);
+    };
+    const dir = new URL("../../i18n/messages/en-US/", import.meta.url);
+    for (const file of readdirSync(dir).filter((f) => f.endsWith(".json"))) {
+      walk(JSON.parse(readFileSync(new URL(file, dir), "utf8")), file.slice(0, -".json".length));
+    }
+    keys = found;
+  }
+  return keys.has(text);
+}
+
 /** Separators code puts between data values ("NWS · Northwind Summer Series", "Lee, Jordan"). */
 const SEPARATORS = /\s*(?:·|•|\u2014|\u2013|\||\/|,|:|›|>|\(|\)|\+)\s*|\s+-\s+/;
 
@@ -66,8 +105,8 @@ export function isData(raw: string, data: KnownText): boolean {
   // Punctuation code puts between values ("· NWS") belongs to neither side.
   const text = raw.replace(/^[\s·•.,:;|/()\u2013\u2014-]+|[\s·•.,:;|/()\u2013\u2014-]+$/g, "");
   if (!/[A-Za-z]{2,}/.test(text)) return true;
-  // A site shown by its host name; a raw key never ends in a top-level domain.
-  if (HOST.test(text)) return true;
+  // A site shown by its host name, unless it is a catalog key shown raw.
+  if (HOST.test(text) && !isCatalogKey(text)) return true;
   if (RAW_KEY.test(text) && !data.identifiers) return data.shownAsWritten?.(text) === true;
   // A value keeps its own punctuation ("produces.", "(per brief)"): look it up with only the
   // separators before it removed, too.
@@ -130,8 +169,16 @@ function composed(text: string, data: KnownText): boolean {
 /** Found text that is neither data nor formatting, each text and place once. */
 export function hardCoded(found: readonly Found[], data: KnownText): Found[] {
   const seen = new Set<string>();
+  const { content } = data;
+  const inContent: KnownText = content
+    ? {
+        has: (text) => data.has(text) || content.has(text),
+        identifiers: data.identifiers === true || content.identifiers === true,
+        ...(data.shownAsWritten ? { shownAsWritten: data.shownAsWritten } : {}),
+      }
+    : data;
   return found.filter((f) => {
-    if (isData(f.text, data)) return false;
+    if (isData(f.text, f.content === true ? inContent : data)) return false;
     const key = `${f.text}|${f.where}`;
     if (seen.has(key)) return false;
     seen.add(key);
@@ -140,9 +187,9 @@ export function hardCoded(found: readonly Found[], data: KnownText): Found[] {
 }
 
 /**
- * Text taken from long-form sources (Markdown articles, an OpenAPI document): a page shows any run
- * of it, split wherever inline markup falls, so a found run is known when it appears anywhere in the
- * sources with whitespace collapsed.
+ * Text taken from long-form sources (Markdown articles): a content region shows any run of it, split
+ * wherever inline markup falls, so a found run is known when it appears anywhere in the sources with
+ * whitespace collapsed. Give it as KnownText.content, so it applies inside content regions only.
  */
 export function contentText(
   sources: Iterable<string>,
@@ -170,6 +217,7 @@ export function withText(
     has: (text) => extra.has(text) || data.has(text),
     shownAsWritten: (text) => written.has(text) || data.shownAsWritten?.(text) === true,
     ...(data.identifiers === undefined ? {} : { identifiers: data.identifiers }),
+    ...(data.content ? { content: data.content } : {}),
   };
 }
 

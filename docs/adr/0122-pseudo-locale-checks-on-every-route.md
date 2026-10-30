@@ -33,10 +33,12 @@ phone gets it, 375 px. The A53 core-screen suites stay as they are.
 ### 3. One set of checks, and what counts as data
 
 `@xos/testing/pseudo` holds the checks every suite uses, the A53 suites included. Text outside an en-XA wrap is data
-when the page's source holds it: the database for the apps, and for the docs site the Markdown, the OpenAPI document
-and the data dictionary. Values code composes with spaces and punctuation, Intl output and host names are data too.
-A snake_case or dotted name is a raw key shown instead of its label, except on the docs site, whose reference names
-tables, columns and operations as content. Everything else is a finding, fixed in the product: copy goes to a catalog
+when the page's source holds it: the database for the apps, and for the docs site the reference, data dictionary,
+guide and help models the pages render. A docs article body is marked `data-pseudo-content`, and only inside it may a
+text be any run of the Markdown; elsewhere only a whole value counts, so a short hard-coded label cannot pass as part
+of some article. Values code composes with spaces and punctuation, Intl output and host names are data too, except a
+host-shaped text that is a catalog key (`console.plans.pro`). A snake_case or dotted name is a raw key shown instead
+of its label, except on the docs site, whose reference names tables, columns and operations as content. Everything else is a finding, fixed in the product: copy goes to a catalog
 in en-US and es-US, and text that may truncate carries its whole text as a title.
 
 ### 4. CI runs them in the pseudo-locale job

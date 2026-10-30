@@ -3,6 +3,7 @@ import {
   contentText,
   describe,
   hardCoded,
+  isCatalogKey,
   isData,
   jsonStrings,
   withText,
@@ -96,6 +97,30 @@ suite("pseudo-locale text", () => {
     expect(content.has("Delete everything")).toBe(false);
     expect(content.has("  ")).toBe(false);
     expect(isData("CLI to create a project.", content)).toBe(true);
+  });
+
+  it("knows a run of the content only inside a content region", () => {
+    const docs = {
+      has: (text: string) => text === "Webhooks",
+      content: contentText(["Search the reference, then copy the Next link."]),
+    };
+    const found: Found[] = [
+      { text: "Search", where: "header > button" },
+      { text: "Search", where: "main > p", content: true },
+      { text: "copy the Next link.", where: "main > li", content: true },
+      { text: "Webhooks", where: "nav > a" },
+      { text: "Delete everything", where: "main > p", content: true },
+    ];
+    expect(hardCoded(found, docs)).toEqual([found[0], found[4]]);
+    expect(hardCoded(found, withText(docs, ["Search"]))).toEqual([found[4]]);
+  });
+
+  it("tells a host name from a catalog key that ends like one", () => {
+    expect(isCatalogKey("console.plans.pro")).toBe(true);
+    expect(isCatalogKey("docs.ghxstship.tech")).toBe(false);
+    expect(isData("console.plans.pro", data)).toBe(false);
+    expect(isData("docs.dictionary.schemas.app", data)).toBe(false);
+    expect(isData("docs.ghxstship.tech", data)).toBe(true);
   });
 
   it("takes identifiers as content only from a source that shows them", () => {
