@@ -43,10 +43,17 @@ import { archivedOf } from "@/lib/archive/param";
 const NODE = "places.venues";
 const MAP = { width: 800, height: 480, margin: 40 } as const;
 
-/** The Archived filter (`?archived=include|only`, A124) as the venue list reads it. */
+/**
+ * The Archived filter (`?archived=include|only`, A124) as the venue list reads it. The older
+ * `?archive=archived|all` the other Places collections still use keeps working, so saved views and
+ * bookmarks of the venue list open as they did.
+ */
 function archiveOf(search: Search): ArchiveFilter {
   const value = archivedOf(search);
-  return value === "only" ? "archived" : value === "include" ? "all" : "live";
+  if (value === "only") return "archived";
+  if (value === "include") return "all";
+  const legacy = param(search, "archive");
+  return legacy === "archived" || legacy === "all" ? legacy : "live";
 }
 
 function address(v: Venue): string | null {
