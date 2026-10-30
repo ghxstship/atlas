@@ -3,19 +3,10 @@
   "saved": "Guardado.",
   "remove": "Quitar",
   "removeNamed": "Quitar {name}",
-  "uniform": {
-    "title": "Tallas de uniforme",
-    "description": "Tallas para los uniformes y el equipo de seguridad que te entrega una organización.",
-    "shirt": "Camisa",
-    "jacket": "Chaqueta",
-    "pants": "Pantalón",
-    "pantsHelp": "Por ejemplo 32x32 o EU 48.",
-    "shoe": "Calzado",
-    "shoeHelp": "Con el sistema de tallas, por ejemplo US 10.5 o EU 44.",
-    "gloves": "Guantes",
-    "hat": "Gorra",
-    "notes": "Notas de ajuste",
-    "save": "Guardar tallas"
+  "notice": {
+    "title": "Las tallas de uniforme y las preferencias de viaje pasaron a cada proyecto",
+    "body": "Ahora las producciones te piden las tallas de uniforme, el asiento, la comida y el aeropuerto de origen en cada proyecto en cuya lista estás, y los guardan solo para ese proyecto. Ingrésalos en el proyecto.",
+    "link": "Abrir tus contrataciones"
   },
   "dietary": {
     "title": "Necesidades alimentarias",
@@ -35,17 +26,10 @@
     "save": "Guardar necesidades de accesibilidad"
   },
   "travel": {
-    "title": "Perfil de viaje",
-    "description": "Preferencias que usa una organización cuando reserva tus viajes.",
-    "seat": "Asiento",
-    "meal": "Comida a bordo",
-    "mealHelp": "Por ejemplo Vegetariana (VGML).",
-    "airport": "Aeropuerto de origen",
-    "airportHelp": "Código de tres letras, por ejemplo MIA.",
-    "save": "Guardar perfil de viaje"
+    "title": "Programas de lealtad",
+    "description": "Programas que una organización puede agregar a los viajes que te reserva."
   },
   "loyalty": {
-    "title": "Programas de lealtad",
     "none": "Aún no hay programas de lealtad.",
     "kind": "Tipo",
     "program": "Programa",
@@ -106,6 +90,7 @@
   },
   "categories": {
     "emergencyContacts": "Contactos de emergencia",
+    "contact": "Contacto",
     "uniformSizes": "Tallas de uniforme",
     "dietaryNeeds": "Necesidades alimentarias",
     "accessibilityNeeds": "Necesidades de accesibilidad",
@@ -169,7 +154,9 @@
       "shareChanged": "Lo compartido cambió",
       "shareRevoked": "Lo compartido se revocó",
       "viewed": "Visto",
+      "allergiesViewed": "Alergias consultadas",
       "erased": "Datos de trabajo borrados",
+      "fieldsRemoved": "Tallas de uniforme y preferencias de viaje quitadas de tu perfil",
       "other": "Registrado",
       "travelSaved": "Datos de viaje guardados",
       "travelCleared": "Datos de viaje borrados",
@@ -190,14 +177,19 @@
     "closed": "Lo compartido terminó con la contratación.",
     "hidden": "Compartido, pero tu rol no lo cubre.",
     "unnamed": "La persona contratada",
-    "seat": "Asiento",
-    "meal": "Comida a bordo",
-    "airport": "Aeropuerto de origen",
+    "contactEmail": "Correo electrónico",
+    "contactPhone": "Teléfono",
+    "contactNone": "Aún no hay un correo electrónico ni un teléfono verificados.",
     "loyalty": "Programas de lealtad",
     "allergies": "Alergias",
+    "allergiesMasked": "Restringido: solo acceso médico",
+    "medical": {
+      "title": "Información médica",
+      "description": "Se te muestra para la atención en el lugar. Cada consulta queda registrada.",
+      "none": "No hay alergias registradas."
+    },
     "needs": "Necesidades",
     "notes": "Notas",
-    "sizes": "{garment}: {size}",
     "passportName": "Nombre impreso",
     "passportCountry": "País emisor",
     "passportExpires": "Vence el",
@@ -220,6 +212,8 @@
     "work_detail_share_categories": "Elige al menos una categoría o revoca lo compartido.",
     "work_detail_not_shared": "La persona no ha compartido los datos de su pasaporte con esta contratación.",
     "org_read_only": "Esta organización está cancelada y en solo lectura, así que no se comparte nada más con ella.",
+    "work_detail_field_moved": "Las tallas de uniforme y las preferencias de viaje ya no se guardan en tu perfil. Ingrésalas en cada proyecto en cuya lista estás.",
+    "work_detail_category_retired": "Las tallas de uniforme ya no se comparten desde tu perfil. Ingrésalas en el proyecto.",
     "phone": "Escribe un número de teléfono con su código de país, por ejemplo +1 305 555 0142.",
     "invalid": "Revisa los campos marcados e inténtalo de nuevo.",
     "conflict": "Ya tienes este programa de lealtad.",
@@ -247,11 +241,9 @@
   "compass": {
     "edit": "Editar datos de trabajo",
     "offline": "Tus datos de trabajo se cargan cuando tienes conexión.",
-    "failed": "Tus datos de trabajo no se cargaron. Vuelve a abrir tu perfil para reintentar.",
-    "noSizes": "Aún no hay tallas de uniforme."
+    "failed": "Tus datos de trabajo no se cargaron. Vuelve a abrir tu perfil para reintentar."
   },
   "allergiesOnFile": "Registradas",
-  "allergiesMasked": "Hay alergias registradas. No se te muestran.",
   "projectFacts": {
     "title": "Datos del proyecto",
     "sentence": "Los datos de viaje, uniforme y vehículo que este proyecto te pide. Quedan en esta contratación, nunca en tu perfil, y se eliminan después de que la contratación cierra.",

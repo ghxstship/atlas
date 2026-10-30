@@ -113,7 +113,9 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "report-run": 128,
   scim: 92,
   "search-embed": 24,
-  "sms-webhook": 145,
+  // R6a (2660): account.work_details_moved, the one-time notice of the profile move, in both locales took it to
+  // 146.0 KB on 2026-10-30.
+  "sms-webhook": 150,
   "stripe-webhook": 84,
   "subprocessor-notices": 115,
   "upload-scan": 100,

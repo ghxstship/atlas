@@ -85,6 +85,10 @@
       "session_signed_out": {
         "subject": "{count, plural, one {A session was signed out} other {# sessions were signed out}}",
         "body": "{count, plural, one {A session on your account was signed out} other {# sessions on your account were signed out}} from Settings, Security. If this was not you, change your password and check your sessions."
+      },
+      "work_details_moved": {
+        "subject": "Uniform sizes and travel preferences moved to each project",
+        "body": "{moved, select, uniform {Your uniform sizes were} travel {Your seat, meal and home airport preferences were} other {Your uniform sizes and travel preferences were}} removed from your profile. Productions now ask for them on each project you are rostered on, and keep them only for that project. Your other work details are unchanged."
       }
     },
     "report": {
