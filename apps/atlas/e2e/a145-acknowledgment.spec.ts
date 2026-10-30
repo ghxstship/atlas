@@ -244,13 +244,14 @@ test("favorite: Pin page and Unpin page answer within 100 ms and hold", async ({
     selector: 'nav[aria-label="Favorites"] a',
     text: "All Records",
   });
-  await expectAcknowledged(page, "Pin page", () => button("Pin page").click(), shows("Unpin page"));
-  noteServer("Pin page", latencyOf(await listed()));
-  // The label holds while the server saves and the Favorites refresh: it never flips back.
+  // The label holds while the server saves and the Favorites refresh: from the frame it reads Unpin page, it never
+  // flips back. The watch starts before the press, so no moment goes unwatched.
   const flippedBack = await watchFor(page, shows("Pin page"), {
-    afterInput: false,
+    after: shows("Unpin page"),
     timeout: 3_000,
   });
+  await expectAcknowledged(page, "Pin page", () => button("Pin page").click(), shows("Unpin page"));
+  noteServer("Pin page", latencyOf(await listed()));
   await expect(flippedBack()).rejects.toThrow();
   await page.reload();
   await expect(button("Unpin page")).toBeVisible();
