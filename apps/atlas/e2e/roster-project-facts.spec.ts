@@ -9,8 +9,9 @@ import { DEMO_ORG, signInAs } from "./a36-support";
  *     peek in Crew review: travel shows, and uniform shows a refusal naming the capability; the read is logged in the
  *     person's access log;
  *   - the demo Owner sets a names lock from the party's header;
- *   - the Owner opens Travel party, sees Room Missing for a person who needs lodging, assigns a room from the
- *     prefilled row and the chip turns Assigned.
+ *   - a hospitality coordinator (advancing.packet.read, hospitality.fulfillment.read and hospitality.accommodation.write
+ *     only) opens Travel party, sees Room Missing for a person who needs lodging, assigns a room from the prefilled row
+ *     and the chip turns Assigned.
  * The agency builds its roster and the person enters their facts through the same RPCs Gateway calls, as postgres on
  * the local stack under their claims. The run removes its project, people and rows afterwards.
  */
@@ -63,8 +64,14 @@ function projectKey(): string {
   return `T${Array.from({ length: 4 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join("")}`;
 }
 
-/** A sign-in with the shared demo password whose only org role holds the given capabilities. */
-async function reader(email: string, capabilities: readonly string[], projectId: string) {
+/** A sign-in with the shared demo password whose only org role, `roleName`, holds the given capabilities. */
+async function member(
+  email: string,
+  fullName: string,
+  roleName: string,
+  capabilities: readonly string[],
+  projectId: string,
+) {
   await localSql(
     `with u as (
        insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
@@ -72,13 +79,13 @@ async function reader(email: string, capabilities: readonly string[], projectId:
          email_change_token_new, email_change)
        values ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated', $1,
          extensions.crypt('xos-demo-2026', extensions.gen_salt('bf')), now(),
-         '{"provider": "email", "providers": ["email"]}'::jsonb, jsonb_build_object('full_name', 'Demo Hospitality Reader'),
+         '{"provider": "email", "providers": ["email"]}'::jsonb, jsonb_build_object('full_name', $2::text),
          now(), now(), '', '', '', '')
        returning id, email)
      insert into auth.identities (id, user_id, provider_id, provider, identity_data, created_at, updated_at)
      select u.id, u.id, u.id::text, 'email', jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
        now(), now() from u`,
-    [email],
+    [email, fullName],
   );
   const [person] = await localSql<{ id: string }>(
     `update app.people p set id = p.user_id from auth.users u
@@ -88,8 +95,13 @@ async function reader(email: string, capabilities: readonly string[], projectId:
   const personId = person?.id as string;
   const [role] = await localSql<{ id: string }>(
     `insert into app.roles (org_id, code, name, band, description)
-     values ($1, $2, 'Hospitality Reader', 4, 'Reads hospitality and advancing only.') returning id`,
-    [DEMO_ORG_ID, `hosp_${Date.now().toString(36)}`],
+     values ($1, $2, $3, 4, $4) returning id`,
+    [
+      DEMO_ORG_ID,
+      `hosp_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+      roleName,
+      `Holds ${capabilities.join(", ")} only.`,
+    ],
   );
   for (const capability of capabilities) {
     await localSql(
@@ -125,6 +137,7 @@ test("project facts in Atlas: the logged peek, the names lock and the travel par
   );
   const projectId = project?.id as string;
   const readerEmail = `hosp-reader-${key.toLowerCase()}@example.com`;
+  const coordinatorEmail = `hosp-coordinator-${key.toLowerCase()}@example.com`;
   try {
     for (const offering of ["travel", "lodging", "uniforms"]) {
       await localSql(
@@ -177,7 +190,13 @@ test("project facts in Atlas: the logged peek, the names lock and the travel par
     const crew = `/${DEMO_ORG}/p/${key}/advancing?section=crew`;
 
     // A hospitality reader reads travel in the peek; uniform is refused by name. The read is logged.
-    await reader(readerEmail, ["advancing.packet.read", "hospitality.fulfillment.read"], projectId);
+    await member(
+      readerEmail,
+      "Demo Hospitality Reader",
+      "Hospitality Reader",
+      ["advancing.packet.read", "hospitality.fulfillment.read"],
+      projectId,
+    );
     const readerContext = await browser.newContext({ reducedMotion: "reduce" });
     const readerPage = await readerContext.newPage();
     await signInAs(readerPage, readerEmail, DEMO_ORG);
@@ -216,17 +235,29 @@ test("project facts in Atlas: the logged peek, the names lock and the travel par
     );
     expect(locked?.at).toContain("2027-05-20 22:00:00");
 
-    // Travel party: the room is missing; assigning it from the prefilled row turns the chip Assigned.
-    await page.goto(`/${DEMO_ORG}/p/${key}/advancing?section=travel-party`);
-    const row = page.getByRole("row").filter({ hasText: "Demo Staff One" });
+    // Travel party, as a hospitality coordinator: the room is missing; assigning it from the prefilled row turns the
+    // chip Assigned.
+    await member(
+      coordinatorEmail,
+      "Demo Hospitality Coordinator",
+      "Hospitality Coordinator",
+      ["advancing.packet.read", "hospitality.fulfillment.read", "hospitality.accommodation.write"],
+      projectId,
+    );
+    const coordinatorContext = await browser.newContext({ reducedMotion: "reduce" });
+    const coordinator = await coordinatorContext.newPage();
+    await signInAs(coordinator, coordinatorEmail, DEMO_ORG);
+    await coordinator.goto(`/${DEMO_ORG}/p/${key}/advancing?section=travel-party`);
+    const row = coordinator.getByRole("row").filter({ hasText: "Demo Staff One" });
     await expect(row).toContainText("Missing");
     await row.getByRole("link", { name: "Assign room" }).click();
-    const drawer = page.getByRole("dialog", { name: "Assign room" });
+    const drawer = coordinator.getByRole("dialog", { name: "Assign room" });
     await expect(drawer.getByLabel("Check-in")).toHaveValue("2027-06-03");
     await drawer.getByRole("button", { name: "Assign room" }).click();
-    await expect(page.getByRole("row").filter({ hasText: "Demo Staff One" })).toContainText(
-      "Assigned",
-    );
+    await expect(
+      coordinator.getByRole("row").filter({ hasText: "Demo Staff One" }),
+    ).toContainText("Assigned");
+    await coordinatorContext.close();
   } finally {
     for (const statement of [
       `update app.accommodation_assignments set deleted_at = now()
