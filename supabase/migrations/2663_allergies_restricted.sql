@@ -4,6 +4,7 @@
 --
 --   * app.person_work_details.allergies is Restricted under data.restricted.read.medical (0203_capability_seed.sql:296).
 --     Dietary needs and dietary notes stay Confidential.
+--   * The column is no longer selectable by signed-in callers; the person reads their own through app.my_allergies.
 --   * private.read_allergies is the one place an allergy value leaves for someone other than its owner: a holder of
 --     the capability on the project reads it, and every such read is written to the person's access log
 --     (allergies.viewed) and the producing org's audit ledger (work_details.allergies_viewed), never deduplicated;
@@ -32,7 +33,26 @@ update private.column_classifications
 set classification = 'Restricted', read_capability = 'data.restricted.read.medical'
 where table_name = 'app.person_work_details' and column_name = 'allergies';
 
-comment on column app.person_work_details.allergies is 'Food and other allergies in the person''s words, with how severe they are. Restricted (data.restricted.read.medical, R6a): an engaging org reads them only through private.read_allergies, which logs every unmasked read; the catering lead and on-site medical roles hold the capability on their project (2662).';
+comment on column app.person_work_details.allergies is 'Food and other allergies in the person''s words, with how severe they are. Restricted (data.restricted.read.medical, R6a): never directly selectable by signed-in callers; the person reads their own through app.my_allergies, and an engaging org reads them only through private.read_allergies, which logs every unmasked read; the catering lead and on-site medical roles hold the capability on their project (2662).';
+
+-- A Restricted column is never directly selectable (Section 8.3, ADR 0016 item 10). The person still writes their own
+-- allergies on the row and reads them back through app.my_allergies.
+revoke select (allergies) on app.person_work_details from authenticated;
+
+create or replace function app.my_allergies()
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select w.allergies from app.person_work_details w
+  where w.person_id = private.require_person() and w.deleted_at is null;
+$$;
+
+comment on function app.my_allergies() is 'The signed-in person''s own allergies (R6a): the one read of the Restricted column for its owner, unlogged like the rest of their own work details; NULL when none are recorded.';
+revoke all on function app.my_allergies() from public, anon;
+grant execute on function app.my_allergies() to authenticated, service_role;
 
 -- Contact ------------------------------------------------------------------------------------------------------------------
 

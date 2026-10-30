@@ -64102,6 +64102,7 @@ export type Database = {
           submitted_at: string;
         }[];
       };
+      my_allergies: { Args: Record<PropertyKey, never>; Returns: string };
       my_auth_factor_labels: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -67317,6 +67318,7 @@ export type Database = {
       weather_hazard: "Wind" | "Lightning" | "Heat";
       work_detail_category:
         | "Emergency Contacts"
+        | "Contact"
         | "Uniform Sizes"
         | "Dietary Needs"
         | "Accessibility Needs"
@@ -73971,6 +73973,7 @@ export const Constants = {
       weather_hazard: ["Wind", "Lightning", "Heat"],
       work_detail_category: [
         "Emergency Contacts",
+        "Contact",
         "Uniform Sizes",
         "Dietary Needs",
         "Accessibility Needs",

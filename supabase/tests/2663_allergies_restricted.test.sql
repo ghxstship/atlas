@@ -4,13 +4,14 @@
 -- reads them, and so does the Owner, each read logged once as allergies.viewed and once in the audit ledger. A
 -- medical-only reader (Mel, Field, on-site medical on the project) reads them in the medical block alone. Every read logs
 -- work_details.viewed, with no ten-minute merge. The company reads its rostered person's allergies masked, and the
--- verified email of both. The ten-minute helper is gone.
+-- verified email of both. The ten-minute helper is gone, and the person reads her own allergies only through
+-- app.my_allergies.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(33);
+select plan(36);
 
 -- A read of the engaged person's work details as someone, back as the platform.
 create function pg_temp.read(p_who text, p_engagement text) returns jsonb
@@ -71,6 +72,10 @@ select pg_temp.as_user('ivy');
 select app.ensure_my_work_details();
 update app.person_work_details set dietary_needs = '{Vegan}', allergies = 'Peanuts, severe' where person_id = pg_temp.id('ivy');
 insert into app.person_emergency_contacts (person_id, full_name, phone_e164) values (pg_temp.id('ivy'), 'Marco Marchetti', '+393471234567');
+select is(app.my_allergies(), 'Peanuts, severe', 'the person reads her own allergies through app.my_allergies');
+select throws_ok($$select allergies from app.person_work_details$$, '42501', null,
+  'and never selects the Restricted column directly');
+select lives_ok($$select dietary_needs from app.person_work_details$$, 'while the rest of her row stays readable');
 select lives_ok(format($$select app.share_work_details(%L, '{Dietary Needs,Emergency Contacts,Contact}')$$, pg_temp.id('eng_ivy_a')),
   'a share may name Contact');
 select pg_temp.new_user('mel', 'mel@northwind.test', 'Mel Ferreira');
