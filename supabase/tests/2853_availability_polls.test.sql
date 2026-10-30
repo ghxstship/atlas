@@ -11,7 +11,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(40);
+select plan(43);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
@@ -103,6 +103,15 @@ select throws_ok($$select * from app.answer_availability_poll((select id from k 
 select throws_ok($$insert into app.availability_blocks (availability_calendar_id, starts_at, ends_at, availability_kind, availability_poll_id)
   values ((select id from k where key = 'frank_cal'), pg_temp.ny_day(11), pg_temp.ny_day(12), 'Available', (select id from k where key = 'poll'))$$,
   'XR001', 'availability_poll_answer: Answer an availability poll from its request.', 'the owner cannot forge a poll answer through their policy');
+select throws_ok($$update app.availability_blocks set starts_at = pg_temp.ny_day(13), ends_at = pg_temp.ny_day(14)
+  where availability_calendar_id = (select id from k where key = 'frank_cal') and starts_at = pg_temp.ny_day(12) and deleted_at is null$$,
+  'XR001', 'availability_poll_answer: Change a poll answer by answering the poll again.', 'nor move a poll answer to a day the poll did not ask about');
+select throws_ok($$update app.availability_blocks set availability_kind = 'Unavailable'
+  where availability_calendar_id = (select id from k where key = 'frank_cal') and starts_at = pg_temp.ny_day(12) and deleted_at is null$$,
+  'XR001', 'availability_poll_answer: Change a poll answer by answering the poll again.', 'nor change its kind outside the poll');
+select lives_ok($$update app.availability_blocks set note = 'Free after noon'
+  where availability_calendar_id = (select id from k where key = 'frank_cal') and starts_at = pg_temp.ny_day(12) and deleted_at is null$$,
+  'but may write a note on it');
 
 -- Ivy, a freelancer, keeps a Private calendar for org_a with an Unavailable period that answers no poll.
 select pg_temp.as_user('ivy');

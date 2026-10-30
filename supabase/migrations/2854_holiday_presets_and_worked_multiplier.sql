@@ -264,7 +264,7 @@ begin
 
   if v_holiday is null and (exists (select 1 from pg_temp.holiday_hours)
      or exists (select 1 from pg_temp.split_minutes s where s.holiday_multiplier is not null and s.regular_minutes > 0)) then
-    perform private.refuse('payroll_holiday_code_missing', 'A paid holiday falls in this pay period; add a holiday earning code in Payroll and Time Off settings before calculating.');
+    perform private.refuse('payroll_holiday_code_missing', 'This pay period includes holiday pay; add a holiday earning code in Payroll and Time Off settings before calculating.');
   end if;
 
   update app.payroll_lines set deleted_at = now() where payroll_run_id = p_payroll_run_id and deleted_at is null;

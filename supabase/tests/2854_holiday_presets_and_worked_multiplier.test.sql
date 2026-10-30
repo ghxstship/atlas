@@ -128,7 +128,7 @@ update app.holiday_calendars set worked_holiday_multiplier = 1.5 where id = pg_t
 select pg_temp.as_user('carol');
 select pg_temp.new_run('run_no_code', 'pp2');
 select throws_ok($$select app.calculate_payroll_run(pg_temp.id('run_no_code'))$$, 'XR001',
-  'payroll_holiday_code_missing: A paid holiday falls in this pay period; add a holiday earning code in Payroll and Time Off settings before calculating.',
+  'payroll_holiday_code_missing: This pay period includes holiday pay; add a holiday earning code in Payroll and Time Off settings before calculating.',
   'a worked-holiday premium with no holiday code is refused');
 select pg_temp.as_user('bob');
 update app.holiday_calendars set worked_holiday_multiplier = null where id = pg_temp.id('cal_us');

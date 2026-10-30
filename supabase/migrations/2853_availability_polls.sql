@@ -182,6 +182,13 @@ begin
   if tg_op = 'UPDATE' and old.availability_poll_id is distinct from new.availability_poll_id then
     perform private.refuse('availability_poll_answer', 'A poll answer stays with its poll.');
   end if;
+  -- The answer's day and kind change only by answering again; the owner may still clear the tag, write a
+  -- note or move the block to Trash.
+  if tg_op = 'UPDATE' and pg_catalog.current_setting('xos.availability_poll_answer', true) is distinct from 'on'
+     and (old.starts_at, old.ends_at, old.availability_kind, old.availability_calendar_id)
+         is distinct from (new.starts_at, new.ends_at, new.availability_kind, new.availability_calendar_id) then
+    perform private.refuse('availability_poll_answer', 'Change a poll answer by answering the poll again.');
+  end if;
   if tg_op = 'INSERT' and pg_catalog.current_setting('xos.availability_poll_answer', true) is distinct from 'on' then
     perform private.refuse('availability_poll_answer', 'Answer an availability poll from its request.');
   end if;
@@ -192,7 +199,7 @@ begin
 end;
 $$;
 
-comment on function private.guard_block_poll() is 'An availability block carries a poll only when app.answer_availability_poll writes it (the transaction-local setting xos.availability_poll_answer), keeps that poll (it may only be cleared) and is on a calendar kept for the poll''s org.';
+comment on function private.guard_block_poll() is 'An availability block carries a poll only when app.answer_availability_poll writes it (the transaction-local setting xos.availability_poll_answer), keeps that poll (it may only be cleared), keeps its period, kind and calendar until the poll is answered again, and is on a calendar kept for the poll''s org.';
 revoke all on function private.guard_block_poll() from public, anon, authenticated;
 
 create trigger t42_guard_block_poll before insert or update on app.availability_blocks
