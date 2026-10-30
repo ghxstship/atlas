@@ -23,6 +23,7 @@ import {
 } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 import { useAssetsCopy } from "./copy";
@@ -38,6 +39,7 @@ import { useBulk } from "@/components/bulk/use-bulk";
 import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { useRowMenu } from "@/components/menus/use-row-menu";
 import { displayKey, keyedTitle } from "@/lib/assets/views";
+import { builtInViewEntries } from "@/lib/assets/built-in-views";
 
 /** One row of an assets collection, already shaped for every view the page offers. */
 export interface CollectionRow {
@@ -128,6 +130,7 @@ interface Items {
  */
 export function AssetsCollection(props: CollectionProps) {
   const t = useAssetsCopy();
+  const tViews = useTranslations("views");
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
@@ -193,6 +196,31 @@ export function AssetsCollection(props: CollectionProps) {
     };
   });
 
+  // The built-in views (G-96) head the saved views menu; the page works out which is on screen.
+  const builtIn = props.presets
+    ? builtInViewEntries(
+        props.presets,
+        new URLSearchParams(search.toString()),
+        props.view,
+        props.views.map((v) => v.value),
+      )
+    : [];
+  const leading =
+    builtIn.length > 0
+      ? {
+          items: [
+            { heading: tViews("menu.builtIn") },
+            ...builtIn.map((b) => ({
+              label: b.preset.name,
+              icon: "Filter" as const,
+              active: b.active,
+              onSelect: () => router.replace(`${pathname}?${b.query}` as Route, { scroll: false }),
+            })),
+          ],
+          current: builtIn.find((b) => b.active)?.preset.name,
+        }
+      : undefined;
+
   const header = (
     <PageHeader
       title={props.title}
@@ -206,7 +234,7 @@ export function AssetsCollection(props: CollectionProps) {
             onChange={(view) => go({ view })}
             customFields={props.customFields ?? null}
             {...(props.filterFields ? { fields: props.filterFields } : {})}
-            {...(props.presets ? { presets: props.presets } : {})}
+            {...(leading ? { leading } : {})}
           />
         ) : null
       }

@@ -7,6 +7,7 @@ import {
   unitMatches,
   type UnitViewFacts,
 } from "@/lib/assets/views";
+import { builtInViewEntries } from "@/lib/assets/built-in-views";
 import { viewToQuery } from "@/lib/views/query";
 
 /**
@@ -69,5 +70,32 @@ describe("built-in unit views (G-96)", () => {
     ]);
     expect(unitMatches(unitConditions("f.state=damaged"), unit("Damaged"))).toBe(true);
     expect(unitMatches([], unit("Lost"))).toBe(true);
+  });
+
+  it("open on the view type shown, and the one whose query is on screen is current", () => {
+    const presets = BUILT_IN_UNIT_PRESETS.map((p) => ({
+      id: p.id,
+      name: p.id,
+      filters: presetFilters(p.filters),
+    }));
+    const entries = builtInViewEntries(
+      presets,
+      new URLSearchParams("view=board&f.state.ne=Available&peek=RAD-1"),
+      "board",
+      ["table", "board"],
+    );
+    expect(entries.map((e) => e.query)).toEqual([
+      "view=board&f.state=Damaged",
+      "view=board&f.acquisition=Rental&f.state.ne=Returned",
+      "view=board&f.state.ne=Available",
+    ]);
+    expect(entries.map((e) => e.active)).toEqual([false, false, true]);
+    const searched = builtInViewEntries(
+      presets,
+      new URLSearchParams("view=board&f.state.ne=Available&q=radio"),
+      "board",
+      ["table", "board"],
+    );
+    expect(searched.some((e) => e.active)).toBe(false);
   });
 });
