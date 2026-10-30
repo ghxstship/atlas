@@ -80,6 +80,17 @@ export interface ViewQuery {
 }
 
 /**
+ * A built-in view a page offers before the person's saved views (R7a, G-96): a named set of filters in the same
+ * grammar a saved view keeps, applied on the view type on screen. No one edits, shares or deletes it; a person
+ * saves a copy as their own saved view.
+ */
+export interface FilterPreset {
+  readonly id: string;
+  readonly name: string;
+  readonly filters: ViewQuery["filters"];
+}
+
+/**
  * The collection key of a page: the path after the org, with project pages keyed by tab rather than
  * project (`/acme/p/NWL/schedule` is `project/schedule`), hyphens as underscores and deeper segments
  * joined, so it satisfies the saved_views key format. Null for a path outside a collection.

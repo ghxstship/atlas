@@ -72,6 +72,7 @@ engagementTabs:
         - engagement.overview
         - engagement.offer
         - engagement.onboarding
+        - engagement.project-details
         - engagement.shifts
         - engagement.timesheets
         - engagement.invoices
@@ -85,6 +86,7 @@ engagementTabs:
         - engagement.overview
         - engagement.offer
         - engagement.onboarding
+        - engagement.project-details
         - engagement.crew
         - engagement.training
         - engagement.positions
@@ -100,6 +102,7 @@ engagementTabs:
         - engagement.offer
         - engagement.advance
         - engagement.crew
+        - engagement.project-details
         - engagement.rider
         - engagement.set-times
         - engagement.hospitality
@@ -117,6 +120,7 @@ engagementTabs:
         advance:
           - engagement.advance
           - engagement.crew
+          - engagement.project-details
           - engagement.rider
           - engagement.set-times
           - engagement.hospitality
@@ -239,6 +243,11 @@ nodes:
                 kind: tab
                 label: nav.gateway.engagementTabs.onboarding
                 route: "/work/engagements/{engagementKey}/onboarding"
+              - id: engagement.project-details
+                kind: tab
+                label: nav.gateway.engagementTabs.projectDetails
+                route: "/work/engagements/{engagementKey}/project-details"
+                conditions: [offered-project-facts]
               - id: engagement.training
                 kind: tab
                 label: nav.gateway.engagementTabs.training

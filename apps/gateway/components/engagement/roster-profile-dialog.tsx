@@ -13,7 +13,9 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
  * The profile of a person on the roster (R4, owner decision 4), read once when the dialog opens
  * through app.roster_shared_work_details, which logs the read. A company reader reads every category,
  * and the dialog shows every field the read returns, enums in the reader's language; allergies show as
- * On file, never their text, and the passport number stays masked.
+ * On file, never their text (the company never holds data.restricted.read.medical, R6a), and the
+ * passport number stays masked. Uniform sizes and travel preferences are read per roster entry since
+ * R6a, on the Project details drawer.
  */
 export function RosterProfileDialog({
   rosterEntryId,
@@ -93,29 +95,6 @@ function profileItems(
       </span>
     );
   const items: { label: string; value: ReactNode }[] = [];
-  if (d.uniform) {
-    const u = d.uniform;
-    const sizes: [string, string | null][] = [
-      ["uniform.shirt", u.shirtSize],
-      ["uniform.jacket", u.jacketSize],
-      ["uniform.pants", u.pantsSize],
-      ["uniform.shoe", u.shoeSize],
-      ["uniform.gloves", u.gloveSize],
-      ["uniform.hat", u.hatSize],
-    ];
-    items.push({
-      label: t("roster.profile.uniform"),
-      value: block(
-        lines([
-          sizes
-            .filter(([, size]) => size)
-            .map(([garment, size]) => wd("org.sizes", { garment: wd(garment), size: size ?? "" }))
-            .join(" · "),
-          note("uniform.notes", u.uniformNotes),
-        ]),
-      ),
-    });
-  }
   if (d.dietary) {
     items.push({
       label: t("roster.profile.dietary"),
@@ -158,17 +137,23 @@ function profileItems(
       ),
     });
   }
+  if (d.contact) {
+    items.push({
+      label: t("roster.profile.contact"),
+      value: block(
+        lines([
+          note("org.contactEmail", d.contact.email),
+          d.contact.phone ? `${wd("org.contactPhone")}: ${phone(d.contact.phone)}` : null,
+        ]),
+      ),
+    });
+  }
   if (d.travel) {
     const tr = d.travel;
     items.push({
       label: t("roster.profile.travel"),
       value: block(
         lines([
-          tr.seatPreference
-            ? `${wd("org.seat")}: ${label("seatPreferences", tr.seatPreference)}`
-            : null,
-          note("org.meal", tr.mealPreference),
-          note("org.airport", tr.homeAirport),
           ...tr.loyaltyPrograms.map((l) =>
             wd("loyalty.line", {
               kind: label("loyaltyKinds", l.programKind),

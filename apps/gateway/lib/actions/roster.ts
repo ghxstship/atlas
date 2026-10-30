@@ -149,8 +149,10 @@ export async function viewRosterProfileAction(rosterEntryId: string): Promise<
   if (!result.ok) return { ok: false, outcome: outcomeFor(result.error) };
   const region = regionFromLocale(await getLocale());
   const phones = Object.fromEntries(
-    (result.data.emergencyContacts ?? [])
-      .flatMap((c) => [c.phoneE164, c.alternatePhoneE164])
+    [
+      ...(result.data.emergencyContacts ?? []).flatMap((c) => [c.phoneE164, c.alternatePhoneE164]),
+      result.data.contact?.phone,
+    ]
       .filter((p): p is string => !!p)
       .map((p) => [p, formatPhone(p, region)] as const),
   );

@@ -7282,6 +7282,10 @@ export interface AssetClass {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly element_id: string;
+  /**
+   * Offering the class answers for; null for site assets.
+   */
+  readonly offering: "Radios" | "Carts" | null;
 }
 
 /**
@@ -7298,6 +7302,10 @@ export interface AssetClassCreate {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly element_id: string;
+  /**
+   * Offering the class answers for; null for site assets.
+   */
+  readonly offering?: "Radios" | "Carts" | null;
 }
 
 /**
@@ -7314,6 +7322,44 @@ export interface AssetClassUpdate {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly element_id?: string;
+  /**
+   * Offering the class answers for; null for site assets.
+   */
+  readonly offering?: "Radios" | "Carts" | null;
+}
+
+/**
+ * How many of an asset class are free over a window (G-93).
+ */
+export interface AssetClassAvailability {
+  /**
+   * Serviceable owned units.
+   */
+  readonly serviceable_units: number;
+  /**
+   * Owned lot quantity.
+   */
+  readonly lot_quantity: number;
+  /**
+   * Quantity on order that covers the window.
+   */
+  readonly on_order_quantity: number;
+  /**
+   * All the class can supply over the window.
+   */
+  readonly total: number;
+  /**
+   * Most held at once over the window.
+   */
+  readonly peak_reserved: number;
+  /**
+   * Total less the peak, never below 0.
+   */
+  readonly available: number;
+  /**
+   * Unit of the class element.
+   */
+  readonly unit_basis: string;
 }
 
 /**
@@ -7386,7 +7432,8 @@ export interface AssetUnit {
     | "In Maintenance"
     | "Damaged"
     | "Lost"
-    | "Retired";
+    | "Retired"
+    | "Returned";
   /**
    * Condition: a row of the canon Asset Condition enumeration.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -7397,6 +7444,11 @@ export interface AssetUnit {
    * Format: `uuid`.
    */
   readonly home_venue_id: string | null;
+  /**
+   * Identifier of the receipt line the unit arrived on.
+   * Format: `uuid`.
+   */
+  readonly receipt_line_id: string | null;
 }
 
 /**
@@ -11914,6 +11966,10 @@ export interface CredentialCategory {
    */
   readonly name: string;
   /**
+   * Access badge or parking pass.
+   */
+  readonly category_kind: "Access" | "Parking";
+  /**
    * Identifier of the project.
    * Format: `uuid`.
    */
@@ -11935,6 +11991,10 @@ export interface CredentialCategoryCreate {
    */
   readonly name: string;
   /**
+   * Access badge or parking pass.
+   */
+  readonly category_kind?: "Access" | "Parking";
+  /**
    * Identifier of the project.
    * Format: `uuid`.
    */
@@ -11955,6 +12015,10 @@ export interface CredentialCategoryUpdate {
    * Length: 1 to 300.
    */
   readonly name?: string;
+  /**
+   * Access badge or parking pass.
+   */
+  readonly category_kind?: "Access" | "Parking";
   /**
    * Category code, unique per project.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -15966,6 +16030,139 @@ export interface PurchaseOrderTransitionRequest {
 }
 
 /**
+ * What one receipt event recorded.
+ */
+export interface PurchaseOrderReceiveResult {
+  /**
+   * applied for a new event; duplicate when the event was already recorded.
+   */
+  readonly outcome: "applied" | "duplicate";
+  /**
+   * The goods receipt recorded.
+   * Format: `uuid`.
+   */
+  readonly goods_receipt_id: string;
+  /**
+   * Its receipt lines.
+   */
+  readonly receipt_line_ids: ReadonlyArray<string>;
+  /**
+   * Units that came in on them.
+   */
+  readonly asset_unit_ids: ReadonlyArray<string>;
+  /**
+   * Receipt movements into lots.
+   */
+  readonly lot_movement_ids: ReadonlyArray<string>;
+}
+
+/**
+ * One receipt event against an order.
+ */
+export interface PurchaseOrderReceiveRequest {
+  /**
+   * Lines received.
+   */
+  readonly lines: ReadonlyArray<PurchaseOrderReceiveLine>;
+  /**
+   * Note.
+   * Length: 1 to 1000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * One order line received: by asset tags, into a lot at a venue, or neither.
+ */
+export interface PurchaseOrderReceiveLine {
+  /**
+   * Identifier of the order line received.
+   * Format: `uuid`.
+   */
+  readonly po_line_id: string;
+  /**
+   * Quantity received.
+   */
+  readonly quantity: number;
+  /**
+   * One asset tag per unit received, for an element with an asset class: each unit comes in Received. Needs assets.asset.write.
+   */
+  readonly asset_tags?: ReadonlyArray<string>;
+  /**
+   * Identifier of the venue whose lot takes the quantity into stock; needs assets.asset.write.
+   * Format: `uuid`.
+   */
+  readonly venue_id?: string | null;
+  /**
+   * Condition of the units: a row of the canon Asset Condition enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly condition_enum_id?: string | null;
+}
+
+/**
+ * What one return event recorded.
+ */
+export interface PurchaseOrderReturnResult {
+  /**
+   * applied for a new event; duplicate when the event was already recorded.
+   */
+  readonly outcome: "applied" | "duplicate";
+  /**
+   * The goods return recorded.
+   * Format: `uuid`.
+   */
+  readonly goods_return_id: string;
+  /**
+   * Its return lines.
+   */
+  readonly return_line_ids: ReadonlyArray<string>;
+}
+
+/**
+ * One return to the vendor.
+ */
+export interface PurchaseOrderReturnRequest {
+  /**
+   * Why the goods go back. Off Hire applies only to rental lines.
+   */
+  readonly reason: "Off Hire" | "Defective" | "Wrong Item" | "Over Delivery";
+  /**
+   * Lines returned.
+   */
+  readonly lines: ReadonlyArray<PurchaseOrderReturnLine>;
+  /**
+   * Note.
+   * Length: 1 to 1000.
+   */
+  readonly note?: string | null;
+}
+
+/**
+ * Goods of one receipt line going back: units, a quantity out of a lot, or a quantity.
+ */
+export interface PurchaseOrderReturnLine {
+  /**
+   * Identifier of the receipt line of the same order that brought the goods in.
+   * Format: `uuid`.
+   */
+  readonly receipt_line_id: string;
+  /**
+   * Quantity returned.
+   */
+  readonly quantity: number;
+  /**
+   * The serialized units going back, one per unit, each received on that receipt line.
+   */
+  readonly asset_unit_ids?: ReadonlyArray<string>;
+  /**
+   * Identifier of the venue whose lot the quantity leaves.
+   * Format: `uuid`.
+   */
+  readonly venue_id?: string | null;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface PoLinePage {
@@ -16044,6 +16241,20 @@ export interface PoLine {
    * Range: 1 to unbounded.
    */
   readonly line_number: number;
+  /**
+   * Whether the line buys or hires its item.
+   */
+  readonly acquisition_kind: "Purchase" | "Rental";
+  /**
+   * Rental lines: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at: string | null;
+  /**
+   * Rental lines: when the hire ends and off-hire is due.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at: string | null;
 }
 
 /**
@@ -16081,6 +16292,20 @@ export interface PoLineCreate {
    * Range: 1 to unbounded.
    */
   readonly line_number?: number;
+  /**
+   * Whether the line buys or hires its item.
+   */
+  readonly acquisition_kind?: "Purchase" | "Rental";
+  /**
+   * Rental lines: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at?: string | null;
+  /**
+   * Rental lines: when the hire ends and off-hire is due.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at?: string | null;
 }
 
 /**
@@ -16113,6 +16338,36 @@ export interface PoLineUpdate {
    * Range: 1 to unbounded.
    */
   readonly line_number?: number;
+  /**
+   * Whether the line buys or hires its item.
+   */
+  readonly acquisition_kind?: "Purchase" | "Rental";
+  /**
+   * Rental lines: when the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at?: string | null;
+  /**
+   * Rental lines: when the hire ends and off-hire is due.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at?: string | null;
+}
+
+/**
+ * Window warnings for a hire.
+ */
+export interface HireWindowWarnings {
+  /**
+   * Warnings, in rule order.
+   */
+  readonly data: ReadonlyArray<
+    | "Delivery After Load In"
+    | "Return Before Load Out"
+    | "Hire Beyond Site Window"
+    | "Delivery Docks Full"
+    | "Return Docks Full"
+  >;
 }
 
 /**
@@ -20897,6 +21152,11 @@ export interface Engagement {
    */
   readonly completed_at: string | null;
   /**
+   * Names lock: after this instant the company side can no longer name new crew; null means no lock.
+   * Format: `date-time`.
+   */
+  readonly roster_locks_at: string | null;
+  /**
    * Identifier of the accepted application the engagement came from.
    * Format: `uuid`.
    */
@@ -20993,6 +21253,17 @@ export interface EngagementTransitionRequest {
    * Length: 1 to unbounded.
    */
   readonly reason?: string;
+}
+
+/**
+ * The names lock of an engagement.
+ */
+export interface RosterLockRequest {
+  /**
+   * When names lock; null clears the lock.
+   * Format: `date-time`.
+   */
+  readonly locks_at: string | null;
 }
 
 /**
@@ -37029,6 +37300,1422 @@ export interface CueCallUpdate {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface RosterEntryPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<RosterEntry>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A person on an engagement's crew roster (Section 4.5.8, ADR 0101), as the producing org reads it on projects where the caller holds advancing.packet.read: the party, the resolved person (the engaged person for the self entry), a pending invitation's address, the role and arrival, the review state with the latest return reason, the person's own answer and the categories of their live work details share. Roster entries are written through Gateway and the roster RPCs.
+ */
+export interface RosterEntry {
+  /**
+   * Identifier of the roster entry.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the producing org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the engagement the person works under.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Supplying account, else the engaged person.
+   */
+  readonly party_name: string | null;
+  /**
+   * External role type of the engagement.
+   */
+  readonly role_type: string;
+  /**
+   * True for the engaged person's own entry.
+   */
+  readonly is_self: boolean;
+  /**
+   * Identifier of the resolved person; null for an unclaimed invitation.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * Name of the person.
+   */
+  readonly full_name: string | null;
+  /**
+   * Address of the pending invitation.
+   */
+  readonly invited_email: string | null;
+  /**
+   * When the pending invitation lapses.
+   * Format: `date-time`.
+   */
+  readonly invitation_expires_at: string | null;
+  /**
+   * Role worked, from the Roles Library.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly role_code: string | null;
+  /**
+   * Job title of the role.
+   */
+  readonly job_title: string | null;
+  /**
+   * Arrival window start.
+   * Format: `date-time`.
+   */
+  readonly arrival_starts_at: string | null;
+  /**
+   * Arrival window end.
+   * Format: `date-time`.
+   */
+  readonly arrival_ends_at: string | null;
+  /**
+   * IANA time zone of the arrival window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly arrival_time_zone: string | null;
+  readonly entry_state: RosterEntryState;
+  readonly person_response: RosterPersonResponse;
+  /**
+   * When the person last answered.
+   * Format: `date-time`.
+   */
+  readonly responded_at: string | null;
+  /**
+   * What the reviewer asked to change, while Returned.
+   */
+  readonly return_reason: string | null;
+  /**
+   * Identifier of the withdrawn entry this one replaces.
+   * Format: `uuid`.
+   */
+  readonly replaces_entry_id: string | null;
+  /**
+   * Work details categories the person shares on this entry.
+   */
+  readonly share_categories: ReadonlyArray<string>;
+}
+
+/**
+ * Review state of a roster entry.
+ */
+export type RosterEntryState = "Draft" | "Submitted" | "Accepted" | "Returned" | "Withdrawn";
+
+/**
+ * The rostered person's own answer.
+ */
+export type RosterPersonResponse = "Pending" | "Accepted" | "Declined";
+
+/**
+ * The project facts of a roster entry as the caller may read them (R5). Each Company or Producer read of a value is written to the person's access log, and a Producer read to the producing org's audit ledger.
+ */
+export interface RosterProjectFacts {
+  /**
+   * Roster entry.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string;
+  /**
+   * Engagement.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Producing org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Person the entry resolves to.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * Who reads: Person, the entry's own person; Company, a roster manager of the account that rosters them; Producer, a member of the producing org by capability.
+   */
+  readonly standing: "Person" | "Company" | "Producer";
+  readonly offered: RosterFactOfferings;
+  readonly present: RosterFactPresence;
+  readonly entered_by_person: RosterFactProvenance;
+  /**
+   * Kinds the caller reads; the others come back null.
+   */
+  readonly readable: ReadonlyArray<ProjectFactKind>;
+  readonly travel: RosterTravelRequest | null;
+  readonly uniform: RosterUniformSizes | null;
+  readonly vehicle: RosterVehicle | null;
+}
+
+/**
+ * Which offerings the project turns on for the engagement.
+ */
+export interface RosterFactOfferings {
+  /**
+   * Travel is offered.
+   */
+  readonly travel: boolean;
+  /**
+   * Lodging is offered.
+   */
+  readonly lodging: boolean;
+  /**
+   * Uniforms are offered.
+   */
+  readonly uniforms: boolean;
+  /**
+   * Parking is offered.
+   */
+  readonly parking: boolean;
+}
+
+/**
+ * Which kinds are on file.
+ */
+export interface RosterFactPresence {
+  /**
+   * A live row exists for Travel.
+   */
+  readonly travel: boolean;
+  /**
+   * A live row exists for Uniform.
+   */
+  readonly uniform: boolean;
+  /**
+   * A live row exists for Vehicle.
+   */
+  readonly vehicle: boolean;
+}
+
+/**
+ * Which kinds the person entered themselves; the others were entered by their company.
+ */
+export interface RosterFactProvenance {
+  /**
+   * The person entered Travel.
+   */
+  readonly travel: boolean;
+  /**
+   * The person entered Uniform.
+   */
+  readonly uniform: boolean;
+  /**
+   * The person entered Vehicle.
+   */
+  readonly vehicle: boolean;
+}
+
+/**
+ * A kind of project fact a rostered person enters on their roster entry, asked only while its offering (Travel, Uniforms, Parking) is on.
+ */
+export type ProjectFactKind = "Travel" | "Uniform" | "Vehicle";
+
+/**
+ * The travel a rostered person asks for on one project (R5).
+ */
+export interface RosterTravelRequest {
+  /**
+   * Identifier of the travel request.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * IATA code of the airport the person flies into.
+   * Pattern: `^[A-Za-z]{3}$`.
+   */
+  readonly inbound_airport_code: string | null;
+  /**
+   * Name of that airport.
+   */
+  readonly inbound_airport_name: string | null;
+  /**
+   * IATA code of the airport the person flies home from.
+   * Pattern: `^[A-Za-z]{3}$`.
+   */
+  readonly outbound_airport_code: string | null;
+  /**
+   * Name of that airport.
+   */
+  readonly outbound_airport_name: string | null;
+  /**
+   * Day the person travels to the project.
+   * Format: `date`.
+   */
+  readonly inbound_on: string | null;
+  /**
+   * Day the person travels home.
+   * Format: `date`.
+   */
+  readonly outbound_on: string | null;
+  /**
+   * Preferred seat.
+   */
+  readonly seat_preference: "Window" | "Aisle" | "No Preference" | null;
+  /**
+   * Meal preference.
+   */
+  readonly meal_preference: string | null;
+  /**
+   * The person needs a pickup on arrival.
+   */
+  readonly needs_ground_transport: boolean;
+  /**
+   * The person needs a room.
+   */
+  readonly needs_lodging: boolean;
+  /**
+   * Notes for the travel desk.
+   */
+  readonly travel_notes: string | null;
+  /**
+   * When the request was last saved.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+}
+
+/**
+ * The uniform sizes a rostered person gives for one project (R5).
+ */
+export interface RosterUniformSizes {
+  /**
+   * Identifier of the uniform sizes.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Letter size.
+   */
+  readonly shirt_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly jacket_size:
+    "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly pants_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly glove_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly hat_size: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Pants waist in inches.
+   * Range: 20 to 70.
+   */
+  readonly pants_waist_in: number | null;
+  /**
+   * Pants inseam in inches.
+   * Range: 20 to 40.
+   */
+  readonly pants_inseam_in: number | null;
+  /**
+   * Shoe size in half sizes.
+   * Range: 1 to 20.
+   */
+  readonly shoe_size: number | null;
+  readonly shoe_size_system: ShoeSizeSystem | null;
+  /**
+   * When the sizes were last saved.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+}
+
+/**
+ * Sizing system of a shoe size.
+ */
+export type ShoeSizeSystem = "US Men" | "US Women" | "EU" | "UK";
+
+/**
+ * The vehicle a rostered person brings to one project (R5).
+ */
+export interface RosterVehicle {
+  /**
+   * Identifier of the vehicle.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Vehicle make.
+   */
+  readonly make: string;
+  /**
+   * Vehicle model.
+   */
+  readonly model: string;
+  /**
+   * Vehicle color.
+   */
+  readonly color: string | null;
+  /**
+   * License plate, letters and digits.
+   */
+  readonly plate: string;
+  /**
+   * ISO 3166-2 region that issued the plate.
+   */
+  readonly plate_region: string;
+  /**
+   * When the vehicle was last saved.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+}
+
+/**
+ * The live row a project fact save wrote.
+ */
+export interface SavedProjectFact {
+  /**
+   * Identifier of the saved row.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+}
+
+/**
+ * A full replacement of a roster entry's travel request. At least an airport or a date.
+ */
+export interface RosterTravelRequestInput {
+  /**
+   * IATA code of the airport the person flies into; uppercased.
+   * Pattern: `^[A-Za-z]{3}$`.
+   */
+  readonly inbound_airport_code: string | null;
+  /**
+   * IATA code of the airport the person flies home from; uppercased.
+   * Pattern: `^[A-Za-z]{3}$`.
+   */
+  readonly outbound_airport_code: string | null;
+  /**
+   * Day the person travels to the project.
+   * Format: `date`.
+   */
+  readonly inbound_on: string | null;
+  /**
+   * Day the person travels home; on or after inbound_on.
+   * Format: `date`.
+   */
+  readonly outbound_on: string | null;
+  /**
+   * Preferred seat.
+   */
+  readonly seat_preference?: "Window" | "Aisle" | "No Preference" | null;
+  /**
+   * Meal preference.
+   * Length: 0 to 100.
+   */
+  readonly meal_preference?: string | null;
+  /**
+   * A pickup is needed on arrival.
+   */
+  readonly needs_ground_transport?: boolean;
+  /**
+   * A room is needed; only while lodging is offered.
+   */
+  readonly needs_lodging?: boolean;
+  /**
+   * Notes for the travel desk.
+   * Length: 0 to 500.
+   */
+  readonly travel_notes?: string | null;
+}
+
+/**
+ * A full replacement of a roster entry's uniform sizes. At least one size.
+ */
+export interface RosterUniformSizesInput {
+  /**
+   * Letter size.
+   */
+  readonly shirt_size?:
+    "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly jacket_size?:
+    "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly pants_size?:
+    "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly glove_size?:
+    "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Letter size.
+   */
+  readonly hat_size?: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL" | null;
+  /**
+   * Waist in inches, 20 to 70.
+   */
+  readonly pants_waist_in?: number | null;
+  /**
+   * Inseam in inches, 20 to 40.
+   */
+  readonly pants_inseam_in?: number | null;
+  /**
+   * Shoe size, 1 to 20 in half sizes.
+   */
+  readonly shoe_size?: number | null;
+  readonly shoe_size_system?: ShoeSizeSystem | null;
+}
+
+/**
+ * A full replacement of a roster entry's vehicle.
+ */
+export interface RosterVehicleInput {
+  /**
+   * Vehicle make.
+   * Length: 1 to 60.
+   */
+  readonly make: string;
+  /**
+   * Vehicle model.
+   * Length: 1 to 60.
+   */
+  readonly model: string;
+  /**
+   * Vehicle color.
+   * Length: 0 to 30.
+   */
+  readonly color?: string | null;
+  /**
+   * License plate; uppercased with spaces and hyphens removed.
+   * Length: 1 to 20.
+   */
+  readonly plate: string;
+  /**
+   * ISO 3166-2 region of the plate.
+   * Length: 2 to 6.
+   */
+  readonly plate_region: string;
+}
+
+/**
+ * Nothing; the kind is cleared.
+ */
+export interface ClearedProjectFact {
+  /**
+   * Identifier of the saved row.
+   * Format: `uuid`.
+   */
+  readonly id?: string;
+}
+
+/**
+ * The project fact kind to clear.
+ */
+export interface ClearProjectFactRequest {
+  readonly kind: ProjectFactKind;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface TravelPartyMemberPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<TravelPartyMember>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A rostered person of a project's travel party with what hospitality has arranged (R5, G-175).
+ */
+export interface TravelPartyMember {
+  /**
+   * Roster entry.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string;
+  /**
+   * Engagement.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Supplying account, else the engaged person.
+   */
+  readonly party_name: string | null;
+  /**
+   * Person.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Name of the person.
+   */
+  readonly person_name: string | null;
+  /**
+   * Role worked.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly role_code: string | null;
+  /**
+   * Arrival window start.
+   * Format: `date-time`.
+   */
+  readonly arrival_starts_at: string | null;
+  /**
+   * Arrival window end.
+   * Format: `date-time`.
+   */
+  readonly arrival_ends_at: string | null;
+  /**
+   * IANA time zone of the arrival window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly arrival_time_zone: string | null;
+  readonly travel: RosterTravelRequest | null;
+  readonly room: TravelPartyRoom;
+  readonly pickup: TravelPartyPickup;
+  readonly pass: TravelPartyPass | null;
+}
+
+/**
+ * The person's room on the project, if assigned.
+ */
+export interface TravelPartyRoom {
+  /**
+   * A room is assigned on one of the project's blocks.
+   */
+  readonly assigned: boolean;
+  /**
+   * Check-in day.
+   * Format: `date`.
+   */
+  readonly check_in_on: string | null;
+  /**
+   * Check-out day.
+   * Format: `date`.
+   */
+  readonly check_out_on: string | null;
+  /**
+   * Title of the block.
+   */
+  readonly block_name: string | null;
+}
+
+/**
+ * Whether the person's pickup is booked.
+ */
+export interface TravelPartyPickup {
+  /**
+   * A ground segment is booked on the arrival day.
+   */
+  readonly booked: boolean;
+}
+
+/**
+ * Whether the person's pass is issued; null without credentials.credential.read.
+ */
+export interface TravelPartyPass {
+  /**
+   * A live credential is issued on the engagement.
+   */
+  readonly issued: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface TravelDayCountPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<TravelDayCount>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One day of a project's travel counts (R5, G-175).
+ */
+export interface TravelDayCount {
+  /**
+   * Day.
+   * Format: `date`.
+   */
+  readonly day: string;
+  /**
+   * People arriving.
+   */
+  readonly arriving: number;
+  /**
+   * People departing.
+   */
+  readonly departing: number;
+  /**
+   * People on site, arrival to departure day.
+   */
+  readonly on_site: number;
+  /**
+   * Rooms needed that night.
+   */
+  readonly rooms_needed: number;
+  /**
+   * Pickups needed that day.
+   */
+  readonly pickups_needed: number;
+  /**
+   * The range ran past 120 days and was cut.
+   */
+  readonly truncated: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AdvanceAllocationPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AdvanceAllocation>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project.
+ */
+export interface AdvanceAllocation {
+  /**
+   * Identifier of the allocation.
+   * Format: `uuid`.
+   */
+  readonly allocation_id: string;
+  /**
+   * Identifier of the producing org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the party pool's engagement; null when a person holds it.
+   * Format: `uuid`.
+   */
+  readonly holder_engagement_id: string | null;
+  /**
+   * Identifier of the roster entry of the person who holds it; null for a pool.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
+  /**
+   * Identifier of the pool a share was split from.
+   * Format: `uuid`.
+   */
+  readonly parent_allocation_id: string | null;
+  /**
+   * What the allocation gives.
+   */
+  readonly kind:
+    "Credential" | "Parking Pass" | "Asset" | "Catering" | "Lodging" | "Travel" | "Per Diem";
+  /**
+   * Offering it draws on; null for a badge or a site asset.
+   */
+  readonly offering:
+    | "Travel"
+    | "Lodging"
+    | "Catering"
+    | "Parking"
+    | "Uniforms"
+    | "Per Diem"
+    | "Radios"
+    | "Carts"
+    | "Guest List"
+    | null;
+  /**
+   * Category, class, catering or block name; null for Travel and Per Diem.
+   */
+  readonly item_name: string | null;
+  /**
+   * Quantity allocated.
+   */
+  readonly quantity: number;
+  /**
+   * Stored state.
+   */
+  readonly allocation_state: "Requested" | "Approved" | "Declined" | "Withdrawn";
+  /**
+   * How the allocation came to be.
+   */
+  readonly origin: "Requested" | "Assigned" | "Split";
+  /**
+   * When it is first needed.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string;
+  /**
+   * When it is no longer needed.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly needed_time_zone: string;
+  /**
+   * Identifier of the person who requested or assigned it.
+   * Format: `uuid`.
+   */
+  readonly requested_by: string | null;
+  /**
+   * When it was approved or declined.
+   * Format: `date-time`.
+   */
+  readonly decided_at: string | null;
+  /**
+   * Identifier of the person who approved or declined it.
+   * Format: `uuid`.
+   */
+  readonly decided_by: string | null;
+  /**
+   * Why it was declined.
+   */
+  readonly decline_reason: string | null;
+  /**
+   * Quantity of live holds.
+   */
+  readonly reserved_quantity: number;
+  /**
+   * Order-line holds on Approved or Sent orders not yet received.
+   */
+  readonly on_order_quantity: number;
+  /**
+   * Every ordering order behind its holds was acknowledged.
+   */
+  readonly confirmed: boolean;
+  /**
+   * An order behind its holds is still Proposed.
+   */
+  readonly awaiting_order: boolean;
+  /**
+   * Received on the order lines behind its holds.
+   */
+  readonly received_quantity: number;
+  /**
+   * Issued from the possession rows.
+   */
+  readonly issued_quantity: number;
+  /**
+   * Issued and checked in since.
+   */
+  readonly returned_quantity: number;
+  /**
+   * Issued units that went Lost.
+   */
+  readonly lost_quantity: number;
+  /**
+   * Issued credentials since revoked.
+   */
+  readonly revoked_quantity: number;
+  /**
+   * The computed status.
+   */
+  readonly display_status:
+    | "Requested"
+    | "Approved"
+    | "Reserved"
+    | "Awaiting Order"
+    | "On Order"
+    | "Confirmed"
+    | "Received"
+    | "Partly Issued"
+    | "Issued"
+    | "Returned"
+    | "Revoked"
+    | "Declined"
+    | "Withdrawn";
+}
+
+/**
+ * One allocation: one holder and one target.
+ */
+export interface AdvanceAllocationRequest {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the party pool's engagement; give this or roster_entry_id.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string;
+  /**
+   * Identifier of the roster entry of one person; give this or engagement_id.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id?: string;
+  /**
+   * Identifier of the badge or parking category.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id?: string;
+  /**
+   * Identifier of the asset class, such as the org's radios.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string;
+  /**
+   * Identifier of the catering fulfillment.
+   * Format: `uuid`.
+   */
+  readonly fulfillment_id?: string;
+  /**
+   * Identifier of the accommodation block.
+   * Format: `uuid`.
+   */
+  readonly accommodation_block_id?: string;
+  /**
+   * Travel or Per Diem.
+   */
+  readonly service_kind?: "Travel" | "Per Diem";
+  /**
+   * Quantity.
+   */
+  readonly quantity: number;
+  /**
+   * When it is first needed.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string;
+  /**
+   * When it is no longer needed.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
+  /**
+   * Note; above the allowance with overflow at review, the reason for an assignment.
+   * Length: 1 to 1000.
+   */
+  readonly note?: string;
+}
+
+/**
+ * One allocation assigned directly, with its holds for an asset.
+ */
+export interface AdvanceAllocationAssign {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the party pool's engagement; give this or roster_entry_id.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string;
+  /**
+   * Identifier of the roster entry of one person; give this or engagement_id.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id?: string;
+  /**
+   * Identifier of the badge or parking category.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id?: string;
+  /**
+   * Identifier of the asset class, such as the org's radios.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string;
+  /**
+   * Identifier of the catering fulfillment.
+   * Format: `uuid`.
+   */
+  readonly fulfillment_id?: string;
+  /**
+   * Identifier of the accommodation block.
+   * Format: `uuid`.
+   */
+  readonly accommodation_block_id?: string;
+  /**
+   * Travel or Per Diem.
+   */
+  readonly service_kind?: "Travel" | "Per Diem";
+  /**
+   * Quantity.
+   */
+  readonly quantity: number;
+  /**
+   * When it is first needed.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string;
+  /**
+   * When it is no longer needed.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
+  /**
+   * Note; above the allowance with overflow at review, the reason for an assignment.
+   * Length: 1 to 1000.
+   */
+  readonly note?: string;
+  /**
+   * Holds for an asset allocation, summing to its quantity. Left out, class stock holds it when the class has units, else its only lot.
+   */
+  readonly sources?: ReadonlyArray<AllocationSource>;
+}
+
+/**
+ * One hold source; mixed supply is one source each.
+ */
+export interface AllocationSource {
+  /**
+   * Where the stock comes from.
+   */
+  readonly source: "Class Stock" | "Unit" | "Lot" | "Order Line";
+  /**
+   * Quantity held from it.
+   */
+  readonly quantity: number;
+  /**
+   * Identifier of the unit, for a Unit source.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id?: string;
+  /**
+   * Identifier of the lot, for a Lot source.
+   * Format: `uuid`.
+   */
+  readonly asset_lot_id?: string;
+  /**
+   * Identifier of the order line, for an Order Line source.
+   * Format: `uuid`.
+   */
+  readonly po_line_id?: string;
+}
+
+/**
+ * A decision on a Requested allocation.
+ */
+export interface AdvanceAllocationDecision {
+  /**
+   * Approve, or reject (decline).
+   */
+  readonly decision: "Approved" | "Rejected";
+  /**
+   * Required to decline, and to approve above the allowance with overflow at review.
+   * Length: 1 to 1000.
+   */
+  readonly reason?: string;
+  /**
+   * Holds for an asset allocation, summing to its quantity. Left out, class stock holds it when the class has units, else its only lot.
+   */
+  readonly sources?: ReadonlyArray<AllocationSource>;
+}
+
+/**
+ * Holds that replace an approved asset allocation's holds.
+ */
+export interface AdvanceAllocationReserve {
+  /**
+   * The new holds.
+   */
+  readonly sources: ReadonlyArray<AllocationSource>;
+}
+
+/**
+ * The shares written.
+ */
+export interface AdvanceAllocationSplitResult {
+  /**
+   * The shares, in the order given.
+   */
+  readonly allocation_ids: ReadonlyArray<string>;
+}
+
+/**
+ * Shares of an approved party pool for its people.
+ */
+export interface AdvanceAllocationSplit {
+  readonly parts: ReadonlyArray<AdvanceAllocationSplitPart>;
+}
+
+/**
+ * One person's share.
+ */
+export interface AdvanceAllocationSplitPart {
+  /**
+   * Identifier of the roster entry on the pool's engagement.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string;
+  /**
+   * Quantity for the person.
+   */
+  readonly quantity: number;
+  /**
+   * Units pinned to the person.
+   */
+  readonly asset_unit_ids?: ReadonlyArray<string>;
+}
+
+/**
+ * What went back.
+ */
+export interface AdvanceAllocationUnsplitResult {
+  /**
+   * Quantity returned to the pool.
+   */
+  readonly quantity: number;
+}
+
+/**
+ * A share returned to its pool.
+ */
+export interface AdvanceAllocationUnsplit {
+  /**
+   * How much goes back; all of it when left out.
+   */
+  readonly quantity?: number;
+}
+
+/**
+ * Withdrawing an allocation.
+ */
+export interface AdvanceAllocationWithdraw {
+  /**
+   * Why it is withdrawn.
+   * Length: 1 to 1000.
+   */
+  readonly reason?: string;
+}
+
+/**
+ * What one issue event wrote.
+ */
+export interface AdvanceAllocationIssueResult {
+  /**
+   * applied, or duplicate for a replay.
+   */
+  readonly outcome: "applied" | "duplicate";
+  /**
+   * Ids of the possession rows written, by table.
+   */
+  readonly possession: { readonly [key: string]: ReadonlyArray<string> };
+}
+
+/**
+ * One issue event.
+ */
+export interface AdvanceAllocationIssue {
+  /**
+   * Items handed over.
+   */
+  readonly items: ReadonlyArray<AdvanceAllocationIssueItem>;
+}
+
+/**
+ * One item handed over; the keys depend on the kind.
+ */
+export interface AdvanceAllocationIssueItem {
+  /**
+   * Badge or pass: valid from; the window start by default.
+   * Format: `date-time`.
+   */
+  readonly valid_from?: string;
+  /**
+   * Badge or pass: valid until; the window end by default.
+   * Format: `date-time`.
+   */
+  readonly valid_to?: string;
+  /**
+   * Identifier of the parking pass: the holder's roster vehicle.
+   * Format: `uuid`.
+   */
+  readonly roster_vehicle_id?: string;
+  /**
+   * Identifier of the unit issued.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id?: string;
+  /**
+   * Unit issued, by tag.
+   */
+  readonly asset_tag?: string;
+  /**
+   * Identifier of the lot a quantity is issued from.
+   * Format: `uuid`.
+   */
+  readonly asset_lot_id?: string;
+  /**
+   * Identifier of the hold the item is issued against; picked when left out.
+   * Format: `uuid`.
+   */
+  readonly reservation_id?: string;
+  /**
+   * Lot or catering quantity.
+   */
+  readonly quantity?: number;
+  /**
+   * Catering: what is provided.
+   */
+  readonly description?: string;
+  /**
+   * Lodging: first night.
+   * Format: `date`.
+   */
+  readonly check_in_on?: string;
+  /**
+   * Lodging: departure date.
+   * Format: `date`.
+   */
+  readonly check_out_on?: string;
+  /**
+   * Travel: mode.
+   */
+  readonly travel_mode?: "Flight" | "Ground";
+  /**
+   * Travel: airline or operator.
+   */
+  readonly operator_name?: string;
+  /**
+   * Travel: flight or service number.
+   */
+  readonly service_identifier?: string;
+  /**
+   * Travel: booking confirmation.
+   */
+  readonly confirmation_identifier?: string;
+  /**
+   * Travel: departure place.
+   */
+  readonly departs_from?: string;
+  /**
+   * Travel: departure time.
+   * Format: `date-time`.
+   */
+  readonly departs_at?: string;
+  /**
+   * Travel: zone of the departure.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly departs_time_zone?: string;
+  /**
+   * Travel: arrival place.
+   */
+  readonly arrives_at_place?: string;
+  /**
+   * Travel: arrival time.
+   * Format: `date-time`.
+   */
+  readonly arrives_at?: string;
+  /**
+   * Travel: zone of the arrival.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly arrives_time_zone?: string;
+  /**
+   * Per diem: the day, inside the window.
+   * Format: `date`.
+   */
+  readonly day?: string;
+  /**
+   * Per diem: amount in minor units.
+   */
+  readonly amount_minor?: number | null;
+  /**
+   * Per diem: ISO 4217 currency.
+   * Length: 3 to 3.
+   */
+  readonly currency_code?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AllocationAllowancePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AllocationAllowance>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What remains of an offering's cap for a pool or a person (G-174).
+ */
+export interface AllocationAllowance {
+  /**
+   * Offering.
+   */
+  readonly offering:
+    | "Travel"
+    | "Lodging"
+    | "Catering"
+    | "Parking"
+    | "Uniforms"
+    | "Per Diem"
+    | "Radios"
+    | "Carts"
+    | "Guest List";
+  /**
+   * Identifier of the roster entry; null for the pool row.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
+  /**
+   * How the offering reaches the engagement.
+   */
+  readonly mode: string;
+  /**
+   * Cap; null for none.
+   */
+  readonly cap: number | null;
+  /**
+   * Live Requested quantity under it.
+   */
+  readonly requested: number;
+  /**
+   * Live Approved quantity under it.
+   */
+  readonly approved: number;
+  /**
+   * Cap less requested and approved, never below 0.
+   */
+  readonly remaining: number | null;
+  /**
+   * How far requested and approved go beyond the cap.
+   */
+  readonly beyond: number | null;
+}
+
+/**
+ * The radio channels a radio allocation is programmed with, as a whole.
+ */
+export interface AllocationRadioChannels {
+  /**
+   * The project's channels, 0 to 16.
+   */
+  readonly radio_channel_ids: ReadonlyArray<string>;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AssetReservationConflictPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AssetReservationConflict>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A live hold that no longer fits what can supply it (G-93), one row per conflict: the pinned unit is Damaged, In Maintenance, Lost, Retired or Returned; the class or lot is over reserved; or the order behind it is Canceled or short. Computed, never stored.
+ */
+export interface AssetReservationConflict {
+  /**
+   * Identifier of the hold.
+   * Format: `uuid`.
+   */
+  readonly reservation_id: string;
+  /**
+   * Identifier of the allocation the hold serves.
+   * Format: `uuid`.
+   */
+  readonly allocation_id: string;
+  /**
+   * Identifier of the org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the class held.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string;
+  /**
+   * Identifier of the pinned unit.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string | null;
+  /**
+   * Identifier of the lot.
+   * Format: `uuid`.
+   */
+  readonly asset_lot_id: string | null;
+  /**
+   * Identifier of the order line.
+   * Format: `uuid`.
+   */
+  readonly po_line_id: string | null;
+  /**
+   * Quantity held.
+   */
+  readonly quantity: number;
+  /**
+   * What no longer fits.
+   */
+  readonly conflict:
+    "Unit Unavailable" | "Class Over Reserved" | "Lot Over Reserved" | "Order Short";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface GuestListEntryPage {
   /**
    * Items on this page, in the documented default order.
@@ -37210,6 +38897,144 @@ export interface GuestDecisionRequest {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface AssetUnitHirePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AssetUnitHire>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order.
+ */
+export interface AssetUnitHire {
+  /**
+   * Identifier of the asset unit.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string;
+  /**
+   * Rental when the unit arrived on a rental order line; Purchase otherwise.
+   */
+  readonly acquisition_kind: "Purchase" | "Rental";
+  /**
+   * Rental units: when the hire ends.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at: string | null;
+  /**
+   * True for a rental unit whose hire has ended and which has not been Returned.
+   */
+  readonly off_hire_due: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AssetReservationPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AssetReservation>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions.
+ */
+export interface AssetReservation {
+  /**
+   * Identifier of the asset reservation.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the project of the allocation.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the allocation the hold serves.
+   * Format: `uuid`.
+   */
+  readonly advance_allocation_id: string;
+  /**
+   * Identifier of the pinned unit.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string | null;
+  /**
+   * Identifier of the lot held from.
+   * Format: `uuid`.
+   */
+  readonly asset_lot_id: string | null;
+  /**
+   * Identifier of the order line held on.
+   * Format: `uuid`.
+   */
+  readonly po_line_id: string | null;
+  /**
+   * Quantity held.
+   */
+  readonly quantity: number;
+  /**
+   * When the hold was released.
+   * Format: `date-time`.
+   */
+  readonly released_at: string | null;
+  /**
+   * Why it was released.
+   */
+  readonly release_reason:
+    "Withdrawn" | "Entry Removed" | "Engagement Ended" | "Split" | "Released By Reviewer" | null;
+}
+
+/**
+ * Releasing a hold.
+ */
+export interface AssetReservationRelease {
+  /**
+   * Why the hold is released.
+   * Length: 1 to 1000.
+   */
+  readonly reason?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface Form1099NecRowPage {
   /**
    * Items on this page, in the documented default order.
@@ -37268,6 +39093,213 @@ export interface Form1099NecRow {
    * Range: 0 to unbounded.
    */
   readonly payment_count: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface GoodsReturnPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<GoodsReturn>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Goods sent back to the vendor against a purchase order: a rental at off-hire, or bought goods that were defective, the wrong item or more than ordered. Recorded by `purchaseOrders.returnGoods`.
+ */
+export interface GoodsReturn {
+  /**
+   * Identifier of the goods return.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the purchase order the goods were received on.
+   * Format: `uuid`.
+   */
+  readonly purchase_order_id: string;
+  /**
+   * When the goods went back.
+   * Format: `date-time`.
+   */
+  readonly returned_at: string;
+  /**
+   * Identifier of the person who returned the goods.
+   * Format: `uuid`.
+   */
+  readonly returned_by: string | null;
+  /**
+   * Why the goods went back.
+   */
+  readonly return_reason: "Off Hire" | "Defective" | "Wrong Item" | "Over Delivery";
+  /**
+   * Condition or carrier noted at the return.
+   * Length: 1 to 20000.
+   */
+  readonly note: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ReturnLinePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ReturnLine>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What went back in a goods return, per receipt line: one row per serialized unit, or a quantity.
+ */
+export interface ReturnLine {
+  /**
+   * Identifier of the return line.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the goods return.
+   * Format: `uuid`.
+   */
+  readonly goods_return_id: string;
+  /**
+   * Identifier of the receipt line that brought the goods in.
+   * Format: `uuid`.
+   */
+  readonly receipt_line_id: string;
+  /**
+   * Identifier of the serialized unit returned.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string | null;
+  /**
+   * Quantity returned; 1 for a unit.
+   */
+  readonly quantity_returned: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface PoLineHireWarningPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<PoLineHireWarning>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A delivery or return window conflict of a live rental line (G-99), one row per warning: the hire against the project's site window (its Build and Strike records, else its dates) and its docks. Computed, never stored; warnings never refuse a line.
+ */
+export interface PoLineHireWarning {
+  /**
+   * Identifier of the rental order line.
+   * Format: `uuid`.
+   */
+  readonly po_line_id: string;
+  /**
+   * Identifier of the project of the order.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the purchase order.
+   * Format: `uuid`.
+   */
+  readonly purchase_order_id: string;
+  /**
+   * When the hire starts.
+   * Format: `date-time`.
+   */
+  readonly hire_starts_at: string;
+  /**
+   * When the hire ends.
+   * Format: `date-time`.
+   */
+  readonly hire_ends_at: string;
+  /**
+   * When the site window opens; null when nothing sets it.
+   * Format: `date-time`.
+   */
+  readonly site_opens_at: string | null;
+  /**
+   * When the site window closes; null when nothing sets it.
+   * Format: `date-time`.
+   */
+  readonly site_closes_at: string | null;
+  /**
+   * The window rule the hire breaks.
+   */
+  readonly warning:
+    | "Delivery After Load In"
+    | "Return Before Load Out"
+    | "Hire Beyond Site Window"
+    | "Delivery Docks Full"
+    | "Return Docks Full";
 }
 
 /**
@@ -38483,7 +40515,7 @@ export interface WorkDetailsPage {
 }
 
 /**
- * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second).
+ * The caller's own work details (Section 4.5.6 item 10): dietary and accessibility needs and the passport details. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. Uniform sizes and travel preferences are entered per roster entry since R6a (projectFacts): their fields here are always null, and a non-null value is refused with 422 work_detail_field_moved. Allergies are Restricted: the person reads their own here, and an org reads them only with data.restricted.read.medical on the project. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second).
  */
 export interface WorkDetails {
   /**
@@ -38506,26 +40538,35 @@ export interface WorkDetails {
    * Format: `uuid`.
    */
   readonly person_id: string;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly shirt_size: GarmentLetterSize | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly jacket_size: GarmentLetterSize | null;
   /**
-   * Pants size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly pants_size: string | null;
   /**
-   * Shoe size with its system.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly shoe_size: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly glove_size: GarmentLetterSize | null;
   /**
-   * Hat size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly hat_size: string | null;
   /**
-   * Anything else about fit.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 500.
    */
   readonly uniform_notes: string | null;
@@ -38534,7 +40575,7 @@ export interface WorkDetails {
    */
   readonly dietary_needs: ReadonlyArray<DietaryNeed>;
   /**
-   * Allergies in the person's words, with how severe.
+   * Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.
    * Length: 1 to 500.
    */
   readonly allergies: string | null;
@@ -38552,14 +40593,17 @@ export interface WorkDetails {
    * Length: 1 to 1000.
    */
   readonly accessibility_notes: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly seat_preference: SeatPreference | null;
   /**
-   * Preferred in-flight meal.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 100.
    */
   readonly meal_preference: string | null;
   /**
-   * IATA airport code.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly home_airport: string | null;
@@ -38630,26 +40674,35 @@ export type SeatPreference = "Window" | "Aisle" | "No Preference";
  * Fields accepted when creating a WorkDetails.
  */
 export interface WorkDetailsCreate {
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly shirt_size?: GarmentLetterSize | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly jacket_size?: GarmentLetterSize | null;
   /**
-   * Pants size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly pants_size?: string | null;
   /**
-   * Shoe size with its system.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly shoe_size?: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly glove_size?: GarmentLetterSize | null;
   /**
-   * Hat size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly hat_size?: string | null;
   /**
-   * Anything else about fit.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 500.
    */
   readonly uniform_notes?: string | null;
@@ -38658,7 +40711,7 @@ export interface WorkDetailsCreate {
    */
   readonly dietary_needs?: ReadonlyArray<DietaryNeed>;
   /**
-   * Allergies in the person's words, with how severe.
+   * Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.
    * Length: 1 to 500.
    */
   readonly allergies?: string | null;
@@ -38676,14 +40729,17 @@ export interface WorkDetailsCreate {
    * Length: 1 to 1000.
    */
   readonly accessibility_notes?: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly seat_preference?: SeatPreference | null;
   /**
-   * Preferred in-flight meal.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 100.
    */
   readonly meal_preference?: string | null;
   /**
-   * IATA airport code.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly home_airport?: string | null;
@@ -38713,26 +40769,35 @@ export interface WorkDetailsCreate {
  * Fields accepted when updating a WorkDetails. Omitted fields are unchanged.
  */
 export interface WorkDetailsUpdate {
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly shirt_size?: GarmentLetterSize | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly jacket_size?: GarmentLetterSize | null;
   /**
-   * Pants size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly pants_size?: string | null;
   /**
-   * Shoe size with its system.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly shoe_size?: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly glove_size?: GarmentLetterSize | null;
   /**
-   * Hat size as the person writes it.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 20.
    */
   readonly hat_size?: string | null;
   /**
-   * Anything else about fit.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 500.
    */
   readonly uniform_notes?: string | null;
@@ -38741,7 +40806,7 @@ export interface WorkDetailsUpdate {
    */
   readonly dietary_needs?: ReadonlyArray<DietaryNeed>;
   /**
-   * Allergies in the person's words, with how severe.
+   * Allergies in the person's words, with how severe. Restricted (data.restricted.read.medical): the person reads their own; an engaging org reads them only through workDetailShares.details, with the capability on the project.
    * Length: 1 to 500.
    */
   readonly allergies?: string | null;
@@ -38759,14 +40824,17 @@ export interface WorkDetailsUpdate {
    * Length: 1 to 1000.
    */
   readonly accessibility_notes?: string | null;
+  /**
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
+   */
   readonly seat_preference?: SeatPreference | null;
   /**
-   * Preferred in-flight meal.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Length: 1 to 100.
    */
   readonly meal_preference?: string | null;
   /**
-   * IATA airport code.
+   * Retired: always null; a non-null value is refused with 422 work_detail_field_moved; enter it per roster entry (projectFacts).
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly home_airport?: string | null;
@@ -39113,7 +41181,7 @@ export interface WorkDetailShare {
    */
   readonly consent_record_id: string;
   /**
-   * Categories shared.
+   * Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.
    */
   readonly categories: ReadonlyArray<WorkDetailCategory>;
   /**
@@ -39131,10 +41199,14 @@ export interface WorkDetailShare {
    * Format: `uuid`.
    */
   readonly roster_entry_id: string | null;
+  /**
+   * The share names the person's own contact: their verified sign-in email and phone (R6a).
+   */
+  readonly contact_shared: boolean;
 }
 
 /**
- * A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.
+ * A category of work details shared with an engaging org on its own. The person's own contact (R6a) is shared with share_contact rather than as a category. Uniform Sizes is retired: sizes are entered per roster entry (projectFacts), and sharing it is refused with 422 work_detail_category_retired. Travel Profile is the loyalty programs; Passport is the passport details.
  */
 export type WorkDetailCategory =
   | "Emergency Contacts"
@@ -39154,9 +41226,13 @@ export interface WorkDetailShareCreate {
    */
   readonly engagement_id: string;
   /**
-   * Categories shared.
+   * Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.
    */
   readonly categories: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * Whether to share the caller's own contact, their verified sign-in email and phone (R6a), besides the categories. Omitted on update, the share keeps what it had.
+   */
+  readonly share_contact?: boolean;
 }
 
 /**
@@ -39164,13 +41240,17 @@ export interface WorkDetailShareCreate {
  */
 export interface WorkDetailShareUpdate {
   /**
-   * Categories shared.
+   * Categories shared; never the retired Uniform Sizes. The person's own contact is share_contact and contact_shared.
    */
   readonly categories?: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * Whether to share the caller's own contact, their verified sign-in email and phone (R6a), besides the categories. Omitted on update, the share keeps what it had.
+   */
+  readonly share_contact?: boolean;
 }
 
 /**
- * What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked.
+ * What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked; allergies are masked unless the caller holds data.restricted.read.medical on the project (R6a).
  */
 export interface SharedWorkDetails {
   /**
@@ -39216,12 +41296,14 @@ export interface SharedWorkDetails {
    */
   readonly categories: ReadonlyArray<WorkDetailCategory>;
   /**
-   * Shared categories the caller's project capabilities cover; the others come back null.
+   * Shared categories the caller's project capabilities cover; the others come back null. The person's contact is readable when contact is not null.
    */
   readonly readable: ReadonlyArray<WorkDetailCategory>;
   readonly emergency_contacts: ReadonlyArray<SharedEmergencyContact> | null;
+  readonly contact: SharedContact | null;
   readonly uniform: SharedUniformSizes | null;
   readonly dietary: SharedDietaryNeeds | null;
+  readonly medical: SharedMedicalNeeds | null;
   readonly accessibility: SharedAccessibilityNeeds | null;
   readonly travel: SharedTravelProfile | null;
   readonly passport: SharedPassport | null;
@@ -39260,26 +41342,51 @@ export interface SharedEmergencyContact {
 }
 
 /**
- * Uniform sizes as an engaging org reads them.
+ * The person's own contact as an engaging org reads it (R6a): only verified sign-in addresses, null when none is verified. Read by engagement and safety readers, and by the company.
+ */
+export interface SharedContact {
+  /**
+   * The person's verified sign-in email.
+   * Format: `email`.
+   */
+  readonly email: string | null;
+  /**
+   * The person's verified sign-in phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly phone: string | null;
+}
+
+/**
+ * Uniform sizes as an engaging org read them before R6a. Always null now: no live share names Uniform Sizes, and sizes are read per roster entry (projectFacts).
  */
 export interface SharedUniformSizes {
+  /**
+   * Retired: always null; entered per roster entry since R6a.
+   */
   readonly shirt_size: GarmentLetterSize | null;
+  /**
+   * Retired: always null; entered per roster entry since R6a.
+   */
   readonly jacket_size: GarmentLetterSize | null;
   /**
-   * Pants size.
+   * Retired: always null; entered per roster entry since R6a.
    */
   readonly pants_size: string | null;
   /**
-   * Shoe size.
+   * Retired: always null; entered per roster entry since R6a.
    */
   readonly shoe_size: string | null;
+  /**
+   * Retired: always null; entered per roster entry since R6a.
+   */
   readonly glove_size: GarmentLetterSize | null;
   /**
-   * Hat size.
+   * Retired: always null; entered per roster entry since R6a.
    */
   readonly hat_size: string | null;
   /**
-   * Fit notes.
+   * Retired: always null; entered per roster entry since R6a.
    */
   readonly uniform_notes: string | null;
 }
@@ -39290,9 +41397,13 @@ export interface SharedUniformSizes {
 export interface SharedDietaryNeeds {
   readonly dietary_needs: ReadonlyArray<DietaryNeed>;
   /**
-   * Allergies; null when masked for the reader (a company reader never reads them).
+   * Allergies; null when masked for the reader. Restricted: only a holder of data.restricted.read.medical on the project reads them, and each such read is logged; a company reader never does.
    */
   readonly allergies: string | null;
+  /**
+   * Allergies are recorded and withheld from this reader (R6a).
+   */
+  readonly allergies_masked: boolean;
   /**
    * Whether allergies are recorded, even when masked.
    */
@@ -39301,6 +41412,16 @@ export interface SharedDietaryNeeds {
    * Other dietary notes.
    */
   readonly dietary_notes: string | null;
+}
+
+/**
+ * The Restricted medical read (R6a): present when the share names Dietary Needs and the caller holds data.restricted.read.medical on the project (the org Owner, and by default the catering lead and on-site medical roles worked there), even without hospitality.fulfillment.read; null otherwise. Each read is logged as allergies.viewed.
+ */
+export interface SharedMedicalNeeds {
+  /**
+   * Allergies, unmasked.
+   */
+  readonly allergies: string | null;
 }
 
 /**
@@ -39315,16 +41436,19 @@ export interface SharedAccessibilityNeeds {
 }
 
 /**
- * The travel profile as an engaging org reads it.
+ * The travel profile as an engaging org reads it: the loyalty programs since R6a.
  */
 export interface SharedTravelProfile {
+  /**
+   * Retired: always null; entered per roster entry since R6a.
+   */
   readonly seat_preference: SeatPreference | null;
   /**
-   * Preferred in-flight meal.
+   * Retired: always null; entered per roster entry since R6a.
    */
   readonly meal_preference: string | null;
   /**
-   * IATA airport code.
+   * Retired: always null; entered per roster entry since R6a.
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly home_airport: string | null;
@@ -39438,7 +41562,11 @@ export interface WorkDetailEvent {
    */
   readonly roster_entry_id: string | null;
   /**
-   * What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.
+   * Project fact kinds the act covered (R5): project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and changes to roster_travel_requests, roster_uniform_sizes and roster_vehicles.
+   */
+  readonly fact_kinds: ReadonlyArray<ProjectFactKind>;
+  /**
+   * What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, work_details.fields_removed, allergies.viewed, passport.revealed, roster_travel_requests.insert, project_facts.viewed, project_facts.counted, project_facts.erased, project_facts.expired and others.
    * Pattern: `^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$`.
    */
   readonly action: string;
@@ -39446,6 +41574,10 @@ export interface WorkDetailEvent {
    * Categories the act covered.
    */
   readonly categories: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * The act covered the person's own contact, shared since R6a outside the category list.
+   */
+  readonly includes_contact: boolean;
   /**
    * Columns an owner change touched, never their values.
    */
