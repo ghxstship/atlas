@@ -1,13 +1,20 @@
 "use server";
 
-import { isActionToken, actThroughLink, type LinkAction } from "@xos/data/notification-actions";
+import {
+  actThroughLink,
+  isActionToken,
+  readActionLink,
+  type LinkAction,
+} from "@xos/data/notification-actions";
 import { z } from "zod";
-import { createServerSupabase } from "@/lib/supabase/server";
+import { enforceActionLinkGate } from "@/lib/auth/action-link-gate";
+import { getViewer } from "@/lib/shell/context";
 
 /**
- * The confirm button of a one-tap email link (A127, ADR 0106). Only this acts, never opening the page: the database
- * checks the link is the signed-in recipient's, unused and unexpired, then acts through app.act_on_notification, so a
- * refusal (step-up included) names its rule and the link stays unused.
+ * The confirm button of a one-tap email link (A127, ADR 0106). Only this acts, never opening the page. The org's
+ * security settings decide first, as for an action in its Inbox (IP allow-list, MFA policy, session lifetime and
+ * idle timeout), then the database checks the link is the signed-in recipient's, unused and unexpired, and acts
+ * through app.act_on_notification, so a refusal (step-up included) names its rule and the link stays unused.
  */
 
 export interface ActionLinkState {
@@ -35,7 +42,17 @@ export async function confirmActionLink(
   if (!parsed.success) return { rule: "notification_action_invalid", at: Date.now() };
   if (parsed.data.action === "reject" && (parsed.data.reason ?? "").trim() === "")
     return { rule: "notification_action_reason", at: Date.now() };
-  const db = await createServerSupabase();
+  const viewer = await getViewer();
+  if (!viewer) return { rule: "notification_action_invalid", at: Date.now() };
+  const db = viewer.db;
+  // The org comes from the link itself, never from the form.
+  const link = await readActionLink(db, parsed.data.token);
+  if (!link.ok) return { rule: "unexpected", at: Date.now() };
+  if (link.data.orgSlug !== null) {
+    const member = await enforceActionLinkGate(viewer, link.data.orgSlug, parsed.data.token);
+    if (!member && link.data.audience === "Atlas")
+      return { rule: "notification_action_invalid", at: Date.now() };
+  }
   const result = await actThroughLink(db, {
     token: parsed.data.token,
     comment: parsed.data.reason?.trim() || null,

@@ -21,6 +21,7 @@ import { sitemap } from "@/ia/sitemap.generated";
 import {
   LAST_SEEN_COOKIE,
   lastSeenSetCookie,
+  NETWORK_RESTRICTED_PATH,
   recordsLastSeen,
   opensWithoutSecondFactor,
   orgAuthRedirect,
@@ -88,8 +89,6 @@ function withRouteOrg(request: NextRequest, slug: string | undefined): Headers {
 
 /** A path no route serves; rewriting to it renders app/not-found.tsx with status 404. */
 const NOT_FOUND_PATH = "/auth/not-found";
-/** Where a member whose network an org's IP allow-list refuses is sent. */
-const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
 
 /** A top-level page load, not a server action, an RSC fetch or a prefetch. */
 function isDocumentRequest(request: NextRequest): boolean {

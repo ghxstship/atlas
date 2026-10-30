@@ -37,6 +37,14 @@ notification at all. Gateway Home showed what needs the person, and a short Upda
    Every approval, timesheet, shift and offer rule, and step-up (`private.require_step_up`, which the Atlas page
    answers with the step-up dialog), applies as it does in the Inbox. A refusal rolls back and leaves the link
    unused. Acting uses every link of the notification, and the notification leaves the Inbox.
+   The org's security settings apply too. Row level security does not read them (migrations 1201 and 1330), and
+   `/auth/act/{token}` is not under `/{org}`, so the proxy never resolves a membership for it. The Atlas page and its
+   button therefore resolve the member's standing in the link's org (`read_notification_action` names it) through
+   `resolveMembership`, as `/{org}/inbox` does, before the button shows and again before it acts: a network the
+   org's IP allow-list refuses goes to the network notice, a second factor its MFA policy requires goes to verify,
+   and a session past its lifetime or idle timeout goes to sign in again, each returning to the link. A member's
+   link (audience Atlas) does nothing once the person is no longer a member; an external party's needs no
+   membership.
 5. **Expiry and retries.** A link lives 7 days. A retried delivery mints fresh links and revokes the earlier
    attempt's. Links 30 days past expiry are deleted the next time any email is minted.
 6. **Push actions for offers and messages.** `packages/platform/src/notifications/push.ts` adds the server categories
@@ -47,7 +55,8 @@ notification at all. Gateway Home showed what needs the person, and a short Upda
    a reply ask for the device to be unlocked. Each action calls `notifications.act`, whose `action` enum gains
    `accept`, `decline` and `reply` (an additive v1 change). `app.act_on_notification` accepts a shift through
    `app.accept_shift` or `app.accept_engaged_shift`, declines it through the new `app.decline_shift` (back to Draft
-   with the reason in its ledger, for the scheduler), accepts or declines an offer through `app.accept_offer` and
+   with the reason in its ledger, for the scheduler; only its member, or its engaged worker while the operational
+   area is open, and an open shift nobody holds is declined by no one), accepts or declines an offer through `app.accept_offer` and
    `app.decline_offer`, and replies through `app.send_chat_message`. Done and these actions reach any recipient;
    approve and reject stay a member's.
 7. **Offers reach the applicant.** A trigger on `app.offer_versions` sends `offer.sent` when the org's terms wait on

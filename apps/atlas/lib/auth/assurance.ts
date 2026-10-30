@@ -13,6 +13,8 @@ import { safeNext } from "./redirect";
 
 export const MFA_PATH = "/auth/mfa";
 export const SESSION_ENDED_PATH = "/auth/session-ended";
+/** Where a member whose network an org's IP allow-list refuses is sent. */
+export const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
 
 /** The device's last request, for the org idle timeout: an httpOnly epoch-milliseconds cookie. */
 export const LAST_SEEN_COOKIE = "xos-last-seen";

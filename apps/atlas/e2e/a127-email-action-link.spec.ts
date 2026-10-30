@@ -1,5 +1,6 @@
 import { notificationStore, type PlatformDb } from "@xos/platform";
 import pg from "pg";
+import type { Page } from "@playwright/test";
 import { expect, test } from "./engine-test";
 import { expectAccessibleInBothThemes } from "./a16-support";
 import { apiPost, DEMO_ORG, signInAs } from "./a36-support";
@@ -48,13 +49,8 @@ function platformDb(client: pg.Client): PlatformDb {
   };
 }
 
-test("A127: approve a purchase order from its email in two taps", async ({ browser, baseURL }) => {
-  test.setTimeout(120_000);
-  const base = baseURL as string;
-
-  // Producer: a purchase order submitted to the Purchase order policy; the Admin is asked first.
-  const producer = await (await browser.newContext()).newPage();
-  await signInAs(producer, "producer@example.com", DEMO_ORG);
+/** A purchase order submitted to the Purchase order policy by the Producer; the Admin is asked first. */
+async function requestApproval(producer: Page, base: string, description: string): Promise<string> {
   const vendors = (await (await producer.request.get("/api/v1/vendors?limit=50")).json()) as {
     data: { id: string; vendor_state: string }[];
   };
@@ -67,7 +63,7 @@ test("A127: approve a purchase order from its email in two taps", async ({ brows
   });
   await apiPost(producer.request, base, "/po-lines", {
     purchase_order_id: po["id"],
-    description: "Truss segment, one-tap approval",
+    description,
     quantity: 1,
     unit_price_minor: 12500,
   });
@@ -75,10 +71,12 @@ test("A127: approve a purchase order from its email in two taps", async ({ brows
     document_type: "Purchase Order",
     document_id: po["id"],
   });
-  const approvalId = String(approval["id"]);
+  return String(approval["id"]);
+}
 
-  // The email worker mints the links of the Admin's email, as it does when it sends it.
-  const links = await withDb(async (client) => {
+/** The email worker mints the links of the Admin's email about an approval, as it does when it sends it. */
+async function mintAdminLinks(base: string, approvalId: string) {
+  return withDb(async (client) => {
     const { rows } = await client.query<{ delivery_id: string }>(
       `select d.id as delivery_id from app.notifications n
          join app.notification_deliveries d on d.notification_id = n.id and d.channel = 'Email'
@@ -110,6 +108,16 @@ test("A127: approve a purchase order from its email in two taps", async ({ brows
       })) ?? []
     );
   });
+}
+
+test("A127: approve a purchase order from its email in two taps", async ({ browser, baseURL }) => {
+  test.setTimeout(120_000);
+  const base = baseURL as string;
+
+  const producer = await (await browser.newContext()).newPage();
+  await signInAs(producer, "producer@example.com", DEMO_ORG);
+  const approvalId = await requestApproval(producer, base, "Truss segment, one-tap approval");
+  const links = await mintAdminLinks(base, approvalId);
   const approve = links.find((l) => l.action === "approve")?.url;
   expect(links.map((l) => l.action).sort()).toEqual(["approve", "reject"]);
   expect(approve).toMatch(/\/auth\/act\/xact_[0-9a-f]{48}\.[0-9a-f]{32}$/);
@@ -144,4 +152,40 @@ test("A127: approve a purchase order from its email in two taps", async ({ brows
   await admin.goto(approve as string);
   await expect(admin.getByText("This was already handled. Nothing else to do.")).toBeVisible();
   await expect(admin.getByRole("button", { name: "Approve" })).toHaveCount(0);
+
+  // The org's security settings apply as in its Inbox (ADR 0106): while the org's MFA policy asks Admins for a
+  // second factor the Admin has not set up, the link sends them to set one up, returns to it after, and acts on
+  // nothing meanwhile. The policy is the demo org's own, so it is set for this step only.
+  const second = await requestApproval(producer, base, "Truss segment, refused while MFA is owed");
+  const secondApprove = (await mintAdminLinks(base, second)).find(
+    (l) => l.action === "approve",
+  )?.url;
+  expect(secondApprove).toBeTruthy();
+  const policy = await withDb(async (client) => {
+    const { rows } = await client.query<{ id: string }>(
+      `insert into app.setting_values (org_id, setting_key, scope_kind, scope_id, value_text)
+       select o.id, 'security.mfa_policy', 'Organization', o.id, 'admins' from app.organizations o where o.slug = $1
+       returning id`,
+      [DEMO_ORG],
+    );
+    return rows[0]?.id as string;
+  });
+  try {
+    await admin.goto(secondApprove as string);
+    await admin.waitForURL("**/auth/mfa?**");
+    const owed = new URL(admin.url());
+    expect(owed.searchParams.get("next")).toBe(new URL(secondApprove as string).pathname);
+    expect(owed.searchParams.get("org")).toBe(DEMO_ORG);
+    await expect(admin.getByRole("button", { name: "Approve" })).toHaveCount(0);
+  } finally {
+    await withDb((client) =>
+      client.query("update app.setting_values set deleted_at = now() where id = $1", [policy]),
+    );
+  }
+  const untouched = (await (
+    await admin.request.get(`/api/v1/approval-instances/${second}`)
+  ).json()) as { current_step: number };
+  expect(untouched.current_step).toBe(1);
+  await admin.goto(secondApprove as string);
+  await expect(admin.getByRole("heading", { level: 1, name: /^Approve .+\?$/ })).toBeVisible();
 });
