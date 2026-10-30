@@ -1,4 +1,4 @@
--- 1639_notification_kind_seed.test.sql
+-- 3059_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -69,6 +69,8 @@ select set_eq(
   ('approval.requested', 'Email', 'approvals', 'notification'),
   ('approval.requested', 'SMS', 'approvals', null::text),
   ('approval.requested', 'Push', 'approvals', null::text),
+  ('agent.change_proposed', 'In App', 'approvals', null::text),
+  ('agent.change_proposed', 'Push', 'approvals', null::text),
   ('approval.decided', 'In App', 'approvals', null::text),
   ('approval.decided', 'Email', 'approvals', 'notification'),
   ('approval.decided', 'SMS', 'approvals', null::text),
@@ -149,6 +151,14 @@ select set_eq(
   ('billing.trial_ended', 'Email', 'account', 'notification'),
   ('billing.trial_ended', 'SMS', 'account', null::text),
   ('billing.trial_ended', 'Push', 'account', null::text),
+  ('billing.paused', 'In App', 'account', null::text),
+  ('billing.paused', 'Email', 'account', 'notification'),
+  ('billing.paused', 'SMS', 'account', null::text),
+  ('billing.paused', 'Push', 'account', null::text),
+  ('billing.resumed', 'In App', 'account', null::text),
+  ('billing.resumed', 'Email', 'account', 'notification'),
+  ('billing.resumed', 'SMS', 'account', null::text),
+  ('billing.resumed', 'Push', 'account', null::text),
   ('organization.deletion_requested', 'In App', 'account', null::text),
   ('organization.deletion_requested', 'Email', 'account', 'notification'),
   ('organization.deletion_requested', 'SMS', 'account', null::text),
