@@ -83,6 +83,7 @@ const EXPLAINED = new Set([
   "day_template_run_unknown",
   "day_template_unknown",
   "anchor_unset",
+  "anchor_set",
   "anchor_too_large",
   "anchor_show_started",
   "anchor_sheet_collision",

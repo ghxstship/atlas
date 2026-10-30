@@ -30,7 +30,8 @@ handler), no workload view and no clash register. The competitor parity audit ap
    Shifts and the portfolio timeline, it is text with an icon beside a categorical colour step (viz-cat-1 to 7),
    never colour alone; warning and danger tones stay for clash severity. A deleted day goes to Trash: its title column
    is its nullable label, and the Trash page shows a row without a title as Untitled (`trash.untitled`), so the table
-   is registered rather than excluded. Bump-in and bump-out windows (B14, G-262) derive from these days and store no
+   is registered rather than excluded. The day editor saves a date's segments through `app.save_project_days`, an
+   invoker RPC, in one transaction, so a refused segment leaves the date as it was. Bump-in and bump-out windows (B14, G-262) derive from these days and store no
    second load-in or load-out date.
 
 2. **Day templates are separate tables.** v1 freezes `Template.template_kind` to `["Project"]` and
@@ -63,7 +64,8 @@ handler), no workload view and no clash register. The competitor parity audit ap
    every unique index true; published sheets stay (`anchor_sheet_collision`), and a called cue means the show has
    started (`anchor_show_started`). Shifts never move, because moving booked people could create double bookings
    nobody sees: they are listed for crew.shift.read holders, and booked dock slots for logistics.shipment.read
-   holders, so the definer function shows nothing its caller cannot read. Work orders, travel segments, engagement
+   holders. Records are listed for work.record.read holders, and running orders, cues and sheets for
+   show.run_of_show.read holders, so the definer function shows nothing its caller cannot read. Work orders, travel segments, engagement
    dates and roster arrival windows never move and are not listed. The toast's Move back runs a reverse move of the
    plan as it then stands; it is not an exact restore.
 

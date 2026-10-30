@@ -94,5 +94,20 @@ describe("moving the anchor", () => {
     const set = await setProjectAnchor(db, "p1", "2027-06-05");
     expect(set.ok).toBe(true);
     expect(calls[0]?.steps).toContainEqual(["update", [{ anchor_on: "2027-06-05" }]]);
+    expect(calls[0]?.steps).toContainEqual(["is", ["anchor_on", null]]);
+  });
+
+  it("refuses anchor_set when someone set the anchor since the page loaded", async () => {
+    const { db } = fakeClient({
+      "from:projects": [okResponse([]), okResponse({ id: "p1" })],
+    });
+    const set = await setProjectAnchor(db, "p1", "2027-06-05");
+    expect(!set.ok && set.error).toMatchObject({ kind: "refusal", rule: "anchor_set" });
+  });
+
+  it("reports a project it cannot see as not found", async () => {
+    const { db } = fakeClient({ "from:projects": [okResponse([]), okResponse(null)] });
+    const set = await setProjectAnchor(db, "p1", "2027-06-05");
+    expect(!set.ok && set.error).toMatchObject({ kind: "not-found" });
   });
 });

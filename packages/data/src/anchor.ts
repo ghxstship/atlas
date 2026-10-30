@@ -1,5 +1,5 @@
 import type { XosClient } from "./client.ts";
-import { fail, ok, toDataError, type Result } from "./result.ts";
+import { fail, ok, rowRefusal, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
 /**
@@ -81,20 +81,28 @@ export async function moveProjectAnchor(
   );
 }
 
-/** Sets a project's first anchor day, or clears it. A plain update: it moves nothing (needs projects.project.write). */
+/**
+ * Sets a project's first anchor day. A plain update that moves nothing (needs projects.project.write), and only while
+ * the project has no anchor: a page opened before someone else set one refuses anchor_set, so a set anchor changes only
+ * through moveProjectAnchor, which moves the plan with it.
+ */
 export async function setProjectAnchor(
   db: XosClient,
   projectId: string,
-  anchorOn: string | null,
+  anchorOn: string,
 ): Promise<Result<null>> {
   const { data, error } = await db
     .from("projects")
     .update({ anchor_on: anchorOn })
     .eq("id", projectId)
+    .is("anchor_on", null)
     .select("id");
   if (error) return fail(toDataError(error));
-  if (data.length === 0) return fail({ kind: "not-found" });
-  return ok(null);
+  if (data.length > 0) return ok(null);
+  // Nothing matched: either the anchor is already set, or the project is gone or unreadable.
+  const read = await db.from("projects").select("id").eq("id", projectId).maybeSingle();
+  if (read.error) return fail(toDataError(read.error));
+  return read.data ? fail(rowRefusal("anchor_set")) : fail({ kind: "not-found" });
 }
 
 /** Pins a record to its dates, or frees it, when the anchor moves. */

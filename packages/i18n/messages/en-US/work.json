@@ -672,6 +672,7 @@
       "day_template_run_unknown": "Choose a running order of this project.",
       "day_template_unknown": "Choose a day template of this organization.",
       "anchor_unset": "Set the project's anchor day before moving it.",
+      "anchor_set": "This project already has an anchor day. Reload the page and use Move anchor to change it.",
       "anchor_too_large": "This move would move more than 2000 records. Move the plan in parts.",
       "anchor_show_started": "A cue of this project has been called, so its shows have started and stay on their dates.",
       "anchor_sheet_collision": "A published sheet already covers the day an unpublished one would move to.",

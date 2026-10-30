@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(29);
+select plan(31);
 
 create function pg_temp.new_record(p_kind text, p_title text, p_subtype text default null) returns uuid
 language plpgsql as $$
@@ -153,6 +153,29 @@ select throws_ok(format('select * from app.move_project_anchor(%L, %L)', pg_temp
 select pg_temp.as_user('xavier');
 select throws_ok(format('select * from app.move_project_anchor(%L, %L)', pg_temp.id('prj_a'), '2027-06-07'),
   '42501', null, 'another org cannot move it');
+
+-- The definer returns only what its caller reads: a custom role that may move the plan but not read the show sees the
+-- records and the project, and none of the running orders, cues or sheets.
+select pg_temp.as_platform();
+insert into app.roles (org_id, code, name, band) values (pg_temp.id('org_a'), 'anchor_planner', 'Anchor Planner', 5);
+insert into app.role_capabilities (role_id, capability_code, reach)
+  select r.id, c.code, 'organization' from app.roles r
+  cross join (values ('projects.project.read'), ('projects.project.write'), ('schedule.timeline.read'),
+    ('schedule.timeline.write'), ('work.record.read')) c (code)
+  where r.code = 'anchor_planner';
+delete from app.membership_roles where membership_id = pg_temp.id('gina@org_a');
+insert into app.membership_roles (membership_id, role_id)
+  select pg_temp.id('gina@org_a'), r.id from app.roles r where r.code = 'anchor_planner';
+create temporary table unshown as select p.anchor_on from app.projects p where p.id = pg_temp.id('prj_a');
+grant select on unshown to public;
+select pg_temp.as_user('gina');
+select is(
+  (select count(*)::integer from app.move_project_anchor(pg_temp.id('prj_a'), (select anchor_on from unshown))
+    where item_kind in ('Running Order', 'Cue', 'Day Sheet', 'Call Sheet')),
+  0, 'a caller without show.run_of_show.read gets no running order, cue or sheet rows');
+select ok(
+  exists (select 1 from app.move_project_anchor(pg_temp.id('prj_a'), (select anchor_on from unshown)) where item_kind = 'Record'),
+  'the same caller, who reads the records, gets the record rows');
 
 select * from finish();
 rollback;

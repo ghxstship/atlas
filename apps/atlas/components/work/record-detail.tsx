@@ -417,7 +417,8 @@ export async function RecordBody({
       {detail.canSchedule && (record.startsAt || record.endsAt || record.dueAt) ? (
         <RecordRetime org={org} recordId={record.id} />
       ) : null}
-      {detail.canSchedule ? (
+      {/* The pin saves on the record itself, so it needs record write as well as the timeline. */}
+      {detail.canSchedule && detail.canWrite ? (
         <AnchorPin org={org} recordId={record.id} pinned={detail.anchorPinned} />
       ) : null}
       {dated ? (

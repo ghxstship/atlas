@@ -672,6 +672,7 @@
       "day_template_run_unknown": "Elija un orden de presentación de este proyecto.",
       "day_template_unknown": "Elija una plantilla de día de esta organización.",
       "anchor_unset": "Fije el día ancla del proyecto antes de moverlo.",
+      "anchor_set": "Este proyecto ya tiene un día ancla. Vuelva a cargar la página y use Mover el ancla para cambiarlo.",
       "anchor_too_large": "Este cambio movería más de 2000 registros. Mueva el plan por partes.",
       "anchor_show_started": "Ya se llamó un cue de este proyecto, así que sus funciones empezaron y se quedan en sus fechas.",
       "anchor_sheet_collision": "Una hoja publicada ya cubre el día al que se movería una sin publicar.",
