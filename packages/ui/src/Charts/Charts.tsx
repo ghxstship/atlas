@@ -5,6 +5,8 @@ export {
   type TimelineChange,
   type TimelineLink,
   type TimelinePreview,
+  type TimelineCategory,
+  type TimelineSegment,
   type ResourceScheduleProps,
   type OrgChartProps,
 } from "./Charts.types.ts";
@@ -15,3 +17,4 @@ export { ResourceSchedule } from "./ResourceSchedule.tsx";
 export { OrgChart } from "./OrgChart.tsx";
 export { Sparkline, type SparklineProps } from "./Sparkline.tsx";
 export { Chart, foldSeries, type ChartProps } from "./Chart.tsx";
+export { Heatmap, type HeatmapProps } from "./Heatmap.tsx";

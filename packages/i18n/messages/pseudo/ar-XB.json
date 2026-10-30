@@ -94,7 +94,8 @@
       "month": "‮Wouʇɥ‬",
       "more": "‮+{n} ɯoɹǝ‬",
       "range": "‮ꓤɐuƃǝ‬",
-      "week": "‮Mǝǝʞ‬"
+      "week": "‮Mǝǝʞ‬",
+      "dayTypes": "‮ꓷɐʎ ʇʎdǝs‬"
     },
     "camera": {
       "viewfinder": "‮Ɔɐɯǝɹɐ ʌıǝʍɟıupǝɹ‬"
@@ -157,7 +158,8 @@
     },
     "daysheet": {
       "contacts": "‮Ɔouʇɐɔʇs‬",
-      "now": "‮Noʍ‬"
+      "now": "‮Noʍ‬",
+      "dayTypes": "‮ꓷɐʎ ʇʎdǝs‬"
     },
     "diff": {
       "after": "‮∀ɟʇǝɹ‬",
@@ -224,7 +226,10 @@
     "grid": {
       "derived": "‮ꓷǝɹıʌǝp ɟɹoɯ ɔɐuou. Ǝpıʇ ʇɥǝ sonɹɔǝ ɹǝɔoɹp ʇo ɔɥɐuƃǝ ıʇ.‬",
       "hint": "‮∀ɹɹoʍ ʞǝʎs ɯoʌǝ, Ǝuʇǝɹ ǝpıʇs, ꓷǝlǝʇǝ ɔlǝɐɹs ʇo Ոudɹıɔǝp, dɐsʇǝ ɟɹoɯ Ǝxɔǝl ɟılls ʇɥǝ ɹɐuƃǝ.‬",
-      "row": "‮ꓤoʍ‬"
+      "row": "‮ꓤoʍ‬",
+      "newRow": "‮Nǝʍ ɹoʍ‬",
+      "hintAppend": "‮∀ɹɹoʍ ʞǝʎs ɐup ꓕɐq ɯoʌǝ, Ǝuʇǝɹ ǝpıʇs ɐup ɯoʌǝs poʍu, ɐup ʇʎdıuƃ ıu ʇɥǝ lɐsʇ ɹoʍ ɐpps ɐ ɹoʍ. Ԁɐsʇǝ ɟɹoɯ ɐ sdɹǝɐpsɥǝǝʇ ɟılls ʇɥǝ ɹɐuƃǝ.‬",
+      "cellError": "‮ꓤoʍ {row}, {column}: {message}‬"
     },
     "help": {
       "ask": "‮∀sʞ ɐ bnǝsʇıou ɐqonʇ ʇɥıs dɐƃǝ‬",
@@ -520,7 +525,16 @@
         "movesMany": "‮{count} snɔɔǝssoɹs ɯoʌǝ: {keys}.‬",
         "movesNone": "‮No oʇɥǝɹ ɹǝɔoɹp ɯoʌǝs.‬",
         "movesOne": "‮1 snɔɔǝssoɹ ɯoʌǝs: {keys}.‬"
-      }
+      },
+      "dayTypes": "‮ꓷɐʎ ʇʎdǝs‬",
+      "dayWithTypes": "‮{day} ({types})‬",
+      "segment": "‮{label} {start} ʇo {end}‬",
+      "offset": "‮Oɟɟsǝʇ‬",
+      "offsetOn": "‮Ou ʇɥǝ ɐuɔɥoɹ pɐʎ‬",
+      "offsetBefore": "‮{n} pɐʎs qǝɟoɹǝ ʇɥǝ ɐuɔɥoɹ‬",
+      "offsetAfter": "‮{n} pɐʎs ɐɟʇǝɹ ʇɥǝ ɐuɔɥoɹ‬",
+      "offsetBeforeOne": "‮1 pɐʎ qǝɟoɹǝ ʇɥǝ ɐuɔɥoɹ‬",
+      "offsetAfterOne": "‮1 pɐʎ ɐɟʇǝɹ ʇɥǝ ɐuɔɥoɹ‬"
     },
     "tooltip": {
       "withShortcut": "‮{label} ({shortcut})‬"
@@ -569,6 +583,9 @@
         "owner": "‮Oʍuǝɹ‬",
         "action": "‮∀ɔʇıou‬"
       }
+    },
+    "heatmap": {
+      "cell": "‮{row}, {column}: {value}‬"
     }
   }
 }

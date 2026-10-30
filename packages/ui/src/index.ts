@@ -442,11 +442,14 @@ export {
   type TimelineChange,
   type TimelineLink,
   type TimelinePreview,
+  type TimelineCategory,
+  type TimelineSegment,
   type ResourceScheduleProps,
   type OrgChartProps,
 } from "./Charts/Charts.tsx";
 export { Chart, foldSeries, type ChartProps } from "./Charts/Chart.tsx";
 export { Sparkline, type SparklineProps } from "./Charts/Sparkline.tsx";
+export { Heatmap, type HeatmapProps } from "./Charts/Heatmap.tsx";
 
 /* Editing */
 export {
