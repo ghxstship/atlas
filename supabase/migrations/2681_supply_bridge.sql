@@ -20,6 +20,7 @@
 --      twice. Lines may bring serialized units in by asset tag or a quantity into a lot at a venue. It replaces the
 --      client-side receipt writes and is replayable from Compass (private.sync_rpcs).
 --   7. app.return_goods: one return event, by units or out of a lot, with the same idempotency.
+--      A receipt line goes back the way it came in, so stock that went back never stays on hand.
 
 -- 1. Rentals on order lines --------------------------------------------------------------------------------------------
 
@@ -126,6 +127,8 @@ on conflict (table_name) do nothing;
 
 alter table app.asset_units add column receipt_line_id uuid references app.receipt_lines (id);
 create index asset_units_receipt_line_idx on app.asset_units (receipt_line_id);
+comment on table app.asset_units is 'Individual assets (Section 3.9 unit grain) tracked by asset tag, with the ten-value lifecycle (ADR 0104).';
+comment on column app.asset_units.asset_state is 'Lifecycle state. Changes only through app.transition_asset, except Returned, which only app.return_goods reaches.';
 comment on column app.asset_units.receipt_line_id is 'Receipt line the unit arrived on; fixed once set. Its order line names the element, acquisition kind, hire period and price, and its order the vendor (app.asset_unit_provenance), so none of them is stored on the unit.';
 call private.install_tenant_guards('app.asset_units', 'app.asset_classes', 'asset_class_id',
   array['app.venues', 'home_venue_id', 'app.receipt_lines', 'receipt_line_id']);
@@ -405,6 +408,8 @@ declare
   v_custodian_engagement uuid;
   v_return_line uuid;
   v_lot uuid;
+  v_has_units boolean;
+  v_stocked boolean;
 begin
   perform private.require_person();
   if p_event_id is null then
@@ -452,6 +457,11 @@ begin
       perform private.refuse('return_exceeds_receipt', 'Returns never exceed what the receipt line brought in.');
     end if;
 
+    -- A line goes back the way it came in: units by unit, a quantity that came into a lot out of a lot, and a
+    -- quantity that never came into stock as a plain line.
+    v_has_units := exists (select 1 from app.asset_units u where u.receipt_line_id = v_receipt.id and u.deleted_at is null);
+    v_stocked := exists (select 1 from app.asset_lot_movements m where m.receipt_line_id = v_receipt.id and m.movement_kind = 'Receipt');
+
     if jsonb_typeof(v_line -> 'asset_unit_ids') = 'array' then
       if v_venue is not null then
         perform private.refuse('return_line_target_ambiguous', 'A return line sends back units or a quantity out of a lot, not both.');
@@ -487,6 +497,12 @@ begin
         perform private.end_trusted_operation('goods_return');
       end loop;
     elsif v_venue is not null then
+      if v_has_units then
+        perform private.refuse('return_units_count', 'Name one unit for each unit returned.');
+      end if;
+      if not v_stocked then
+        perform private.refuse('return_line_not_stocked', 'This receipt line never came into stock, so it goes back without a venue.');
+      end if;
       if not private.has_capability(v_order.org_id, 'assets.asset.write') then
         raise exception using errcode = '42501', message = 'assets.asset.write is required';
       end if;
@@ -504,8 +520,11 @@ begin
       insert into app.asset_lot_movements (asset_lot_id, movement_kind, delta, return_line_id, project_id)
       values (v_lot, 'Vendor Return', -v_quantity, v_return_line, v_order.project_id);
     else
-      if exists (select 1 from app.asset_units u where u.receipt_line_id = v_receipt.id and u.deleted_at is null) then
+      if v_has_units then
         perform private.refuse('return_units_count', 'Name one unit for each unit returned.');
+      end if;
+      if v_stocked then
+        perform private.refuse('return_venue_required', 'This receipt line came into stock; name the venue it goes back out of.');
       end if;
       insert into app.return_lines (goods_return_id, receipt_line_id, quantity_returned)
       values (p_event_id, v_receipt.id, v_quantity);
@@ -515,7 +534,7 @@ begin
   return private.return_event_result('applied', p_event_id);
 end;
 $$;
-comment on function app.return_goods(uuid, uuid, app.goods_return_reason, jsonb, text) is 'Records one return event against a purchase order in one transaction (R7a): the goods return (its id is the event id) and, per entry of p_lines [{receipt_line_id, quantity, asset_unit_ids?, venue_id?}], return lines that never exceed the receipt line. Serialized units must have arrived on that line, be Available, Damaged or In Maintenance and in no one''s custody, and become Returned; a quantity out of a lot writes a Vendor Return movement (both need assets.asset.write). Off Hire applies only to rental lines. Needs procurement.receipt.write on the project. Replaying the event id returns outcome duplicate with the stored ids.';
+comment on function app.return_goods(uuid, uuid, app.goods_return_reason, jsonb, text) is 'Records one return event against a purchase order in one transaction (R7a): the goods return (its id is the event id) and, per entry of p_lines [{receipt_line_id, quantity, asset_unit_ids?, venue_id?}], return lines that never exceed the receipt line. A line goes back the way it came in. Serialized units must have arrived on that line, be Available, Damaged or In Maintenance and in no one''s custody, and become Returned; a quantity that came into a lot goes back out of a lot at a venue as a Vendor Return movement (both need assets.asset.write); a quantity that never came into stock goes back as a plain line. Off Hire applies only to rental lines. Needs procurement.receipt.write on the project. Replaying the event id returns outcome duplicate with the stored ids.';
 revoke all on function app.return_goods(uuid, uuid, app.goods_return_reason, jsonb, text) from public, anon;
 grant execute on function app.return_goods(uuid, uuid, app.goods_return_reason, jsonb, text) to authenticated, service_role;
 

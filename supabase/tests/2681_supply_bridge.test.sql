@@ -1,8 +1,9 @@
 -- pgTAP: migration 2681 (R7a), the supply bridge. Rental order lines keep their hire period with their kind;
 -- app.receive_goods brings serialized units in by tag (Received, on the receipt line) and quantities into a lot (a
 -- Receipt movement), records a plain receipt line for a service, replays as duplicate and refuses every rule in
--- order; the unit receipt guard holds; app.return_goods sends units back as Returned and lot quantities out as a
--- Vendor Return movement, and refuses every rule; Returned is never reached through app.transition_asset; the
+-- order; the unit receipt guard holds; app.return_goods sends units back as Returned, lot quantities out as a
+-- Vendor Return movement and other quantities as a plain line, refuses a line that does not go back the way it came
+-- in, and refuses every other rule; Returned is never reached through app.transition_asset; the
 -- direction constraint keeps R1's engagement custodian; app.receive_goods is a sync RPC.
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -17,7 +18,8 @@ insert into world values
   ('ev5', '01920000-0000-7000-8681-000000000005'), ('ev6', '01920000-0000-7000-8681-000000000006'),
   ('ev7', '01920000-0000-7000-8681-000000000007'), ('ev8', '01920000-0000-7000-8681-000000000008'),
   ('ret1', '01920000-0000-7000-8681-000000000101'), ('ret2', '01920000-0000-7000-8681-000000000102'),
-  ('ret3', '01920000-0000-7000-8681-000000000103'), ('ret9', '01920000-0000-7000-8681-000000000109');
+  ('ret3', '01920000-0000-7000-8681-000000000103'), ('ret4', '01920000-0000-7000-8681-000000000104'),
+  ('ret9', '01920000-0000-7000-8681-000000000109');
 
 -- Rental lines ------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
@@ -125,6 +127,7 @@ select throws_ok($$select pg_temp.receive('ev6', 'po', jsonb_build_array(jsonb_b
   '42501', 'assets.asset.write is required', 'nor moves a lot');
 select is((select r ->> 'outcome' from pg_temp.receive('ev6', 'po', jsonb_build_array(jsonb_build_object('po_line_id', pg_temp.id('l_deck'), 'quantity', 1))) r),
   'applied', 'but records a plain receipt line');
+insert into world select 'rl_deck_plain', id from app.receipt_lines where goods_receipt_id = pg_temp.id('ev6');
 
 -- The unit receipt guard ------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -168,6 +171,16 @@ select app.transition_asset(pg_temp.id('r2'), 'Deployed', 'Damaged', 'Cracked ca
 select throws_ok($$select pg_temp.give_back('ret1', 'po', 'Defective', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_radio'), 'quantity', 1,
     'asset_unit_ids', jsonb_build_array(pg_temp.id('r2')))))$$,
   'XR001', 'return_unit_in_custody: Check the unit in before it goes back to the vendor.', 'a unit still in someone''s custody does not go back');
+select throws_ok($$select pg_temp.give_back('ret1', 'po', 'Defective', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_radio'), 'quantity', 1,
+    'venue_id', pg_temp.id('venue_a'))))$$,
+  'XR001', 'return_units_count: Name one unit for each unit returned.', 'a line that brought units in never goes back out of a lot');
+select throws_ok($$select pg_temp.give_back('ret1', 'po', 'Defective', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_deck'), 'quantity', 2)))$$,
+  'XR001', 'return_venue_required: This receipt line came into stock; name the venue it goes back out of.',
+  'a line that came into a lot goes back out of one, so on hand never keeps what went back');
+select throws_ok($$select pg_temp.give_back('ret1', 'po', 'Defective', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_deck_plain'), 'quantity', 1,
+    'venue_id', pg_temp.id('venue_a'))))$$,
+  'XR001', 'return_line_not_stocked: This receipt line never came into stock, so it goes back without a venue.',
+  'a line that never came into stock takes nothing out of a lot');
 select pg_temp.as_platform();
 select is((select count(*)::int from app.goods_returns), 0, 'no refused call left a return');
 
@@ -201,6 +214,11 @@ select throws_ok($$select pg_temp.give_back('ret3', 'po', 'Wrong Item', jsonb_bu
 select throws_ok($$select pg_temp.give_back('ret3', 'po', 'Wrong Item', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_deck'), 'quantity', 1,
     'venue_id', pg_temp.id('venue_b'))))$$,
   'XR001', null, 'a venue holding no lot of the class is refused');
+select is((select r ->> 'outcome' from pg_temp.give_back('ret4', 'po', 'Over Delivery', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_deck_plain'), 'quantity', 1))) r),
+  'applied', 'a line that never came into stock goes back as a plain line');
+select is((select count(*)::int from app.asset_lot_movements m join app.return_lines r on r.id = m.return_line_id
+    where r.goods_return_id = pg_temp.id('ret4')), 0, 'with no movement');
+select is((select on_hand from app.asset_lot_balances where asset_lot_id = pg_temp.id('lot')), 5::numeric, 'so on hand is unchanged');
 select pg_temp.as_user('gina');
 select throws_ok($$select pg_temp.give_back('ret9', 'po', 'Defective', jsonb_build_array(jsonb_build_object('receipt_line_id', pg_temp.id('rl_deck'), 'quantity', 1,
     'venue_id', pg_temp.id('venue_a'))))$$,
@@ -209,12 +227,12 @@ select throws_ok($$select pg_temp.give_back('ret9', 'po', 'Defective', jsonb_bui
 -- Who reads returns ------------------------------------------------------------------------------------------------------------------------
 select is((select count(*)::int from app.goods_returns), 0, 'a reader without procurement.po.read reads no return');
 select pg_temp.as_user('dave');
-select is((select count(*)::int from app.goods_returns), 2, 'a project member with procurement.po.read reads the returns');
-select is((select count(*)::int from app.return_lines), 2, 'and their lines');
+select is((select count(*)::int from app.goods_returns), 3, 'a project member with procurement.po.read reads the returns');
+select is((select count(*)::int from app.return_lines), 3, 'and their lines');
 select throws_ok(format($$insert into app.goods_returns (purchase_order_id, return_reason) values (%L, 'Defective')$$, pg_temp.id('po')),
   '42501', null, 'returns are written only by app.return_goods');
 select pg_temp.as_platform();
-select is((select count(*)::int from app.domain_events where event_type = 'goods.returned'), 2, 'goods.returned is emitted per return');
+select is((select count(*)::int from app.domain_events where event_type = 'goods.returned'), 3, 'goods.returned is emitted per return');
 
 -- The ledger and the catalog -------------------------------------------------------------------------------------------------------------------
 select ok(pg_get_constraintdef((select oid from pg_constraint where conname = 'asset_lot_movements_direction')) like '%custodian_engagement_id%',

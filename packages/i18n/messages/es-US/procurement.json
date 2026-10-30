@@ -368,6 +368,8 @@
     "return_unit_not_from_receipt": "Esa unidad no llegó con esta línea de recepción.",
     "return_unit_state": "Solo una unidad Disponible, Dañada o En mantenimiento puede devolverse.",
     "return_unit_in_custody": "Registre la entrada de la unidad antes de devolverla al proveedor.",
+    "return_venue_required": "Esta línea ingresó al inventario. Elija el lugar desde el que se devuelve.",
+    "return_line_not_stocked": "Esta línea nunca ingresó al inventario, así que se devuelve sin un lugar.",
     "asset_lot_insufficient": "No hay suficiente de este artículo en ese lugar.",
     "goods_return_immutable": "Una devolución conserva su orden de compra, quien la hizo y su motivo.",
     "hire_period_order": "El alquiler debe terminar después de empezar."
@@ -525,7 +527,7 @@
     "quantity": "Cantidad devuelta",
     "returnable": "Aún se pueden devolver {count}",
     "fromStock": "Sacar del inventario en",
-    "notStocked": "Sin inventario",
+    "receivedVenue": "El lugar al que ingresó",
     "note": "Estado o transportista",
     "record": "Registrar devolución"
   }

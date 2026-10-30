@@ -368,6 +368,8 @@
     "return_unit_not_from_receipt": "That unit did not arrive on this receipt line.",
     "return_unit_state": "Only an Available, Damaged or In Maintenance unit can go back.",
     "return_unit_in_custody": "Check the unit in before it goes back to the vendor.",
+    "return_venue_required": "This line came into stock. Choose the venue it goes back out of.",
+    "return_line_not_stocked": "This line never came into stock, so it goes back without a venue.",
     "asset_lot_insufficient": "Not enough of this item is on hand at that venue.",
     "goods_return_immutable": "A return keeps its purchase order, returner and reason.",
     "hire_period_order": "The hire must end after it starts."
@@ -525,7 +527,7 @@
     "quantity": "Quantity returned",
     "returnable": "{count} can still go back",
     "fromStock": "Out of stock at",
-    "notStocked": "Not stocked",
+    "receivedVenue": "The venue it came into",
     "note": "Condition or carrier",
     "record": "Record return"
   }

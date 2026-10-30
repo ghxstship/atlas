@@ -106,6 +106,7 @@ export function PoLineForm({
         name="description"
         label={t("lines.descriptionLabel")}
         width="100%"
+        required
         error={err("description")}
       />
       <div className="flex flex-wrap gap-12">
@@ -115,6 +116,7 @@ export function PoLineForm({
           inputMode="decimal"
           label={t("lines.quantity")}
           defaultValue="1"
+          required
           error={err("quantity")}
         />
         <Input
@@ -192,6 +194,11 @@ export interface ReturnableLine {
   readonly rental: boolean;
   /** Units that arrived on the line and can still go back. */
   readonly units: readonly { readonly id: string; readonly tag: string }[];
+  /**
+   * The venue whose lot the line's quantity came into, or null when it never came into stock. A line goes back the
+   * way it came in, so a stocked quantity always leaves a lot and any other quantity never does.
+   */
+  readonly stockedAt: string | null;
 }
 
 export function ReturnForm({
@@ -263,13 +270,19 @@ export function ReturnForm({
                   state.fieldErrors?.[`returned-${l.receiptLineId}`] ? k("validation.number") : ""
                 }
               />
-              <Select
-                id={`return-venue-${l.receiptLineId}`}
-                name={`venue-${l.receiptLineId}`}
-                label={t("returns.fromStock")}
-                value=""
-                options={[{ value: "", label: t("returns.notStocked") }, ...venues]}
-              />
+              {l.stockedAt ? (
+                <Select
+                  id={`return-venue-${l.receiptLineId}`}
+                  name={`venue-${l.receiptLineId}`}
+                  label={t("returns.fromStock")}
+                  value={l.stockedAt}
+                  options={
+                    venues.some((v) => v.value === l.stockedAt)
+                      ? [...venues]
+                      : [{ value: l.stockedAt, label: t("returns.receivedVenue") }, ...venues]
+                  }
+                />
+              ) : null}
             </div>
           )}
         </fieldset>

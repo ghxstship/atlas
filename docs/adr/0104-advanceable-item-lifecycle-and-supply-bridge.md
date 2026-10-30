@@ -136,7 +136,9 @@ Migrations 2680 to 2683 build section 4. Where the build differs from the text a
 - **Returned.** Reached from Available, Damaged or In Maintenance, only inside `app.return_goods`
   (`app.transition_asset` refuses it otherwise, asset_returned_through_goods_return). A unit in someone's custody is
   checked in first (return_unit_in_custody). A quantity out of a lot is a Vendor Return movement; the direction
-  constraint keeps R1's engagement custodian on Check Out.
+  constraint keeps R1's engagement custodian on Check Out. A receipt line goes back the way it came in: units by
+  unit (return_units_count), a quantity that came into a lot out of a lot (return_venue_required), and a quantity
+  that never came into stock without one (return_line_not_stocked), so stock that went back never stays on hand.
 - **Units on a receipt line.** `app.asset_units.receipt_line_id` is fixed once set, and a receipt line never brings
   in more live units than it received or a unit of another element (t42_guard_asset_unit_receipt).
 - **Trash.** `app.goods_returns` and `app.return_lines` are excluded from Trash (ADR 0110): a return is undone by
@@ -146,7 +148,8 @@ Migrations 2680 to 2683 build section 4. Where the build differs from the text a
   reader without procurement.po.read.
 - **Parity additions (gaps G-96 and G-99).** `app.asset_unit_hire`, an owner-rights view filtered to
   assets.asset.read with no vendor, cost or order, feeds the units list's built-in Damaged, Hired in and Unavailable
-  views. `app.po_line_hire_warnings` and `app.hire_window_warnings` warn, never refuse, when a hire starts after the
+  views: presets in A117's filter model (`f.state`, `f.acquisition`) listed first in the saved views menu, which a
+  person copies to a saved view of their own. `app.po_line_hire_warnings` and `app.hire_window_warnings` warn, never refuse, when a hire starts after the
   site opens, ends before it closes, runs more than a day beyond it, or starts or ends when every dock the project
   books is taken. The site window is the project's live Build and Strike records, else its dates; a missing bound
   gives no warning for the rules that use it.

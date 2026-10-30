@@ -1355,3 +1355,32 @@ export async function listReceiptUnits(
     })),
   );
 }
+
+export interface ReceiptStock {
+  readonly receiptLineId: string;
+  readonly venueId: string;
+}
+
+/**
+ * Where some receipt lines brought a quantity into stock (their Receipt movements, R7a), for the return dialog: a
+ * line goes back the way it came in, so a stocked line goes back out of a lot and any other quantity without one.
+ */
+export async function listReceiptStock(
+  db: XosClient,
+  receiptLineIds: readonly string[],
+): Promise<Result<ReceiptStock[]>> {
+  if (receiptLineIds.length === 0) return ok([]);
+  const { data, error } = await db
+    .from("asset_lot_movements")
+    .select("receipt_line_id, lot:asset_lots!asset_lot_movements_asset_lot_id_fkey(venue_id)")
+    .in("receipt_line_id", [...receiptLineIds])
+    .eq("movement_kind", "Receipt");
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).flatMap((m) =>
+      m.receipt_line_id === null || !m.lot
+        ? []
+        : [{ receiptLineId: m.receipt_line_id, venueId: m.lot.venue_id }],
+    ),
+  );
+}

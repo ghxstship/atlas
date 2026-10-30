@@ -25,6 +25,7 @@ import {
   listAssetUnitHire,
   listAssetUnits,
   listAssetVenues,
+  listReceiptStock,
   lotScanCode,
   normalizeAssetTag,
   recordAssetCustody,
@@ -1192,5 +1193,24 @@ describe("provenance and hire", () => {
       { assetUnitId: "u2", acquisitionKind: "Purchase", hireEndsAt: null, offHireDue: false },
     ]);
     expect(calls[0]?.steps).toContainEqual(["eq", ["org_id", "o1"]]);
+  });
+
+  it("lists where receipt lines came into stock, from their Receipt movements", async () => {
+    const { db, calls } = fakeClient({
+      "from:asset_lot_movements": [
+        okResponse([
+          { receipt_line_id: "rl1", lot: { venue_id: "v1" } },
+          { receipt_line_id: "rl2", lot: null },
+        ]),
+        errorResponse("42501", "denied"),
+      ],
+    });
+    expect(await listReceiptStock(db, [])).toEqual({ ok: true, data: [] });
+    expect(calls).toHaveLength(0);
+    const stock = await listReceiptStock(db, ["rl1", "rl2"]);
+    expect(stock.ok && stock.data).toEqual([{ receiptLineId: "rl1", venueId: "v1" }]);
+    expect(calls[0]?.steps).toContainEqual(["in", ["receipt_line_id", ["rl1", "rl2"]]]);
+    expect(calls[0]?.steps).toContainEqual(["eq", ["movement_kind", "Receipt"]]);
+    expect((await listReceiptStock(db, ["rl3"])).ok).toBe(false);
   });
 });

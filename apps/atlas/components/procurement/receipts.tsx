@@ -1,4 +1,9 @@
-import { listAssetClasses, listAssetVenues, listReceiptUnits } from "@xos/data/assets";
+import {
+  listAssetClasses,
+  listAssetVenues,
+  listReceiptStock,
+  listReceiptUnits,
+} from "@xos/data/assets";
 import {
   listGoodsReceipts,
   listGoodsReturns,
@@ -147,16 +152,20 @@ export async function ReceiptsSection({
   };
   /** Return to vendor: the receipt's lines with what can still go back, and their units still here. */
   const returnDrawer = async (r: GoodsReceipt) => {
-    const [lines, units, returns, venues] = await Promise.all([
+    const [lines, units, stock, returns, venues] = await Promise.all([
       listPoLines(db, r.purchaseOrderId),
       listReceiptUnits(
+        db,
+        r.lines.map((l) => l.id),
+      ),
+      listReceiptStock(
         db,
         r.lines.map((l) => l.id),
       ),
       listGoodsReturns(db, ctx.org.id, r.purchaseOrderId),
       listAssetVenues(db, ctx.org.id),
     ]);
-    if (!lines.ok || !units.ok || !returns.ok || !venues.ok) {
+    if (!lines.ok || !units.ok || !stock.ok || !returns.ok || !venues.ok) {
       return <ErrorPanel what={t("returns.what")} />;
     }
     const byId = new Map(lines.data.map((l) => [l.id, l]));
@@ -182,6 +191,7 @@ export async function ReceiptsSection({
             units: units.data
               .filter((u) => u.receiptLineId === l.id && back.includes(u.state))
               .map((u) => ({ id: u.id, tag: u.assetTag })),
+            stockedAt: stock.data.find((m) => m.receiptLineId === l.id)?.venueId ?? null,
           };
         })}
       />
