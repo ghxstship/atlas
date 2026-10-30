@@ -3,7 +3,7 @@ import {
   engagementTabIds,
   isNodeVisible,
   type Condition,
-  type ExternalRoleType,
+  type EngagementTabSetKey,
   type NavContext,
   type Sitemap,
 } from "@xos/ia";
@@ -36,10 +36,10 @@ export function offeringConditions(rows: readonly EngagementOffering[]): Conditi
   return conditions;
 }
 
-/** The shell's navigation context with an engagement's role type, scopes and offering conditions. */
+/** The shell's navigation context with an engagement's tab set, scopes and offering conditions. */
 export function engagementNav(
   nav: NavContext,
-  roleType: ExternalRoleType,
+  roleType: EngagementTabSetKey,
   scopes: readonly string[],
   conditions: readonly Condition[],
 ): NavContext {
@@ -55,7 +55,7 @@ export function engagementNav(
 export function visibleEngagementTabs(
   sitemap: Sitemap,
   nav: NavContext,
-  roleType: ExternalRoleType,
+  roleType: EngagementTabSetKey,
   scopes: readonly string[],
   conditions: readonly Condition[],
 ): string[] {

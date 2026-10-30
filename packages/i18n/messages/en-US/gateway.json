@@ -62,7 +62,27 @@
       "account_membership_unconfirmed": "This member has not confirmed their membership yet, so they cannot be assigned.",
       "assignment_account_mismatch": "Assign members of the company that supplies this engagement.",
       "roster_locked": "Names are locked on this engagement. Ask the producing organization to change the roster.",
-      "roster_lock_engagement_closed": "This engagement is closed, so its names lock no longer changes."
+      "roster_lock_engagement_closed": "This engagement is closed, so its names lock no longer changes.",
+      "allocation_not_your_engagement": "Only the people who answer for this engagement ask for and share out what it needs. Ask your account's Owner, Admin or Advancing Lead.",
+      "allocation_entry_not_on_engagement": "That person is not on this engagement's roster. Choose someone on it.",
+      "allocation_not_requestable": "That item is not one this project lets you ask for. Choose another.",
+      "allocation_item_kind": "Choose a credential, equipment, catering, a room, travel or per diem.",
+      "offering_not_offered": "The organization does not offer this on this engagement. Message them if you need it.",
+      "offering_not_provided": "The organization does not provide this one; it is reimbursed or paid as a buyout.",
+      "allocation_cap_engagement": "This goes beyond what your company may have of this. Ask for less.",
+      "allocation_cap_person": "This goes beyond what one person may have of this. Ask for less.",
+      "allocation_engagement_closed": "This engagement is complete or canceled, so nothing more is requested on it.",
+      "allocation_entry_not_live": "That person was withdrawn from the roster or declined it.",
+      "allocation_entry_not_accepted": "That person is not accepted on the roster yet, by the organization and by themselves.",
+      "allocation_issued": "Part of this was already handed over. Return it at the desk first.",
+      "allocation_state_conflict": "This changed a moment ago. Reload to see where it stands.",
+      "allocation_not_pool": "Only an approved pool is shared out. Wait for the organization to approve it.",
+      "allocation_not_split": "Only an approved share of a pool goes back to it.",
+      "allocation_split_exceeds": "The pool does not have that many left. Give a smaller share.",
+      "allocation_split_parts": "Give each person a whole quantity of at least one.",
+      "allocation_window": "The end of the need must come after its start.",
+      "allocation_quantity_positive": "Enter a quantity above zero.",
+      "allocation_quantity_whole": "This item is given in whole numbers."
     }
   },
   "common": {
@@ -367,7 +387,10 @@
         "rosterArrival": "Give the arrival a start, a later end and a time zone, or leave all three empty.",
         "rosterEmail": "Enter one email address.",
         "assignMember": "Choose a member and a duty.",
-        "inviteEmail": "Enter one email address and choose a role."
+        "inviteEmail": "Enter one email address and choose a role.",
+        "allocationItem": "Choose who it is for and what you need.",
+        "allocationQuantity": "Enter a quantity above zero.",
+        "allocationWindow": "Give the need a start, a later end and a time zone."
       },
       "advance": {
         "answer": "Your answer",
@@ -574,13 +597,95 @@
       "inviteTitle": "Invite by email",
       "locksOn": "Names lock on {date}",
       "lockedOn": "Names locked on {date}. Ask {orgName} to change the roster.",
-      "factsTitle": "Project details"
+      "factsTitle": "Project details",
+      "items": {
+        "title": "Items",
+        "line": "{item} ({n})",
+        "declined": "Declined: {reason}",
+        "withdraw": "Withdraw",
+        "withdrawn": "Withdrawn.",
+        "giveBack": "Give back to the pool",
+        "givenBack": "Given back to the pool.",
+        "kind": {
+          "credential": "Credential",
+          "parkingPass": "Parking pass",
+          "asset": "Equipment",
+          "catering": "Catering",
+          "lodging": "Lodging",
+          "travel": "Travel",
+          "perDiem": "Per diem"
+        },
+        "status": {
+          "requested": "Requested",
+          "approved": "Approved",
+          "reserved": "Reserved",
+          "received": "Received",
+          "confirmed": "Confirmed",
+          "onOrder": "On order",
+          "awaitingOrder": "Awaiting order",
+          "partlyIssued": "Partly issued",
+          "issued": "Issued",
+          "revoked": "Revoked",
+          "returned": "Returned",
+          "declined": "Declined",
+          "withdrawn": "Withdrawn"
+        }
+      },
+      "pool": {
+        "title": "Pool",
+        "sentence": "What the organization approved for your company as a whole. Share it out to the people on your roster; each person then picks up their own.",
+        "empty": "Nothing is in your pool yet. Request an item below for the whole crew.",
+        "left": "{n} left to share",
+        "asked": "{n} requested",
+        "assignFrom": "Assign from",
+        "sharePerPerson": "Share per person",
+        "sharePerPersonHelp": "{n} left in the pool. A lower share gives the difference back.",
+        "selectPeople": "People to assign",
+        "personShare": "{name}, holds {n}",
+        "personNotAccepted": "{name}, not accepted yet"
+      },
+      "request": {
+        "title": "Request an item",
+        "submit": "Send request",
+        "done": "Request sent. The organization reviews it.",
+        "for": "For",
+        "forPool": "Your pool",
+        "item": "Item",
+        "itemHint": "Choose what you need",
+        "itemCapped": "{name}, up to {n} each",
+        "quantity": "Quantity",
+        "from": "Needed from",
+        "to": "Needed until",
+        "note": "Note",
+        "noteHelp": "What it is for, up to 1,000 characters.",
+        "timeZone": "Time zone",
+        "timeZoneHelp": "The project's time zone unless you change it.",
+        "nothing": "The organization offers nothing to request on this engagement yet. Message them if you need something."
+      }
     },
     "accountTeam": {
       "title": "Account team",
       "sentence": "Account Members reach only the engagements you assign them. An Advancing Lead also manages the crew roster.",
       "remove": "Remove",
       "none": "Nobody from your account is assigned yet."
+    },
+    "rosterMember": {
+      "sentence": "You work on this engagement for {org} on {project}. You see your own badge, travel, lodging, per diem and gear here, never a colleague's.",
+      "upNext": "Up next",
+      "when": "Arrive",
+      "window": "{start} to {end}",
+      "noArrival": "Your arrival is not set yet.",
+      "call": "Call time",
+      "where": "Where",
+      "parking": "Parking",
+      "contact": "Contact",
+      "bring": "Bring and pick up",
+      "message": "Message",
+      "assigned": "Assigned to you",
+      "assignedEmpty": "Nothing is assigned to you yet.",
+      "projectDetails": "Update your project details",
+      "party": "Engaged as",
+      "documentsEmpty": "Your documents and certifications appear here once you add them to your profile."
     }
   },
   "enums": {
@@ -1215,7 +1320,8 @@
       "contact": "Contact",
       "message": "Message",
       "bring": "What to bring",
-      "bringMore": "And {n} more"
+      "bringMore": "And {n} more",
+      "parking": "Parking"
     },
     "needsYou": {
       "title": "Needs you",
@@ -2066,6 +2172,19 @@
         "skipped": "{count, plural, one {# selected application is closed or has an offer, so it is left out.} other {# selected applications are closed or have an offer, so they are left out.}}",
         "final": "Withdrawing is final. To be considered again, apply again while the opportunity is open.",
         "done": "{count, plural, one {Withdrew # application.} other {Withdrew # applications.}}"
+      },
+      "assign": {
+        "one": "Assign from pool",
+        "bulk": "{count, plural, =0 {Assign} one {Assign to # person} other {Assign to # people}}",
+        "title": "{count, plural, =0 {Assign from the pool} one {Assign to # person} other {Assign to # people}}",
+        "apply": "{count, plural, one {Assign to # person} other {Assign to # people}}",
+        "willChange": "{count, plural, one {# person's share will change.} other {# people's shares will change.}}",
+        "unchanged": "{count, plural, one {# person already holds that share.} other {# people already hold that share.}}",
+        "nothing": "Every selected person already holds that share.",
+        "none": "None of the selected people is accepted on the roster yet.",
+        "skipped": "{count, plural, one {# selected person is not accepted on the roster yet, so they are left out.} other {# selected people are not accepted on the roster yet, so they are left out.}}",
+        "undoable": "Undo or Cmd or Ctrl+Z gives the shares back to the pool while nobody has picked them up.",
+        "done": "{count, plural, one {Assigned to # person.} other {Assigned to # people.}}"
       }
     },
     "cancel": "Cancel",
@@ -2085,7 +2204,12 @@
       "application_offered": "It has an offer. Accept, decline or counter it on its own.",
       "lifecycle_transition": "That step is not possible from where it is now. Reload to see its current state.",
       "lifecycle_conflict": "Someone changed it a moment ago. Reload to see the latest.",
-      "refused": "The organization's rules do not allow this for it."
+      "refused": "The organization's rules do not allow this for it.",
+      "allocation_not_pool": "Only an approved pool is shared out.",
+      "allocation_split_exceeds": "The pool does not have that many left. Give a smaller share.",
+      "allocation_cap_person": "That share goes beyond what one person may have.",
+      "allocation_entry_not_accepted": "This person is not accepted on the roster yet.",
+      "allocation_issued": "Part of this share was already handed over, so it stays."
     },
     "menu": {
       "label": "Actions for {row}",

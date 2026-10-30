@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   chromeSlot,
   commandMenuIndex,
+  ENGAGEMENT_TAB_SET_KEYS,
   engagementTabs,
   EXTERNAL_ROLE_TYPES,
   flattenRoutes,
@@ -244,8 +245,30 @@ describe("gateway engagement tabs (Section 4.5.8)", () => {
     },
   );
 
-  it("covers all eight role types", () => {
-    expect(Object.keys(gateway.engagementTabs?.sets ?? {})).toEqual([...EXTERNAL_ROLE_TYPES]);
+  it("covers all eight role types, then the roster member", () => {
+    expect(Object.keys(gateway.engagementTabs?.sets ?? {})).toEqual([...ENGAGEMENT_TAB_SET_KEYS]);
+    expect(ENGAGEMENT_TAB_SET_KEYS.slice(0, EXTERNAL_ROLE_TYPES.length)).toEqual([
+      ...EXTERNAL_ROLE_TYPES,
+    ]);
+    expect(gateway.audience.roleTypes).toEqual([...EXTERNAL_ROLE_TYPES]);
+  });
+
+  it("gives a person on a roster their own tabs only (R8, ADR 0100)", () => {
+    expect(engagementTabs(gateway, "roster-member").map((n) => labelOf(n.label))).toEqual([
+      "Overview",
+      "Project Details",
+      "Credentials",
+      "Travel and Lodging",
+      "Per Diem",
+      "Documents",
+      "Messages",
+    ]);
+    const ctx = { role: "account-member", roleType: "roster-member" as const };
+    const crew = indexSitemap(gateway).byId.get("engagement.crew");
+    expect(crew?.node.route).toBeDefined();
+    expect(guardRoute(gateway, "/work/engagements/NWL-ENG-1/overview", ctx).status).toBe(200);
+    expect(guardRoute(gateway, "/work/engagements/NWL-ENG-1/crew", ctx).status).toBe(404);
+    expect(guardRoute(gateway, "/work/engagements/NWL-ENG-1/timesheets", ctx).status).toBe(404);
   });
 
   it("gives an Artist Representative the roster and the artist tabs within delegated scopes", () => {

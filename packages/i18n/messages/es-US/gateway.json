@@ -62,7 +62,27 @@
       "account_membership_unconfirmed": "Este miembro aún no confirmó su membresía, así que no se le puede asignar.",
       "assignment_account_mismatch": "Asigna miembros de la empresa que suministra esta contratación.",
       "roster_locked": "Los nombres están cerrados en esta contratación. Pide a la organización productora que cambie la lista.",
-      "roster_lock_engagement_closed": "Esta contratación está cerrada, así que su cierre de nombres ya no cambia."
+      "roster_lock_engagement_closed": "Esta contratación está cerrada, así que su cierre de nombres ya no cambia.",
+      "allocation_not_your_engagement": "Solo quienes responden por esta contratación piden y reparten lo que necesita. Pídeselo a quien sea Propietario, Administrador o Responsable de avance de tu cuenta.",
+      "allocation_entry_not_on_engagement": "Esa persona no está en la lista de esta contratación. Elige a alguien que sí esté.",
+      "allocation_not_requestable": "Este proyecto no permite pedir ese artículo. Elige otro.",
+      "allocation_item_kind": "Elige una credencial, equipo, catering, una habitación, viaje o viáticos.",
+      "offering_not_offered": "La organización no ofrece esto en esta contratación. Escríbele si lo necesitas.",
+      "offering_not_provided": "La organización no lo proporciona; se reembolsa o se paga como compensación fija.",
+      "allocation_cap_engagement": "Esto supera lo que tu empresa puede tener. Pide menos.",
+      "allocation_cap_person": "Esto supera lo que una persona puede tener. Pide menos.",
+      "allocation_engagement_closed": "Esta contratación está completa o cancelada, así que ya no se pide nada en ella.",
+      "allocation_entry_not_live": "Esa persona fue retirada de la lista o la rechazó.",
+      "allocation_entry_not_accepted": "Esa persona aún no está aceptada en la lista, por la organización y por sí misma.",
+      "allocation_issued": "Parte de esto ya se entregó. Devuélvelo primero en el mostrador.",
+      "allocation_state_conflict": "Esto cambió hace un momento. Recarga para ver cómo está.",
+      "allocation_not_pool": "Solo se reparte un fondo común aprobado. Espera a que la organización lo apruebe.",
+      "allocation_not_split": "Solo una parte aprobada de un fondo común vuelve a él.",
+      "allocation_split_exceeds": "Al fondo común no le quedan tantos. Asigna una parte menor.",
+      "allocation_split_parts": "Da a cada persona una cantidad entera de al menos uno.",
+      "allocation_window": "El fin de la necesidad debe ser posterior a su inicio.",
+      "allocation_quantity_positive": "Escribe una cantidad mayor que cero.",
+      "allocation_quantity_whole": "Este artículo se da en números enteros."
     }
   },
   "common": {
@@ -367,7 +387,10 @@
         "rosterArrival": "Indica un inicio, un fin posterior y una zona horaria para la llegada, o deja los tres vacíos.",
         "rosterEmail": "Escribe una sola dirección de correo.",
         "assignMember": "Elige un miembro y una función.",
-        "inviteEmail": "Escribe una sola dirección de correo y elige un rol."
+        "inviteEmail": "Escribe una sola dirección de correo y elige un rol.",
+        "allocationItem": "Elige para quién es y qué necesitas.",
+        "allocationQuantity": "Escribe una cantidad mayor que cero.",
+        "allocationWindow": "Indica un inicio, un fin posterior y una zona horaria."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -574,13 +597,95 @@
       "inviteTitle": "Invitar por correo",
       "locksOn": "Los nombres se cierran el {date}",
       "lockedOn": "Nombres cerrados el {date}. Pide a {orgName} que cambie la lista.",
-      "factsTitle": "Datos del proyecto"
+      "factsTitle": "Datos del proyecto",
+      "items": {
+        "title": "Artículos",
+        "line": "{item} ({n})",
+        "declined": "Rechazado: {reason}",
+        "withdraw": "Retirar",
+        "withdrawn": "Retirado.",
+        "giveBack": "Devolver al fondo común",
+        "givenBack": "Devuelto al fondo común.",
+        "kind": {
+          "credential": "Credencial",
+          "parkingPass": "Pase de estacionamiento",
+          "asset": "Equipo",
+          "catering": "Catering",
+          "lodging": "Hospedaje",
+          "travel": "Viaje",
+          "perDiem": "Viáticos"
+        },
+        "status": {
+          "requested": "Solicitado",
+          "approved": "Aprobado",
+          "reserved": "Reservado",
+          "received": "Recibido",
+          "confirmed": "Confirmado",
+          "onOrder": "Pedido",
+          "awaitingOrder": "Esperando pedido",
+          "partlyIssued": "Entregado en parte",
+          "issued": "Entregado",
+          "revoked": "Revocado",
+          "returned": "Devuelto",
+          "declined": "Rechazado",
+          "withdrawn": "Retirado"
+        }
+      },
+      "pool": {
+        "title": "Fondo común",
+        "sentence": "Lo que la organización aprobó para tu empresa en conjunto. Repártelo entre las personas de tu lista; luego cada una recoge lo suyo.",
+        "empty": "Todavía no hay nada en tu fondo común. Solicita abajo un artículo para todo el equipo.",
+        "left": "Quedan {n} por repartir",
+        "asked": "{n} solicitados",
+        "assignFrom": "Asignar de",
+        "sharePerPerson": "Parte por persona",
+        "sharePerPersonHelp": "Quedan {n} en el fondo común. Una parte menor devuelve la diferencia.",
+        "selectPeople": "Personas a las que asignar",
+        "personShare": "{name}, tiene {n}",
+        "personNotAccepted": "{name}, aún sin aceptar"
+      },
+      "request": {
+        "title": "Solicitar un artículo",
+        "submit": "Enviar solicitud",
+        "done": "Solicitud enviada. La organización la revisa.",
+        "for": "Para",
+        "forPool": "Tu fondo común",
+        "item": "Artículo",
+        "itemHint": "Elige lo que necesitas",
+        "itemCapped": "{name}, hasta {n} por persona",
+        "quantity": "Cantidad",
+        "from": "Se necesita desde",
+        "to": "Se necesita hasta",
+        "note": "Nota",
+        "noteHelp": "Para qué es, hasta 1,000 caracteres.",
+        "timeZone": "Zona horaria",
+        "timeZoneHelp": "La zona horaria del proyecto, salvo que la cambies.",
+        "nothing": "La organización todavía no ofrece nada para solicitar en esta contratación. Escríbele si necesitas algo."
+      }
     },
     "accountTeam": {
       "title": "Equipo de la cuenta",
       "sentence": "Los miembros de la cuenta solo acceden a las contrataciones que les asignas. Un responsable de avance también gestiona la lista del equipo.",
       "remove": "Quitar",
       "none": "Todavía no hay nadie de tu cuenta asignado."
+    },
+    "rosterMember": {
+      "sentence": "Trabajas en esta contratación para {org} en {project}. Aquí ves tu propia credencial, viaje, hospedaje, viáticos y equipo, nunca los de un colega.",
+      "upNext": "Lo siguiente",
+      "when": "Llegada",
+      "window": "De {start} a {end}",
+      "noArrival": "Tu llegada aún no está definida.",
+      "call": "Hora de citación",
+      "where": "Dónde",
+      "parking": "Estacionamiento",
+      "contact": "Contacto",
+      "bring": "Qué traer y recoger",
+      "message": "Mensaje",
+      "assigned": "Asignado a ti",
+      "assignedEmpty": "Todavía no tienes nada asignado.",
+      "projectDetails": "Actualiza tus datos del proyecto",
+      "party": "Contratado como",
+      "documentsEmpty": "Tus documentos y certificaciones aparecen aquí cuando los agregas a tu perfil."
     }
   },
   "enums": {
@@ -1215,7 +1320,8 @@
       "contact": "Contacto",
       "message": "Mensaje",
       "bring": "Qué llevar",
-      "bringMore": "Y {n} más"
+      "bringMore": "Y {n} más",
+      "parking": "Estacionamiento"
     },
     "needsYou": {
       "title": "Te necesita",
@@ -2066,6 +2172,19 @@
         "skipped": "{count, plural, one {# postulación seleccionada está cerrada o tiene una oferta, así que queda fuera.} other {# postulaciones seleccionadas están cerradas o tienen una oferta, así que quedan fuera.}}",
         "final": "Retirar es definitivo. Para que te consideren de nuevo, vuelve a postular mientras la oportunidad esté abierta.",
         "done": "{count, plural, one {Retiraste # postulación.} other {Retiraste # postulaciones.}}"
+      },
+      "assign": {
+        "one": "Asignar del fondo común",
+        "bulk": "{count, plural, =0 {Asignar} one {Asignar a # persona} other {Asignar a # personas}}",
+        "title": "{count, plural, =0 {Asignar del fondo común} one {Asignar a # persona} other {Asignar a # personas}}",
+        "apply": "{count, plural, one {Asignar a # persona} other {Asignar a # personas}}",
+        "willChange": "{count, plural, one {Cambiará la parte de # persona.} other {Cambiarán las partes de # personas.}}",
+        "unchanged": "{count, plural, one {# persona ya tiene esa parte.} other {# personas ya tienen esa parte.}}",
+        "nothing": "Todas las personas seleccionadas ya tienen esa parte.",
+        "none": "Ninguna de las personas seleccionadas está aceptada en la lista todavía.",
+        "skipped": "{count, plural, one {# persona seleccionada aún no está aceptada en la lista, así que queda fuera.} other {# personas seleccionadas aún no están aceptadas en la lista, así que quedan fuera.}}",
+        "undoable": "Deshacer o Cmd o Ctrl+Z devuelve las partes al fondo común mientras nadie las haya recogido.",
+        "done": "{count, plural, one {Asignado a # persona.} other {Asignado a # personas.}}"
       }
     },
     "cancel": "Cancelar",
@@ -2085,7 +2204,12 @@
       "application_offered": "Tiene una oferta. Acéptala, recházala o haz una contraoferta por separado.",
       "lifecycle_transition": "Ese paso no es posible desde el estado actual. Recarga para ver su estado actual.",
       "lifecycle_conflict": "Alguien lo cambió hace un momento. Recarga para ver lo más reciente.",
-      "refused": "Las reglas de la organización no lo permiten para este elemento."
+      "refused": "Las reglas de la organización no lo permiten para este elemento.",
+      "allocation_not_pool": "Solo se reparte un fondo común aprobado.",
+      "allocation_split_exceeds": "Al fondo común no le quedan tantos. Asigna una parte menor.",
+      "allocation_cap_person": "Esa parte supera lo que una persona puede tener.",
+      "allocation_entry_not_accepted": "Esta persona aún no está aceptada en la lista.",
+      "allocation_issued": "Parte de esta asignación ya se entregó, así que se queda."
     },
     "menu": {
       "label": "Acciones de {row}",

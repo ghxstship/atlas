@@ -12,6 +12,11 @@ import {
 } from "@xos/data/gateway";
 import { startOfDayIn } from "@xos/data/calendar";
 import {
+  listMyParkingPasses,
+  listMyRosterEngagements,
+  type RosterEngagement,
+} from "@xos/data/gateway-allocations";
+import {
   listMyRosterEntries,
   listMyUnconfirmedMemberships,
   myPendingInvitations,
@@ -109,6 +114,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     invitations,
     memberships,
     rosterEntries,
+    rosterEngagements,
   ] = await Promise.all([
     listSharedRecords(ctx.db, {
       projectIds: [...new Set(current.map((e) => e.projectId))],
@@ -125,9 +131,17 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     myPendingInvitations(ctx.db),
     listMyUnconfirmedMemberships(ctx.db, ctx.personId),
     listMyRosterEntries(ctx.db),
+    listMyRosterEngagements(ctx.db),
   ]);
-  const upNext = records.ok ? pickUpNext(records.data, current, now) : null;
-  const details = upNext?.engagement ? await loadUpNextDetails(ctx, upNext.engagement) : null;
+  const rostered = rosterEngagements.ok ? rosterEngagements.data : [];
+  const upNext = records.ok ? pickUpNext(records.data, current, now, rostered) : null;
+  const details = upNext?.engagement
+    ? await loadUpNextDetails(
+        ctx,
+        upNext.engagement,
+        rostered.find((r) => r.id === upNext.engagement?.id) ?? null,
+      )
+    : null;
   const feed = needsYou({
     engagements,
     documents: documents.ok ? documents.data : [],
@@ -148,7 +162,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
     !representations.ok ||
     !invitations.ok ||
     !memberships.ok ||
-    !rosterEntries.ok;
+    !rosterEntries.ok ||
+    !rosterEngagements.ok;
   const firstName = (ctx.personName ?? "").split(" ")[0] ?? "";
 
   return (
@@ -257,19 +272,27 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
  * The next call, the venue, the contact and what to bring for the Up Next engagement (R2), read in
  * parallel. A read that fails leaves its rows out rather than failing the card.
  */
-async function loadUpNextDetails(ctx: GatewayContext, e: Engagement): Promise<UpNextDetails> {
-  const [row, badges, gear] = await Promise.all([
+async function loadUpNextDetails(
+  ctx: GatewayContext,
+  e: Engagement,
+  roster: RosterEngagement | null,
+): Promise<UpNextDetails> {
+  const [row, badges, gear, parking] = await Promise.all([
     readView(ctx.db, "engagement_up_next", { eq: { engagement_id: e.id } }),
     readView(ctx.db, "credentials", {
       eq: { project_id: e.projectId, holder_person_id: ctx.personId },
     }),
     readView(ctx.db, "asset_custody", { eq: { engagement_id: e.id } }),
+    listMyParkingPasses(ctx.db, e.projectId),
   ]);
   return upNextDetails({
     row: row.ok ? (row.data[0] ?? null) : null,
     orgName: e.orgName,
-    badges: badges.ok ? badges.data : [],
+    // Parking passes have their own row.
+    badges: badges.ok ? badges.data.filter((b) => b.category_kind !== "Parking") : [],
     gear: gear.ok ? gear.data : [],
+    parking: parking.ok ? parking.data : [],
+    lead: roster?.leadName ?? null,
   });
 }
 
@@ -292,6 +315,9 @@ function detailItems(
         ]
       : []),
     ...(details.where ? [{ label: t("gateway.home.upNext.where"), value: details.where }] : []),
+    ...(details.parking.length > 0
+      ? [{ label: t("gateway.home.upNext.parking"), value: details.parking.join("; ") }]
+      : []),
     {
       label: t("gateway.home.upNext.contact"),
       value: (

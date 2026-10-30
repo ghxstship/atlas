@@ -23,6 +23,7 @@ import { getLocale } from "next-intl/server";
 import { z } from "zod";
 import { outcomeFor, toAction, type ActionResult } from "@/lib/action-result";
 import type { FormResult } from "@/lib/actions/operations";
+import { localToInstant } from "@/lib/local-time";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
@@ -56,28 +57,6 @@ function fieldsOf(form: FormData) {
     arrivalEndsAt: form.get("arrivalEndsAt") ?? "",
     arrivalTimeZone: form.get("arrivalTimeZone") ?? "",
   };
-}
-
-/**
- * A `datetime-local` value read in an IANA zone, as an ISO instant. The arrival window is typed in the
- * project's zone (Section 7.1), never the browser's.
- */
-function localToInstant(local: string, timeZone: string): string {
-  const asUtc = new Date(`${local}:00Z`);
-  if (Number.isNaN(asUtc.getTime())) return local;
-  if (!timeZone) return asUtc.toISOString();
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hourCycle: "h23",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).formatToParts(asUtc);
-  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
-  const shown = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"));
-  return new Date(asUtc.getTime() - (shown - asUtc.getTime())).toISOString();
 }
 
 export async function addRosterEntryAction(_: FormResult, form: FormData): Promise<FormResult> {

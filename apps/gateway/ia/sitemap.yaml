@@ -139,6 +139,17 @@ engagementTabs:
         - engagement.invoices
         - engagement.documents
         - engagement.messages
+    # A person who reaches an engagement only through an Accepted roster entry (R8, ADR 0100): their own
+    # badge, travel, lodging and per diem, never a colleague's.
+    roster-member:
+      tabs:
+        - engagement.overview
+        - engagement.project-details
+        - engagement.credentials
+        - engagement.travel-and-lodging
+        - engagement.per-diem
+        - engagement.documents
+        - engagement.messages
 nodes:
   - id: group.primary
     kind: group

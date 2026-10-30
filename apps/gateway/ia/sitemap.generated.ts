@@ -167,6 +167,17 @@ export const sitemap: Sitemap = {
           "engagement.messages",
         ],
       },
+      "roster-member": {
+        tabs: [
+          "engagement.overview",
+          "engagement.project-details",
+          "engagement.credentials",
+          "engagement.travel-and-lodging",
+          "engagement.per-diem",
+          "engagement.documents",
+          "engagement.messages",
+        ],
+      },
     },
   },
   nodes: [
