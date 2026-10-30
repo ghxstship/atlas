@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
+import { RecordHistory } from "@/components/history/record-history";
 import type { CrewContext } from "@/lib/crew/context";
 import { getTranslate } from "@/lib/shell/translate";
 import { PropertyList, StateChip, TemplateRecord } from "./ui";
@@ -36,6 +37,11 @@ export interface RecordProps {
   readonly backHref: string;
   /** The commentable row (a table in private.comment_subjects); omitted for ledgers without one. */
   readonly subject?: { readonly table: string; readonly id: string };
+  /**
+   * The row whose field history the record shows (A131), when it has no comment thread; a record
+   * with a `subject` shows that row's history.
+   */
+  readonly historySubject?: { readonly table: string; readonly id: string };
 }
 
 async function History(props: {
@@ -118,6 +124,11 @@ export async function CrewRecord(props: RecordProps) {
     props.history && props.history.length > 0 ? (
       <History crew={props.crew} history={props.history} stateName={stateName} />
     ) : null;
+  // The field history (A131): the commentable row's, or the history subject's of a ledger row.
+  const fields = props.subject ?? props.historySubject;
+  const fieldHistory = fields ? (
+    <RecordHistory db={props.crew.ctx.viewer.db} table={fields.table} id={fields.id} />
+  ) : null;
 
   if (props.mode === "peek") {
     return (
@@ -132,6 +143,7 @@ export async function CrewRecord(props: RecordProps) {
         <PropertyList items={[...props.properties]} />
         {props.children}
         {history}
+        {fieldHistory}
         {props.subject ? <Conversation crew={props.crew} subject={props.subject} /> : null}
       </PeekPanel>
     );
@@ -164,6 +176,7 @@ export async function CrewRecord(props: RecordProps) {
       >
         {props.children}
         {history}
+        {fieldHistory}
         {props.subject ? <Conversation crew={props.crew} subject={props.subject} /> : null}
       </TemplateRecord>
     </div>
