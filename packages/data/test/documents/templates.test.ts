@@ -117,7 +117,16 @@ describe("template versions", () => {
   });
 
   it("ships at least version 1 of every Section 11.9 document", () => {
-    expect(DOCUMENT_KINDS).toHaveLength(12);
+    // The twelve of Section 11.9 and the parity kinds after them (B1's site plan and signage build sheet); not counted,
+    // since later packages append kinds of their own.
+    expect(DOCUMENT_KINDS).toEqual(
+      expect.arrayContaining([
+        "purchase-order",
+        "agreement-certificate",
+        "site-plan",
+        "signage-build-sheet",
+      ]),
+    );
     for (const kind of DOCUMENT_KINDS) {
       expect(TEMPLATES[kind].map((v) => v.version)).toContain(1);
       const numbers = TEMPLATES[kind].map((v) => v.version);

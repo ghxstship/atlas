@@ -5,7 +5,7 @@
  * renderer writes follows the same order as the page.
  */
 
-/** The twelve Section 11.9 documents. */
+/** The record documents: the twelve of Section 11.9, then the parity kinds (B1: the site plan and the signage build sheet). */
 export const DOCUMENT_KINDS = [
   "purchase-order",
   "invoice",
@@ -19,6 +19,8 @@ export const DOCUMENT_KINDS = [
   "incident-report",
   "final-cost-report",
   "agreement-certificate",
+  "site-plan",
+  "signage-build-sheet",
 ] as const;
 
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
@@ -56,8 +58,9 @@ export type DataClassification = "Public" | "Internal" | "Confidential" | "Restr
 /**
  * The classification of each generated document: the highest classification among the registered
  * columns its template prints (private.column_classifications). Section 8.6 puts the viewer email
- * and time on Confidential and Restricted PDFs. The twelve record documents print only Internal
- * columns; the WH-347 prints Restricted pay rates; the OSHA forms print Confidential health data.
+ * and time on Confidential and Restricted PDFs. The record documents print only Internal columns: the site plan and
+ * the signage build sheet embed only drawings and artwork classified Public or Internal (B1, ADR 0140 D3); the WH-347
+ * prints Restricted pay rates; the OSHA forms print Confidential health data.
  */
 export const DOCUMENT_CLASSIFICATION: Readonly<
   Record<DocumentKind | PlatformDocumentKind | ComplianceDocumentKind, DataClassification>
@@ -74,6 +77,8 @@ export const DOCUMENT_CLASSIFICATION: Readonly<
   "incident-report": "Internal",
   "final-cost-report": "Internal",
   "agreement-certificate": "Internal",
+  "site-plan": "Internal",
+  "signage-build-sheet": "Internal",
   "deletion-certificate": "Internal",
   "certified-payroll": "Restricted",
   "osha-300": "Confidential",
@@ -139,8 +144,13 @@ export interface DocumentColumn {
 
 export type DocumentBlock =
   | { readonly kind: "heading"; readonly text: string }
-  /** A PNG or JPEG image, read as a Figure with its alternative text, fitted to the page. */
-  | { readonly kind: "image"; readonly bytes: Uint8Array; readonly alt: string }
+  /** A PNG or JPEG image, read as a Figure with its alternative text, fitted to the page (and to maxHeight points). */
+  | {
+      readonly kind: "image";
+      readonly bytes: Uint8Array;
+      readonly alt: string;
+      readonly maxHeight?: number;
+    }
   | { readonly kind: "paragraph"; readonly text: string; readonly size?: "body" | "large" }
   /**
    * A holder's portrait (the credential badge, P5): a PNG or JPEG fitted into a fixed frame, never cropped, as a
@@ -159,6 +169,21 @@ export type DocumentBlock =
       readonly alt: string;
       readonly caption: string;
     }
+  /**
+   * A site plan (B1, ADR 0031 amendment B1): the stored drawing fitted to the content box with its overlays drawn on it
+   * as vectors, all inside one Figure with its alternative text. With no stored drawing, a ruled frame of the drawing's
+   * proportions and the note. Overlay positions are fractions of the drawing (0 to 1 from the left and the top).
+   */
+  | {
+      readonly kind: "plan";
+      readonly bytes: Uint8Array | null;
+      readonly widthPx: number;
+      readonly heightPx: number;
+      readonly alt: string;
+      readonly overlays: readonly PlanOverlay[];
+      /** Printed inside the frame when there are no bytes, for example "Drawing not stored in XOS". */
+      readonly note: string;
+    }
   | { readonly kind: "fields"; readonly caption: string; readonly fields: readonly DocumentField[] }
   | {
       readonly kind: "table";
@@ -170,6 +195,22 @@ export type DocumentBlock =
       /** Shown in place of the table when it has no rows. */
       readonly empty: string;
     };
+
+/** The design-token color roles a plan overlay is drawn in (site plan shape tones, 2901). */
+export type PlanTone = "Accent" | "Info" | "Success" | "Warning" | "Danger" | "Neutral";
+
+export type PlanOverlay =
+  /** A numbered pin. */
+  | { readonly kind: "pin"; readonly x: number; readonly y: number; readonly n: number }
+  /** A line or an area, numbered to match the legend; a barrier is dashed and heavier. */
+  | {
+      readonly kind: "route" | "barrier" | "area";
+      readonly points: readonly (readonly [number, number])[];
+      readonly tone: PlanTone;
+      readonly n: number;
+    }
+  /** A text label at a point. */
+  | { readonly kind: "label"; readonly x: number; readonly y: number; readonly text: string };
 
 export interface DocumentLogo {
   /** PNG or JPEG bytes. Other formats fall back to the brand name in text. */

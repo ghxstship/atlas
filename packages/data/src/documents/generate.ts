@@ -38,6 +38,8 @@ export interface BuildOptions {
   readonly watermark?: string;
   /** The size it prints on, which chooses the template version (templateFor); Letter when not given. */
   readonly paper?: PrintSize;
+  /** The request's search params, which the site plan and build sheet templates read (B1). */
+  readonly options?: Readonly<Record<string, string | undefined>>;
 }
 
 /**
@@ -70,7 +72,13 @@ export function buildDocumentModel<K extends DocumentKind>(
   const f = formatter(options.locale, timeZone, t);
   const paper = options.paper ?? "letter";
   const template = templateFor((options.registry ?? TEMPLATES)[kind], issuedAt, paper);
-  const out = template.build(data, { t, f, generatedAt: now, paper });
+  const out = template.build(data, {
+    t,
+    f,
+    generatedAt: now,
+    paper,
+    options: options.options ?? {},
+  });
   return {
     kind,
     lang: options.locale,
@@ -224,7 +232,10 @@ export interface GenerateInput {
   readonly now?: Date;
   /** The Section 8.6 watermark text, set for Confidential and Restricted documents. */
   readonly watermark?: string;
+  /** The orientation when the kind does not choose its own from its data (DESCRIBE). */
   readonly orientation?: Orientation;
+  /** The request's search params, passed to the template (the site plan's layers and legend, B1). */
+  readonly options?: Readonly<Record<string, string | undefined>>;
 }
 
 export interface GeneratedDocument {
@@ -271,7 +282,8 @@ async function renderLoaded<K extends DocumentKind>(
   );
   const project = "project" in data ? data.project : null;
   const now = input.now ?? new Date();
-  const { recordKey } = DESCRIBE[kind](data, now);
+  const described = DESCRIBE[kind](data, now);
+  const { recordKey } = described;
   const model = buildDocumentModel(kind, data, {
     locale: input.locale,
     messages: input.messages,
@@ -280,11 +292,14 @@ async function renderLoaded<K extends DocumentKind>(
     now,
     paper: input.paper,
     ...(input.watermark ? { watermark: input.watermark } : {}),
+    ...(input.options ? { options: input.options } : {}),
   });
+  // The kind's own choice, made after its data loaded (the site plan follows its drawing), wins over the route's.
+  const orientation = described.orientation ?? input.orientation;
   try {
     const bytes = await renderDocumentPdf(model, {
       paper: input.paper,
-      ...(input.orientation ? { orientation: input.orientation } : {}),
+      ...(orientation ? { orientation } : {}),
     });
     return ok({
       bytes,

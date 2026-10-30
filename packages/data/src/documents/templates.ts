@@ -15,9 +15,17 @@ import {
   type DocumentKind,
   type PrintSize,
 } from "./model.ts";
+import {
+  buildSignageSheet,
+  buildSitePlan,
+  type BuildSheetData,
+  type SitePlanDocumentData,
+} from "./places-templates.ts";
+import type { Orientation } from "./render.ts";
 
 /**
- * Versioned templates for the twelve Section 11.9 documents (ADR 0031). Each kind keeps every
+ * Versioned templates for the Section 11.9 record documents (ADR 0031): the twelve of 4.0 and, from B1, the site plan
+ * export and the signage build sheet (places-templates.ts). Each kind keeps every
  * version it has shipped. A record renders with the version in force when it was issued, so a
  * re-render of an old record looks the way it did then; a template change ships as a new version
  * with a later `effectiveFrom`, never as an edit to a shipped one.
@@ -93,6 +101,8 @@ export interface DocumentDataMap {
     readonly project: DocumentProject | null;
     readonly agreement: AgreementDetail;
   };
+  "site-plan": SitePlanDocumentData;
+  "signage-build-sheet": BuildSheetData;
 }
 
 export interface BadgePhoto {
@@ -110,6 +120,11 @@ export interface TemplateContext {
   readonly generatedAt: Date;
   /** The size it prints on; a card layout (A6, CR80) takes its blocks in card order. */
   readonly paper: PrintSize;
+  /**
+   * The request's search params, for the kinds whose content the reader chooses (the site plan's layers and legend,
+   * the build sheet's state filter, B1); every other kind ignores them.
+   */
+  readonly options: Readonly<Record<string, string | undefined>>;
 }
 
 export interface TemplateOutput {
@@ -160,12 +175,20 @@ export function templateFor<K extends DocumentKind>(
 /** A catalog key segment from a stored value ("Offer Letter" to "OfferLetter"). */
 export const keyOf = (value: string) => value.replace(/[^A-Za-z0-9]/g, "");
 
-/** How each record names itself on the page and when it was issued. Stable across versions. */
+/**
+ * How each record names itself on the page and when it was issued. Stable across versions. It runs after the loader,
+ * so a kind may also choose its page orientation from its data (the site plan follows its drawing, B1); kinds that
+ * name none print as the route asks.
+ */
 export const DESCRIBE: {
   readonly [K in DocumentKind]: (
     data: DocumentDataMap[K],
     generatedAt: Date,
-  ) => { readonly recordKey: string; readonly issuedAt: string };
+  ) => {
+    readonly recordKey: string;
+    readonly issuedAt: string;
+    readonly orientation?: Orientation;
+  };
 } = {
   "purchase-order": (d) => ({ recordKey: d.order.key, issuedAt: d.order.createdAt }),
   invoice: (d) => ({
@@ -205,6 +228,20 @@ export const DESCRIBE: {
   "agreement-certificate": (d) => ({
     recordKey: keyed(d.project?.key ?? "", `AGR-${d.agreement.id.slice(0, 8)}`),
     issuedAt: d.agreement.signedAt ?? d.agreement.createdAt,
+  }),
+  // Computed live, like the final cost report; landscape for a drawing at least as wide as it is tall (ADR 0140 D10).
+  "site-plan": (d, generatedAt) => ({
+    recordKey: keyed(d.project.key, `PLAN-${d.plan.id.slice(0, 8)}`),
+    issuedAt: generatedAt.toISOString(),
+    orientation:
+      d.drawing && d.plan.drawing && d.plan.drawing.widthPx >= d.plan.drawing.heightPx
+        ? "landscape"
+        : "portrait",
+  }),
+  "signage-build-sheet": (d, generatedAt) => ({
+    recordKey: keyed(d.project.key, "SGN"),
+    issuedAt: generatedAt.toISOString(),
+    orientation: "landscape",
   }),
 };
 
@@ -939,4 +976,6 @@ export const TEMPLATES: TemplateRegistry = {
       }),
     },
   ],
+  "site-plan": [{ version: 1, effectiveFrom: V1, build: buildSitePlan }],
+  "signage-build-sheet": [{ version: 1, effectiveFrom: V1, build: buildSignageSheet }],
 };

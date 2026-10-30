@@ -2,6 +2,8 @@ import type { DeletionCertificateData } from "../../src/documents/deletion-certi
 import type { DocumentBrand } from "../../src/documents/generate.ts";
 import type { DocumentKind } from "../../src/documents/model.ts";
 import type { DocumentDataMap, DocumentProject } from "../../src/documents/templates.ts";
+import type { SitePlan, SitePlanShape } from "../../src/places.ts";
+import type { Sign } from "../../src/signage.ts";
 
 /**
  * Record data for every Section 11.9 template, shaped like the seeded demo org, with the edge cases
@@ -97,6 +99,182 @@ const project: DocumentProject = {
 const longText =
   "Supply, install and strike the main stage line array, including rigging points, motors, " +
   "truss, cabling and two technicians for every show day. Łódź crew note: Ωmega cue sheet.";
+
+/** An 8 by 4 and a 4 by 8 PNG: a wide and a tall site plan drawing (B1). */
+export const DRAWING_WIDE = hex(
+  "89504e470d0a1a0a0000000d49484452000000080000000408020000003cafe9a7000000114944415478da6378f6ec3556c4403d0900f87456e10a6a48160000000049454e44ae426082",
+);
+export const DRAWING_TALL = hex(
+  "89504e470d0a1a0a0000000d49484452000000040000000808020000005151c952000000114944415478da6378f6ec351c31d08e0300a64756e1cdeab8580000000049454e44ae426082",
+);
+
+function hex(value: string): Uint8Array {
+  return Uint8Array.from(value.match(/../g) ?? [], (b) => parseInt(b, 16));
+}
+
+/** A Live site plan with a stored 2000 by 1000 px drawing calibrated 50 ft over half its width (B1). */
+export const sitePlan: SitePlan = {
+  id: "00000000-0000-4000-8000-0000000000a1",
+  projectId: project.id,
+  venueId: "v1",
+  venueLevelId: "l1",
+  title: "Ground floor",
+  imageUri: "attachments/org/att/ver/ground.png",
+  planState: "Live",
+  awaitingDrawing: false,
+  drawing: {
+    versionId: "ver1",
+    rasterVersionId: null,
+    page: null,
+    contentType: "image/png",
+    filename: "ground.png",
+    shownVersionId: "ver1",
+    widthPx: 2000,
+    heightPx: 1000,
+    unavailable: null,
+  },
+  calibration: { ax: 0.1, ay: 0.5, bx: 0.6, by: 0.5, feet: 50 },
+  archivedAt: null,
+  updatedAt: "2026-10-18T12:00:00Z",
+  pins: [
+    { id: "pin1", label: "Main gate", x: 0.2, y: 0.3, zoneId: null, recordId: null },
+    { id: "pin2", label: "First aid · Łódź", x: 0.8, y: 0.7, zoneId: null, recordId: null },
+  ],
+};
+
+export const sitePlanShapes: readonly SitePlanShape[] = [
+  {
+    id: "s1",
+    sitePlanId: sitePlan.id,
+    kind: "Route",
+    label: "Egress north",
+    tone: "Info",
+    points: [
+      [0.1, 0.1],
+      [0.1, 0.6],
+    ],
+    lengthFt: 25,
+    areaSqFt: null,
+  },
+  {
+    id: "s2",
+    sitePlanId: sitePlan.id,
+    kind: "Barrier",
+    label: "Crowd fence",
+    tone: "Danger",
+    points: [
+      [0.3, 0.8],
+      [0.7, 0.8],
+    ],
+    lengthFt: 40,
+    areaSqFt: null,
+  },
+  {
+    id: "s3",
+    sitePlanId: sitePlan.id,
+    kind: "Area",
+    label: "Pit",
+    tone: "Accent",
+    points: [
+      [0.1, 0.2],
+      [0.3, 0.2],
+      [0.3, 0.6],
+      [0.1, 0.6],
+    ],
+    lengthFt: 80,
+    areaSqFt: 400,
+  },
+  {
+    id: "s4",
+    sitePlanId: sitePlan.id,
+    kind: "Label",
+    label: "North",
+    tone: "Neutral",
+    points: [[0.5, 0.05]],
+    lengthFt: null,
+    areaSqFt: null,
+  },
+];
+
+const signBase = {
+  projectId: project.id,
+  urid: "4000.05.01",
+  message: null,
+  widthIn: 24,
+  heightIn: 36,
+  substrate: "Coroplast",
+  doubleSided: false,
+  printerVendorId: null,
+  poLineId: null,
+  artworkVersionId: null,
+  neededBy: "2026-10-20",
+  orderedAt: null,
+  printedAt: null,
+  placedAt: null,
+  placedBy: null,
+  updatedAt: "2026-10-18T12:00:00Z",
+  archivedAt: null,
+  orderedViaPo: false,
+  received: false,
+  located: true,
+  overdue: false,
+} as const;
+
+export const signs: readonly Sign[] = [
+  {
+    ...signBase,
+    id: "sign1",
+    key: "NWF26-SGN-1",
+    number: 1,
+    title: "Main entrance arrow",
+    type: "Directional",
+    quantity: 4,
+    sitePlanPinId: "pin1",
+    locationText: null,
+    artworkVersionId: "art1",
+    state: "Printed",
+  },
+  {
+    ...signBase,
+    id: "sign2",
+    key: "NWF26-SGN-2",
+    number: 2,
+    title: "Bar menu",
+    type: "Menu",
+    quantity: 2,
+    sitePlanPinId: null,
+    locationText: "Behind the north bar",
+    state: "Ordered",
+    orderedViaPo: true,
+  },
+  {
+    ...signBase,
+    id: "sign3",
+    key: "NWF26-SGN-3",
+    number: 3,
+    title: "No re-entry · Ωmega",
+    type: "Regulatory",
+    quantity: 6,
+    sitePlanPinId: null,
+    locationText: null,
+    state: "To Order",
+    located: false,
+    widthIn: null,
+    heightIn: null,
+  },
+  {
+    ...signBase,
+    id: "sign4",
+    key: "NWF26-SGN-4",
+    number: 4,
+    title: "Sponsor wall",
+    type: "Sponsor",
+    quantity: 1,
+    sitePlanPinId: "pin2",
+    locationText: null,
+    state: "Placed",
+  },
+];
 
 export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
   "purchase-order": {
@@ -525,6 +703,24 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
           by: null,
         },
       ],
+    },
+  },
+  "site-plan": {
+    project,
+    plan: sitePlan,
+    venueName: "Northwind Pier Pavilion",
+    levelName: "Ground",
+    shapes: sitePlanShapes,
+    drawing: DRAWING_WIDE,
+    signsAtPins: { pin1: ["NWF26-SGN-1 Main entrance arrow"] },
+  },
+  "signage-build-sheet": {
+    project,
+    signs: signs,
+    plans: [{ plan: sitePlan, drawing: DRAWING_WIDE }],
+    artwork: {
+      sign1: { bytes: PHOTO_PNG, filename: "arrow.png" },
+      sign2: { bytes: null, filename: "menu-board.pdf" },
     },
   },
 };

@@ -27,6 +27,15 @@ export interface CapabilityStatement {
   readonly assertionWord: string;
   readonly venueId: string | null;
   readonly counterpartyId: string | null;
+  /**
+   * For a capability copied from venue specs by app.provide_place_specs (B1, ADR 0140 D9): which group it states.
+   * Such a row is managed by that function; a person may only move it to Trash.
+   */
+  readonly placeSpecField: "power" | "rigging" | "connectivity" | null;
+  /** Computed when read, never stored: the spec changed after the row was written. */
+  readonly specsChanged: boolean;
+  /** Computed when read: a DOCUMENTED row whose spec document is no longer live and unexpired. */
+  readonly documentExpired: boolean;
 }
 
 export interface CapabilityStatementInput {
@@ -43,7 +52,7 @@ export interface CapabilityStatementInput {
 }
 
 const STATEMENT_COLUMNS =
-  "id, project_id, direction, urid, description, quantity, unit_basis, is_critical, assertion_word, venue_id, counterparty_id";
+  "id, project_id, direction, urid, description, quantity, unit_basis, is_critical, assertion_word, venue_id, counterparty_id, place_spec_field, updated_at, spec:place_specs!capability_statements_place_spec_id_fkey(updated_at, document:capability_documents!place_specs_spec_document_id_fkey(valid_from, valid_to, deleted_at))";
 
 interface StatementRow {
   id: string;
@@ -57,9 +66,30 @@ interface StatementRow {
   assertion_word: string;
   venue_id: string | null;
   counterparty_id: string | null;
+  place_spec_field?: "power" | "rigging" | "connectivity" | null;
+  updated_at?: string;
+  spec?: {
+    updated_at: string;
+    document: { valid_from: string; valid_to: string | null; deleted_at: string | null } | null;
+  } | null;
 }
 
-function toStatement(row: StatementRow): CapabilityStatement {
+/** A capability document is live and unexpired on a day (YYYY-MM-DD), as provide_place_specs judges it. */
+function documentLive(
+  document:
+    { valid_from: string; valid_to: string | null; deleted_at: string | null } | null | undefined,
+  today: string,
+): boolean {
+  return (
+    !!document &&
+    document.deleted_at === null &&
+    document.valid_from <= today &&
+    (document.valid_to === null || document.valid_to >= today)
+  );
+}
+
+function toStatement(row: StatementRow, now: Date = new Date()): CapabilityStatement {
+  const spec = row.spec ?? null;
   return {
     id: row.id,
     projectId: row.project_id,
@@ -72,6 +102,15 @@ function toStatement(row: StatementRow): CapabilityStatement {
     assertionWord: row.assertion_word,
     venueId: row.venue_id,
     counterpartyId: row.counterparty_id,
+    placeSpecField: row.place_spec_field ?? null,
+    specsChanged:
+      spec !== null &&
+      row.updated_at !== undefined &&
+      Date.parse(spec.updated_at) > Date.parse(row.updated_at),
+    documentExpired:
+      spec !== null &&
+      row.assertion_word === "DOCUMENTED" &&
+      !documentLive(spec.document, now.toISOString().slice(0, 10)),
   };
 }
 
@@ -85,7 +124,7 @@ export async function listCapabilityStatements(
   if (filter.venueId) query = query.eq("venue_id", filter.venueId);
   const { data, error } = await query.order("urid").order("direction");
   if (error) return fail(toDataError(error));
-  return ok((data as StatementRow[]).map(toStatement));
+  return ok((data as unknown as StatementRow[]).map((r) => toStatement(r)));
 }
 
 export async function createCapabilityStatement(
