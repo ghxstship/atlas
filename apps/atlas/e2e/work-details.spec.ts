@@ -131,7 +131,8 @@ async function localSql<T extends Record<string, unknown>>(
  * The demo Admin reads hospitality on the demo project but holds no medical capability, so the crew
  * person's shared allergies (seed 1340) show locked. Once the Owner makes the Admin the Event medical
  * role (7000.51.01) on the project, the value shows with the Medical block, and the crew person's
- * access log records an allergies.viewed entry naming the Admin.
+ * access log records an allergies.viewed entry naming the Admin. The crew person is external, so
+ * their Access log is in Gateway, whose work-details journey asserts its "Allergies viewed" line.
  */
 test("Work Details: allergies show to on-site medical only, and each read is logged", async ({
   page,

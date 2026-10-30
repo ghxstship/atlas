@@ -46,8 +46,11 @@ holder never unmasks incident treatment notes.
 ### 3. Separation of duties
 
 `private.guard_role_assignment` (from `0361_people.sql:243-280`) refuses `sod_self_grant` when a signed-in person
-inserts their own assignment to a mapped role as Active, or moves their own to Active (Section 8.2). Someone else with
-`people.role.write` on the project activates it; the person may still end their own.
+inserts their own assignment to a mapped role as Active, or moves their own to Active (Section 8.2). Because the
+branch above reads the dates and the soft delete as well as the state, the person also never widens their own Active
+assignment: an earlier `starts_on`, a later or cleared `ends_on`, or a cleared `deleted_at` is refused the same way,
+since each would give them back the capability alone. Someone else with `people.role.write` on the project does
+these; the person may still narrow or end their own.
 
 ### 4. Every read logged, the company always masked
 
@@ -75,7 +78,15 @@ and `safety.incident.read`; a share may name seven categories. Reads return `con
 sign-in addresses `private.recipient_address` returns, to org readers with the capability and to the company. API v1's
 `WorkDetailCategory` enum is frozen: a new value in a response enum is a breaking change under gate 20 (oasdiff), so
 v1 leaves Contact out of the category lists and carries it additively as `share_contact` (write), `contact_shared`
-(the share), `includes_contact` (the access log entry) and `contact` (the shared read).
+(the share), `includes_contact` (the access log entry) and `contact` (the shared read). This departs from R6a's
+review correction, which named an enum value; the frozen contract wins, pending the owner's confirmation.
+
+v1's `WorkDetailShare.categories` keeps `minItems: 1`, and a smaller minimum in a response is breaking too, so a share
+of Contact alone would read back with no categories. Contact is therefore shared with at least one other category,
+on every surface: `app.share_work_details` refuses Contact alone (`work_detail_share_contact_alone`, 2664), the
+constraint `work_detail_shares_contact_not_alone` keeps live shares from holding it, and `parseShareForm` refuses it
+before the call. v1 itself cannot ask for it, because its category list has the same minimum. Hiding such a share
+from v1 instead would leave an API client unable to see or revoke it.
 
 ### 6. The profile move (decision 2, the expand step)
 
