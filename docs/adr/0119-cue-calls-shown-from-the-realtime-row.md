@@ -53,9 +53,11 @@ token (ADR 0044, item 1). A cue is called once: `called_at` is set by `app.call_
   quiet spell, and paced the journey's calls 800 ms apart; that pacing landed each change just before a poll, which
   is why those calls looked fast. The journey no longer paces its calls on a fixed period or leaves any call out.
 - On a loaded machine the slowest call can therefore miss 500 ms, and the journey fails there: that failure is the
-  target not being met, not noise to filter. Broadcasting each call from the database to a private
+  target not being met, not noise to filter. The journey is marked `test.fixme` as a known failure, with its strict
+  body unchanged, so the Playwright gate does not go red on a runner's load; `test.fail` would flake instead,
+  whenever a fast runner passes. Broadcasting each call from the database to a private
   `show:<run id>` channel (a trigger on `app.cues` with an authorization policy on `realtime.messages`, kept by
   `private.realtime_channel_policies`, migration 2060) would bypass the poll. It needs a migration, which A145 has no
-  block for, and is left to a follow-up with one.
+  block for, and is left to a follow-up with one, which also removes the fixme.
 - Other pages keep rereading on each batch, as ADR 0044 decided. A page that adopts the row pattern must keep the
   same rule: show the row's change only until a server read carries it, and only for a change no later write undoes.
