@@ -126,6 +126,21 @@ describe("the Overview shows each role type what applies to it (A59-033)", () =>
     expect(engagementTitle({ jobTitle: null, roleType: "Sponsor" }, label)).toBe("label:Sponsor");
   });
 
+  it("gives vendors, artists and the representative's advance scope a Credentials tab (R2)", () => {
+    const vendor = tabs("vendor");
+    expect(vendor.indexOf("engagement.credentials")).toBe(vendor.indexOf("engagement.advance") + 1);
+    const artist = tabs("artist");
+    expect(artist.indexOf("engagement.credentials")).toBe(
+      artist.indexOf("engagement.guest-list") + 1,
+    );
+    expect(engagementTabIds(sitemap, "artist-representative", ["advance"])).toContain(
+      "engagement.credentials",
+    );
+    expect(engagementTabIds(sitemap, "artist-representative", ["settlement"])).not.toContain(
+      "engagement.credentials",
+    );
+  });
+
   it("gives clients and sponsors no worker tabs", () => {
     const worker = [
       "engagement.offer",

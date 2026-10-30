@@ -11,6 +11,7 @@ import {
   navigationTree,
   resolveBreadcrumbs,
   validateSitemap,
+  type Condition,
   type ExternalRoleType,
 } from "../src/index.ts";
 import { childIds, labelOf, loadApp, messages, treeIds } from "./support.ts";
@@ -41,6 +42,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Deliveries",
     "Submittals",
     "Advance",
+    "Credentials",
     "Invoices",
     "Compliance",
     "Documents",
@@ -81,6 +83,7 @@ const TAB_SETS: Record<Exclude<ExternalRoleType, "artist-representative">, strin
     "Set Times",
     "Hospitality",
     "Guest List",
+    "Credentials",
     "Settlement",
     "Documents",
     "Messages",
@@ -241,6 +244,7 @@ describe("gateway engagement tabs (Section 4.5.8)", () => {
       "Set Times",
       "Hospitality",
       "Guest List",
+      "Credentials",
       "Settlement",
       "Messages",
     ]);
@@ -339,6 +343,30 @@ describe("gateway account-role visibility", () => {
     expect(
       guardRoute(gateway, "/settings/company", { role: "individual", ...company }).status,
     ).toBe(404);
+  });
+
+  it("gates the offering tabs on the engagement's offerings (R3)", () => {
+    const gated = {
+      "engagement.travel-and-lodging": "offered-travel-or-lodging",
+      "engagement.per-diem": "offered-per-diem",
+      "engagement.hospitality": "offered-hospitality",
+      "engagement.guest-list": "offered-guest-list",
+    } as const;
+    const byId = indexSitemap(gateway).byId;
+    for (const [id, condition] of Object.entries(gated)) {
+      expect(byId.get(id)?.node.conditions).toEqual([condition]);
+    }
+    const crew = { role: "individual", roleType: "crew" as const };
+    const route = (path: string, conditions: Condition[]) =>
+      guardRoute(gateway, path, { ...crew, conditions }).status;
+    expect(route("/work/engagements/ENG-1/travel-and-lodging", [])).toBe(404);
+    expect(route("/work/engagements/ENG-1/travel-and-lodging", ["offered-travel-or-lodging"])).toBe(
+      200,
+    );
+    expect(route("/work/engagements/ENG-1/per-diem", ["offered-travel-or-lodging"])).toBe(404);
+    expect(route("/work/engagements/ENG-1/per-diem", ["offered-per-diem"])).toBe(200);
+    // The engagement container itself needs no offering.
+    expect(route("/work/engagements/ENG-1", [])).toBe(200);
   });
 
   it("indexes the command menu without key params", () => {

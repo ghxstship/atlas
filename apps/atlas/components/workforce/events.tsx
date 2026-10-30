@@ -36,6 +36,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { requestNow } from "@/lib/workforce/time";
 import { REFUSALS, audienceFields, audienceLabel, orgPickers, workforceCopy } from "./shared";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS: readonly ViewKind[] = ["list", "calendar", "table"];
 
@@ -76,10 +77,9 @@ export async function EventsSection({
   const title = t("events.title");
   if (!events.ok) {
     return (
-      <>
-        <PageHeader title={title} />
+      <CollectionPage header={<PageHeader title={title} />}>
         <ErrorPanel what={t("events.what")} />
-      </>
+      </CollectionPage>
     );
   }
   const canSchedule = ctx.role !== "viewer";

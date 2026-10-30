@@ -691,4 +691,13 @@ describe("travel", () => {
     });
     expect((await cancelTravelSegment(db, "t9")).ok).toBe(false);
   });
+  it("books an engaged traveller under their engagement", async () => {
+    const { db, calls } = fakeClient({
+      "from:travel_segments": [okResponse([{ id: "t9" }]), okResponse([{ id: "t10" }])],
+    });
+    expect((await createTravelSegment(db, "p1", { ...input, engagementId: "e1" })).ok).toBe(true);
+    expect((await createTravelSegment(db, "p1", input)).ok).toBe(true);
+    expect(calls[0]?.steps[0]?.[1]).toMatchObject([{ person_id: "per1", engagement_id: "e1" }]);
+    expect(calls[1]?.steps[0]?.[1]).toMatchObject([{ engagement_id: null }]);
+  });
 });

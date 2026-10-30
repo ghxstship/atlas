@@ -1,3 +1,4 @@
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import {
@@ -44,7 +45,7 @@ export interface ImportTargetField {
 export interface ImportTarget {
   readonly code: string;
   /** Capability that authorizes importing into the target. */
-  readonly writeCapability: string;
+  readonly writeCapability: CapabilityCode;
   readonly fuzzyMatch: boolean;
   readonly fields: readonly ImportTargetField[];
 }
@@ -69,7 +70,8 @@ export async function listImportTargets(db: XosClient): Promise<Result<ImportTar
   return ok(
     targets.data.map((t) => ({
       code: str(t["code"]),
-      writeCapability: str(t["write_capability"]),
+      // write_capability references app.capabilities, seeded from the registry (migration 0530).
+      writeCapability: str(t["write_capability"]) as CapabilityCode,
       fuzzyMatch: t["fuzzy_match"] === true,
       fields: fields.data
         .filter((f) => f["target_code"] === t["code"])

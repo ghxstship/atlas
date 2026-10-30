@@ -61,6 +61,25 @@ export async function asPerson<T extends Record<string, unknown>>(
   }
 }
 
+/**
+ * Offers one offering on a project, as the demo Owner (R3, owner decision 7): offerings default to
+ * Not Offered and Gateway shows the Travel and lodging, Per diem, Hospitality and Guest list tabs
+ * only where one is offered. Journeys that open one of those tabs set it first, so they never lean
+ * on the seed. Returns the value id.
+ */
+export async function offer(
+  key: `offerings.${string}`,
+  project: string = PROJECT,
+  mode: "provided" | "not-offered" = "provided",
+): Promise<string> {
+  const [row] = await asPerson<{ id: string }>(
+    PEOPLE.owner,
+    `select app.set_setting($1, $2, 'Project', $3, $4, null, null, false) as id`,
+    [DEMO.org, key, project, mode],
+  );
+  return row?.id as string;
+}
+
 /** A lifecycle move through private.transition_lifecycle, as the demo Owner. */
 export async function transition(
   entity: string,
@@ -232,24 +251,6 @@ export async function requiredInsured(name: string): Promise<{ retire: () => Pro
       ]);
     },
   };
-}
-
-/**
- * A two-hour dock slot on the demo project's loading dock (seed 0111 zone) for the vendor
- * engagement, an hour after the dock's last slot, since slots at one dock never overlap.
- */
-export async function vendorDockSlot(engagementId: string): Promise<{ id: string }> {
-  const [row] = await sql<{ id: string }>(
-    `with free as (
-       select greatest(coalesce(max(ends_at), now()), now()) + interval '1 hour' as at
-       from app.dock_slots where zone_id = '01920000-0000-7000-8000-000000111011' and deleted_at is null)
-     insert into app.dock_slots (project_id, zone_id, engagement_id, starts_at, ends_at)
-     select $1, '01920000-0000-7000-8000-000000111011', $2, free.at, free.at + interval '2 hours' from free
-     returning id`,
-    [PROJECT, engagementId],
-    PEOPLE.owner,
-  );
-  return { id: row?.id as string };
 }
 
 /** An engagement document of `kind`, sent to the engaged party for signature. */
@@ -673,20 +674,16 @@ export async function workedShift(
   return { timesheetId: ts?.id as string };
 }
 
-/** A credential of the project's Production category for the engagement's person. */
-export async function engagementCredential(
-  engagementId: string,
-  person: string,
-): Promise<{ number: string }> {
-  // The credential number comes from the project's sequence.
-  const [row] = await sql<{ credential_number: string }>(
-    `insert into app.credentials (credential_category_id, holder_person_id, valid_from, valid_to, project_id, engagement_id)
-     values ('01920000-0000-7000-8000-000000114022', $1, '2027-06-01', '2027-06-07', $2, $3)
-     returning credential_number`,
-    [person, PROJECT, engagementId],
+/** A Travel fulfillment on the demo project for Atlas to book segments on (journey 41). */
+export async function travelFulfillment(): Promise<{ id: string; key: string }> {
+  const [row] = await sql<{ id: string; fulfillment_number: number }>(
+    `insert into app.fulfillments (project_id, fulfillment_kind, title, starts_at, ends_at)
+     values ($1, 'Travel', $2, '2027-06-03 13:00+00', '2027-06-03 18:00+00')
+     returning id, fulfillment_number`,
+    [PROJECT, `Crew Inbound Flights ${suffix()}`],
     PEOPLE.owner,
   );
-  return { number: row?.credential_number as string };
+  return { id: row?.id as string, key: `NWS-${row?.fulfillment_number}` };
 }
 
 /** An open call for artists on the demo project, invited to the demo artist (journey 45). */
@@ -716,21 +713,6 @@ export async function publishArtistCall(): Promise<{ id: string; key: string; ti
     "Open call for the support slot.",
   );
   return { id, key: toDisplayKey("opportunity", id), title };
-}
-
-/** The artist's set: a seeded Opening Night cue linked to the engagement (Compass shows it). */
-export async function artistSetCue(engagementId: string): Promise<{ label: string }> {
-  const [cue] = await sql<{ id: string; label: string }>(
-    `select c.id, c.label from app.cues c join app.run_of_show r on r.id = c.run_of_show_id
-      where r.project_id = $1 and r.name = 'Opening Night Running Order' and c.deleted_at is null
-      order by c.position limit 1`,
-    [PROJECT],
-  );
-  await sql(`insert into app.engagement_cues (engagement_id, cue_id) values ($1, $2)`, [
-    engagementId,
-    cue?.id,
-  ]);
-  return { label: cue?.label as string };
 }
 
 /** A sent advance packet with one section, for the artist (journey 45). */
