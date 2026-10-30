@@ -131,3 +131,18 @@ does (RRR-139, migration 1651), wired two ways differently from the generic pipe
 Follow-ups: when retention deletes a message's row after two years, its raw file stays in the bucket until the org is
 purged, because SQL cannot delete storage objects (a Storage API sweep by age, as for sandboxes, would remove it); and
 attachments on filed mail, which Resend's Attachments API serves.
+
+## Amendment (B7, ADR 0146): named feeds, content, audiences and cues
+
+The owner approved the deferred parity themes on 2026-10-28; package B7 (RRR-231, gap G-50) amends items 4 and 5.
+
+- **Item 4, scope and visibility.** A feed has a name and saved sources (Shifts, Meetings, Milestones, Deadlines,
+  Cues; none saved serves the first four, so every 4.0 feed is unchanged). A project feed may follow one audience
+  (named people, one team or one canon department) and one show department; shifts and records are kept by the shared
+  audience rule (`private.schedule_audience_*`, 2961) after the owner's reach, so a filter never widens it. Cues appear
+  on a project feed only for owners who read the project's run of show, and on a person feed exactly as
+  `api_external.cues` shows them.
+- **Item 5, events.** A cue is an event titled "run · label" at its planned time, ending after its duration, in the
+  project's zone, TENTATIVE while its start is to be confirmed, with a sequence that follows the cue, its run and the
+  filtered call, and the call's instruction in its description. The calendar name is the feed's name when it has one,
+  else `platform.calendarFeeds.feed` as before.

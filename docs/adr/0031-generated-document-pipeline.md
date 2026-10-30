@@ -81,3 +81,22 @@ The owner approved the competitor parity audit on 2026-10-28; gap G-144 asks for
 5. **The badge photo.** The badge prints, in resolution order computed at read time (`app.credential_photo_states`, 2822): the org's badge photo for the holder once its object scanned Clean; else the holder's profile photo when the caller may see the photo section of the profile, no block stands between them (ADR 0033 decision 57), and it is a JPEG or PNG of at most 2 MiB; else the placeholder "No photo on file". The holder gives the badge photo in Gateway (Profile, Badge photos), from an upload they crop by hand or their own profile photo, with a `credential_photo` consent record, and withdraws it there; an issuer may ask for one (`credential_photo.requested`) or remove it. There is no capture at a desk. The photo is Internal, like the badge it prints on (no Section 8.6 watermark), and no machine learning reads it.
 6. **Batch printing.** `GET /{org}/documents/badges?id=…&paper=…` prints 1 to 100 credentials in one file: one `Document` root, a `Sect` per badge starting on a new page, each with its own facts and page numbers. Credentials the viewer cannot read, of another org (ADR 0003), revoked or expired are left out and counted in `X-Badges-Skipped`. A run of 100 badges with photos is larger than Vercel's 4.5 MB buffered function response, so the route streams the PDF: each badge's pages are written as soon as it is drawn. If streaming is found not to lift the cap on the deployed functions, the batch maximum is lowered until the worst case fits, and this amendment and the print panel notice record the new cap.
 7. **veraPDF** also renders, per locale, CR80 and A6 badges with and without a photo, version 2 on Letter and A4 with a photo, and 3-badge batches on CR80 and Letter (16 more files); the per-kind loop keeps the version 1 badge, issued before `BADGE_V2_FROM`.
+
+## Amendment (B7, ADR 0146): the wrap-up report and books
+
+The owner approved the deferred parity themes on 2026-10-28; package B7 (RRR-231) adds a thirteenth record document and
+compiled books.
+
+1. **Thirteen record documents.** `DOCUMENT_KINDS` adds `wrap-up-report`, so decision 6's per-kind loop renders thirteen
+   templates. Its row in decision 3's table: issue time the debrief's `completed_at`, else the generation time
+   (computed live, like the final cost report). Each of its sections is read only when the reader holds its capability
+   and otherwise prints "Not included" (ADR 0146 decision 5).
+2. **Books are compiled documents.** `COMPILED_DOCUMENT_KINDS` holds `document-book`, classified Internal: a book's cover
+   with its contents, rendered by `streamBookPdf` over the per-document drawing P5's batch file uses. Its row in decision
+   3's table: issue time the book's `created_at`, which picks the version of `BOOK_COVER_TEMPLATES`; each document in a
+   book keeps the version its own issue time picks. A book has one `Document` root, the cover `Sect` with a `TOC` and a
+   `TOCI` per document, a `Sect` per document and an outline item per section; footers number the whole book (ADR 0146
+   decision 4).
+3. **A version may print for an audience.** `TemplateVersion.audiences` marks a version that prints a copy for a team or
+   a department; `templateFor` considers only such versions when one is asked for, so a filtered day sheet always renders
+   day sheet version 2 (ADR 0146 decision 3).

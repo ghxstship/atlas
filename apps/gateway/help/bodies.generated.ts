@@ -2891,6 +2891,19 @@ export const HELP_BODIES: HelpBodies = {
       {
         t: "p",
         c: [
+          { t: "text", v: "To keep your calendar up to date instead, " },
+          { t: "strong", v: "Add a feed" },
+          {
+            t: "text",
+            v: " here. Give it a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and cues, such as your set times. ",
+          },
+          { t: "strong", v: "Edit" },
+          { t: "text", v: " changes a feed's name and content without changing its link." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
           { t: "text", v: "Choose " },
           { t: "strong", v: "Open Upcoming" },
           { t: "text", v: " to go there." },
@@ -6523,6 +6536,19 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Para agregar un solo elemento, usa " },
           { t: "strong", v: "Agregar al calendario" },
           { t: "text", v: " en la tarjeta A continuación de Inicio." },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Para mantener tu calendario al día, " },
+          { t: "strong", v: "Agrega un calendario" },
+          {
+            t: "text",
+            v: " aquí. Dale un nombre, que tu calendario muestra, y elige qué muestra: turnos, reuniones, hitos, fechas límite y cues, como tus horarios de presentación. ",
+          },
+          { t: "strong", v: "Editar" },
+          { t: "text", v: " cambia el nombre y el contenido sin cambiar el enlace." },
         ],
       },
       {

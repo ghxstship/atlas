@@ -10,4 +10,6 @@ Lleva tu trabajo a tu propio calendario desde [Próximos](help:work-upcoming): *
 
 Para agregar un solo elemento, usa **Agregar al calendario** en la tarjeta A continuación de Inicio.
 
+Para mantener tu calendario al día, **Agrega un calendario** aquí. Dale un nombre, que tu calendario muestra, y elige qué muestra: turnos, reuniones, hitos, fechas límite y cues, como tus horarios de presentación. **Editar** cambia el nombre y el contenido sin cambiar el enlace.
+
 Elige **Abrir Próximos** para ir allí.

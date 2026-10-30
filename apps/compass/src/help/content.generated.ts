@@ -1558,6 +1558,14 @@ export const COMPASS_HELP: HelpContent = {
             t: "ul",
             items: [
               [
+                {
+                  t: "text",
+                  v: "Give a feed a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and cues, such as your set times. ",
+                },
+                { t: "strong", v: "Edit" },
+                { t: "text", v: " changes them without changing the link." },
+              ],
+              [
                 { t: "strong", v: "Add a feed" },
                 { t: "text", v: " makes a new link. It's shown only once: tap " },
                 { t: "strong", v: "Copy or Share Link" },
@@ -4722,6 +4730,14 @@ export const COMPASS_HELP: HelpContent = {
           {
             t: "ul",
             items: [
+              [
+                {
+                  t: "text",
+                  v: "Dale un nombre a un calendario, que tu aplicación muestra, y elige qué muestra: turnos, reuniones, hitos, fechas límite y cues, como tus horarios de presentación. ",
+                },
+                { t: "strong", v: "Editar" },
+                { t: "text", v: " los cambia sin cambiar el enlace." },
+              ],
               [
                 { t: "strong", v: "Agregar un calendario" },
                 { t: "text", v: " crea un enlace nuevo. Se muestra solo una vez: toca " },
