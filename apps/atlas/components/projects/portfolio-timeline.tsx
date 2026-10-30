@@ -3,7 +3,7 @@
 import type { ProjectSummary } from "@xos/data/projects";
 import { dayTypeSlug, dayTypeTone } from "@xos/data/schedule-day-tones";
 import type { DayType } from "@xos/data/schedule-days";
-import { EmptyState, Link, Tag, type TimelineSegment } from "@xos/ui";
+import { EmptyState, Link, type TimelineSegment } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { stateIcon } from "@/lib/projects/format";
@@ -52,8 +52,8 @@ export function daySegments(
 /**
  * Projects on a day grid from the earliest start to the latest end (Timeline view). Once drawn, it asks for each
  * production's Load In, Show and Load Out days, drawn as labelled segments in its row (build-up, show and strike
- * across productions), and its clashes over the next 90 days, each count linked to the filtered register (B4). That
- * read happens only here, after the page has painted.
+ * across productions), and its clashes over the next 90 days, drawn as a tag on its row and repeated under the
+ * timeline as a link to the filtered register (B4). That read happens only here, after the page has painted.
  */
 export function PortfolioTimeline({
   org,
@@ -126,6 +126,7 @@ export function PortfolioTimeline({
                 typeName,
               )
             : [];
+          const clashes = overlay?.clashes[p.id] ?? 0;
           return {
             key: p.key,
             title: p.name,
@@ -133,16 +134,26 @@ export function PortfolioTimeline({
             start: index(starts[i] ?? first),
             end: index(ends[i] ?? first),
             ...(segments.length > 0 ? { segments } : {}),
+            ...(clashes > 0
+              ? {
+                  badge: {
+                    label: s("clashes.count", { count: clashes }),
+                    tone: "warning" as const,
+                  },
+                }
+              : {}),
           };
         })}
       />
       {counted.length > 0 ? (
         <ul className="m-0 flex list-none flex-wrap gap-8 p-0" aria-label={s("clashes.portfolio")}>
           {counted.map((p) => (
-            <li key={p.id} className="inline-flex items-center gap-4">
-              <Tag tone="warning">{p.key}</Tag>
+            <li key={p.id}>
               <Link href={`/${org}/schedule/clashes?project=${p.key}`}>
-                {s("clashes.count", { count: overlay?.clashes[p.id] ?? 0 })}
+                {s("clashes.link", {
+                  key: p.key,
+                  count: overlay?.clashes[p.id] ?? 0,
+                })}
               </Link>
             </li>
           ))}

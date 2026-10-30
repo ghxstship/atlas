@@ -599,6 +599,11 @@ export interface TimelineRow {
    * timeline. Each is named in the table alternative; colour (a categorical step) is never its only signal.
    */
   segments?: TimelineSegment[];
+  /**
+   * A short tag after the row's title, such as a production's clash count on the portfolio timeline. Its text is
+   * named in the table alternative; the tone repeats what the text says.
+   */
+  badge?: { label: string; tone?: TagProps["tone"] };
 }
 /** A day-type tag or segment: its text, a categorical colour step (viz-cat-1 to viz-cat-7) and an icon. */
 export interface TimelineCategory {

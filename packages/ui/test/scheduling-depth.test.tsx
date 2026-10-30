@@ -192,6 +192,7 @@ describe("Timeline tags, segments and offsets", () => {
             start: 0,
             end: 2,
             segments: [{ label: "Show", category: 2, start: 1, end: 1 }],
+            badge: { label: "2 clashes", tone: "warning" },
           },
         ]}
       />,
@@ -204,6 +205,9 @@ describe("Timeline tags, segments and offsets", () => {
     expect(within(table).getByRole("columnheader", { name: "Offset" })).toBeTruthy();
     expect(within(table).getAllByText("1 day before the anchor").length).toBeGreaterThan(0);
     expect(container.querySelectorAll("[title='Load In']").length).toBeGreaterThan(0);
+    // A row's badge sits after its title in the drawing and is named in its table cell.
+    expect(within(table).getByText(/Demo Summer Series .*\(2 clashes\)/)).toBeTruthy();
+    expect(within(container).getAllByText("2 clashes").length).toBeGreaterThan(0);
     await expectAccessible(container);
   });
 });

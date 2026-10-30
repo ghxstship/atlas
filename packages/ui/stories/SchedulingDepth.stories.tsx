@@ -74,6 +74,7 @@ export const TimelineDayTypes: StoryObj = {
             { label: "Show", category: 2, icon: "Ticket", start: 3, end: 3 },
             { label: "Load Out", category: 3, icon: "Package", start: 4, end: 4 },
           ],
+          badge: { label: "2 clashes", tone: "warning" },
         },
       ]}
     />

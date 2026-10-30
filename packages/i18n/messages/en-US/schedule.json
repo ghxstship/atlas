@@ -388,6 +388,7 @@
     },
     "portfolio": "Clashes in the next 90 days",
     "count": "{count, plural, one {# clash} other {# clashes}}",
+    "link": "{key}: {count, plural, one {# clash} other {# clashes}}",
     "travel": {
       "title": "Check travel requests",
       "logged": "Each check is recorded in the person's access log.",

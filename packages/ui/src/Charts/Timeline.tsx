@@ -16,6 +16,7 @@ import { StateIcon } from "../StateIcon/StateIcon.tsx";
 import { ScrollRegion } from "../Layout/Layout.tsx";
 import { Button } from "../Button/Button.tsx";
 import { Icon } from "../Icon/Icon.tsx";
+import { Tag } from "../Chips/Tag.tsx";
 import { type TimelineChange, type TimelineProps } from "./Charts.types.ts";
 import { categoryText, TL_CATEGORY } from "./categories.ts";
 import { planChange, sameMoves, sameRows, withMoves, type TimelinePlan } from "./timeline-plan.ts";
@@ -394,6 +395,7 @@ export function Timeline({
                       )
                       .join("; ")})`
                   : ""}
+                {r.badge ? ` (${r.badge.label})` : ""}
               </td>
               <td>{r.state}</td>
               <td>{dayLabel(r.start)}</td>
@@ -430,6 +432,11 @@ export function Timeline({
               <StateIcon state={r.state} />
               <span className="font-mono text-text-12 text-text-secondary">{r.key}</span>
               <span className="truncate">{r.title}</span>
+              {r.badge ? (
+                <span className="ms-auto flex-none">
+                  <Tag tone={r.badge.tone ?? "neutral"}>{r.badge.label}</Tag>
+                </span>
+              ) : null}
             </div>
           ))}
         </div>

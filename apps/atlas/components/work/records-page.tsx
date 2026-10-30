@@ -171,9 +171,16 @@ export async function RecordsPage({
       }[]
     | undefined;
   let anchor: { day: string; label: string } | null = null;
-  if (view === "timeline" || view === "calendar") {
+  // Only the dates the view draws: the month on the calendar, the timeline's first to last day.
+  const drawnDays =
+    view === "calendar"
+      ? { from: month, to: lastOfMonth(month) }
+      : view === "timeline" && timeline && timeline.days.length > 0
+        ? { from: timeline.days[0]?.day ?? today, to: timeline.days.at(-1)?.day ?? today }
+        : null;
+  if (drawnDays) {
     const ids = projectId ? [projectId] : meta.projects.map((p) => p.id);
-    const days = await listProjectDays(db, { orgId: ctx.org.id, projectIds: ids });
+    const days = await listProjectDays(db, { orgId: ctx.org.id, projectIds: ids, ...drawnDays });
     if (days.ok) {
       const byDate = dayTagsByDate(
         days.data,
@@ -306,4 +313,10 @@ export async function RecordsPage({
       />
     </CustomFieldList>
   );
+}
+
+/** The last day of the month that `month` (YYYY-MM-01) starts, as YYYY-MM-DD. */
+function lastOfMonth(month: string): string {
+  const [y, m] = month.split("-").map(Number) as [number, number];
+  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
 }

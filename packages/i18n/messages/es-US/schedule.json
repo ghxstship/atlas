@@ -388,6 +388,7 @@
     },
     "portfolio": "Conflictos en los próximos 90 días",
     "count": "{count, plural, one {# conflicto} other {# conflictos}}",
+    "link": "{key}: {count, plural, one {# conflicto} other {# conflictos}}",
     "travel": {
       "title": "Revisar solicitudes de viaje",
       "logged": "Cada revisión queda registrada en el registro de acceso de la persona.",

@@ -950,23 +950,23 @@ restated:
   - column: app.project_days.project_id
     parent: app.scope_nodes.project_id
     kind: own
-    note: The days project; the optional Show node narrows it and is checked to be of the same project.
+    note: The day's project; the optional Show node narrows it and is checked to be of the same project.
   - column: app.project_days.time_zone
     parent: app.projects.time_zone
     kind: own
-    note: The zone of a segment held somewhere else, such as a Travel day; NULL means the projects zone.
+    note: The zone of a segment held somewhere else, such as a Travel day; NULL means the project's zone.
   - column: app.project_days.time_zone
     parent: app.venues.time_zone
     kind: own
-    note: Stored only when no venue applies (check and private.guard_project_day), so it never restates a venues zone.
+    note: Stored only when no venue applies (check and private.guard_project_day), so it never restates a venue's zone.
   - column: app.project_days.venue_id
     parent: app.projects.venue_id
     kind: own
-    note: The venue of one segment, which can differ from the projects, as on a touring Load In.
+    note: The venue of one segment, which can differ from the project's, as on a touring Load In.
   - column: app.project_days.venue_id
     parent: app.scope_nodes.venue_id
     kind: own
-    note: Set only when no Show node is named (check), so it never restates the nodes venue.
+    note: Set only when no Show node is named (check), so it never restates the node's venue.
   - column: app.project_measurement_corrections.measured_on
     parent: app.project_measurements.measured_on
     kind: fact
