@@ -252,7 +252,8 @@ test("favorite: Pin page and Unpin page answer within 100 ms and hold", async ({
   });
   await expectAcknowledged(page, "Pin page", () => button("Pin page").click(), shows("Unpin page"));
   noteServer("Pin page", latencyOf(await listed()));
-  await expect(flippedBack()).rejects.toThrow();
+  // Only the wait running out shows the label held: a page or evaluate error must fail the journey.
+  await expect(flippedBack()).rejects.toThrow(/Timeout \d+ms exceeded/);
   await page.reload();
   await expect(button("Unpin page")).toBeVisible();
   await settle(page);
