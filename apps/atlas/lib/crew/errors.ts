@@ -93,6 +93,12 @@ export const KNOWN_REFUSALS = [
   "agreement_token_validity",
   "credential_self_issue",
   "certification_holder_immutable",
+  "per_diem_one_worker",
+  "per_diem_range",
+  "per_diem_member_org",
+  "per_diem_day_taken",
+  "engagement_worker_person",
+  "engagement_not_working",
 ] as const;
 
 const KNOWN = new Set<string>(KNOWN_REFUSALS);

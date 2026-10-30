@@ -38,6 +38,7 @@ import { conflict, refused } from "../problem.ts";
 import type { RequestContext } from "../runtime/context.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
+import { bulkEdit, fieldHistory } from "./parts/bulk-edit-and-history.ts";
 import { mergeBy, withTransition } from "./support/enrich.ts";
 import { from, groupBy, handlersFor, keysOf, run, tableResource, unwrap } from "./support/table.ts";
 import type { Row, TableResource } from "./support/table.ts";
@@ -468,4 +469,12 @@ export const handlers = defineHandlers("Finance", {
     );
     return ok(await reread(invoices, context, params.id));
   },
+
+  // Bulk edit and field history (A106, migrations 1451 and 1452).
+  "invoices.bulkPreview": async ({ body }, context) =>
+    ok((await bulkEdit(context, "invoices", body, true)) as never),
+  "invoices.bulkUpdate": async ({ body }, context) =>
+    ok((await bulkEdit(context, "invoices", body, false)) as never),
+  "invoices.fieldHistory": async ({ params, query }, context) =>
+    ok((await fieldHistory(context, "app.invoices", params.id, query.limit)) as never),
 });

@@ -14,6 +14,7 @@ import { PageHeader } from "@/components/projects/ui";
 import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { must } from "@/lib/projects/loaders";
+import { CollectionPage } from "@/components/platform/collection-page";
 
 const VIEWS = ["tree", "list", "matrix"] as const;
 
@@ -49,8 +50,7 @@ export default async function ScopePage({
     .filter(([, n]) => Number(n) > 0)
     .map(([key]) => key.split("|")[0] ?? "");
   return (
-    <>
-      <PageHeader title={t("scope.title")} />
+    <CollectionPage header={<PageHeader title={t("scope.title")} />}>
       <ScopeView
         org={ctx.org.org.slug}
         projectKey={ctx.project.key}
@@ -68,6 +68,6 @@ export default async function ScopePage({
         cells={counts}
       />
       <ReconciliationPanel ctx={ctx.org} projectId={ctx.project.id} />
-    </>
+    </CollectionPage>
   );
 }

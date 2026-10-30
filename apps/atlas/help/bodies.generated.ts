@@ -307,6 +307,16 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Per diems" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Add per diems in Crew > Per Diems once a project is chosen: pick a member or a person engaged on the project, the first and last day, and the daily amount. Each day is recorded once per person, and external crew receive per diems only while their engagement is Active or Closing. Removing a per diem keeps its history.",
+          },
+        ],
+      },
     ],
     finance: [
       {
@@ -2499,6 +2509,16 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Las tarjetas de tarifas fijan el pago por rol y regla. Ejecute la exportación de nómina de un período, publíquela y el período se cierra. Un período cerrado no se puede reabrir. Las tarifas se ocultan a quienes no tienen acceso a nómina.",
+          },
+        ],
+      },
+      { t: "h2", v: "Viáticos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Agregue viáticos en Equipo > Viáticos después de elegir un proyecto: elija a un miembro o a una persona contratada en el proyecto, el primer y el último día, y el monto diario. Cada día se registra una vez por persona, y el personal externo recibe viáticos solo mientras su contratación está Activa o En cierre. Quitar un viático conserva su historial.",
           },
         ],
       },

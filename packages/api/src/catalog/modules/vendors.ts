@@ -8,6 +8,7 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeActions } from "../correct.ts";
 import { itemAction, transition } from "../define.ts";
+import { fieldHistoryAction } from "./parts/bulk-edit-and-history.ts";
 import { insuredCapabilities, insuredResources } from "./parts/insureds.ts";
 import { vendorFieldHomes } from "./parts/playbook-field-homes.ts";
 import { vendorFieldExposure } from "./parts/playbook-field-exposure.ts";
@@ -21,6 +22,7 @@ const score = (what: string) => orNull(fields.int(`${what}, 1 to 5; null when no
 
 export const additions = defineAdditions("Vendors", {
   resources: [...insuredResources],
+  actions: { vendors: [fieldHistoryAction("vendor")] },
   capabilities: { ...insuredCapabilities },
   corrections: [
     {

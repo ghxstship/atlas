@@ -156,6 +156,7 @@ export async function bookDockSlotAction(_: ActionState, form: FormData): Promis
   if (!project) return { fieldErrors: { projectId: "required" } };
   const zoneId = uuid.safeParse(field(form, "zoneId"));
   const shipmentId = optionalUuid.safeParse(field(form, "shipmentId"));
+  const engagementId = optionalUuid.safeParse(field(form, "engagementId"));
   const startsAt = zonedInstant(form, "startsAt", project.timeZone);
   const endsAt = zonedInstant(form, "endsAt", project.timeZone);
   const fieldErrors: Record<string, string> = {};
@@ -169,6 +170,10 @@ export async function bookDockSlotAction(_: ActionState, form: FormData): Promis
   const input = {
     zoneId: zoneId.data,
     shipmentId: shipmentId.success ? shipmentId.data : null,
+    // The Vendor select sends an empty value for none; a form without it keeps the slot's vendor.
+    ...(form.has("engagementId")
+      ? { engagementId: engagementId.success ? engagementId.data : null }
+      : {}),
     startsAt,
     endsAt,
   };

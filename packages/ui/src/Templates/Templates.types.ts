@@ -39,11 +39,50 @@ export interface TemplateSplitViewProps {
   listLabel?: string;
 }
 
+/** One tile on the dashboard grid. */
+export interface DashboardTile {
+  /** Stable id; a saved layout names tiles by it. */
+  id: string;
+  /** Names the tile for its resize handle and announcements. */
+  label: string;
+  /** Columns of the 12-column grid the tile spans by default. */
+  span: number;
+  /** The fewest columns it may shrink to; 3 by default. */
+  minSpan?: number;
+  /** StatTile, Chart or Card content. */
+  content: ReactNode;
+}
+
+/** Spans by tile id, as a person arranged them. */
+export type DashboardSpans = Readonly<Record<string, number>>;
+
+/**
+ * Resizing in grid units. Copy arrives from the app, so the library ships no strings for it; without
+ * this prop tiles keep their spans.
+ */
+export interface DashboardResize {
+  /** The handle's name, such as "Resize Alerts". */
+  label: (tile: string) => string;
+  /** What a screen reader hears after a change, such as "Alerts, 6 of 12 columns". */
+  describe: (tile: string, span: number) => string;
+  /** Called with every tile's span once a drag ends or a key changes one. */
+  onChange: (spans: DashboardSpans) => void;
+}
+
 export interface TemplateDashboardProps {
-  /** Title with the date range and scope picker. */
+  /** PageHeader with the title. */
   header: ReactNode;
-  /** StatTile, Chart and Card tiles on the grid. */
-  children: ReactNode;
+  /** The date range and scope picker, at the end of the header row. */
+  controls?: ReactNode;
+  /** Tiles on the 12-column grid, in reading order. */
+  tiles?: readonly DashboardTile[];
+  /** The person's saved spans; a tile without one keeps its default. */
+  spans?: DashboardSpans;
+  resize?: DashboardResize;
+  /** Names the grid for assistive technology. */
+  label?: string;
+  /** Free content on the grid; each child spans 4 columns at lg. */
+  children?: ReactNode;
 }
 
 export interface TemplateSettingsProps {
