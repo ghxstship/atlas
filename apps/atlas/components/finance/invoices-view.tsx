@@ -22,6 +22,9 @@ import { saveInvoiceLineAction } from "@/app/[org]/finance/actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Section, SimpleTable } from "./figures";
 import { InvoiceForm } from "./forms-invoice-form";
+import { CustomFieldList } from "@/components/custom-fields/list";
+import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
+import { customFieldList } from "@/lib/custom-fields/server";
 import { InvoiceLineForm } from "./forms-invoice-line-form";
 import { RecordPaymentForm } from "./forms-record-payment-form";
 import { SelfBillForm } from "./forms-self-bill-form";
@@ -70,9 +73,10 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
   }
   const db = ctx.viewer.db;
   const scope = { orgId: ctx.org.id, projectId: page.project?.id ?? null };
-  const [invoices, counterparties] = await Promise.all([
+  const [invoices, counterparties, custom] = await Promise.all([
     listInvoices(db, scope),
     listCounterparties(db, ctx.org.id),
+    customFieldList(ctx, "app.invoices", query.extra),
   ]);
   if (!invoices.ok || !counterparties.ok) {
     return (
@@ -103,6 +107,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
   const today = overdue === null ? null : await orgToday(ctx);
   const shown = invoices.data.filter(
     (i) =>
+      custom.keep(i.id) &&
       (!query.state || i.state === query.state) &&
       (!direction || i.direction === direction) &&
       (today === null || isOverdue(i, today) === (overdue === "true")) &&
@@ -259,6 +264,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
             t={t}
             format={c.dateTime}
           />
+          <CustomFieldsPanel org={ctx.org.slug} table="app.invoices" id={peek.id} />
           <RecordCollab ctx={ctx} table="app.invoices" id={peek.id} canUpload={canWrite} />
         </>
       ),
@@ -324,7 +330,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
     );
   }
 
-  return (
+  const collection = (
     <FinanceCollection
       {...base}
       canCreate={canWrite}
@@ -424,5 +430,10 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
       sheet={sheet}
       ask={invoiceAsk(page, c)}
     />
+  );
+  return (
+    <CustomFieldList value={await custom.view(shown.map((i) => i.id))}>
+      {collection}
+    </CustomFieldList>
   );
 }

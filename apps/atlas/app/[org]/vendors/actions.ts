@@ -34,6 +34,7 @@ import {
   type VendorState,
 } from "@xos/data/vendors";
 import { actionContext, finish } from "@/lib/collection-kit/actions";
+import { customFieldsOf } from "@/lib/custom-fields/form";
 import {
   all,
   decimal,
@@ -77,6 +78,8 @@ export async function createVendorAction(_: ActionState, form: FormData): Promis
   if (terms === undefined) errors.add("paymentTermsDays", "wholeNumber");
   const code = currency(form, "defaultCurrencyCode", errors);
   if (errors.any) return errors.state;
+  const custom = await customFieldsOf(ctx, "app.vendors", form);
+  if (custom.fieldErrors) return { fieldErrors: custom.fieldErrors };
   const result = await createVendor(ctx.viewer.db, {
     orgId: ctx.org.id,
     counterpartyId,
@@ -85,6 +88,7 @@ export async function createVendorAction(_: ActionState, form: FormData): Promis
     paymentTermsDays: terms ?? null,
     defaultCurrencyCode: code,
   });
+  if (result.ok) await custom.save(result.data.id);
   return finish(result, ctx, MODULE);
 }
 
