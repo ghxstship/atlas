@@ -2077,19 +2077,100 @@ export const HELP_BODIES: HelpBodies = {
       {
         t: "p",
         c: [
-          { t: "text", v: "Press " },
-          { t: "strong", v: "Mod+K" },
           {
             t: "text",
-            v: " or choose Search to go to any page, engagement or opportunity. Press ",
-          },
-          { t: "strong", v: "?" },
-          {
-            t: "text",
-            v: " or choose Help on any page for its articles, the shortcuts, What's New and ",
+            v: "Choose Search to go to any page, engagement or opportunity. Choose Help on any page for its articles, the shortcuts, What's New and ",
           },
           { t: "link", v: "Contact support", href: "help:contact-support" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "On a keyboard" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "These work everywhere on a computer. Mod is Cmd on a Mac and Ctrl elsewhere.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Mod+K" },
+            { t: "text", v: ": Search Gateway" },
+          ],
+          [
+            { t: "strong", v: "?" },
+            { t: "text", v: ": Open help for this page" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Open the account menu" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Switch organization" },
+          ],
+          [
+            { t: "strong", v: "Esc" },
+            { t: "text", v: ": Close a menu, dialog or peek" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Undo the last change" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Redo the change you undid" },
+          ],
+        ],
+      },
+      { t: "p", c: [{ t: "text", v: "Two keys, one after the other, go to a destination:" }] },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Go to Home" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Go to Explore" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Go to Work" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Go to Money" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Go to Messages" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Go to Profile" },
+          ],
+          [
+            { t: "strong", v: "G D" },
+            { t: "text", v: ": Go to Documents" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Go to Settings" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "link", v: "Keyboard shortcuts", href: "help:settings-keyboard-shortcuts" },
+          { t: "text", v: " has the rest." },
         ],
       },
     ],
@@ -2862,25 +2943,84 @@ export const HELP_BODIES: HelpBodies = {
     "settings-keyboard-shortcuts": [
       {
         t: "p",
-        c: [{ t: "text", v: "On a computer, Gateway answers these shortcuts everywhere:" }],
+        c: [
+          {
+            t: "text",
+            v: "On a computer, Gateway answers these shortcuts everywhere. Mod is Cmd on a Mac and Ctrl elsewhere.",
+          },
+        ],
       },
       {
         t: "ul",
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            {
-              t: "text",
-              v: ": search pages, engagements and opportunities. Mod is Cmd on a Mac and Ctrl elsewhere.",
-            },
+            { t: "text", v: ": Search Gateway" },
           ],
           [
             { t: "strong", v: "?" },
-            { t: "text", v: ": open help for the page you are on, unless you are typing." },
+            { t: "text", v: ": Open help for this page" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Open the account menu" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Switch organization" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: ": close the open menu, dialog or panel." },
+            { t: "text", v: ": Close a menu, dialog or peek" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Undo the last change" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Redo the change you undid" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [{ t: "text", v: "To go to a destination, press two keys, one after the other:" }],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Go to Home" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Go to Explore" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Go to Work" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Go to Money" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Go to Messages" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Go to Profile" },
+          ],
+          [
+            { t: "strong", v: "G D" },
+            { t: "text", v: ": Go to Documents" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Go to Settings" },
           ],
         ],
       },
@@ -2889,7 +3029,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "In search, the arrow keys move and Enter opens. Every icon button names its shortcut in a tooltip.",
+            v: "A destination you cannot open has no shortcut, and Switch organization works only where the account menu offers it. Shortcuts never act while you type in a field, except the ones with ",
+          },
+          { t: "strong", v: "Mod" },
+          {
+            t: "text",
+            v: ". In search, the arrow keys move and Enter opens. Every icon button names its shortcut in a tooltip.",
           },
         ],
       },
@@ -2900,8 +3045,14 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Keyboard shortcuts" },
           {
             t: "text",
-            v: " setting on this page is your personal setting, shared with Atlas, where it turns single-key shortcuts such as J and K on or off.",
+            v: " setting on this page is your personal setting, shared with Atlas. Turned off, it stops every shortcut without ",
           },
+          { t: "strong", v: "Mod" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Ctrl" },
+          { t: "text", v: " or " },
+          { t: "strong", v: "Alt" },
+          { t: "text", v: "." },
         ],
       },
     ],
@@ -5597,19 +5748,100 @@ export const HELP_BODIES: HelpBodies = {
       {
         t: "p",
         c: [
-          { t: "text", v: "Pulsa " },
-          { t: "strong", v: "Mod+K" },
           {
             t: "text",
-            v: " o elige Buscar para ir a cualquier página, contratación u oportunidad. Pulsa ",
-          },
-          { t: "strong", v: "?" },
-          {
-            t: "text",
-            v: " o elige Ayuda en cualquier página para ver sus artículos, los atajos, las novedades y ",
+            v: "Elige Buscar para ir a cualquier página, contratación u oportunidad. Elige Ayuda en cualquier página para ver sus artículos, los atajos, las novedades y ",
           },
           { t: "link", v: "Contactar a soporte", href: "help:contact-support" },
           { t: "text", v: "." },
+        ],
+      },
+      { t: "h2", v: "Con el teclado" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Funcionan en todas partes en una computadora. Mod es Cmd en una Mac y Ctrl en los demás equipos.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Mod+K" },
+            { t: "text", v: ": Buscar en Gateway" },
+          ],
+          [
+            { t: "strong", v: "?" },
+            { t: "text", v: ": Abrir la ayuda de esta página" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Abrir el menú de la cuenta" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Cambiar de organización" },
+          ],
+          [
+            { t: "strong", v: "Esc" },
+            { t: "text", v: ": Cerrar un menú, diálogo o panel" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Deshacer el último cambio" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Rehacer el cambio que deshizo" },
+          ],
+        ],
+      },
+      { t: "p", c: [{ t: "text", v: "Dos teclas, una después de la otra, llevan a un destino:" }] },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Ir a Inicio" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Ir a Explorar" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Ir a Trabajo" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Ir a Dinero" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Ir a Mensajes" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Ir a Perfil" },
+          ],
+          [
+            { t: "strong", v: "G D" },
+            { t: "text", v: ": Ir a Documentos" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Ir a Configuración" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "link", v: "Atajos de teclado", href: "help:settings-keyboard-shortcuts" },
+          { t: "text", v: " explica el resto." },
         ],
       },
     ],
@@ -6410,28 +6642,84 @@ export const HELP_BODIES: HelpBodies = {
     "settings-keyboard-shortcuts": [
       {
         t: "p",
-        c: [{ t: "text", v: "En una computadora, Gateway atiende estos atajos en todas partes:" }],
+        c: [
+          {
+            t: "text",
+            v: "En una computadora, Gateway atiende estos atajos en todas partes. Mod es Cmd en una Mac y Ctrl en los demás equipos.",
+          },
+        ],
       },
       {
         t: "ul",
         items: [
           [
             { t: "strong", v: "Mod+K" },
-            {
-              t: "text",
-              v: ": buscar páginas, contrataciones y oportunidades. Mod es Cmd en una Mac y Ctrl en los demás equipos.",
-            },
+            { t: "text", v: ": Buscar en Gateway" },
           ],
           [
             { t: "strong", v: "?" },
-            {
-              t: "text",
-              v: ": abrir la ayuda de la página donde estás, salvo que estés escribiendo.",
-            },
+            { t: "text", v: ": Abrir la ayuda de esta página" },
+          ],
+          [
+            { t: "strong", v: "A" },
+            { t: "text", v: ": Abrir el menú de la cuenta" },
+          ],
+          [
+            { t: "strong", v: "O" },
+            { t: "text", v: ": Cambiar de organización" },
           ],
           [
             { t: "strong", v: "Esc" },
-            { t: "text", v: ": cerrar el menú, diálogo o panel abierto." },
+            { t: "text", v: ": Cerrar un menú, diálogo o panel" },
+          ],
+          [
+            { t: "strong", v: "Mod+Z" },
+            { t: "text", v: ": Deshacer el último cambio" },
+          ],
+          [
+            { t: "strong", v: "Mod+Shift+Z" },
+            { t: "text", v: ": Rehacer el cambio que deshizo" },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [{ t: "text", v: "Para ir a un destino, pulsa dos teclas, una después de la otra:" }],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "G H" },
+            { t: "text", v: ": Ir a Inicio" },
+          ],
+          [
+            { t: "strong", v: "G E" },
+            { t: "text", v: ": Ir a Explorar" },
+          ],
+          [
+            { t: "strong", v: "G W" },
+            { t: "text", v: ": Ir a Trabajo" },
+          ],
+          [
+            { t: "strong", v: "G M" },
+            { t: "text", v: ": Ir a Dinero" },
+          ],
+          [
+            { t: "strong", v: "G I" },
+            { t: "text", v: ": Ir a Mensajes" },
+          ],
+          [
+            { t: "strong", v: "G P" },
+            { t: "text", v: ": Ir a Perfil" },
+          ],
+          [
+            { t: "strong", v: "G D" },
+            { t: "text", v: ": Ir a Documentos" },
+          ],
+          [
+            { t: "strong", v: "G T" },
+            { t: "text", v: ": Ir a Configuración" },
           ],
         ],
       },
@@ -6440,7 +6728,12 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "En la búsqueda, las flechas te mueven y Enter abre. Cada botón con ícono indica su atajo en una descripción emergente.",
+            v: "Un destino que no puedes abrir no tiene atajo, y Cambiar de organización solo funciona donde el menú de la cuenta lo ofrece. Los atajos nunca actúan mientras escribes en un campo, salvo los que llevan ",
+          },
+          { t: "strong", v: "Mod" },
+          {
+            t: "text",
+            v: ". En la búsqueda, las flechas te mueven y Enter abre. Cada botón con ícono indica su atajo en una descripción emergente.",
           },
         ],
       },
@@ -6451,8 +6744,14 @@ export const HELP_BODIES: HelpBodies = {
           { t: "strong", v: "Atajos de teclado" },
           {
             t: "text",
-            v: " de esta página es tu ajuste personal, compartido con Atlas, donde activa o desactiva los atajos de una sola tecla como J y K.",
+            v: " de esta página es tu ajuste personal, compartido con Atlas. Si lo desactivas, se detienen todos los atajos sin ",
           },
+          { t: "strong", v: "Mod" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Ctrl" },
+          { t: "text", v: " o " },
+          { t: "strong", v: "Alt" },
+          { t: "text", v: "." },
         ],
       },
     ],

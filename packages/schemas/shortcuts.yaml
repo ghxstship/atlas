@@ -30,6 +30,12 @@
 #           itself owns them.
 #   go      For a navigation shortcut, the sitemap node it opens.
 #
+# Record and view shortcuts act on a control rather than run a command. The record page, the side
+# peek and the collection template mark their region with data-shortcut-scope (record or view), and
+# the control that does the action carries data-shortcut="<id>": the shell's key handler clicks it, or
+# focuses it when it is a field or carries data-shortcut-focus. A feature binds its control to a
+# shortcut by carrying the attribute, with no change to the handler.
+#
 # Reserved keys belong to the browser, the operating system, screen readers or keyboard operation. No
 # default and no personal binding may use them; fixed shortcuts may name the keys of keyboard operation
 # (Escape, Enter) that they document. `+*` stands for any key while holding at least those modifiers.
@@ -125,11 +131,13 @@ reserved:
 
 shells:
   atlas:
-    scopes: [global, list, inbox, show]
+    scopes: [global, list, inbox, record, view, show]
     groups:
       - { id: general, label: help.shortcuts.groups.general }
       - { id: go, label: help.shortcuts.groups.go }
       - { id: lists, label: help.shortcuts.groups.lists }
+      - { id: record, label: help.shortcuts.groups.record }
+      - { id: view, label: help.shortcuts.groups.view }
       - { id: inbox, label: help.shortcuts.groups.inbox }
       - { id: show, label: help.shortcuts.groups.show }
       - { id: show-deck, label: help.shortcuts.groups.showDeck }
@@ -381,6 +389,64 @@ shells:
         keys: Shift+F10
         fixed: true
         label: help.shortcuts.menu
+      # Records: the record full page and the side peek (Section 11.2). Each clicks or focuses the
+      # control marked with its id in the record on screen; a record without that control ignores it.
+      - id: record.state
+        scope: record
+        group: record
+        keys: S
+        label: help.shortcuts.record.state
+      - id: record.assign
+        scope: record
+        group: record
+        keys: A
+        label: help.shortcuts.record.assign
+      - id: record.comment
+        scope: record
+        group: record
+        keys: M
+        label: help.shortcuts.record.comment
+      - id: record.edit-title
+        scope: record
+        group: record
+        keys: E
+        label: help.shortcuts.record.editTitle
+      - id: record.open
+        scope: record
+        group: record
+        keys: O
+        label: help.shortcuts.record.open
+      - id: record.copy-link
+        scope: record
+        group: record
+        keys: L
+        label: help.shortcuts.record.copyLink
+      - id: record.trash
+        scope: record
+        group: record
+        keys: Mod+Backspace
+        label: help.shortcuts.record.trash
+      # Views: a collection's switcher, filters, saved views and export (Section 11.15).
+      - id: view.switch
+        scope: view
+        group: view
+        keys: V
+        label: help.shortcuts.view.switch
+      - id: view.filters
+        scope: view
+        group: view
+        keys: F
+        label: help.shortcuts.view.filters
+      - id: view.save
+        scope: view
+        group: view
+        keys: Shift+S
+        label: help.shortcuts.view.save
+      - id: view.export
+        scope: view
+        group: view
+        keys: Shift+E
+        label: help.shortcuts.view.export
       # Inbox: the focused item. J and K move as in every list.
       - id: inbox.approve
         scope: inbox
@@ -491,6 +557,7 @@ shells:
     scopes: [global]
     groups:
       - { id: general, label: help.shortcuts.groups.general }
+      - { id: go, label: help.shortcuts.groups.go }
     shortcuts:
       - id: command-menu
         scope: global
@@ -503,6 +570,67 @@ shells:
         group: general
         keys: "?"
         label: help.shortcuts.help
+      # The account panel and the organization switcher, as the avatar menu opens them (Section 4.5.8).
+      # Switch org answers only on the platform address, where the avatar menu offers it.
+      - id: account
+        scope: global
+        group: general
+        keys: A
+        label: help.gateway.shortcuts.account
+      - id: switch-org
+        scope: global
+        group: general
+        keys: O
+        label: help.gateway.shortcuts.switchOrg
+      # Go to: G, then a letter, opens a destination of the top bar or the avatar menu, as in Atlas.
+      - id: go.home
+        scope: global
+        group: go
+        keys: G H
+        go: home
+        label: help.gateway.shortcuts.go.home
+      - id: go.explore
+        scope: global
+        group: go
+        keys: G E
+        go: explore
+        label: help.gateway.shortcuts.go.explore
+      - id: go.work
+        scope: global
+        group: go
+        keys: G W
+        go: work
+        label: help.gateway.shortcuts.go.work
+      - id: go.money
+        scope: global
+        group: go
+        keys: G M
+        go: money
+        label: help.gateway.shortcuts.go.money
+      - id: go.messages
+        scope: global
+        group: go
+        keys: G I
+        go: messages
+        label: help.gateway.shortcuts.go.messages
+      - id: go.profile
+        scope: global
+        group: go
+        keys: G P
+        go: profile
+        label: help.gateway.shortcuts.go.profile
+      - id: go.documents
+        scope: global
+        group: go
+        keys: G D
+        go: documents
+        label: help.gateway.shortcuts.go.documents
+      - id: go.settings
+        scope: global
+        group: go
+        keys: G T
+        go: settings
+        label: help.gateway.shortcuts.go.settings
       - id: close
         scope: global
         group: general

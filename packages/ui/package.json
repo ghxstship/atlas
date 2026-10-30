@@ -12,6 +12,7 @@
     ".": "./src/index.ts",
     "./static": "./src/static.ts",
     "./preferences": "./src/lib/preferences.ts",
+    "./shortcut-targets": "./src/lib/shortcut-targets.ts",
     "./undo": "./src/lib/undo-stack.ts",
     "./route-transition": "./src/lib/route-transition.tsx",
     "./quick-add": "./src/Editing/quickAddCore.ts",

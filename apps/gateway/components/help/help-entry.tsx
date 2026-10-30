@@ -30,11 +30,14 @@ export function HelpEntry({
   open,
   onOpenChange,
   docsUrl,
+  shortcuts,
 }: {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
   /** The docs site origin, for help center links; null on custom domains and when unset. */
   readonly docsUrl: string | null;
+  /** Registry ids of the shortcuts the frame answers for the person, for the shortcut sheet. */
+  readonly shortcuts: readonly string[];
 }) {
   const [panel, setPanel] = useState<PanelModule | null>(null);
 
@@ -55,6 +58,11 @@ export function HelpEntry({
   }, [open, panel]);
 
   return panel ? (
-    <panel.HelpPanel open={open} onOpenChange={onOpenChange} docsUrl={docsUrl} />
+    <panel.HelpPanel
+      open={open}
+      onOpenChange={onOpenChange}
+      docsUrl={docsUrl}
+      shortcuts={shortcuts}
+    />
   ) : null;
 }
