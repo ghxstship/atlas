@@ -360,5 +360,32 @@
     "vendor": "Vendor",
     "receivedAt": "Received",
     "hireEnds": "Hire ends"
+  },
+  "availability": {
+    "line": "Available {available} of {total} {unit} for these dates",
+    "loading": "Checking availability.",
+    "failed": "Availability could not be checked."
+  },
+  "reservations": {
+    "title": "Reservations",
+    "empty": "No holds on this unit or its class.",
+    "pinned": "Held for an allocation",
+    "classStock": "Class stock hold",
+    "window": "{from} to {to}",
+    "conflict": "In conflict: {conflict}",
+    "allocation": "Allocation",
+    "noAllocation": "No allocation",
+    "allocationHelp": "Approved allocations of this class with holds left. The unit goes to the hold's person."
+  },
+  "custodyErrors": {
+    "asset_reserved_for_other": "This unit is held for someone else now. Check it out against their allocation.",
+    "asset_class_held_for_reservations": "The units left are held for others now. Check it out against an allocation.",
+    "custody_not_reserved_holder": "That allocation is held by someone else.",
+    "custody_reservation_exhausted": "Everything that allocation covers is already out.",
+    "custody_reservation_window": "That allocation's dates have ended.",
+    "custody_roster_engagement": "The person is not on that engagement's roster.",
+    "custody_roster_entry_not_live": "Gear goes to a roster entry accepted by the reviewer and by the person.",
+    "lot_held_for_reservations": "What is left of this lot is held for others now.",
+    "lot_reservation_mismatch": "That hold is of another lot."
   }
 }

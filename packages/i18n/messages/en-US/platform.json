@@ -702,6 +702,12 @@
       },
       "engagement": {
         "roster_lock_changed": "Names lock changed"
+      },
+      "allocation": {
+        "decided": "Allocation decided",
+        "assigned": "Allocation given to you",
+        "issued": "Allocation handed over",
+        "withdrawn": "Allocation withdrawn"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",

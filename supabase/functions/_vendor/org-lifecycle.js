@@ -34,6 +34,7 @@ var documents_default$1 = {
     "final-cost-report": "Final cost report",
     "agreement-certificate": "Signature certificate",
     "deletion-certificate": "Deletion certificate",
+    "radio-handout": "Radio hand-out",
   },
   facts: {
     recordKey: "Record key",
@@ -489,6 +490,20 @@ var documents_default$1 = {
         "The willful falsification of any of the above statements may subject the contractor or subcontractor to civil or criminal prosecution (see section 1001 of title 18 and section 3729 of title 31 of the United States Code), as well as debarment from future federal and federally-assisted contracts.",
     },
   },
+  radioHandout: {
+    title: "Radio hand-out",
+    subtitle: "{project} · {date}",
+    person: "Person",
+    party: "Party",
+    radio: "Radio",
+    tags: "Tags issued",
+    channels: "Channels",
+    status: "Status",
+    signature: "Signature",
+    returned: "Returned",
+    empty: "No radios are allocated on this project yet.",
+    footer: "Sign when you take a radio and when you hand it back.",
+  },
 };
 var documents_default = {
   actions: {
@@ -509,6 +524,7 @@ var documents_default = {
     "final-cost-report": "Informe de costo final",
     "agreement-certificate": "Certificado de firma",
     "deletion-certificate": "Certificado de eliminación",
+    "radio-handout": "Hoja de radios",
   },
   facts: {
     recordKey: "Clave del registro",
@@ -966,6 +982,20 @@ var documents_default = {
       warning:
         "La falsificación intencional de cualquiera de las declaraciones anteriores puede exponer al contratista o subcontratista a un proceso civil o penal (consulta la sección 1001 del título 18 y la sección 3729 del título 31 del Código de los Estados Unidos), así como a la inhabilitación para futuros contratos federales y con asistencia federal.",
     },
+  },
+  radioHandout: {
+    title: "Hoja de radios",
+    subtitle: "{project} · {date}",
+    person: "Persona",
+    party: "Parte",
+    radio: "Radio",
+    tags: "Etiquetas entregadas",
+    channels: "Canales",
+    status: "Estado",
+    signature: "Firma",
+    returned: "Devuelta",
+    empty: "Aún no hay radios asignadas en este proyecto.",
+    footer: "Firma al recibir una radio y al devolverla.",
   },
 };
 //#endregion

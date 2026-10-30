@@ -167,7 +167,9 @@
       "projectFactsViewed": "Vio tus datos del proyecto",
       "projectFactsCounted": "Contó tus fechas de viaje",
       "projectFactsExpired": "Datos del proyecto eliminados después de cerrar la contratación",
-      "projectFactsErased": "Datos del proyecto eliminados"
+      "projectFactsErased": "Datos del proyecto eliminados",
+      "dietaryNeedsCounted": "Contó tus necesidades alimentarias para el catering",
+      "allergiesCounted": "Contó tus alergias para el catering"
     }
   },
   "org": {

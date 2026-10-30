@@ -360,5 +360,32 @@
     "vendor": "Proveedor",
     "receivedAt": "Recibida",
     "hireEnds": "Fin del alquiler"
+  },
+  "availability": {
+    "line": "Disponibles {available} de {total} {unit} para estas fechas",
+    "loading": "Comprobando disponibilidad.",
+    "failed": "No se pudo comprobar la disponibilidad."
+  },
+  "reservations": {
+    "title": "Reservas",
+    "empty": "No hay reservas de esta unidad ni de su clase.",
+    "pinned": "Reservada para una asignación",
+    "classStock": "Reserva del inventario de la clase",
+    "window": "{from} a {to}",
+    "conflict": "En conflicto: {conflict}",
+    "allocation": "Asignación",
+    "noAllocation": "Sin asignación",
+    "allocationHelp": "Asignaciones aprobadas de esta clase con reservas pendientes. La unidad va a la persona de la reserva."
+  },
+  "custodyErrors": {
+    "asset_reserved_for_other": "Esta unidad está reservada para otra persona ahora. Entrégala contra su asignación.",
+    "asset_class_held_for_reservations": "Las unidades que quedan están reservadas para otros ahora. Entrégala contra una asignación.",
+    "custody_not_reserved_holder": "Esa asignación es de otra persona.",
+    "custody_reservation_exhausted": "Ya está fuera todo lo que cubre esa asignación.",
+    "custody_reservation_window": "Las fechas de esa asignación terminaron.",
+    "custody_roster_engagement": "La persona no está en el equipo de esa contratación.",
+    "custody_roster_entry_not_live": "El equipo va a una entrada aceptada por el revisor y por la persona.",
+    "lot_held_for_reservations": "Lo que queda de este lote está reservado para otros ahora.",
+    "lot_reservation_mismatch": "Esa reserva es de otro lote."
   }
 }

@@ -322,6 +322,24 @@
         "subject": "Cambió el cierre de nombres de {projectName}",
         "body": "Abre la lista del equipo para ver cuándo se cierran los nombres. Después, pide a la organización productora que cambie la lista."
       }
+    },
+    "allocation": {
+      "decided": {
+        "subject": "Tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName} fue {decision, select, approved {aprobada} declined {rechazada} other {decidida}}",
+        "body": "{decision, select, declined {Motivo: {reason}} other {{quantity} para {personName}, a través de {partyName}.}}"
+      },
+      "assigned": {
+        "subject": "Recibiste {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "{partyName} te pasó {quantity}."
+      },
+      "issued": {
+        "subject": "Te entregaron tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "Ahora está a tu nombre. Devuélvelo cuando termine el trabajo."
+      },
+      "withdrawn": {
+        "subject": "Se retiró tu {kind, select, credential {credencial} parking_pass {pase de estacionamiento} asset {{itemName}} catering {catering} lodging {habitación} travel {viaje} per_diem {viático} other {asignación}} para {projectName}",
+        "body": "{cause, select, engagement_ended {La contratación terminó.} entry_removed {Ya no estás en el equipo.} other {{orgName} la retiró.}}"
+      }
     }
   },
   "notification": {

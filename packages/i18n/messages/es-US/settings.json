@@ -340,6 +340,10 @@
     "companyMaySubmitProjectFacts": {
       "label": "Las empresas pueden ingresar datos del proyecto por su personal",
       "help": "Cuando está activado, la empresa que incluye a alguien en la lista puede ingresar sus datos de viaje, uniforme y vehículo. La persona recibe un aviso y puede corregir lo que no ingresó por su cuenta."
+    },
+    "advancingAllowanceOverflow": {
+      "label": "Solicitudes por encima de la asignación permitida",
+      "help": "Rechazar no admite una solicitud por encima del límite de una oferta. Revisar la admite como solicitada; aprobarla, o asignar por encima del límite, requiere entonces un motivo que se guarda con la asignación."
     }
   },
   "choices": {
@@ -484,6 +488,10 @@
       "provided": "Incluido",
       "reimbursed": "Reembolsado",
       "buyout": "Pago fijo"
+    },
+    "advancing_allowance_overflow": {
+      "refuse": "Rechazar",
+      "review": "Enviar a revisión"
     }
   },
   "brand": {

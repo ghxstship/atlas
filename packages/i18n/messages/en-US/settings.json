@@ -340,6 +340,10 @@
     "companyMaySubmitProjectFacts": {
       "label": "Companies may enter project details for their people",
       "help": "When on, the company that rosters someone may enter their travel, uniform and vehicle details for them. The person is notified and can correct anything they did not enter themselves."
+    },
+    "advancingAllowanceOverflow": {
+      "label": "Requests beyond the allowance",
+      "help": "Refuse turns away a request above an offering's cap. Review lets it in as requested; approving it, or assigning above the cap, then needs a reason that is kept with the allocation."
     }
   },
   "choices": {
@@ -484,6 +488,10 @@
       "provided": "Provided",
       "reimbursed": "Reimbursed",
       "buyout": "Buyout"
+    },
+    "advancing_allowance_overflow": {
+      "refuse": "Refuse",
+      "review": "Send to review"
     }
   },
   "brand": {

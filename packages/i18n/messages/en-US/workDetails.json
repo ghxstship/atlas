@@ -167,7 +167,9 @@
       "projectFactsViewed": "Viewed your project details",
       "projectFactsCounted": "Counted your travel dates",
       "projectFactsExpired": "Project details deleted after the engagement closed",
-      "projectFactsErased": "Project details erased"
+      "projectFactsErased": "Project details erased",
+      "dietaryNeedsCounted": "Counted your dietary needs for catering",
+      "allergiesCounted": "Counted your allergies for catering"
     }
   },
   "org": {

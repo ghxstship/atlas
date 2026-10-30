@@ -762,6 +762,54 @@ var NOTIFICATION_KINDS = [
       body: "kinds.engagement.roster_lock_changed.body",
     },
   },
+  {
+    kind: "allocation.decided",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.decided.subject",
+      body: "kinds.allocation.decided.body",
+    },
+  },
+  {
+    kind: "allocation.assigned",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.assigned.subject",
+      body: "kinds.allocation.assigned.body",
+    },
+  },
+  {
+    kind: "allocation.issued",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.issued.subject",
+      body: "kinds.allocation.issued.body",
+    },
+  },
+  {
+    kind: "allocation.withdrawn",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.allocation.withdrawn.subject",
+      body: "kinds.allocation.withdrawn.body",
+    },
+  },
 ];
 //#endregion
 //#region ../schemas/src/notifications/parse.ts
@@ -816,7 +864,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/2660_notification_kind_seed.sql"
+"supabase/migrations/2698_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

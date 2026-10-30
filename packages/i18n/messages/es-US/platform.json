@@ -702,6 +702,12 @@
       },
       "engagement": {
         "roster_lock_changed": "Cambió el cierre de nombres"
+      },
+      "allocation": {
+        "decided": "Asignación decidida",
+        "assigned": "Asignación recibida",
+        "issued": "Asignación entregada",
+        "withdrawn": "Asignación retirada"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",
