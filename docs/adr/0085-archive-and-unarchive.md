@@ -87,3 +87,8 @@ No archive action is added to the API in this change.
 - The punch list export reads `app.punch_items`, which has no `archived_at`, so it still lists the
   punch items whose records are archived.
 - The `record-archive-removed` correction (ADR 0023) stays: v1 still has no `records.archive`.
+- Under `archived=include` a list does not mark which of its rows are archived; the peek says so.
+  A tag in each row would add client code to the shared collection views, which the key pages'
+  bundle budget does not allow without moving it on demand first.
+- Search still takes its first 500 title candidates before the archived filter, so many archived
+  matches can crowd live ones out of a broad query (and the reverse under `is:archived`).
