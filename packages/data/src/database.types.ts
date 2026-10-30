@@ -64445,6 +64445,19 @@ export type Database = {
         Returns: string;
       };
       scim_user_for_email: { Args: { p_email: string }; Returns: string };
+      search_asset_candidates: {
+        Args: {
+          p_keys: string[];
+          p_limit?: number;
+          p_org_id: string;
+          p_table: string;
+          p_terms: unknown[];
+        };
+        Returns: {
+          id: string;
+          key_match: boolean;
+        }[];
+      };
       search_context: {
         Args: { p_org_id: string };
         Returns: {
