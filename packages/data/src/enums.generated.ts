@@ -582,6 +582,20 @@ export const offerState = [
   "Withdrawn",
   "Expired",
 ] as const;
+/** app.offering_kind */
+export const offeringKind = [
+  "Travel",
+  "Lodging",
+  "Catering",
+  "Parking",
+  "Uniforms",
+  "Per Diem",
+  "Radios",
+  "Carts",
+  "Guest List",
+] as const;
+/** app.offering_mode */
+export const offeringMode = ["Not Offered", "Provided", "Reimbursed", "Buyout"] as const;
 /** app.onboarding_item_kind */
 export const onboardingItemKind = [
   "Document Upload",
