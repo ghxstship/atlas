@@ -8,6 +8,7 @@ import {
   removeBlocklistEntry,
 } from "@xos/data/member-blocklist";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { env } from "@/lib/env";
@@ -174,7 +175,10 @@ async function decide(form: FormData, confirm: boolean): Promise<B16State> {
   const id = z.uuid().safeParse(form.get("suggestionId"));
   if (!id.success) return { message: t("refusals.ai_suggestion_not_proposed"), at: Date.now() };
   const outcome = confirm
-    ? await applyAgentProposal(ctx.viewer.db, id.data)
+    ? await applyAgentProposal(ctx.viewer.db, id.data, {
+        org: { id: ctx.org.id, slug: ctx.org.slug },
+        incoming: await headers(),
+      })
     : await rejectAgentProposal(ctx.viewer.db, id.data);
   // The list keeps the decided proposal until the next visit, so its outcome stays where the person read it.
   if (outcome.ok)

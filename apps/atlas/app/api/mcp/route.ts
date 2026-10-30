@@ -7,7 +7,7 @@
  * server (xos-mcp). A missing, foreign or revoked token answers 401 naming the protected-resource metadata, so an MCP
  * client can start the authorization (RFC 9728).
  *
- * Tools call the public API in process (lib/api/app.ts) with the same token, forwarding the caller's address,
+ * Tools call the public API in process (lib/api/in-process.ts) with the same token, forwarding the caller's address,
  * traceparent and x-request-id, so the API's rate limits and the org IP allow-list judge the real caller. Every
  * write tool records a proposal (app.propose_agent_change) the person confirms in Personal settings, Connected apps;
  * the database refuses the app's direct writes too (agent_write_needs_review).
@@ -16,7 +16,7 @@ import { fieldsFromBody, proposeAgentChange } from "@xos/data/agent-proposals";
 import { observe } from "@xos/infra/observability";
 import { ProposalRefusal, createHostedSession } from "@xos/mcp";
 import { handleMcpHttp } from "@xos/mcp/http";
-import { apiApp } from "@/lib/api/app";
+import { inProcessFetch } from "@/lib/api/in-process";
 import { env } from "@/lib/env";
 import { mcpAccess, tokenDb } from "@/lib/mcp/access";
 import { mcpAllowedOrigins, mcpHosted, onApiHost, requestOrigin } from "@/lib/mcp/connectors";
@@ -50,19 +50,6 @@ function bearer(request: Request): string | null {
   const header = request.headers.get("authorization") ?? "";
   const match = /^Bearer\s+(\S+)$/i.exec(header);
   return match?.[1] ?? null;
-}
-
-/** A fetch into the API app, with the caller's address and trace carried over. */
-function inProcessFetch(incoming: Request): typeof fetch {
-  const forwarded = ["x-forwarded-for", "x-real-ip", "traceparent", "x-request-id"]
-    .map((name) => [name, incoming.headers.get(name)] as const)
-    .filter((pair): pair is readonly [string, string] => pair[1] !== null);
-  return async (input, init) => {
-    const request = new Request(input, init);
-    const headers = new Headers(request.headers);
-    for (const [name, value] of forwarded) headers.set(name, value);
-    return (await apiApp()).fetch(new Request(request, { headers }));
-  };
 }
 
 const handle = observe(
@@ -99,7 +86,7 @@ const handle = observe(
           accessToken: token,
           grantScopes: access.scopes,
           protocolVersion,
-          fetch: inProcessFetch(request),
+          fetch: inProcessFetch(request.headers),
           propose: async (spec, input) => {
             const result = await proposeAgentChange(db, {
               operationId: spec.id,

@@ -9,7 +9,7 @@ import type { XosClient } from "@xos/data";
 import { bodyFromFields, getProposalForApply } from "@xos/data/agent-proposals";
 import { transitionAiSuggestion } from "@xos/data/ai";
 import { CAPABILITY_CODES } from "@xos/schemas/capabilities/codes";
-import { apiApp } from "@/lib/api/app";
+import { inProcessSessionFetch } from "@/lib/api/in-process";
 import { env } from "@/lib/env";
 import { observability } from "@/lib/observability";
 
@@ -20,8 +20,9 @@ import { observability } from "@/lib/observability";
  *   2. the operation is looked up in the SDK's OPERATIONS and its capability groups are checked against the live
  *      grant again, refusing a Restricted group as the database does (C23)
  *   3. Proposed to Confirmed
- *   4. the public operation runs in process with the person's session token, Idempotency-Key the suggestion id and
- *      If-Match the etag the app read, so a stale proposal fails safely
+ *   4. the public operation runs in process as the person's session bound to the proposal's org, with the incoming
+ *      request's address and trace (C28) so the org IP allow-list judges the person, Idempotency-Key the suggestion
+ *      id and If-Match the etag the app read, so a stale proposal fails safely
  *   5. Confirmed to Applied with the record the API wrote (else the target, else the suggestion itself); a refusal
  *      returns it to Proposed and says why
  */
@@ -54,15 +55,25 @@ export function operationAllowed(
   return spec;
 }
 
+/** Where a confirmation comes from: the org whose Connected apps page the person used, and that request's headers. */
+export interface ApplyContext {
+  readonly org: { readonly id: string; readonly slug: string };
+  readonly incoming: Pick<Headers, "get">;
+}
+
 export async function applyAgentProposal(
   db: XosClient,
   suggestionId: string,
+  context: ApplyContext,
 ): Promise<ApplyOutcome> {
   const proposal = await getProposalForApply(db, suggestionId);
   if (!proposal.ok) {
     const e = proposal.error;
     return { ok: false, rule: e.kind === "refusal" ? e.rule : "ai_suggestion_not_proposed" };
   }
+  // The page lists only its own org's proposals, so another org's id here was not offered to the person.
+  if (proposal.data.orgId !== context.org.id)
+    return { ok: false, rule: "ai_suggestion_not_proposed" };
   const allowed = operationAllowed(proposal.data.operationId, proposal.data.grantScopes);
   if (typeof allowed === "string") return { ok: false, rule: allowed };
   const { data: session } = await db.auth.getSession();
@@ -86,9 +97,12 @@ export async function applyAgentProposal(
   const site = env().ATLAS_SITE_URL.replace(/\/$/, "");
   const client = new ApiClient({
     baseUrl: `${site}/api/v1`,
-    accessToken: token,
     maxRetries: 0,
-    fetch: async (input, init) => (await apiApp()).fetch(new Request(input, init)),
+    fetch: inProcessSessionFetch(context.incoming, {
+      accessToken: token,
+      orgSlug: context.org.slug,
+      siteOrigin: site,
+    }),
   });
   const fields = proposal.data.fields;
   const body = fields.length > 0 ? bodyFromFields(fields) : undefined;
