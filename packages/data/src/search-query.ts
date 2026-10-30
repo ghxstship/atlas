@@ -571,6 +571,11 @@ export interface SearchRequest {
   readonly before: SearchDay | null;
   readonly due_after: SearchDay | null;
   readonly due_before: SearchDay | null;
+  /**
+   * Types left out because the caller cannot open them (P7). Unlike `exclude_types` they are not something
+   * to search for, so a query with nothing else to look for still returns nothing.
+   */
+  readonly omit_types?: readonly SearchType[];
 }
 
 /**

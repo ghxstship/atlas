@@ -21,13 +21,13 @@ import { SETTINGS } from "@xos/schemas/settings";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { CREATE_KINDS } from "@/lib/shell/create-menu";
 import {
-  hiddenInventoryTypes,
   inventoryEntry,
   matchesWords,
   queryVector,
   resolveKinds,
   resolveStatuses,
   settingEntries,
+  withHiddenInventory,
 } from "@/lib/shell/search-index";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
@@ -229,17 +229,18 @@ export async function searchCommandMenu(input: {
         return context.ok && context.data.semanticEnabled;
       },
     });
-    const request = searchRequest(parsed, {
-      kinds: resolveKinds(parsed.kinds, t),
-      excludeKinds: resolveKinds(parsed.excludeKinds, t),
-    });
     // An inventory type whose page the person cannot open is not searched at all.
-    const hidden = hiddenInventoryTypes(visible).filter((x) => !request.exclude_types.includes(x));
+    const request = withHiddenInventory(
+      searchRequest(parsed, {
+        kinds: resolveKinds(parsed.kinds, t),
+        excludeKinds: resolveKinds(parsed.excludeKinds, t),
+      }),
+      visible,
+    );
     const result = await globalSearch(ctx.viewer.db, {
       orgId: ctx.org.id,
       request: {
         ...request,
-        exclude_types: [...request.exclude_types, ...hidden],
         statuses: resolveStatuses(request.statuses, t),
         exclude_statuses: resolveStatuses(request.exclude_statuses, t),
       },

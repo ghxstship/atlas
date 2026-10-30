@@ -6,6 +6,7 @@ import enWork from "../../../packages/i18n/messages/en-US/work.json" with { type
 import esWork from "../../../packages/i18n/messages/es-US/work.json" with { type: "json" };
 import enIncidents from "../../../packages/i18n/messages/en-US/incidents.json" with { type: "json" };
 import enNav from "../../../packages/i18n/messages/en-US/nav.json" with { type: "json" };
+import { parseSearchQuery, searchRequest } from "@xos/data/search-query";
 import { isNodeVisible, type NavContext } from "@xos/ia";
 import { sitemap } from "../ia/sitemap.generated";
 import {
@@ -16,6 +17,7 @@ import {
   resolveKinds,
   resolveStatuses,
   settingEntries,
+  withHiddenInventory,
 } from "../lib/shell/search-index";
 
 /** A87 (RRR-132, finding A65-005): the command menu's server-side index. */
@@ -196,6 +198,29 @@ describe("inventory hits (P7)", () => {
       disabledModules: ["assets"],
     });
     expect(hiddenInventoryTypes(assetsOff)).toEqual(["asset", "asset_class"]);
+  });
+
+  it("omits hidden types without excluding them, so a query with nothing to look for stays empty", () => {
+    const assetsOff = visibleFor({
+      role: "owner",
+      conditions: ["desktop"],
+      disabledModules: ["assets"],
+    });
+    // A minus word alone, and a word with nothing the search can read: global_search returns nothing for
+    // both while every criterion is empty, and exclude_types is one.
+    for (const query of ["-radio", "##"]) {
+      const request = withHiddenInventory(searchRequest(parseSearchQuery(query)), assetsOff);
+      expect(request.exclude_types).toEqual([]);
+      expect(request.omit_types).toEqual(["asset", "asset_class"]);
+    }
+    const typed = withHiddenInventory(
+      searchRequest(parseSearchQuery("radio -type:asset")),
+      (node) => node !== "assets.asset-classes",
+    );
+    expect(typed.exclude_types).toEqual(["asset"]);
+    expect(typed.omit_types).toEqual(["asset_class"]);
+    const shown = searchRequest(parseSearchQuery("radio"));
+    expect(withHiddenInventory(shown, owner)).toBe(shown);
   });
 });
 

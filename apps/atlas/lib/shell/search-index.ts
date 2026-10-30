@@ -1,6 +1,6 @@
 import { embedTexts, vectorLiteral, type EmbeddingProvider } from "@xos/ai/embeddings";
 import { fillRoute, getNode, isNodeVisible, type NavContext, type Sitemap } from "@xos/ia";
-import { normalizeState } from "@xos/data/search-query";
+import { normalizeState, type SearchRequest } from "@xos/data/search-query";
 import type { SettingDefinition } from "@xos/schemas/settings";
 import { observability } from "@/lib/observability";
 
@@ -116,6 +116,19 @@ export function hiddenInventoryTypes(visible: (node: string) => boolean): Invent
   return (Object.keys(INVENTORY_NODES) as InventoryType[]).filter(
     (type) => !visible(INVENTORY_NODES[type]),
   );
+}
+
+/**
+ * The request with the hidden inventory types as `omit_types`, never as `exclude_types`: an exclusion is a
+ * filter, and a query that is only a minus word (`-radio`) or has no words the search can read (`##`) would
+ * then list the newest items of every other type instead of nothing (P7).
+ */
+export function withHiddenInventory(
+  request: SearchRequest,
+  visible: (node: string) => boolean,
+): SearchRequest {
+  const hidden = hiddenInventoryTypes(visible);
+  return hidden.length > 0 ? { ...request, omit_types: hidden } : request;
 }
 
 export interface InventoryEntry {
