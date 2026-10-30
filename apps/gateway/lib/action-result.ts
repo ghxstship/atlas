@@ -48,6 +48,10 @@ export const KNOWN_REFUSALS = [
   "step_up_required",
   "sole_account_owner",
   "notification_channel_outside",
+  // P5 badge photos (2822): the holder records a photo from their own folder while they hold a live credential.
+  "credential_photo_path",
+  "credential_photo_no_credential",
+  "credential_photo_notice",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

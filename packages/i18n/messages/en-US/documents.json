@@ -162,9 +162,9 @@
     },
     "photoAlt": "Photo of {name}, the credential holder",
     "noPhoto": "No photo on file",
-    "scanAlt": "Gate code for credential {number}",
-    "scanCaption": "Scan at the gate",
-    "scanNoteV2": "Scan the gate code to check this credential. A scan decides access at the time of the scan, so a printed badge never outlives a revocation. The code in the header opens the record.",
+    "scanAlt": "Entry code for credential {number}",
+    "scanCaption": "Scan at entry",
+    "scanNoteV2": "Scan the entry code to check this credential. A scan decides access at the time of the scan, so a printed badge never outlives a revocation. The code in the header opens the record.",
     "window": "Valid {from} to {to}",
     "batchTitle": "Credential badges ({count})"
   },

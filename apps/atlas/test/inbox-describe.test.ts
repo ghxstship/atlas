@@ -79,6 +79,11 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "billing.payment_failed": { days: "3" },
   "billing.read_only": {},
   "comment.created": { title: "NWS-12 Production Meeting", recordKey: "NWS-12" },
+  // P5: app.request_credential_photos (2822) names the org and the Gateway page the item opens.
+  "credential_photo.requested": {
+    orgName: "Demo Productions",
+    gatewayPath: "/profile/badge-photos",
+  },
   "event.invited": { title: "Show Day Safety Briefing", startsAt: "2026-10-21T09:00:00+00:00" },
   "export.ready": { title: "Records export" },
   "help_request.assigned": { title: "Dock tablet will not sign in", team: "Site IT Desk" },

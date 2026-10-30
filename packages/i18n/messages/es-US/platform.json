@@ -692,6 +692,9 @@
       },
       "content": {
         "removed": "Se eliminó tu contenido"
+      },
+      "credential_photo": {
+        "requested": "Foto de credencial solicitada"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

@@ -373,6 +373,64 @@ export async function badgePhotoThumbnail(
   return badgePhotoUrl(db, row.photoPath);
 }
 
+/** The signed-in person's own profile photo, an object name in profile-media, or null when they have none. */
+export async function myProfilePhotoPath(db: XosClient, personId: string): Promise<string | null> {
+  const { data, error } = await db
+    .from("person_profiles")
+    .select("photo_path")
+    .eq("person_id", personId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error || !data) return null;
+  return (data as { photo_path: string | null }).photo_path ?? null;
+}
+
+/**
+ * Stores a badge photo the holder gave: uploads the bytes into their own folder of the org as the holder, records
+ * it with their consent, and removes the photo it replaced. An upload the database will not record is removed
+ * again. The bytes must already be an embeddable JPEG or PNG of at most 2 MiB.
+ */
+export async function storeMyCredentialPhoto(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly personId: string;
+    readonly bytes: Uint8Array;
+    readonly source: CredentialPhotoSource;
+  },
+): Promise<Result<{ readonly id: string; readonly photoPath: string }>> {
+  const extension = badgePhotoExtension(input.bytes);
+  if (!extension)
+    return fail({ kind: "invalid", message: "A badge photo is a JPEG or PNG of at most 2 MiB." });
+  const photoPath = credentialPhotoPath(input.orgId, input.personId, extension);
+  const bucket = db.storage.from(CREDENTIAL_PHOTOS_BUCKET);
+  const uploaded = await bucket.upload(photoPath, input.bytes, {
+    contentType: extension === "png" ? "image/png" : "image/jpeg",
+    upsert: false,
+  });
+  if (uploaded.error) {
+    // Storage refuses an upload outside the holder's own folder of an org where they hold a live credential.
+    return fail({
+      kind: "refusal",
+      rule: "credential_photo_no_credential",
+      message: uploaded.error.message,
+    });
+  }
+  const recorded = await recordCredentialPhoto(db, {
+    orgId: input.orgId,
+    photoPath,
+    source: input.source,
+  });
+  if (!recorded.ok) {
+    await bucket.remove([photoPath]);
+    return recorded;
+  }
+  if (recorded.data.replacedPath) {
+    await removeCredentialPhotoObjects(db, [recorded.data.replacedPath]);
+  }
+  return ok({ id: recorded.data.id, photoPath });
+}
+
 /** A short-lived link to a badge photo the caller may read, for a thumbnail: 60 seconds. */
 export async function badgePhotoUrl(db: XosClient, photoPath: string): Promise<string | null> {
   const { data } = await db.storage.from(CREDENTIAL_PHOTOS_BUCKET).createSignedUrl(photoPath, 60);

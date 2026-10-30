@@ -370,7 +370,7 @@ describe("the credential badge on four sizes (P5)", () => {
     expect(model.blocks[2]).toMatchObject({
       kind: "scan-code",
       payload: "XOSCR1:CR-000042",
-      alt: "Gate code for credential CR-000042",
+      alt: "Entry code for credential CR-000042",
     });
     // The record link QR stays in the header on Letter and A4 (Section 11.9).
     expect(model.facts.recordUrl).toBe("https://atlas.example.test/r");

@@ -39,7 +39,10 @@
       "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
       "advance_answer_pending": "Esta sección ya tiene respuesta y espera revisión. Responde de nuevo solo si te la devuelven.",
       "submittal_response": "Este entregable técnico no está esperando tu respuesta. Recarga la página para ver en qué estado está.",
-      "submittal_note_length": "Escribe una nota de 1 a 500 caracteres."
+      "submittal_note_length": "Escribe una nota de 1 a 500 caracteres.",
+      "credential_photo_path": "Esa foto no llegó a tu propia carpeta. Súbela de nuevo.",
+      "credential_photo_no_credential": "No tienes una credencial vigente con esta organización, así que no recibe tu foto de credencial.",
+      "credential_photo_notice": "Vuelve a cargar la página para ver el aviso vigente y guarda tu foto de nuevo."
     }
   },
   "common": {
@@ -1108,7 +1111,8 @@
         "opportunityMatched": "Nueva coincidencia para {searchName}: {title}",
         "onboardingExpiring": "{title} para {orgName} vence el {expiresOn}",
         "certificationExpiring": "Su certificación {title} vence el {expiresOn}",
-        "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}"
+        "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}",
+        "badgePhotoRequested": "{orgName} te pide tu foto de credencial"
       }
     }
   },
@@ -1924,5 +1928,46 @@
       "nothingToRedo": "No hay nada que rehacer.",
       "dismiss": "Descartar"
     }
+  },
+  "badgePhotos": {
+    "title": "Fotos de credencial",
+    "lead": "La foto que cada organización imprime en tu credencial.",
+    "none": "Ninguna organización tiene una credencial vigente para ti, así que ninguna te pide foto.",
+    "notice": "El personal de credenciales de {org} ve esta foto, y también cualquiera que vea tu credencial: se imprime en ella. Elige Quitar cuando quieras para retirarla; la organización imprime entonces tu credencial sin foto.",
+    "noticeVersion": "Aviso {version}",
+    "stateLabel": "Foto",
+    "states": {
+      "Provided": "En tu credencial",
+      "Scanning": "En revisión",
+      "Refused": "No aceptada",
+      "Profile": "Tu foto de perfil",
+      "Requested": "Solicitada",
+      "Missing": "Aún no hay"
+    },
+    "stateHelp": {
+      "Provided": "Tu foto se imprime en esta credencial.",
+      "Scanning": "Tu foto se está revisando y se imprime en unos minutos.",
+      "Refused": "Tu foto no pasó la revisión antivirus. Sube otra.",
+      "Profile": "No entregaste foto de credencial, así que se imprime tu foto de perfil.",
+      "Requested": "La organización te pidió tu foto.",
+      "Missing": "Tu credencial se imprime sin foto."
+    },
+    "providedOn": "Entregada el {date}",
+    "thumbnailAlt": "Tu foto de credencial para {org}",
+    "upload": "Subir o tomar foto",
+    "choose": "Elegir una foto",
+    "cropHelp": "Arrastra la foto para elegir lo que se ve. La credencial imprime un retrato de 3 por 4.",
+    "cropLabel": "Recortar la foto",
+    "save": "Guardar foto",
+    "cancel": "Cancelar",
+    "saved": "Foto guardada. Se imprime cuando termine la revisión, en unos minutos.",
+    "useProfile": "Usar mi foto de perfil",
+    "remove": "Quitar",
+    "removed": "Foto quitada y tu consentimiento retirado.",
+    "fileType": "Elige una foto JPEG o PNG.",
+    "fileSize": "Esa foto es demasiado grande. Elige una de menos de 25 MB.",
+    "section": "Fotos de credencial",
+    "sectionLead": "Da a las organizaciones con las que trabajas una foto para tu credencial.",
+    "open": "Abrir fotos de credencial"
   }
 }

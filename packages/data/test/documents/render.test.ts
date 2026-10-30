@@ -164,7 +164,7 @@ describe("credential badges on cards and in batches (P5)", () => {
     for (const paper of ["cr80", "a6", "letter"] as const) {
       const pdf = text(await renderDocumentPdf(model(paper), { paper }));
       expect(pdf).toContain("/Alt (Photo of Ana Ruiz, the credential holder)");
-      expect(pdf).toContain("/Alt (Gate code for credential CR-000042)");
+      expect(pdf).toContain("/Alt (Entry code for credential CR-000042)");
       expect(pdf).toContain("/Subtype /Image");
       expect(pdf).toContain("pdfuaid:part>1<");
     }
@@ -223,7 +223,7 @@ describe("credential badges on cards and in batches (P5)", () => {
     expect((pdf.match(/\/S \/Sect\b/g) ?? []).length).toBe(3);
     expect((pdf.match(/\/S \/Document\b/g) ?? []).length).toBe(1);
     for (const number of ["CR-000001", "CR-000002", "CR-000003"]) {
-      expect(pdf).toContain(`/Alt (Gate code for credential ${number})`);
+      expect(pdf).toContain(`/Alt (Entry code for credential ${number})`);
     }
     expect(pdf).toContain("(Credential badges \\(3\\))");
     const letter = text(
