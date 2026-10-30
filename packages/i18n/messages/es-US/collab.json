@@ -63,7 +63,23 @@
     "restored": "Restaurado",
     "unavailable": "No se pudo cargar el historial de campos.",
     "yes": "Sí",
-    "no": "No"
+    "no": "No",
+    "minorUnits": "{amount} unidades menores",
+    "money": {
+      "agreed_rate_minor": "Tarifa acordada",
+      "amount_minor": "Importe",
+      "budget_minor": "Presupuesto",
+      "cost_minor": "Costo",
+      "coverage_limit_minor": "Límite de cobertura",
+      "default_unit_price_minor": "Precio predeterminado",
+      "nightly_rate_minor": "Tarifa por noche",
+      "pay_max_minor": "Pago hasta",
+      "pay_min_minor": "Pago desde",
+      "proposed_fee_minor": "Honorarios propuestos",
+      "rate_minor": "Tarifa",
+      "shipping_minor": "Envío",
+      "tax_minor": "Impuesto"
+    }
   },
   "coedit": {
     "open": "Editar en conjunto",

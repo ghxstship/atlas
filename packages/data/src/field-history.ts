@@ -61,6 +61,7 @@ export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.pay_periods",
   "app.payments",
   "app.payroll_runs",
+  "app.per_diems",
   "app.permit_requirements",
   "app.prequalifications",
   "app.purchase_orders",
@@ -82,6 +83,7 @@ export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
   "app.spaces",
   "app.sponsor_entitlements",
   "app.submittals",
+  "app.time_entries",
   "app.time_off_requests",
   "app.timesheets",
   "app.vendor_scorecards",
@@ -95,6 +97,101 @@ export const FIELD_HISTORY_SUBJECTS: ReadonlySet<string> = new Set([
 /** Whether rows of `table` (schema-qualified) have a field history. */
 export function hasFieldHistory(table: string): boolean {
   return FIELD_HISTORY_SUBJECTS.has(table);
+}
+
+/**
+ * The subjects whose rows hold amounts in minor units (`<name>_minor` columns), each in the row's
+ * `currency_code`. Their histories word an amount in that currency; the unit test keeps the set
+ * complete from the generated row types.
+ */
+export const MONEY_SUBJECTS: ReadonlySet<string> = new Set([
+  "app.accommodation_blocks",
+  "app.applications",
+  "app.asset_maintenance",
+  "app.catalog_bindings",
+  "app.engagements",
+  "app.expenses",
+  "app.insurance_certificates",
+  "app.opportunities",
+  "app.payments",
+  "app.per_diems",
+  "app.purchase_orders",
+  "app.requisitions",
+  "app.work_orders",
+]);
+
+/** Whether a history field holds an amount in minor units. */
+export function isMinorField(field: string): boolean {
+  return field.endsWith("_minor");
+}
+
+/** The currency a row's amounts are in, and each currency's minor unit exponent (ADR 0002). */
+export interface HistoryMoney {
+  /** The row's currency_code now; null for a table without amounts or a row without one. */
+  readonly currencyCode: string | null;
+  readonly exponents: ReadonlyMap<string, number>;
+}
+
+type MoneyTable =
+  | "accommodation_blocks"
+  | "applications"
+  | "asset_maintenance"
+  | "catalog_bindings"
+  | "engagements"
+  | "expenses"
+  | "insurance_certificates"
+  | "opportunities"
+  | "payments"
+  | "per_diems"
+  | "purchase_orders"
+  | "requisitions"
+  | "work_orders";
+
+/**
+ * What a history needs to word the amounts of one row: its currency and the exponents of every
+ * currency (an older event may name another one). A table outside MONEY_SUBJECTS answers no
+ * currency without a query.
+ */
+export async function getHistoryMoney(
+  db: XosClient,
+  table: string,
+  id: string,
+): Promise<Result<HistoryMoney>> {
+  if (!MONEY_SUBJECTS.has(table)) return ok({ currencyCode: null, exponents: new Map() });
+  const name = table.slice("app.".length) as MoneyTable;
+  const [row, currencies] = await Promise.all([
+    db.from(name).select("currency_code").eq("id", id).maybeSingle(),
+    db.from("currencies").select("currency_code, minor_unit_exponent"),
+  ]);
+  if (row.error) return fail(toDataError(row.error));
+  if (currencies.error) return fail(toDataError(currencies.error));
+  return ok({
+    currencyCode: row.data?.currency_code ?? null,
+    exponents: new Map(
+      currencies.data.map((c) => [c.currency_code as string, c.minor_unit_exponent ?? 2]),
+    ),
+  });
+}
+
+/**
+ * The currency each event's amounts were in, newest first: an event's after values are in the
+ * currency the row held right after it, its before values in the one it held before. Walking back
+ * from the row's currency now, an event that changed `currency_code` hands its before value on.
+ */
+export function eventCurrencies(
+  events: readonly HistoryEvent[],
+  currencyCode: string | null,
+): Map<string, { readonly before: string | null; readonly after: string | null }> {
+  const out = new Map<string, { before: string | null; after: string | null }>();
+  let current = currencyCode;
+  for (const event of events) {
+    const change = event.changes.find((c) => c.field === "currency_code" && !c.masked);
+    const before =
+      change === undefined ? current : typeof change.before === "string" ? change.before : null;
+    out.set(event.id, { before, after: current });
+    current = before;
+  }
+  return out;
 }
 
 /** The prefix of a record's kind attribute fields in its history (migration 2240). */

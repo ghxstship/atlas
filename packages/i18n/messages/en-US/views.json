@@ -176,6 +176,7 @@
       "assignment_state": "State",
       "audience_kind": "Audience",
       "author_membership_id": "Author",
+      "auto_closed_at": "Closed automatically",
       "availability_confirmed": "Availability confirmed",
       "beo_number": "BEO",
       "best_assertion_rank": "Best assertion",

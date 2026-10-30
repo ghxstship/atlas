@@ -4,9 +4,13 @@ import { describe, expect, it } from "vitest";
 import type { XosClient } from "../src/client.ts";
 import {
   FIELD_HISTORY_SUBJECTS,
+  MONEY_SUBJECTS,
   attributeColumn,
+  eventCurrencies,
   getFieldHistory,
+  getHistoryMoney,
   hasFieldHistory,
+  isMinorField,
   toHistoryEvents,
 } from "../src/field-history.ts";
 
@@ -100,15 +104,79 @@ describe("field history", () => {
 
   it("keeps a record's kind attributes in the record's event, named by attribute", () => {
     const [event] = toHistoryEvents([
-      row({ event_id: "e2", field: "attributes.progress_pct", old_value: 40, new_value: 75 }),
-      row({ event_id: "e2", field: "attributes.effort_hours", old_value: null, new_value: 6 }),
+      row({
+        event_id: "e2",
+        changes: [
+          { field: "attributes.effort_hours", old_value: null, new_value: 6, masked: false },
+          { field: "attributes.progress_pct", old_value: 40, new_value: 75, masked: false },
+        ],
+      }),
     ]);
     expect(event?.changes).toEqual([
-      { field: "attributes.progress_pct", before: 40, after: 75, masked: false },
       { field: "attributes.effort_hours", before: null, after: 6, masked: false },
+      { field: "attributes.progress_pct", before: 40, after: 75, masked: false },
     ]);
     expect(attributeColumn("attributes.progress_pct")).toBe("progress_pct");
     expect(attributeColumn("title")).toBeNull();
+  });
+
+  it("reads a money subject's currency and every exponent, and nothing for other tables", async () => {
+    const reads: string[] = [];
+    const db = {
+      from: (table: string) => {
+        reads.push(table);
+        const answer =
+          table === "currencies"
+            ? {
+                data: [
+                  { currency_code: "USD", minor_unit_exponent: 2 },
+                  { currency_code: "JPY", minor_unit_exponent: 0 },
+                ],
+                error: null,
+              }
+            : { data: { currency_code: "JPY" }, error: null };
+        const chain = {
+          select: () => Object.assign(Promise.resolve(answer), chain),
+          eq: () => chain,
+          maybeSingle: () => Promise.resolve(answer),
+        };
+        return chain;
+      },
+    } as unknown as XosClient;
+    const money = await getHistoryMoney(db, "app.expenses", "x1");
+    expect(money.ok && money.data.currencyCode).toBe("JPY");
+    expect(money.ok && [...money.data.exponents]).toEqual([
+      ["USD", 2],
+      ["JPY", 0],
+    ]);
+    expect(reads.sort()).toEqual(["currencies", "expenses"]);
+    const none = await getHistoryMoney(db, "app.sops", "s1");
+    expect(none).toEqual({ ok: true, data: { currencyCode: null, exponents: new Map() } });
+    expect(reads).toHaveLength(2);
+    expect(isMinorField("amount_minor")).toBe(true);
+    expect(isMinorField("minor_note")).toBe(false);
+  });
+
+  it("gives each event the currency its amounts were in, walking back from the row's", () => {
+    const events = toHistoryEvents([
+      row({
+        event_id: "e3",
+        changes: [{ field: "amount_minor", old_value: 500, new_value: 700, masked: false }],
+      }),
+      row({
+        event_id: "e2",
+        changes: [
+          { field: "amount_minor", old_value: 40000, new_value: 500, masked: false },
+          { field: "currency_code", old_value: "USD", new_value: "JPY", masked: false },
+        ],
+      }),
+      row({ event_id: "e1", operation: "insert" }),
+    ]);
+    expect(Object.fromEntries(eventCurrencies(events, "JPY"))).toEqual({
+      e3: { before: "JPY", after: "JPY" },
+      e2: { before: "USD", after: "JPY" },
+      e1: { before: "USD", after: "USD" },
+    });
   });
 
   it("lists exactly the tables the migrations make field history subjects", () => {
@@ -126,5 +194,28 @@ describe("field history", () => {
     expect([...FIELD_HISTORY_SUBJECTS].sort()).toEqual([...listed].sort());
     expect(hasFieldHistory("app.expenses")).toBe(true);
     expect(hasFieldHistory("app.form_submissions")).toBe(false);
+  });
+
+  it("lists as money subjects exactly the subjects with amounts in minor units, each with a currency", () => {
+    const types = readFileSync(
+      fileURLToPath(new URL("../src/database.types.ts", import.meta.url)),
+      "utf8",
+    );
+    const app = types.slice(types.indexOf("\n  app: {"));
+    const columns = (table: string) => {
+      const name = table.slice("app.".length);
+      const body = new RegExp(`\\n {6}${name}: \\{\\n {8}Row: \\{\\n([\\s\\S]*?)\\n {8}\\}`).exec(
+        app,
+      )?.[1];
+      if (!body) throw new Error(`No row type for ${table}`);
+      return [...body.matchAll(/^ {10}([a-z0-9_]+)\??:/gm)].map((m) => m[1] ?? "");
+    };
+    const withMoney = [...FIELD_HISTORY_SUBJECTS].filter((table) =>
+      columns(table).some(isMinorField),
+    );
+    expect([...MONEY_SUBJECTS].sort()).toEqual(withMoney.sort());
+    for (const table of MONEY_SUBJECTS) {
+      expect(columns(table), table).toContain("currency_code");
+    }
   });
 });

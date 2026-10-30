@@ -33,31 +33,50 @@ function flatten(value: unknown, prefix = "", out = new Map<string, string>()) {
   return out;
 }
 
-const t = (key: string) => `<${key}>`;
+const t = (key: string, values?: Record<string, string | number>) =>
+  values ? `<${key} ${JSON.stringify(values)}>` : `<${key}>`;
 const format = {
   t,
   dateTime: (iso: string) => `instant ${iso}`,
   date: (day: string) => `day ${day}`,
   number: (n: number, digits?: number) => (digits === undefined ? String(n) : n.toFixed(digits)),
+  money: (minor: number, code: string, exponent: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: code,
+      minimumFractionDigits: exponent,
+      maximumFractionDigits: exponent,
+    }).format(minor / 10 ** exponent),
 };
 
 describe("field history labels", () => {
   it("labels every column a record page's history can show, in en-US and es-US", () => {
-    const columns = new Set(
+    const keys = new Set(
       [...FIELD_HISTORY_SUBJECTS]
         .filter((table) => !OWN_LABELS.has(table))
         .flatMap(columnsOf)
-        .filter((column) => historyLabelKey(column)?.startsWith("views.export.columns.")),
+        .flatMap((column) => historyLabelKey(column) ?? []),
     );
-    expect(columns.size).toBeGreaterThan(200);
+    expect(keys.size).toBeGreaterThan(200);
+    expect([...keys].filter((key) => key.startsWith("collab.history.money.")).length).toBe(13);
     for (const locale of ["en-US", "es-US"] as const) {
       const catalog = flatten(getMessages(locale));
-      const missing = [...columns].filter(
-        (column) => !catalog.get(`views.export.columns.${column}`),
-      );
-      expect(missing, locale).toEqual([]);
-      expect(catalog.get("collab.history.yes"), locale).toBeTruthy();
-      expect(catalog.get("collab.history.no"), locale).toBeTruthy();
+      expect(
+        [...keys].filter((key) => !catalog.get(key)),
+        locale,
+      ).toEqual([]);
+      // An amount reads in its currency, so its label never says it is in minor units.
+      expect(
+        [...keys].filter(
+          (key) =>
+            key.startsWith("collab.history.money.") &&
+            /minor|menores/i.test(catalog.get(key) ?? ""),
+        ),
+        locale,
+      ).toEqual([]);
+      for (const key of ["collab.history.yes", "collab.history.no", "collab.history.minorUnits"]) {
+        expect(catalog.get(key), `${locale} ${key}`).toBeTruthy();
+      }
     }
   });
 
@@ -68,12 +87,26 @@ describe("field history labels", () => {
     }
     expect(historyLabelKey("deleted_at")).toBe("collab.history.trash");
     expect(historyLabelKey("description")).toBe("views.export.columns.description");
+    expect(historyLabelKey("amount_minor")).toBe("collab.history.money.amount_minor");
+  });
+
+  it("words an amount in its currency, by that currency's exponent", () => {
+    const usd = { code: "USD", exponent: 2 };
+    expect(historyValue("amount_minor", 80000, format, usd)).toBe("$800.00");
+    expect(historyValue("amount_minor", 500, format, { code: "JPY", exponent: 0 })).toBe("¥500");
+    expect(historyValue("amount_minor", 12345, format, { code: "KWD", exponent: 3 })).toMatch(
+      /^KWD\s12\.345$/,
+    );
+    // Without a currency, the stored minor units, said as such, never a guessed major amount.
+    expect(historyValue("amount_minor", 80000, format)).toBe(
+      '<collab.history.minorUnits {"amount":"80000"}>',
+    );
+    expect(historyValue("pallet_count", 12, format, usd)).toBe("12");
   });
 
   it("words a value by its column", () => {
     expect(historyValue("is_remote", true, format)).toBe("<collab.history.yes>");
     expect(historyValue("is_remote", false, format)).toBe("<collab.history.no>");
-    expect(historyValue("amount_minor", 80000, format)).toBe("800.00");
     expect(historyValue("pallet_count", 12, format)).toBe("12");
     expect(historyValue("posted_at", "2027-06-10T14:00:00+00:00", format)).toBe(
       "instant 2027-06-10T14:00:00+00:00",

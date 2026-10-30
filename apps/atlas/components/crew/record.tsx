@@ -37,6 +37,11 @@ export interface RecordProps {
   readonly backHref: string;
   /** The commentable row (a table in private.comment_subjects); omitted for ledgers without one. */
   readonly subject?: { readonly table: string; readonly id: string };
+  /**
+   * The row whose field history the record shows (A131), when it has no comment thread; a record
+   * with a `subject` shows that row's history.
+   */
+  readonly historySubject?: { readonly table: string; readonly id: string };
 }
 
 async function History(props: {
@@ -84,10 +89,7 @@ async function History(props: {
   );
 }
 
-/**
- * The field history (A131), comment thread and attachments of the record (A18's unified comment and
- * attachment services).
- */
+/** The comment thread and attachments of the record (A18's unified comment and attachment services). */
 async function Conversation(props: { crew: CrewContext; subject: { table: string; id: string } }) {
   const db = props.crew.ctx.viewer.db;
   const [threads, attachments] = await Promise.all([
@@ -99,22 +101,19 @@ async function Conversation(props: { crew: CrewContext; subject: { table: string
   const authors = threads.data.flatMap((th) => th.comments.map((c) => c.authorPersonId));
   const names = await personNames(db, authors);
   return (
-    <>
-      <RecordHistory db={db} table={props.subject.table} id={props.subject.id} />
-      <CrewCollab
-        org={props.crew.slug}
-        table={props.subject.table}
-        id={props.subject.id}
-        threads={threads.data}
-        attachments={attachments.data}
-        names={Object.fromEntries(
-          [...(names.ok ? names.data : new Map<string, string | null>())].flatMap(([k, v]) =>
-            v ? [[k, v]] : [],
-          ),
-        )}
-        me={props.crew.ctx.viewer.person?.id ?? null}
-      />
-    </>
+    <CrewCollab
+      org={props.crew.slug}
+      table={props.subject.table}
+      id={props.subject.id}
+      threads={threads.data}
+      attachments={attachments.data}
+      names={Object.fromEntries(
+        [...(names.ok ? names.data : new Map<string, string | null>())].flatMap(([k, v]) =>
+          v ? [[k, v]] : [],
+        ),
+      )}
+      me={props.crew.ctx.viewer.person?.id ?? null}
+    />
   );
 }
 
@@ -125,6 +124,11 @@ export async function CrewRecord(props: RecordProps) {
     props.history && props.history.length > 0 ? (
       <History crew={props.crew} history={props.history} stateName={stateName} />
     ) : null;
+  // The field history (A131): the commentable row's, or the history subject's of a ledger row.
+  const fields = props.subject ?? props.historySubject;
+  const fieldHistory = fields ? (
+    <RecordHistory db={props.crew.ctx.viewer.db} table={fields.table} id={fields.id} />
+  ) : null;
 
   if (props.mode === "peek") {
     return (
@@ -139,6 +143,7 @@ export async function CrewRecord(props: RecordProps) {
         <PropertyList items={[...props.properties]} />
         {props.children}
         {history}
+        {fieldHistory}
         {props.subject ? <Conversation crew={props.crew} subject={props.subject} /> : null}
       </PeekPanel>
     );
@@ -171,6 +176,7 @@ export async function CrewRecord(props: RecordProps) {
       >
         {props.children}
         {history}
+        {fieldHistory}
         {props.subject ? <Conversation crew={props.crew} subject={props.subject} /> : null}
       </TemplateRecord>
     </div>
