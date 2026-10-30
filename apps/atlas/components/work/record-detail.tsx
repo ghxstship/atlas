@@ -54,6 +54,7 @@ import {
   type KindField,
 } from "./record-panels";
 import { RelatedRecords, type RecordRelations } from "./related-records";
+import { ArchiveControls } from "@/components/archive/archive-controls";
 
 /**
  * Everything the record peek and the record full page show (Record template, Section 11.6), read
@@ -88,6 +89,8 @@ export interface RecordDetail {
   /** Comments and files (record-sections.ts), the same the shell's peek shows. */
   readonly conversation: Conversation;
   readonly canWrite: boolean;
+  /** Archive and Unarchive: records write, or for a punch item's record punch list write too (A124). */
+  readonly canArchive: boolean;
   readonly canSchedule: boolean;
   readonly canRecur: boolean;
   /** How the viewer reads schedule times (me.time_zone_display and their own zone). */
@@ -140,7 +143,13 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     listStateHistory(db, record.id),
     listReplans(db, record.id),
     loadRelations(ctx, record.id),
-    listRecords(db, { orgId: ctx.org.id, projectId: record.projectId, limit: 500 }),
+    // Names the ends of existing dependencies too, so archived records stay in; the picker drops them.
+    listRecords(db, {
+      orgId: ctx.org.id,
+      projectId: record.projectId,
+      archived: "include",
+      limit: 500,
+    }),
     getActual(db, record.id),
     getPunchItemForRecord(db, record.id),
     loadConversation(ctx, subject),
@@ -171,6 +180,10 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     punch: must(punch, "punch item"),
     conversation,
     canWrite: caps.has("work.record.write") && !record.deletedAt,
+    canArchive:
+      !record.deletedAt &&
+      (caps.has("work.record.write") ||
+        (must(punch, "punch item") !== null && caps.has("work.punch_list.write"))),
     canSchedule: caps.has("schedule.timeline.write") && !record.deletedAt,
     canRecur: caps.has("work.recurring.write") && !record.deletedAt,
     scheduleView: scheduleViewOf(shell.preferences, shell.viewerTimeZone),
@@ -508,6 +521,15 @@ export async function RecordBody({
         canPost={!record.deletedAt}
       />
       {detail.canWrite ? <DuplicateButton org={org} recordId={record.id} /> : null}
+      {record.deletedAt ? null : (
+        <ArchiveControls
+          org={org}
+          entity="records"
+          id={record.id}
+          archivedAt={record.archivedAt}
+          canWrite={detail.canArchive}
+        />
+      )}
       {detail.canWrite || record.deletedAt ? <TrashControls org={org} record={record} /> : null}
     </div>
   );

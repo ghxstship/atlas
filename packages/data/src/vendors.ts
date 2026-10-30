@@ -1,3 +1,4 @@
+import { applyArchived, type ArchivedFilter } from "./archive.ts";
 import type { Database, XosClient } from "./client.ts";
 import {
   blankToNull,
@@ -61,10 +62,12 @@ export interface Vendor {
   readonly classIds: readonly string[];
   readonly createdAt: string;
   readonly createdBy: string | null;
+  /** When the vendor was archived (A124); archived vendors leave the directory unless asked for. */
+  readonly archivedAt: string | null;
 }
 
 const VENDOR_COLUMNS =
-  "id, counterparty_id, vendor_state, payment_terms_days, default_currency_code, created_at, created_by, counterparty:counterparties!inner(counterparty_name, counterparty_type), vendor_class_assignments(vendor_class_id, deleted_at)" as const;
+  "id, counterparty_id, vendor_state, payment_terms_days, default_currency_code, created_at, created_by, archived_at, counterparty:counterparties!inner(counterparty_name, counterparty_type), vendor_class_assignments(vendor_class_id, deleted_at)" as const;
 
 interface VendorRow {
   id: string;
@@ -74,6 +77,7 @@ interface VendorRow {
   default_currency_code: string | null;
   created_at: string;
   created_by: string | null;
+  archived_at: string | null;
   counterparty: { counterparty_name: string | null; counterparty_type: string | null } | null;
   vendor_class_assignments: { vendor_class_id: string; deleted_at: string | null }[] | null;
 }
@@ -92,6 +96,7 @@ function toVendor(row: VendorRow): Vendor {
       .map((a) => a.vendor_class_id),
     createdAt: row.created_at,
     createdBy: row.created_by,
+    archivedAt: row.archived_at,
   };
 }
 
@@ -99,10 +104,17 @@ function byName<T extends { name: string | null }>(items: T[]): T[] {
   return items.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
 }
 
-/** Vendors of the org, by name. */
-export async function listVendors(db: XosClient, orgId: string): Promise<Result<Vendor[]>> {
+/** Vendors of the org, by name; archived ones only when asked for (A124). */
+export async function listVendors(
+  db: XosClient,
+  orgId: string,
+  archived: ArchivedFilter = "exclude",
+): Promise<Result<Vendor[]>> {
   const result = await readRows(
-    db.from("vendors").select(VENDOR_COLUMNS).eq("org_id", orgId).is("deleted_at", null),
+    applyArchived(
+      db.from("vendors").select(VENDOR_COLUMNS).eq("org_id", orgId).is("deleted_at", null),
+      archived,
+    ),
     (row) => toVendor(row),
   );
   return result.ok ? ok(byName(result.data)) : result;

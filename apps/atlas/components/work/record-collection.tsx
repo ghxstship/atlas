@@ -37,6 +37,7 @@ import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
 import { useHoverCards } from "@/components/hover/use-hover-cards";
 import { useRowMenu } from "@/components/menus/use-row-menu";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
 import type { RecordQuickAddProps } from "@/components/quick-add/record-quick-add";
 
 // Shown only to people who may create records; its date parser loads with it (ADR 0027).
@@ -282,6 +283,7 @@ export function RecordCollection({
         options={SORTS.map((s) => ({ value: s, label: t(`collection.sorts.${s}`) }))}
         onChange={(e) => go({ sort: e.target.value })}
       />
+      <ArchivedFilter id="records-archived" />
     </>
   );
 
@@ -317,6 +319,7 @@ export function RecordCollection({
             kind: null,
             state: null,
             project: null,
+            archived: null,
             ...Object.fromEntries(conditions.map((name) => [name, null])),
           });
         }}

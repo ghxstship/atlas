@@ -89,6 +89,30 @@ describe("parseSearchQuery: operators", () => {
     });
   });
 
+  it("maps asset units and asset classes, in English and Spanish (P7)", () => {
+    for (const query of ["type:asset", "type:units", "tipo:activo", "type:gear", "tipo:unidades"]) {
+      expect(parseSearchQuery(query).types, query).toEqual(["asset"]);
+    }
+    for (const query of [
+      'type:"asset class"',
+      'tipo:"clase de activo"',
+      "type:asset-class",
+      "kind:classes",
+    ]) {
+      expect(parseSearchQuery(query).types, query).toEqual(["asset_class"]);
+    }
+    const q = parseSearchQuery("radio -type:asset");
+    expect(q.excludeTypes).toEqual(["asset"]);
+    expect(q.types).toEqual([]);
+    expect(q.terms).toEqual(["radio"]);
+  });
+
+  it("passes a word that is not a type alias through to record kinds", () => {
+    expect(parseSearchQuery("type:gearbox").kinds).toEqual(["gearbox"]);
+    expect(parseSearchQuery("type:gearbox").types).toEqual([]);
+    expect(parseSearchQuery("type:permit").kinds).toEqual(["permit"]);
+  });
+
   it("reads quoted operator values as one value", () => {
     const q = parseSearchQuery('project:"North Stage" assignee:"Ana Ruiz" catering');
     expect(q.projects).toEqual(["North Stage"]);
@@ -124,6 +148,11 @@ describe("parseSearchQuery: operators", () => {
     expect(q.is).toEqual(["blocked", "mine", "overdue", "closed"]);
     expect(q.tokens[3]).toMatchObject({ operator: "is", valid: false });
     expect(q.tokens[4]).toMatchObject({ operator: "is", negated: true, valid: false });
+  });
+
+  it("reads is:archived, in English or Spanish, for the archived records and documents (A124)", () => {
+    expect(parseSearchQuery("truss is:archived").is).toEqual(["archived"]);
+    expect(parseSearchQuery("es:archivado").is).toEqual(["archived"]);
   });
 
   it("accepts Spanish operator names", () => {

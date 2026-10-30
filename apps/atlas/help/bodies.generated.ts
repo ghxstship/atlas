@@ -1808,6 +1808,16 @@ export const HELP_BODIES: HelpBodies = {
           [{ t: "text", v: "People in your organization, by name." }],
           [{ t: "text", v: "Documents, SOPs and handbook articles, by title and text." }],
           [
+            {
+              t: "text",
+              v: "Asset classes by name, and units by asset tag, class or serial (type ",
+            },
+            { t: "code", v: "MH-002" },
+            { t: "text", v: "). They show under " },
+            { t: "strong", v: "Inventory" },
+            { t: "text", v: "." },
+          ],
+          [
             { t: "text", v: "Settings, by name or key: type " },
             { t: "code", v: "time zone" },
             { t: "text", v: " to reach the Localization page with the field ready to change." },
@@ -1857,8 +1867,12 @@ export const HELP_BODIES: HelpBodies = {
             { t: "code", v: "document" },
             { t: "text", v: ", " },
             { t: "code", v: "sop" },
-            { t: "text", v: " or " },
+            { t: "text", v: ", " },
             { t: "code", v: "article" },
+            { t: "text", v: ", " },
+            { t: "code", v: "asset" },
+            { t: "text", v: " or " },
+            { t: "code", v: '"asset class"' },
             { t: "text", v: "." },
           ],
           [
@@ -3982,6 +3996,16 @@ export const HELP_BODIES: HelpBodies = {
           [{ t: "text", v: "Personas de su organización, por nombre." }],
           [{ t: "text", v: "Documentos, SOP y artículos del manual, por título y texto." }],
           [
+            {
+              t: "text",
+              v: "Clases de activo por nombre, y unidades por etiqueta de activo, clase o número de serie (escriba ",
+            },
+            { t: "code", v: "MH-002" },
+            { t: "text", v: "). Aparecen en " },
+            { t: "strong", v: "Inventario" },
+            { t: "text", v: "." },
+          ],
+          [
             { t: "text", v: "Configuraciones, por nombre o clave: escriba " },
             { t: "code", v: "zona horaria" },
             {
@@ -4034,8 +4058,12 @@ export const HELP_BODIES: HelpBodies = {
             { t: "code", v: "documento" },
             { t: "text", v: ", " },
             { t: "code", v: "sop" },
-            { t: "text", v: " o " },
+            { t: "text", v: ", " },
             { t: "code", v: "artículo" },
+            { t: "text", v: ", " },
+            { t: "code", v: "activo" },
+            { t: "text", v: " o " },
+            { t: "code", v: '"clase de activo"' },
             { t: "text", v: "." },
           ],
           [

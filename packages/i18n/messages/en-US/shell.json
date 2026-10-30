@@ -1274,6 +1274,7 @@
       "people": "People",
       "recent": "Recent",
       "documents": "Documents",
+      "inventory": "Inventory",
       "settings": "Settings",
       "operators": "Search operators"
     },
@@ -1290,18 +1291,21 @@
       "person": "Person",
       "document": "Document",
       "sop": "SOP",
-      "article": "Handbook article"
+      "article": "Handbook article",
+      "asset": "Asset",
+      "asset_class": "Asset class"
     },
     "related": "Related",
     "filters": "Search filters",
     "notUnderstood": "{token} is not understood",
     "operators": {
-      "type": "Records of a kind, people or documents",
+      "type": "Records of a kind, people, documents or assets",
       "project": "A project, by key or name",
       "assignee": "Assigned to you, or to someone by name",
       "status": "A state, open or closed",
       "after": "Changed after a date, today or 7 days ago",
       "due": "Due within 7 days, today or overdue",
+      "archived": "Archived records and documents, which search leaves out otherwise",
       "phrase": "Words together in quotes; a minus leaves a word out"
     }
   },

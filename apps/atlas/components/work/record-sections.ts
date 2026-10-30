@@ -72,7 +72,10 @@ export async function loadRelations(
   ];
   const others =
     ends.length > 0
-      ? must(await listRecords(db, { orgId: ctx.org.id, ids: ends }), "dependent records")
+      ? must(
+          await listRecords(db, { orgId: ctx.org.id, ids: ends, archived: "include" }),
+          "dependent records",
+        )
       : [];
   const byId = new Map(others.map((r) => [r.id, related(r)]));
   const end = (d: Dependency, id: string) => ({

@@ -11,7 +11,7 @@ import { fieldHistory } from "./parts/bulk-edit-and-history.ts";
 import { from, handlersFor, run, tableResource, unwrap } from "./support/table.ts";
 
 const sops = tableResource("sops");
-const documents = tableResource("documents");
+const documents = tableResource("documents", { archivable: true });
 
 interface NotesSnapshot {
   readonly generation: number;

@@ -119,6 +119,15 @@ select is(pg_temp.n('ivy', $$select 1 from api_external.records where id = '$$ |
 select is(pg_temp.n('victor', $$select 1 from api_external.records where id = '$$ || pg_temp.id('rec_internal') || $$'$$), 0, 'records without external visibility stay internal');
 select is(pg_temp.n('quinn', 'select 1 from api_external.records'), 0, 'records: denial for another party');
 select is(pg_temp.n('fiona', 'select 1 from api_external.records'), 0, 'Account Finance has no operational area');
+-- An archived record leaves the party's shared records until it is unarchived (A124, 2183).
+select pg_temp.as_user('carol');
+select app.archive_row('records', pg_temp.id('rec_ivy'));
+select pg_temp.as_platform();
+select is(pg_temp.n('ivy', 'select 1 from api_external.records'), 0, 'records: an archived record leaves the shared records');
+select pg_temp.as_user('carol');
+select app.unarchive_row('records', pg_temp.id('rec_ivy'));
+select pg_temp.as_platform();
+select is(pg_temp.n('ivy', 'select 1 from api_external.records'), 1, 'and comes back when unarchived');
 
 -- Money -----------------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();

@@ -1,3 +1,4 @@
+import { applyArchived, type ArchivedFilter } from "./archive.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { num, numOrNull, rows, str, strOrNull, writtenId, type Raw } from "./platform-common.ts";
@@ -216,6 +217,8 @@ export interface ObjectRecord {
   readonly title: string;
   readonly createdAt: string;
   readonly updatedAt: string;
+  /** When the record was archived (A124); archived records leave the list unless asked for. */
+  readonly archivedAt: string | null;
   /** Values by field id; a field without a value is absent. */
   readonly values: Readonly<Record<string, FieldValue>>;
 }
@@ -261,39 +264,76 @@ function toValue(field: ObjectField | undefined, v: Raw): FieldValue | null {
   }
 }
 
+const RECORD_COLUMNS = `id, title, created_at, updated_at, archived_at, custom_object_values (${VALUE_COLUMNS})`;
+
+function toRecord(type: ObjectType, r: Raw): ObjectRecord {
+  const fields = new Map(type.fields.map((f) => [f.id, f]));
+  const values: Record<string, FieldValue> = {};
+  for (const v of (r["custom_object_values"] as Raw[] | null) ?? []) {
+    if (v["deleted_at"] !== null && v["deleted_at"] !== undefined) continue;
+    const id = str(v["custom_object_field_id"]);
+    const value = toValue(fields.get(id), v);
+    if (value) values[id] = value;
+  }
+  return {
+    id: str(r["id"]),
+    title: str(r["title"]),
+    createdAt: str(r["created_at"]),
+    updatedAt: str(r["updated_at"]),
+    archivedAt: strOrNull(r["archived_at"]),
+    values,
+  };
+}
+
+/** Records of a custom object type, newest first; archived ones only when asked for (A124). */
 export async function listObjectRecords(
   db: XosClient,
   type: ObjectType,
+  archived: ArchivedFilter = "exclude",
 ): Promise<Result<ObjectRecord[]>> {
   const result = await rows(
-    untyped(db)
-      .from("custom_object_records")
-      .select(`id, title, created_at, updated_at, custom_object_values (${VALUE_COLUMNS})`)
-      .eq("custom_object_type_id", type.id)
-      .is("deleted_at", null)
+    applyArchived(
+      untyped(db)
+        .from("custom_object_records")
+        .select(RECORD_COLUMNS)
+        .eq("custom_object_type_id", type.id)
+        .is("deleted_at", null),
+      archived,
+    )
       .order("created_at", { ascending: false })
       .limit(500),
   );
-  if (!result.ok) return result;
-  const fields = new Map(type.fields.map((f) => [f.id, f]));
-  return ok(
-    result.data.map((r) => {
-      const values: Record<string, FieldValue> = {};
-      for (const v of (r["custom_object_values"] as Raw[] | null) ?? []) {
-        if (v["deleted_at"] !== null && v["deleted_at"] !== undefined) continue;
-        const id = str(v["custom_object_field_id"]);
-        const value = toValue(fields.get(id), v);
-        if (value) values[id] = value;
-      }
-      return {
-        id: str(r["id"]),
-        title: str(r["title"]),
-        createdAt: str(r["created_at"]),
-        updatedAt: str(r["updated_at"]),
-        values,
-      };
-    }),
-  );
+  return result.ok ? ok(result.data.map((r) => toRecord(type, r))) : result;
+}
+
+/**
+ * One record of a custom object type by its id, archived or not (A124): a link or a Favorite names a
+ * record the list may leave out. With its ordinal, how many of the type's records (archived ones
+ * included) were created up to it, which numbers its key.
+ */
+export async function getObjectRecord(
+  db: XosClient,
+  type: ObjectType,
+  id: string,
+): Promise<Result<{ record: ObjectRecord; ordinal: number }>> {
+  const { data, error } = await untyped(db)
+    .from("custom_object_records")
+    .select(RECORD_COLUMNS)
+    .eq("custom_object_type_id", type.id)
+    .eq("id", id)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data) return fail({ kind: "not-found" });
+  const record = toRecord(type, data as Raw);
+  const counted = await untyped(db)
+    .from("custom_object_records")
+    .select("id", { count: "exact", head: true })
+    .eq("custom_object_type_id", type.id)
+    .is("deleted_at", null)
+    .lte("created_at", record.createdAt);
+  if (counted.error) return fail(toDataError(counted.error));
+  return ok({ record, ordinal: counted.count ?? 1 });
 }
 
 /** The typed columns a value fills, all others null, as the 0540 guard requires. */

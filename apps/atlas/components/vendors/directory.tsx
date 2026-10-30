@@ -45,6 +45,10 @@ import type { OrgContext } from "@/lib/shell/context";
 import { PresenceFor } from "@/components/presence/presence-for";
 import { orgToday } from "@/lib/shell/time-zone";
 import { EmptyStateLink } from "@/components/ui";
+import { ArchiveControls } from "@/components/archive/archive-controls";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
+import { archivedOf } from "@/lib/archive/param";
+import { peekedRow } from "@/lib/archive/peek";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
 import { customFieldList } from "@/lib/custom-fields/server";
 import { CollectionPage } from "@/components/platform/collection-page";
@@ -70,7 +74,7 @@ export async function VendorDirectory({
   const db = ctx.viewer.db;
   const [t, vendors, classes, rules, custom] = await Promise.all([
     getCopy("vendors"),
-    listVendors(db, ctx.org.id),
+    listVendors(db, ctx.org.id, archivedOf(search)),
     listVendorClasses(db, ctx.org.id),
     listTransitionRules<VendorState>(db, "vendor"),
     customFieldList(ctx, "app.vendors", search),
@@ -128,7 +132,8 @@ export async function VendorDirectory({
   if (state.create && canWrite) {
     drawer = <CreateVendor ctx={ctx} closeHref={withQuery(path, state)} path={path} />;
   } else if (state.peek) {
-    const vendor = vendors.data.find((v) => v.id === state.peek);
+    // A vendor the list leaves out, such as an archived one a Favorite names, is read by its id.
+    const vendor = await peekedRow(vendors.data, state.peek, (id) => getVendor(db, id));
     if (vendor) {
       drawer = (
         <PeekDrawer
@@ -139,20 +144,29 @@ export async function VendorDirectory({
           fullHref={withQuery(path, state, { peek: vendor.id, full: "1" })}
           properties={vendorProperties(vendor, t, className)}
           actions={
-            canWrite ? (
-              <TransitionButtons
-                action={transitionVendorAction}
+            <>
+              {canWrite ? (
+                <TransitionButtons
+                  action={transitionVendorAction}
+                  org={ctx.org.slug}
+                  id={vendor.id}
+                  expected={vendor.state}
+                  refusals={REFUSALS}
+                  moves={nextStates(rules.data, vendor.state).map((next) => ({
+                    next,
+                    label: t(`moves.${next}`),
+                    danger: next === "Blocked" || next === "Canceled",
+                  }))}
+                />
+              ) : null}
+              <ArchiveControls
                 org={ctx.org.slug}
+                entity="vendors"
                 id={vendor.id}
-                expected={vendor.state}
-                refusals={REFUSALS}
-                moves={nextStates(rules.data, vendor.state).map((next) => ({
-                  next,
-                  label: t(`moves.${next}`),
-                  danger: next === "Blocked" || next === "Canceled",
-                }))}
+                archivedAt={vendor.archivedAt}
+                canWrite={canWrite}
               />
-            ) : null
+            </>
           }
         >
           <VendorCustomFields org={ctx.org.slug} vendor={vendor} />
@@ -176,6 +190,7 @@ export async function VendorDirectory({
         { key: "classes", label: t("fields.classes"), wrap: true },
       ]}
       rows={rows}
+      filters={<ArchivedFilter id="vendors-archived" />}
       customFields={await custom.view(rows.map((r) => r.id))}
       actions={
         canWrite ? (
@@ -358,20 +373,29 @@ async function VendorRecord({
       state={{ state: recordStateOf(v.state), label: stateLabel(v.state) }}
       properties={vendorProperties(v, t, className)}
       actions={
-        canWrite ? (
-          <TransitionButtons
-            action={transitionVendorAction}
+        <>
+          {canWrite ? (
+            <TransitionButtons
+              action={transitionVendorAction}
+              org={ctx.org.slug}
+              id={v.id}
+              expected={v.state}
+              refusals={REFUSALS}
+              moves={nextStates(rules, v.state).map((next) => ({
+                next,
+                label: t(`moves.${next}`),
+                danger: next === "Blocked" || next === "Canceled",
+              }))}
+            />
+          ) : null}
+          <ArchiveControls
             org={ctx.org.slug}
+            entity="vendors"
             id={v.id}
-            expected={v.state}
-            refusals={REFUSALS}
-            moves={nextStates(rules, v.state).map((next) => ({
-              next,
-              label: t(`moves.${next}`),
-              danger: next === "Blocked" || next === "Canceled",
-            }))}
+            archivedAt={v.archivedAt}
+            canWrite={canWrite}
           />
-        ) : null
+        </>
       }
     >
       <PresenceFor table="vendors" id={v.id} />

@@ -37,6 +37,7 @@ import {
   withdrawBidAction,
 } from "./work-order-actions";
 import { CollectionViews } from "@/components/views/collection-views";
+import { ArchivedFilter } from "@/components/archive/archived-filter";
 
 export interface BidderOption {
   readonly organizationId: string;
@@ -148,6 +149,7 @@ export function WorkOrderCollection({
         ]}
         onChange={(e) => go({ state: e.target.value || null })}
       />
+      <ArchivedFilter id="wo-archived" />
     </>
   );
 

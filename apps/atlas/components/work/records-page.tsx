@@ -1,3 +1,4 @@
+import { parseArchived } from "@xos/data/archive";
 import { buildTimeline, latestBaselinePlan, listDependencies } from "@xos/data/schedule";
 import { listRecords, sortRecords, type ProjectRef, type RecordSort } from "@xos/data/work";
 import { todayIn } from "@xos/data/calendar";
@@ -97,6 +98,7 @@ export async function RecordsPage({
       ...(kinds.length > 0 ? { kinds } : {}),
       ...(states.length > 0 ? { states } : {}),
       ...(q ? { search: q } : {}),
+      archived: parseArchived(param(search, "archived")),
     }),
   ]);
   const records = sortRecords(

@@ -44,6 +44,7 @@ const OPERATORS = [
   { key: "status", insert: "status:" },
   { key: "after", insert: "after:-7d" },
   { key: "due", insert: "due:<7d" },
+  { key: "archived", insert: "is:archived" },
   { key: "phrase", insert: '""' },
 ] as const;
 

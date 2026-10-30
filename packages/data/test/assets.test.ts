@@ -149,7 +149,7 @@ describe("reference reads", () => {
   });
 
   it("lists venues and projects", async () => {
-    const { db } = client({
+    const { db, calls } = client({
       "from:venues": [okResponse([{ id: "v1", name: "Warehouse" }]), errorResponse("42501", "no")],
       "from:projects": [
         okResponse([{ id: "p1", project_key: "NWL", name: "Summer Series" }]),
@@ -161,6 +161,8 @@ describe("reference reads", () => {
       data: [{ id: "v1", name: "Warehouse" }],
     });
     expect((await listAssetVenues(db, "o1")).ok).toBe(false);
+    // Archived venues are not offered as home venues or places (A124).
+    expect(calls[0]?.steps).toContainEqual(["is", ["archived_at", null]]);
     expect(await listAssetProjects(db, "o1")).toEqual({
       ok: true,
       data: [{ id: "p1", key: "NWL", name: "Summer Series" }],
