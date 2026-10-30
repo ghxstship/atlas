@@ -1,20 +1,20 @@
 -- pgTAP: 2241, field history on every record page (A131, RRR-177, S4.10-04). Each entity with a record page or peek is a
 -- field history subject with an audit trail whose read policies the history follows; editing an expense, a change order,
--- a budget, an engagement or an agreement shows each changed field before and after; a column signed-in people cannot
--- select stays out of the history.
+-- a budget, an engagement, a time entry, a per diem or an agreement shows each changed field before and after; a column
+-- signed-in people cannot select stays out of the history.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(19);
+select plan(23);
 
 create temporary table new_subjects (table_name text primary key);
 insert into new_subjects values
   ('app.accounting_periods'), ('app.budgets'), ('app.change_orders'), ('app.cost_centers'), ('app.expenses'),
   ('app.journal_entries'), ('app.payments'), ('app.settlements'),
   ('app.agreements'), ('app.applications'), ('app.engagements'), ('app.offers'), ('app.opportunities'), ('app.pay_periods'),
-  ('app.payroll_runs'), ('app.rate_cards'), ('app.requisitions'), ('app.shift_swaps'), ('app.time_off_requests'), ('app.timesheets'),
+  ('app.payroll_runs'), ('app.per_diems'), ('app.rate_cards'), ('app.requisitions'), ('app.shift_swaps'), ('app.time_entries'), ('app.time_off_requests'), ('app.timesheets'),
   ('app.canon_extension_proposals'), ('app.catalog_bindings'), ('app.goods_receipts'), ('app.insurance_certificates'),
   ('app.invoice_matches'), ('app.prequalifications'), ('app.rfqs'), ('app.sponsor_entitlements'), ('app.submittals'),
   ('app.vendor_scorecards'),
@@ -109,6 +109,31 @@ select is((select new_value #>> '{}' from app.field_history('app.engagements', p
   '2027-08-31', 'an engagement edit shows its new end date');
 select ok(not exists (select 1 from app.field_history('app.engagements', pg_temp.id('eng_ivy_a')) where field = 'agreed_rate_minor'),
   'its Restricted agreed rate never reaches the history');
+
+-- A time entry (partitioned since A130's 2231) -------------------------------------------------------------------------------
+select pg_temp.move_engagement('eng_ivy_a', 'Onboarding', 'Active');
+select pg_temp.as_user('carol');
+with x as (insert into app.time_entries (project_id, engagement_id, clock_in, clock_out)
+  values (pg_temp.id('prj_a'), pg_temp.id('eng_ivy_a'), '2027-06-03 08:00+00', '2027-06-03 12:00+00') returning id)
+  insert into world select 'te', id from x;
+update app.time_entries set clock_out = '2027-06-03 12:30+00' where id = pg_temp.id('te');
+select is((select (old_value #>> '{}')::timestamptz from app.field_history('app.time_entries', pg_temp.id('te')) where field = 'clock_out'),
+  '2027-06-03 12:00+00'::timestamptz, 'a time entry edit shows its clock out before');
+select is((select (new_value #>> '{}')::timestamptz from app.field_history('app.time_entries', pg_temp.id('te')) where field = 'clock_out'),
+  '2027-06-03 12:30+00'::timestamptz, 'and after, read from its partition under the parent''s name');
+
+-- A per diem (R1's Crew > Per Diems) -----------------------------------------------------------------------------------------
+-- Per diem is an offering since R3 (2625): prj_a offers it, so the insert reaches the table's own rules.
+select pg_temp.as_user('carol');
+select app.set_setting(pg_temp.id('org_a'), 'offerings.per_diem', 'Project', pg_temp.id('prj_a'), 'provided');
+with x as (insert into app.per_diems (project_id, membership_id, day, amount_minor, currency_code)
+  values (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), '2027-07-05', 6500, 'USD') returning id)
+  insert into world select 'pd', id from x;
+update app.per_diems set amount_minor = 7500 where id = pg_temp.id('pd');
+select is((select old_value from app.field_history('app.per_diems', pg_temp.id('pd')) where field = 'amount_minor'),
+  '6500'::jsonb, 'a per diem edit shows its amount before');
+select is((select new_value from app.field_history('app.per_diems', pg_temp.id('pd')) where field = 'amount_minor'),
+  '7500'::jsonb, 'and after');
 
 -- An agreement (a contract) ---------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');

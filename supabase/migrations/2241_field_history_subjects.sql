@@ -2,13 +2,16 @@
 --
 -- A131 (RRR-177, S4.10-04, ADR 0090). Section 4.10: "a history tab on every record". 1452 offered field history for
 -- eight tables (records, shifts, invoices, asset units, SOPs, documents, purchase orders and vendors) and 2100 added
--- custom object records. Every other entity with a record page or peek in Atlas had none. This migration lists them
--- in private.field_history_subjects, so app.field_history answers for their rows (each table's own read policies
--- decide who reads it, and Restricted columns never reach a diff), and gives the ones without an audit trail one.
+-- custom object records. Every other entity with a record page or peek in Atlas had none, the per diems of R1's Crew
+-- page included (app.per_diems dates from 0341). This migration lists them in private.field_history_subjects, so
+-- app.field_history answers for their rows (each table's own read policies decide who reads it, and Restricted
+-- columns never reach a diff), and gives the ones without an audit trail one.
 --
--- Left out: app.time_entries, which A130 partitions (its history follows once that lands); app.form_submissions,
--- whose answers are submitted once and may hold what a form asks about a person, so they stay out of the ledger; and
--- app.projects, whose page is the project overview rather than a record page.
+-- app.time_entries is listed too: A130 partitioned it (2231), and since 2230 its audit events name the parent table,
+-- so its history reads the parent's events under the parent's read policies.
+--
+-- Left out: app.form_submissions, whose answers are submitted once and may hold what a form asks about a person, so
+-- they stay out of the ledger; and app.projects, whose page is the project overview rather than a record page.
 
 -- 1. Audit trails for the subjects that had none ---------------------------------------------------------------------------
 
@@ -65,9 +68,11 @@ insert into private.field_history_subjects (table_name) values
   ('app.opportunities'),
   ('app.pay_periods'),
   ('app.payroll_runs'),
+  ('app.per_diems'),
   ('app.rate_cards'),
   ('app.requisitions'),
   ('app.shift_swaps'),
+  ('app.time_entries'),
   ('app.time_off_requests'),
   ('app.timesheets'),
   -- Procurement, vendors and canon

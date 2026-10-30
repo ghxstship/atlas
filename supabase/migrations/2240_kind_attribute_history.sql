@@ -11,8 +11,10 @@
 --     binary columns and Restricted columns) and skips the same rows (no org, a retention purge, a purged org);
 --   * lists the extension tables in private.field_history_extensions, each with the subject table whose history
 --     merges its changes;
---   * recreates app.field_history from its latest definition (1452; 2100 did not redefine it) so a record's history
---     also carries its extension row's changes, one row per attribute, named attributes.<column>. Saving the
+--   * recreates app.field_history from its latest definition (1452; 2061 and 2100 did not redefine it) so a record's
+--     history also carries its extension row's changes, one row per attribute, named attributes.<column>. Its
+--     signature stays, so app.field_history_events (2061), which groups its rows into one row per event, merges
+--     them too, and p_limit still counts events: an extension row's change is an event of its own. Saving the
 --     attributes the first time reads as each attribute going from nothing to its value. The same read check (the
 --     record's own read policies) and the same Restricted masking apply, the latter by the extension table's column;
 --   * leaves out a column that signed-in people cannot select at all (a column grant withheld, as for
