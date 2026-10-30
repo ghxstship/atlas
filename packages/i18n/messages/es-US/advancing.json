@@ -408,6 +408,7 @@
       "checkIn": "Registrar llegada de {name}",
       "edit": "Editar a {name}",
       "remove": "Quitar a {name}"
-    }
+    },
+    "import": "Importar invitados"
   }
 }

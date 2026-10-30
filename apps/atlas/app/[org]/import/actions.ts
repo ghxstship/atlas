@@ -5,9 +5,11 @@ import {
   checkImportUpload,
   confirmMapping,
   createImport,
+  createPastedImport,
   createSheetsImport,
   decideMergeReview,
   googleSheetsLinkId,
+  IMPORT_MAX_BYTES,
   importDetectedSheet,
   importObjectPath,
   requestImportCommit,
@@ -20,12 +22,30 @@ import { z } from "zod";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
 import { fromDataError } from "@/lib/platform/data-error";
 import { contextFor } from "@/lib/platform/action-context";
+import { getTranslate } from "@/lib/shell/translate";
 
 /**
  * Import wizard actions (A36, Section 4.6.2): upload a spreadsheet, confirm the mapping, decide fuzzy
  * matches, commit and undo. Detection, validation and the writes run in the import worker; these
  * actions run as the person, so row level security and the import RPCs decide.
+ * A cue or guest list import (P3) names its running order (runOfShow) or project (project); the database's
+ * destination guard and project capability decide whether it may.
  */
+
+const TARGET = z.string().regex(/^[a-z][a-z0-9_]{1,60}$/);
+
+/** The destination fields of a form: at most a running order or a project, each a uuid. Null when malformed. */
+function destinationOf(
+  form: FormData,
+): { runOfShowId: string | null; projectId: string | null } | null {
+  const runOfShow = field(form, "runOfShow");
+  const project = field(form, "project");
+  const parsed = z
+    .object({ runOfShow: z.uuid().nullable(), project: z.uuid().nullable() })
+    .safeParse({ runOfShow: runOfShow || null, project: project || null });
+  if (!parsed.success || (parsed.data.runOfShow && parsed.data.project)) return null;
+  return { runOfShowId: parsed.data.runOfShow, projectId: parsed.data.project };
+}
 
 export async function createImportAction(
   _: PlatformActionState,
@@ -35,7 +55,10 @@ export async function createImportAction(
   const file = form.get("file");
   const target = field(form, "target");
   const person = ctx.viewer.person;
-  if (!person || !(file instanceof File) || file.size === 0 || !target) return inputError();
+  const destination = destinationOf(form);
+  if (!person || !(file instanceof File) || file.size === 0 || !target || !destination) {
+    return inputError();
+  }
   // .csv and .xlsx only; a legacy .xls gets its own message (owner decision 28).
   const upload = checkImportUpload(file.name, file.size);
   if (!upload.ok) return { rule: upload.rule, at: Date.now() };
@@ -47,6 +70,43 @@ export async function createImportAction(
     source: upload.source,
     body: new Uint8Array(await file.arrayBuffer()),
     contentType: upload.contentType,
+    ...destination,
+  });
+  if (!result.ok) return fromDataError(result.error);
+  revalidatePath(`/${ctx.org.slug}/import`);
+  return done(result.data);
+}
+
+/**
+ * Pasted rows (P3): written as a .csv in the person's imports folder and imported like an uploaded .csv, so the
+ * file is scanned and detected the same way. An empty paste is refused import_paste_empty, and one over the
+ * 10 MB limit import_file_size: the rows' .csv is measured, and a paste of more than twice the limit in characters
+ * is refused before it is parsed at all.
+ */
+export async function createPastedImportAction(
+  _: PlatformActionState,
+  form: FormData,
+): Promise<PlatformActionState> {
+  const ctx = await contextFor(form);
+  const person = ctx.viewer.person;
+  const destination = destinationOf(form);
+  const parsed = z
+    .object({ target: TARGET, text: z.string() })
+    .safeParse({ target: field(form, "target"), text: form.get("text") ?? "" });
+  if (!person || !parsed.success || !destination) return inputError();
+  if (parsed.data.text.length > 2 * IMPORT_MAX_BYTES) {
+    return { rule: "import_file_size", at: Date.now() };
+  }
+  const t = await getTranslate();
+  const result = await createPastedImport(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    targetCode: parsed.data.target,
+    text: parsed.data.text,
+    filename: t("platform.imports.paste.filename", {
+      date: new Date().toISOString().slice(0, 10),
+    }).slice(0, 255),
+    objectPath: importObjectPath(person.id, crypto.randomUUID(), "csv"),
+    ...destination,
   });
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/${ctx.org.slug}/import`);
@@ -62,13 +122,15 @@ export async function createSheetsImportAction(
   const link = field(form, "link");
   const target = field(form, "target");
   const person = ctx.viewer.person;
-  if (!person || !target || !link) return inputError();
+  const destination = destinationOf(form);
+  if (!person || !target || !link || !destination) return inputError();
   if (googleSheetsLinkId(link) === null) return { rule: "import_link_invalid", at: Date.now() };
   const result = await createSheetsImport(ctx.viewer.db, {
     orgId: ctx.org.id,
     targetCode: target,
     link,
     objectPath: importObjectPath(person.id, crypto.randomUUID(), "xlsx"),
+    ...destination,
   });
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/${ctx.org.slug}/import`);
@@ -82,12 +144,14 @@ export async function importSheetAction(
 ): Promise<PlatformActionState> {
   const ctx = await contextFor(form);
   const parsed = z
-    .object({ sheet: z.uuid(), target: z.string().regex(/^[a-z][a-z0-9_]{1,60}$/) })
+    .object({ sheet: z.uuid(), target: TARGET })
     .safeParse({ sheet: field(form, "sheet"), target: field(form, "target") });
-  if (!parsed.success) return inputError();
+  const destination = destinationOf(form);
+  if (!parsed.success || !destination) return inputError();
   const result = await importDetectedSheet(ctx.viewer.db, {
     sheetId: parsed.data.sheet,
     targetCode: parsed.data.target,
+    ...destination,
   });
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/${ctx.org.slug}/import`);

@@ -408,6 +408,7 @@
       "checkIn": "Check in {name}",
       "edit": "Edit {name}",
       "remove": "Remove {name}"
-    }
+    },
+    "import": "Import guests"
   }
 }
