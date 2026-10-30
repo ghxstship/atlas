@@ -2,7 +2,6 @@ import {
   getVenue,
   listJurisdictions,
   listVenues,
-  type ArchiveFilter,
   type Jurisdiction,
   type Venue,
 } from "@xos/data/places";
@@ -11,6 +10,7 @@ import type { XosClient } from "@xos/data";
 import { getLocationDefaults, NO_LOCATION_DEFAULTS } from "@xos/data/org-setup";
 import type { Route } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getFormatter } from "next-intl/server";
 import { requireNode } from "@/lib/shell/require-node";
 import { CustomFieldList } from "@/components/custom-fields/list";
@@ -38,23 +38,10 @@ import { MapView } from "@/components/platform/client/map-view";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
 import { VenueForm } from "./venue-form";
 import { ArchivedFilter } from "@/components/archive/archived-filter";
-import { archivedOf } from "@/lib/archive/param";
+import { archiveOf, legacyArchiveChanges } from "./archive-param";
 
 const NODE = "places.venues";
 const MAP = { width: 800, height: 480, margin: 40 } as const;
-
-/**
- * The Archived filter (`?archived=include|only`, A124) as the venue list reads it. The older
- * `?archive=archived|all` the other Places collections still use keeps working, so saved views and
- * bookmarks of the venue list open as they did.
- */
-function archiveOf(search: Search): ArchiveFilter {
-  const value = archivedOf(search);
-  if (value === "only") return "archived";
-  if (value === "include") return "all";
-  const legacy = param(search, "archive");
-  return legacy === "archived" || legacy === "all" ? legacy : "live";
-}
 
 function address(v: Venue): string | null {
   const parts = [v.streetAddress, v.locality, v.postalCode].filter((p): p is string => !!p);
@@ -96,6 +83,8 @@ export async function VenuesPage({
   search: Search;
 }) {
   const ctx = await requireNode(NODE, params);
+  const legacy = legacyArchiveChanges(search);
+  if (legacy) redirect(withQuery(nodeHref(NODE, params) ?? "/", search, legacy) as Route);
   const db = ctx.viewer.db;
   const archive = archiveOf(search);
   const [venues, jurisdictions, t, held, custom] = await Promise.all([
