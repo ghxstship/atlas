@@ -1,12 +1,13 @@
 -- pgTAP: 2240, kind attribute history (A131, RRR-177, S4.10-04). Every kind extension table (app.record_<kind>) has an
 -- audit trail keyed by the record, and a record's field history merges its extension row's changes as attributes.<column>
--- with their before and after values, under the record's own read check and Restricted masking.
+-- with their before and after values, under the record's own read check and Restricted masking; the per-event history
+-- (2061) carries them too.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(16);
+select plan(17);
 
 -- Every kind table is audited and registered ---------------------------------------------------------------------------
 create temporary table kind_tables as
@@ -59,6 +60,14 @@ select ok((select bool_and(field not in ('attributes.record_id', 'attributes.rec
                                           'attributes.updated_at', 'attributes.updated_by'))
            from history where field is not null),
   'the extension''s key, kind and bookkeeping columns are left out');
+
+-- The page reads app.field_history_events (2061), one row per event: the attribute edit is one event with both fields.
+select is(
+  (select array_agg(c ->> 'field' order by c ->> 'field')
+   from app.field_history_events('app.records', pg_temp.id('task')) e, jsonb_array_elements(e.changes) c
+   where e.changes @> '[{"field": "attributes.effort_hours"}]'),
+  array['attributes.effort_hours', 'attributes.progress_pct'],
+  'the per-event history carries an attribute edit as one event of the record');
 
 select pg_temp.as_platform();
 select is((select subject_id from app.audit_events where subject_table = 'app.record_task' and action = 'record_task.update'
