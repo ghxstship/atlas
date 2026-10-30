@@ -352,10 +352,13 @@ const summaryTool = (input: unknown): ModelResponse => ({
   usage: { inputTokens: 100, outputTokens: 20 },
 });
 
-/** The wrap-up's facts as the in-process API answers them for a reader who may read them all. */
-const factsApi = (ledger = true): PublicApi => ({
+/**
+ * The wrap-up's facts as the in-process API answers them. As in the real API, a read the caller lacks is not a 403:
+ * row level security leaves the page empty (no ledger rows means actual 0), so only the capability checks keep a
+ * fact out.
+ */
+const factsApi = (): PublicApi => ({
   async get(path) {
-    if (path === "/posting-lines") return ledger ? { status: 200, body: { data: [] } } : { status: 403, body: {} };
     if (path === "/reports/final-cost-report")
       return { status: 200, body: { data: [{ currency: "USD", actual_minor: 10_500_000 }] } };
     if (path === "/reports/incident-rates")
@@ -367,24 +370,67 @@ const factsApi = (ledger = true): PublicApi => ({
   },
 });
 
-function aurora(neverSend: unknown[], script: ModelResponse[] = [], ledger = true) {
+/** What the caller holds: the wrap-up capabilities on the project, and whether a role grants the ledger org-wide. */
+interface Holds {
+  readonly project?: string[];
+  readonly ledger?: "organization" | "own" | null;
+}
+
+const ALL_PROJECT = ["finance.budget.read", "projects.gate.read", "safety.incident.read"];
+
+function aurora(neverSend: unknown[], script: ModelResponse[] = [], holds: Holds = {}) {
   const model = new Scripted(script);
   const handlers = defineHandlers(
     "Settings",
     auroraHandlers({
       model: () => model,
-      readApi: () => factsApi(ledger),
+      readApi: () => factsApi(),
       today: () => "2026-10-28",
       timeZone: () => "America/New_York",
     }) as unknown as HandlerSet<"Settings">,
   );
+  const role = { id: id(700), code: "finance", name: "Finance", band: 3, org_id: ORG };
+  const ledger = holds.ledger === undefined ? "organization" : holds.ledger;
   const fake = fakeDb({
     "from:ai_never_send": [ok(neverSend)],
+    "rpc:my_capabilities_on_project": [ok(holds.project ?? ALL_PROJECT)],
+    "from:memberships": [
+      ok({
+        id: id(701),
+        organization: {
+          id: ORG,
+          slug: ctx.org?.slug,
+          name: "Northwind Live",
+          parent_org_id: null,
+          deleted_at: null,
+        },
+        membership_roles: [{ deleted_at: null, role }],
+      }),
+    ],
+    "from:role_capabilities": [
+      ok(ledger === null ? [] : [{ capability_code: "finance.journal.read", reach: ledger }]),
+    ],
     "rpc:ai_begin_request": [ok(id(900))],
     "rpc:ai_complete_request": [ok(null)],
   });
-  return { api: contractApp({ handlers: [handlers], db: fake.db as never }), model };
+  return {
+    api: contractApp({ handlers: [handlers], db: fake.db as never }),
+    model,
+    calls: fake.calls,
+  };
 }
+
+const wrapUpPreview = (api: ReturnType<typeof aurora>["api"]) =>
+  api.request(
+    "/aurora/preview",
+    post({
+      feature: "summaries",
+      kind: "project_wrap_up",
+      subject_collection: "projects",
+      subject_id: PROJECT,
+      items: [],
+    }),
+  );
 
 describe("The wrap-up summary", () => {
   it("adds the budget, incident and measurement facts under their own relations, cited by the project", async () => {
@@ -433,25 +479,37 @@ describe("The wrap-up summary", () => {
     ]);
   });
 
-  it("leaves out the budget when the caller cannot read the ledger", async () => {
-    const { api } = aurora([], [], false);
-    const res = await api.request(
-      "/aurora/preview",
-      post({
-        feature: "summaries",
-        kind: "project_wrap_up",
-        subject_collection: "projects",
-        subject_id: PROJECT,
-        items: [],
-      }),
-    );
-    const body = (await expectContract(res, "aurora.preview")) as {
+  it("leaves out the budget when the caller cannot read the ledger org-wide", async () => {
+    for (const ledger of [null, "own"] as const) {
+      const { api } = aurora([], [], { ledger });
+      const body = (await expectContract(await wrapUpPreview(api), "aurora.preview")) as {
+        records: { collection: string }[];
+      };
+      expect(body.records.map((r) => r.collection)).toEqual([
+        "incidents",
+        "project-measurement-summary",
+      ]);
+    }
+  });
+
+  it("checks the caller's own capabilities on the subject project", async () => {
+    const { api, calls } = aurora([], [], { project: ["finance.budget.read"] });
+    const body = (await expectContract(await wrapUpPreview(api), "aurora.preview")) as {
       records: { collection: string }[];
     };
-    expect(body.records.map((r) => r.collection)).toEqual([
-      "incidents",
-      "project-measurement-summary",
-    ]);
+    expect(body.records.map((r) => r.collection)).toEqual(["budgets"]);
+    expect(argsOf(calls, "rpc:my_capabilities_on_project")).toEqual({
+      p_project_id: PROJECT,
+      p_capabilities: ALL_PROJECT,
+    });
+  });
+
+  it("sends no fact the caller cannot read, though every read answers 200", async () => {
+    const { api } = aurora([], [], { project: [], ledger: "organization" });
+    const body = (await expectContract(await wrapUpPreview(api), "aurora.preview")) as {
+      records: unknown[];
+    };
+    expect(body.records).toEqual([]);
   });
 
   it("summarizes with every bullet citing a supplied item", async () => {

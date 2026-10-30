@@ -84,7 +84,9 @@ cost report, the incident counts and the measurement summary, with no debrief an
    it. Aurora's `project_wrap_up` summary reads the debrief points and adds the final cost report, the incident counts
    and the measurement summary under their real relations (`app.budgets`, `app.incidents`,
    `app.project_measurement_summary`), each cited by the project's id, so the org's never-send list applies to each.
-   "Use as management summary" only fills the box; nothing is stored until a person saves it (Section 4.7). A saved
+   Each fact goes to the model only when the caller holds the capabilities its report section needs, checked the same
+   way, never inferred from a read answering 200: row level security answers a read the caller lacks with an empty
+   page, which the model would take for no incidents or nothing spent. "Use as management summary" only fills the box; nothing is stored until a person saves it (Section 4.7). A saved
    Aurora draft is linked to its `app.ai_requests` row, which must be the saver's own Answered `summaries` request about
    this project in this org, and flagged `ai_drafted`; the save stamps who saved it and when. The report prints
    "Drafted with Aurora and reviewed by <name> on <date>" from the flag, which outlives the purge of the request row

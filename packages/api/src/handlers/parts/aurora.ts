@@ -40,7 +40,9 @@ import {
   transitionAiSuggestion,
 } from "@xos/data/ai";
 import { todayIn } from "@xos/data/calendar";
+import { getMyOrganization, listRoleCapabilities } from "@xos/data/identity";
 import { readOrgTimeZone } from "@xos/data/settings";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { z } from "zod";
 import type { ResourceSpec } from "../../catalog/types.ts";
 import { ApiProblem, fromDatabaseError, isDatabaseError, refused } from "../../problem.ts";
@@ -294,14 +296,64 @@ const BUDGET_SOURCES = [
   "app.change_orders",
 ];
 
+/** The capabilities on the project that decide the wrap-up's facts, as the wrap-up report's sections use them. */
+const WRAP_UP_CAPABILITIES = ["finance.budget.read", "projects.gate.read", "safety.incident.read"];
+
+/** Which of the wrap-up's facts the caller may read (B7, ADR 0146 decision 5). */
+interface WrapUpReads {
+  readonly budget: boolean;
+  readonly measurements: boolean;
+  readonly incidents: boolean;
+}
+
+/**
+ * Which wrap-up facts the caller may read, decided the way the wrap-up report decides its sections, never from
+ * whether a list answers 200: the API enforces scopes, not capabilities, and row level security turns a read the
+ * caller lacks into an empty page, which the model would take for "no incidents" or "nothing spent".
+ * - The measurements need projects.gate.read on the project, the incidents safety.incident.read
+ *   (app.my_capabilities_on_project, 2965).
+ * - The budget needs finance.budget.read on the project and finance.journal.read across the org: posted actuals
+ *   are ledger rows, so without the ledger the actual reads 0 and the variance is the whole revised budget. The org
+ *   check is the one Atlas makes from the caller's roles (listRoleCapabilities, organization reach).
+ * Anything that cannot be read answers false.
+ */
+async function wrapUpReads(context: RequestContext, project: string): Promise<WrapUpReads> {
+  const [held, ledger] = await Promise.all([
+    context.db.rpc("my_capabilities_on_project", {
+      p_project_id: project,
+      p_capabilities: WRAP_UP_CAPABILITIES,
+    }),
+    holdsOrgWide(context, "finance.journal.read"),
+  ]);
+  const can = new Set(held.error ? [] : ((held.data ?? []) as string[]));
+  return {
+    budget: can.has("finance.budget.read") && ledger,
+    measurements: can.has("projects.gate.read"),
+    incidents: can.has("safety.incident.read"),
+  };
+}
+
+/** Whether the caller holds a capability across the active org through the roles of their membership. */
+async function holdsOrgWide(context: RequestContext, code: CapabilityCode): Promise<boolean> {
+  if (context.org === null || context.personId === null) return false;
+  const org = await getMyOrganization(context.db, context.personId, context.org.slug);
+  if (!org.ok || org.data.id !== context.org.id) return false;
+  const reach = await listRoleCapabilities(
+    context.db,
+    org.data.roles.map((r) => r.id),
+  );
+  return reach.ok && reach.data.get(code) === "organization";
+}
+
 /**
  * What a summary reads: the named items; for a project's gate readiness the criteria of its next gate with
  * whether evidence satisfies each (projects.gateReadiness); and for a project's wrap-up (B7) the final cost report,
  * the incident counts and the measurement summary, each cited by the project's id under its real relation, so the
- * org's never-send list applies to it, and each only when the caller may read it (200; the budget also needs the
- * ledger, see readBudget).
+ * org's never-send list applies to it, and each only when the caller holds its capabilities (wrapUpReads) and the
+ * read answers 200.
  */
 async function summaryItems(
+  context: RequestContext,
   api: PublicApi,
   specs: readonly ResourceSpec[],
   body: {
@@ -331,12 +383,19 @@ async function summaryItems(
     body.subject_id
   ) {
     const project = body.subject_id;
+    const reads = await wrapUpReads(context, project);
+    const none = Promise.resolve(null);
     const [budget, incidents, measurements] = await Promise.all([
-      BUDGET_SOURCES.some((t) => neverSend.excludesTable(t))
-        ? Promise.resolve(null)
-        : readBudget(api, project),
-      api.get("/reports/incident-rates", { project_id: project }),
-      api.get("/project-measurement-summary", { "filter[project_id][eq]": project, limit: "100" }),
+      reads.budget && !BUDGET_SOURCES.some((t) => neverSend.excludesTable(t))
+        ? api.get("/reports/final-cost-report", { project_id: project })
+        : none,
+      reads.incidents ? api.get("/reports/incident-rates", { project_id: project }) : none,
+      reads.measurements
+        ? api.get("/project-measurement-summary", {
+            "filter[project_id][eq]": project,
+            limit: "100",
+          })
+        : none,
     ]);
     const add = (
       table: string,
@@ -357,20 +416,6 @@ async function summaryItems(
     add("app.project_measurement_summary", "measurements", measurements);
   }
   return items;
-}
-
-/**
- * The final cost report for a wrap-up, or null when the caller cannot also read the ledger. The report needs only
- * finance.budget.read, but its actuals come from app.posting_lines (finance.journal.read in the org): without that,
- * actual reads 0 and the variance is the whole revised budget, so the figures are left out instead.
- */
-async function readBudget(
-  api: PublicApi,
-  project: string,
-): Promise<{ status: number; body: unknown } | null> {
-  const ledger = await api.get("/posting-lines", { limit: "1" });
-  if (ledger.status !== 200) return null;
-  return api.get("/reports/final-cost-report", { project_id: project });
 }
 
 /** The org's verbiage library, read as the caller (knowledge.verbiage.read); none when unreadable. */
@@ -675,7 +720,9 @@ export function auroraHandlers(
       const { neverSend, specs, api } = await readSetup(context);
       const drafting = body.feature === "drafting";
       const [read, vocabulary] = await Promise.all([
-        drafting ? readItems(api, specs, body.items) : summaryItems(api, specs, body, neverSend),
+        drafting
+          ? readItems(api, specs, body.items)
+          : summaryItems(context, api, specs, body, neverSend),
         drafting ? readVocabulary(api) : Promise.resolve([]),
       ]);
       return ok({
@@ -693,7 +740,7 @@ export function auroraHandlers(
       };
       const { ctx, neverSend, specs, api } = await setup(context);
       const subjectSpec = specs.find((s) => s.path === `/${body.subject_collection}`);
-      const items = await summaryItems(api, specs, body, neverSend);
+      const items = await summaryItems(context, api, specs, body, neverSend);
       return toResponse(
         await summarize(ctx, {
           kind: body.kind,
