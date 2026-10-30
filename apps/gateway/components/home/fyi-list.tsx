@@ -6,6 +6,7 @@ import NextLink from "next/link";
 import { useRef, useState, useTransition, type KeyboardEvent } from "react";
 import { OutcomeAlert } from "@/components/actions/action-button";
 import { fyiDoneAction, fyiSnoozeAction } from "@/lib/actions/one-tap";
+import { focusAfterLeaving } from "./fyi-focus";
 
 export interface FyiRow {
   readonly id: string;
@@ -57,9 +58,9 @@ export function FyiList({ rows, labels }: { rows: readonly FyiRow[]; labels: Fyi
     setOutcome(undefined);
     setHidden((h) => new Set([...h, row.id]));
     // The next item takes the place of the one that left; after the last one, the empty-state sentence does.
-    const next = Math.min(index, visible.length - 2);
-    setActive(Math.max(next, 0));
-    requestAnimationFrame(() => (next < 0 ? empty.current : items.current[next])?.focus());
+    const next = focusAfterLeaving(index, visible.length);
+    setActive(next ?? 0);
+    requestAnimationFrame(() => (next === null ? empty.current : items.current[next])?.focus());
     startTransition(async () => {
       const result = kind === "done" ? await fyiDoneAction(row.id) : await fyiSnoozeAction(row.id);
       if (!result.ok) {
