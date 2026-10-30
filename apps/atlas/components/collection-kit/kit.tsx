@@ -49,15 +49,22 @@ export function KitLink({
   href,
   variant = "secondary",
   size = "md",
+  shortcut,
   children,
 }: {
   href: string;
   variant?: ButtonProps["variant"];
   size?: ButtonProps["size"];
+  /** The registry id of the shortcut the link answers (data-shortcut, @xos/ui/shortcut-targets). */
+  shortcut?: string;
   children: ReactNode;
 }) {
   return (
-    <NextLink href={href as Route} className={buttonClass(variant ?? "secondary", size ?? "md")}>
+    <NextLink
+      href={href as Route}
+      data-shortcut={shortcut}
+      className={buttonClass(variant ?? "secondary", size ?? "md")}
+    >
       {children}
     </NextLink>
   );
@@ -102,7 +109,12 @@ function familyOf(rule: string): string {
 
 // Peek and record page ----------------------------------------------------------------------------
 
-/** The side peek of a domain entity (Section 11.6 Record anatomy in a drawer; full screen below md). */
+/**
+ * The side peek of a domain entity (Section 11.6 Record anatomy in a drawer; full screen below md).
+ * The drawer is a record region for the shell's record shortcuts (@xos/ui/shortcut-targets): Open
+ * full is the Open full page target, and the module's `actions`, such as its state moves, carry
+ * their own ids.
+ */
 export function PeekDrawer({
   recordKey,
   title,
@@ -128,10 +140,15 @@ export function PeekDrawer({
     <Drawer
       title={`${recordKey} ${title}`}
       open
+      shortcutScope="record"
       onOpenChange={(open) => {
         if (!open) router.push(closeHref as Route, { scroll: false });
       }}
-      footer={<KitLink href={fullHref}>{t("openFull")}</KitLink>}
+      footer={
+        <KitLink href={fullHref} shortcut="record.open">
+          {t("openFull")}
+        </KitLink>
+      }
     >
       <div className="flex flex-wrap items-center gap-8">
         {state ? <StateChip state={state.state} label={state.label} /> : null}
