@@ -45,6 +45,15 @@ export const NAMED_KEYS = [
   "F10",
   "F11",
   "F12",
+  // F13 to F20 have no browser or system default; a Stream Deck or similar keypad sends them (ADR 0131).
+  "F13",
+  "F14",
+  "F15",
+  "F16",
+  "F17",
+  "F18",
+  "F19",
+  "F20",
 ] as const;
 
 const NAMED = new Set<string>(NAMED_KEYS);
@@ -126,6 +135,18 @@ export function normalizeKeys(text: string, platform: Platform): string | null {
 export function isModifierChord(text: string): boolean {
   const first = parseKeys(text)?.[0];
   return first !== undefined && first.modifiers.some((m) => m !== "Shift");
+}
+
+/**
+ * True when the binding's first step types a character: a letter, digit or symbol with no Mod, Ctrl or
+ * Alt. Only these obey me.shortcuts_enabled; a named key such as F13 types nothing, so WCAG 2.1.4
+ * Character Key Shortcuts does not cover it (ADR 0131).
+ */
+export function isCharacterKey(text: string): boolean {
+  const first = parseKeys(text)?.[0];
+  return (
+    first !== undefined && !NAMED.has(first.key) && first.modifiers.every((m) => m === "Shift")
+  );
 }
 
 /** The keyboard event fields chordOf reads; a DOM KeyboardEvent has them all. */

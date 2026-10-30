@@ -333,7 +333,8 @@
     "none": "None",
     "notSet": "Not set",
     "unpriced": "Unpriced",
-    "gate": "Gate {gate} · {name}"
+    "gate": "Gate {gate} · {name}",
+    "tbcEstimate": "TBC · est. {time}"
   },
   "fields": {
     "title": "Title",
@@ -356,7 +357,8 @@
     "timeZone": "Time zone",
     "zoneNote": "Times are in {zone}.",
     "replanReason": "Replan reason",
-    "replanHelp": "This record is scheduled, so the date change is logged as a replan. Say why."
+    "replanHelp": "This record is scheduled, so the date change is logged as a replan. Say why.",
+    "startTbc": "Start time to be confirmed"
   },
   "record": {
     "properties": "Record properties",
@@ -635,7 +637,13 @@
       "approval_not_eligible": "Only someone who may edit this project's records can decide its approvals.",
       "time_zone_unknown": "Choose a time zone from the list.",
       "engagement_cue_artist_only": "Set times belong to artist engagements. Choose an artist.",
-      "engagement_cue_project_mismatch": "That artist is engaged on another project. Choose an artist of this show's project."
+      "engagement_cue_project_mismatch": "That artist is engaged on another project. Choose an artist of this show's project.",
+      "cue_move_called": "A called cue keeps its place. Move an uncalled cue instead.",
+      "cue_move_before_called": "Cues move only after the last called cue. Choose a later place.",
+      "cue_standby_called": "That cue was already called, so it cannot go on standby. Choose an uncalled cue.",
+      "cue_standby_capability": "You cannot put cues on standby on this project. Ask the stage manager to do it.",
+      "cue_shift_range": "Nudge the plan by up to an hour earlier or later.",
+      "cue_call_kind": "Calls go to Audio, Lighting, Video, Special Effects or Stage. Choose one of those departments."
     },
     "quickAdd": {
       "capability": "You cannot create this here.",
@@ -646,7 +654,8 @@
       "scope": "That scope is not one you can open.",
       "scopeProject": "That scope belongs to another project.",
       "project": "Name the project with ~ and a scope, for example ~NWS-E01."
-    }
+    },
+    "cueCall": "Each department's call can be up to 2000 characters. Shorten it and save again."
   },
   "grammar": {
     "Approval": "A noun phrase naming what is approved, for example Rigging Plan Sign-Off.",
@@ -758,6 +767,7 @@
       "date": "When"
     },
     "created": "{key} created",
+    "adding": "Adding {title}…",
     "field": "{name}: {value}",
     "announce": "{title}, with {fields}",
     "choose": "Choose a match for {token}",

@@ -333,7 +333,8 @@
     "none": "Ninguno",
     "notSet": "Sin definir",
     "unpriced": "Sin precio",
-    "gate": "Compuerta {gate} · {name}"
+    "gate": "Compuerta {gate} · {name}",
+    "tbcEstimate": "Por confirmar · aprox. {time}"
   },
   "fields": {
     "title": "Título",
@@ -356,7 +357,8 @@
     "timeZone": "Zona horaria",
     "zoneNote": "Las horas están en {zone}.",
     "replanReason": "Motivo de replanificación",
-    "replanHelp": "Este registro está programado, así que el cambio de fecha se registra como replanificación. Indique el motivo."
+    "replanHelp": "Este registro está programado, así que el cambio de fecha se registra como replanificación. Indique el motivo.",
+    "startTbc": "Hora de inicio por confirmar"
   },
   "record": {
     "properties": "Propiedades del registro",
@@ -635,7 +637,13 @@
       "approval_not_eligible": "Solo quien puede editar los registros de este proyecto puede decidir sus aprobaciones.",
       "time_zone_unknown": "Elija una zona horaria de la lista.",
       "engagement_cue_artist_only": "Los horarios de set pertenecen a contrataciones de artistas. Elija un artista.",
-      "engagement_cue_project_mismatch": "Ese artista está contratado en otro proyecto. Elija un artista del proyecto de este show."
+      "engagement_cue_project_mismatch": "Ese artista está contratado en otro proyecto. Elija un artista del proyecto de este show.",
+      "cue_move_called": "Un cue llamado conserva su lugar. Mueva un cue sin llamar.",
+      "cue_move_before_called": "Los cues solo se mueven después del último cue llamado. Elija un lugar posterior.",
+      "cue_standby_called": "Ese cue ya se llamó, así que no puede quedar en espera. Elija un cue sin llamar.",
+      "cue_standby_capability": "No puede poner cues en espera en este proyecto. Pida al jefe de escena que lo haga.",
+      "cue_shift_range": "Ajuste el plan hasta una hora antes o después.",
+      "cue_call_kind": "Las llamadas van a Audio, Iluminación, Video, Efectos especiales o Escenario. Elija uno de esos departamentos."
     },
     "quickAdd": {
       "capability": "No puedes crear esto aquí.",
@@ -646,7 +654,8 @@
       "scope": "No puedes abrir ese alcance.",
       "scopeProject": "Ese alcance pertenece a otro proyecto.",
       "project": "Indica el proyecto con ~ y un alcance, por ejemplo ~NWS-E01."
-    }
+    },
+    "cueCall": "La llamada de cada departamento puede tener hasta 2000 caracteres. Acórtela y guarde de nuevo."
   },
   "grammar": {
     "Approval": "Una frase nominal que nombra lo que se aprueba, por ejemplo Aprobación del Plan de Rigging.",
@@ -758,6 +767,7 @@
       "date": "Cuándo"
     },
     "created": "{key} creado",
+    "adding": "Agregando {title}…",
     "field": "{name}: {value}",
     "announce": "{title}, con {fields}",
     "choose": "Elegir una coincidencia para {token}",

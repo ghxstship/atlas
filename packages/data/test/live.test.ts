@@ -232,11 +232,11 @@ describe("createLiveHub", () => {
     realtime.emit("records", "UPDATE", { id: "r1" });
     realtime.emit("shifts", "INSERT", { id: "s1" });
     time.advance(300);
-    expect(a).toEqual([[{ table: "records", type: "UPDATE", id: "r1" }]]);
+    expect(a).toEqual([[{ table: "records", type: "UPDATE", id: "r1", row: { id: "r1" } }]]);
     expect(b).toEqual([
       [
-        { table: "records", type: "UPDATE", id: "r1" },
-        { table: "shifts", type: "INSERT", id: "s1" },
+        { table: "records", type: "UPDATE", id: "r1", row: { id: "r1" } },
+        { table: "shifts", type: "INSERT", id: "s1", row: { id: "s1" } },
       ],
     ]);
   });
@@ -251,8 +251,8 @@ describe("createLiveHub", () => {
     time.advance(300);
     expect(batches).toEqual([
       [
-        { table: "records", type: "UPDATE", id: "r1" },
-        { table: "records", type: "UPDATE", id: "r2" },
+        { table: "records", type: "UPDATE", id: "r1", row: { id: "r1" } },
+        { table: "records", type: "UPDATE", id: "r2", row: { id: "r2" } },
       ],
     ]);
     realtime.emit("records", "UPDATE", { id: "r3" });
@@ -260,6 +260,28 @@ describe("createLiveHub", () => {
     expect(batches).toHaveLength(1); // held until 2 s after the first batch
     time.advance(1_700);
     expect(batches).toHaveLength(2);
+  });
+
+  it("carries the row as it last arrived, and none for a delete", () => {
+    const { hub, time, realtime } = setup();
+    const batches: LiveChange[][] = [];
+    hub.watch([{ table: "cues" }], (c) => batches.push([...c]));
+    time.advance(60);
+    realtime.emit("cues", "UPDATE", { id: "c1", called_at: null });
+    realtime.emit("cues", "UPDATE", { id: "c1", called_at: "2027-03-13T23:55:00Z" });
+    realtime.emit("cues", "DELETE", { id: "c2" });
+    time.advance(300);
+    expect(batches).toEqual([
+      [
+        {
+          table: "cues",
+          type: "UPDATE",
+          id: "c1",
+          row: { id: "c1", called_at: "2027-03-13T23:55:00Z" },
+        },
+        { table: "cues", type: "DELETE", id: "c2" },
+      ],
+    ]);
   });
 
   it("doubles the interval while changes keep coming, so a loop cannot refetch fast", () => {
@@ -321,7 +343,7 @@ describe("createLiveHub", () => {
     visibility.set(false);
     expect(batches).toEqual([
       [
-        { table: "records", type: "UPDATE", id: "r1" },
+        { table: "records", type: "UPDATE", id: "r1", row: { id: "r1" } },
         { table: "records", type: "DELETE", id: "r2" },
       ],
     ]);

@@ -249,6 +249,8 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
       durationSeconds: intervalSeconds(c.duration === null ? null : String(c.duration)),
       calledAt: c.called_at,
       calledByName: null,
+      startTbc: c.start_tbc === true,
+      standbyAt: null,
     }));
     return ok({
       orgId: project.data.orgId,
@@ -266,8 +268,11 @@ const LOADERS: { readonly [K in ExternalDocumentKind]: Loader<K> } = {
           showDate: run.show_date ?? "",
           cueCount: mapped.length,
           calledCount: mapped.filter((c) => c.calledAt !== null).length,
+          curfewAt: null,
         },
         cues: mapped,
+        // Department calls stay internal: no api_external view shows them (ADR 0131).
+        calls: [],
       },
     });
   },

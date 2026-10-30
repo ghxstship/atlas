@@ -35,7 +35,13 @@ import { rememberView } from "@/lib/shell/recents";
 import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
 import { CustomFieldsPanel } from "@/components/custom-fields/custom-fields-panel";
-import { formatScheduleTime, scheduleViewOf, slipAmount, type ScheduleView } from "./format";
+import {
+  formatScheduleTime,
+  formatStartTime,
+  scheduleViewOf,
+  slipAmount,
+  type ScheduleView,
+} from "./format";
 import { getShellSettings } from "@/lib/shell/org-settings";
 import { PresenceFor } from "@/components/presence/presence-for";
 import { kindFields } from "./kind-fields";
@@ -222,7 +228,19 @@ export async function recordPropertyItems(detail: RecordDetail) {
     { label: t("work.fields.xyz"), value: t(`work.xyz.${record.xyz}`) },
     { label: t("work.fields.owner"), value: person(record.ownerId) },
     { label: t("work.fields.accountable"), value: person(record.accountableId) },
-    { label: t("work.fields.starts"), value: when(record.startsAt) },
+    {
+      label: t("work.fields.starts"),
+      value:
+        formatStartTime(
+          record.startsAt,
+          record.startTbc,
+          locale,
+          tz,
+          detail.scheduleView,
+          "dateTime",
+          (time) => t("work.values.tbcEstimate", { time }),
+        ) ?? t("work.values.notSet"),
+    },
     { label: t("work.fields.ends"), value: when(record.endsAt) },
     { label: t("work.fields.due"), value: when(record.dueAt) },
     { label: t("work.fields.timeZone"), value: tz },

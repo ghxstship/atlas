@@ -84,11 +84,25 @@ const INTERNAL_SOURCES: readonly Source[] = [
     projectColumn: "project_id",
   },
   {
+    // A removed cue is soft-deleted and row level security does not hide it, so the device drops it (ADR 0131).
     table: "cues",
     schema: "app",
     relation: "cues",
-    select: "id,org_id,project_id,run_of_show_id,position,label,planned_at,duration,called_at",
+    select:
+      "id,org_id,project_id,run_of_show_id,position,label,planned_at,duration,called_at,start_tbc,standby_at,deleted_at",
     projectColumn: "project_id",
+    map: (r) => (r["deleted_at"] ? {} : r),
+  },
+  {
+    // Department calls (G-74): a cleared call is soft-deleted (app.save_cue_calls) and row level security does not
+    // hide it, so the device drops it, as it drops a removed emergency code. Calls carry no project; each takes its
+    // cue's, pulled just before.
+    table: "cue_calls",
+    schema: "app",
+    relation: "cue_calls",
+    select: "id,org_id,cue_id,call_kind,instruction,deleted_at",
+    parent: { table: "cues", column: "cue_id" },
+    map: (r) => (r["deleted_at"] ? {} : r),
   },
   {
     table: "incidents",
@@ -319,7 +333,7 @@ const EXTERNAL_SOURCES: readonly Source[] = [
     table: "cues",
     schema: "api_external",
     relation: "cues",
-    select: "id,run_of_show_id,position,label,planned_at,duration,called_at,is_my_set",
+    select: "id,run_of_show_id,position,label,planned_at,duration,called_at,is_my_set,start_tbc",
     // External cues carry no project; it comes from their running order.
     parent: { table: "run_of_show", column: "run_of_show_id" },
   },
