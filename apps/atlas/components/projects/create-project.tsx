@@ -13,7 +13,9 @@ import type { ProjectFormOptions } from "./project-fields";
 export type { ProjectFormOptions, ProjectFormValues } from "./project-fields";
 
 /** The form's fields load when the drawer first opens, not with the Projects page (A24-009). */
-const DrawerFields = dynamic(() => import("./project-fields").then((m) => m.ProjectFields));
+const DrawerFields = dynamic(() =>
+  import("./create-project-fields").then((m) => m.CreateProjectFields),
+);
 
 /**
  * New project, in a drawer whose body scrolls, so every field and the submit button stay reachable

@@ -4,6 +4,7 @@ import type { BulkConfig } from "@/components/bulk/types";
 import { collectionPeek } from "@/components/shell/collection-peek";
 import type { AskCatalog } from "@/lib/aurora/ask";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
+import { isConditionParam } from "@/lib/views/query";
 import { BackToList } from "./kit-back-to-list";
 import { CollectionBoard } from "./kit-collection-board";
 import { CollectionList } from "./kit-collection-list";
@@ -147,12 +148,15 @@ export function FinanceCollection({
   let body: ReactNode;
   // The page's own filters a plain-language filter may set count as filters too (A95).
   const askFilters = (ask?.fields ?? []).map((f) => f.name);
+  // So are the Add filter control's conditions (A117).
+  const conditions = Object.keys(query.extra).filter(isConditionParam);
   if (rows.length === 0) {
     const filtered = Boolean(
       query.q ||
       query.state ||
       (query.project && !page.inProject) ||
-      askFilters.some((name) => query.extra[name] !== undefined),
+      askFilters.some((name) => query.extra[name] !== undefined) ||
+      conditions.length > 0,
     );
     body = (
       <EmptyPanel
@@ -162,7 +166,7 @@ export function FinanceCollection({
         href={
           filtered
             ? withQuery(page, {
-                ...Object.fromEntries(askFilters.map((name) => [name, null])),
+                ...Object.fromEntries([...askFilters, ...conditions].map((name) => [name, null])),
                 q: null,
                 state: null,
                 ...(page.inProject ? {} : { project: null }),

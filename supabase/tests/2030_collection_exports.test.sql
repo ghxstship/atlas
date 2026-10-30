@@ -224,6 +224,9 @@ select is((select classification::text from app.report_run_classification((selec
 select pg_temp.as_platform();
 select lives_ok($$select private.request_export_render()$$, 'without the Vault secrets the scheduler waits quietly');
 select is((select schedule from cron.job where jobname = 'xos_export_render'), '* * * * *', 'pg_cron runs the export step every minute');
+-- The nightly sweep first, which registers Trash tables and regenerates app.trash_items, so the two checks below hold
+-- in the state production reaches every night and no longer depend on whether it ran during the suite (2390).
+do $$ begin perform private.sweep_default_retention(); end $$;
 -- Every app view reading a classified column shows it under the same name, classified as high, or names its source.
 select is_empty($$
   select v.oid::regclass::text || '.' || a.attname

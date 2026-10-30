@@ -648,7 +648,10 @@ export async function bookDockSlot(
   return one(data);
 }
 
-/** Moves or reassigns a dock slot; the same overlap rule applies. */
+/**
+ * Moves or reassigns a dock slot; the same overlap rule applies. The vendor engagement changes only
+ * when the input names it: undefined keeps it, null clears it.
+ */
 export async function updateDockSlot(
   db: XosClient,
   id: string,
@@ -659,7 +662,7 @@ export async function updateDockSlot(
     .update({
       zone_id: input.zoneId,
       shipment_id: input.shipmentId,
-      engagement_id: input.engagementId ?? null,
+      ...(input.engagementId !== undefined ? { engagement_id: input.engagementId } : {}),
       starts_at: input.startsAt,
       ends_at: input.endsAt,
     })

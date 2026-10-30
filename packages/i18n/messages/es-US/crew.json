@@ -144,7 +144,13 @@
     "punch_outside_geofence": "Estás fuera de la geocerca del proyecto. Ficha en el lugar.",
     "shift_template_unknown": "Esa plantilla de turno ya no existe o es de otra organización. Elija una plantilla de esta organización.",
     "shift_template_days": "Elija entre 1 y 31 días distintos para planificar.",
-    "availability_inside_notice": "La disponibilidad dentro del plazo de aviso de su organización está bloqueada. Pida a un planificador que la cambie."
+    "availability_inside_notice": "La disponibilidad dentro del plazo de aviso de su organización está bloqueada. Pida a un planificador que la cambie.",
+    "per_diem_one_worker": "Elija una persona para los viáticos.",
+    "per_diem_range": "Los viáticos cubren de 1 a 62 días. Revise el primer y el último día.",
+    "per_diem_member_org": "Ese miembro ya no pertenece a esta organización. Elija un miembro actual.",
+    "per_diem_day_taken": "Ya hay un viático registrado para un día de ese rango. Quítelo o elija otros días.",
+    "engagement_worker_person": "El tiempo, los turnos y los viáticos van a una contratación que nombra a una persona, no a una contratación de empresa. Elija una persona.",
+    "engagement_not_working": "El personal externo registra tiempo y recibe viáticos solo mientras su contratación está Activa o En cierre."
   },
   "states": {
     "shift": {
@@ -691,6 +697,28 @@
         "breakMinutes": "El descanso es un número entero de minutos, más corto que el turno.",
         "duplicate": "Otra plantilla ya tiene este nombre. Elija otro."
       }
+    }
+  },
+  "perDiems": {
+    "title": "Viáticos",
+    "empty": "Aún no hay viáticos. Agregue viáticos para un miembro o para personal contratado.",
+    "chooseProject": "Elija un proyecto para ver y agregar sus viáticos.",
+    "add": "Agregar viáticos",
+    "removed": "Viático quitado.",
+    "confirmRemove": "¿Quitar este viático?",
+    "remove": "Quitar viático",
+    "removeHelp": "El viático deja de contar; su historial queda registrado.",
+    "kind": "Viático",
+    "recordTitle": "{name} · {day}",
+    "allProjects": "Todos los proyectos",
+    "allPeople": "Todas las personas",
+    "fields": {
+      "person": "Persona",
+      "from": "Primer día",
+      "to": "Último día",
+      "amount": "Monto por día",
+      "currency": "Moneda",
+      "day": "Día"
     }
   }
 }

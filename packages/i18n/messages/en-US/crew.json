@@ -144,7 +144,13 @@
     "punch_outside_geofence": "You are outside the project's geofence. Clock in on site.",
     "shift_template_unknown": "That shift template is gone or belongs to another organization. Pick one of this organization's templates.",
     "shift_template_days": "Pick between 1 and 31 different days to plan.",
-    "availability_inside_notice": "Availability inside your organization's notice period is locked. Ask a scheduler to change it."
+    "availability_inside_notice": "Availability inside your organization's notice period is locked. Ask a scheduler to change it.",
+    "per_diem_one_worker": "Choose one person for the per diems.",
+    "per_diem_range": "Per diems cover 1 to 62 days. Check the first and last day.",
+    "per_diem_member_org": "That member no longer belongs to this organization. Choose a current member.",
+    "per_diem_day_taken": "A per diem is already recorded for a day in that range. Remove it or choose other days.",
+    "engagement_worker_person": "Time, shifts and per diems go to an engagement that names a person, not a company engagement. Choose a person.",
+    "engagement_not_working": "External crew record time and receive per diems only while their engagement is Active or Closing."
   },
   "states": {
     "shift": {
@@ -691,6 +697,28 @@
         "breakMinutes": "The break is a whole number of minutes, shorter than the shift.",
         "duplicate": "Another template already has this name. Choose another."
       }
+    }
+  },
+  "perDiems": {
+    "title": "Per diems",
+    "empty": "No per diems yet. Add per diems for a member or for engaged crew.",
+    "chooseProject": "Choose a project to see and add its per diems.",
+    "add": "Add per diems",
+    "removed": "Per diem removed.",
+    "confirmRemove": "Remove this per diem?",
+    "remove": "Remove per diem",
+    "removeHelp": "The per diem stops counting; its history stays on record.",
+    "kind": "Per diem",
+    "recordTitle": "{name} · {day}",
+    "allProjects": "All projects",
+    "allPeople": "Everyone",
+    "fields": {
+      "person": "Person",
+      "from": "First day",
+      "to": "Last day",
+      "amount": "Amount per day",
+      "currency": "Currency",
+      "day": "Day"
     }
   }
 }

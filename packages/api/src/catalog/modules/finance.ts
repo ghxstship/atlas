@@ -10,6 +10,7 @@
 import { z } from "@hono/zod-openapi";
 import { canonCodes, defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
+import { fieldHistoryAction, invoiceBulkActions } from "./parts/bulk-edit-and-history.ts";
 import { all, editShape, orNull, putActions, setOrder } from "../correct.ts";
 import { collectionAction, collectionQuery, itemAction, resource, transition } from "../define.ts";
 import { financeFieldHomes } from "./parts/playbook-field-homes.ts";
@@ -134,6 +135,8 @@ export const additions = defineAdditions("Finance", {
           "Records that an approved payable (or issued receivable) was paid: a Proposed payment of the invoice's payee, its counterparty or the person engaged as an individual, applied to the invoice for the whole balance unless `amount_minor` says otherwise. Money moves on the org's own rails; XOS never holds funds. Another eligible person approves the payment. Refuses a Proposed, Disputed or Canceled invoice and an invoice with nothing left to pay (422).",
         body: RecordPaymentRequest,
       }),
+      ...invoiceBulkActions,
+      fieldHistoryAction("invoice"),
     ],
   },
   capabilities: {

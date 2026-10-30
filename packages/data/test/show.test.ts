@@ -9,8 +9,10 @@ import {
   deleteSheet,
   getRunOfShow,
   intervalSeconds,
+  linkCueToEngagement,
   listCallSheets,
   listCalls,
+  listCueEngagements,
   listCues,
   listDaySheets,
   listRunsOfShow,
@@ -19,6 +21,7 @@ import {
   removeCue,
   restoreSheet,
   saveDaySheet,
+  unlinkCueEngagement,
   updateCue,
   updateRunOfShow,
   zonedMidnight,
@@ -512,5 +515,66 @@ describe("sheets", () => {
     expect(zonedMidnight("2027-01-15", "America/New_York")).toBe("2027-01-15T05:00:00.000Z");
     expect(zonedMidnight("2027-07-15", "Asia/Tokyo")).toBe("2027-07-14T15:00:00.000Z");
     expect(zonedMidnight("2027-03-14", "UTC")).toBe("2027-03-14T00:00:00.000Z");
+  });
+});
+
+describe("set times", () => {
+  it("lists the set times of a running order with the artist's name", async () => {
+    const { db, calls } = moduleClient({
+      "from:engagement_cues": [
+        okResponse([
+          {
+            id: "ec1",
+            cue_id: "c1",
+            engagement_id: "e1",
+            engagement: { person: { full_name: "Arturo Bell" } },
+          },
+          { id: "ec2", cue_id: "c2", engagement_id: "e2", engagement: null },
+        ]),
+        errorResponse("XX000", "b"),
+      ],
+    });
+    expect(await listCueEngagements(db, "ros1")).toEqual({
+      ok: true,
+      data: [
+        { id: "ec1", cueId: "c1", engagementId: "e1", personName: "Arturo Bell" },
+        { id: "ec2", cueId: "c2", engagementId: "e2", personName: null },
+      ],
+    });
+    expect(stepsOf(calls[0], "eq")).toEqual([["cue.run_of_show_id", "ros1"]]);
+    expect((await listCueEngagements(db, "ros1")).ok).toBe(false);
+  });
+
+  it("links a cue to an artist engagement and unlinks it", async () => {
+    const { db, calls } = moduleClient({
+      "from:engagement_cues": [
+        okResponse({ id: "ec9" }),
+        errorResponse(
+          "XR001",
+          "engagement_cue_artist_only: Set times belong to artist engagements.",
+          "engagement_cue_artist_only",
+        ),
+        errorResponse("23505", "duplicate key value"),
+        okResponse([{ id: "ec9" }]),
+        okResponse([]),
+      ],
+    });
+    expect(await linkCueToEngagement(db, { cueId: "c1", engagementId: "e1" })).toEqual({
+      ok: true,
+      data: { id: "ec9" },
+    });
+    expect(stepsOf(calls[0], "insert")).toEqual([[{ engagement_id: "e1", cue_id: "c1" }]]);
+    const refused = await linkCueToEngagement(db, { cueId: "c1", engagementId: "e2" });
+    expect(!refused.ok && refused.error.kind === "refusal" && refused.error.rule).toBe(
+      "engagement_cue_artist_only",
+    );
+    const duplicate = await linkCueToEngagement(db, { cueId: "c1", engagementId: "e1" });
+    expect(!duplicate.ok && duplicate.error.kind).toBe("conflict");
+    expect(await unlinkCueEngagement(db, "ec9")).toEqual({ ok: true, data: null });
+    expect(stepsOf(calls[3], "update")[0]?.[0]).toHaveProperty("deleted_at");
+    expect(await unlinkCueEngagement(db, "ec9")).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
   });
 });

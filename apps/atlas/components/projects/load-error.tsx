@@ -1,6 +1,6 @@
 "use client";
 
-import { ErrorState, PageHeader } from "@xos/ui";
+import { ErrorState, PageHeader, TemplateCollection } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 
@@ -8,15 +8,18 @@ import { useRouter } from "next/navigation";
 export function LoadError({ title, embedded = false }: { title: string; embedded?: boolean }) {
   const t = useTranslations("projects.list");
   const router = useRouter();
-  return (
-    <>
-      {embedded ? null : <PageHeader title={title} />}
-      <ErrorState
-        title={t("loadErrorTitle")}
-        sentence={t("loadError")}
-        actionLabel={t("retry")}
-        onRetry={() => router.refresh()}
-      />
-    </>
+  const error = (
+    <ErrorState
+      title={t("loadErrorTitle")}
+      sentence={t("loadError")}
+      actionLabel={t("retry")}
+      onRetry={() => router.refresh()}
+    />
+  );
+  // A page that failed to load still stands on its template, under its own title (Section 11.6).
+  return embedded ? (
+    error
+  ) : (
+    <TemplateCollection header={<PageHeader title={title} />}>{error}</TemplateCollection>
   );
 }

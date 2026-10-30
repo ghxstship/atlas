@@ -30,6 +30,7 @@ describe("console sitemap", () => {
     expect(flattenRoutes(operatorConsole).map((r) => r.route)).toEqual([
       "/tenants",
       "/tenants/{orgId}",
+      "/metrics",
       "/flags",
       "/support",
       "/support/{sessionId}",
@@ -46,6 +47,7 @@ describe("console sitemap", () => {
       chromeSlot(operatorConsole, "topBar", { role }).map((n) => n.id);
     expect(visible("administrator")).toEqual([
       "tenants",
+      "metrics",
       "flags",
       "support",
       "moderation",
@@ -53,9 +55,17 @@ describe("console sitemap", () => {
       "team",
       "activity",
     ]);
-    expect(visible("support")).toEqual(["tenants", "flags", "support", "banners", "activity"]);
+    expect(visible("support")).toEqual([
+      "tenants",
+      "metrics",
+      "flags",
+      "support",
+      "banners",
+      "activity",
+    ]);
     expect(visible("trust-and-safety")).toEqual([
       "tenants",
+      "metrics",
       "flags",
       "moderation",
       "banners",

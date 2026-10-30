@@ -6,16 +6,7 @@ import type { Route } from "next";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  deleteViewAction,
-  loadViewsAction,
-  saveViewAction,
-  setDefaultViewAction,
-  shareViewAction,
-  updateViewAction,
-  type ViewDraft,
-  type ViewsError,
-} from "@/lib/views/actions";
+import { loadViewsAction, type ViewDraft, type ViewsError } from "@/lib/views/actions";
 import {
   canonicalQuery,
   collectionKeyFor,
@@ -28,9 +19,16 @@ import { DeferredDropdownMenu } from "@/components/shell/deferred-menus";
 import type { ViewDialogState } from "./view-dialogs";
 import { CollectionExport } from "./collection-export";
 import { onDemand, useOnDemand } from "@/components/shell/on-demand";
+import dynamic from "next/dynamic";
+import type { FilterField } from "./filter-model";
+import { useCustomFieldList } from "@/components/custom-fields/list";
+import type { CustomFieldListView } from "@/lib/custom-fields/types";
 
-/** The save, share and delete dialogs load when one opens (A24-009). */
+/** The save, share and delete dialogs, and the writes, load when one is used (A24-009). */
 const viewDialogs = onDemand(() => import("./view-dialogs"));
+
+/** The Add filter control loads on a page that has something to filter by, not with every collection (A24-009). */
+const CollectionFilters = dynamic(() => import("./filter-bar").then((m) => m.CollectionFilters));
 
 /** Copy lookups take built keys (`status.saved`), so the catalog type is widened. */
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -50,9 +48,19 @@ export interface CollectionViewsProps {
   readonly options: readonly CollectionViewOption[];
   /** How the page switches view; by default the `view` query parameter is replaced. */
   readonly onChange?: (view: string) => void;
+  /**
+   * Fields the page declares for the Add filter control (A117), which the page matches itself on what it
+   * shows (`f.<key>` conditions). The org's filterable custom fields come from the surrounding
+   * CustomFieldList.
+   */
+  readonly fields?: readonly FilterField[];
+  /** The page's filterable custom fields, when it hands them over instead of a CustomFieldList. */
+  readonly customFields?: CustomFieldListView | null;
 }
 
 type Dialogs = ViewDialogState | null;
+
+const NO_FIELDS: readonly FilterField[] = [];
 
 /**
  * The one view switcher of every Atlas collection (Section 11.15): the views that fit the data, and
@@ -60,13 +68,28 @@ type Dialogs = ViewDialogState | null;
  * grouping, search), so switching view type keeps the filters, and opening a saved view lands on the
  * same screen a link would. Views are saved per person, shared with the org or with teams, and one can
  * open by default on the page; a shared view shows each viewer only what their own access allows.
+ * Beside them, the Add filter control (A117) writes conditions into the query, so saved views keep them.
  * Drop-in for the SegmentedControl a page used before: the same label, value, options and onChange.
  */
-export function CollectionViews({ label, value, options, onChange }: CollectionViewsProps) {
+export function CollectionViews({
+  label,
+  value,
+  options,
+  onChange,
+  fields = NO_FIELDS,
+  customFields,
+}: CollectionViewsProps) {
   const t = useTranslations("views") as unknown as Translate;
   const router = useRouter();
   const pathname = usePathname();
   const search = useSearchParams();
+  const surrounding = useCustomFieldList();
+  // The control shows only where there is something to filter by, as filter-bar.tsx decides on its targets.
+  const filterable =
+    fields.length > 0 ||
+    ((customFields === undefined ? surrounding : customFields)?.fields ?? []).some(
+      (f) => f.filterable,
+    );
   const org = pathname.split("/").filter(Boolean)[0] ?? "";
   const collection = collectionKeyFor(pathname);
   const offered = useMemo(() => options.map((o) => o.value), [options]);
@@ -175,7 +198,10 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
     done: () => void,
   ) => {
     setError(null);
-    const result = await action();
+    const result = await action().catch(() => ({
+      ok: false as const,
+      error: "unexpected" as const,
+    }));
     if (!result.ok) {
       showError(result.error);
       return false;
@@ -220,7 +246,10 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
       icon: "RefreshCw",
       onSelect: () =>
         void run(
-          () => updateViewAction(org, differing.id, draft(differing.name)),
+          () =>
+            viewDialogs
+              .load()
+              .then((m) => m.updateViewAction(org, differing.id, draft(differing.name))),
           () => announce("updated", differing.name),
         ),
     });
@@ -233,7 +262,10 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
             icon: "PinOff",
             onSelect: () =>
               void run(
-                () => setDefaultViewAction(org, collection ?? "", null),
+                () =>
+                  viewDialogs
+                    .load()
+                    .then((m) => m.setDefaultViewAction(org, collection ?? "", null)),
                 () => announce("defaultCleared"),
               ),
           }
@@ -242,7 +274,10 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
             icon: "Pin",
             onSelect: () =>
               void run(
-                () => setDefaultViewAction(org, collection ?? "", active.id),
+                () =>
+                  viewDialogs
+                    .load()
+                    .then((m) => m.setDefaultViewAction(org, collection ?? "", active.id)),
                 () => announce("defaultSet", active.name),
               ),
           },
@@ -300,6 +335,15 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
           {error}
         </p>
       ) : null}
+      {filterable ? (
+        <CollectionFilters
+          search={search}
+          fields={fields}
+          {...(customFields !== undefined ? { customFields } : {})}
+          onNavigate={go}
+          {...(collection && !active ? { onSave: () => setDialog({ kind: "save" }) } : {})}
+        />
+      ) : null}
       {dialog && dialogsModule ? (
         <dialogsModule.ViewDialog
           dialog={dialog}
@@ -307,19 +351,19 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
           onClose={() => setDialog(null)}
           onSave={(name, share) =>
             run(
-              () => saveViewAction(org, collection ?? "", draft(name), share),
+              () => dialogsModule.saveViewAction(org, collection ?? "", draft(name), share),
               () => announce("saved", name),
             )
           }
           onShare={(view, share) =>
             run(
-              () => shareViewAction(org, view.id, share),
+              () => dialogsModule.shareViewAction(org, view.id, share),
               () => announce("shared", view.name),
             )
           }
           onDelete={async (view) => {
             const deleted = await run(
-              () => deleteViewAction(org, view.id),
+              () => dialogsModule.deleteViewAction(org, view.id),
               () => announce("deleted", view.name),
             );
             if (deleted) {
