@@ -8,8 +8,10 @@ import {
   formatRecordKey,
   getRecord,
   removeChecklistItem,
+  replaceRecurrence,
+  restoreAssignment,
+  restoreChecklistItem,
   restoreRecord,
-  saveRecordExtension,
   saveRecordExtensionFields,
   saveRecordFields,
   setChecklistItemChecked,
@@ -18,7 +20,6 @@ import {
   trashRecord,
   unassignRecord,
   unwatchRecord,
-  updateRecord,
   watchRecord,
   type ExtensionValues,
   type RecordFields,
@@ -104,39 +105,6 @@ export async function createRecordAction(
   const record = await getRecord(ctx.viewer.db, created.data.id);
   refresh(org);
   return done({ key: record.ok ? record.data.key : formatRecordKey("", created.data.number) });
-}
-
-const patchSchema = z.object({
-  title: z.string().trim().min(1).max(200).optional(),
-  subtype: z.string().min(1).max(80).nullable().optional(),
-  scopeNodeId: optionalId,
-  phaseCode: z
-    .string()
-    .regex(/^[A-Z]{3}$/)
-    .nullable()
-    .optional(),
-  ownerId: optionalId,
-  accountableId: optionalId,
-  startsAt: instant,
-  endsAt: instant,
-  dueAt: instant,
-  replanReason: z.string().trim().min(1).max(500).nullable().optional(),
-});
-
-export type RecordPatchInput = z.input<typeof patchSchema>;
-
-export async function updateRecordAction(
-  org: string,
-  recordId: string,
-  input: RecordPatchInput,
-): Promise<ActionResult> {
-  const ctx = await context(org);
-  const parsed = patchSchema.safeParse(input);
-  if (!id.safeParse(recordId).success || !parsed.success) return invalid();
-  const result = await updateRecord(ctx.viewer.db, recordId, parsed.data);
-  if (!result.ok) return failed(result.error);
-  refresh(org);
-  return done(null);
 }
 
 const fieldsSchema = z.object({
@@ -242,25 +210,6 @@ export async function restoreRecordAction(org: string, recordId: string): Promis
 
 const extensionValue = z.union([z.string().max(2000), z.number(), z.boolean(), z.null()]);
 
-export async function saveExtensionAction(
-  org: string,
-  input: { recordId: string; kind: string; fields: ExtensionValues },
-): Promise<ActionResult> {
-  const ctx = await context(org);
-  const parsed = z
-    .object({
-      recordId: z.uuid(),
-      kind: z.string().regex(/^[A-Z][A-Za-z]+$/),
-      fields: z.record(z.string().regex(/^[a-z_]+$/), extensionValue),
-    })
-    .safeParse(input);
-  if (!parsed.success) return invalid();
-  const result = await saveRecordExtension(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
-  if (!result.ok) return failed(result.error);
-  refresh(org);
-  return done(null);
-}
-
 /**
  * Saves some of the kind's own attributes against the values the person started from (Section 11.7); someone else's
  * change to one of the same attributes since comes back as a conflict with their values.
@@ -300,7 +249,7 @@ export async function addChecklistItemAction(
   org: string,
   recordId: string,
   label: string,
-): Promise<ActionResult> {
+): Promise<ActionResult<{ id: string }>> {
   const ctx = await context(org);
   const text = z.string().trim().min(1).max(300).safeParse(label);
   if (!id.safeParse(recordId).success || !text.success) return invalid("checklistLabel");
@@ -311,7 +260,7 @@ export async function addChecklistItemAction(
   });
   if (!result.ok) return failed(result.error);
   refresh(org);
-  return done(null);
+  return done(result.data);
 }
 
 export async function checkItemAction(
@@ -339,23 +288,50 @@ export async function removeChecklistItemAction(
   return done(null);
 }
 
+/** The undo of removing an item (Section 11.7): the same item comes back, tick and all. */
+export async function restoreChecklistItemAction(
+  org: string,
+  recordId: string,
+  itemId: string,
+): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!id.safeParse(recordId).success || !id.safeParse(itemId).success) return invalid();
+  const result = await restoreChecklistItem(ctx.viewer.db, { recordId, itemId });
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
 export async function assignAction(
   org: string,
   recordId: string,
   membershipId: string,
-): Promise<ActionResult> {
+): Promise<ActionResult<{ id: string }>> {
   const ctx = await context(org);
   if (!id.safeParse(recordId).success || !id.safeParse(membershipId).success) return invalid();
   const result = await assignRecord(ctx.viewer.db, { orgId: ctx.org.id, recordId, membershipId });
   if (!result.ok) return failed(result.error);
   refresh(org);
-  return done(null);
+  return done(result.data);
 }
 
 export async function unassignAction(org: string, assignmentId: string): Promise<ActionResult> {
   const ctx = await context(org);
   if (!id.safeParse(assignmentId).success) return invalid();
   const result = await unassignRecord(ctx.viewer.db, assignmentId);
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
+/** The undo of removing an assignee (Section 11.7): the same assignment comes back, without a second notice. */
+export async function restoreAssignmentAction(
+  org: string,
+  assignmentId: string,
+): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!id.safeParse(assignmentId).success) return invalid();
+  const result = await restoreAssignment(ctx.viewer.db, assignmentId);
   if (!result.ok) return failed(result.error);
   refresh(org);
   return done(null);
@@ -404,6 +380,39 @@ export async function setRecurrenceAction(
         untilAt: untilAt ?? null,
       })
     : await clearRecurrence(ctx.viewer.db, recordId);
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
+const ruleSchema = z.object({
+  rrule: recurrenceSchema.shape.rrule.unwrap(),
+  timeZone: recurrenceSchema.shape.timeZone,
+  untilAt: z.iso.datetime({ offset: true }).nullable(),
+});
+
+/**
+ * The undo and redo of a recurrence edit (Section 11.7): the rule goes from `from` back to `to` only while the record
+ * still has `from` (null: no rule), so an undo over someone else's later change is refused.
+ */
+export async function replaceRecurrenceAction(
+  org: string,
+  input: {
+    recordId: string;
+    from: string | null;
+    to: z.input<typeof ruleSchema> | null;
+  },
+): Promise<ActionResult> {
+  const ctx = await context(org);
+  const parsed = z
+    .object({
+      recordId: z.uuid(),
+      from: recurrenceSchema.shape.rrule,
+      to: ruleSchema.nullable(),
+    })
+    .safeParse(input);
+  if (!parsed.success) return invalid();
+  const result = await replaceRecurrence(ctx.viewer.db, { orgId: ctx.org.id, ...parsed.data });
   if (!result.ok) return failed(result.error);
   refresh(org);
   return done(null);

@@ -32,6 +32,8 @@ import { ConflictDialog } from "@/components/undo/conflict-dialog";
 import {
   changedFields,
   formBefore,
+  propertyEdit,
+  softDelete,
   stateChange,
   toggle,
   type FieldValue,
@@ -43,6 +45,9 @@ import {
   assignAction,
   checkItemAction,
   removeChecklistItemAction,
+  replaceRecurrenceAction,
+  restoreAssignmentAction,
+  restoreChecklistItemAction,
   restoreRecordAction,
   saveExtensionFieldsAction,
   saveRecordFieldsAction,
@@ -569,6 +574,19 @@ export function ChecklistEditor({
           }),
         ),
     );
+  // Removing an item goes on the undo stack too; undo brings the same item back, tick and all.
+  const remove = (item: ChecklistItem) =>
+    run(
+      () => removeChecklistItemAction(org, item.id),
+      () =>
+        undoStack.push(
+          softDelete({
+            label: t("undo.itemRemoved", { label: item.label }),
+            restore: async () => outcome(await restoreChecklistItemAction(org, recordId, item.id)),
+            remove: async () => outcome(await removeChecklistItemAction(org, item.id)),
+          }),
+        ),
+    );
   return (
     <section aria-labelledby={`checklist-${recordId}`} className="flex flex-col gap-8">
       <h3 id={`checklist-${recordId}`} className="m-0 text-label-13 font-semibold">
@@ -598,7 +616,7 @@ export function ChecklistEditor({
                 <IconButton
                   icon="X"
                   label={t("checklist.remove", { label: item.label })}
-                  onClick={() => run(() => removeChecklistItemAction(org, item.id))}
+                  onClick={() => remove(item)}
                 />
               ) : null}
             </li>
@@ -648,8 +666,22 @@ export function AssignmentsEditor({
 }) {
   const t = useCopy("work");
   const { pending, error, run } = useAction();
+  const outcome = useUndoOutcome();
   const [choice, setChoice] = useState("");
   const assigned = new Set(assignments.map((a) => a.membershipId));
+  // Removing an assignee goes on the undo stack (Section 11.7); undo brings the same assignment back.
+  const unassign = (a: Assignment) =>
+    run(
+      () => unassignAction(org, a.id),
+      () =>
+        undoStack.push(
+          softDelete({
+            label: t("undo.unassigned", { name: a.name ?? t("values.unnamed") }),
+            restore: async () => outcome(await restoreAssignmentAction(org, a.id)),
+            remove: async () => outcome(await unassignAction(org, a.id)),
+          }),
+        ),
+    );
   const available = people.filter((p) => !assigned.has(p.membershipId));
   return (
     <section aria-labelledby={`assignees-${recordId}`} className="flex flex-col gap-8">
@@ -671,7 +703,7 @@ export function AssignmentsEditor({
                 <IconButton
                   icon="X"
                   label={t("assignees.remove", { name: a.name ?? t("values.unnamed") })}
-                  onClick={() => run(() => unassignAction(org, a.id))}
+                  onClick={() => unassign(a)}
                 />
               ) : null}
             </li>
@@ -753,6 +785,7 @@ export function RecurrenceForm({
 }) {
   const t = useCopy("work");
   const { pending, error, run } = useAction();
+  const outcome = useUndoOutcome();
   const parts = new Map(
     (recurrence?.rrule ?? "").split(";").map((p) => p.split("=") as [string, string]),
   );
@@ -791,7 +824,38 @@ export function RecurrenceForm({
           className="flex flex-col gap-8"
           onSubmit={(e) => {
             e.preventDefault();
-            run(() => setRecurrenceAction(org, { recordId: record.id, rrule, timeZone: tz }));
+            const before = {
+              rrule: recurrence?.rrule ?? null,
+              timeZone: recurrence?.timeZone ?? tz,
+              untilAt: recurrence?.untilAt ?? null,
+            };
+            const after = { rrule, timeZone: tz, untilAt: null };
+            run(
+              () => setRecurrenceAction(org, { recordId: record.id, rrule, timeZone: tz }),
+              () => {
+                if (before.rrule === after.rrule) return;
+                // A recurrence edit goes on the undo stack (Section 11.7): undo puts the rule back while the
+                // record still has the one this edit set.
+                undoStack.push(
+                  propertyEdit({
+                    label: t("undo.recurrence", { key: record.key }),
+                    before,
+                    after,
+                    save: async (set, expect) =>
+                      outcome(
+                        await replaceRecurrenceAction(org, {
+                          recordId: record.id,
+                          from: expect.rrule,
+                          to:
+                            set.rrule === null
+                              ? null
+                              : { rrule: set.rrule, timeZone: set.timeZone, untilAt: set.untilAt },
+                        }),
+                      ),
+                  }),
+                );
+              },
+            );
           }}
         >
           <div className="flex flex-wrap items-end gap-8">

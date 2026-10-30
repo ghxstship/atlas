@@ -11,6 +11,7 @@ import { expectAccessible, uniqueId } from "./support";
 /**
  * A118 undo and conflicts (RRR-163, A65-006, ADR 0077) on the demo tenant:
  *   - a record property edit goes on the undo stack: Cmd or Ctrl+Z undoes it through the server and Shift redoes it;
+ *   - a removed checklist item comes back with Cmd or Ctrl+Z, still ticked;
  *   - a record moved to Trash shows in Activity, which restores it;
  *   - two people save the same property: the later save opens the mine-or-theirs dialog with both values, and
  *     keeping mine saves it.
@@ -70,6 +71,31 @@ test("an inline property edit undoes and redoes with Cmd or Ctrl+Z", async ({ br
   await owner.keyboard.press("ControlOrMeta+Shift+z");
   await expect(owner.getByText(`Redone: Edited ${key}.`)).toBeVisible();
   await expect(owner.getByRole("heading", { level: 1, name: after })).toBeVisible();
+  await expectAccessible(owner);
+  await owner.context().close();
+});
+
+test("a removed checklist item comes back with Cmd or Ctrl+Z, tick and all", async ({
+  browser,
+}) => {
+  const id = uniqueId();
+  const owner = await asPerson(browser, "owner@example.com");
+  const key = await createTask(owner, `Check the rigging ${id}`);
+  await openRecord(owner, key);
+  const checklist = owner.getByRole("region", { name: /^Checklist/ });
+  const label = `Shackles ${id}`;
+  await checklist.getByLabel("New item").fill(label);
+  await checklist.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(checklist.getByRole("checkbox", { name: label })).toBeVisible();
+  await checklist.getByRole("checkbox", { name: label }).check();
+  await expect(checklist.getByText("1 of 1 done")).toBeVisible();
+
+  await checklist.getByRole("button", { name: `Remove ${label}` }).click();
+  await expect(checklist.getByRole("checkbox", { name: label })).toHaveCount(0);
+  await owner.getByRole("heading", { level: 1 }).click();
+  await owner.keyboard.press("ControlOrMeta+z");
+  await expect(owner.getByText(`Undone: Removed ${label} from the checklist.`)).toBeVisible();
+  await expect(checklist.getByRole("checkbox", { name: label })).toBeChecked();
   await expectAccessible(owner);
   await owner.context().close();
 });

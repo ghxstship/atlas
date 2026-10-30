@@ -390,6 +390,8 @@ export async function RecordBody({
         />
       ) : null}
       <RecurrenceForm
+        // A rule changed by an undo or by someone else fills the form afresh.
+        key={detail.recurrence?.id ?? "none"}
         org={org}
         record={record}
         recurrence={detail.recurrence}

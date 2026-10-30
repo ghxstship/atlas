@@ -754,6 +754,9 @@
     "reason": "Undid the last move.",
     "checked": "Checked {label}.",
     "unchecked": "Unchecked {label}.",
+    "itemRemoved": "Removed {label} from the checklist.",
+    "unassigned": "Unassigned {name}.",
+    "recurrence": "Changed how {key} repeats.",
     "changedSince": "Someone changed this after your edit; reload to see the change."
   },
   "quickAdd": {

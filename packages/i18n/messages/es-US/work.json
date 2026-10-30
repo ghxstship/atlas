@@ -754,6 +754,9 @@
     "reason": "Se deshizo el último cambio de estado.",
     "checked": "Se marcó {label}.",
     "unchecked": "Se desmarcó {label}.",
+    "itemRemoved": "Se quitó {label} de la lista de verificación.",
+    "unassigned": "Se quitó la asignación de {name}.",
+    "recurrence": "Se cambió cómo se repite {key}.",
     "changedSince": "Alguien cambió esto después de su edición; vuelva a cargar la página para ver el cambio."
   },
   "quickAdd": {
