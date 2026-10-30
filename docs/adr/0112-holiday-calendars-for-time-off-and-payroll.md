@@ -75,3 +75,17 @@ frozen to additive changes, and nothing outside Atlas needs them yet.
 - An org that adds a paid holiday must add a holiday earning code before calculating a run whose period holds it.
 - A venue calendar replaces the org calendars for work at that venue; it does not add to them.
 - A restored calendar governs no venue until its venues are assigned to it again.
+
+## Amendment (2026-10-28, P8): the worked-holiday multiplier and the US federal preset
+
+P8 (RRR-222, migration 2854, parity gap G-117) amends decision 4. Work on a holiday earns no premium unless the
+governing calendar sets `worked_holiday_multiplier` (1 to 3; null by default). That is an org pay policy, set per
+calendar by holders of org.payroll.write, not jurisdictional overtime, so it does not reopen ADR 0033 decision 54:
+no state holiday rule is applied, and break and meal rules stay deferred. On a holiday of that calendar with a
+multiplier above 1, regular minutes are paid on the holiday earning code at that multiple of the rate, overtime at the
+greater of its own multiplier and that one, and double time at the greater of its multiplier and that one; premiums
+never stack and the minutes still count toward overtime. Unworked holiday pay is unchanged. A premium owed with no
+holiday code refuses `payroll_holiday_code_missing`, and `payroll_overtime_code_missing` asks only whether overtime or
+double time was worked. `app.add_holiday_preset(calendar, 'us_federal', year)` adds the eleven holidays of 5 U.S.C.
+6103 on their observed days (a Saturday holiday on the Friday before, a Sunday one on the Monday after) for 2021 to
+2100, 8 paid hours each, skipping days the calendar holds, with names Atlas passes in the viewer's language.

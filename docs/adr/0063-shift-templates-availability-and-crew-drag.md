@@ -27,3 +27,17 @@ Availability calendars existed (0740) for Gateway people only: a person's own ca
 - The crew fill target of Section 11.11 has its tool; a timed measurement belongs with the other timed journeys (gate 26).
 - Compass still shows no availability editor; members state it in Atlas. A Compass screen can reuse `app.ensure_member_availability_calendar` and the blocks table as they are.
 - A later package that wants templates to remember their shifts can add a nullable `shift_template_id` to `app.shifts` without changing anything here.
+
+## Amendment (2026-10-28, P8): availability polls
+
+P8 (RRR-222, migration 2853, parity gap G-124) adds a consequence. A planner (crew.shift.write on the project) asks
+members and engaged freelancers for their availability on 1 to 31 project-local days (`app.send_availability_poll`,
+which notifies each recipient, `availability.requested`). Answers are availability blocks on the recipient's calendar
+kept for the org, one full project-local day each, tagged with the poll (`availability_blocks.availability_poll_id`,
+set only by `app.answer_availability_poll`), so `app.rank_shift_candidates` reads them unchanged and a day already
+inside the notice lock of decision 4 comes back unwritten. Polls, their days and recipients are for planners only, as
+item 3 is: a member holding crew.shift.read reads none of them, and a recipient reads only the polls addressed to them
+and their own recipient row. `app.availability_poll_results` counts every block answering the poll, and other blocks on
+that calendar only where `private.availability_shared_with_me` already shows it to the planner, so a freelancer's
+Private calendar stays private; notes never appear. Answering a poll shares those days with the org's planners, and
+the answer form says so.

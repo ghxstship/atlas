@@ -65,3 +65,24 @@ Apply calls commit mode, so what is applied is what the function previewed.
   move, whether the critical path changes and how far the last finish moves.
 - The critical path is computed in the browser from the drawn rows; no column stores it (Section 3.15).
 - A schedule with broken dependencies stays as broken as it was after a reschedule; repairing it is a separate edit.
+
+## Amendment (2026-10-28, P8): minutes, several records and the Unscheduled list
+
+P8 (RRR-222, migrations 2850 to 2852, parity gaps G-35 and G-36) extends three decisions without reopening them.
+
+- **Decision 1.** The push rounds and the locked refusal now live in one planner, `private.plan_reschedule(unit)`, with
+  the commit in `private.commit_reschedule(reason)`, so every caller pushes successors the same way. Besides
+  `app.reschedule_record`, `app.shift_records(ids, minutes)` moves up to 500 selected records rigidly by the same
+  minutes under the same per-project advisory locks (`'reschedule:' || project_id`, taken in project order), and
+  pushes their successors outside the selection project by project. A move set of more than 500 rows is refused
+  (`shift_too_large`), so its undo always fits in one call of `app.bulk_update_records`, which carries the start and
+  end dates since 2852.
+- **Decision 2.** Moves may carry minute offsets (`p_start_minutes`, `p_end_minutes`, at most 14 days either way),
+  added after the days on the project's wall clock (`private.add_local_minutes`), the clock gaps are measured on. A
+  change with any minute part pushes successors by whole minutes; a whole-day change keeps the day pushes above,
+  unchanged. A change of nothing moves nothing, so it never trips the locked refusal.
+- **Decision 4.** An undated record is placed through `app.place_record(record, day)`, not moved: a Milestone is due
+  at 17:00 and any other kind runs 09:00 to 17:00 of the project-local day, and its successors are pushed by whole
+  days until their dependencies hold. A dated record is refused (`place_dated`), and a Complete or Canceled one stays
+  unscheduled. The schedule lists undated records beside the timeline as "Unscheduled", to drag onto a day or schedule
+  from the keyboard.
