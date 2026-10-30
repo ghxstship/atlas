@@ -3,13 +3,13 @@
 -- logs which columns held one (never the values), and sends each of them account.work_details_moved once, naming what
 -- moved. Ivy's share of Uniform Sizes and Dietary Needs keeps Dietary Needs; Quinn's Uniform Sizes-only share is revoked
 -- and its consent withdrawn with it. Loyalty programs, accessibility and dietary needs and the passport stay. Afterwards a
--- retired column takes no value, Uniform Sizes cannot be shared, and no live share names it.
+-- retired column takes no value, Uniform Sizes cannot be shared, and no live share names it; nor is Contact shared alone.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(22);
+select plan(26);
 
 create function pg_temp.moved(p_person text) returns text
 language sql as $$
@@ -91,6 +91,10 @@ select ok(exists (select 1 from pg_constraint where conname = 'work_detail_share
   and conrelid = 'app.work_detail_shares'::regclass), 'the constraint work_detail_shares_no_retired_category exists');
 select throws_ok(format($$update app.work_detail_shares set categories = '{Uniform Sizes,Dietary Needs}' where id = %L$$, pg_temp.id('share_ivy')),
   '23514', null, 'no live share names Uniform Sizes');
+select ok(exists (select 1 from pg_constraint where conname = 'work_detail_shares_contact_not_alone'
+  and conrelid = 'app.work_detail_shares'::regclass), 'the constraint work_detail_shares_contact_not_alone exists');
+select throws_ok(format($$update app.work_detail_shares set categories = '{Contact}' where id = %L$$, pg_temp.id('share_ivy')),
+  '23514', null, 'no live share names Contact alone');
 
 -- Afterwards ---------------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('ivy');
@@ -100,6 +104,10 @@ select lives_ok($$update app.person_work_details set seat_preference = null, die
   where person_id = (select id from world where key = 'ivy')$$, 'clearing one, or changing the others, is not');
 select throws_like(format($$select app.share_work_details(%L, '{Uniform Sizes,Dietary Needs}')$$, pg_temp.id('eng_ivy_a')),
   'work_detail_category_retired:%', 'sharing Uniform Sizes is refused');
+select throws_like(format($$select app.share_work_details(%L, '{Contact}')$$, pg_temp.id('eng_ivy_a')),
+  'work_detail_share_contact_alone:%', 'Contact alone is refused: API v1 lists at least one other category beside it');
+select lives_ok(format($$select app.share_work_details(%L, '{Contact,Dietary Needs}')$$, pg_temp.id('eng_ivy_a')),
+  'Contact with another category is shared');
 select pg_temp.as_user('art');
 select throws_like($$insert into app.person_work_details (person_id, home_airport) values ((select id from world where key = 'art'), 'FLL')$$,
   'work_detail_field_moved:%', 'so is a new row with a retired value');

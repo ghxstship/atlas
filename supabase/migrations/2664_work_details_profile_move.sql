@@ -14,6 +14,10 @@
 --     app.share_work_details refuses Uniform Sizes (work_detail_category_retired). Uniform Sizes stays a value of
 --     app.work_detail_category because the access log keeps rows that name it for seven years; no live share names it
 --     (work_detail_shares_no_retired_category).
+--   * Contact (2661) is shared with at least one other category: app.share_work_details refuses it alone
+--     (work_detail_share_contact_alone) and no live share names only Contact (work_detail_shares_contact_not_alone).
+--     API v1 carries Contact beside a frozen category list whose minItems is 1 (ADR 0105 section 5), so a share of
+--     Contact alone would read back with no categories.
 -- Functions start from their latest definitions: 1340_work_details.sql for the guard and the change log,
 -- 2638_roster_work_detail_shares.sql for app.share_work_details.
 
@@ -130,6 +134,9 @@ begin
     perform private.refuse('work_detail_category_retired',
       'Uniform sizes are no longer shared from your profile; enter them on the project''s roster entry.');
   end if;
+  if v_categories = array['Contact']::app.work_detail_category[] then
+    perform private.refuse('work_detail_share_contact_alone', 'Share your contact together with at least one other category.');
+  end if;
   if not v_entry.is_self and v_entry.person_response <> 'Accepted' then
     perform private.refuse('roster_entry_not_accepted', 'Accept the roster entry before sharing your work details with it.');
   end if;
@@ -171,7 +178,7 @@ begin
 end;
 $$;
 
-comment on function app.share_work_details(uuid, app.work_detail_category[], text) is 'A person on an engagement''s roster shares chosen categories of their work details on their own entry (the self entry for the engaged person; any other entry once they accepted it, else roster_entry_not_accepted), recording work_details_sharing consent for the producing org when none stands. The share serves the producing org and the company that rosters them. The retired Uniform Sizes is refused (work_detail_category_retired, R6a). A second call replaces the categories (fewer is a partial revocation). Refused once the engagement is Complete or Canceled. Returns the share id.';
+comment on function app.share_work_details(uuid, app.work_detail_category[], text) is 'A person on an engagement''s roster shares chosen categories of their work details on their own entry (the self entry for the engaged person; any other entry once they accepted it, else roster_entry_not_accepted), recording work_details_sharing consent for the producing org when none stands. The share serves the producing org and the company that rosters them. The retired Uniform Sizes is refused (work_detail_category_retired, R6a), and so is Contact alone (work_detail_share_contact_alone, R6a: API v1 lists categories beside it, at least one). A second call replaces the categories (fewer is a partial revocation). Refused once the engagement is Complete or Canceled. Returns the share id.';
 revoke all on function app.share_work_details(uuid, app.work_detail_category[], text) from public, anon;
 grant execute on function app.share_work_details(uuid, app.work_detail_category[], text) to authenticated, service_role;
 
@@ -260,6 +267,8 @@ select private.move_profile_work_details();
 
 alter table app.work_detail_shares add constraint work_detail_shares_no_retired_category
   check (revoked_at is not null or deleted_at is not null or not ('Uniform Sizes' = any (categories)));
+alter table app.work_detail_shares add constraint work_detail_shares_contact_not_alone
+  check (revoked_at is not null or deleted_at is not null or categories <> array['Contact']::app.work_detail_category[]);
 
 -- Comments ----------------------------------------------------------------------------------------------------------------------
 
