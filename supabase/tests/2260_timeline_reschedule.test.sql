@@ -3,7 +3,7 @@
 -- change kept), nothing pulled earlier, preview equal to commit and writing nothing, cycles, locked windows, canceled
 -- records, bad windows, one-date resizes and undated records refused, the latest baseline window returned, one-date records pushed
 -- by the instants they hold, a schedule whose chains split and rejoin previewed quickly, and capability, cross-tenant
--- and anon denial.
+-- and anon denial. P8 (2850) adds trailing minute offsets and two trailing columns; the assertions are A133's.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -23,14 +23,15 @@ end $$;
 select pg_temp.as_platform();
 create temporary table preview_rows (record_id uuid, is_target boolean, shift_start_days integer, shift_end_days integer,
   old_starts_at timestamptz, old_ends_at timestamptz, old_due_at timestamptz, starts_at timestamptz, ends_at timestamptz,
-  due_at timestamptz, baseline_starts_at timestamptz, baseline_ends_at timestamptz);
+  due_at timestamptz, baseline_starts_at timestamptz, baseline_ends_at timestamptz, shift_start_minutes integer,
+  shift_end_minutes integer);
 grant select, insert, delete on preview_rows to public;
 create temporary table fan (phase integer, slot integer, id uuid);
 create temporary table fan_moves (like preview_rows);
 grant select, insert on fan, fan_moves to public;
 
-select has_function('app', 'reschedule_record', array['uuid', 'integer', 'integer', 'boolean', 'text'], 'app.reschedule_record exists');
-select is((select prosecdef from pg_catalog.pg_proc where oid = 'app.reschedule_record(uuid, integer, integer, boolean, text)'::regprocedure),
+select has_function('app', 'reschedule_record', array['uuid', 'integer', 'integer', 'boolean', 'text', 'integer', 'integer'], 'app.reschedule_record exists');
+select is((select prosecdef from pg_catalog.pg_proc where oid = 'app.reschedule_record(uuid, integer, integer, boolean, text, integer, integer)'::regprocedure),
   true, 'app.reschedule_record is security definer');
 select is(private.add_local_days('2027-11-06 14:00+00', 1, 'America/New_York'), '2027-11-07 15:00+00'::timestamptz,
   'a day on the project''s calendar keeps the wall-clock time across the end of daylight saving');
