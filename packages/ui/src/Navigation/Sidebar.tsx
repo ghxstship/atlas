@@ -39,7 +39,8 @@ function NavLink({
 
 /**
  * The sitemap navigation. Group headings collapse and expand; the active item is the current page. An item may list
- * items under it (the recent projects under Projects), indented one step.
+ * items under it (the recent projects under Projects), indented one step. A label longer than the sidebar (a project
+ * name, a longer translation) shrinks with an ellipsis and keeps its whole text as a title (Section 15, gate 16).
  */
 export function Sidebar({ label, active, groups }: SidebarProps): ReactElement {
   const t = useT();
