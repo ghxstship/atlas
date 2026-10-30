@@ -18,7 +18,10 @@ export function SystemMessage({
   children: ReactNode;
 }): ReactElement {
   return (
-    <div className="flex flex-col items-center gap-12 py-48 px-16 text-center">
+    <div
+      data-template="system"
+      className="flex flex-col items-center gap-12 py-48 px-16 text-center"
+    >
       <span className="text-text-secondary">
         <Icon name={icon} size={28} />
       </span>

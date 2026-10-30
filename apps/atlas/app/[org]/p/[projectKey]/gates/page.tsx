@@ -7,7 +7,7 @@ import { listAssertionRanks } from "@xos/data/projects";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { GatesView } from "@/components/projects/gates-view";
-import { PageHeader } from "@/components/projects/ui";
+import { PageHeader, TemplateCollection } from "@/components/projects/ui";
 import {
   MeasurementPanel,
   ObjectivesPanel,
@@ -75,8 +75,7 @@ export default async function GatesPage({
       }
     : undefined;
   return (
-    <>
-      <PageHeader title={t("gates.title")} />
+    <TemplateCollection header={<PageHeader title={t("gates.title")} />}>
       <GatesView
         org={ctx.org.org.slug}
         projectKey={ctx.project.key}
@@ -92,6 +91,6 @@ export default async function GatesPage({
         view={view}
         {...(gatePanels ? { gatePanels } : {})}
       />
-    </>
+    </TemplateCollection>
   );
 }

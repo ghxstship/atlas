@@ -96,6 +96,33 @@ What remains, with its cause:
 2. **Projects has 3.7 KB of headroom.** The largest remaining parts of the page are TanStack Virtual (6.6 KB, needed when a list passes 100 rows) and the collection view switcher (Radix toggle group, 6 KB).
 3. **Root boundaries duplicate the design-system basics.** The root error and not-found boundaries sit above the org layout, so each carries its own copy of Button, Icon and Kbd (about 5 KB on every page). Turbopack does not share modules between sibling boundaries.
 
+### A113 (RRR-158, 2026-10-27): favorites that move and recent projects, within the shell's room
+
+Batch-c at 39c1088a left Projects 24 bytes under the budget. The first A113 build put it 1,212
+bytes over, all of it shell code every signed-in page loads. Measured the same way, in gzip bytes:
+
+| Page                             | batch-c 39c1088a | A113    | Change | Headroom |
+| -------------------------------- | ---------------- | ------- | ------ | -------- |
+| /demo-productions/projects       | 204,776          | 204,256 | -520   | 544      |
+| /demo-productions/p/NWS/overview | 198,099          | 197,821 | -278   | 6,979    |
+| /demo-productions/inbox          | 201,769          | 201,249 | -520   | 3,551    |
+| /demo-productions/home           | 185,575          | 185,054 | -521   | 19,746   |
+
+- The Favorites render as the plain sidebar list; the list that moves (`favorites-reorder.tsx`, with
+  pinning) loads when the pointer or focus first reaches them.
+- The read of the recent projects after a project opens lives in the project frame
+  (`project-opened.tsx`); the shell only takes the links it sends, and shares no module with it.
+- A module that both the shell and a chunk loaded later import cannot be merged into the shell's
+  module: importing the Sidebar's classes into the lazy list cost about 300 bytes, so they are
+  passed in as props instead.
+- The platform system banners (A90) show nothing until a fetch made once the page is idle returns
+  one, so their code now loads after the page (`deferred-system-banners.tsx`), about 1 KB.
+
+After the review fixes (the favorites drag by their move button with pointer events), merged with
+batch-c 41fd86b9: Projects 202,395 (2,405 under), Inbox 202,273 (2,527 under), project overview
+198,620 and Home 187,539. The drag code is in `favorites-reorder.tsx`, which loads on demand, so
+the shell carries none of it.
+
 ## Lighthouse against the gate 10 budgets
 
 | App     | Page                              | Before | Route JS (build, A41) | Route JS (build, A46) | Lighthouse JS (A37) | Verdict                                                |

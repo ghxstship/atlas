@@ -1,5 +1,6 @@
 import { listRoleCapabilities } from "@xos/data";
 import { getProjectByKey, type ProjectSummary } from "@xos/data/projects";
+import type { CapabilityCode } from "@xos/schemas/capabilities/codes";
 import { cache } from "react";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 
@@ -18,7 +19,7 @@ export interface ProjectContext {
    * Capabilities usable on this project: those held at organization reach, plus those held at
    * assigned reach when the viewer is a project member (ADR 0016 item 1).
    */
-  readonly capabilities: ReadonlySet<string>;
+  readonly capabilities: ReadonlySet<CapabilityCode>;
 }
 
 const resolve = cache(async (slug: string, projectKey: string): Promise<ProjectContext | null> => {

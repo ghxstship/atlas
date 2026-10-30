@@ -1,9 +1,9 @@
-# @xos/cli
+# @ghxstship/xos-cli
 
-`xos`, the command line for the XOS public API. Every operation in the API reference is a command; output is a table in a terminal and JSON in scripts. Built on [`@xos/sdk`](https://www.npmjs.com/package/@xos/sdk). Requires Node.js 22.12 or later.
+`xos`, the command line for the XOS public API. Every operation in the API reference is a command; output is a table in a terminal and JSON in scripts. Built on [`@ghxstship/xos-sdk`](https://www.npmjs.com/package/@ghxstship/xos-sdk). Requires Node.js 22.12 or later.
 
 ```sh
-npm install --global @xos/cli
+npm install --global @ghxstship/xos-cli
 xos --version
 ```
 

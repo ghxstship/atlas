@@ -3,6 +3,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { PageHeader } from "@/components/ui";
+import { TemplateCollection } from "@/components/platform/client/template-collection";
 import type { OrgContext } from "@/lib/shell/context";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
@@ -15,20 +16,20 @@ const SECTIONS = [
   "partner-console.wholesale-billing",
 ] as const;
 
+export type PartnerSection = (typeof SECTIONS)[number];
+
 /**
- * The partner console frame: the page title and the console's sections as tabs, each shown only when
+ * The partner console header: the page title and the console's sections as tabs, each shown only when
  * the viewer may open it (wholesale billing is Owner only).
  */
-export async function PartnerFrame({
+export async function PartnerHeader({
   ctx,
   node,
   actions,
-  children,
 }: {
   ctx: OrgContext;
-  node: (typeof SECTIONS)[number];
+  node: PartnerSection;
   actions?: ReactNode;
-  children: ReactNode;
 }) {
   const t = await getTranslate();
   const params = { partnerSlug: ctx.org.slug };
@@ -62,7 +63,28 @@ export async function PartnerFrame({
           ))}
         </ul>
       </nav>
-      {children}
     </div>
+  );
+}
+
+/**
+ * A partner console section on the Collection template (Section 11.6): client orgs, usage, wholesale
+ * billing and the default brand. The overview is a dashboard instead (app/partner/[partnerSlug]/page.tsx).
+ */
+export async function PartnerFrame({
+  ctx,
+  node,
+  actions,
+  children,
+}: {
+  ctx: OrgContext;
+  node: Exclude<PartnerSection, "partner-console">;
+  actions?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <TemplateCollection header={<PartnerHeader ctx={ctx} node={node} actions={actions} />}>
+      <div className="flex flex-col gap-16 min-w-0">{children}</div>
+    </TemplateCollection>
   );
 }

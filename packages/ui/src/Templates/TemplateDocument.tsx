@@ -8,7 +8,10 @@ export function TemplateDocument({
   acknowledgments,
 }: TemplateDocumentProps): ReactElement {
   return (
-    <div className="grid grid-cols-[var(--ui-outline)_minmax(0,var(--layout-reading))] max-lg:grid-cols-[minmax(0,1fr)] gap-32">
+    <div
+      data-template="document"
+      className="grid grid-cols-[var(--ui-outline)_minmax(0,var(--layout-reading))] max-lg:grid-cols-[minmax(0,1fr)] gap-32"
+    >
       <div className="max-lg:hidden">{outline}</div>
       <article className="flex flex-col gap-16 min-w-0 leading-relaxed">
         {children}
