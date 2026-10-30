@@ -1,7 +1,7 @@
 "use client";
 
 import type { CanonOption, PersonRef, ProjectRef, RecordKindInfo } from "@xos/data/work";
-import { Button, Drawer, Input, Select } from "@xos/ui";
+import { Button, Checkbox, Drawer, Input, Select } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useRef, useState } from "react";
@@ -66,6 +66,7 @@ export function CreateRecordDialog({
   const info = kinds.find((k) => k.kind === kind);
   const [xyz, setXyz] = useState(defaultXyz(info?.recordClass, xyzTags));
   const [starts, setStarts] = useState("");
+  const [startTbc, setStartTbc] = useState(false);
   const [ends, setEnds] = useState("");
   const project = projects.find((p) => p.id === projectId);
   const tz = project?.timeZone ?? "UTC";
@@ -92,6 +93,7 @@ export function CreateRecordDialog({
           xyz,
           ownerId: owner || null,
           startsAt: fromLocalInput(starts, tz),
+          startTbc: starts !== "" && startTbc,
           endsAt: fromLocalInput(ends, tz),
           dueAt: fromLocalInput(due, tz),
           // The sheet always shows custom fields, so the action holds it to required ones.
@@ -228,6 +230,12 @@ export function CreateRecordDialog({
                   label={t("fields.starts")}
                   value={starts}
                   onChange={(e) => setStarts(e.target.value)}
+                />
+                <Checkbox
+                  label={t("fields.startTbc")}
+                  checked={starts !== "" && startTbc}
+                  disabled={starts === ""}
+                  onChange={(e) => setStartTbc(e.target.checked)}
                 />
                 <Input
                   id="create-ends"

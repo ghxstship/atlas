@@ -16,6 +16,7 @@ import {
 import type { ThemePreference } from "@xos/ui-native/theme";
 import { touchMySession } from "@xos/data/account-security";
 import type { XosClient } from "@xos/data/client";
+import type { CueCallKind } from "@xos/data/cue-calls";
 import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import {
@@ -53,6 +54,7 @@ import {
   type OrgBrand,
 } from "../domain/brand";
 import { inOrg, personTimeZone } from "../domain/orgs";
+import { storedDepartment } from "../domain/show";
 import { readDefaultOrg } from "../settings/organizations";
 import { compassUserAgent } from "../settings/security";
 import {
@@ -91,6 +93,8 @@ export interface CompassSettings {
   /** Present while this device runs as a kiosk. Held in secure storage only. */
   readonly kioskDeviceKey: string | null;
   readonly biometric: boolean;
+  /** The department whose calls Show highlights (G-74), chosen once on this device; null shows every call. */
+  readonly showDepartment: CueCallKind | null;
 }
 
 const DEFAULT_SETTINGS: CompassSettings = {
@@ -100,8 +104,19 @@ const DEFAULT_SETTINGS: CompassSettings = {
   lowData: false,
   kioskDeviceKey: null,
   biometric: false,
+  showDepartment: null,
 };
 const SETTINGS_KEY = "xos.compass.settings";
+
+/**
+ * Settings as stored in SecureStore, over the defaults. A stored department that is no longer an app.cue_call_kind
+ * label reads as every department (null).
+ */
+export function restoreSettings(raw: string): CompassSettings {
+  const stored = JSON.parse(raw) as Partial<CompassSettings>;
+  const merged = { ...DEFAULT_SETTINGS, ...stored };
+  return { ...merged, showDepartment: storedDepartment(merged.showDepartment) };
+}
 /** The last resolved settings Compass applies, kept so the rules hold offline. */
 const RESOLVED_KEY = "xos.compass.resolved";
 /** resolve_settings needs an org; the nil uuid returns only the person's own values and the defaults. */
@@ -288,8 +303,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   // Settings, the remembered org and project per device (Section 4.5.7: Compass remembers the last context).
   useEffect(() => {
     void SecureStore.getItemAsync(SETTINGS_KEY).then((raw) => {
-      if (raw)
-        setSettings({ ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<CompassSettings>) });
+      if (raw) setSettings(restoreSettings(raw));
     });
     void SecureStore.getItemAsync(PROJECT_KEY).then((id) => {
       if (id) setProjectIdState(id);

@@ -28,7 +28,12 @@ export type EmergencyCodeCardProps = ReferenceEmergencyCodeCardProps;
 
 export type RadioChannelTableProps = ReferenceRadioChannelTableProps;
 
-export type RunOfShowLiveProps = ReferenceRunOfShowLiveProps & {
+export type RunOfShowLiveProps = Omit<ReferenceRunOfShowLiveProps, "cues"> & {
+  /**
+   * The reference cues, each with an optional status the index alone cannot show (ADR 0131): a cue the caller
+   * jumped past is `skipped`, the cue they put on standby is `standby`.
+   */
+  cues: (ReferenceRunOfShowLiveProps["cues"][number] & { status?: "skipped" | "standby" })[];
   /** Called with the new live cue index when Go advances. */
   onGo?: (index: number) => void;
 };

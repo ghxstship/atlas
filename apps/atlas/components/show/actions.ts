@@ -3,6 +3,7 @@
 import {
   addCue,
   callCue,
+  CUE_CALL_KINDS,
   createCallSheet,
   createRunOfShow,
   deleteRunOfShow,
@@ -10,10 +11,14 @@ import {
   getRunOfShow,
   linkCueToEngagement,
   moveCue,
+  moveCueTo,
   publishSheet,
   removeCue,
   restoreSheet,
+  saveCueCalls,
   saveDaySheet,
+  shiftCuePlan,
+  standbyCue,
   unlinkCueEngagement,
   updateCue,
   updateRunOfShow,
@@ -27,7 +32,9 @@ import { getOrgContext } from "@/lib/shell/context";
 /**
  * Show actions (A08): running orders, cues, live cue calls, day sheets and call sheets. Calling a
  * cue goes through app.call_cue (show.cue.call, once, stamped by the database); publishing a sheet
- * needs show.call_sheet.publish. Refusals come back as catalog keys under `work.errors`.
+ * needs show.call_sheet.publish. Standby, moves, nudges and department calls go through their
+ * definer functions, one transaction each (ADR 0131). Refusals come back as catalog keys under
+ * `work.errors`.
  */
 
 async function context(org: string) {
@@ -67,14 +74,18 @@ export async function createRunAction(
 export async function updateRunAction(
   org: string,
   runId: string,
-  input: { name: string; showDate: string },
+  input: { name: string; showDate: string; curfewAt?: string | null },
 ): Promise<ActionResult> {
   const ctx = await context(org);
   const parsed = z
-    .object({ name: z.string().trim().min(1).max(200), showDate: day })
+    .object({ name: z.string().trim().min(1).max(200), showDate: day, curfewAt: instant })
     .safeParse(input);
   if (!id.safeParse(runId).success || !parsed.success) return invalid();
-  const result = await updateRunOfShow(ctx.viewer.db, runId, parsed.data);
+  const { curfewAt, ...rest } = parsed.data;
+  const result = await updateRunOfShow(ctx.viewer.db, runId, {
+    ...rest,
+    ...(curfewAt === undefined ? {} : { curfewAt }),
+  });
   if (!result.ok) return failed(result.error);
   refresh(org);
   return done(null);
@@ -96,6 +107,7 @@ export async function addCueAction(
     label: string;
     plannedAt: string | null;
     durationSeconds: number | null;
+    startTbc?: boolean;
   },
 ): Promise<ActionResult> {
   const ctx = await context(org);
@@ -105,6 +117,7 @@ export async function addCueAction(
       label: z.string().trim().min(1).max(200),
       plannedAt: instant,
       durationSeconds: z.number().int().min(0).max(86_400).nullable(),
+      startTbc: z.boolean().optional(),
     })
     .safeParse(input);
   if (!parsed.success) return invalid("cueLabel");
@@ -117,6 +130,7 @@ export async function addCueAction(
     label: parsed.data.label,
     plannedAt: parsed.data.plannedAt ?? null,
     durationSeconds: parsed.data.durationSeconds,
+    startTbc: parsed.data.startTbc ?? false,
   });
   if (!result.ok) return failed(result.error);
   refresh(org);
@@ -126,7 +140,12 @@ export async function addCueAction(
 export async function updateCueAction(
   org: string,
   cueId: string,
-  input: { label: string; plannedAt: string | null; durationSeconds: number | null },
+  input: {
+    label: string;
+    plannedAt: string | null;
+    durationSeconds: number | null;
+    startTbc?: boolean;
+  },
 ): Promise<ActionResult> {
   const ctx = await context(org);
   const parsed = z
@@ -134,6 +153,7 @@ export async function updateCueAction(
       label: z.string().trim().min(1).max(200),
       plannedAt: instant,
       durationSeconds: z.number().int().min(0).max(86_400).nullable(),
+      startTbc: z.boolean().optional(),
     })
     .safeParse(input);
   if (!id.safeParse(cueId).success || !parsed.success) return invalid("cueLabel");
@@ -141,6 +161,7 @@ export async function updateCueAction(
     label: parsed.data.label,
     plannedAt: parsed.data.plannedAt ?? null,
     durationSeconds: parsed.data.durationSeconds,
+    ...(parsed.data.startTbc === undefined ? {} : { startTbc: parsed.data.startTbc }),
   });
   if (!result.ok) return failed(result.error);
   refresh(org);
@@ -159,6 +180,95 @@ export async function moveCueAction(
   if (!result.ok) return failed(result.error);
   refresh(org);
   return done(null);
+}
+
+/**
+ * Moves a cue to a 1-based place among its running order's live cues (app.move_cue): one
+ * transaction. The database refuses a called cue (cue_move_called) and a place at or before the
+ * last called cue (cue_move_before_called).
+ */
+export async function moveCueToAction(
+  org: string,
+  runId: string,
+  cueId: string,
+  position: number,
+): Promise<ActionResult<{ position: number }>> {
+  const ctx = await context(org);
+  if (
+    !id.safeParse(runId).success ||
+    !id.safeParse(cueId).success ||
+    !z.number().int().min(1).max(10_000).safeParse(position).success
+  ) {
+    return invalid();
+  }
+  const result = await moveCueTo(ctx.viewer.db, cueId, position);
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(result.data);
+}
+
+/** The departments a cue's calls go to, from app.cue_call_kind (never written out again). */
+const cueCallKind = z.enum(CUE_CALL_KINDS);
+
+/**
+ * Saves a cue's department calls in one call (app.save_cue_calls): an instruction per department,
+ * or null to clear it. Needs show.run_of_show.write; an unknown department is refused.
+ */
+export async function saveCueCallsAction(
+  org: string,
+  cueId: string,
+  calls: Record<string, string | null>,
+): Promise<ActionResult> {
+  const ctx = await context(org);
+  const parsed = z.partialRecord(cueCallKind, z.string().max(2000).nullable()).safeParse(calls);
+  if (!id.safeParse(cueId).success || !parsed.success) return invalid("cueCall");
+  const result = await saveCueCalls(ctx.viewer.db, cueId, parsed.data);
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
+/**
+ * Puts a cue on standby, or clears the standby when `cueId` is null (app.standby_cue): followers
+ * see "Standby" through Realtime. Needs show.cue.call; a called cue is refused.
+ */
+export async function standbyCueAction(
+  org: string,
+  runId: string,
+  cueId: string | null,
+): Promise<ActionResult> {
+  const ctx = await context(org);
+  if (!id.safeParse(runId).success || (cueId !== null && !id.safeParse(cueId).success)) {
+    return invalid();
+  }
+  const result = await standbyCue(ctx.viewer.db, runId, cueId);
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(null);
+}
+
+/**
+ * Nudges the planned time of every uncalled cue of a running order by `seconds`, between -3600 and
+ * 3600 and not 0 (app.shift_cue_plan). The caller (show.cue.call) or an editor may nudge.
+ */
+export async function shiftCuePlanAction(
+  org: string,
+  runId: string,
+  seconds: number,
+): Promise<ActionResult<{ count: number }>> {
+  const ctx = await context(org);
+  const parsed = z
+    .number()
+    .int()
+    .min(-3600)
+    .max(3600)
+    .refine((n) => n !== 0)
+    .safeParse(seconds);
+  if (!id.safeParse(runId).success || !parsed.success) return invalid();
+  const result = await shiftCuePlan(ctx.viewer.db, runId, parsed.data);
+  if (!result.ok) return failed(result.error);
+  refresh(org);
+  return done(result.data);
 }
 
 /**
@@ -198,9 +308,8 @@ export async function removeCueAction(org: string, cueId: string): Promise<Actio
   return done(null);
 }
 
-/** Calls a cue now (journey 15). */
 /**
- * Calls a cue and answers with the database's call time. It rerenders nothing: the caller's page shows the call from
+ * Calls a cue now (journey 15) and answers with the database's call time. It rerenders nothing: the caller's page shows the call from
  * that time and rereads itself, and every other device hears it through Realtime, so no render competes with the
  * call reaching them (Section 11.11, cue sync under 500 ms; ADR 0119).
  */
