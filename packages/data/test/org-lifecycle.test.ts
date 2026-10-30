@@ -69,6 +69,11 @@ describe("banner status", () => {
             ownership_transfer_id: "tr-1",
             ownership_offered_by: "Alice Moreno",
             ownership_expires_at: "2026-10-27T00:00:00Z",
+            over_limit_plan: "access",
+            read_only_projects: 2,
+            read_only_seats: 1,
+            read_only_field_seats: 0,
+            own_seat_read_only: "seats",
           },
         ]),
       ],
@@ -91,6 +96,9 @@ describe("banner status", () => {
           offeredBy: "Alice Moreno",
           expiresAt: "2026-10-27T00:00:00Z",
         },
+        overLimit: { planCode: "access", projects: 2, seats: 1, fieldSeats: 0 },
+        ownSeatReadOnly: "seats",
+        pause: null,
       },
     });
     expect(calls[0]?.steps[0]).toEqual(["args", [{ p_org_id: "org-1" }]]);
@@ -99,6 +107,35 @@ describe("banner status", () => {
       billingState: null,
     });
     expect(toBannerStatus(undefined).trialPlan).toBeNull();
+    // B16 (3051): a pause, started or scheduled, with or without a resume date.
+    const now = new Date("2026-10-30T12:00:00Z");
+    expect(
+      toBannerStatus(
+        {
+          read_only_reason: "paused",
+          pause_starts_at: "2026-10-01T00:00:00Z",
+          pause_resumes_at: "2026-12-01T00:00:00Z",
+        },
+        now,
+      ),
+    ).toMatchObject({
+      readOnlyReason: "paused",
+      pause: { startsAt: "2026-10-01T00:00:00Z", resumesAt: "2026-12-01T00:00:00Z", started: true },
+    });
+    expect(
+      toBannerStatus({ pause_starts_at: "2026-11-15T00:00:00Z", pause_resumes_at: null }, now)
+        .pause,
+    ).toEqual({
+      startsAt: "2026-11-15T00:00:00Z",
+      resumesAt: null,
+      started: false,
+    });
+    expect(toBannerStatus({ over_limit_plan: null, own_seat_read_only: "projects" })).toMatchObject(
+      {
+        overLimit: null,
+        ownSeatReadOnly: null,
+      },
+    );
   });
 
   it("counts dunning days and the read-only day", () => {

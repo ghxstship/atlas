@@ -4,16 +4,25 @@ import {
   BillingNotConfiguredError,
   CheckoutCompletedError,
   NotSelfServeError,
+  PauseRefusedError,
   PriceNotFoundError,
   billingConfigured,
   billingLivemode,
   createStripeClient,
   openBillingPortal,
+  pauseSubscription,
+  resumeSubscription,
   startPlanCheckout,
 } from "@xos/platform/billing";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { PLAN_REGISTRY } from "@/lib/billing/plan-registry.generated";
-import { BillingDataError, atlasBillingEnv, checkoutAccountStore } from "@/lib/billing/stripe";
+import {
+  BillingDataError,
+  atlasBillingEnv,
+  checkoutAccountStore,
+  pauseAccountStore,
+} from "@/lib/billing/stripe";
 import { env } from "@/lib/env";
 import { contextFor } from "@/lib/platform/action-context";
 import { done, field, inputError, type PlatformActionState } from "@/lib/platform/state";
@@ -43,6 +52,7 @@ function billingFailure(error: unknown): PlatformActionState {
   if (error instanceof NotSelfServeError) return refused("plan_not_self_serve");
   if (error instanceof PriceNotFoundError) return refused("billing_price_missing");
   if (error instanceof BillingNotConfiguredError) return refused("billing_not_open");
+  if (error instanceof PauseRefusedError) return refused(error.rule);
   observability.logger.error("billing action failed", { error: error });
   return { error: "unexpected", at: Date.now() };
 }
@@ -98,6 +108,54 @@ export async function openBillingPortalAction(
       returnUrl: billingPage(ctx.org.slug),
     });
     return done(undefined, url);
+  } catch (error) {
+    return billingFailure(error);
+  }
+}
+
+/**
+ * Pauses the org's monthly plan for whole months (B16, ADR 0155 D4): the database's checks (step-up last), then
+ * Stripe's own state, then pause_collection, then the record. Answers the pause's start as `value`.
+ */
+export async function pauseSubscriptionAction(
+  _: PlatformActionState,
+  form: FormData,
+): Promise<PlatformActionState> {
+  const ctx = await contextFor(form);
+  const months = z.coerce.number().int().min(1).max(6).safeParse(field(form, "months"));
+  if (!months.success) return inputError();
+  const billing = atlasBillingEnv();
+  if (!billingConfigured(billing)) return refused("billing_not_open");
+  try {
+    const stripe = await createStripeClient(billing);
+    const paused = await pauseSubscription(stripe, pauseAccountStore(ctx.viewer.db), {
+      orgId: ctx.org.id,
+      months: months.data,
+      livemode: billingLivemode(billing),
+    });
+    revalidatePath(`/${ctx.org.slug}`, "layout");
+    return done(paused.pauseId, paused.startsAt);
+  } catch (error) {
+    return billingFailure(error);
+  }
+}
+
+/** Resumes the org's billing now, or cancels a pause that has not started (B16). */
+export async function resumeSubscriptionAction(
+  _: PlatformActionState,
+  form: FormData,
+): Promise<PlatformActionState> {
+  const ctx = await contextFor(form);
+  const billing = atlasBillingEnv();
+  if (!billingConfigured(billing)) return refused("billing_not_open");
+  try {
+    const stripe = await createStripeClient(billing);
+    const resumed = await resumeSubscription(stripe, pauseAccountStore(ctx.viewer.db), {
+      orgId: ctx.org.id,
+      livemode: billingLivemode(billing),
+    });
+    revalidatePath(`/${ctx.org.slug}`, "layout");
+    return done(resumed.pauseId);
   } catch (error) {
     return billingFailure(error);
   }

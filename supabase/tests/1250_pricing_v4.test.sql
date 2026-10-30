@@ -21,7 +21,7 @@ select ok(not has_function_privilege('authenticated',
   'app.record_addon_purchase_from_stripe(uuid, text, integer, text, text, bigint, boolean, timestamptz)', 'execute'),
   'only the service role records a paid add-on');
 select ok(not has_function_privilege('authenticated',
-  'app.sync_subscription_from_stripe(uuid, text, text, text, app.billing_interval, text, timestamptz, boolean, integer)', 'execute'),
+  'app.sync_subscription_from_stripe(uuid, text, text, text, app.billing_interval, text, timestamptz, boolean, integer, boolean, timestamptz, timestamptz)', 'execute'),
   'only the service role syncs a Stripe subscription');
 select ok(not has_column_privilege('authenticated', 'app.subscriptions', 'extra_seats', 'update'),
   'an Owner cannot grant the org extra seats by writing the subscription');

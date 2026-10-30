@@ -1,6 +1,7 @@
 /**
  * The API host (RRR-119, lib/api-host.ts): with XOS_API_HOST set, the proxy answers that host as
- * the public API before any page work. `/v1/*` is rewritten to the API route, `/` describes the API,
+ * the public API before any page work. `/v1/*` is rewritten to the API route, `/mcp` to the hosted MCP route
+ * (B16), `/` describes the API,
  * everything else is a 404 problem, and no session is read and no cookie is set there.
  */
 import { NextRequest } from "next/server";
@@ -48,6 +49,14 @@ describe("answering the API host", () => {
     );
     expect(res.headers.get("strict-transport-security")).toContain("max-age=");
     expect(res.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("rewrites /mcp to the hosted MCP route (B16)", () => {
+    const res = apiHostResponse(request("/mcp", { method: "POST" }), config);
+    expect(res.headers.get("x-middleware-rewrite")).toBe(`https://${API_HOST}/api/mcp`);
+    expect(res.headers.get("set-cookie")).toBeNull();
+    const deeper = apiHostResponse(request("/mcp/other"), config);
+    expect(deeper.status).toBe(404);
   });
 
   it("sends /oauth/authorize to Atlas's own authorize route, keeping the query (A99)", () => {

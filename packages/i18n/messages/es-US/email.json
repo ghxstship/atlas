@@ -121,6 +121,14 @@
       "trial_ended": {
         "subject": "Su prueba de Pro terminó",
         "body": "Su organización ahora está en el plan Access. No se eliminó ningún dato. Agregue una tarjeta en Facturación y plan cuando quiera volver a Pro."
+      },
+      "paused": {
+        "subject": "Su organización está en pausa",
+        "body": "La facturación está en pausa y la organización es de solo lectura {resumesOn, select, none {hasta que el propietario la reanude} other {hasta el {resumesOn}}}. Todo sigue disponible para leer y exportar, y no se elimina ningún dato."
+      },
+      "resumed": {
+        "subject": "Su organización se reanudó",
+        "body": "La pausa terminó. La organización vuelve a permitir cambios y la facturación continúa."
       }
     },
     "message": {
@@ -293,6 +301,12 @@
       "removed": {
         "subject": "{subject, select, comment {Se eliminó tu comentario} message {Se eliminó tu mensaje} other {Se eliminó tu publicación}}",
         "body": "Los moderadores de tu organización eliminaron tu {subject, select, comment {comentario} message {mensaje} other {publicación}} según {ruleReference}. {statement}"
+      }
+    },
+    "agent": {
+      "change_proposed": {
+        "subject": "{app} propuso un cambio",
+        "body": "{app} propuso {operation}. Revíselo en Configuración personal, Aplicaciones conectadas; nada cambia hasta que lo confirme."
       }
     }
   },

@@ -95,7 +95,7 @@ export interface StripeClient {
     readonly sessions: Pick<Stripe["billingPortal"]["sessions"], "create">;
     readonly configurations: Pick<Stripe["billingPortal"]["configurations"], "list">;
   };
-  readonly subscriptions: Pick<Stripe["subscriptions"], "retrieve" | "update">;
+  readonly subscriptions: Pick<Stripe["subscriptions"], "retrieve" | "update" | "resume">;
 }
 
 /** Where the SDK sends requests: Stripe itself, or the loopback fake of STRIPE_API_URL. */

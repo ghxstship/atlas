@@ -36,3 +36,12 @@ export {
   type CheckoutAccountStore,
   type PlanCheckoutRequest,
 } from "./upgrade.ts";
+export {
+  PauseRefusedError,
+  pauseRefusal,
+  pauseSubscription,
+  resumeSubscription,
+  stripeResumesAt,
+  type PauseAccountStore,
+  type PauseRefusalRule,
+} from "./pause.ts";

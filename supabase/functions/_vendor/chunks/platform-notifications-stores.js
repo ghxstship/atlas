@@ -79,6 +79,18 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "agent.change_proposed",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Push"],
+    copy: {
+      subject: "kinds.agent.change_proposed.subject",
+      body: "kinds.agent.change_proposed.body",
+    },
+  },
+  {
     kind: "approval.decided",
     category: "approvals",
     emailTemplate: "notification",
@@ -316,6 +328,30 @@ var NOTIFICATION_KINDS = [
     copy: {
       subject: "kinds.billing.trial_ended.subject",
       body: "kinds.billing.trial_ended.body",
+    },
+  },
+  {
+    kind: "billing.paused",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.billing.paused.subject",
+      body: "kinds.billing.paused.body",
+    },
+  },
+  {
+    kind: "billing.resumed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.billing.resumed.subject",
+      body: "kinds.billing.resumed.body",
     },
   },
   {
@@ -744,7 +780,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1639_notification_kind_seed.sql"
+"supabase/migrations/3059_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion

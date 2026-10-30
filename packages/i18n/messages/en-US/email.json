@@ -121,6 +121,14 @@
       "trial_ended": {
         "subject": "Your Pro trial has ended",
         "body": "Your organization is now on the Access plan. No data was deleted. Add a card in Billing and plan whenever you want Pro back."
+      },
+      "paused": {
+        "subject": "Your organization is paused",
+        "body": "Billing is paused and the organization is read-only {resumesOn, select, none {until the Owner resumes it} other {until {resumesOn}}}. Everything stays readable and exportable, and no data is deleted."
+      },
+      "resumed": {
+        "subject": "Your organization has resumed",
+        "body": "The pause has ended. The organization is writable again and billing continues."
       }
     },
     "message": {
@@ -293,6 +301,12 @@
       "removed": {
         "subject": "{subject, select, comment {Your comment was removed} message {Your message was removed} other {Your post was removed}}",
         "body": "Your organization's moderators removed your {subject, select, comment {comment} message {message} other {post}} under {ruleReference}. {statement}"
+      }
+    },
+    "agent": {
+      "change_proposed": {
+        "subject": "{app} proposed a change",
+        "body": "{app} proposed {operation}. Review it in Personal settings, Connected apps; nothing changes until you confirm it."
       }
     }
   },

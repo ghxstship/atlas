@@ -126,6 +126,12 @@ derived:
     refresh: Written only with the ciphertext, by the encrypting RPC (`app.set_org_legal_entity_tax_identifier`, `app.set_my_passport_number`, `app.set_supplier_diversity_certificate_number`, `app.set_vendor_bank_account`); each table's guard trigger refuses a write of either outside it (1200, 1340, 2010, 2011)
     reason: The number is Restricted and encrypted under a Vault key no signed-in caller holds, so the last four cannot be computed when a row is read; readers tell records apart by it, as the v1 API's `account_last4` does (ADR 0057)
     adr: "0057"
+  - objects:
+      - app.over_limit_objects
+    source: Objects each object limit counts, ranked against `private.org_plan_limits` and `app.plan_limit_choices`
+    refresh: Rewritten by `private.recompute_over_limit` from triggers on subscriptions, projects, memberships, roles and plan limits, by the Owner's choice and by the hourly lifecycle job; a row goes as soon as its object is writable (2070)
+    reason: The row guard runs on every write to every org table and asks one indexed question instead of ranking an org's projects and members per write; the banner call counts without ranking
+    adr: "0081"
 
 # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
 # never follows a foreign key made only of them.
@@ -181,6 +187,9 @@ json:
   - column: app.ai_suggestion_fields.proposed_value
     kind: provider-payload
     note: A field value the AI model proposed, kept as it answered until a person accepts or edits it.
+  - column: app.ai_suggestions.operation_request
+    kind: provider-payload
+    note: How Atlas calls the operation a connected app proposed (path values and If-Match), as the app sent it; read whole when the person confirms (migration 3052).
   - column: app.audit_events.diff
     kind: audit-diff
     note: The audit ledger's diff of each write.
@@ -253,6 +262,9 @@ arrays:
   - column: app.api_keys.scopes
     kind: reviewed
     note: Capability groups checked against the registry on every write (A22-009).
+  - column: app.mcp_connectors.default_scopes
+    kind: reviewed
+    note: Capability groups a connector offers by default, checked against the registry and never Restricted (migration 3052).
   - column: app.oauth_grants.scopes
     kind: reviewed
     note: Capability groups checked against the registry on every write (A22-009).

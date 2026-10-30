@@ -15,6 +15,8 @@ const KNOWN = new Set([
   "provider_error",
   "email_not_verified",
   "sso_required",
+  // Raised by the org blocklist (B16, migration 3050) when single sign-on would add a blocked person.
+  "member_blocked",
 ]);
 
 const ALIASES: Readonly<Record<string, string>> = {
@@ -48,6 +50,7 @@ export type AuthErrorKey =
   | "provider_error"
   | "email_not_verified"
   | "sso_required"
+  | "member_blocked"
   | "unexpected";
 
 export function authErrorKey(error: {

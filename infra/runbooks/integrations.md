@@ -88,8 +88,30 @@ from the calendar connector is a follow-up; until then, calendars sync on the sc
 Sheets API and the Google Drive API enabled, and the OAuth consent screen must list
 `https://www.googleapis.com/auth/spreadsheets.readonly` (or `drive.readonly`). A customer connects Drive in Atlas;
 the import worker reads a pasted Sheets link with that connection's token, so the sheet must be shared with the
-Google account that connected Drive. Connections store an access token without a refresh flow today, so a token
-that expired fails the import with "reconnect Google Drive" until the OAuth refresh flow lands.
+Google account that connected Drive. The import worker still reads the stored access token without renewing it, so
+a Sheets import after the token expired fails with "reconnect Google Drive"; the storage connectors renew it (below).
+
+**Google Drive and OneDrive sign-in (B16, ADR 0155 D5).** Connect with Google and Connect with Microsoft run the
+authorization code flow with PKCE S256 on the platform's own OAuth apps, and keep a refresh token in Vault; the
+integration worker and the `storage-browse` Edge Function renew the access token 5 minutes before it expires and
+store the rotated tokens. A refresh the provider answers `invalid_grant` moves the connection to Error with
+`credential_revoked` and "Reconnect Google Drive" (or OneDrive).
+
+- Google Cloud (the platform project): create an OAuth web client. Redirect URI
+  `<ATLAS_SITE_URL>/oauth/integrations/callback`. Enable the Google Drive API and the Google Sheets API, and add
+  `https://www.googleapis.com/auth/drive.readonly` to the consent screen. That scope is restricted: start Google's
+  verification, including the security assessment. Until it passes the app runs in Testing mode, with at most 100
+  listed test users and refresh tokens that expire after 7 days.
+- Microsoft Entra: register a multi-tenant app (accounts in any directory and personal accounts), web redirect URI
+  `<ATLAS_SITE_URL>/oauth/integrations/callback`, delegated permissions `offline_access`, `Files.Read.All` and
+  `User.Read`, and complete publisher verification. Some tenants need an admin to consent to `Files.Read.All`.
+- Put each pair only into `XOS_GOOGLE_STORAGE_CLIENT_ID` and `XOS_GOOGLE_STORAGE_CLIENT_SECRET`, and
+  `XOS_MICROSOFT_STORAGE_CLIENT_ID` and `XOS_MICROSOFT_STORAGE_CLIENT_SECRET`: in Vercel (Atlas) and in the Edge
+  Function secrets (`integration-worker`, `storage-browse`). Without a pair, its button is disabled with "not set up
+  on this XOS yet". Then deploy: `supabase functions deploy storage-browse integration-worker stripe-webhook
+--project-ref <ref>`.
+- After connecting, an Admin chooses the connection's linking folder in Settings, Integrations. Document writers
+  browse and link only inside it, so nobody browses the Admin's own files. Dropbox stays on pasted tokens.
 
 ## 4. Warehouse delivery (Enterprise)
 

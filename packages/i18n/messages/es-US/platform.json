@@ -37,6 +37,7 @@
     "slug_reserved": "Esa dirección web está reservada por la plataforma. Elija otra.",
     "plan_unknown": "Ese plan no existe.",
     "plan_limit_exceeded": "Se alcanzó el límite de su plan. Mejore el plan o quite algo primero.",
+    "plan_limit_read_only": "Esto es de solo lectura porque la organización supera los límites de su plan. El aviso en la parte superior de la página indica qué límite y cómo levantarlo.",
     "seat_limit_reached": "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
     "seat_limit_upgrade": "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
     "plan_feature_required": "Su plan no incluye esto. Mejore el plan para usarlo.",
@@ -598,7 +599,9 @@
         "payment_failed": "Pago fallido",
         "read_only": "La organización está en modo de solo lectura",
         "trial_ending": "La prueba termina pronto",
-        "trial_ended": "La prueba terminó"
+        "trial_ended": "La prueba terminó",
+        "paused": "Organización en pausa",
+        "resumed": "Organización reanudada"
       },
       "comment": {
         "created": "Nuevo comentario"
@@ -692,6 +695,9 @@
       },
       "content": {
         "removed": "Se eliminó tu contenido"
+      },
+      "agent": {
+        "change_proposed": "Una aplicación conectada propuso un cambio"
       }
     },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",

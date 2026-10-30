@@ -317,6 +317,11 @@ export interface AiRequestLogEntry {
   readonly createdAt: string;
   readonly inputTokens: number | null;
   readonly outputTokens: number | null;
+  /**
+   * The connected app that proposed a change through hosted MCP (B16, 3052), named instead of Aurora; null for
+   * Aurora's own requests. The name is null too when the reader cannot see the app (org.settings.read).
+   */
+  readonly connectedApp: { readonly id: string; readonly name: string | null } | null;
 }
 
 interface UsageCell {
@@ -339,7 +344,7 @@ export async function listAiRequests(
   const { data, error } = await db
     .from("ai_requests")
     .select(
-      "id, person_id, feature, model, outcome, created_at, ai_usage(input_tokens, output_tokens)",
+      "id, person_id, feature, model, outcome, created_at, oauth_app_id, oauth_apps(name), ai_usage(input_tokens, output_tokens)",
     )
     .eq("org_id", orgId)
     .order("created_at", { ascending: false })
@@ -354,6 +359,8 @@ export async function listAiRequests(
         model: string;
         outcome: AiRequestLogEntry["outcome"];
         created_at: string;
+        oauth_app_id?: string | null;
+        oauth_apps?: { name: string } | { name: string }[] | null;
         ai_usage: UsageCell | UsageCell[] | null;
       }[]
     ).map((r) => ({
@@ -365,6 +372,12 @@ export async function listAiRequests(
       createdAt: r.created_at,
       inputTokens: firstUsage(r.ai_usage)?.input_tokens ?? null,
       outputTokens: firstUsage(r.ai_usage)?.output_tokens ?? null,
+      connectedApp: r.oauth_app_id
+        ? {
+            id: r.oauth_app_id,
+            name: (Array.isArray(r.oauth_apps) ? r.oauth_apps[0] : r.oauth_apps)?.name ?? null,
+          }
+        : null,
     })),
   );
 }

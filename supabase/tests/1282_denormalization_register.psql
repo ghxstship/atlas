@@ -29,6 +29,7 @@ insert into register_own_names values
 create temporary table register_json (column_name text not null, exception text not null, primary key (column_name));
 insert into register_json values
   ('app.ai_suggestion_fields.proposed_value', 'provider-payload'),
+  ('app.ai_suggestions.operation_request', 'provider-payload'),
   ('app.audit_events.diff', 'audit-diff'),
   ('app.automation_run_steps.request_body', 'provider-payload'),
   ('app.automation_run_steps.response_body', 'provider-payload'),
@@ -54,6 +55,7 @@ insert into register_json values
 create temporary table register_arrays (column_name text not null, kind text not null, primary key (column_name));
 insert into register_arrays values
   ('app.api_keys.scopes', 'reviewed'),
+  ('app.mcp_connectors.default_scopes', 'reviewed'),
   ('app.oauth_grants.scopes', 'reviewed'),
   ('app.person_work_details.accessibility_needs', 'reviewed'),
   ('app.person_work_details.dietary_needs', 'reviewed'),

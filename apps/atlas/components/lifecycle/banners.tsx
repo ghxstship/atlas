@@ -10,6 +10,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { OwnershipOfferActions } from "@/components/lifecycle/ownership-offer";
+import { OverLimitBanners } from "@/components/plan-limits/banners";
 import { Banner } from "@/components/platform/client/banner";
 import { getFormatters } from "@/lib/platform/format";
 import type { OrgContext } from "@/lib/shell/context";
@@ -19,8 +20,9 @@ import { getOrgTimeZone } from "@/lib/shell/time-zone";
  * A79's org banners (Section 12, Section 14.7, Section 16), from the one banner status call
  * (app.org_banner_status): the org waiting for deletion, the dunning state (Owners and Admins from the day a
  * payment fails, everyone once the org is read-only on day 21), the trial countdown for billing owners,
- * white label kept to the end of a paid period after a downgrade, and an ownership offer made to the viewer.
- * Each names its fix and links to where it is made. Every date and count is on the org's calendar
+ * white label kept to the end of a paid period after a downgrade, an ownership offer made to the viewer, a subscription
+ * pause (B16: started for everyone with the Owner's resume link, scheduled for billing readers), and what plan
+ * limits made read-only (A107, components/plan-limits/banners.tsx). Each names its fix and links to where it is made. Every date and count is on the org's calendar
  * (getOrgTimeZone): a window's last day, never the UTC date of its end.
  */
 
@@ -150,6 +152,45 @@ export async function LifecycleBanners({
       </Banner>,
     );
   }
+
+  if (status.pause) {
+    // B16 (3051, ADR 0155 D4): every member sees a started pause; billing readers see a scheduled one coming.
+    const p = (await getTranslations("subscriptionPause")) as unknown as (
+      key: string,
+      values?: Record<string, string | number>,
+    ) => string;
+    const resumes = status.pause.resumesAt ? date(dayOf(status.pause.resumesAt, zone)) : null;
+    if (status.pause.started) {
+      banners.push(
+        <Banner key="paused" tone="warning" icon="Lock">
+          <span data-testid="paused-banner">
+            {resumes ? p("banner", { date: resumes }) : p("bannerOpen")}{" "}
+            {owner ? (
+              <Link href={billingHref} className={linkClass}>
+                {p("bannerResume")}
+              </Link>
+            ) : null}
+          </span>
+        </Banner>,
+      );
+    } else if (ctx.capabilities.has("org.billing.read")) {
+      banners.push(
+        <Banner key="pause-scheduled" tone="info" icon="Calendar">
+          <span data-testid="pause-scheduled-banner">
+            {p("bannerScheduled", {
+              startsOn: date(dayOf(status.pause.startsAt, zone)),
+              resumesOn: resumes ?? "",
+            })}{" "}
+            <Link href={billingHref} className={linkClass}>
+              {p("bannerResume")}
+            </Link>
+          </span>
+        </Banner>,
+      );
+    }
+  }
+
+  banners.push(...(await OverLimitBanners({ ctx, status })));
 
   return banners.length > 0 ? <>{banners}</> : null;
 }

@@ -126,3 +126,114 @@ export async function getBillingAccount(
     currentPeriodEnd: textOrNull(row.current_period_end),
   });
 }
+
+// Subscription pause (B16, migration 3051, ADR 0155 D4) -----------------------------------------------------------
+
+/** When a pause the database checked starts and resumes, and the Stripe subscription to pause. */
+export interface PauseStart {
+  readonly stripeSubscriptionId: string;
+  readonly startsAt: string;
+  readonly resumesAt: string;
+}
+
+/** app.begin_subscription_pause: the pause checks in order, step-up last. */
+export async function beginSubscriptionPause(
+  db: XosClient,
+  input: { readonly orgId: string; readonly months: number; readonly livemode: boolean },
+): Promise<Result<PauseStart>> {
+  const { data, error } = await db.rpc("begin_subscription_pause", {
+    p_org_id: input.orgId,
+    p_months: input.months,
+    p_livemode: input.livemode,
+  });
+  if (error) return fail(toDataError(error));
+  const row = data[0];
+  if (row === undefined) {
+    return fail({ kind: "unexpected", message: "begin_subscription_pause returned no row" });
+  }
+  return ok({
+    stripeSubscriptionId: row.stripe_subscription_id,
+    startsAt: row.starts_at,
+    resumesAt: row.resumes_at,
+  });
+}
+
+/** app.record_subscription_pause: records the pause once Stripe set pause_collection; returns its id. */
+export async function recordSubscriptionPause(
+  db: XosClient,
+  input: {
+    readonly orgId: string;
+    readonly months: number;
+    readonly livemode: boolean;
+    readonly stripeSubscriptionId: string;
+  },
+): Promise<Result<string>> {
+  const { data, error } = await db.rpc("record_subscription_pause", {
+    p_org_id: input.orgId,
+    p_months: input.months,
+    p_livemode: input.livemode,
+    p_stripe_subscription_id: input.stripeSubscriptionId,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(data);
+}
+
+/** app.begin_subscription_resume: the Stripe subscription and whether the pause has started. */
+export async function beginSubscriptionResume(
+  db: XosClient,
+  input: { readonly orgId: string; readonly livemode: boolean },
+): Promise<Result<{ readonly stripeSubscriptionId: string; readonly started: boolean }>> {
+  const { data, error } = await db.rpc("begin_subscription_resume", {
+    p_org_id: input.orgId,
+    p_livemode: input.livemode,
+  });
+  if (error) return fail(toDataError(error));
+  const row = data[0];
+  if (row === undefined) {
+    return fail({ kind: "unexpected", message: "begin_subscription_resume returned no row" });
+  }
+  return ok({ stripeSubscriptionId: row.stripe_subscription_id, started: row.started });
+}
+
+/** app.record_subscription_resume: ends the pause as Resumed by Owner once Stripe resumed. */
+export async function recordSubscriptionResume(
+  db: XosClient,
+  input: { readonly orgId: string; readonly livemode: boolean },
+): Promise<Result<string>> {
+  const { data, error } = await db.rpc("record_subscription_resume", {
+    p_org_id: input.orgId,
+    p_livemode: input.livemode,
+  });
+  if (error) return fail(toDataError(error));
+  return ok(data);
+}
+
+/** The org's open subscription pause, as Billing and Plan shows it. */
+export interface SubscriptionPause {
+  readonly pauseId: string;
+  readonly source: "Owner" | "Stripe";
+  /** Whole months, or null for an open-ended pause set in Stripe. */
+  readonly months: number | null;
+  readonly startsAt: string;
+  readonly resumesAt: string | null;
+  readonly started: boolean;
+}
+
+/** app.subscription_pause_status, for people with org.billing.read: the open pause, or null. */
+export async function getSubscriptionPause(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<SubscriptionPause | null>> {
+  const { data, error } = await db.rpc("subscription_pause_status", { p_org_id: orgId });
+  if (error) return fail(toDataError(error));
+  const row = data[0];
+  if (row === undefined) return ok(null);
+  return ok({
+    pauseId: row.pause_id,
+    source: row.source === "Stripe" ? "Stripe" : "Owner",
+    months: typeof row.months === "number" ? row.months : null,
+    startsAt: row.starts_at,
+    resumesAt: textOrNull(row.resumes_at),
+    started: row.started,
+  });
+}

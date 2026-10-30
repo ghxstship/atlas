@@ -73,6 +73,7 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0075](0075-selection-menus-and-hover-cards-in-every-view.md)       | Selection, Record Menus and Hover Cards in Every View                            | Accepted |
 | [0076](0076-custom-fields-on-pages-and-the-filter-builder.md)       | Custom Fields on Pages, and the Add Filter Control                               | Accepted |
 | [0080](0080-operations-bulk-edit-and-undo.md)                       | Operations Bulk Edit, Undo for Their Deletes and Day Sheet Drafts                | Accepted |
+| [0081](0081-objects-over-plan-limits-become-read-only.md)           | Objects Over the Plan's Limits Become Read-Only                                  | Proposed |
 | [0082](0082-gateway-power-editing.md)                               | Power Editing in Gateway                                                         | Accepted |
 | [0083](0083-live-lists-dispatch-board-and-presence.md)              | Live Lists, a Realtime Dispatch Board, and Presence on Records                   | Proposed |
 | [0087](0087-dashboard-template-and-template-roots.md)               | The Dashboard Template, Saved Spans and Template Roots                           | Accepted |
@@ -85,5 +86,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0114](0114-stricter-separation-of-duties-options.md)               | Stricter Separation of Duties Options                                            | Proposed |
 | [0120](0120-registry-lints-for-capabilities-and-routes.md)          | Registry Lints for Capability Codes and Route Paths                              | Accepted |
 | [0121](0121-onboarding-progress-and-changelog-entries.md)           | Onboarding Progress and Changelog Entries Without Their Own Tables               | Accepted |
+| [0155](0155-hosted-mcp-blocklist-pause-and-storage-links.md)        | Hosted MCP, the Member Blocklist, Subscription Pauses and Storage Links in Place | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason, and the reviewed lists the schema lints read (ADR 0068). It is generated from [`denormalization-register.yaml`](denormalization-register.yaml).

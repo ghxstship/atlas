@@ -22,20 +22,36 @@ export interface AuthorizeRequest {
   readonly state: string | null;
   readonly codeChallenge: string;
   readonly codeChallengeMethod: "S256";
-  /** Capability groups the app asks for, from `scope`. */
+  /**
+   * Capability groups the app asks for, from `scope`. Empty when the app sent none: the authorize route then fills
+   * them from an MCP connector's defaults (app.oauth_default_scopes, 3052) and refuses scope when there are none.
+   */
   readonly scopes: readonly string[];
+  /** The RFC 8707 `resource` the app named, one of the resources XOS serves; null when it named none. */
+  readonly resource: string | null;
 }
 
 export type AuthorizeProblem =
-  "client_id" | "redirect_uri" | "response_type" | "pkce" | "scope" | "state";
+  "client_id" | "redirect_uri" | "response_type" | "pkce" | "scope" | "state" | "resource";
+
+/**
+ * Whether an RFC 8707 `resource` names one of the resources XOS serves (the MCP and API resource URLs, ADR 0155 D1).
+ * Supabase Auth issues tokens with aud authenticated, so a token is never bound to the resource; a foreign one is
+ * refused so an app cannot believe it got a token for somewhere else.
+ */
+export function resourceAllowed(resource: string, resources: readonly string[]): boolean {
+  return resources.includes(resource);
+}
 
 /**
  * Validates an authorization request as RFC 6749 and OAuth 2.1 describe it, before anything is sent on: a client id
  * (Supabase Auth's client uuid), the registered redirect URI, `response_type=code`, PKCE with S256 (a 43 to 128
- * character challenge; plain is refused) and at least one capability group in `scope`.
+ * character challenge; plain is refused), at most 40 capability groups in `scope` (none is allowed here: an MCP
+ * connector's defaults fill them, B16) and, when present, a `resource` XOS serves.
  */
 export function parseAuthorizeRequest(
   params: URLSearchParams,
+  options: { readonly resources?: readonly string[] } = {},
 ):
   | { readonly ok: true; readonly request: AuthorizeRequest }
   | { readonly ok: false; readonly problem: AuthorizeProblem } {
@@ -63,15 +79,18 @@ export function parseAuthorizeRequest(
         .filter((s) => s !== "" && !["openid", "email", "profile", "phone"].includes(s)),
     ),
   ].sort();
-  if (
-    scopes.length === 0 ||
-    scopes.length > 40 ||
-    scopes.some((s) => !/^[a-z][a-z0-9_]*$/.test(s))
-  ) {
+  if (scopes.length > 40 || scopes.some((s) => !/^[a-z][a-z0-9_]*$/.test(s))) {
     return { ok: false, problem: "scope" };
   }
   const state = params.get("state");
   if (state !== null && state.length > 2000) return { ok: false, problem: "state" };
+  const resources = params.getAll("resource");
+  if (
+    resources.length > 1 ||
+    (resources[0] !== undefined && !resourceAllowed(resources[0], options.resources ?? []))
+  ) {
+    return { ok: false, problem: "resource" };
+  }
   return {
     ok: true,
     request: {
@@ -81,11 +100,38 @@ export function parseAuthorizeRequest(
       codeChallenge: challenge,
       codeChallengeMethod: "S256",
       scopes,
+      resource: resources[0] ?? null,
     },
   };
 }
 
-/** Supabase Auth's authorization endpoint for a request, asking for its own scope only. */
+/**
+ * A token request as `/oauth/token` forwards it: MCP clients send `resource` there too, which is checked exactly as
+ * at authorize and then left out, since Supabase Auth takes no resource (ADR 0155 D1). Returns the body to forward.
+ */
+export function tokenRequestBody(
+  body: string,
+  resources: readonly string[],
+): { readonly ok: true; readonly body: string } | { readonly ok: false } {
+  const params = new URLSearchParams(body);
+  const named = params.getAll("resource");
+  if (named.length === 0) return { ok: true, body };
+  if (named.length > 1 || !resourceAllowed(named[0] ?? "", resources)) return { ok: false };
+  params.delete("resource");
+  return { ok: true, body: params.toString() };
+}
+
+/** An MCP connector's default capability groups for its Supabase Auth client (app.oauth_default_scopes, 3052). */
+export async function oauthDefaultScopes(
+  db: XosClient,
+  clientId: string,
+): Promise<Result<readonly string[]>> {
+  const { data, error } = await db.rpc("oauth_default_scopes", { p_client_id: clientId });
+  if (error) return fail(toDataError(error));
+  return ok(Array.isArray(data) ? data.filter((v): v is string => typeof v === "string") : []);
+}
+
+/** Supabase Auth's authorization endpoint for a request, asking for its own scope only; `resource` is never sent on. */
 export function supabaseAuthorizeUrl(supabaseUrl: string, request: AuthorizeRequest): string {
   const query = new URLSearchParams({
     client_id: request.clientId,

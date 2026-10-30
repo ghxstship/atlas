@@ -15,6 +15,7 @@ import {
   storageConnectors,
   supabaseBlobStore,
   supabaseStorageSource,
+  type StorageOAuthClients,
 } from "./connectors/storage/index.ts";
 import { supabaseTicketingSource, ticketingConnectors } from "./connectors/ticketing/index.ts";
 
@@ -31,6 +32,8 @@ export interface WorkerDeps {
   readonly http: HttpClient;
   readonly resolve: HostResolver;
   readonly translate: Translate;
+  /** The platform OAuth apps of Google Drive and OneDrive (B16), for renewing their connections' sign-ins. */
+  readonly storageOAuth?: StorageOAuthClients;
 }
 
 /** Every Section 17 connector over the Supabase sources, one per provider of the catalog. */
@@ -38,7 +41,11 @@ export function allConnectors(deps: WorkerDeps): Connector[] {
   return [
     ...accountingConnectors(supabaseAccountingSource(deps.db, deps.canon)),
     ...calendarConnectors(supabaseCalendarSource(deps.db)),
-    ...storageConnectors(supabaseStorageSource(deps.db), supabaseBlobStore(deps.storage)),
+    ...storageConnectors(
+      supabaseStorageSource(deps.db),
+      supabaseBlobStore(deps.storage),
+      deps.storageOAuth ?? {},
+    ),
     ...chatConnectors(supabaseCommunicationSource(deps.db), deps.translate),
     ...payrollConnectors(supabasePayrollSource(deps.db)),
     ...trackingConnectors(supabaseTrackingSource(deps.db)),

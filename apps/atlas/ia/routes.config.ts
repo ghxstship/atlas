@@ -58,6 +58,10 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: the OAuth 2.1 token endpoint (code with PKCE, refresh with rotation), answered by Supabase Auth (A99, ADR 0055).",
   "/oauth/consent":
     "Auth template: an app asks to act for the person in its org; Restricted capability groups need step-up (A99, ADR 0055).",
+  "/oauth/integrations/callback":
+    "Route handler: Google Drive and OneDrive sign-in returns here; stores the refresh token and connects (B16, ADR 0155 D5).",
+  "/oauth/integrations/problem":
+    "Auth template: why connecting a storage account did not finish (B16, ADR 0155 D5).",
   "/{org}/export":
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/{org}/documents/{kind}/{id}":
@@ -76,10 +80,20 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/api/v1/{...path}": "Public API: every v1 operation, served by the @xos/api Hono app (A04R).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",
   "/api/system-banners": "Route handler: the live platform system banners, cached a minute (A90).",
+  "/api/mcp":
+    "Route handler: the hosted MCP endpoint, stateless Streamable HTTP; writes are proposals (B16, ADR 0155 D1).",
   "/.well-known/apple-app-site-association":
     "Route handler: universal links to Compass for Continue on another device (ADR 0030).",
   "/.well-known/assetlinks.json":
     "Route handler: Android App Links to Compass for Continue on another device (ADR 0030).",
+  "/.well-known/oauth-protected-resource":
+    "Route handler: OAuth protected-resource metadata of the hosted MCP endpoint (RFC 9728; B16).",
+  "/.well-known/oauth-protected-resource/mcp":
+    "Route handler: the same metadata for the API host's /mcp (RFC 9728; B16).",
+  "/.well-known/oauth-protected-resource/api/mcp":
+    "Route handler: the same metadata for Atlas's /api/mcp (RFC 9728; B16).",
+  "/.well-known/oauth-authorization-server":
+    "Route handler: OAuth authorization-server metadata of /oauth/authorize and /oauth/token (RFC 8414; B16).",
 };
 
 /**

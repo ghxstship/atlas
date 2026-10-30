@@ -10,7 +10,8 @@ import { LifecycleBanners } from "@/components/lifecycle/banners";
 /**
  * Org-wide banners above every page (A36, A79): the read-only banner of a canceled org during its 30-day
  * window (Section 14.7), A79's lifecycle banners (deletion, dunning, the trial countdown, white label kept
- * after a downgrade and an ownership offer; components/lifecycle/banners.tsx), and the View as role banner
+ * after a downgrade, an ownership offer and B16's subscription pause, whose read-only reason 'paused' the lifecycle
+ * banner names; components/lifecycle/banners.tsx), and the View as role banner
  * with its exit (Section 8.4). One call, app.org_banner_status, feeds every lifecycle banner.
  */
 export async function OrgBanners({ ctx }: { ctx: OrgContext }) {

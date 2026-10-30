@@ -244,7 +244,10 @@ describe("SCIM service provider", () => {
     const identities = [...initial];
     const provisioned: unknown[][] = [];
     let refuse = false;
+    let refuseRule = "scim_unavailable";
+    const blocked = new Set<string>();
     const store: ScimStore = {
+      emailBlocked: async (_p, email) => blocked.has(email),
       providerForToken: async (token) => (token === "xos_scim_good" ? "idp-1" : null),
       identity: async (_p, id) => identities.find((i) => i.externalId === id) ?? null,
       identityByEmail: async (_p, email) => identities.find((i) => i.email === email) ?? null,
@@ -254,8 +257,11 @@ describe("SCIM service provider", () => {
         if (refuse)
           throw new StoreError({
             kind: "refusal",
-            rule: "scim_unavailable",
-            message: "SCIM provisioning is off for this identity provider.",
+            rule: refuseRule,
+            message:
+              refuseRule === "member_blocked"
+                ? "You cannot join this organization. Ask one of its administrators."
+                : "SCIM provisioning is off for this identity provider.",
           });
         provisioned.push([provider, externalId, userId, active, [...groups]]);
         const index = identities.findIndex((i) => i.externalId === externalId);
@@ -288,7 +294,17 @@ describe("SCIM service provider", () => {
         { method, path, query: new URLSearchParams(query), authorization, body },
         { store, admin },
       );
-    return { request, provisioned, created, identities, setRefuse: (v: boolean) => (refuse = v) };
+    return {
+      request,
+      provisioned,
+      created,
+      identities,
+      blocked,
+      setRefuse: (v: boolean, rule = "scim_unavailable") => {
+        refuse = v;
+        refuseRule = rule;
+      },
+    };
   }
   const nina: ScimIdentity = {
     externalId: "okta-1",
@@ -408,6 +424,25 @@ describe("SCIM service provider", () => {
     ).toBe(400);
   });
 
+  it("refuses a blocked address with 400 invalidValue before creating its user (B16, 3050)", async () => {
+    const s = scim();
+    s.blocked.add("rogue@crew.example.com");
+    const refused = await s.request("POST", "/Users", { userName: "rogue@crew.example.com" });
+    expect(refused.status).toBe(400);
+    expect(refused.body).toMatchObject({
+      status: "400",
+      scimType: "invalidValue",
+      detail: "You cannot join this organization. Ask one of its administrators.",
+    });
+    expect(s.created).toEqual([]);
+    expect(s.provisioned).toEqual([]);
+    // A refusal from the database's trigger is answered the same way, never with 409.
+    s.setRefuse(true, "member_blocked");
+    const raced = await s.request("POST", "/Users", { userName: "late@crew.example.com" });
+    expect(raced.status).toBe(400);
+    expect(raced.body).toMatchObject({ scimType: "invalidValue" });
+  });
+
   it("manages group membership through /Groups", async () => {
     const s = scim([
       nina,
@@ -472,6 +507,7 @@ describe("SCIM service provider", () => {
 
   it("rethrows unexpected store failures", async () => {
     const store: ScimStore = {
+      emailBlocked: async () => false,
       providerForToken: async () => "idp",
       identity: async () => nina,
       identityByEmail: async () => null,
@@ -510,8 +546,11 @@ describe("SCIM service provider", () => {
         okData([row]),
       ],
       "rpc:scim_provision": [okData("m")],
+      "rpc:scim_email_blocked": [okData(true), okData(null)],
     });
     const s = supabaseScimStore(db);
+    expect(await s.emailBlocked("idp", "rogue@crew.example.com")).toBe(true);
+    expect(await s.emailBlocked("idp", "nina@northwind.example.com")).toBe(false);
     expect(await s.providerForToken("t")).toBe("idp");
     expect(await s.identity("idp", "okta-1")).toEqual({
       externalId: "okta-1",

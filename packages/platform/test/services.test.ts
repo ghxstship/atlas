@@ -358,6 +358,8 @@ describe("stores", () => {
         currentPeriodEnd: null,
         livemode: false,
         extraSeats: 3,
+        pauseCollection: { resumesAt: new Date("2027-01-01T00:00:00Z") },
+        eventCreatedAt: new Date("2026-10-30T12:00:00Z"),
       }),
     ).resolves.toBe("active");
     await expect(
@@ -386,6 +388,11 @@ describe("stores", () => {
     });
     expect(calls[2]?.args["p_current_period_end"]).toBeNull();
     expect(calls[2]?.args["p_extra_seats"]).toBe(3);
+    expect(calls[2]?.args).toMatchObject({
+      p_pause_collection: true,
+      p_pause_resumes_at: "2027-01-01T00:00:00.000Z",
+      p_event_created_at: "2026-10-30T12:00:00.000Z",
+    });
     expect(calls[3]?.args).toMatchObject({
       p_addon_code: "aurora_requests_1000",
       p_quantity: 2,

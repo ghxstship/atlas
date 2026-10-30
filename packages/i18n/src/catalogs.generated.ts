@@ -3,6 +3,7 @@
 
 import enUS_activity from "../messages/en-US/activity.json" with { type: "json" };
 import enUS_advancing from "../messages/en-US/advancing.json" with { type: "json" };
+import enUS_agentChanges from "../messages/en-US/agentChanges.json" with { type: "json" };
 import enUS_assets from "../messages/en-US/assets.json" with { type: "json" };
 import enUS_aurora from "../messages/en-US/aurora.json" with { type: "json" };
 import enUS_auroraCertificates from "../messages/en-US/auroraCertificates.json" with { type: "json" };
@@ -34,7 +35,9 @@ import enUS_incidents from "../messages/en-US/incidents.json" with { type: "json
 import enUS_integrations from "../messages/en-US/integrations.json" with { type: "json" };
 import enUS_knowledge from "../messages/en-US/knowledge.json" with { type: "json" };
 import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json" };
+import enUS_mcpConnectors from "../messages/en-US/mcpConnectors.json" with { type: "json" };
 import enUS_measurement from "../messages/en-US/measurement.json" with { type: "json" };
+import enUS_memberBlocklist from "../messages/en-US/memberBlocklist.json" with { type: "json" };
 import enUS_myWork from "../messages/en-US/myWork.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
@@ -44,6 +47,7 @@ import enUS_peek from "../messages/en-US/peek.json" with { type: "json" };
 import enUS_people from "../messages/en-US/people.json" with { type: "json" };
 import enUS_permits from "../messages/en-US/permits.json" with { type: "json" };
 import enUS_places from "../messages/en-US/places.json" with { type: "json" };
+import enUS_planLimits from "../messages/en-US/planLimits.json" with { type: "json" };
 import enUS_platform from "../messages/en-US/platform.json" with { type: "json" };
 import enUS_procurement from "../messages/en-US/procurement.json" with { type: "json" };
 import enUS_profiles from "../messages/en-US/profiles.json" with { type: "json" };
@@ -58,7 +62,9 @@ import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
 import enUS_shipmentTracking from "../messages/en-US/shipmentTracking.json" with { type: "json" };
 import enUS_show from "../messages/en-US/show.json" with { type: "json" };
 import enUS_status from "../messages/en-US/status.json" with { type: "json" };
+import enUS_storageLinks from "../messages/en-US/storageLinks.json" with { type: "json" };
 import enUS_subscribeAccount from "../messages/en-US/subscribeAccount.json" with { type: "json" };
+import enUS_subscriptionPause from "../messages/en-US/subscriptionPause.json" with { type: "json" };
 import enUS_support from "../messages/en-US/support.json" with { type: "json" };
 import enUS_ui from "../messages/en-US/ui.json" with { type: "json" };
 import enUS_vendors from "../messages/en-US/vendors.json" with { type: "json" };
@@ -69,6 +75,7 @@ import enUS_workflow from "../messages/en-US/workflow.json" with { type: "json" 
 import enUS_workforce from "../messages/en-US/workforce.json" with { type: "json" };
 import esUS_activity from "../messages/es-US/activity.json" with { type: "json" };
 import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json" };
+import esUS_agentChanges from "../messages/es-US/agentChanges.json" with { type: "json" };
 import esUS_assets from "../messages/es-US/assets.json" with { type: "json" };
 import esUS_aurora from "../messages/es-US/aurora.json" with { type: "json" };
 import esUS_auroraCertificates from "../messages/es-US/auroraCertificates.json" with { type: "json" };
@@ -100,7 +107,9 @@ import esUS_incidents from "../messages/es-US/incidents.json" with { type: "json
 import esUS_integrations from "../messages/es-US/integrations.json" with { type: "json" };
 import esUS_knowledge from "../messages/es-US/knowledge.json" with { type: "json" };
 import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json" };
+import esUS_mcpConnectors from "../messages/es-US/mcpConnectors.json" with { type: "json" };
 import esUS_measurement from "../messages/es-US/measurement.json" with { type: "json" };
+import esUS_memberBlocklist from "../messages/es-US/memberBlocklist.json" with { type: "json" };
 import esUS_myWork from "../messages/es-US/myWork.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
@@ -110,6 +119,7 @@ import esUS_peek from "../messages/es-US/peek.json" with { type: "json" };
 import esUS_people from "../messages/es-US/people.json" with { type: "json" };
 import esUS_permits from "../messages/es-US/permits.json" with { type: "json" };
 import esUS_places from "../messages/es-US/places.json" with { type: "json" };
+import esUS_planLimits from "../messages/es-US/planLimits.json" with { type: "json" };
 import esUS_platform from "../messages/es-US/platform.json" with { type: "json" };
 import esUS_procurement from "../messages/es-US/procurement.json" with { type: "json" };
 import esUS_profiles from "../messages/es-US/profiles.json" with { type: "json" };
@@ -124,7 +134,9 @@ import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
 import esUS_shipmentTracking from "../messages/es-US/shipmentTracking.json" with { type: "json" };
 import esUS_show from "../messages/es-US/show.json" with { type: "json" };
 import esUS_status from "../messages/es-US/status.json" with { type: "json" };
+import esUS_storageLinks from "../messages/es-US/storageLinks.json" with { type: "json" };
 import esUS_subscribeAccount from "../messages/es-US/subscribeAccount.json" with { type: "json" };
+import esUS_subscriptionPause from "../messages/es-US/subscriptionPause.json" with { type: "json" };
 import esUS_support from "../messages/es-US/support.json" with { type: "json" };
 import esUS_ui from "../messages/es-US/ui.json" with { type: "json" };
 import esUS_vendors from "../messages/es-US/vendors.json" with { type: "json" };
@@ -137,6 +149,7 @@ import esUS_workforce from "../messages/es-US/workforce.json" with { type: "json
 export const enUS = {
   activity: enUS_activity,
   advancing: enUS_advancing,
+  agentChanges: enUS_agentChanges,
   assets: enUS_assets,
   aurora: enUS_aurora,
   auroraCertificates: enUS_auroraCertificates,
@@ -168,7 +181,9 @@ export const enUS = {
   integrations: enUS_integrations,
   knowledge: enUS_knowledge,
   logistics: enUS_logistics,
+  mcpConnectors: enUS_mcpConnectors,
   measurement: enUS_measurement,
+  memberBlocklist: enUS_memberBlocklist,
   myWork: enUS_myWork,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
@@ -178,6 +193,7 @@ export const enUS = {
   people: enUS_people,
   permits: enUS_permits,
   places: enUS_places,
+  planLimits: enUS_planLimits,
   platform: enUS_platform,
   procurement: enUS_procurement,
   profiles: enUS_profiles,
@@ -192,7 +208,9 @@ export const enUS = {
   shipmentTracking: enUS_shipmentTracking,
   show: enUS_show,
   status: enUS_status,
+  storageLinks: enUS_storageLinks,
   subscribeAccount: enUS_subscribeAccount,
+  subscriptionPause: enUS_subscriptionPause,
   support: enUS_support,
   ui: enUS_ui,
   vendors: enUS_vendors,
@@ -206,6 +224,7 @@ export const enUS = {
 export const esUS = {
   activity: esUS_activity,
   advancing: esUS_advancing,
+  agentChanges: esUS_agentChanges,
   assets: esUS_assets,
   aurora: esUS_aurora,
   auroraCertificates: esUS_auroraCertificates,
@@ -237,7 +256,9 @@ export const esUS = {
   integrations: esUS_integrations,
   knowledge: esUS_knowledge,
   logistics: esUS_logistics,
+  mcpConnectors: esUS_mcpConnectors,
   measurement: esUS_measurement,
+  memberBlocklist: esUS_memberBlocklist,
   myWork: esUS_myWork,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
@@ -247,6 +268,7 @@ export const esUS = {
   people: esUS_people,
   permits: esUS_permits,
   places: esUS_places,
+  planLimits: esUS_planLimits,
   platform: esUS_platform,
   procurement: esUS_procurement,
   profiles: esUS_profiles,
@@ -261,7 +283,9 @@ export const esUS = {
   shipmentTracking: esUS_shipmentTracking,
   show: esUS_show,
   status: esUS_status,
+  storageLinks: esUS_storageLinks,
   subscribeAccount: esUS_subscribeAccount,
+  subscriptionPause: esUS_subscriptionPause,
   support: esUS_support,
   ui: esUS_ui,
   vendors: esUS_vendors,

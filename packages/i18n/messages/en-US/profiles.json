@@ -16,6 +16,7 @@
     "certification_not_yours": "Only the holder can do this with a certification.",
     "email_unconfirmed": "Confirm your email address first, then try again.",
     "auto_join_unavailable": "This organization no longer lets your email domain join automatically. Ask an admin for an invitation.",
+    "member_blocked": "You cannot join this organization. Ask one of its administrators.",
     "role_band": "You can give only roles at or below your own.",
     "role_unknown": "Choose a role available in this organization.",
     "invite_link_role_band": "Links cannot give Owner or Admin. Invite those people by email.",

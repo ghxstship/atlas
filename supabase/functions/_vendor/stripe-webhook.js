@@ -91,11 +91,23 @@ function readSubscriptionItems(registry, subscription) {
     periodEnd: planItem.current_period_end || null,
   };
 }
+/** Stripe's pause_collection of a subscription, with its resume date (B16, 3051), or null when not paused. */
+function pauseCollectionOf(subscription) {
+  const pause = subscription.pause_collection;
+  if (pause === null || pause === void 0) return null;
+  return {
+    resumesAt:
+      typeof pause.resumes_at === "number"
+        ? /* @__PURE__ */ new Date(pause.resumes_at * 1e3)
+        : null,
+  };
+}
 /**
  * Verifies a Stripe webhook with the SubtleCrypto provider (works in Node and Deno, needs no API key),
  * stores the event once (idempotent ingestion), and applies:
  *   - subscription events through app.sync_subscription_from_stripe, with the plan from the plan
- *     price's lookup key and the extra seats from the quantity of the plan's extra-seat price
+ *     price's lookup key, the extra seats from the quantity of the plan's extra-seat price, and the pause
+ *     (pause_collection, a paused status and the event's created time, B16)
  *   - completed and expired plan checkouts Atlas opened through app.finish_billing_checkout_from_stripe
  *     (1640); the plan itself follows the subscription events
  *   - completed, paid Checkout sessions for a one-time add-on through
@@ -175,6 +187,8 @@ async function handleStripeWebhook(request) {
           read.periodEnd === null ? null : /* @__PURE__ */ new Date(read.periodEnd * 1e3),
         livemode: event.livemode,
         extraSeats: read.extraSeats,
+        pauseCollection: pauseCollectionOf(subscription),
+        eventCreatedAt: /* @__PURE__ */ new Date(event.created * 1e3),
       });
   } else {
     const paid = session;

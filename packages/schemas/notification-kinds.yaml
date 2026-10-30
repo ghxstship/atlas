@@ -149,6 +149,14 @@ kinds:
       # 1395 redefines 1030's emitter: an away approver hands over only what their delegation covers.
       - emitter: supabase/migrations/1395_approval_delegation_scope.sql#private.notify_step_approvers
         test: supabase/tests/1395_approval_delegation_scope.test.sql
+  # B16 (3052, ADR 0155 D2): a connected app proposed a change for the person to confirm. In App and Push only, never
+  # Email: the body names the app and the operation, never the agent-written summary, which XOS mail must not carry.
+  - kind: agent.change_proposed
+    category: approvals
+    channels: [In App, Push]
+    emitted_by:
+      - emitter: supabase/migrations/3052_agent_change_proposals.sql#app.propose_agent_change
+        test: supabase/tests/3052_agent_change_proposals.test.sql
   - kind: approval.decided
     category: approvals
     emitted_by:
@@ -278,6 +286,20 @@ kinds:
     emitted_by:
       - emitter: supabase/migrations/1350_org_trials.sql#private.expire_trial
         test: supabase/tests/1350_org_trials.test.sql
+  # B16 (3051, ADR 0155 D4): a subscription pause started and resumed, to the billing owners. The hourly job sends both;
+  # the Stripe sync sends billing.resumed when Stripe clears an Owner's pause at its own resume, an hour early.
+  - kind: billing.paused
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/3051_subscription_pauses.sql#private.run_subscription_pauses
+        test: supabase/tests/3051_subscription_pauses.test.sql
+  - kind: billing.resumed
+    category: account
+    emitted_by:
+      - emitter: supabase/migrations/3051_subscription_pauses.sql#private.run_subscription_pauses
+        test: supabase/tests/3051_subscription_pauses.test.sql
+      - emitter: supabase/migrations/3051_subscription_pauses.sql#app.sync_subscription_from_stripe
+        test: supabase/tests/3051_subscription_pauses.test.sql
   - kind: organization.deletion_requested
     category: account
     emitted_by:

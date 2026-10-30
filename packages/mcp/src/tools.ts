@@ -1,8 +1,13 @@
 /**
- * The XOS tools. Every call goes through the public API with the configured API key, so an
- * agent can never do more than the key allows; the API enforces capabilities, RLS, field
- * masking, separation of duties and refusals. On top of that, write tools exist only when the
+ * The XOS tools. Every call goes through the public API with the configured credential, so an
+ * agent can never do more than it allows; the API enforces capabilities, RLS, field masking,
+ * separation of duties and refusals. On stdio (an API key), write tools exist only when the
  * operator opts in, and only for the resources or modules named in the write scope.
+ *
+ * Hosted (an OAuth app's token, B16, ADR 0155 D2), every write tool records a proposal instead of
+ * writing: the context's `propose` stores it for the person to confirm in XOS, and the tool answers
+ * with the review link. The operation must lie within the person's grant to the app, and Aurora's
+ * own operations are never proposed. The database refuses the app's direct writes as well.
  */
 import type { OperationSpec, XosClient } from "@ghxstship/xos-sdk";
 import { OPERATIONS, RESOURCES, TAGS, XosApiError, XosNetworkError } from "@ghxstship/xos-sdk";
@@ -90,11 +95,43 @@ const FIELDS_SCHEMA = {
   description: "Sparse fieldset: comma-separated top-level fields. id is always returned.",
 };
 
-interface ToolContext {
+/** What a write tool proposes in hosted mode, with how to call the operation once the person confirms. */
+export interface ProposalInput {
+  readonly path: Readonly<Record<string, string | number>>;
+  readonly body: Readonly<Record<string, unknown>> | undefined;
+  readonly ifMatch: string | null;
+  readonly idempotencyKey: string | null;
+  /** What the app says the change does; the person sees the operation's own summary as the action. */
+  readonly summary: string;
+  /** The record changed, when the path names one. */
+  readonly targetId: string | null;
+}
+
+export interface Proposed {
+  readonly suggestionId: string;
+  readonly expiresAt: string;
+  readonly reviewUrl: string;
+}
+
+export type Propose = (spec: OperationSpec, input: ProposalInput) => Promise<Proposed>;
+
+export interface ToolContext {
   readonly client: XosClient;
   readonly scope: WriteScope;
   readonly fetchDocument: () => Promise<Record<string, unknown>>;
+  /** Hosted mode: write tools record a proposal through this instead of calling the API. */
+  readonly propose?: Propose;
+  /** Hosted mode: the capability groups of the person's live grant to the app. */
+  readonly grantScopes?: readonly string[];
 }
+
+/** Every write, deletes included: hosted writes are proposals the person confirms one by one. */
+export const PROPOSE_ALL: WriteScope = {
+  all: true,
+  resources: new Set(),
+  modules: new Set(),
+  allowDelete: true,
+};
 
 type Handler = (args: Readonly<Record<string, unknown>>, ctx: ToolContext) => Promise<unknown>;
 
@@ -187,6 +224,70 @@ function requireWrite(ctx: ToolContext, spec: OperationSpec): void {
 
 class ScopeRefusal extends Error {
   override name = "ScopeRefusal";
+}
+
+/**
+ * A hosted write that is not proposed: outside the person's grant, not proposable, or refused by the database (its
+ * rule, such as org_read_only). `propose` throws it for a refusal; the tool answers it as a tool error.
+ */
+export class ProposalRefusal extends Error {
+  override name = "ProposalRefusal";
+  readonly code: string;
+  constructor(code: string, message: string) {
+    super(message);
+    this.code = code;
+  }
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** The single record a path names, when it is one id. */
+function targetOf(
+  spec: OperationSpec,
+  path: Readonly<Record<string, string | number>>,
+): string | null {
+  if (spec.pathParams.length === 0) return null;
+  const last = path[spec.pathParams[spec.pathParams.length - 1] as string];
+  return typeof last === "string" && UUID.test(last) ? last : null;
+}
+
+/** Records a hosted write as a proposal, after checking it lies within the grant and may be proposed. */
+async function proposeWrite(
+  ctx: ToolContext & { readonly propose: Propose },
+  spec: OperationSpec,
+  args: Readonly<Record<string, unknown>>,
+  input: Omit<ProposalInput, "summary" | "targetId">,
+): Promise<unknown> {
+  if (spec.id.startsWith("ai") || spec.id.startsWith("aurora")) {
+    throw new ProposalRefusal(
+      "operation_not_proposable",
+      `${spec.id} belongs to Aurora and cannot be proposed by a connected app.`,
+    );
+  }
+  const grant = ctx.grantScopes ?? [];
+  const missing = spec.scopes.filter((s) => !grant.includes(s));
+  if (spec.scopes.length === 0 || missing.length > 0) {
+    throw new ProposalRefusal(
+      "outside_granted_scopes",
+      `${spec.id} needs ${missing.join(", ") || "a capability group"}, which the person did not grant this app. They can grant it when they connect the app again.`,
+    );
+  }
+  const targetId = targetOf(spec, input.path);
+  const given = str(args, "summary", false);
+  const summary = (
+    given ?? `${spec.summary}: ${spec.resource}${targetId ? ` ${targetId}` : ""}`
+  ).slice(0, 1000);
+  const proposed = await ctx.propose(spec, { ...input, summary, targetId });
+  return {
+    proposed: true,
+    suggestion_id: proposed.suggestionId,
+    expires_at: proposed.expiresAt,
+    review_url: proposed.reviewUrl,
+  };
+}
+
+function proposing(ctx: ToolContext): ctx is ToolContext & { readonly propose: Propose } {
+  return ctx.propose !== undefined;
 }
 
 const TOOLS: readonly Tool[] = [
@@ -405,6 +506,14 @@ const TOOLS: readonly Tool[] = [
       const spec = operation(str(args, "resource", true), "create");
       requireWrite(ctx, spec);
       const key = str(args, "idempotency_key", false);
+      if (proposing(ctx)) {
+        return proposeWrite(ctx, spec, args, {
+          path: pathFor(spec, args),
+          body: obj(args, "body"),
+          ifMatch: null,
+          idempotencyKey: key ?? null,
+        });
+      }
       const response = await ctx.client.request(
         spec,
         { path: pathFor(spec, args), body: obj(args, "body") },
@@ -441,6 +550,14 @@ const TOOLS: readonly Tool[] = [
     handler: async (args, ctx) => {
       const spec = operation(str(args, "resource", true), "update");
       requireWrite(ctx, spec);
+      if (proposing(ctx)) {
+        return proposeWrite(ctx, spec, args, {
+          path: pathFor(spec, args),
+          body: obj(args, "body"),
+          ifMatch: str(args, "if_match", true),
+          idempotencyKey: null,
+        });
+      }
       const response = await ctx.client.request(
         spec,
         { path: pathFor(spec, args), body: obj(args, "body") },
@@ -483,6 +600,14 @@ const TOOLS: readonly Tool[] = [
       requireWrite(ctx, spec);
       const key = str(args, "idempotency_key", false);
       const body = obj(args, "body");
+      if (proposing(ctx)) {
+        return proposeWrite(ctx, spec, args, {
+          path: pathFor(spec, args),
+          body,
+          ifMatch: null,
+          idempotencyKey: key ?? null,
+        });
+      }
       const response = await ctx.client.request(
         spec,
         { path: pathFor(spec, args), ...(body ? { body } : {}) },
@@ -517,6 +642,14 @@ const TOOLS: readonly Tool[] = [
     handler: async (args, ctx) => {
       const spec = operation(str(args, "resource", true), "delete");
       requireWrite(ctx, spec);
+      if (proposing(ctx)) {
+        return proposeWrite(ctx, spec, args, {
+          path: pathFor(spec, args),
+          body: undefined,
+          ifMatch: null,
+          idempotencyKey: null,
+        });
+      }
       await ctx.client.request(spec, { path: pathFor(spec, args) });
       return { deleted: true };
     },
@@ -535,11 +668,46 @@ function textResult(value: unknown, isError: boolean): ToolResult {
   };
 }
 
+const SUMMARY_SCHEMA = {
+  type: "string",
+  maxLength: 1000,
+  description:
+    "Optional: what the change does, in one or two sentences, shown to the person as your note.",
+};
+
+/** A write tool as hosted mode lists it: it proposes, and takes an optional summary. */
+function proposalDefinition(definition: ToolDefinition): ToolDefinition {
+  const verb = definition.name.replace(/^xos_/, "");
+  const action =
+    verb === "create"
+      ? "Proposes creating a row"
+      : verb === "update"
+        ? "Proposes updating the fields sent"
+        : verb === "delete"
+          ? "Proposes moving a row to Trash"
+          : "Proposes running a POST action by operation id";
+  const schema = definition.inputSchema as { properties?: Record<string, unknown> };
+  return {
+    ...definition,
+    title: definition.title.replace(/^(Create|Update|Run|Move)/, "Propose: $1"),
+    description: `${action} for the person to confirm in XOS; nothing changes until they do. ${
+      verb === "update" ? "if_match must be the etag from xos_get, so a stale proposal fails. " : ""
+    }The answer carries the review link. A proposal expires after 7 days.`,
+    inputSchema: {
+      ...definition.inputSchema,
+      properties: { ...(schema.properties ?? {}), summary: SUMMARY_SCHEMA },
+    },
+    annotations: { ...definition.annotations, destructiveHint: false },
+  };
+}
+
 /** The tool set for a scope: write tools appear only when some write is in scope. */
 export function createTools(ctx: ToolContext): ToolProvider {
   const writes = hasWrites(ctx.scope);
   const active = TOOLS.filter(
     (t) => !t.write || (writes && (t.definition.name !== "xos_delete" || ctx.scope.allowDelete)),
+  ).map((t) =>
+    proposing(ctx) && t.write ? { ...t, definition: proposalDefinition(t.definition) } : t,
   );
   return {
     list: () => active.map((t) => t.definition),
@@ -562,6 +730,8 @@ export function createTools(ctx: ToolContext): ToolProvider {
         }
         if (error instanceof ScopeRefusal)
           return textResult({ error: "outside_write_scope", detail: error.message }, true);
+        if (error instanceof ProposalRefusal)
+          return textResult({ error: error.code, detail: error.message }, true);
         if (error instanceof XosNetworkError)
           return textResult({ error: "network_error", detail: error.message }, true);
         if (error instanceof TypeError && !(error instanceof InvalidParams)) {

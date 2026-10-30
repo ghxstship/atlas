@@ -2,9 +2,13 @@
   "name": "@xos/mcp",
   "version": "0.0.0",
   "private": true,
-  "description": "MCP server for the XOS public API: read tools and scoped write tools that act with exactly the permissions of the API key.",
+  "description": "MCP server for the XOS public API: read tools and scoped write tools on stdio with an API key, and a hosted Streamable HTTP endpoint whose writes are proposals the person confirms.",
   "license": "MIT",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./http": "./src/http.ts"
+  },
   "bin": {
     "xos-mcp": "./dist/main.js"
   },

@@ -468,6 +468,11 @@ verify_jwt = false
 # SHA-256 (A77, migrations 0638 and 1332).
 verify_jwt = false
 
+[functions.storage-browse]
+# B16 (ADR 0155 D5, migration 3053): a signed-in person browses a storage connection's linking folder and links a file
+# in place; the person's session is the bearer, and the function checks them before it reads any credential.
+verify_jwt = true
+
 [functions.integration-inbound]
 # Providers authenticate by webhook signature (A83, migration 1400; packages/integrations/src/inbound).
 verify_jwt = false

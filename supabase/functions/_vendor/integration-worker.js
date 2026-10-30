@@ -4,34 +4,40 @@ import { csvField } from "./chunks/data-client.js";
 import "./chunks/data-result.js";
 import { StoreError, asDbClient, unwrap } from "./chunks/integrations-framework-db.js";
 import {
-  ItemTally,
-  SYNC_SCOPES,
   chatConnectors,
-  connectorRegistry,
-  contentHash,
-  credentialField,
-  decimalToMinor,
   integrationsTranslator,
-  isProviderCode,
-  minorToDecimal,
   mintChatSession,
-  parseCredential,
-  providerEntry,
-  scopesFor,
-  sha256Hex,
   slackFailure,
   supabaseCommunicationSource,
   unfurlLinks,
 } from "./chunks/integrations-inbound-session.js";
 import {
+  ItemTally,
+  SYNC_SCOPES,
+  connectorRegistry,
+  contentHash,
+  credentialField,
+  decimalToMinor,
+  isProviderCode,
+  minorToDecimal,
+  parseCredential,
+  providerEntry,
+  scopesFor,
+  sha256Hex,
+} from "./chunks/integrations-framework-connector.js";
+import {
   IntegrationError,
   asIntegrationError,
   callJson,
   callRaw,
-  errorForStatus,
   httpFromFetch,
 } from "./chunks/integrations-framework-http.js";
 import { isPublicAddress } from "./chunks/platform-webhooks-dispatch.js";
+import {
+  storageConnectors,
+  supabaseBlobStore,
+  supabaseStorageSource,
+} from "./chunks/integrations-connectors-storage.js";
 import { createHash, createHmac } from "node:crypto";
 //#region ../integrations/src/framework/runner.ts
 /** The job kind migration 0600 registers on the A18 job queue. */
@@ -1668,7 +1674,7 @@ function accountingConnector(provider, source) {
  * injected HttpClient on the sync context, takes its token from the Vault credential, and turns
  * minor units into decimal strings (never floating point) on the way out and back on the way in.
  */
-function token$3(context) {
+function token$2(context) {
   if (context.credential === null)
     throw new IntegrationError("credential_required", "The connection has no stored credential.", {
       connectionError: true,
@@ -1726,7 +1732,7 @@ function xeroProvider(source) {
         await callJson(context.http, "Xero", {
           method: "PUT",
           url: `${XERO}/ManualJournals`,
-          token: token$3(context),
+          token: token$2(context),
           headers: headers(context),
           json: body,
         })
@@ -1748,7 +1754,7 @@ function xeroProvider(source) {
         await callJson(context.http, "Xero", {
           method: "PUT",
           url: `${XERO}/Payments`,
-          token: token$3(context),
+          token: token$2(context),
           headers: headers(context),
           json: {
             Payments: push.applications.map((a) => ({
@@ -1776,7 +1782,7 @@ function xeroProvider(source) {
       const response = await callJson(context.http, "Xero", {
         method: "GET",
         url: `${XERO}/Payments?where=${encodeURIComponent('Status=="AUTHORISED"')}`,
-        token: token$3(context),
+        token: token$2(context),
         headers: {
           ...headers(context),
           "if-modified-since": since,
@@ -1811,7 +1817,7 @@ function quickBooksProvider(source) {
     callJson(context.http, "QuickBooks Online", {
       method: "GET",
       url: `${base(context)}/query?minorversion=75&query=${encodeURIComponent(statement)}`,
-      token: token$3(context),
+      token: token$2(context),
     });
   return {
     provider: "quickbooks_online",
@@ -1820,7 +1826,7 @@ function quickBooksProvider(source) {
       const response = await callJson(context.http, "QuickBooks Online", {
         method: "POST",
         url: `${base(context)}/journalentry?minorversion=75`,
-        token: token$3(context),
+        token: token$2(context),
         json: {
           TxnDate: journal.date,
           PrivateNote: journal.memo,
@@ -1858,7 +1864,7 @@ function quickBooksProvider(source) {
         const response = await callJson(context.http, "QuickBooks Online", {
           method: "POST",
           url: `${base(context)}/payment?minorversion=75`,
-          token: token$3(context),
+          token: token$2(context),
           json: {
             CustomerRef: { value: payment.counterpartyExternalId },
             TotalAmt: amount,
@@ -1876,7 +1882,7 @@ function quickBooksProvider(source) {
       const response = await callJson(context.http, "QuickBooks Online", {
         method: "POST",
         url: `${base(context)}/billpayment?minorversion=75`,
-        token: token$3(context),
+        token: token$2(context),
         json: {
           VendorRef: { value: payment.counterpartyExternalId },
           PayType: "Check",
@@ -1945,7 +1951,7 @@ function netSuiteProvider(source) {
       method: "POST",
       url: `${host(context)}/record/v1/${record}`,
       headers: {
-        authorization: `Bearer ${token$3(context)}`,
+        authorization: `Bearer ${token$2(context)}`,
         "content-type": "application/json",
         accept: "application/json",
       },
@@ -2012,7 +2018,7 @@ function netSuiteProvider(source) {
       const response = await callJson(context.http, "NetSuite", {
         method: "POST",
         url: `${host(context)}/query/v1/suiteql`,
-        token: token$3(context),
+        token: token$2(context),
         headers: { prefer: "transient" },
         json: {
           q: `SELECT t.id, t.entity, t.trandate, t.foreigntotal, c.symbol, t.type, t.tranid, TO_CHAR(t.lastmodifieddate, 'YYYY-MM-DD HH24:MI:SS') AS lastmodified FROM transaction t JOIN currency c ON c.id = t.currency WHERE t.type IN ('VendPymt', 'CustPymt') AND t.lastmodifieddate > TO_TIMESTAMP('${since}', 'YYYY-MM-DD HH24:MI:SS') ORDER BY t.lastmodifieddate`,
@@ -2053,7 +2059,7 @@ function rampProvider(source) {
       await callJson(context.http, "Ramp", {
         method: "POST",
         url: `${RAMP}/accounting/accounts`,
-        token: token$3(context),
+        token: token$2(context),
         json: {
           gl_accounts: accounts.map((a) => ({
             id: a.mapping.externalAccountId,
@@ -2073,7 +2079,7 @@ function rampProvider(source) {
         const page = await callJson(context.http, "Ramp", {
           method: "GET",
           url,
-          token: token$3(context),
+          token: token$2(context),
         });
         for (const bill of page.data) {
           await source.exponentOf(bill.amount.currency_code);
@@ -2449,7 +2455,7 @@ function calendarConnector(provider, source) {
 }
 //#endregion
 //#region ../integrations/src/connectors/calendar/providers.ts
-function token$2(context) {
+function token$1(context) {
   if (context.credential === null)
     throw new IntegrationError("credential_required", "The connection has no stored credential.", {
       connectionError: true,
@@ -2482,7 +2488,7 @@ var googleCalendarProvider = {
     const written = await callJson(context.http, "Google Calendar", {
       method: externalId === null ? "POST" : "PUT",
       url: externalId === null ? base : `${base}/${encodeURIComponent(externalId)}`,
-      token: token$2(context),
+      token: token$1(context),
       json: body,
     });
     return {
@@ -2495,7 +2501,7 @@ var googleCalendarProvider = {
       await callRaw(context.http, "Google Calendar", {
         method: "DELETE",
         url: `${GOOGLE}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(externalId)}`,
-        headers: { authorization: `Bearer ${token$2(context)}` },
+        headers: { authorization: `Bearer ${token$1(context)}` },
       });
     } catch (error) {
       if (error instanceof IntegrationError && (error.status === 404 || error.status === 410))
@@ -2522,7 +2528,7 @@ var googleCalendarProvider = {
         page = await callJson(context.http, "Google Calendar", {
           method: "GET",
           url: `${base}?${params.toString()}`,
-          token: token$2(context),
+          token: token$1(context),
         });
       } catch (error) {
         if (error instanceof IntegrationError && error.status === 410 && syncToken) {
@@ -2553,7 +2559,7 @@ var googleCalendarProvider = {
     }
   },
 };
-var GRAPH$1 = "https://graph.microsoft.com/v1.0";
+var GRAPH = "https://graph.microsoft.com/v1.0";
 /** Graph returns local date-times without an offset; XOS asks for UTC, so "Z" makes them absolute. */
 function graphInstant(value) {
   if (value === void 0) return null;
@@ -2595,9 +2601,9 @@ var microsoftCalendarProvider = {
       method: externalId === null ? "POST" : "PATCH",
       url:
         externalId === null
-          ? `${GRAPH$1}/me/calendars/${encodeURIComponent(calendarId)}/events`
-          : `${GRAPH$1}/me/events/${encodeURIComponent(externalId)}`,
-      token: token$2(context),
+          ? `${GRAPH}/me/calendars/${encodeURIComponent(calendarId)}/events`
+          : `${GRAPH}/me/events/${encodeURIComponent(externalId)}`,
+      token: token$1(context),
       json: body,
     });
     return {
@@ -2609,8 +2615,8 @@ var microsoftCalendarProvider = {
     try {
       await callRaw(context.http, "Microsoft 365", {
         method: "DELETE",
-        url: `${GRAPH$1}/me/events/${encodeURIComponent(externalId)}`,
-        headers: { authorization: `Bearer ${token$2(context)}` },
+        url: `${GRAPH}/me/events/${encodeURIComponent(externalId)}`,
+        headers: { authorization: `Bearer ${token$1(context)}` },
       });
     } catch (error) {
       if (error instanceof IntegrationError && error.status === 404) return;
@@ -2623,8 +2629,8 @@ var microsoftCalendarProvider = {
     const end = new Date(now.getTime() + 31536e6).toISOString();
     let url =
       cursor ??
-      `${GRAPH$1}/me/calendars/${encodeURIComponent(calendarId)}/calendarView/delta?startDateTime=${start}&endDateTime=${end}`;
-    if (!url.startsWith(`${GRAPH$1}/`))
+      `${GRAPH}/me/calendars/${encodeURIComponent(calendarId)}/calendarView/delta?startDateTime=${start}&endDateTime=${end}`;
+    if (!url.startsWith(`${GRAPH}/`))
       throw new IntegrationError(
         "cursor_malformed",
         "The Microsoft 365 delta link is not a Graph URL.",
@@ -2634,7 +2640,7 @@ var microsoftCalendarProvider = {
       const page = await callJson(context.http, "Microsoft 365", {
         method: "GET",
         url,
-        token: token$2(context),
+        token: token$1(context),
         headers: { prefer: 'outlook.timezone="UTC", odata.maxpagesize=200' },
       });
       for (const item of page.value)
@@ -2648,7 +2654,7 @@ var microsoftCalendarProvider = {
         });
       const next = page["@odata.nextLink"];
       if (next !== void 0) {
-        if (!next.startsWith(`${GRAPH$1}/`))
+        if (!next.startsWith(`${GRAPH}/`))
           throw new IntegrationError(
             "provider_malformed_response",
             "Microsoft 365 sent a next link outside Graph.",
@@ -2775,7 +2781,7 @@ function parsePayrollCsv(content) {
     };
   });
 }
-function token$1(context) {
+function token(context) {
   if (context.credential === null)
     throw new IntegrationError("credential_required", "The connection has no stored credential.", {
       connectionError: true,
@@ -2808,7 +2814,7 @@ var gustoProvider = {
       await callJson(context.http, "Gusto", {
         method: "GET",
         url: `${GUSTO}/companies/${encodeURIComponent(company)}/payrolls?processing_statuses=unprocessed&start_date=${handoff.periodStart}&end_date=${handoff.periodEnd}`,
-        token: token$1(context),
+        token: token(context),
       })
     ).find(
       (p) =>
@@ -2823,7 +2829,7 @@ var gustoProvider = {
     const updated = await callJson(context.http, "Gusto", {
       method: "PUT",
       url: `${GUSTO}/companies/${encodeURIComponent(company)}/payrolls/${encodeURIComponent(payroll.payroll_uuid)}`,
-      token: token$1(context),
+      token: token(context),
       json: {
         version: payroll.version,
         employee_compensations: [...byEmployee(handoff.lines)].map(([employee, lines]) => ({
@@ -2855,7 +2861,7 @@ var adpProvider = {
       await callJson(context.http, "ADP", {
         method: "POST",
         url: "https://api.adp.com/events/payroll/v1/pay-data-input.modify",
-        token: token$1(context),
+        token: token(context),
         json: {
           events: [
             {
@@ -2903,7 +2909,7 @@ var ripplingProvider = {
         await callJson(context.http, "Rippling", {
           method: "POST",
           url: "https://api.rippling.com/platform/api/payroll/earning_imports",
-          token: token$1(context),
+          token: token(context),
           json: {
             pay_period: {
               start_date: handoff.periodStart,
@@ -3560,408 +3566,6 @@ function supabaseTrackingSource(db) {
     },
   };
 }
-function token(context) {
-  if (context.credential === null)
-    throw new IntegrationError("credential_required", "The connection has no stored credential.", {
-      connectionError: true,
-    });
-  return context.credential.token;
-}
-var TYPES = {
-  pdf: "application/pdf",
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  png: "image/png",
-  heic: "image/heic",
-  webp: "image/webp",
-  gif: "image/gif",
-  txt: "text/plain",
-  csv: "text/csv",
-  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  mp4: "video/mp4",
-  mov: "video/quicktime",
-  mp3: "audio/mpeg",
-  zip: "application/zip",
-  svg: "image/svg+xml",
-};
-/** MIME type from a file name's extension, for providers that do not report one. */
-function mimeFromName(name) {
-  const extension = /\.([a-z0-9]+)$/i.exec(name)?.[1]?.toLowerCase();
-  return (extension && TYPES[extension]) ?? "application/octet-stream";
-}
-async function bytesOf(context, provider, request) {
-  const response = await context.http({
-    ...request,
-    responseType: "bytes",
-  });
-  if (response.status === 302 || response.status === 301 || response.status === 307) {
-    const location = response.headers["location"];
-    if (location === void 0 || !location.startsWith("https://"))
-      throw new IntegrationError(
-        "provider_malformed_response",
-        `${provider} redirected the download somewhere other than HTTPS.`,
-      );
-    return bytesOf(context, provider, {
-      method: "GET",
-      url: location,
-    });
-  }
-  const failure = errorForStatus(provider, response.status, response.body);
-  if (failure) throw failure;
-  if (response.bytes === void 0)
-    throw new IntegrationError("provider_malformed_response", `${provider} sent no file content.`);
-  return response.bytes;
-}
-var DRIVE = "https://www.googleapis.com/drive/v3";
-var DRIVE_FIELDS = "id,name,mimeType,size,webViewLink,version,modifiedTime,trashed";
-/** Google-native documents have no bytes of their own; they are exported to these types. */
-var DRIVE_EXPORTS = {
-  "application/vnd.google-apps.document": "application/pdf",
-  "application/vnd.google-apps.spreadsheet":
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/vnd.google-apps.presentation": "application/pdf",
-  "application/vnd.google-apps.drawing": "application/pdf",
-};
-function driveMeta(file) {
-  const exported = DRIVE_EXPORTS[file.mimeType];
-  return {
-    externalFileId: file.id,
-    name:
-      exported === "application/pdf" && !file.name.endsWith(".pdf")
-        ? `${file.name}.pdf`
-        : file.name,
-    mimeType: exported ?? file.mimeType,
-    sizeBytes: file.size === void 0 ? null : Number(file.size),
-    webUrl: file.webViewLink ?? null,
-    version: file.version ?? file.modifiedTime ?? file.id,
-    modifiedAt: file.modifiedTime ?? null,
-    folder: file.mimeType === "application/vnd.google-apps.folder",
-    ...(exported ? { exportedFrom: file.mimeType } : {}),
-  };
-}
-var googleDriveProvider = {
-  provider: "google_drive",
-  label: "Google Drive",
-  async metadata(context, externalFileId) {
-    try {
-      const file = await callJson(context.http, "Google Drive", {
-        method: "GET",
-        url: `${DRIVE}/files/${encodeURIComponent(externalFileId)}?fields=${DRIVE_FIELDS}&supportsAllDrives=true`,
-        token: token(context),
-      });
-      return file.trashed ? null : driveMeta(file);
-    } catch (error) {
-      if (error instanceof IntegrationError && error.code === "provider_not_found") return null;
-      throw error;
-    }
-  },
-  async download(context, file) {
-    return bytesOf(context, "Google Drive", {
-      method: "GET",
-      url:
-        file.exportedFrom !== void 0
-          ? `${DRIVE}/files/${encodeURIComponent(file.externalFileId)}/export?mimeType=${encodeURIComponent(file.mimeType)}`
-          : `${DRIVE}/files/${encodeURIComponent(file.externalFileId)}?alt=media&supportsAllDrives=true`,
-      headers: { authorization: `Bearer ${token(context)}` },
-    });
-  },
-  async listFolder(context, folderId) {
-    const q = `'${(folderId ?? "root").replace(/'/g, "\\'")}' in parents and trashed = false`;
-    return (
-      await callJson(context.http, "Google Drive", {
-        method: "GET",
-        url: `${DRIVE}/files?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(`files(${DRIVE_FIELDS})`)}&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true`,
-        token: token(context),
-      })
-    ).files.map(driveMeta);
-  },
-};
-var GRAPH = "https://graph.microsoft.com/v1.0";
-/** OneDrive and SharePoint files are addressed as "<drive id>/<item id>". */
-function splitItem(externalFileId) {
-  const [drive, item] = externalFileId.split("/");
-  if (!drive || !item)
-    throw new IntegrationError(
-      "file_id_malformed",
-      `${externalFileId} is not a <drive>/<item> id.`,
-    );
-  return {
-    drive,
-    item,
-  };
-}
-function graphMeta(item, drive) {
-  return {
-    externalFileId: `${item.parentReference?.driveId ?? drive}/${item.id}`,
-    name: item.name,
-    mimeType: item.file?.mimeType ?? mimeFromName(item.name),
-    sizeBytes: item.size ?? null,
-    webUrl: item.webUrl ?? null,
-    version: item.cTag ?? item.eTag ?? item.lastModifiedDateTime ?? item.id,
-    modifiedAt: item.lastModifiedDateTime ?? null,
-    folder: item.folder !== void 0,
-  };
-}
-var oneDriveProvider = {
-  provider: "onedrive_sharepoint",
-  label: "OneDrive and SharePoint",
-  async metadata(context, externalFileId) {
-    const { drive, item } = splitItem(externalFileId);
-    try {
-      const found = await callJson(context.http, "Microsoft OneDrive", {
-        method: "GET",
-        url: `${GRAPH}/drives/${encodeURIComponent(drive)}/items/${encodeURIComponent(item)}`,
-        token: token(context),
-      });
-      return found.deleted !== void 0 ? null : graphMeta(found, drive);
-    } catch (error) {
-      if (error instanceof IntegrationError && error.code === "provider_not_found") return null;
-      throw error;
-    }
-  },
-  async download(context, file) {
-    const { drive, item } = splitItem(file.externalFileId);
-    return bytesOf(context, "Microsoft OneDrive", {
-      method: "GET",
-      url: `${GRAPH}/drives/${encodeURIComponent(drive)}/items/${encodeURIComponent(item)}/content`,
-      headers: { authorization: `Bearer ${token(context)}` },
-    });
-  },
-  async listFolder(context, folderId) {
-    const drive = context.connection.settings["drive_id"];
-    if (typeof drive !== "string" || drive.length === 0)
-      throw new IntegrationError("setting_missing", "The connection needs the drive_id setting.");
-    const path =
-      folderId === null ? "root" : `items/${encodeURIComponent(splitItem(folderId).item)}`;
-    return (
-      await callJson(context.http, "Microsoft OneDrive", {
-        method: "GET",
-        url: `${GRAPH}/drives/${encodeURIComponent(drive)}/${path}/children?$top=200`,
-        token: token(context),
-      })
-    ).value.map((i) => graphMeta(i, drive));
-  },
-};
-function dropboxMeta(entry) {
-  return {
-    externalFileId: entry.id ?? entry.path_display ?? entry.name,
-    name: entry.name,
-    mimeType: mimeFromName(entry.name),
-    sizeBytes: entry.size ?? null,
-    webUrl: entry.path_display
-      ? `https://www.dropbox.com/home${entry.path_display.split("/").slice(0, -1).map(encodeURIComponent).join("/")}?preview=${encodeURIComponent(entry.name)}`
-      : null,
-    version: entry.content_hash ?? entry.rev ?? entry.name,
-    modifiedAt: entry.server_modified ?? null,
-    folder: entry[".tag"] === "folder",
-  };
-}
-var dropboxProvider = {
-  provider: "dropbox",
-  label: "Dropbox",
-  async metadata(context, externalFileId) {
-    try {
-      const entry = await callJson(context.http, "Dropbox", {
-        method: "POST",
-        url: "https://api.dropboxapi.com/2/files/get_metadata",
-        token: token(context),
-        json: {
-          path: externalFileId,
-          include_deleted: true,
-        },
-      });
-      return entry[".tag"] === "deleted" ? null : dropboxMeta(entry);
-    } catch (error) {
-      if (
-        error instanceof IntegrationError &&
-        error.status === 409 &&
-        error.message.includes("not_found")
-      )
-        return null;
-      throw error;
-    }
-  },
-  async download(context, file) {
-    return bytesOf(context, "Dropbox", {
-      method: "POST",
-      url: "https://content.dropboxapi.com/2/files/download",
-      headers: {
-        authorization: `Bearer ${token(context)}`,
-        "dropbox-api-arg": JSON.stringify({ path: file.externalFileId }),
-      },
-    });
-  },
-  async listFolder(context, folderId) {
-    return (
-      await callJson(context.http, "Dropbox", {
-        method: "POST",
-        url: "https://api.dropboxapi.com/2/files/list_folder",
-        token: token(context),
-        json: {
-          path: folderId ?? "",
-          limit: 200,
-        },
-      })
-    ).entries
-      .filter((e) => e[".tag"] !== "deleted")
-      .map(dropboxMeta);
-  },
-};
-/** Keeps linked files current and imports new revisions of Import links through the scanned attachment pipeline. */
-function storageConnector(provider, source, blobs) {
-  return {
-    provider: provider.provider,
-    scopes: ["File Import"],
-    async sync(context) {
-      const tally = new ItemTally(context);
-      for (const link of await source.links(context.connection.id)) {
-        tally.read += 1;
-        const ref = {
-          entity: "Document",
-          localId: link.documentId,
-          externalId: link.externalFileId,
-        };
-        const meta = await provider.metadata(context, link.externalFileId);
-        if (meta === null) {
-          await tally.fail(
-            "provider_file_missing",
-            `${provider.label} no longer has this file.`,
-            ref,
-          );
-          continue;
-        }
-        const needsImport = link.mode === "Import" && link.importedVersion !== meta.version;
-        if (meta.version === link.externalVersion && !needsImport) {
-          tally.skipped += 1;
-          continue;
-        }
-        await source.refresh(link.id, meta);
-        if (needsImport) {
-          if (meta.folder) {
-            await tally.fail(
-              "file_is_folder",
-              "A folder cannot be imported as a document version.",
-              ref,
-            );
-            continue;
-          }
-          if (meta.sizeBytes !== null && meta.sizeBytes > 52428800) {
-            await tally.fail(
-              "file_too_large",
-              "The file is larger than the 50 MiB attachment limit.",
-              ref,
-            );
-            continue;
-          }
-          let objectName;
-          try {
-            ({ objectName } = await source.beginImport(link.id));
-          } catch (error) {
-            if (!(error instanceof StoreError && error.error.kind === "refusal")) throw error;
-            await tally.fail(error.error.rule, error.error.message, ref);
-            continue;
-          }
-          const bytes = await provider.download(context, meta);
-          if (bytes.byteLength > 52428800) {
-            await tally.fail(
-              "file_too_large",
-              "The file is larger than the 50 MiB attachment limit.",
-              ref,
-            );
-            continue;
-          }
-          await blobs.put("attachments", objectName, bytes, meta.mimeType);
-          await source.finishImport(link.id, sha256Hex(bytes), meta.version);
-        }
-        tally.written += 1;
-      }
-      return {
-        counts: tally.counts(),
-        cursorAfter: null,
-      };
-    },
-  };
-}
-function storageConnectors(source, blobs) {
-  return [googleDriveProvider, oneDriveProvider, dropboxProvider].map((p) =>
-    storageConnector(p, source, blobs),
-  );
-}
-function supabaseStorageSource(db) {
-  return {
-    async links(connectionId) {
-      return (
-        await unwrap(
-          db
-            .from("integration_file_links")
-            .select(
-              "id, document_id, link_mode, external_file_id, external_version, imported_version",
-            )
-            .eq("integration_connection_id", connectionId)
-            .is("deleted_at", null)
-            .order("created_at"),
-        )
-      ).map((r) => ({
-        id: r.id,
-        documentId: r.document_id,
-        mode: r.link_mode,
-        externalFileId: r.external_file_id,
-        externalVersion: r.external_version,
-        importedVersion: r.imported_version,
-      }));
-    },
-    async refresh(linkId, meta) {
-      await unwrap(
-        db.rpc("refresh_file_link", {
-          p_link_id: linkId,
-          p_file_name: meta.name,
-          p_mime_type: meta.mimeType,
-          p_size_bytes: meta.sizeBytes,
-          p_web_url: meta.webUrl,
-          p_external_version: meta.version,
-          p_external_modified_at: meta.modifiedAt,
-        }),
-      );
-    },
-    async beginImport(linkId) {
-      const row = (await unwrap(db.rpc("begin_file_import", { p_link_id: linkId })))[0];
-      if (row === void 0)
-        throw new IntegrationError(
-          "file_import_not_started",
-          "The import did not return an object name.",
-        );
-      return { objectName: row.object_name };
-    },
-    async finishImport(linkId, checksum, version) {
-      return unwrap(
-        db.rpc("finish_file_import", {
-          p_link_id: linkId,
-          p_checksum_sha256: checksum,
-          p_imported_version: version,
-        }),
-      );
-    },
-  };
-}
-/** Stores imported bytes through a Supabase Storage client (service role, so the issued object name is writable). */
-function supabaseBlobStore(storage) {
-  return {
-    async put(bucket, objectName, bytes, contentType) {
-      const { error } = await storage.from(bucket).upload(objectName, bytes, {
-        contentType,
-        upsert: false,
-      });
-      if (error)
-        throw new IntegrationError(
-          "blob_store_failed",
-          `Storing the file failed: ${error.message}`,
-          { retryable: true },
-        );
-    },
-  };
-}
 //#endregion
 //#region ../integrations/src/connectors/ticketing/index.ts
 /** Parses RFC 4180 CSV: quoted fields, doubled quotes, commas and line breaks inside quotes. */
@@ -4316,7 +3920,11 @@ function allConnectors(deps) {
   return [
     ...accountingConnectors(supabaseAccountingSource(deps.db, deps.canon)),
     ...calendarConnectors(supabaseCalendarSource(deps.db)),
-    ...storageConnectors(supabaseStorageSource(deps.db), supabaseBlobStore(deps.storage)),
+    ...storageConnectors(
+      supabaseStorageSource(deps.db),
+      supabaseBlobStore(deps.storage),
+      deps.storageOAuth ?? {},
+    ),
     ...chatConnectors(supabaseCommunicationSource(deps.db), deps.translate),
     ...payrollConnectors(supabasePayrollSource(deps.db)),
     ...trackingConnectors(supabaseTrackingSource(deps.db)),

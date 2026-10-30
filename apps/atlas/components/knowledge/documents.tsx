@@ -10,6 +10,7 @@ import {
 import { CoEditLauncher } from "@/components/coedit/coedit-launcher";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
+import { LinkedFiles } from "@/components/knowledge/linked-files";
 import { PresenceFor } from "@/components/presence/presence-for";
 import { emptyFor } from "@/components/collection-kit/empty";
 import {
@@ -281,6 +282,7 @@ export async function DocumentsSection({
       >
         <PresenceFor table="documents" id={selected.id} />
         {versions(selected, t)}
+        <LinkedFiles ctx={ctx} documentId={selected.id} canWrite={canWrite} />
       </PeekDrawer>
     );
   }

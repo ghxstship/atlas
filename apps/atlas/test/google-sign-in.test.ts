@@ -389,6 +389,8 @@ describe("OAuth helpers", () => {
       supabaseOrigin: SUPABASE,
       secureSite: true,
     });
-    expect(csp).toContain(`form-action 'self' ${SUPABASE} https://accounts.google.com;`);
+    expect(csp).toContain(
+      `form-action 'self' ${SUPABASE} https://accounts.google.com https://login.microsoftonline.com;`,
+    );
   });
 });

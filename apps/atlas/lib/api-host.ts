@@ -11,6 +11,8 @@ import { securityHeaders } from "@/lib/security/headers";
  *   allow-list serve both hosts. The route strips either prefix (app/api/v1/[...path]/route.ts),
  *   because a rewritten request keeps its original path.
  * - A GET of `/` or `/v1` answers a small JSON pointer to the OpenAPI document and the docs.
+ * - `/mcp`, the hosted MCP endpoint (B16, ADR 0155 D1), is rewritten to `/api/mcp`, the route that serves it on
+ *   Atlas's own host too. It answers 404 unless XOS_MCP_HOSTED is on.
  * - `/oauth/authorize`, which the OpenAPI document names relative to the server, goes to Atlas's
  *   own authorize route, where the person signs in and consents (A99, ADR 0055). `/oauth/token`
  *   is outside the proxy's matcher and served by its route handler on either host.
@@ -52,6 +54,11 @@ export function apiHostResponse(
 
   if (pathname.startsWith(`${API_HOST_PREFIX}/`) && pathname !== `${API_HOST_PREFIX}/`) {
     const target = new URL(`/api${pathname}${search}`, request.url);
+    return withHeaders(NextResponse.rewrite(target), secureSite);
+  }
+
+  if (pathname === "/mcp") {
+    const target = new URL(`/api/mcp${search}`, request.url);
     return withHeaders(NextResponse.rewrite(target), secureSite);
   }
 
