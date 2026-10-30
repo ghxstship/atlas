@@ -23,12 +23,14 @@ Everything waiting on you, each with its action in the row:
 - interviews coming up
 - engagements to rate, for 14 days after they complete
 
-## Updates
+## For your information
 
-When an organization receives, approves, schedules or pays one of your invoices, the latest steps show here. Unread ones are marked New.
+Updates that need nothing from you: an organization received, approved, scheduled or paid one of your invoices, a new match for a saved search, a reminder that something expires, a new shift or offer. Unread ones are marked New, and each opens where you follow it.
+
+Clear each one with **Done**, or **Snooze** it to bring it back in a day. From the keyboard, select an item and press **E** for Done or **H** to snooze it; **J** and **K** move between items.
 
 ## Recommended for you
 
 Open opportunities you can apply for. **See all** opens Explore. When nothing matches, set an alert and Gateway tells you when something does.
 
-The view switcher shows Home as a feed, or as an inbox with only Needs you and Updates.
+The view switcher shows Home as a feed, or as an inbox with only Needs you and For your information.
