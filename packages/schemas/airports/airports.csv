@@ -3,9 +3,11 @@
 # supabase/migrations/2652_airports_seed.sql (pnpm --filter @xos/schemas generate:airports).
 # Columns follow the OurAirports airports.csv header (https://ourairports.com/data/, public domain); the loader finds
 # them by name, so the full OurAirports file drops in unchanged.
-# STARTER SET: this file is a hand-entered set of major airports, not the OurAirports snapshot. Owner step: replace it
-# with https://davidmegginson.github.io/ourairports-data/airports.csv (note the download date here) and run
-# generate:airports.
+# STARTER SET: this file is a hand-entered set of 177 major airports, not the OurAirports snapshot the R5 spec asks for
+# (more than 1,000 airports), so a travel request cannot yet name most regional airports. Owner step: run
+# pnpm --filter @xos/schemas fetch:airports, which downloads OurAirports airports.csv, rewrites this file with the
+# source and download date and regenerates 2652_airports_seed.sql; then drop the todo_start and todo_end lines in
+# supabase/tests/2651_airports.test.sql and commit the three files.
 type,name,municipality,iso_country,scheduled_service,iata_code
 large_airport,Hartsfield-Jackson Atlanta International Airport,Atlanta,US,yes,ATL
 large_airport,Austin-Bergstrom International Airport,Austin,US,yes,AUS

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { OURAIRPORTS_URL, snapshotCsv } from "../../src/airports/fetch.ts";
 import { AIRPORTS_SEED_MIGRATION, renderAirportsSeed } from "../../src/airports/generate.ts";
 import { loadAirports, parseCsv, selectAirports } from "../../src/airports/load.ts";
 
@@ -60,6 +61,29 @@ describe("airports seed", () => {
     expect(() => selectAirports("type,name\nlarge_airport,X")).toThrow(/municipality/);
     expect(() => selectAirports(`${HEADER}\nlarge_airport,Bad,Town,USA,yes,BAD`)).toThrow(/country/);
     expect(selectAirports("")).toEqual([]);
+  });
+
+  it("writes the snapshot from the OurAirports layout, dated, with the loader's columns", () => {
+    const source = [
+      '"id","ident","type","name","latitude_deg","iso_country","municipality","scheduled_service","iata_code"',
+      '1,"KMIA","large_airport","Miami International Airport",25.79,"US","Miami","yes","MIA"',
+      '2,"US-1","small_airport","Strip, ""North""",1,"US","Nowhere","no",""',
+      '3,"EGLL","large_airport","London Heathrow Airport",51.47,"GB","London","yes","LHR"',
+      '4,"KAAA","medium_airport","Quiet Field, East",40.1,"US","Quiet","no","QFE"',
+    ].join("\n");
+    const snapshot = snapshotCsv(source, "2026-10-30");
+    expect(snapshot).toContain(`downloaded from ${OURAIRPORTS_URL}`);
+    expect(snapshot).toContain("# on 2026-10-30 by pnpm --filter @xos/schemas fetch:airports");
+    const data = snapshot.split("\n").filter((line) => line !== "" && !line.startsWith("#"));
+    expect(data).toEqual([
+      HEADER,
+      "large_airport,Miami International Airport,Miami,US,yes,MIA",
+      "large_airport,London Heathrow Airport,London,GB,yes,LHR",
+      'medium_airport,"Quiet Field, East",Quiet,US,no,QFE',
+    ]);
+    expect(selectAirports(snapshot).map((a) => a.iataCode)).toEqual(["LHR", "MIA"]);
+    expect(() => snapshotCsv(source, "30 Oct 2026")).toThrow(/YYYY-MM-DD/);
+    expect(() => snapshotCsv("type,name\nlarge_airport,X", "2026-10-30")).toThrow(/municipality/);
   });
 
   it("escapes quotes and batches the upsert", () => {
