@@ -18,6 +18,7 @@ const state = vi.hoisted(() => ({
   recorded: [] as unknown[],
 }));
 
+vi.mock("server-only", () => ({}));
 vi.mock("@/lib/env", () => ({ env: () => state.env }));
 vi.mock("@/lib/observability", () => ({
   observability: {
@@ -376,5 +377,35 @@ describe("authorize and token with MCP connectors", () => {
     const init = (fetchMock.mock.calls[0] as unknown[])[1] as { body: string };
     expect(init.body).toBe("grant_type=authorization_code&code=c");
     vi.unstubAllGlobals();
+  });
+});
+
+describe("confirming a proposal re-checks the operation", () => {
+  it("refuses an unknown, Aurora, Restricted or ungranted operation before anything is written", async () => {
+    const { operationAllowed, RESTRICTED_GROUPS } = await import("@/lib/mcp/apply");
+    const { OPERATIONS } = await import("@ghxstship/xos-sdk");
+    const update = OPERATIONS["projects.update"];
+    expect(operationAllowed("projects.update", [...update.scopes])).toBe(update);
+    expect(operationAllowed("projects.update", [])).toBe("agent_outside_grant");
+    expect(operationAllowed("projects.get", [...update.scopes])).toBe("agent_operation_unknown");
+    expect(operationAllowed("no.suchThing", ["projects"])).toBe("agent_operation_unknown");
+    const aurora = Object.values(OPERATIONS).find(
+      (o) => o.id.startsWith("ai") && o.method !== "GET",
+    );
+    if (aurora)
+      expect(operationAllowed(aurora.id, [...aurora.scopes])).toBe("agent_operation_unknown");
+    expect(RESTRICTED_GROUPS.has("org")).toBe(true);
+    expect(RESTRICTED_GROUPS.has("audit")).toBe(true);
+    const restricted = Object.values(OPERATIONS).find(
+      (o) =>
+        o.method !== "GET" &&
+        o.scopes.some((s) => RESTRICTED_GROUPS.has(s)) &&
+        !o.id.startsWith("ai"),
+    );
+    if (restricted) {
+      expect(operationAllowed(restricted.id, [...restricted.scopes])).toBe(
+        "agent_operation_restricted",
+      );
+    }
   });
 });
