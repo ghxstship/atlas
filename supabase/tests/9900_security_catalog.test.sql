@@ -102,9 +102,10 @@ $$, $$values ('ai_never_send'), ('application_board'), ('asset_unit_hire'), ('bi
   ('employment_statuses'), ('engagement_board'), ('engagement_resolved'), ('expense_budget_lines'), ('feature_flags'), ('flsa_statuses'),
   ('import_target_fields'), ('import_targets'), ('integration_providers'), ('lifecycle_transition_rules'),
   ('measurement_metric_tags'), ('measurement_metrics'), ('measurement_units'), ('medical_encounters_masked'), ('notification_categories'), ('notification_templates'), ('offboarding_open_records'),
-  ('onboarding_item_status'), ('opportunity_position_counts'), ('org_legal_entities_masked'), ('pay_rates_masked'), ('pay_transparency_rules'),
+  ('onboarding_item_status'), ('opportunity_position_counts'), ('org_legal_entities_masked'), ('pay_rates_masked'), ('pay_transparency_rules'), ('permit_rule_place_facts'),
   ('payroll_line_amounts'), ('rate_card_lines_masked'), ('report_sources'), ('retention_policies'), ('roster_entry_people'),
   ('separation_of_duties_options'), ('separation_of_duties_rules'), ('setting_choices'), ('setting_definitions'), ('shared_certifications'),
+  ('sign_production'),
   ('sync_rpcs'), ('vendor_bank_accounts_masked'), ('warehouse_providers')$$,
   'every owner-rights view in app is a reviewed reference, masking or self-filtering view');
 

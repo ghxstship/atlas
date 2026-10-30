@@ -133,6 +133,19 @@ derived:
     refresh: Written from the entry by `app.share_work_details`; `private.guard_work_detail_share_entry` refuses any row whose engagement or person differs from the entry's (migration 2638, R4)
     reason: The frozen WorkDetailShare resource of API v1 returns both, and the share's readers filter by them without the resolver; the contract change waits for R6b
     adr: "0103"
+  - objects:
+      - app.site_plans.image_uri
+    source: "`app.attachment_versions.object_name` of the plan's drawing"
+    refresh: Overwritten by `private.guard_site_plan_layout` on every insert and update while a drawing is set, whatever the caller sends (2901)
+    reason: The frozen v1 contract keeps a non-null image_uri; it never drifts because a version is immutable
+    adr: "0140"
+  - objects:
+      - app.capability_statements.description
+      - app.capability_statements.assertion_word
+    source: "`app.place_specs` and the validity of its `app.capability_documents` row, for rows with place_spec_id set"
+    refresh: Rewritten each time `app.provide_place_specs` runs; never automatically (2903)
+    reason: Reconciliation joins capability statements by URID; the copy is what a person added, and a computed tag shows when the spec changed or the document expired
+    adr: "0140"
 
 # Column names that describe the row itself wherever they appear. The restated-column lint never compares them and
 # never follows a foreign key made only of them.
@@ -429,6 +442,10 @@ restated:
     parent: app.projects.time_zone
     kind: own
     note: Zone the calendar's days are read in, set per calendar.
+  - column: app.capability_statements.venue_id
+    parent: app.place_specs.venue_id
+    kind: own
+    note: The venue that provides the capability, the project's venue, which owns the spec it was copied from (`app.provide_place_specs`, 2903).
   - column: app.capability_statements.venue_id
     parent: app.projects.venue_id
     kind: own
@@ -919,6 +936,14 @@ restated:
     parent: app.people.full_name
     kind: own
     note: The contact's name, not the person's.
+  - column: app.place_specs.venue_id
+    parent: app.capability_documents.venue_id
+    kind: own
+    note: The venue the spec describes; its documenting capability document must be of the same venue (`place_spec_document_venue`).
+  - column: app.place_specs.venue_id
+    parent: app.spaces.venue_id
+    kind: own
+    note: The space's venue for space rows, derived by `private.guard_place_spec` and refused if sent otherwise (2903).
   - column: app.po_lines.element_id
     parent: app.budget_lines.element_id
     kind: own
@@ -1203,10 +1228,18 @@ restated:
     parent: app.projects.venue_id
     kind: own
     note: Venue drawn, not necessarily the project's primary venue.
+  - column: app.site_plans.venue_id
+    parent: app.venue_levels.venue_id
+    kind: own
+    note: The venue the plan draws; a plan with a level names the level's venue (`site_plan_level_venue`, 2900).
   - column: app.sms_summary_queue.sent_at
     parent: app.notification_deliveries.sent_at
     kind: own
     note: When the summary carrying this delivery was sent.
+  - column: app.spaces.venue_id
+    parent: app.venue_levels.venue_id
+    kind: own
+    note: The space's venue; its level is a level of that venue (`space_level_venue`, 2900).
   - column: app.spend_approvals.currency_code
     parent: app.spend_authorities.currency_code
     kind: fact
@@ -1531,6 +1564,15 @@ stored:
   - column: app.osha_annual_summaries.total_hours_worked
     kind: input
     note: The establishment's Form 300A figure; `app.osha_employment_estimate` only suggests one from time entries (migration 1385).
+  - column: app.place_specs.loading_dock_count
+    kind: input
+    note: Loading docks the venue states (2903).
+  - column: app.place_specs.rigging_point_count
+    kind: input
+    note: Rigging points the venue states (2903).
+  - column: app.place_specs.rigging_total_load_lb
+    kind: input
+    note: Total rigging load the venue states, not a sum of points (2903).
   - column: app.ratings.score
     kind: input
     note: A rating of 1 to 5.
