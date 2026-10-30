@@ -17,8 +17,11 @@ import { useEffect, useRef, useState } from "react";
  * device's offset), so every screen on a link agrees. An overrun turns the timer red and reads
  * "Over by m:ss", so color is never the only signal, and it stays so until the next cue is called.
  * Keys 1, 2 and 3 switch modes; the screen can pop out to a second window and go fullscreen, holds a
- * screen wake lock where the browser offers one, and announces now and next politely. The server page
- * rereads on every channel ping, which hands this component new cues.
+ * screen wake lock where the browser offers one, and announces now and next politely. Only the cue
+ * labels sit in polite live regions, since they change only when a cue is called; the values that tick
+ * every second are role="timer", which is never announced on its own, so a screen reader hears each
+ * cue once rather than every second (WCAG 4.1.3, 2.2.2). The server page rereads on every channel
+ * ping, which hands this component new cues.
  */
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -174,10 +177,13 @@ export function DisplayScreen({
           <p className="m-0 font-semibold tabular-nums leading-none text-[clamp(4rem,18vw,14rem)]">
             {format.dateTime(new Date(now), { timeStyle: "medium", timeZone })}
           </p>
-          <div aria-live="polite" className="flex flex-col gap-8">
-            <p className="m-0 text-heading-24">{frame.current?.label ?? status ?? t("noCue")}</p>
+          <div className="flex flex-col gap-8">
+            <p aria-live="polite" className="m-0 text-heading-24">
+              {frame.current?.label ?? status ?? t("noCue")}
+            </p>
             {timer ? (
               <p
+                role="timer"
                 className={`m-0 font-semibold tabular-nums text-[clamp(2rem,8vw,6rem)] ${timerClass}`}
               >
                 {frame.remainingSeconds !== null && !frame.overrun
@@ -193,52 +199,60 @@ export function DisplayScreen({
             {frame.current?.label ?? status ?? t("noCue")}
           </p>
           <p
+            role="timer"
             className={`m-0 font-semibold tabular-nums leading-none text-[clamp(5rem,24vw,18rem)] ${timerClass}`}
           >
             {timer || "0:00"}
           </p>
           {frame.remainingSeconds === null && frame.elapsedSeconds !== null ? (
-            <p className="m-0 text-text-16 text-text-secondary">
+            <p role="timer" className="m-0 text-text-16 text-text-secondary">
               {t("countUp", { time: clockText(frame.elapsedSeconds) })}
             </p>
           ) : null}
         </section>
       ) : (
         <section className="grid flex-1 gap-24 lg:grid-cols-2">
-          <div aria-live="polite" className="flex flex-col gap-8 rounded-lg bg-bg-surface p-24">
-            <p className="m-0 text-label-14 font-medium text-text-secondary uppercase">
-              {t("now")}
-            </p>
-            <p className="m-0 text-heading-32 font-semibold">
-              {frame.current?.label ?? status ?? t("noCue")}
-            </p>
+          <div className="flex flex-col gap-8 rounded-lg bg-bg-surface p-24">
+            <div aria-live="polite" aria-atomic="true" className="flex flex-col gap-8">
+              <p className="m-0 text-label-14 font-medium text-text-secondary uppercase">
+                {t("now")}
+              </p>
+              <p className="m-0 text-heading-32 font-semibold">
+                {frame.current?.label ?? status ?? t("noCue")}
+              </p>
+            </div>
             {frame.current?.segment ? (
               <p className="m-0 text-text-16 text-text-secondary">{frame.current.segment}</p>
             ) : null}
             {frame.elapsedSeconds !== null ? (
-              <p className="m-0 text-text-16 tabular-nums">
+              <p role="timer" className="m-0 text-text-16 tabular-nums">
                 {t("elapsed", { time: clockText(frame.elapsedSeconds) })}
               </p>
             ) : null}
             {frame.remainingSeconds !== null ? (
-              <p className={`m-0 text-heading-24 font-semibold tabular-nums ${timerClass}`}>
+              <p
+                role="timer"
+                className={`m-0 text-heading-24 font-semibold tabular-nums ${timerClass}`}
+              >
                 {frame.overrun ? timer : t("timeLeft", { time: timer })}
               </p>
             ) : null}
             {lateness ? <p className="m-0 text-text-16">{lateness}</p> : null}
           </div>
-          <div aria-live="polite" className="flex flex-col gap-8 rounded-lg bg-bg-surface p-24">
-            <p className="m-0 text-label-14 font-medium text-text-secondary uppercase">
-              {t("next")}
-            </p>
-            <p className="m-0 text-heading-32 font-semibold">{frame.next?.label ?? ""}</p>
+          <div className="flex flex-col gap-8 rounded-lg bg-bg-surface p-24">
+            <div aria-live="polite" aria-atomic="true" className="flex flex-col gap-8">
+              <p className="m-0 text-label-14 font-medium text-text-secondary uppercase">
+                {t("next")}
+              </p>
+              <p className="m-0 text-heading-32 font-semibold">{frame.next?.label ?? ""}</p>
+            </div>
             {frame.next?.plannedAt ? (
               <p className="m-0 text-text-16 text-text-secondary">
                 {t("plannedAt", { time: time(frame.next.plannedAt) })}
               </p>
             ) : null}
             {frame.timeToNextSeconds !== null ? (
-              <p className="m-0 text-heading-24 tabular-nums">
+              <p role="timer" className="m-0 text-heading-24 tabular-nums">
                 {frame.timeToNextSeconds >= 0
                   ? t("startsIn", { time: clockText(frame.timeToNextSeconds) })
                   : t("lateBy", { time: clockText(frame.timeToNextSeconds) })}
