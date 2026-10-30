@@ -333,18 +333,31 @@ export async function setRosterLock(
   return ok(null);
 }
 
-/** The names lock of each engagement the producing org reads, by engagement id (null for no lock). */
+/** An engagement's names lock as the producing org reads it, with the project's zone the lock is set in. */
+export interface RosterLock {
+  readonly locksAt: string | null;
+  readonly timeZone: string;
+}
+
+/** The names lock of each engagement the producing org reads, by engagement id. */
 export async function listRosterLocks(
   db: XosClient,
   engagementIds: readonly string[],
-): Promise<Result<Record<string, string | null>>> {
+): Promise<Result<Record<string, RosterLock>>> {
   if (engagementIds.length === 0) return ok({});
   const { data, error } = await db
     .from("engagements")
-    .select("id, roster_locks_at")
+    .select("id, roster_locks_at, projects(time_zone)")
     .in("id", [...engagementIds]);
   if (error) return fail(toDataError(error));
-  return ok(Object.fromEntries((data ?? []).map((e) => [e.id, e.roster_locks_at])));
+  return ok(
+    Object.fromEntries(
+      (data ?? []).map((e) => [
+        e.id,
+        { locksAt: e.roster_locks_at, timeZone: e.projects?.time_zone ?? "UTC" },
+      ]),
+    ),
+  );
 }
 
 /** True once a names lock has passed. */

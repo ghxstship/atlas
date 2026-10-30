@@ -15,6 +15,7 @@ import {
   searchAirports,
   SHOE_SIZE_SYSTEMS,
 } from "../src/roster-facts.ts";
+import { projectFactRows } from "../src/roster-facts-display.ts";
 import { workDetailLogKey } from "../src/work-details.ts";
 import { errorResponse, okResponse } from "./fake-client.ts";
 import { moduleClient, stepsOf } from "./module-client.ts";
@@ -257,6 +258,87 @@ describe("roster project facts (R5)", () => {
   it("names the kinds and shoe systems from the database enums", () => {
     expect(PROJECT_FACT_KINDS).toEqual(["Travel", "Uniform", "Vehicle"]);
     expect(SHOE_SIZE_SYSTEMS).toEqual(["US Men", "US Women", "EU", "UK"]);
+  });
+});
+
+describe("project fact rows for display", () => {
+  const t = (key: string) => key;
+  it("labels each given value and leaves out the empty ones", () => {
+    const rows = projectFactRows(t, "Vehicle", {
+      travel: null,
+      uniform: null,
+      vehicle: {
+        make: "Ford",
+        model: "Transit",
+        color: null,
+        plate: "ABC123",
+        plateRegion: "US-FL",
+        updatedAt: null,
+      },
+    });
+    expect(rows).toEqual([
+      ["projectFacts.fields.make.label", "Ford"],
+      ["projectFacts.fields.model.label", "Transit"],
+      ["projectFacts.fields.plate.label", "ABC123"],
+      ["projectFacts.fields.plateRegion.label", "US-FL"],
+    ]);
+  });
+
+  it("shows nothing for a kind with no row", () => {
+    expect(projectFactRows(t, "Travel", { travel: null, uniform: null, vehicle: null })).toEqual(
+      [],
+    );
+  });
+
+  it("names an airport with its code and a shoe size with its system", () => {
+    const travel = projectFactRows(t, "Travel", {
+      travel: {
+        inboundAirportCode: "MIA",
+        inboundAirportName: "Miami International Airport",
+        outboundAirportCode: "JFK",
+        outboundAirportName: null,
+        inboundOn: "2027-05-01",
+        outboundOn: "2027-05-04",
+        seatPreference: "Aisle",
+        mealPreference: null,
+        needsGroundTransport: true,
+        needsLodging: false,
+        travelNotes: null,
+        updatedAt: null,
+      },
+      uniform: null,
+      vehicle: null,
+    });
+    expect(travel[0]).toEqual([
+      "projectFacts.fields.inboundAirport.label",
+      "Miami International Airport (MIA)",
+    ]);
+    expect(travel[2]).toEqual(["projectFacts.fields.outboundAirport.label", "JFK"]);
+    expect(travel).toContainEqual([
+      "projectFacts.fields.seatPreference.label",
+      "seatPreferences.aisle",
+    ]);
+    const uniform = projectFactRows(t, "Uniform", {
+      travel: null,
+      vehicle: null,
+      uniform: {
+        shirtSize: "M",
+        jacketSize: null,
+        pantsSize: null,
+        gloveSize: null,
+        hatSize: null,
+        pantsWaistIn: 32,
+        pantsInseamIn: null,
+        shoeSize: 10.5,
+        shoeSizeSystem: "US Men",
+        updatedAt: null,
+      },
+    });
+    expect(uniform).toEqual([
+      ["projectFacts.fields.shirtSize.label", "M"],
+      ["projectFacts.fields.shoeSize.label", "10.5 projectFacts.shoeSizeSystems.usMen"],
+      ["projectFacts.fields.pantsWaistIn.label", "32"],
+    ]);
   });
 });
 
