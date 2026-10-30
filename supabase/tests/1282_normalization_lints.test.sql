@@ -110,7 +110,7 @@ create function pg_temp.unregistered_stored() returns text language sql stable a
   where c not in (select column_name from register_stored)
 $$;
 
-select plan(15);
+select plan(17);
 
 -- The schema as migrated -------------------------------------------------------------------------------------------
 select is(pg_temp.unregistered_json(), '',
@@ -143,6 +143,12 @@ select is(
   (select coalesce(string_agg(column_name, ', ' order by column_name), '') from register_stored
    where column_name not in (select pg_temp.stored_totals())),
   '', 'every stored entry of the register names a stored column the lint matches');
+
+-- B7 (RRR-231, 2960): a feed's saved sources are reviewed enum-array exceptions, never junction tables.
+select is((select kind from register_arrays where column_name = 'app.calendar_feeds.sources'), 'reviewed',
+  'calendar_feeds.sources is a reviewed array exception');
+select is((select kind from register_arrays where column_name = 'app.person_calendar_feeds.sources'), 'reviewed',
+  'person_calendar_feeds.sources is a reviewed array exception');
 select is(
   (select coalesce(string_agg(table_name, ', ' order by table_name), '') from register_tenant_exceptions
    where table_name not in (select pg_temp.tables_outside_tenant_columns())),
