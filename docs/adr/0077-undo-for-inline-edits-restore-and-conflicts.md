@@ -28,7 +28,7 @@ ADR 0044 gave Atlas a per-tab undo stack (`components/undo/undo-stack.ts`) with 
 
 ### 3. The mine-or-theirs dialog is shared
 
-- `components/undo/conflict-dialog.tsx` is the budget line dialog of journey 33 made shared. Its rows are only the fields both people changed to different values. Keeping mine saves again against the version that came back; taking theirs keeps their values for those fields, and the fields only the person changed still save. Closing the dialog takes theirs, so a dismissed conflict never writes. A conflict whose fields both people set alike needs no choice and saves at once.
+- `components/undo/conflict-dialog.tsx` is the budget line dialog of journey 33 made shared. Its rows are only the fields both people changed to different values. Keeping mine saves again against the version that came back, and its undo writes back the row it replaced (the other person's), never the person's own pre-edit copy; taking theirs keeps their values for those fields, and the fields only the person changed still save. Closing the dialog takes theirs, so a dismissed conflict never writes. A conflict whose fields both people set alike needs no choice and saves at once.
 - In bulk edit, stale rows are listed with both values in the change dialog: keeping mine expects each row's new version, taking theirs leaves those rows out of the change.
 - While nothing is typed, the record and attribute forms follow the record as it changes (a live update, an undo); a form with typing keeps the values it started from, so its save meets the conflict.
 
@@ -36,7 +36,7 @@ ADR 0044 gave Atlas a per-tab undo stack (`components/undo/undo-stack.ts`) with 
 
 - Invoice, settlement and budget lines were already soft deleted. A restored line keeps its number when it is free and otherwise moves to the end of its parent (2121), so a line added after the delete never blocks the restore.
 - `app.restore_trash_item` (1031) failed every invoice line restore with permission denied, because its cascade updated child tables the caller may not update at all (the self-billing link tables). The cascade now walks only the tables whose `deleted_at` the caller may update (2122): a table granting UPDATE on `deleted_at` alone (project shares, applications, API keys) is walked as before, and a table the caller may not update at all is skipped.
-- `record.trashed`, `invoice_line.trashed`, `settlement_line.trashed` and `budget_line.trashed` are emitted when a row moves to Trash, with its project, so the Activity feed shows the deletion to the people who may read the project. Activity offers Restore on the newest such entry of a row still listed in `app.trash_items`, until its `purge_after`, through `app.restore_trash_item`, as the Trash page does.
+- `record.trashed`, `invoice_line.trashed`, `settlement_line.trashed` and `budget_line.trashed` are emitted when a row moves to Trash, with its project, so the Activity feed shows the deletion to the people who may read the project. Those include people without finance read, so a line's event carries none of the line's content: the feed names the line from `app.trash_items`, read under the reader's row level security, or as "an invoice line" when they cannot read it. A record's event carries its title, as `record.created` does. Activity offers Restore on the newest such entry of a row still listed in `app.trash_items`, until its `purge_after`, through `app.restore_trash_item`, as the Trash page does.
 
 ## Consequences
 
