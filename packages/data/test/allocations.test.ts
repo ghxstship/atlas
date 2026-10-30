@@ -102,7 +102,12 @@ describe("allocations", () => {
         errorResponse("42501", "denied"),
       ],
     });
-    const result = await listAllocations(db, { orgId: "o1", projectId: "p1", kind: "Asset", status: "Partly Issued" });
+    const result = await listAllocations(db, {
+      orgId: "o1",
+      projectId: "p1",
+      kind: "Asset",
+      status: "Partly Issued",
+    });
     expect(result.ok && result.data).toEqual([
       expect.objectContaining({
         id: "a1",
@@ -154,7 +159,10 @@ describe("allocations", () => {
 
   it("requests for one target and holder, sending only what is set", async () => {
     const { db, calls } = moduleClient({
-      "rpc:request_allocation": [okResponse("a1"), errorResponse("XR001", "allocation_cap_engagement: over")],
+      "rpc:request_allocation": [
+        okResponse("a1"),
+        errorResponse("XR001", "allocation_cap_engagement: over"),
+      ],
     });
     const input = {
       projectId: "p1",
@@ -181,7 +189,10 @@ describe("allocations", () => {
       p_time_zone: "America/New_York",
     });
     const refused = await requestAllocation(db, input);
-    expect(!refused.ok && refused.error).toMatchObject({ kind: "refusal", rule: "allocation_cap_engagement" });
+    expect(!refused.ok && refused.error).toMatchObject({
+      kind: "refusal",
+      rule: "allocation_cap_engagement",
+    });
   });
 
   it("assigns and decides with sources, mixed supply as one hold per source", async () => {
@@ -212,7 +223,11 @@ describe("allocations", () => {
       timeZone: "UTC",
       note: "Second leg.",
     });
-    expect(calls[0]?.steps[0]?.[1]?.[0]).toMatchObject({ p_roster_entry_id: "r1", p_service_kind: "Travel", p_note: "Second leg." });
+    expect(calls[0]?.steps[0]?.[1]?.[0]).toMatchObject({
+      p_roster_entry_id: "r1",
+      p_service_kind: "Travel",
+      p_note: "Second leg.",
+    });
     expect(calls[0]?.steps[0]?.[1]?.[0]).not.toHaveProperty("p_sources");
     await decideAllocation(db, { allocationId: "a1", decision: "Approved", sources });
     expect(calls[1]?.steps[0]?.[1]?.[0]).toEqual({
@@ -221,12 +236,18 @@ describe("allocations", () => {
       p_sources: sourcesJson(sources),
     });
     await decideAllocation(db, { allocationId: "a1", decision: "Rejected", reason: "No." });
-    expect(calls[2]?.steps[0]?.[1]?.[0]).toEqual({ p_allocation_id: "a1", p_decision: "Rejected", p_reason: "No." });
+    expect(calls[2]?.steps[0]?.[1]?.[0]).toEqual({
+      p_allocation_id: "a1",
+      p_decision: "Rejected",
+      p_reason: "No.",
+    });
     expect(await reserveAllocation(db, "a1", sources)).toEqual({ ok: true, data: 2 });
   });
 
   it("decides in bulk through the advance_allocations resource", async () => {
-    const { db, calls } = moduleClient({ "rpc:bulk_update_advance_allocations": [okResponse({ changed: 2 })] });
+    const { db, calls } = moduleClient({
+      "rpc:bulk_update_advance_allocations": [okResponse({ changed: 2 })],
+    });
     await bulkDecideAllocations(db, ["a1", "a2"], "Declined", { reason: "Over budget." });
     expect(calls[0]?.steps[0]?.[1]?.[0]).toEqual({
       p_rows: [
@@ -261,7 +282,10 @@ describe("allocations", () => {
     expect(await unsplitAllocation(db, "c1")).toEqual({ ok: true, data: 1 });
     expect(calls[1]?.steps[0]?.[1]?.[0]).toEqual({ p_child_id: "c1" });
     await withdrawAllocation(db, "a1", "Not needed.");
-    expect(calls[2]?.steps[0]?.[1]?.[0]).toEqual({ p_allocation_id: "a1", p_reason: "Not needed." });
+    expect(calls[2]?.steps[0]?.[1]?.[0]).toEqual({
+      p_allocation_id: "a1",
+      p_reason: "Not needed.",
+    });
     await releaseReservation(db, "h1");
     expect(calls[3]?.steps[0]?.[1]?.[0]).toEqual({ p_reservation_id: "h1" });
   });
@@ -289,14 +313,22 @@ describe("allocations", () => {
       ],
     });
     expect(
-      await issueAllocation(db, { eventId: "ev1", allocationId: "a1", items: [{ kind: "unit", assetTag: "NWL-RAD-001" }] }),
+      await issueAllocation(db, {
+        eventId: "ev1",
+        allocationId: "a1",
+        items: [{ kind: "unit", assetTag: "NWL-RAD-001" }],
+      }),
     ).toEqual({ ok: true, data: { outcome: "duplicate", possession: { asset_custody: ["c1"] } } });
     expect(calls[0]?.steps[0]?.[1]?.[0]).toEqual({
       p_event_id: "ev1",
       p_allocation_id: "a1",
       p_items: [{ asset_tag: "NWL-RAD-001" }],
     });
-    const refused = await issueAllocation(db, { eventId: "ev2", allocationId: "a1", items: [{ kind: "credential" }] });
+    const refused = await issueAllocation(db, {
+      eventId: "ev2",
+      allocationId: "a1",
+      items: [{ kind: "credential" }],
+    });
     expect(!refused.ok && refused.error).toMatchObject({ rule: "allocation_self_issue" });
   });
 
@@ -324,9 +356,36 @@ describe("allocations", () => {
     const { db } = moduleClient({
       "rpc:allocation_allowances": [
         okResponse([
-          { offering: "Radios", roster_entry_id: null, mode: "Provided", cap: "6", requested: 0, approved: "4", remaining: "2", beyond: "0" },
-          { offering: "Radios", roster_entry_id: "r1", mode: "Provided", cap: 2, requested: 0, approved: 2, remaining: 0, beyond: 0 },
-          { offering: "Travel", roster_entry_id: null, mode: "Provided", cap: null, requested: 1, approved: 0, remaining: null, beyond: null },
+          {
+            offering: "Radios",
+            roster_entry_id: null,
+            mode: "Provided",
+            cap: "6",
+            requested: 0,
+            approved: "4",
+            remaining: "2",
+            beyond: "0",
+          },
+          {
+            offering: "Radios",
+            roster_entry_id: "r1",
+            mode: "Provided",
+            cap: 2,
+            requested: 0,
+            approved: 2,
+            remaining: 0,
+            beyond: 0,
+          },
+          {
+            offering: "Travel",
+            roster_entry_id: null,
+            mode: "Provided",
+            cap: null,
+            requested: 1,
+            approved: 0,
+            remaining: null,
+            beyond: null,
+          },
         ]),
       ],
     });
@@ -352,7 +411,10 @@ describe("allocations", () => {
       ],
     });
     await setAllocationRadioChannels(db, "a1", ["c1", "c3"]);
-    expect(calls[0]?.steps[0]?.[1]?.[0]).toEqual({ p_allocation_id: "a1", p_radio_channel_ids: ["c1", "c3"] });
+    expect(calls[0]?.steps[0]?.[1]?.[0]).toEqual({
+      p_allocation_id: "a1",
+      p_radio_channel_ids: ["c1", "c3"],
+    });
     const channels = await listProjectRadioChannels(db, "p1");
     const list = channels.ok ? channels.data : [];
     expect(defaultChannelHint("CH 3", list)?.id).toBe("c3");
@@ -382,7 +444,15 @@ describe("allocations", () => {
       ],
       "rpc:asset_class_availability": [
         okResponse([
-          { serviceable_units: 4, lot_quantity: 0, on_order_quantity: 2, total: 6, peak_reserved: 2, available: 4, unit_basis: "each" },
+          {
+            serviceable_units: 4,
+            lot_quantity: 0,
+            on_order_quantity: 2,
+            total: 6,
+            peak_reserved: 2,
+            available: 4,
+            unit_basis: "each",
+          },
         ]),
         okResponse([]),
       ],
@@ -399,23 +469,50 @@ describe("allocations", () => {
             quantity: 1,
             conflict: "Unit Unavailable",
           },
-          { reservation_id: "h2", allocation_id: "a2", project_id: "p1", asset_class_id: "c1", conflict: "Something else" },
+          {
+            reservation_id: "h2",
+            allocation_id: "a2",
+            project_id: "p1",
+            asset_class_id: "c1",
+            conflict: "Something else",
+          },
         ]),
       ],
     });
     const handout = await radioHandout(db, "p1");
-    expect(handout.ok && handout.data[0]).toMatchObject({ personName: "Kai Morgan", channelNumbers: [1, 3], status: "Partly Issued" });
-    expect(await getAssetClassAvailability(db, { assetClassId: "c1", from: "a", to: "b" })).toEqual({
-      ok: true,
-      data: { serviceableUnits: 4, lotQuantity: 0, onOrderQuantity: 2, total: 6, peakReserved: 2, available: 4, unitBasis: "each" },
+    expect(handout.ok && handout.data[0]).toMatchObject({
+      personName: "Kai Morgan",
+      channelNumbers: [1, 3],
+      status: "Partly Issued",
     });
-    expect(await getAssetClassAvailability(db, { assetClassId: "c1", from: "a", to: "b" })).toEqual({
-      ok: false,
-      error: { kind: "not-found" },
-    });
+    expect(await getAssetClassAvailability(db, { assetClassId: "c1", from: "a", to: "b" })).toEqual(
+      {
+        ok: true,
+        data: {
+          serviceableUnits: 4,
+          lotQuantity: 0,
+          onOrderQuantity: 2,
+          total: 6,
+          peakReserved: 2,
+          available: 4,
+          unitBasis: "each",
+        },
+      },
+    );
+    expect(await getAssetClassAvailability(db, { assetClassId: "c1", from: "a", to: "b" })).toEqual(
+      {
+        ok: false,
+        error: { kind: "not-found" },
+      },
+    );
     const conflicts = await listReservationConflicts(db, { orgId: "o1", projectId: "p1" });
     expect(conflicts.ok && conflicts.data.map((c) => c.conflict)).toEqual(["Unit Unavailable"]);
-    expect(stepsOf(calls.find((c) => c.target === "from:asset_reservation_conflicts"), "eq")).toEqual([
+    expect(
+      stepsOf(
+        calls.find((c) => c.target === "from:asset_reservation_conflicts"),
+        "eq",
+      ),
+    ).toEqual([
       ["org_id", "o1"],
       ["project_id", "p1"],
     ]);

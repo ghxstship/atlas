@@ -7282,6 +7282,10 @@ export interface AssetClass {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly element_id: string;
+  /**
+   * Offering the class answers for; null for site assets.
+   */
+  readonly offering: "Radios" | "Carts" | null;
 }
 
 /**
@@ -7298,6 +7302,10 @@ export interface AssetClassCreate {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly element_id: string;
+  /**
+   * Offering the class answers for; null for site assets.
+   */
+  readonly offering?: "Radios" | "Carts" | null;
 }
 
 /**
@@ -7314,6 +7322,44 @@ export interface AssetClassUpdate {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly element_id?: string;
+  /**
+   * Offering the class answers for; null for site assets.
+   */
+  readonly offering?: "Radios" | "Carts" | null;
+}
+
+/**
+ * How many of an asset class are free over a window (G-93).
+ */
+export interface AssetClassAvailability {
+  /**
+   * Serviceable owned units.
+   */
+  readonly serviceable_units: number;
+  /**
+   * Owned lot quantity.
+   */
+  readonly lot_quantity: number;
+  /**
+   * Quantity on order that covers the window.
+   */
+  readonly on_order_quantity: number;
+  /**
+   * All the class can supply over the window.
+   */
+  readonly total: number;
+  /**
+   * Most held at once over the window.
+   */
+  readonly peak_reserved: number;
+  /**
+   * Total less the peak, never below 0.
+   */
+  readonly available: number;
+  /**
+   * Unit of the class element.
+   */
+  readonly unit_basis: string;
 }
 
 /**
@@ -11920,6 +11966,10 @@ export interface CredentialCategory {
    */
   readonly name: string;
   /**
+   * Access badge or parking pass.
+   */
+  readonly category_kind: "Access" | "Parking";
+  /**
    * Identifier of the project.
    * Format: `uuid`.
    */
@@ -11941,6 +11991,10 @@ export interface CredentialCategoryCreate {
    */
   readonly name: string;
   /**
+   * Access badge or parking pass.
+   */
+  readonly category_kind?: "Access" | "Parking";
+  /**
    * Identifier of the project.
    * Format: `uuid`.
    */
@@ -11961,6 +12015,10 @@ export interface CredentialCategoryUpdate {
    * Length: 1 to 300.
    */
   readonly name?: string;
+  /**
+   * Access badge or parking pass.
+   */
+  readonly category_kind?: "Access" | "Parking";
   /**
    * Category code, unique per project.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -37938,6 +37996,726 @@ export interface TravelDayCount {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface AdvanceAllocationPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AdvanceAllocation>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project.
+ */
+export interface AdvanceAllocation {
+  /**
+   * Identifier of the allocation.
+   * Format: `uuid`.
+   */
+  readonly allocation_id: string;
+  /**
+   * Identifier of the producing org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the party pool's engagement; null when a person holds it.
+   * Format: `uuid`.
+   */
+  readonly holder_engagement_id: string | null;
+  /**
+   * Identifier of the roster entry of the person who holds it; null for a pool.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
+  /**
+   * Identifier of the pool a share was split from.
+   * Format: `uuid`.
+   */
+  readonly parent_allocation_id: string | null;
+  /**
+   * What the allocation gives.
+   */
+  readonly kind:
+    "Credential" | "Parking Pass" | "Asset" | "Catering" | "Lodging" | "Travel" | "Per Diem";
+  /**
+   * Offering it draws on; null for a badge or a site asset.
+   */
+  readonly offering:
+    | "Travel"
+    | "Lodging"
+    | "Catering"
+    | "Parking"
+    | "Uniforms"
+    | "Per Diem"
+    | "Radios"
+    | "Carts"
+    | "Guest List"
+    | null;
+  /**
+   * Category, class, catering or block name; null for Travel and Per Diem.
+   */
+  readonly item_name: string | null;
+  /**
+   * Quantity allocated.
+   */
+  readonly quantity: number;
+  /**
+   * Stored state.
+   */
+  readonly allocation_state: "Requested" | "Approved" | "Declined" | "Withdrawn";
+  /**
+   * How the allocation came to be.
+   */
+  readonly origin: "Requested" | "Assigned" | "Split";
+  /**
+   * When it is first needed.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string;
+  /**
+   * When it is no longer needed.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly needed_time_zone: string;
+  /**
+   * Identifier of the person who requested or assigned it.
+   * Format: `uuid`.
+   */
+  readonly requested_by: string | null;
+  /**
+   * When it was approved or declined.
+   * Format: `date-time`.
+   */
+  readonly decided_at: string | null;
+  /**
+   * Identifier of the person who approved or declined it.
+   * Format: `uuid`.
+   */
+  readonly decided_by: string | null;
+  /**
+   * Why it was declined.
+   */
+  readonly decline_reason: string | null;
+  /**
+   * Quantity of live holds.
+   */
+  readonly reserved_quantity: number;
+  /**
+   * Order-line holds on Approved or Sent orders not yet received.
+   */
+  readonly on_order_quantity: number;
+  /**
+   * Every ordering order behind its holds was acknowledged.
+   */
+  readonly confirmed: boolean;
+  /**
+   * An order behind its holds is still Proposed.
+   */
+  readonly awaiting_order: boolean;
+  /**
+   * Received on the order lines behind its holds.
+   */
+  readonly received_quantity: number;
+  /**
+   * Issued from the possession rows.
+   */
+  readonly issued_quantity: number;
+  /**
+   * Issued and checked in since.
+   */
+  readonly returned_quantity: number;
+  /**
+   * Issued units that went Lost.
+   */
+  readonly lost_quantity: number;
+  /**
+   * Issued credentials since revoked.
+   */
+  readonly revoked_quantity: number;
+  /**
+   * The computed status.
+   */
+  readonly display_status:
+    | "Requested"
+    | "Approved"
+    | "Reserved"
+    | "Awaiting Order"
+    | "On Order"
+    | "Confirmed"
+    | "Received"
+    | "Partly Issued"
+    | "Issued"
+    | "Returned"
+    | "Revoked"
+    | "Declined"
+    | "Withdrawn";
+}
+
+/**
+ * One allocation: one holder and one target.
+ */
+export interface AdvanceAllocationRequest {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the party pool's engagement; give this or roster_entry_id.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string;
+  /**
+   * Identifier of the roster entry of one person; give this or engagement_id.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id?: string;
+  /**
+   * Identifier of the badge or parking category.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id?: string;
+  /**
+   * Identifier of the asset class, such as the org's radios.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string;
+  /**
+   * Identifier of the catering fulfillment.
+   * Format: `uuid`.
+   */
+  readonly fulfillment_id?: string;
+  /**
+   * Identifier of the accommodation block.
+   * Format: `uuid`.
+   */
+  readonly accommodation_block_id?: string;
+  /**
+   * Travel or Per Diem.
+   */
+  readonly service_kind?: "Travel" | "Per Diem";
+  /**
+   * Quantity.
+   */
+  readonly quantity: number;
+  /**
+   * When it is first needed.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string;
+  /**
+   * When it is no longer needed.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
+  /**
+   * Note; above the allowance with overflow at review, the reason for an assignment.
+   * Length: 1 to 1000.
+   */
+  readonly note?: string;
+}
+
+/**
+ * One allocation assigned directly, with its holds for an asset.
+ */
+export interface AdvanceAllocationAssign {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the party pool's engagement; give this or roster_entry_id.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string;
+  /**
+   * Identifier of the roster entry of one person; give this or engagement_id.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id?: string;
+  /**
+   * Identifier of the badge or parking category.
+   * Format: `uuid`.
+   */
+  readonly credential_category_id?: string;
+  /**
+   * Identifier of the asset class, such as the org's radios.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id?: string;
+  /**
+   * Identifier of the catering fulfillment.
+   * Format: `uuid`.
+   */
+  readonly fulfillment_id?: string;
+  /**
+   * Identifier of the accommodation block.
+   * Format: `uuid`.
+   */
+  readonly accommodation_block_id?: string;
+  /**
+   * Travel or Per Diem.
+   */
+  readonly service_kind?: "Travel" | "Per Diem";
+  /**
+   * Quantity.
+   */
+  readonly quantity: number;
+  /**
+   * When it is first needed.
+   * Format: `date-time`.
+   */
+  readonly needed_from: string;
+  /**
+   * When it is no longer needed.
+   * Format: `date-time`.
+   */
+  readonly needed_to: string;
+  /**
+   * IANA time zone of the window.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly time_zone: string;
+  /**
+   * Note; above the allowance with overflow at review, the reason for an assignment.
+   * Length: 1 to 1000.
+   */
+  readonly note?: string;
+  /**
+   * Holds for an asset allocation, summing to its quantity. Left out, class stock holds it when the class has units, else its only lot.
+   */
+  readonly sources?: ReadonlyArray<AllocationSource>;
+}
+
+/**
+ * One hold source; mixed supply is one source each.
+ */
+export interface AllocationSource {
+  /**
+   * Where the stock comes from.
+   */
+  readonly source: "Class Stock" | "Unit" | "Lot" | "Order Line";
+  /**
+   * Quantity held from it.
+   */
+  readonly quantity: number;
+  /**
+   * Identifier of the unit, for a Unit source.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id?: string;
+  /**
+   * Identifier of the lot, for a Lot source.
+   * Format: `uuid`.
+   */
+  readonly asset_lot_id?: string;
+  /**
+   * Identifier of the order line, for an Order Line source.
+   * Format: `uuid`.
+   */
+  readonly po_line_id?: string;
+}
+
+/**
+ * A decision on a Requested allocation.
+ */
+export interface AdvanceAllocationDecision {
+  /**
+   * Approve, or reject (decline).
+   */
+  readonly decision: "Approved" | "Rejected";
+  /**
+   * Required to decline, and to approve above the allowance with overflow at review.
+   * Length: 1 to 1000.
+   */
+  readonly reason?: string;
+  /**
+   * Holds for an asset allocation, summing to its quantity. Left out, class stock holds it when the class has units, else its only lot.
+   */
+  readonly sources?: ReadonlyArray<AllocationSource>;
+}
+
+/**
+ * Holds that replace an approved asset allocation's holds.
+ */
+export interface AdvanceAllocationReserve {
+  /**
+   * The new holds.
+   */
+  readonly sources: ReadonlyArray<AllocationSource>;
+}
+
+/**
+ * The shares written.
+ */
+export interface AdvanceAllocationSplitResult {
+  /**
+   * The shares, in the order given.
+   */
+  readonly allocation_ids: ReadonlyArray<string>;
+}
+
+/**
+ * Shares of an approved party pool for its people.
+ */
+export interface AdvanceAllocationSplit {
+  readonly parts: ReadonlyArray<AdvanceAllocationSplitPart>;
+}
+
+/**
+ * One person's share.
+ */
+export interface AdvanceAllocationSplitPart {
+  /**
+   * Identifier of the roster entry on the pool's engagement.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string;
+  /**
+   * Quantity for the person.
+   */
+  readonly quantity: number;
+  /**
+   * Units pinned to the person.
+   */
+  readonly asset_unit_ids?: ReadonlyArray<string>;
+}
+
+/**
+ * What went back.
+ */
+export interface AdvanceAllocationUnsplitResult {
+  /**
+   * Quantity returned to the pool.
+   */
+  readonly quantity: number;
+}
+
+/**
+ * A share returned to its pool.
+ */
+export interface AdvanceAllocationUnsplit {
+  /**
+   * How much goes back; all of it when left out.
+   */
+  readonly quantity?: number;
+}
+
+/**
+ * Withdrawing an allocation.
+ */
+export interface AdvanceAllocationWithdraw {
+  /**
+   * Why it is withdrawn.
+   * Length: 1 to 1000.
+   */
+  readonly reason?: string;
+}
+
+/**
+ * What one issue event wrote.
+ */
+export interface AdvanceAllocationIssueResult {
+  /**
+   * applied, or duplicate for a replay.
+   */
+  readonly outcome: "applied" | "duplicate";
+  /**
+   * Ids of the possession rows written, by table.
+   */
+  readonly possession: { readonly [key: string]: ReadonlyArray<string> };
+}
+
+/**
+ * One issue event.
+ */
+export interface AdvanceAllocationIssue {
+  /**
+   * Items handed over.
+   */
+  readonly items: ReadonlyArray<AdvanceAllocationIssueItem>;
+}
+
+/**
+ * One item handed over; the keys depend on the kind.
+ */
+export interface AdvanceAllocationIssueItem {
+  /**
+   * Badge or pass: valid from; the window start by default.
+   * Format: `date-time`.
+   */
+  readonly valid_from?: string;
+  /**
+   * Badge or pass: valid until; the window end by default.
+   * Format: `date-time`.
+   */
+  readonly valid_to?: string;
+  /**
+   * Identifier of the parking pass: the holder's roster vehicle.
+   * Format: `uuid`.
+   */
+  readonly roster_vehicle_id?: string;
+  /**
+   * Identifier of the unit issued.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id?: string;
+  /**
+   * Unit issued, by tag.
+   */
+  readonly asset_tag?: string;
+  /**
+   * Identifier of the lot a quantity is issued from.
+   * Format: `uuid`.
+   */
+  readonly asset_lot_id?: string;
+  /**
+   * Identifier of the hold the item is issued against; picked when left out.
+   * Format: `uuid`.
+   */
+  readonly reservation_id?: string;
+  /**
+   * Lot or catering quantity.
+   */
+  readonly quantity?: number;
+  /**
+   * Catering: what is provided.
+   */
+  readonly description?: string;
+  /**
+   * Lodging: first night.
+   * Format: `date`.
+   */
+  readonly check_in_on?: string;
+  /**
+   * Lodging: departure date.
+   * Format: `date`.
+   */
+  readonly check_out_on?: string;
+  /**
+   * Travel: mode.
+   */
+  readonly travel_mode?: "Flight" | "Ground";
+  /**
+   * Travel: airline or operator.
+   */
+  readonly operator_name?: string;
+  /**
+   * Travel: flight or service number.
+   */
+  readonly service_identifier?: string;
+  /**
+   * Travel: booking confirmation.
+   */
+  readonly confirmation_identifier?: string;
+  /**
+   * Travel: departure place.
+   */
+  readonly departs_from?: string;
+  /**
+   * Travel: departure time.
+   * Format: `date-time`.
+   */
+  readonly departs_at?: string;
+  /**
+   * Travel: zone of the departure.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly departs_time_zone?: string;
+  /**
+   * Travel: arrival place.
+   */
+  readonly arrives_at_place?: string;
+  /**
+   * Travel: arrival time.
+   * Format: `date-time`.
+   */
+  readonly arrives_at?: string;
+  /**
+   * Travel: zone of the arrival.
+   * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
+   */
+  readonly arrives_time_zone?: string;
+  /**
+   * Per diem: the day, inside the window.
+   * Format: `date`.
+   */
+  readonly day?: string;
+  /**
+   * Per diem: amount in minor units.
+   */
+  readonly amount_minor?: number | null;
+  /**
+   * Per diem: ISO 4217 currency.
+   * Length: 3 to 3.
+   */
+  readonly currency_code?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AllocationAllowancePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AllocationAllowance>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What remains of an offering's cap for a pool or a person (G-174).
+ */
+export interface AllocationAllowance {
+  /**
+   * Offering.
+   */
+  readonly offering:
+    | "Travel"
+    | "Lodging"
+    | "Catering"
+    | "Parking"
+    | "Uniforms"
+    | "Per Diem"
+    | "Radios"
+    | "Carts"
+    | "Guest List";
+  /**
+   * Identifier of the roster entry; null for the pool row.
+   * Format: `uuid`.
+   */
+  readonly roster_entry_id: string | null;
+  /**
+   * How the offering reaches the engagement.
+   */
+  readonly mode: string;
+  /**
+   * Cap; null for none.
+   */
+  readonly cap: number | null;
+  /**
+   * Live Requested quantity under it.
+   */
+  readonly requested: number;
+  /**
+   * Live Approved quantity under it.
+   */
+  readonly approved: number;
+  /**
+   * Cap less requested and approved, never below 0.
+   */
+  readonly remaining: number | null;
+  /**
+   * How far requested and approved go beyond the cap.
+   */
+  readonly beyond: number | null;
+}
+
+/**
+ * The radio channels a radio allocation is programmed with, as a whole.
+ */
+export interface AllocationRadioChannels {
+  /**
+   * The project's channels, 0 to 16.
+   */
+  readonly radio_channel_ids: ReadonlyArray<string>;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AssetReservationConflictPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AssetReservationConflict>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A live hold that no longer fits what can supply it (G-93), one row per conflict: the pinned unit is Damaged, In Maintenance, Lost, Retired or Returned; the class or lot is over reserved; or the order behind it is Canceled or short. Computed, never stored.
+ */
+export interface AssetReservationConflict {
+  /**
+   * Identifier of the hold.
+   * Format: `uuid`.
+   */
+  readonly reservation_id: string;
+  /**
+   * Identifier of the allocation the hold serves.
+   * Format: `uuid`.
+   */
+  readonly allocation_id: string;
+  /**
+   * Identifier of the org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the class held.
+   * Format: `uuid`.
+   */
+  readonly asset_class_id: string;
+  /**
+   * Identifier of the pinned unit.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string | null;
+  /**
+   * Identifier of the lot.
+   * Format: `uuid`.
+   */
+  readonly asset_lot_id: string | null;
+  /**
+   * Identifier of the order line.
+   * Format: `uuid`.
+   */
+  readonly po_line_id: string | null;
+  /**
+   * Quantity held.
+   */
+  readonly quantity: number;
+  /**
+   * What no longer fits.
+   */
+  readonly conflict:
+    "Unit Unavailable" | "Class Over Reserved" | "Lot Over Reserved" | "Order Short";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface GuestListEntryPage {
   /**
    * Items on this page, in the documented default order.
@@ -38152,6 +38930,106 @@ export interface AssetUnitHire {
    * True for a rental unit whose hire has ended and which has not been Returned.
    */
   readonly off_hire_due: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AssetReservationPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AssetReservation>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions.
+ */
+export interface AssetReservation {
+  /**
+   * Identifier of the asset reservation.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string;
+  /**
+   * Identifier of the project of the allocation.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the allocation the hold serves.
+   * Format: `uuid`.
+   */
+  readonly advance_allocation_id: string;
+  /**
+   * Identifier of the pinned unit.
+   * Format: `uuid`.
+   */
+  readonly asset_unit_id: string | null;
+  /**
+   * Identifier of the lot held from.
+   * Format: `uuid`.
+   */
+  readonly asset_lot_id: string | null;
+  /**
+   * Identifier of the order line held on.
+   * Format: `uuid`.
+   */
+  readonly po_line_id: string | null;
+  /**
+   * Quantity held.
+   */
+  readonly quantity: number;
+  /**
+   * When the hold was released.
+   * Format: `date-time`.
+   */
+  readonly released_at: string | null;
+  /**
+   * Why it was released.
+   */
+  readonly release_reason:
+    "Withdrawn" | "Entry Removed" | "Engagement Ended" | "Split" | "Released By Reviewer" | null;
+}
+
+/**
+ * Releasing a hold.
+ */
+export interface AssetReservationRelease {
+  /**
+   * Why the hold is released.
+   * Length: 1 to 1000.
+   */
+  readonly reason?: string;
 }
 
 /**

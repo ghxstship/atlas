@@ -11,6 +11,11 @@ import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions } from "../correct.ts";
 import { collectionAction } from "../define.ts";
 import { assetUnitBulkActions, fieldHistoryAction } from "./parts/bulk-edit-and-history.ts";
+import {
+  assetClassAvailabilityQuery,
+  assetReservationCapabilities,
+  assetReservationResources,
+} from "./parts/allocations.ts";
 import { assetSupplyResources } from "./parts/supply-bridge.ts";
 
 const SINCE = "1.0.0-draft.2";
@@ -90,10 +95,40 @@ const AssetScanResult = z
   .meta({ id: "AssetScanResult", description: "The outcome of one scan event." });
 
 export const additions = defineAdditions("Assets", {
-  resources: assetSupplyResources,
-  actions: { assetUnits: [...assetUnitBulkActions, fieldHistoryAction("asset unit")] },
-  capabilities: { assetUnitHire: { read: "assets.asset.read" } },
+  resources: [...assetSupplyResources, ...assetReservationResources],
+  actions: {
+    assetUnits: [...assetUnitBulkActions, fieldHistoryAction("asset unit")],
+    // R7 (G-93): how many of a class are free over a window.
+    assetClasses: [assetClassAvailabilityQuery],
+  },
+  capabilities: {
+    assetUnitHire: { read: "assets.asset.read" },
+    ...assetReservationCapabilities,
+    assetClasses: { actions: { availability: "assets.asset.read" } },
+  },
   corrections: [
+    {
+      id: "asset-class-offering",
+      since: SINCE,
+      resources: ["assetClasses"],
+      change:
+        "Adds the optional `offering`, Radios or Carts: the offering the class answers for, at most one live class per offering in an org.",
+      reason:
+        "app.asset_classes.offering (2691, R7) names the app.offering_kind a class supplies (asset_classes_offering, asset_classes_org_offering_key); allocations read the offering's caps through it.",
+      apply: editShape({
+        add: {
+          offering: {
+            schema: orNull(
+              z.enum(["Radios", "Carts"]).meta({
+                description: "Offering the class answers for; null for site assets.",
+                example: "Radios",
+              }),
+            ),
+            create: "optional",
+          },
+        },
+      }),
+    },
     {
       id: "asset-class-element",
       since: SINCE,

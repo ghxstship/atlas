@@ -112,7 +112,8 @@ export function rangeBounds(range: string | null | undefined): {
   return { from: iso(match[1]), to: iso(match[2]) };
 }
 
-const num = (v: number | string | null | undefined) => (v === null || v === undefined ? 0 : Number(v));
+const num = (v: number | string | null | undefined) =>
+  v === null || v === undefined ? 0 : Number(v);
 
 /** A view row in camel case; a row without its keys (never in practice) is dropped. */
 export function toAllocation(r: StatusRow): Allocation | null {
@@ -314,7 +315,10 @@ function allocationArgs(input: AllocationInput) {
 }
 
 /** Production requests an allocation for a party or a person (advancing.packet.write). */
-export async function requestAllocation(db: XosClient, input: AllocationInput): Promise<Result<string>> {
+export async function requestAllocation(
+  db: XosClient,
+  input: AllocationInput,
+): Promise<Result<string>> {
   const { data, error } = await db.rpc("request_allocation", allocationArgs(input));
   if (error) return fail(toDataError(error));
   return ok(data);
@@ -363,7 +367,12 @@ export async function bulkDecideAllocations(
   decision: "Approved" | "Declined",
   options: { readonly preview?: boolean; readonly reason?: string | null } = {},
 ): Promise<Result<BulkOutcome>> {
-  return bulkUpdate(db, "advance_allocations", sameValueRows(ids, { allocation_state: decision }), options);
+  return bulkUpdate(
+    db,
+    "advance_allocations",
+    sameValueRows(ids, { allocation_state: decision }),
+    options,
+  );
 }
 
 /** Replaces the holds of an Approved asset allocation before anything of it is issued. */
@@ -398,7 +407,9 @@ export async function splitAllocation(
     p_parts: parts.map((p) => ({
       roster_entry_id: p.rosterEntryId,
       quantity: p.quantity,
-      ...(p.assetUnitIds && p.assetUnitIds.length > 0 ? { asset_unit_ids: [...p.assetUnitIds] } : {}),
+      ...(p.assetUnitIds && p.assetUnitIds.length > 0
+        ? { asset_unit_ids: [...p.assetUnitIds] }
+        : {}),
     })),
   });
   if (error) return fail(toDataError(error));
@@ -467,7 +478,11 @@ export type IssueItem =
       readonly description?: string | null;
       readonly quantity?: number | null;
     }
-  | { readonly kind: "lodging"; readonly checkInOn?: string | null; readonly checkOutOn?: string | null }
+  | {
+      readonly kind: "lodging";
+      readonly checkInOn?: string | null;
+      readonly checkOutOn?: string | null;
+    }
   | {
       readonly kind: "travel";
       readonly travelMode: Enums["travel_mode"];
@@ -489,18 +504,31 @@ export type IssueItem =
     };
 
 const compact = (o: Record<string, unknown>) =>
-  Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== ""));
+  Object.fromEntries(
+    Object.entries(o).filter(([, v]) => v !== undefined && v !== null && v !== ""),
+  );
 
 /** The p_items JSON of an issue, with only the keys each kind takes. */
 export function issueItemsJson(items: readonly IssueItem[]): Json {
   return items.map((i) => {
     switch (i.kind) {
       case "credential":
-        return compact({ valid_from: i.validFrom, valid_to: i.validTo, roster_vehicle_id: i.rosterVehicleId });
+        return compact({
+          valid_from: i.validFrom,
+          valid_to: i.validTo,
+          roster_vehicle_id: i.rosterVehicleId,
+        });
       case "unit":
-        return compact({ asset_tag: i.assetTag.trim().toUpperCase(), reservation_id: i.reservationId });
+        return compact({
+          asset_tag: i.assetTag.trim().toUpperCase(),
+          reservation_id: i.reservationId,
+        });
       case "lot":
-        return compact({ asset_lot_id: i.assetLotId, quantity: i.quantity, reservation_id: i.reservationId });
+        return compact({
+          asset_lot_id: i.assetLotId,
+          quantity: i.quantity,
+          reservation_id: i.reservationId,
+        });
       case "catering":
         return compact({ description: i.description, quantity: i.quantity });
       case "lodging":
@@ -533,7 +561,11 @@ export interface IssueResult {
 /** Hands over part or all of an Approved allocation, idempotent on the event id. */
 export async function issueAllocation(
   db: XosClient,
-  input: { readonly eventId: string; readonly allocationId: string; readonly items: readonly IssueItem[] },
+  input: {
+    readonly eventId: string;
+    readonly allocationId: string;
+    readonly items: readonly IssueItem[];
+  },
 ): Promise<Result<IssueResult>> {
   const { data, error } = await db.rpc("issue_allocation", {
     p_event_id: input.eventId,
@@ -545,7 +577,8 @@ export async function issueAllocation(
   const possession: Record<string, string[]> = {};
   if (r.possession && typeof r.possession === "object") {
     for (const [table, ids] of Object.entries(r.possession as Record<string, unknown>)) {
-      if (Array.isArray(ids)) possession[table] = ids.filter((x): x is string => typeof x === "string");
+      if (Array.isArray(ids))
+        possession[table] = ids.filter((x): x is string => typeof x === "string");
     }
   }
   return ok({ outcome: r.outcome === "duplicate" ? "duplicate" : "applied", possession });
@@ -562,7 +595,10 @@ export interface CateringCount {
 }
 
 /** A catering's roster headcount and shared dietary needs; logged once per person counted. */
-export async function cateringCounts(db: XosClient, fulfillmentId: string): Promise<Result<CateringCount[]>> {
+export async function cateringCounts(
+  db: XosClient,
+  fulfillmentId: string,
+): Promise<Result<CateringCount[]>> {
   const { data, error } = await db.rpc("catering_counts", { p_fulfillment_id: fulfillmentId });
   if (error) return fail(toDataError(error));
   return ok(
@@ -604,7 +640,8 @@ export interface AllocationAllowance {
   readonly beyond: number | null;
 }
 
-const orNullNumber = (v: number | string | null | undefined) => (v === null || v === undefined ? null : Number(v));
+const orNullNumber = (v: number | string | null | undefined) =>
+  v === null || v === undefined ? null : Number(v);
 
 export async function listAllocationAllowances(
   db: XosClient,
@@ -634,7 +671,9 @@ export function allowanceFor(
 ): AllocationAllowance | null {
   if (offering === null) return null;
   const mine = rosterEntryId
-    ? rows.find((r) => r.offering === offering && r.rosterEntryId === rosterEntryId && r.cap !== null)
+    ? rows.find(
+        (r) => r.offering === offering && r.rosterEntryId === rosterEntryId && r.cap !== null,
+      )
     : undefined;
   return mine ?? rows.find((r) => r.offering === offering && r.rosterEntryId === null) ?? null;
 }
@@ -707,7 +746,10 @@ export interface RadioHandoutLine {
   readonly status: AllocationDisplayStatus;
 }
 
-export async function radioHandout(db: XosClient, projectId: string): Promise<Result<RadioHandoutLine[]>> {
+export async function radioHandout(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<RadioHandoutLine[]>> {
   const { data, error } = await db.rpc("radio_handout", { p_project_id: projectId });
   if (error) return fail(toDataError(error));
   return ok(
@@ -791,7 +833,9 @@ export async function listReservationConflicts(
 ): Promise<Result<ReservationConflict[]>> {
   let query = db
     .from("asset_reservation_conflicts")
-    .select("reservation_id, allocation_id, project_id, asset_class_id, asset_unit_id, asset_lot_id, po_line_id, quantity, conflict")
+    .select(
+      "reservation_id, allocation_id, project_id, asset_class_id, asset_unit_id, asset_lot_id, po_line_id, quantity, conflict",
+    )
     .eq("org_id", scope.orgId);
   if (scope.projectId) query = query.eq("project_id", scope.projectId);
   if (scope.assetUnitId) query = query.eq("asset_unit_id", scope.assetUnitId);
@@ -839,7 +883,9 @@ export async function listUnitReservations(
 ): Promise<Result<UnitReservation[]>> {
   const { data, error } = await db
     .from("asset_reservations")
-    .select("id, advance_allocation_id, asset_unit_id, asset_lot_id, po_line_id, quantity, advance_allocations!inner(asset_class_id, needed_during)")
+    .select(
+      "id, advance_allocation_id, asset_unit_id, asset_lot_id, po_line_id, quantity, advance_allocations!inner(asset_class_id, needed_during)",
+    )
     .is("released_at", null)
     .is("deleted_at", null)
     .eq("advance_allocations.asset_class_id", input.assetClassId)
@@ -847,15 +893,17 @@ export async function listUnitReservations(
   if (error) return fail(toDataError(error));
   const now = Date.now();
   return ok(
-    ((data ?? []) as unknown as {
-      id: string;
-      advance_allocation_id: string;
-      asset_unit_id: string | null;
-      asset_lot_id: string | null;
-      po_line_id: string | null;
-      quantity: number;
-      advance_allocations: { needed_during: string | null } | null;
-    }[]).flatMap((r) => {
+    (
+      (data ?? []) as unknown as {
+        id: string;
+        advance_allocation_id: string;
+        asset_unit_id: string | null;
+        asset_lot_id: string | null;
+        po_line_id: string | null;
+        quantity: number;
+        advance_allocations: { needed_during: string | null } | null;
+      }[]
+    ).flatMap((r) => {
       if (r.asset_unit_id !== null && r.asset_unit_id !== input.assetUnitId) return [];
       if (r.asset_unit_id === null && (r.asset_lot_id !== null || r.po_line_id !== null)) return [];
       const w = rangeBounds(r.advance_allocations?.needed_during ?? null);

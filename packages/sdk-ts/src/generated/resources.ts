@@ -33,6 +33,18 @@ import type {
   AccountingPeriodTransitionRequest,
   ActCode,
   ActivityEvent,
+  AdvanceAllocation,
+  AdvanceAllocationAssign,
+  AdvanceAllocationDecision,
+  AdvanceAllocationIssue,
+  AdvanceAllocationIssueResult,
+  AdvanceAllocationRequest,
+  AdvanceAllocationReserve,
+  AdvanceAllocationSplit,
+  AdvanceAllocationSplitResult,
+  AdvanceAllocationUnsplit,
+  AdvanceAllocationUnsplitResult,
+  AdvanceAllocationWithdraw,
   AdvancePacket,
   AdvancePacketCreate,
   AdvancePacketUpdate,
@@ -62,6 +74,8 @@ import type {
   AiSuggestionRejectRequest,
   AiSuggestionReopenRequest,
   AiUsage,
+  AllocationAllowancePage,
+  AllocationRadioChannels,
   AnswerHelpDeskRequest,
   ApiKey,
   ApiKeyCreate,
@@ -85,6 +99,7 @@ import type {
   ApprovalStepCreate,
   ApprovalStepUpdate,
   AssetClass,
+  AssetClassAvailability,
   AssetClassCreate,
   AssetClassUpdate,
   AssetCustody,
@@ -100,6 +115,9 @@ import type {
   AssetMaintenance,
   AssetMaintenanceCreate,
   AssetMaintenanceUpdate,
+  AssetReservation,
+  AssetReservationConflict,
+  AssetReservationRelease,
   AssetScanEvent,
   AssetScanResult,
   AssetTransitionRequest,
@@ -6910,6 +6928,35 @@ export class AssetClassesResource extends $Resource {
     return this.client.request<undefined>(
       $OPERATIONS["assetClasses.delete"],
       { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Read an asset class's availability
+   *
+   * How many of the class are free over [from, to) through `app.asset_class_availability` (G-93): serviceable owned units, owned lot quantity, quantity on order that covers the window, the most held at once and what is left, in the unit of the class element. A window that runs backwards or beyond 400 days is refused (422 availability_window). Needs assets.asset.read in the org or advancing.packet.read on one of its projects. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /asset-classes/{id}/availability` (operation `assetClasses.availability`).
+   * Requires the capability `assets.asset.read`.
+   */
+  availability(
+    id: string,
+    params: {
+      /**
+       * Window start.
+       */
+      readonly from: string;
+      /**
+       * Window end.
+       */
+      readonly to: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AssetClassAvailability>> {
+    return this.client.request<AssetClassAvailability>(
+      $OPERATIONS["assetClasses.availability"],
+      { path: { id }, query: params },
       options,
     );
   }
@@ -34539,6 +34586,322 @@ export class RosterEntriesResource extends $Resource {
 }
 
 /**
+ * Operations on `advanceAllocations`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class AdvanceAllocationsResource extends $Resource {
+  /**
+   * List advance allocation rows
+   *
+   * What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project. Returns a cursor page of advance allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /advance-allocations` (operation `advanceAllocations.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<AdvanceAllocation>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AdvanceAllocation>> {
+    return this.client.requestPage<AdvanceAllocation>(
+      $OPERATIONS["advanceAllocations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List advance allocation rows
+   *
+   * What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project. Returns a cursor page of advance allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /advance-allocations` (operation `advanceAllocations.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AdvanceAllocation>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AdvanceAllocation, void, undefined> {
+    return this.client.paginate<AdvanceAllocation>(
+      $OPERATIONS["advanceAllocations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an advance allocation
+   *
+   * What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project. Returns one advance allocation with its `ETag`. A advance allocation the caller may not see returns 404.
+   *
+   * `GET /advance-allocations/{allocation_id}` (operation `advanceAllocations.get`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  get(
+    allocationId: string,
+    params?: $FieldsParams<AdvanceAllocation>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AdvanceAllocation>> {
+    return this.client.request<AdvanceAllocation>(
+      $OPERATIONS["advanceAllocations.get"],
+      { path: { allocation_id: allocationId }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Request an allocation
+   *
+   * Production requests an allocation for a party's pool or one person on a roster through `app.request_allocation`; it starts Requested for a reviewer. Needs advancing.packet.write on the project. Refusals answer 422 with the rule, among them offering_not_offered, offering_not_provided, allocation_cap_engagement, allocation_cap_person, allocation_over_allowance_reason, allocation_engagement_closed and allocation_entry_not_accepted. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-allocations/request` (operation `advanceAllocations.request`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  request(
+    body: AdvanceAllocationRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceAllocation>> {
+    return this.client.request<AdvanceAllocation>(
+      $OPERATIONS["advanceAllocations.request"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Assign an allocation
+   *
+   * A reviewer assigns an allocation directly through `app.assign_allocation`: Approved at once and, for an asset, held from the sources. Needs advancing.submission.review on the project. Refusals answer 422 with the rule, among them offering_not_offered, offering_not_provided, allocation_cap_engagement, allocation_cap_person, allocation_over_allowance_reason, allocation_engagement_closed and allocation_entry_not_accepted, reservation_over_capacity and allocation_sources_required. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-allocations/assign` (operation `advanceAllocations.assign`).
+   * Requires the capability `advancing.submission.review`.
+   */
+  assign(
+    body: AdvanceAllocationAssign,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceAllocation>> {
+    return this.client.request<AdvanceAllocation>(
+      $OPERATIONS["advanceAllocations.assign"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Approve or decline an allocation
+   *
+   * Decides a Requested allocation through `app.decide_allocation`, never by its requester (422 sod_allocation_requester). Declining needs a reason (allocation_reason_required); approving holds an asset's stock (allocation_sources_required, reservation_over_capacity) and, above the allowance with overflow at review, needs a reason that goes in the ledger (allocation_over_allowance_reason). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-allocations/{allocation_id}/decide` (operation `advanceAllocations.decide`).
+   * Requires the capability `advancing.submission.review`.
+   */
+  decide(
+    allocationId: string,
+    body: AdvanceAllocationDecision,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceAllocation>> {
+    return this.client.request<AdvanceAllocation>(
+      $OPERATIONS["advanceAllocations.decide"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+
+  /**
+   * Replace an allocation's holds
+   *
+   * Replaces the holds of an Approved asset allocation before anything of it is issued, through `app.reserve_allocation` (422 allocation_issued). Needs advancing.submission.review. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-allocations/{allocation_id}/reserve` (operation `advanceAllocations.reserve`).
+   * Requires the capability `advancing.submission.review`.
+   */
+  reserve(
+    allocationId: string,
+    body: AdvanceAllocationReserve,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceAllocation>> {
+    return this.client.request<AdvanceAllocation>(
+      $OPERATIONS["advanceAllocations.reserve"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+
+  /**
+   * Split a party pool to its people
+   *
+   * Gives shares of an approved party pool to accepted people on its roster through `app.split_allocation`, moving holds with them (422 allocation_not_pool, allocation_split_exceeds, allocation_cap_person). Needs advancing.packet.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-allocations/{allocation_id}/split` (operation `advanceAllocations.split`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  split(
+    allocationId: string,
+    body: AdvanceAllocationSplit,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceAllocationSplitResult>> {
+    return this.client.request<AdvanceAllocationSplitResult>(
+      $OPERATIONS["advanceAllocations.split"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+
+  /**
+   * Return a share to its pool
+   *
+   * Returns part or all of a share to its pool through `app.unsplit_allocation`, never what was issued (422 allocation_issued). A share returned whole is Withdrawn. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-allocations/{allocation_id}/unsplit` (operation `advanceAllocations.unsplit`).
+   * Requires the capability `advancing.packet.write`.
+   */
+  unsplit(
+    allocationId: string,
+    body: AdvanceAllocationUnsplit,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceAllocationUnsplitResult>> {
+    return this.client.request<AdvanceAllocationUnsplitResult>(
+      $OPERATIONS["advanceAllocations.unsplit"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+
+  /**
+   * Withdraw an allocation
+   *
+   * Withdraws a Requested allocation, or an Approved one with nothing of it out (422 allocation_issued), through `app.withdraw_allocation`, by its requester or a holder of advancing.packet.write; holds are released. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-allocations/{allocation_id}/withdraw` (operation `advanceAllocations.withdraw`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  withdraw(
+    allocationId: string,
+    body: AdvanceAllocationWithdraw,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceAllocation>> {
+    return this.client.request<AdvanceAllocation>(
+      $OPERATIONS["advanceAllocations.withdraw"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+
+  /**
+   * Issue an allocation
+   *
+   * Hands over part or all of an Approved allocation in one transaction through `app.issue_allocation`: badges and passes, units by tag, lot quantities, catering lines, rooms, trips or per diem days. Needs the kind's capability on the project (credentials.credential.issue, assets.custody.write, hospitality.fulfillment.write, hospitality.accommodation.write or crew.time_entry.write). The issuer is never the person (422 allocation_self_issue), kinds other than equipment go to one person (allocation_needs_person) and nothing goes beyond the quantity (allocation_issue_exceeds). A replay with the same Idempotency-Key returns the original response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-allocations/{allocation_id}/issue` (operation `advanceAllocations.issue`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  issue(
+    allocationId: string,
+    body: AdvanceAllocationIssue,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceAllocationIssueResult>> {
+    return this.client.request<AdvanceAllocationIssueResult>(
+      $OPERATIONS["advanceAllocations.issue"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+
+  /**
+   * Read an engagement's remaining allowances
+   *
+   * Per offering, the cap, what is requested and approved under it, what remains and what goes beyond, for the engagement's pool and each person on its roster, through `app.allocation_allowances` (G-174). A person on the roster reads only their own rows; 404 without standing. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /advance-allocations/allowances` (operation `advanceAllocations.allowances`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  allowances(
+    params: {
+      /**
+       * Identifier of the engagement.
+       */
+      readonly engagement_id: string;
+    },
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AllocationAllowancePage>> {
+    return this.client.request<AllocationAllowancePage>(
+      $OPERATIONS["advanceAllocations.allowances"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Set a radio allocation's channels
+   *
+   * Sets the channels of a radio allocation as a whole through `app.set_allocation_radio_channels` (G-91): 0 to 16 channels of its project (422 allocation_channel_count, allocation_channel_project, allocation_channel_not_asset, allocation_channel_not_radio, allocation_channel_state). Needs advancing.packet.write or safety.radio_channel.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /advance-allocations/{allocation_id}/set-radio-channels` (operation `advanceAllocations.setRadioChannels`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  setRadioChannels(
+    allocationId: string,
+    body: AllocationRadioChannels,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AdvanceAllocation>> {
+    return this.client.request<AdvanceAllocation>(
+      $OPERATIONS["advanceAllocations.setRadioChannels"],
+      { path: { allocation_id: allocationId }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `assetReservationConflicts`, in the Advancing module.
+ *
+ * Advance packets, sections, recipients, submissions and riders (Section 4.2).
+ */
+export class AssetReservationConflictsResource extends $Resource {
+  /**
+   * List reservation conflict rows
+   *
+   * A live hold that no longer fits what can supply it (G-93), one row per conflict: the pinned unit is Damaged, In Maintenance, Lost, Retired or Returned; the class or lot is over reserved; or the order behind it is Canceled or short. Computed, never stored. Returns a cursor page of reservation conflict rows the caller may see. The default order is `reservation_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /asset-reservation-conflicts` (operation `assetReservationConflicts.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  list(
+    params?: $ListParams<AssetReservationConflict>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AssetReservationConflict>> {
+    return this.client.requestPage<AssetReservationConflict>(
+      $OPERATIONS["assetReservationConflicts.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List reservation conflict rows
+   *
+   * A live hold that no longer fits what can supply it (G-93), one row per conflict: the pinned unit is Damaged, In Maintenance, Lost, Retired or Returned; the class or lot is over reserved; or the order behind it is Canceled or short. Computed, never stored. Returns a cursor page of reservation conflict rows the caller may see. The default order is `reservation_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /asset-reservation-conflicts` (operation `assetReservationConflicts.list`).
+   * Requires the capability `advancing.packet.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AssetReservationConflict>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AssetReservationConflict, void, undefined> {
+    return this.client.paginate<AssetReservationConflict>(
+      $OPERATIONS["assetReservationConflicts.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `guestListEntries`, in the Advancing module.
  *
  * Advance packets, sections, recipients, submissions and riders (Section 4.2).
@@ -34738,6 +35101,93 @@ export class AssetUnitHireResource extends $Resource {
     return this.client.paginate<AssetUnitHire>(
       $OPERATIONS["assetUnitHire.list"],
       { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `assetReservations`, in the Assets module.
+ *
+ * Assets at class, unit and lot grain, custody, maintenance and damage (Section 4.2).
+ */
+export class AssetReservationsResource extends $Resource {
+  /**
+   * List asset reservation rows
+   *
+   * A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions. Returns a cursor page of asset reservation rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /asset-reservations` (operation `assetReservations.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  list(
+    params?: $ListParams<AssetReservation>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AssetReservation>> {
+    return this.client.requestPage<AssetReservation>(
+      $OPERATIONS["assetReservations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List asset reservation rows
+   *
+   * A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions. Returns a cursor page of asset reservation rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /asset-reservations` (operation `assetReservations.list`).
+   * Requires the capability `assets.asset.read`.
+   */
+  listAll(
+    params?: $ListAllParams<AssetReservation>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AssetReservation, void, undefined> {
+    return this.client.paginate<AssetReservation>(
+      $OPERATIONS["assetReservations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an asset reservation
+   *
+   * A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions. Returns one asset reservation with its `ETag`. A asset reservation the caller may not see returns 404.
+   *
+   * `GET /asset-reservations/{id}` (operation `assetReservations.get`).
+   * Requires the capability `assets.asset.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AssetReservation>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AssetReservation>> {
+    return this.client.request<AssetReservation>(
+      $OPERATIONS["assetReservations.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Release a hold
+   *
+   * Releases one hold through `app.release_reservation`, Released By Reviewer, with the reason in the audit ledger. Refuses a hold already released (422 reservation_released) or with something issued against it still out (reservation_in_use). Needs advancing.submission.review. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /asset-reservations/{id}/release` (operation `assetReservations.release`).
+   * Requires the capability `advancing.submission.review`.
+   */
+  release(
+    id: string,
+    body: AssetReservationRelease,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AssetReservation>> {
+    return this.client.request<AssetReservation>(
+      $OPERATIONS["assetReservations.release"],
+      { path: { id }, body },
       options,
     );
   }

@@ -343,8 +343,11 @@ import {
   ProjectMeasurementSummaryResource,
   CueCallsResource,
   RosterEntriesResource,
+  AdvanceAllocationsResource,
+  AssetReservationConflictsResource,
   GuestListEntriesResource,
   AssetUnitHireResource,
+  AssetReservationsResource,
   Form1099NecResource,
   GoodsReturnsResource,
   ReturnLinesResource,
@@ -1203,10 +1206,17 @@ export class XosClient extends XosClientCore {
   readonly cueCalls: CueCallsResource = new CueCallsResource(this);
   /** Advancing: operations on `rosterEntries`. */
   readonly rosterEntries: RosterEntriesResource = new RosterEntriesResource(this);
+  /** Advancing: operations on `advanceAllocations`. */
+  readonly advanceAllocations: AdvanceAllocationsResource = new AdvanceAllocationsResource(this);
+  /** Advancing: operations on `assetReservationConflicts`. */
+  readonly assetReservationConflicts: AssetReservationConflictsResource =
+    new AssetReservationConflictsResource(this);
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
   /** Assets: operations on `assetUnitHire`. */
   readonly assetUnitHire: AssetUnitHireResource = new AssetUnitHireResource(this);
+  /** Assets: operations on `assetReservations`. */
+  readonly assetReservations: AssetReservationsResource = new AssetReservationsResource(this);
   /** Finance: operations on `form1099Nec`. */
   readonly form1099Nec: Form1099NecResource = new Form1099NecResource(this);
   /** Procurement: operations on `goodsReturns`. */

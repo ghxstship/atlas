@@ -245,6 +245,7 @@ __all__ = [
     "AssetClass",
     "AssetClassCreate",
     "AssetClassUpdate",
+    "AssetClassAvailability",
     "AssetUnitPage",
     "AssetUnit",
     "AssetUnitCreate",
@@ -1275,6 +1276,27 @@ __all__ = [
     "TravelPartyPass",
     "TravelDayCountPage",
     "TravelDayCount",
+    "AdvanceAllocationPage",
+    "AdvanceAllocation",
+    "AdvanceAllocationRequest",
+    "AdvanceAllocationAssign",
+    "AllocationSource",
+    "AdvanceAllocationDecision",
+    "AdvanceAllocationReserve",
+    "AdvanceAllocationSplitResult",
+    "AdvanceAllocationSplit",
+    "AdvanceAllocationSplitPart",
+    "AdvanceAllocationUnsplitResult",
+    "AdvanceAllocationUnsplit",
+    "AdvanceAllocationWithdraw",
+    "AdvanceAllocationIssueResult",
+    "AdvanceAllocationIssue",
+    "AdvanceAllocationIssueItem",
+    "AllocationAllowancePage",
+    "AllocationAllowance",
+    "AllocationRadioChannels",
+    "AssetReservationConflictPage",
+    "AssetReservationConflict",
     "GuestListEntryPage",
     "GuestListEntry",
     "GuestListEntryCreate",
@@ -1282,6 +1304,9 @@ __all__ = [
     "GuestDecisionRequest",
     "AssetUnitHirePage",
     "AssetUnitHire",
+    "AssetReservationPage",
+    "AssetReservation",
+    "AssetReservationRelease",
     "Form1099NecRowPage",
     "Form1099NecRow",
     "GoodsReturnPage",
@@ -5267,15 +5292,22 @@ class AssetClass(TypedDict):
     name: str
     #: Canon element the class is.
     element_id: str
+    #: Offering the class answers for; null for site assets.
+    offering: Optional[Literal["Radios", "Carts"]]
 
 
-class AssetClassCreate(TypedDict):
-    """Fields accepted when creating a AssetClass."""
-
+class _AssetClassCreateRequired(TypedDict):
     #: Asset class name.
     name: str
     #: Canon element the class is.
     element_id: str
+
+
+class AssetClassCreate(_AssetClassCreateRequired, total=False):
+    """Fields accepted when creating a AssetClass."""
+
+    #: Offering the class answers for; null for site assets.
+    offering: Optional[Literal["Radios", "Carts"]]
 
 
 class AssetClassUpdate(TypedDict, total=False):
@@ -5285,6 +5317,27 @@ class AssetClassUpdate(TypedDict, total=False):
     name: str
     #: Canon element the class is.
     element_id: str
+    #: Offering the class answers for; null for site assets.
+    offering: Optional[Literal["Radios", "Carts"]]
+
+
+class AssetClassAvailability(TypedDict):
+    """How many of an asset class are free over a window (G-93)."""
+
+    #: Serviceable owned units.
+    serviceable_units: float
+    #: Owned lot quantity.
+    lot_quantity: float
+    #: Quantity on order that covers the window.
+    on_order_quantity: float
+    #: All the class can supply over the window.
+    total: float
+    #: Most held at once over the window.
+    peak_reserved: float
+    #: Total less the peak, never below 0.
+    available: float
+    #: Unit of the class element.
+    unit_basis: str
 
 
 class AssetUnitPage(TypedDict):
@@ -7606,21 +7659,28 @@ class CredentialCategory(TypedDict):
     updated_by: Optional[str]
     #: Category name.
     name: str
+    #: Access badge or parking pass.
+    category_kind: Literal["Access", "Parking"]
     #: Identifier of the project.
     project_id: str
     #: Category code, unique per project.
     code: str
 
 
-class CredentialCategoryCreate(TypedDict):
-    """Fields accepted when creating a CredentialCategory."""
-
+class _CredentialCategoryCreateRequired(TypedDict):
     #: Category name.
     name: str
     #: Identifier of the project.
     project_id: str
     #: Category code, unique per project.
     code: str
+
+
+class CredentialCategoryCreate(_CredentialCategoryCreateRequired, total=False):
+    """Fields accepted when creating a CredentialCategory."""
+
+    #: Access badge or parking pass.
+    category_kind: Literal["Access", "Parking"]
 
 
 class CredentialCategoryUpdate(TypedDict, total=False):
@@ -7628,6 +7688,8 @@ class CredentialCategoryUpdate(TypedDict, total=False):
 
     #: Category name.
     name: str
+    #: Access badge or parking pass.
+    category_kind: Literal["Access", "Parking"]
     #: Category code, unique per project.
     code: str
 
@@ -21024,6 +21086,375 @@ class TravelDayCount(TypedDict):
     truncated: bool
 
 
+class AdvanceAllocationPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AdvanceAllocation]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AdvanceAllocation(TypedDict):
+    """What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project."""
+
+    #: Identifier of the allocation.
+    allocation_id: str
+    #: Identifier of the producing org.
+    org_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the party pool's engagement; null when a person holds it.
+    holder_engagement_id: Optional[str]
+    #: Identifier of the roster entry of the person who holds it; null for a pool.
+    roster_entry_id: Optional[str]
+    #: Identifier of the pool a share was split from.
+    parent_allocation_id: Optional[str]
+    #: What the allocation gives.
+    kind: Literal["Credential", "Parking Pass", "Asset", "Catering", "Lodging", "Travel", "Per Diem"]
+    #: Offering it draws on; null for a badge or a site asset.
+    offering: Optional[Literal["Travel", "Lodging", "Catering", "Parking", "Uniforms", "Per Diem", "Radios", "Carts", "Guest List"]]
+    #: Category, class, catering or block name; null for Travel and Per Diem.
+    item_name: Optional[str]
+    #: Quantity allocated.
+    quantity: float
+    #: Stored state.
+    allocation_state: Literal["Requested", "Approved", "Declined", "Withdrawn"]
+    #: How the allocation came to be.
+    origin: Literal["Requested", "Assigned", "Split"]
+    #: When it is first needed.
+    needed_from: str
+    #: When it is no longer needed.
+    needed_to: str
+    #: IANA time zone of the window.
+    needed_time_zone: str
+    #: Identifier of the person who requested or assigned it.
+    requested_by: Optional[str]
+    #: When it was approved or declined.
+    decided_at: Optional[str]
+    #: Identifier of the person who approved or declined it.
+    decided_by: Optional[str]
+    #: Why it was declined.
+    decline_reason: Optional[str]
+    #: Quantity of live holds.
+    reserved_quantity: float
+    #: Order-line holds on Approved or Sent orders not yet received.
+    on_order_quantity: float
+    #: Every ordering order behind its holds was acknowledged.
+    confirmed: bool
+    #: An order behind its holds is still Proposed.
+    awaiting_order: bool
+    #: Received on the order lines behind its holds.
+    received_quantity: float
+    #: Issued from the possession rows.
+    issued_quantity: float
+    #: Issued and checked in since.
+    returned_quantity: float
+    #: Issued units that went Lost.
+    lost_quantity: float
+    #: Issued credentials since revoked.
+    revoked_quantity: float
+    #: The computed status.
+    display_status: Literal["Requested", "Approved", "Reserved", "Awaiting Order", "On Order", "Confirmed", "Received", "Partly Issued", "Issued", "Returned", "Revoked", "Declined", "Withdrawn"]
+
+
+class _AdvanceAllocationRequestRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Quantity.
+    quantity: float
+    #: When it is first needed.
+    needed_from: str
+    #: When it is no longer needed.
+    needed_to: str
+    #: IANA time zone of the window.
+    time_zone: str
+
+
+class AdvanceAllocationRequest(_AdvanceAllocationRequestRequired, total=False):
+    """One allocation: one holder and one target."""
+
+    #: Identifier of the party pool's engagement; give this or roster_entry_id.
+    engagement_id: str
+    #: Identifier of the roster entry of one person; give this or engagement_id.
+    roster_entry_id: str
+    #: Identifier of the badge or parking category.
+    credential_category_id: str
+    #: Identifier of the asset class, such as the org's radios.
+    asset_class_id: str
+    #: Identifier of the catering fulfillment.
+    fulfillment_id: str
+    #: Identifier of the accommodation block.
+    accommodation_block_id: str
+    #: Travel or Per Diem.
+    service_kind: Literal["Travel", "Per Diem"]
+    #: Note; above the allowance with overflow at review, the reason for an assignment.
+    note: str
+
+
+class _AdvanceAllocationAssignRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Quantity.
+    quantity: float
+    #: When it is first needed.
+    needed_from: str
+    #: When it is no longer needed.
+    needed_to: str
+    #: IANA time zone of the window.
+    time_zone: str
+
+
+class AdvanceAllocationAssign(_AdvanceAllocationAssignRequired, total=False):
+    """One allocation assigned directly, with its holds for an asset."""
+
+    #: Identifier of the party pool's engagement; give this or roster_entry_id.
+    engagement_id: str
+    #: Identifier of the roster entry of one person; give this or engagement_id.
+    roster_entry_id: str
+    #: Identifier of the badge or parking category.
+    credential_category_id: str
+    #: Identifier of the asset class, such as the org's radios.
+    asset_class_id: str
+    #: Identifier of the catering fulfillment.
+    fulfillment_id: str
+    #: Identifier of the accommodation block.
+    accommodation_block_id: str
+    #: Travel or Per Diem.
+    service_kind: Literal["Travel", "Per Diem"]
+    #: Note; above the allowance with overflow at review, the reason for an assignment.
+    note: str
+    #: Holds for an asset allocation, summing to its quantity. Left out, class stock holds it when the class has units, else its only lot.
+    sources: List[AllocationSource]
+
+
+class _AllocationSourceRequired(TypedDict):
+    #: Where the stock comes from.
+    source: Literal["Class Stock", "Unit", "Lot", "Order Line"]
+    #: Quantity held from it.
+    quantity: float
+
+
+class AllocationSource(_AllocationSourceRequired, total=False):
+    """One hold source; mixed supply is one source each."""
+
+    #: Identifier of the unit, for a Unit source.
+    asset_unit_id: str
+    #: Identifier of the lot, for a Lot source.
+    asset_lot_id: str
+    #: Identifier of the order line, for an Order Line source.
+    po_line_id: str
+
+
+class _AdvanceAllocationDecisionRequired(TypedDict):
+    #: Approve, or reject (decline).
+    decision: Literal["Approved", "Rejected"]
+
+
+class AdvanceAllocationDecision(_AdvanceAllocationDecisionRequired, total=False):
+    """A decision on a Requested allocation."""
+
+    #: Required to decline, and to approve above the allowance with overflow at review.
+    reason: str
+    #: Holds for an asset allocation, summing to its quantity. Left out, class stock holds it when the class has units, else its only lot.
+    sources: List[AllocationSource]
+
+
+class AdvanceAllocationReserve(TypedDict):
+    """Holds that replace an approved asset allocation's holds."""
+
+    #: The new holds.
+    sources: List[AllocationSource]
+
+
+class AdvanceAllocationSplitResult(TypedDict):
+    """The shares written."""
+
+    #: The shares, in the order given.
+    allocation_ids: List[str]
+
+
+class AdvanceAllocationSplit(TypedDict):
+    """Shares of an approved party pool for its people."""
+
+    parts: List[AdvanceAllocationSplitPart]
+
+
+class _AdvanceAllocationSplitPartRequired(TypedDict):
+    #: Identifier of the roster entry on the pool's engagement.
+    roster_entry_id: str
+    #: Quantity for the person.
+    quantity: float
+
+
+class AdvanceAllocationSplitPart(_AdvanceAllocationSplitPartRequired, total=False):
+    """One person's share."""
+
+    #: Units pinned to the person.
+    asset_unit_ids: List[str]
+
+
+class AdvanceAllocationUnsplitResult(TypedDict):
+    """What went back."""
+
+    #: Quantity returned to the pool.
+    quantity: float
+
+
+class AdvanceAllocationUnsplit(TypedDict, total=False):
+    """A share returned to its pool."""
+
+    #: How much goes back; all of it when left out.
+    quantity: float
+
+
+class AdvanceAllocationWithdraw(TypedDict, total=False):
+    """Withdrawing an allocation."""
+
+    #: Why it is withdrawn.
+    reason: str
+
+
+class AdvanceAllocationIssueResult(TypedDict):
+    """What one issue event wrote."""
+
+    #: applied, or duplicate for a replay.
+    outcome: Literal["applied", "duplicate"]
+    #: Ids of the possession rows written, by table.
+    possession: Dict[str, List[str]]
+
+
+class AdvanceAllocationIssue(TypedDict):
+    """One issue event."""
+
+    #: Items handed over.
+    items: List[AdvanceAllocationIssueItem]
+
+
+class AdvanceAllocationIssueItem(TypedDict, total=False):
+    """One item handed over; the keys depend on the kind."""
+
+    #: Badge or pass: valid from; the window start by default.
+    valid_from: str
+    #: Badge or pass: valid until; the window end by default.
+    valid_to: str
+    #: Identifier of the parking pass: the holder's roster vehicle.
+    roster_vehicle_id: str
+    #: Identifier of the unit issued.
+    asset_unit_id: str
+    #: Unit issued, by tag.
+    asset_tag: str
+    #: Identifier of the lot a quantity is issued from.
+    asset_lot_id: str
+    #: Identifier of the hold the item is issued against; picked when left out.
+    reservation_id: str
+    #: Lot or catering quantity.
+    quantity: float
+    #: Catering: what is provided.
+    description: str
+    #: Lodging: first night.
+    check_in_on: str
+    #: Lodging: departure date.
+    check_out_on: str
+    #: Travel: mode.
+    travel_mode: Literal["Flight", "Ground"]
+    #: Travel: airline or operator.
+    operator_name: str
+    #: Travel: flight or service number.
+    service_identifier: str
+    #: Travel: booking confirmation.
+    confirmation_identifier: str
+    #: Travel: departure place.
+    departs_from: str
+    #: Travel: departure time.
+    departs_at: str
+    #: Travel: zone of the departure.
+    departs_time_zone: str
+    #: Travel: arrival place.
+    arrives_at_place: str
+    #: Travel: arrival time.
+    arrives_at: str
+    #: Travel: zone of the arrival.
+    arrives_time_zone: str
+    #: Per diem: the day, inside the window.
+    day: str
+    #: Per diem: amount in minor units.
+    amount_minor: Optional[int]
+    #: Per diem: ISO 4217 currency.
+    currency_code: str
+
+
+class AllocationAllowancePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AllocationAllowance]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AllocationAllowance(TypedDict):
+    """What remains of an offering's cap for a pool or a person (G-174)."""
+
+    #: Offering.
+    offering: Literal["Travel", "Lodging", "Catering", "Parking", "Uniforms", "Per Diem", "Radios", "Carts", "Guest List"]
+    #: Identifier of the roster entry; null for the pool row.
+    roster_entry_id: Optional[str]
+    #: How the offering reaches the engagement.
+    mode: str
+    #: Cap; null for none.
+    cap: Optional[float]
+    #: Live Requested quantity under it.
+    requested: float
+    #: Live Approved quantity under it.
+    approved: float
+    #: Cap less requested and approved, never below 0.
+    remaining: Optional[float]
+    #: How far requested and approved go beyond the cap.
+    beyond: Optional[float]
+
+
+class AllocationRadioChannels(TypedDict):
+    """The radio channels a radio allocation is programmed with, as a whole."""
+
+    #: The project's channels, 0 to 16.
+    radio_channel_ids: List[str]
+
+
+class AssetReservationConflictPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AssetReservationConflict]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AssetReservationConflict(TypedDict):
+    """A live hold that no longer fits what can supply it (G-93), one row per conflict: the pinned unit is Damaged, In Maintenance, Lost, Retired or Returned; the class or lot is over reserved; or the order behind it is Canceled or short. Computed, never stored."""
+
+    #: Identifier of the hold.
+    reservation_id: str
+    #: Identifier of the allocation the hold serves.
+    allocation_id: str
+    #: Identifier of the org.
+    org_id: str
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the class held.
+    asset_class_id: str
+    #: Identifier of the pinned unit.
+    asset_unit_id: Optional[str]
+    #: Identifier of the lot.
+    asset_lot_id: Optional[str]
+    #: Identifier of the order line.
+    po_line_id: Optional[str]
+    #: Quantity held.
+    quantity: float
+    #: What no longer fits.
+    conflict: Literal["Unit Unavailable", "Class Over Reserved", "Lot Over Reserved", "Order Short"]
+
+
 class GuestListEntryPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -21134,6 +21565,55 @@ class AssetUnitHire(TypedDict):
     hire_ends_at: Optional[str]
     #: True for a rental unit whose hire has ended and which has not been Returned.
     off_hire_due: bool
+
+
+class AssetReservationPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AssetReservation]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AssetReservation(TypedDict):
+    """A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions."""
+
+    #: Identifier of the asset reservation.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: str
+    #: Identifier of the project of the allocation.
+    project_id: str
+    #: Identifier of the allocation the hold serves.
+    advance_allocation_id: str
+    #: Identifier of the pinned unit.
+    asset_unit_id: Optional[str]
+    #: Identifier of the lot held from.
+    asset_lot_id: Optional[str]
+    #: Identifier of the order line held on.
+    po_line_id: Optional[str]
+    #: Quantity held.
+    quantity: float
+    #: When the hold was released.
+    released_at: Optional[str]
+    #: Why it was released.
+    release_reason: Optional[Literal["Withdrawn", "Entry Removed", "Engagement Ended", "Split", "Released By Reviewer"]]
+
+
+class AssetReservationRelease(TypedDict, total=False):
+    """Releasing a hold."""
+
+    #: Why the hold is released.
+    reason: str
 
 
 class Form1099NecRowPage(TypedDict):

@@ -8,6 +8,7 @@
 import { checkInGuest, decideGuest, reviewSubmission, sendPacket } from "@xos/data/advancing";
 import { requirePerson } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
+import { allocationHandlers } from "./parts/allocations.ts";
 import { rosterEntryHandlers } from "./parts/roster-project-facts.ts";
 import { handlersFor, tableResource, unwrap } from "./support/table.ts";
 
@@ -35,6 +36,8 @@ export const handlers = defineHandlers("Advancing", {
   ...handlersFor("Advancing", guests),
   // Roster entries and their project facts (R5): see ./parts/roster-project-facts.ts.
   ...rosterEntryHandlers,
+  // Advance allocations (R7): see ./parts/allocations.ts.
+  ...allocationHandlers,
 
   "advancePackets.send": async ({ params }, context) => {
     await packets.read(context, params.id, ["id"]);

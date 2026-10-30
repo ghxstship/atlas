@@ -170,6 +170,142 @@ export interface Components {
     domain_event_id: string | null;
   };
   ActivityEventPage: { data: Array<Components["ActivityEvent"]>; next_cursor: string | null };
+  AdvanceAllocation: {
+    allocation_id: string;
+    org_id: string;
+    project_id: string;
+    holder_engagement_id: string | null;
+    roster_entry_id: string | null;
+    parent_allocation_id: string | null;
+    kind: "Credential" | "Parking Pass" | "Asset" | "Catering" | "Lodging" | "Travel" | "Per Diem";
+    offering:
+      | "Travel"
+      | "Lodging"
+      | "Catering"
+      | "Parking"
+      | "Uniforms"
+      | "Per Diem"
+      | "Radios"
+      | "Carts"
+      | "Guest List"
+      | null;
+    item_name: string | null;
+    quantity: number;
+    allocation_state: "Requested" | "Approved" | "Declined" | "Withdrawn";
+    origin: "Requested" | "Assigned" | "Split";
+    needed_from: string;
+    needed_to: string;
+    needed_time_zone: string;
+    requested_by: string | null;
+    decided_at: string | null;
+    decided_by: string | null;
+    decline_reason: string | null;
+    reserved_quantity: number;
+    on_order_quantity: number;
+    confirmed: boolean;
+    awaiting_order: boolean;
+    received_quantity: number;
+    issued_quantity: number;
+    returned_quantity: number;
+    lost_quantity: number;
+    revoked_quantity: number;
+    display_status:
+      | "Requested"
+      | "Approved"
+      | "Reserved"
+      | "Awaiting Order"
+      | "On Order"
+      | "Confirmed"
+      | "Received"
+      | "Partly Issued"
+      | "Issued"
+      | "Returned"
+      | "Revoked"
+      | "Declined"
+      | "Withdrawn";
+  };
+  AdvanceAllocationAssign: {
+    project_id: string;
+    engagement_id?: string;
+    roster_entry_id?: string;
+    credential_category_id?: string;
+    asset_class_id?: string;
+    fulfillment_id?: string;
+    accommodation_block_id?: string;
+    service_kind?: "Travel" | "Per Diem";
+    quantity: number;
+    needed_from: string;
+    needed_to: string;
+    time_zone: string;
+    note?: string;
+    sources?: Array<Components["AllocationSource"]>;
+  };
+  AdvanceAllocationDecision: {
+    decision: "Approved" | "Rejected";
+    reason?: string;
+    sources?: Array<Components["AllocationSource"]>;
+  };
+  AdvanceAllocationIssue: { items: Array<Components["AdvanceAllocationIssueItem"]> };
+  AdvanceAllocationIssueItem: {
+    valid_from?: string;
+    valid_to?: string;
+    roster_vehicle_id?: string;
+    asset_unit_id?: string;
+    asset_tag?: string;
+    asset_lot_id?: string;
+    reservation_id?: string;
+    quantity?: number;
+    description?: string;
+    check_in_on?: string;
+    check_out_on?: string;
+    travel_mode?: "Flight" | "Ground";
+    operator_name?: string;
+    service_identifier?: string;
+    confirmation_identifier?: string;
+    departs_from?: string;
+    departs_at?: string;
+    departs_time_zone?: string;
+    arrives_at_place?: string;
+    arrives_at?: string;
+    arrives_time_zone?: string;
+    day?: string;
+    amount_minor?: number | null;
+    currency_code?: string;
+  };
+  AdvanceAllocationIssueResult: {
+    outcome: "applied" | "duplicate";
+    possession: Record<string, Array<string>>;
+  };
+  AdvanceAllocationPage: {
+    data: Array<Components["AdvanceAllocation"]>;
+    next_cursor: string | null;
+  };
+  AdvanceAllocationRequest: {
+    project_id: string;
+    engagement_id?: string;
+    roster_entry_id?: string;
+    credential_category_id?: string;
+    asset_class_id?: string;
+    fulfillment_id?: string;
+    accommodation_block_id?: string;
+    service_kind?: "Travel" | "Per Diem";
+    quantity: number;
+    needed_from: string;
+    needed_to: string;
+    time_zone: string;
+    note?: string;
+  };
+  AdvanceAllocationReserve: { sources: Array<Components["AllocationSource"]> };
+  AdvanceAllocationSplit: { parts: Array<Components["AdvanceAllocationSplitPart"]> };
+  AdvanceAllocationSplitPart: {
+    roster_entry_id: string;
+    quantity: number;
+    asset_unit_ids?: Array<string>;
+  };
+  AdvanceAllocationSplitResult: { allocation_ids: Array<string> };
+  AdvanceAllocationUnsplit: { quantity?: number };
+  AdvanceAllocationUnsplitResult: { quantity: number };
+  AdvanceAllocationWithdraw: { reason?: string };
   AdvancePacket: {
     id: string;
     org_id: string;
@@ -421,6 +557,37 @@ export interface Components {
     output_tokens: number | null;
   };
   AiUsagePage: { data: Array<Components["AiUsage"]>; next_cursor: string | null };
+  AllocationAllowance: {
+    offering:
+      | "Travel"
+      | "Lodging"
+      | "Catering"
+      | "Parking"
+      | "Uniforms"
+      | "Per Diem"
+      | "Radios"
+      | "Carts"
+      | "Guest List";
+    roster_entry_id: string | null;
+    mode: string;
+    cap: number | null;
+    requested: number;
+    approved: number;
+    remaining: number | null;
+    beyond: number | null;
+  };
+  AllocationAllowancePage: {
+    data: Array<Components["AllocationAllowance"]>;
+    next_cursor: string | null;
+  };
+  AllocationRadioChannels: { radio_channel_ids: Array<string> };
+  AllocationSource: {
+    source: "Class Stock" | "Unit" | "Lot" | "Order Line";
+    quantity: number;
+    asset_unit_id?: string;
+    asset_lot_id?: string;
+    po_line_id?: string;
+  };
   AnswerHelpDeskRequest: { body: string };
   ApiKey: {
     id: string;
@@ -671,10 +838,20 @@ export interface Components {
     updated_by: string | null;
     name: string;
     element_id: string;
+    offering: "Radios" | "Carts" | null;
   };
-  AssetClassCreate: { name: string; element_id: string };
+  AssetClassAvailability: {
+    serviceable_units: number;
+    lot_quantity: number;
+    on_order_quantity: number;
+    total: number;
+    peak_reserved: number;
+    available: number;
+    unit_basis: string;
+  };
+  AssetClassCreate: { name: string; element_id: string; offering?: "Radios" | "Carts" | null };
   AssetClassPage: { data: Array<Components["AssetClass"]>; next_cursor: string | null };
-  AssetClassUpdate: { name?: string; element_id?: string };
+  AssetClassUpdate: { name?: string; element_id?: string; offering?: "Radios" | "Carts" | null };
   AssetCustody: {
     id: string;
     org_id: string;
@@ -781,6 +958,41 @@ export interface Components {
     cost_minor?: number | null;
     currency_code?: string | null;
   };
+  AssetReservation: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string;
+    updated_at: string;
+    updated_by: string;
+    project_id: string;
+    advance_allocation_id: string;
+    asset_unit_id: string | null;
+    asset_lot_id: string | null;
+    po_line_id: string | null;
+    quantity: number;
+    released_at: string | null;
+    release_reason:
+      "Withdrawn" | "Entry Removed" | "Engagement Ended" | "Split" | "Released By Reviewer" | null;
+  };
+  AssetReservationConflict: {
+    reservation_id: string;
+    allocation_id: string;
+    org_id: string;
+    project_id: string;
+    asset_class_id: string;
+    asset_unit_id: string | null;
+    asset_lot_id: string | null;
+    po_line_id: string | null;
+    quantity: number;
+    conflict: "Unit Unavailable" | "Class Over Reserved" | "Lot Over Reserved" | "Order Short";
+  };
+  AssetReservationConflictPage: {
+    data: Array<Components["AssetReservationConflict"]>;
+    next_cursor: string | null;
+  };
+  AssetReservationPage: { data: Array<Components["AssetReservation"]>; next_cursor: string | null };
+  AssetReservationRelease: { reason?: string };
   AssetScanEvent: {
     event_id: string;
     code: string;
@@ -2235,15 +2447,21 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
+    category_kind: "Access" | "Parking";
     project_id: string;
     code: string;
   };
-  CredentialCategoryCreate: { name: string; project_id: string; code: string };
+  CredentialCategoryCreate: {
+    name: string;
+    category_kind?: "Access" | "Parking";
+    project_id: string;
+    code: string;
+  };
   CredentialCategoryPage: {
     data: Array<Components["CredentialCategory"]>;
     next_cursor: string | null;
   };
-  CredentialCategoryUpdate: { name?: string; code?: string };
+  CredentialCategoryUpdate: { name?: string; category_kind?: "Access" | "Parking"; code?: string };
   CredentialCreate: {
     credential_category_id: string;
     engagement_id?: string | null;
@@ -12593,6 +12811,15 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "assetClasses.availability": {
+    module: "Assets";
+    method: "get";
+    path: "/asset-classes/{id}/availability";
+    params: { id: string };
+    query: { from: string; to: string };
+    body: undefined;
+    responses: { 200: Components["AssetClassAvailability"] };
   };
   "assetUnits.list": {
     module: "Assets";
@@ -24141,6 +24368,135 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["TravelDayCountPage"] };
   };
+  "advanceAllocations.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-allocations";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AdvanceAllocationPage"] };
+  };
+  "advanceAllocations.get": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-allocations/{allocation_id}";
+    params: { allocation_id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AdvanceAllocation"] };
+  };
+  "advanceAllocations.request": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-allocations/request";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AdvanceAllocationRequest"];
+    responses: { 201: Components["AdvanceAllocation"] };
+  };
+  "advanceAllocations.assign": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-allocations/assign";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AdvanceAllocationAssign"];
+    responses: { 201: Components["AdvanceAllocation"] };
+  };
+  "advanceAllocations.decide": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-allocations/{allocation_id}/decide";
+    params: { allocation_id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceAllocationDecision"];
+    responses: { 200: Components["AdvanceAllocation"] };
+  };
+  "advanceAllocations.reserve": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-allocations/{allocation_id}/reserve";
+    params: { allocation_id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceAllocationReserve"];
+    responses: { 200: Components["AdvanceAllocation"] };
+  };
+  "advanceAllocations.split": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-allocations/{allocation_id}/split";
+    params: { allocation_id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceAllocationSplit"];
+    responses: { 200: Components["AdvanceAllocationSplitResult"] };
+  };
+  "advanceAllocations.unsplit": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-allocations/{allocation_id}/unsplit";
+    params: { allocation_id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceAllocationUnsplit"];
+    responses: { 200: Components["AdvanceAllocationUnsplitResult"] };
+  };
+  "advanceAllocations.withdraw": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-allocations/{allocation_id}/withdraw";
+    params: { allocation_id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceAllocationWithdraw"];
+    responses: { 200: Components["AdvanceAllocation"] };
+  };
+  "advanceAllocations.issue": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-allocations/{allocation_id}/issue";
+    params: { allocation_id: string };
+    query: Record<string, never>;
+    body: Components["AdvanceAllocationIssue"];
+    responses: { 200: Components["AdvanceAllocationIssueResult"] };
+  };
+  "advanceAllocations.allowances": {
+    module: "Advancing";
+    method: "get";
+    path: "/advance-allocations/allowances";
+    params: Record<string, never>;
+    query: { engagement_id: string };
+    body: undefined;
+    responses: { 200: Components["AllocationAllowancePage"] };
+  };
+  "advanceAllocations.setRadioChannels": {
+    module: "Advancing";
+    method: "post";
+    path: "/advance-allocations/{allocation_id}/set-radio-channels";
+    params: { allocation_id: string };
+    query: Record<string, never>;
+    body: Components["AllocationRadioChannels"];
+    responses: { 200: Components["AdvanceAllocation"] };
+  };
+  "assetReservationConflicts.list": {
+    module: "Advancing";
+    method: "get";
+    path: "/asset-reservation-conflicts";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AssetReservationConflictPage"] };
+  };
   "guestListEntries.list": {
     module: "Advancing";
     method: "get";
@@ -24224,6 +24580,39 @@ export interface Operations {
     };
     body: undefined;
     responses: { 200: Components["AssetUnitHirePage"] };
+  };
+  "assetReservations.list": {
+    module: "Assets";
+    method: "get";
+    path: "/asset-reservations";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AssetReservationPage"] };
+  };
+  "assetReservations.get": {
+    module: "Assets";
+    method: "get";
+    path: "/asset-reservations/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AssetReservation"] };
+  };
+  "assetReservations.release": {
+    module: "Assets";
+    method: "post";
+    path: "/asset-reservations/{id}/release";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AssetReservationRelease"];
+    responses: { 200: Components["AssetReservation"] };
   };
   "form1099Nec.rows": {
     module: "Finance";
@@ -27749,6 +28138,19 @@ export interface ModuleOperations {
     | "rosterEntries.clearProjectFact"
     | "rosterEntries.travelParty"
     | "rosterEntries.travelDayCounts"
+    | "advanceAllocations.list"
+    | "advanceAllocations.get"
+    | "advanceAllocations.request"
+    | "advanceAllocations.assign"
+    | "advanceAllocations.decide"
+    | "advanceAllocations.reserve"
+    | "advanceAllocations.split"
+    | "advanceAllocations.unsplit"
+    | "advanceAllocations.withdraw"
+    | "advanceAllocations.issue"
+    | "advanceAllocations.allowances"
+    | "advanceAllocations.setRadioChannels"
+    | "assetReservationConflicts.list"
     | "guestListEntries.list"
     | "guestListEntries.create"
     | "guestListEntries.get"
@@ -27784,6 +28186,7 @@ export interface ModuleOperations {
     | "assetClasses.get"
     | "assetClasses.update"
     | "assetClasses.delete"
+    | "assetClasses.availability"
     | "assetUnits.list"
     | "assetUnits.create"
     | "assetUnits.get"
@@ -27817,7 +28220,10 @@ export interface ModuleOperations {
     | "assetDamageReports.get"
     | "assetDamageReports.update"
     | "assetDamageReports.delete"
-    | "assetUnitHire.list";
+    | "assetUnitHire.list"
+    | "assetReservations.list"
+    | "assetReservations.get"
+    | "assetReservations.release";
   Opportunities:
     | "opportunities.list"
     | "opportunities.create"

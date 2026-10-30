@@ -5,10 +5,11 @@
  * back as 422 with their rule. Shapes follow the corrected catalog (catalog/modules/assets.ts,
  * ADR 0023).
  */
-import { applyAssetScanEvent, resolveAssetScan, type ScanAction } from "@xos/data/assets";
+import { applyAssetScanEvent, recordAssetCustody, resolveAssetScan, type ScanAction } from "@xos/data/assets";
 import { refused } from "../problem.ts";
 import { requireOrg } from "../runtime/context.ts";
-import { defineHandlers, noContent, ok } from "../runtime/handler.ts";
+import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
+import { reservationHandlers } from "./parts/allocations.ts";
 import { bulkEdit, fieldHistory } from "./parts/bulk-edit-and-history.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap, type Row } from "./support/table.ts";
 
@@ -140,6 +141,24 @@ export const handlers = defineHandlers("Assets", {
   ...handlersFor("Assets", lots),
   ...handlersFor("Assets", identifiers),
   ...handlersFor("Assets", custody),
+  // Signed-in users no longer insert custody rows (R7, 2692): create goes through app.record_asset_custody, which
+  // writes through the scan so the unit's state moves with the row; the request and response keep their v1 shape.
+  "assetCustodyEntries.create": async ({ body }, context) => {
+    const row = unwrap(
+      await recordAssetCustody(context.db, {
+        orgId: requireOrg(context).id,
+        unitId: body.asset_unit_id,
+        membershipId: body.custodian_membership_id ?? null,
+        engagementId: body.custodian_engagement_id ?? null,
+        venueId: body.venue_id ?? null,
+        projectId: body.project_id ?? null,
+        note: body.note ?? null,
+      }),
+    );
+    return created((await custody.read(context, row.id)) as never);
+  },
+  // Holds and class availability (R7): see ./parts/allocations.ts.
+  ...reservationHandlers,
   ...handlersFor("Assets", maintenance),
   ...handlersFor("Assets", damage),
   // Hired-in units (R7a, G-96): no vendor, cost or order, so assets.asset.read is enough.

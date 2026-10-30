@@ -9945,6 +9945,12 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Canon element the class is.",
             "example": "5000.02.02-XPMS-003"
+          },
+          "offering": {
+            "type": ["string", "null"],
+            "enum": ["Radios", "Carts", null],
+            "description": "Offering the class answers for; null for site assets.",
+            "example": "Radios"
           }
         },
         "required": [
@@ -9955,7 +9961,8 @@
           "updated_at",
           "updated_by",
           "name",
-          "element_id"
+          "element_id",
+          "offering"
         ],
         "description": "An asset class bound to a catalog element (class grain)."
       },
@@ -9974,6 +9981,12 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Canon element the class is.",
             "example": "5000.02.02-XPMS-003"
+          },
+          "offering": {
+            "type": ["string", "null"],
+            "enum": ["Radios", "Carts", null],
+            "description": "Offering the class answers for; null for site assets.",
+            "example": "Radios"
           }
         },
         "required": ["name", "element_id"],
@@ -9994,9 +10007,61 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Canon element the class is.",
             "example": "5000.02.02-XPMS-003"
+          },
+          "offering": {
+            "type": ["string", "null"],
+            "enum": ["Radios", "Carts", null],
+            "description": "Offering the class answers for; null for site assets.",
+            "example": "Radios"
           }
         },
         "description": "Fields accepted when updating a AssetClass. Omitted fields are unchanged."
+      },
+      "AssetClassAvailability": {
+        "type": "object",
+        "properties": {
+          "serviceable_units": {
+            "type": "number",
+            "description": "Serviceable owned units.",
+            "example": 4
+          },
+          "lot_quantity": { "type": "number", "description": "Owned lot quantity.", "example": 0 },
+          "on_order_quantity": {
+            "type": "number",
+            "description": "Quantity on order that covers the window.",
+            "example": 2
+          },
+          "total": {
+            "type": "number",
+            "description": "All the class can supply over the window.",
+            "example": 6
+          },
+          "peak_reserved": {
+            "type": "number",
+            "description": "Most held at once over the window.",
+            "example": 2
+          },
+          "available": {
+            "type": "number",
+            "description": "Total less the peak, never below 0.",
+            "example": 4
+          },
+          "unit_basis": {
+            "type": "string",
+            "description": "Unit of the class element.",
+            "example": "each"
+          }
+        },
+        "required": [
+          "serviceable_units",
+          "lot_quantity",
+          "on_order_quantity",
+          "total",
+          "peak_reserved",
+          "available",
+          "unit_basis"
+        ],
+        "description": "How many of an asset class are free over a window (G-93)."
       },
       "AssetUnitPage": {
         "type": "object",
@@ -16148,6 +16213,12 @@
             "description": "Category name.",
             "example": "All Access"
           },
+          "category_kind": {
+            "type": "string",
+            "enum": ["Access", "Parking"],
+            "description": "Access badge or parking pass.",
+            "example": "Parking"
+          },
           "project_id": {
             "type": "string",
             "format": "uuid",
@@ -16169,6 +16240,7 @@
           "updated_at",
           "updated_by",
           "name",
+          "category_kind",
           "project_id",
           "code"
         ],
@@ -16183,6 +16255,12 @@
             "maxLength": 300,
             "description": "Category name.",
             "example": "All Access"
+          },
+          "category_kind": {
+            "type": "string",
+            "enum": ["Access", "Parking"],
+            "description": "Access badge or parking pass.",
+            "example": "Parking"
           },
           "project_id": {
             "type": "string",
@@ -16209,6 +16287,12 @@
             "maxLength": 300,
             "description": "Category name.",
             "example": "All Access"
+          },
+          "category_kind": {
+            "type": "string",
+            "enum": ["Access", "Parking"],
+            "description": "Access badge or parking pass.",
+            "example": "Parking"
           },
           "code": {
             "type": "string",
@@ -50932,6 +51016,955 @@
         ],
         "description": "One day of a project's travel counts (R5, G-175)."
       },
+      "AdvanceAllocationPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdvanceAllocation" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AdvanceAllocation": {
+        "type": "object",
+        "properties": {
+          "allocation_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the allocation.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the producing org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "holder_engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the party pool's engagement; null when a person holds it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "roster_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the roster entry of the person who holds it; null for a pool.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "parent_allocation_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the pool a share was split from.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "Credential",
+              "Parking Pass",
+              "Asset",
+              "Catering",
+              "Lodging",
+              "Travel",
+              "Per Diem"
+            ],
+            "description": "What the allocation gives.",
+            "example": "Asset"
+          },
+          "offering": {
+            "type": ["string", "null"],
+            "enum": [
+              "Travel",
+              "Lodging",
+              "Catering",
+              "Parking",
+              "Uniforms",
+              "Per Diem",
+              "Radios",
+              "Carts",
+              "Guest List",
+              null
+            ],
+            "description": "Offering it draws on; null for a badge or a site asset.",
+            "example": "Radios"
+          },
+          "item_name": {
+            "type": ["string", "null"],
+            "description": "Category, class, catering or block name; null for Travel and Per Diem.",
+            "example": "Two-way radios"
+          },
+          "quantity": { "type": "number", "description": "Quantity allocated.", "example": 6 },
+          "allocation_state": {
+            "type": "string",
+            "enum": ["Requested", "Approved", "Declined", "Withdrawn"],
+            "description": "Stored state.",
+            "example": "Approved"
+          },
+          "origin": {
+            "type": "string",
+            "enum": ["Requested", "Assigned", "Split"],
+            "description": "How the allocation came to be.",
+            "example": "Requested"
+          },
+          "needed_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it is first needed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "needed_to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it is no longer needed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "needed_time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone of the window.",
+            "example": "America/New_York"
+          },
+          "requested_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who requested or assigned it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "decided_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When it was approved or declined.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "decided_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who approved or declined it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "decline_reason": {
+            "type": ["string", "null"],
+            "description": "Why it was declined.",
+            "example": "Kai already has a badge."
+          },
+          "reserved_quantity": {
+            "type": "number",
+            "description": "Quantity of live holds.",
+            "example": 6
+          },
+          "on_order_quantity": {
+            "type": "number",
+            "description": "Order-line holds on Approved or Sent orders not yet received.",
+            "example": 2
+          },
+          "confirmed": {
+            "type": "boolean",
+            "description": "Every ordering order behind its holds was acknowledged.",
+            "example": false
+          },
+          "awaiting_order": {
+            "type": "boolean",
+            "description": "An order behind its holds is still Proposed.",
+            "example": false
+          },
+          "received_quantity": {
+            "type": "number",
+            "description": "Received on the order lines behind its holds.",
+            "example": 0
+          },
+          "issued_quantity": {
+            "type": "number",
+            "description": "Issued from the possession rows.",
+            "example": 2
+          },
+          "returned_quantity": {
+            "type": "number",
+            "description": "Issued and checked in since.",
+            "example": 0
+          },
+          "lost_quantity": {
+            "type": "number",
+            "description": "Issued units that went Lost.",
+            "example": 0
+          },
+          "revoked_quantity": {
+            "type": "number",
+            "description": "Issued credentials since revoked.",
+            "example": 0
+          },
+          "display_status": {
+            "type": "string",
+            "enum": [
+              "Requested",
+              "Approved",
+              "Reserved",
+              "Awaiting Order",
+              "On Order",
+              "Confirmed",
+              "Received",
+              "Partly Issued",
+              "Issued",
+              "Returned",
+              "Revoked",
+              "Declined",
+              "Withdrawn"
+            ],
+            "description": "The computed status.",
+            "example": "Partly Issued"
+          }
+        },
+        "required": [
+          "allocation_id",
+          "org_id",
+          "project_id",
+          "holder_engagement_id",
+          "roster_entry_id",
+          "parent_allocation_id",
+          "kind",
+          "offering",
+          "item_name",
+          "quantity",
+          "allocation_state",
+          "origin",
+          "needed_from",
+          "needed_to",
+          "needed_time_zone",
+          "requested_by",
+          "decided_at",
+          "decided_by",
+          "decline_reason",
+          "reserved_quantity",
+          "on_order_quantity",
+          "confirmed",
+          "awaiting_order",
+          "received_quantity",
+          "issued_quantity",
+          "returned_quantity",
+          "lost_quantity",
+          "revoked_quantity",
+          "display_status"
+        ],
+        "description": "What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project."
+      },
+      "AdvanceAllocationRequest": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the party pool's engagement; give this or roster_entry_id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "roster_entry_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the roster entry of one person; give this or engagement_id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "credential_category_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the badge or parking category.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_class_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the asset class, such as the org's radios.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "fulfillment_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the catering fulfillment.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "accommodation_block_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the accommodation block.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "service_kind": {
+            "type": "string",
+            "enum": ["Travel", "Per Diem"],
+            "description": "Travel or Per Diem.",
+            "example": "Travel"
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Quantity.",
+            "example": 6
+          },
+          "needed_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it is first needed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "needed_to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it is no longer needed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone of the window.",
+            "example": "America/New_York"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Note; above the allowance with overflow at review, the reason for an assignment.",
+            "example": "For the audio crew."
+          }
+        },
+        "required": ["project_id", "quantity", "needed_from", "needed_to", "time_zone"],
+        "description": "One allocation: one holder and one target."
+      },
+      "AdvanceAllocationAssign": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the party pool's engagement; give this or roster_entry_id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "roster_entry_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the roster entry of one person; give this or engagement_id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "credential_category_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the badge or parking category.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_class_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the asset class, such as the org's radios.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "fulfillment_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the catering fulfillment.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "accommodation_block_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the accommodation block.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "service_kind": {
+            "type": "string",
+            "enum": ["Travel", "Per Diem"],
+            "description": "Travel or Per Diem.",
+            "example": "Travel"
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Quantity.",
+            "example": 6
+          },
+          "needed_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it is first needed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "needed_to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it is no longer needed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone of the window.",
+            "example": "America/New_York"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Note; above the allowance with overflow at review, the reason for an assignment.",
+            "example": "For the audio crew."
+          },
+          "sources": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AllocationSource" },
+            "minItems": 1,
+            "description": "Holds for an asset allocation, summing to its quantity. Left out, class stock holds it when the class has units, else its only lot."
+          }
+        },
+        "required": ["project_id", "quantity", "needed_from", "needed_to", "time_zone"],
+        "description": "One allocation assigned directly, with its holds for an asset."
+      },
+      "AllocationSource": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": ["Class Stock", "Unit", "Lot", "Order Line"],
+            "description": "Where the stock comes from.",
+            "example": "Class Stock"
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Quantity held from it.",
+            "example": 4
+          },
+          "asset_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the unit, for a Unit source.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_lot_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the lot, for a Lot source.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "po_line_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the order line, for an Order Line source.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["source", "quantity"],
+        "description": "One hold source; mixed supply is one source each."
+      },
+      "AdvanceAllocationDecision": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": ["Approved", "Rejected"],
+            "description": "Approve, or reject (decline).",
+            "example": "Approved"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Required to decline, and to approve above the allowance with overflow at review.",
+            "example": "Spare for monitors."
+          },
+          "sources": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AllocationSource" },
+            "minItems": 1,
+            "description": "Holds for an asset allocation, summing to its quantity. Left out, class stock holds it when the class has units, else its only lot."
+          }
+        },
+        "required": ["decision"],
+        "description": "A decision on a Requested allocation."
+      },
+      "AdvanceAllocationReserve": {
+        "type": "object",
+        "properties": {
+          "sources": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AllocationSource" },
+            "minItems": 1,
+            "description": "The new holds."
+          }
+        },
+        "required": ["sources"],
+        "description": "Holds that replace an approved asset allocation's holds."
+      },
+      "AdvanceAllocationSplitResult": {
+        "type": "object",
+        "properties": {
+          "allocation_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "description": "The shares, in the order given.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          }
+        },
+        "required": ["allocation_ids"],
+        "description": "The shares written."
+      },
+      "AdvanceAllocationSplit": {
+        "type": "object",
+        "properties": {
+          "parts": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdvanceAllocationSplitPart" },
+            "minItems": 1
+          }
+        },
+        "required": ["parts"],
+        "description": "Shares of an approved party pool for its people."
+      },
+      "AdvanceAllocationSplitPart": {
+        "type": "object",
+        "properties": {
+          "roster_entry_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the roster entry on the pool's engagement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Quantity for the person.",
+            "example": 2
+          },
+          "asset_unit_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "description": "Units pinned to the person.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          }
+        },
+        "required": ["roster_entry_id", "quantity"],
+        "description": "One person's share."
+      },
+      "AdvanceAllocationUnsplitResult": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "description": "Quantity returned to the pool.",
+            "example": 1
+          }
+        },
+        "required": ["quantity"],
+        "description": "What went back."
+      },
+      "AdvanceAllocationUnsplit": {
+        "type": "object",
+        "properties": {
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "How much goes back; all of it when left out.",
+            "example": 1
+          }
+        },
+        "description": "A share returned to its pool."
+      },
+      "AdvanceAllocationWithdraw": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Why it is withdrawn.",
+            "example": "No longer needed."
+          }
+        },
+        "description": "Withdrawing an allocation."
+      },
+      "AdvanceAllocationIssueResult": {
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": ["applied", "duplicate"],
+            "description": "applied, or duplicate for a replay.",
+            "example": "applied"
+          },
+          "possession": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": { "type": "string", "format": "uuid" }
+            },
+            "description": "Ids of the possession rows written, by table.",
+            "example": { "asset_custody": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"] }
+          }
+        },
+        "required": ["outcome", "possession"],
+        "description": "What one issue event wrote."
+      },
+      "AdvanceAllocationIssue": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AdvanceAllocationIssueItem" },
+            "minItems": 1,
+            "description": "Items handed over."
+          }
+        },
+        "required": ["items"],
+        "description": "One issue event."
+      },
+      "AdvanceAllocationIssueItem": {
+        "type": "object",
+        "properties": {
+          "valid_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Badge or pass: valid from; the window start by default.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "valid_to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Badge or pass: valid until; the window end by default.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "roster_vehicle_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the parking pass: the holder's roster vehicle.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the unit issued.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_tag": {
+            "type": "string",
+            "description": "Unit issued, by tag.",
+            "example": "NWL-RAD-001"
+          },
+          "asset_lot_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the lot a quantity is issued from.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reservation_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the hold the item is issued against; picked when left out.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Lot or catering quantity.",
+            "example": 1
+          },
+          "description": {
+            "type": "string",
+            "description": "Catering: what is provided.",
+            "example": "Crew lunch"
+          },
+          "check_in_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Lodging: first night.",
+            "example": "2026-10-08"
+          },
+          "check_out_on": {
+            "type": "string",
+            "format": "date",
+            "description": "Lodging: departure date.",
+            "example": "2026-10-08"
+          },
+          "travel_mode": {
+            "type": "string",
+            "enum": ["Flight", "Ground"],
+            "description": "Travel: mode.",
+            "example": "Flight"
+          },
+          "operator_name": {
+            "type": "string",
+            "description": "Travel: airline or operator.",
+            "example": "Delta"
+          },
+          "service_identifier": {
+            "type": "string",
+            "description": "Travel: flight or service number.",
+            "example": "DL 1220"
+          },
+          "confirmation_identifier": {
+            "type": "string",
+            "description": "Travel: booking confirmation.",
+            "example": "QX7P2L"
+          },
+          "departs_from": {
+            "type": "string",
+            "description": "Travel: departure place.",
+            "example": "BOS"
+          },
+          "departs_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Travel: departure time.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "departs_time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "Travel: zone of the departure.",
+            "example": "America/New_York"
+          },
+          "arrives_at_place": {
+            "type": "string",
+            "description": "Travel: arrival place.",
+            "example": "MIA"
+          },
+          "arrives_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Travel: arrival time.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "arrives_time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "Travel: zone of the arrival.",
+            "example": "America/New_York"
+          },
+          "day": {
+            "type": "string",
+            "format": "date",
+            "description": "Per diem: the day, inside the window.",
+            "example": "2026-10-08"
+          },
+          "amount_minor": {
+            "type": ["integer", "null"],
+            "description": "Per diem: amount in minor units.",
+            "example": 5000
+          },
+          "currency_code": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 3,
+            "description": "Per diem: ISO 4217 currency.",
+            "example": "USD"
+          }
+        },
+        "description": "One item handed over; the keys depend on the kind."
+      },
+      "AllocationAllowancePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AllocationAllowance" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AllocationAllowance": {
+        "type": "object",
+        "properties": {
+          "offering": {
+            "type": "string",
+            "enum": [
+              "Travel",
+              "Lodging",
+              "Catering",
+              "Parking",
+              "Uniforms",
+              "Per Diem",
+              "Radios",
+              "Carts",
+              "Guest List"
+            ],
+            "description": "Offering.",
+            "example": "Radios"
+          },
+          "roster_entry_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the roster entry; null for the pool row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "mode": {
+            "type": "string",
+            "description": "How the offering reaches the engagement.",
+            "example": "Provided"
+          },
+          "cap": { "type": ["number", "null"], "description": "Cap; null for none.", "example": 6 },
+          "requested": {
+            "type": "number",
+            "description": "Live Requested quantity under it.",
+            "example": 0
+          },
+          "approved": {
+            "type": "number",
+            "description": "Live Approved quantity under it.",
+            "example": 4
+          },
+          "remaining": {
+            "type": ["number", "null"],
+            "description": "Cap less requested and approved, never below 0.",
+            "example": 2
+          },
+          "beyond": {
+            "type": ["number", "null"],
+            "description": "How far requested and approved go beyond the cap.",
+            "example": 0
+          }
+        },
+        "required": [
+          "offering",
+          "roster_entry_id",
+          "mode",
+          "cap",
+          "requested",
+          "approved",
+          "remaining",
+          "beyond"
+        ],
+        "description": "What remains of an offering's cap for a pool or a person (G-174)."
+      },
+      "AllocationRadioChannels": {
+        "type": "object",
+        "properties": {
+          "radio_channel_ids": {
+            "type": "array",
+            "items": { "type": "string", "format": "uuid" },
+            "maxItems": 16,
+            "description": "The project's channels, 0 to 16.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          }
+        },
+        "required": ["radio_channel_ids"],
+        "description": "The radio channels a radio allocation is programmed with, as a whole."
+      },
+      "AssetReservationConflictPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetReservationConflict" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AssetReservationConflict": {
+        "type": "object",
+        "properties": {
+          "reservation_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the hold.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "allocation_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the allocation the hold serves.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_class_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the class held.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_unit_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the pinned unit.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_lot_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the lot.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "po_line_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the order line.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "quantity": { "type": "number", "description": "Quantity held.", "example": 1 },
+          "conflict": {
+            "type": "string",
+            "enum": ["Unit Unavailable", "Class Over Reserved", "Lot Over Reserved", "Order Short"],
+            "description": "What no longer fits.",
+            "example": "Unit Unavailable"
+          }
+        },
+        "required": [
+          "reservation_id",
+          "allocation_id",
+          "org_id",
+          "project_id",
+          "asset_class_id",
+          "asset_unit_id",
+          "asset_lot_id",
+          "po_line_id",
+          "quantity",
+          "conflict"
+        ],
+        "description": "A live hold that no longer fits what can supply it (G-93), one row per conflict: the pinned unit is Damaged, In Maintenance, Lost, Retired or Returned; the class or lot is over reserved; or the order behind it is Canceled or short. Computed, never stored."
+      },
       "GuestListEntryPage": {
         "type": "object",
         "properties": {
@@ -51222,6 +52255,144 @@
         },
         "required": ["asset_unit_id", "acquisition_kind", "hire_ends_at", "off_hire_due"],
         "description": "Whether a unit is hired in and when it goes back (G-96). Readable with assets.asset.read alone: it carries no vendor, cost or order."
+      },
+      "AssetReservationPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AssetReservation" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "AssetReservation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the asset reservation.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project of the allocation.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "advance_allocation_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the allocation the hold serves.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_unit_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the pinned unit.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "asset_lot_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the lot held from.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "po_line_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the order line held on.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "quantity": { "type": "number", "description": "Quantity held.", "example": 1 },
+          "released_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the hold was released.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "release_reason": {
+            "type": ["string", "null"],
+            "enum": [
+              "Withdrawn",
+              "Entry Removed",
+              "Engagement Ended",
+              "Split",
+              "Released By Reviewer",
+              null
+            ],
+            "description": "Why it was released.",
+            "example": "Split"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "advance_allocation_id",
+          "asset_unit_id",
+          "asset_lot_id",
+          "po_line_id",
+          "quantity",
+          "released_at",
+          "release_reason"
+        ],
+        "description": "A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions."
+      },
+      "AssetReservationRelease": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Why the hold is released.",
+            "example": "Ordering more instead."
+          }
+        },
+        "description": "Releasing a hold."
       },
       "Form1099NecRowPage": {
         "type": "object",
@@ -80131,7 +81302,8 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Truss Section 10 ft",
-                      "element_id": "5000.02.02-XPMS-003"
+                      "element_id": "5000.02.02-XPMS-003",
+                      "offering": "Radios"
                     }
                   ],
                   "next_cursor": null
@@ -80158,7 +81330,11 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Truss Section 10 ft", "element_id": "5000.02.02-XPMS-003" },
+              "example": {
+                "name": "Truss Section 10 ft",
+                "element_id": "5000.02.02-XPMS-003",
+                "offering": "Radios"
+              },
               "schema": { "$ref": "#/components/schemas/AssetClassCreate" }
             }
           }
@@ -80182,7 +81358,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Truss Section 10 ft",
-                  "element_id": "5000.02.02-XPMS-003"
+                  "element_id": "5000.02.02-XPMS-003",
+                  "offering": "Radios"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetClass" }
               }
@@ -80239,7 +81416,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Truss Section 10 ft",
-                  "element_id": "5000.02.02-XPMS-003"
+                  "element_id": "5000.02.02-XPMS-003",
+                  "offering": "Radios"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetClass" }
               }
@@ -80278,7 +81456,11 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Truss Section 10 ft", "element_id": "5000.02.02-XPMS-003" },
+              "example": {
+                "name": "Truss Section 10 ft",
+                "element_id": "5000.02.02-XPMS-003",
+                "offering": "Radios"
+              },
               "schema": { "$ref": "#/components/schemas/AssetClassUpdate" }
             }
           }
@@ -80302,7 +81484,8 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Truss Section 10 ft",
-                  "element_id": "5000.02.02-XPMS-003"
+                  "element_id": "5000.02.02-XPMS-003",
+                  "offering": "Radios"
                 },
                 "schema": { "$ref": "#/components/schemas/AssetClass" }
               }
@@ -80341,6 +81524,85 @@
         ],
         "responses": {
           "204": { "description": "The asset class moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/asset-classes/{id}/availability": {
+      "get": {
+        "operationId": "assetClasses.availability",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_classes",
+        "x-xos-capability": "assets.asset.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "x-xos-rpc": "app.asset_class_availability",
+        "summary": "Read an asset class's availability",
+        "description": "How many of the class are free over [from, to) through `app.asset_class_availability` (G-93): serviceable owned units, owned lot quantity, quantity on order that covers the window, the most held at once and what is left, in the unit of the class element. A window that runs backwards or beyond 400 days is refused (422 availability_window). Needs assets.asset.read in the org or advancing.packet.read on one of its projects. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the asset class.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the asset class.",
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Window start.",
+              "example": "2026-10-08T14:30:00Z"
+            },
+            "required": true,
+            "description": "Window start.",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Window end.",
+              "example": "2026-10-08T14:30:00Z"
+            },
+            "required": true,
+            "description": "Window end.",
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "serviceable_units": 4,
+                  "lot_quantity": 0,
+                  "on_order_quantity": 2,
+                  "total": 6,
+                  "peak_reserved": 2,
+                  "available": 4,
+                  "unit_basis": "each"
+                },
+                "schema": { "$ref": "#/components/schemas/AssetClassAvailability" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
@@ -89891,6 +91153,7 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "All Access",
+                      "category_kind": "Parking",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "code": "ALL-ACCESS"
                     }
@@ -89921,6 +91184,7 @@
             "application/json": {
               "example": {
                 "name": "All Access",
+                "category_kind": "Parking",
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "code": "ALL-ACCESS"
               },
@@ -89947,6 +91211,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "All Access",
+                  "category_kind": "Parking",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "code": "ALL-ACCESS"
                 },
@@ -90005,6 +91270,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "All Access",
+                  "category_kind": "Parking",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "code": "ALL-ACCESS"
                 },
@@ -90045,7 +91311,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "All Access", "code": "ALL-ACCESS" },
+              "example": { "name": "All Access", "category_kind": "Parking", "code": "ALL-ACCESS" },
               "schema": { "$ref": "#/components/schemas/CredentialCategoryUpdate" }
             }
           }
@@ -90069,6 +91335,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "All Access",
+                  "category_kind": "Parking",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "code": "ALL-ACCESS"
                 },
@@ -143063,6 +144330,1047 @@
         }
       }
     },
+    "/advance-allocations": {
+      "get": {
+        "operationId": "advanceAllocations.list",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["allocation_id"], "numeric": false, "descending": true },
+        "summary": "List advance allocation rows",
+        "description": "What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project. Returns a cursor page of advance allocation rows the caller may see. The default order is `allocation_id` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of advance allocation rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "holder_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "kind": "Asset",
+                      "offering": "Radios",
+                      "item_name": "Two-way radios",
+                      "quantity": 6,
+                      "allocation_state": "Approved",
+                      "origin": "Requested",
+                      "needed_from": "2026-10-08T14:30:00Z",
+                      "needed_to": "2026-10-08T14:30:00Z",
+                      "needed_time_zone": "America/New_York",
+                      "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "decided_at": "2026-10-08T14:30:00Z",
+                      "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "decline_reason": "Kai already has a badge.",
+                      "reserved_quantity": 6,
+                      "on_order_quantity": 2,
+                      "confirmed": false,
+                      "awaiting_order": false,
+                      "received_quantity": 0,
+                      "issued_quantity": 2,
+                      "returned_quantity": 0,
+                      "lost_quantity": 0,
+                      "revoked_quantity": 0,
+                      "display_status": "Partly Issued"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceAllocationPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-allocations/{allocation_id}": {
+      "get": {
+        "operationId": "advanceAllocations.get",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "summary": "Get an advance allocation",
+        "description": "What a production allocates to a party's pool or to one person on its roster (R7, ADR 0104): one badge category, parking pass, asset class, catering, accommodation block, trip or per diem, for a window. Requested, Approved, Declined and Withdrawn are stored; held, ordered, confirmed, received, issued, returned and revoked are computed from the rows that own them, and display_status reads them in order. No prices. Read with advancing.packet.read on the project. Returns one advance allocation with its `ETag`. A advance allocation the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The advance allocation.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "holder_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "kind": "Asset",
+                  "offering": "Radios",
+                  "item_name": "Two-way radios",
+                  "quantity": 6,
+                  "allocation_state": "Approved",
+                  "origin": "Requested",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "needed_time_zone": "America/New_York",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decline_reason": "Kai already has a badge.",
+                  "reserved_quantity": 6,
+                  "on_order_quantity": 2,
+                  "confirmed": false,
+                  "awaiting_order": false,
+                  "received_quantity": 0,
+                  "issued_quantity": 2,
+                  "returned_quantity": 0,
+                  "lost_quantity": 0,
+                  "revoked_quantity": 0,
+                  "display_status": "Partly Issued"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceAllocation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-allocations/request": {
+      "post": {
+        "operationId": "advanceAllocations.request",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.request_allocation",
+        "summary": "Request an allocation",
+        "description": "Production requests an allocation for a party's pool or one person on a roster through `app.request_allocation`; it starts Requested for a reviewer. Needs advancing.packet.write on the project. Refusals answer 422 with the rule, among them offering_not_offered, offering_not_provided, allocation_cap_engagement, allocation_cap_person, allocation_over_allowance_reason, allocation_engagement_closed and allocation_entry_not_accepted. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "accommodation_block_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "service_kind": "Travel",
+                "quantity": 6,
+                "needed_from": "2026-10-08T14:30:00Z",
+                "needed_to": "2026-10-08T14:30:00Z",
+                "time_zone": "America/New_York",
+                "note": "For the audio crew."
+              },
+              "schema": { "$ref": "#/components/schemas/AdvanceAllocationRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "holder_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "kind": "Asset",
+                  "offering": "Radios",
+                  "item_name": "Two-way radios",
+                  "quantity": 6,
+                  "allocation_state": "Approved",
+                  "origin": "Requested",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "needed_time_zone": "America/New_York",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decline_reason": "Kai already has a badge.",
+                  "reserved_quantity": 6,
+                  "on_order_quantity": 2,
+                  "confirmed": false,
+                  "awaiting_order": false,
+                  "received_quantity": 0,
+                  "issued_quantity": 2,
+                  "returned_quantity": 0,
+                  "lost_quantity": 0,
+                  "revoked_quantity": 0,
+                  "display_status": "Partly Issued"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceAllocation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-allocations/assign": {
+      "post": {
+        "operationId": "advanceAllocations.assign",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.submission.review",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.assign_allocation",
+        "summary": "Assign an allocation",
+        "description": "A reviewer assigns an allocation directly through `app.assign_allocation`: Approved at once and, for an asset, held from the sources. Needs advancing.submission.review on the project. Refusals answer 422 with the rule, among them offering_not_offered, offering_not_provided, allocation_cap_engagement, allocation_cap_person, allocation_over_allowance_reason, allocation_engagement_closed and allocation_entry_not_accepted, reservation_over_capacity and allocation_sources_required. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "credential_category_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "accommodation_block_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "service_kind": "Travel",
+                "quantity": 6,
+                "needed_from": "2026-10-08T14:30:00Z",
+                "needed_to": "2026-10-08T14:30:00Z",
+                "time_zone": "America/New_York",
+                "note": "For the audio crew.",
+                "sources": [
+                  {
+                    "source": "Class Stock",
+                    "quantity": 4,
+                    "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "asset_lot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "po_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  }
+                ]
+              },
+              "schema": { "$ref": "#/components/schemas/AdvanceAllocationAssign" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "holder_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "kind": "Asset",
+                  "offering": "Radios",
+                  "item_name": "Two-way radios",
+                  "quantity": 6,
+                  "allocation_state": "Approved",
+                  "origin": "Requested",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "needed_time_zone": "America/New_York",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decline_reason": "Kai already has a badge.",
+                  "reserved_quantity": 6,
+                  "on_order_quantity": 2,
+                  "confirmed": false,
+                  "awaiting_order": false,
+                  "received_quantity": 0,
+                  "issued_quantity": 2,
+                  "returned_quantity": 0,
+                  "lost_quantity": 0,
+                  "revoked_quantity": 0,
+                  "display_status": "Partly Issued"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceAllocation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-allocations/{allocation_id}/decide": {
+      "post": {
+        "operationId": "advanceAllocations.decide",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.submission.review",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.decide_allocation",
+        "summary": "Approve or decline an allocation",
+        "description": "Decides a Requested allocation through `app.decide_allocation`, never by its requester (422 sod_allocation_requester). Declining needs a reason (allocation_reason_required); approving holds an asset's stock (allocation_sources_required, reservation_over_capacity) and, above the allowance with overflow at review, needs a reason that goes in the ledger (allocation_over_allowance_reason). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "decision": "Approved",
+                "reason": "Spare for monitors.",
+                "sources": [
+                  {
+                    "source": "Class Stock",
+                    "quantity": 4,
+                    "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "asset_lot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "po_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  }
+                ]
+              },
+              "schema": { "$ref": "#/components/schemas/AdvanceAllocationDecision" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "holder_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "kind": "Asset",
+                  "offering": "Radios",
+                  "item_name": "Two-way radios",
+                  "quantity": 6,
+                  "allocation_state": "Approved",
+                  "origin": "Requested",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "needed_time_zone": "America/New_York",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decline_reason": "Kai already has a badge.",
+                  "reserved_quantity": 6,
+                  "on_order_quantity": 2,
+                  "confirmed": false,
+                  "awaiting_order": false,
+                  "received_quantity": 0,
+                  "issued_quantity": 2,
+                  "returned_quantity": 0,
+                  "lost_quantity": 0,
+                  "revoked_quantity": 0,
+                  "display_status": "Partly Issued"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceAllocation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-allocations/{allocation_id}/reserve": {
+      "post": {
+        "operationId": "advanceAllocations.reserve",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.submission.review",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.reserve_allocation",
+        "summary": "Replace an allocation's holds",
+        "description": "Replaces the holds of an Approved asset allocation before anything of it is issued, through `app.reserve_allocation` (422 allocation_issued). Needs advancing.submission.review. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "sources": [
+                  {
+                    "source": "Class Stock",
+                    "quantity": 4,
+                    "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "asset_lot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "po_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  }
+                ]
+              },
+              "schema": { "$ref": "#/components/schemas/AdvanceAllocationReserve" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "holder_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "kind": "Asset",
+                  "offering": "Radios",
+                  "item_name": "Two-way radios",
+                  "quantity": 6,
+                  "allocation_state": "Approved",
+                  "origin": "Requested",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "needed_time_zone": "America/New_York",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decline_reason": "Kai already has a badge.",
+                  "reserved_quantity": 6,
+                  "on_order_quantity": 2,
+                  "confirmed": false,
+                  "awaiting_order": false,
+                  "received_quantity": 0,
+                  "issued_quantity": 2,
+                  "returned_quantity": 0,
+                  "lost_quantity": 0,
+                  "revoked_quantity": 0,
+                  "display_status": "Partly Issued"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceAllocation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-allocations/{allocation_id}/split": {
+      "post": {
+        "operationId": "advanceAllocations.split",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.split_allocation",
+        "summary": "Split a party pool to its people",
+        "description": "Gives shares of an approved party pool to accepted people on its roster through `app.split_allocation`, moving holds with them (422 allocation_not_pool, allocation_split_exceeds, allocation_cap_person). Needs advancing.packet.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "parts": [
+                  {
+                    "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "quantity": 2,
+                    "asset_unit_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+                  }
+                ]
+              },
+              "schema": { "$ref": "#/components/schemas/AdvanceAllocationSplit" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "allocation_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"] },
+                "schema": { "$ref": "#/components/schemas/AdvanceAllocationSplitResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-allocations/{allocation_id}/unsplit": {
+      "post": {
+        "operationId": "advanceAllocations.unsplit",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.packet.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.unsplit_allocation",
+        "summary": "Return a share to its pool",
+        "description": "Returns part or all of a share to its pool through `app.unsplit_allocation`, never what was issued (422 allocation_issued). A share returned whole is Withdrawn. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "quantity": 1 },
+              "schema": { "$ref": "#/components/schemas/AdvanceAllocationUnsplit" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "quantity": 1 },
+                "schema": { "$ref": "#/components/schemas/AdvanceAllocationUnsplitResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-allocations/{allocation_id}/withdraw": {
+      "post": {
+        "operationId": "advanceAllocations.withdraw",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.withdraw_allocation",
+        "summary": "Withdraw an allocation",
+        "description": "Withdraws a Requested allocation, or an Approved one with nothing of it out (422 allocation_issued), through `app.withdraw_allocation`, by its requester or a holder of advancing.packet.write; holds are released. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "No longer needed." },
+              "schema": { "$ref": "#/components/schemas/AdvanceAllocationWithdraw" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "holder_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "kind": "Asset",
+                  "offering": "Radios",
+                  "item_name": "Two-way radios",
+                  "quantity": 6,
+                  "allocation_state": "Approved",
+                  "origin": "Requested",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "needed_time_zone": "America/New_York",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decline_reason": "Kai already has a badge.",
+                  "reserved_quantity": 6,
+                  "on_order_quantity": 2,
+                  "confirmed": false,
+                  "awaiting_order": false,
+                  "received_quantity": 0,
+                  "issued_quantity": 2,
+                  "returned_quantity": 0,
+                  "lost_quantity": 0,
+                  "revoked_quantity": 0,
+                  "display_status": "Partly Issued"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceAllocation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-allocations/{allocation_id}/issue": {
+      "post": {
+        "operationId": "advanceAllocations.issue",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.issue_allocation",
+        "summary": "Issue an allocation",
+        "description": "Hands over part or all of an Approved allocation in one transaction through `app.issue_allocation`: badges and passes, units by tag, lot quantities, catering lines, rooms, trips or per diem days. Needs the kind's capability on the project (credentials.credential.issue, assets.custody.write, hospitality.fulfillment.write, hospitality.accommodation.write or crew.time_entry.write). The issuer is never the person (422 allocation_self_issue), kinds other than equipment go to one person (allocation_needs_person) and nothing goes beyond the quantity (allocation_issue_exceeds). A replay with the same Idempotency-Key returns the original response. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "items": [
+                  {
+                    "valid_from": "2026-10-08T14:30:00Z",
+                    "valid_to": "2026-10-08T14:30:00Z",
+                    "roster_vehicle_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "asset_tag": "NWL-RAD-001",
+                    "asset_lot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "reservation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "quantity": 1,
+                    "description": "Crew lunch",
+                    "check_in_on": "2026-10-08",
+                    "check_out_on": "2026-10-08",
+                    "travel_mode": "Flight",
+                    "operator_name": "Delta",
+                    "service_identifier": "DL 1220",
+                    "confirmation_identifier": "QX7P2L",
+                    "departs_from": "BOS",
+                    "departs_at": "2026-10-08T14:30:00Z",
+                    "departs_time_zone": "America/New_York",
+                    "arrives_at_place": "MIA",
+                    "arrives_at": "2026-10-08T14:30:00Z",
+                    "arrives_time_zone": "America/New_York",
+                    "day": "2026-10-08",
+                    "amount_minor": 5000,
+                    "currency_code": "USD"
+                  }
+                ]
+              },
+              "schema": { "$ref": "#/components/schemas/AdvanceAllocationIssue" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "outcome": "applied",
+                  "possession": { "asset_custody": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"] }
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceAllocationIssueResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-allocations/allowances": {
+      "get": {
+        "operationId": "advanceAllocations.allowances",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.allocation_allowances",
+        "summary": "Read an engagement's remaining allowances",
+        "description": "Per offering, the cap, what is requested and approved under it, what remains and what goes beyond, for the engagement's pool and each person on its roster, through `app.allocation_allowances` (G-174). A person on the roster reads only their own rows; 404 without standing. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the engagement.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the engagement.",
+            "name": "engagement_id",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "offering": "Radios",
+                      "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "mode": "Provided",
+                      "cap": 6,
+                      "requested": 0,
+                      "approved": 4,
+                      "remaining": 2,
+                      "beyond": 0
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AllocationAllowancePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/advance-allocations/{allocation_id}/set-radio-channels": {
+      "post": {
+        "operationId": "advanceAllocations.setRadioChannels",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.advance_allocation_status",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.set_allocation_radio_channels",
+        "summary": "Set a radio allocation's channels",
+        "description": "Sets the channels of a radio allocation as a whole through `app.set_allocation_radio_channels` (G-91): 0 to 16 channels of its project (422 allocation_channel_count, allocation_channel_project, allocation_channel_not_asset, allocation_channel_not_radio, allocation_channel_state). Needs advancing.packet.write or safety.radio_channel.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the allocation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the allocation.",
+            "name": "allocation_id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "radio_channel_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"] },
+              "schema": { "$ref": "#/components/schemas/AllocationRadioChannels" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "holder_engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "roster_entry_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "kind": "Asset",
+                  "offering": "Radios",
+                  "item_name": "Two-way radios",
+                  "quantity": 6,
+                  "allocation_state": "Approved",
+                  "origin": "Requested",
+                  "needed_from": "2026-10-08T14:30:00Z",
+                  "needed_to": "2026-10-08T14:30:00Z",
+                  "needed_time_zone": "America/New_York",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decided_at": "2026-10-08T14:30:00Z",
+                  "decided_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "decline_reason": "Kai already has a badge.",
+                  "reserved_quantity": 6,
+                  "on_order_quantity": 2,
+                  "confirmed": false,
+                  "awaiting_order": false,
+                  "received_quantity": 0,
+                  "issued_quantity": 2,
+                  "returned_quantity": 0,
+                  "lost_quantity": 0,
+                  "revoked_quantity": 0,
+                  "display_status": "Partly Issued"
+                },
+                "schema": { "$ref": "#/components/schemas/AdvanceAllocation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/asset-reservation-conflicts": {
+      "get": {
+        "operationId": "assetReservationConflicts.list",
+        "tags": ["Advancing"],
+        "x-xos-table": "app.asset_reservation_conflicts",
+        "x-xos-capability": "advancing.packet.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-order": { "by": ["reservation_id"], "numeric": false },
+        "summary": "List reservation conflict rows",
+        "description": "A live hold that no longer fits what can supply it (G-93), one row per conflict: the pinned unit is Damaged, In Maintenance, Lost, Retired or Returned; the class or lot is over reserved; or the order behind it is Canceled or short. Computed, never stored. Returns a cursor page of reservation conflict rows the caller may see. The default order is `reservation_id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of reservation conflict rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "reservation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "asset_lot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "po_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "quantity": 1,
+                      "conflict": "Unit Unavailable"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AssetReservationConflictPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/guest-list-entries": {
       "get": {
         "operationId": "guestListEntries.list",
@@ -143563,6 +145871,200 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/asset-reservations": {
+      "get": {
+        "operationId": "assetReservations.list",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_reservations",
+        "x-xos-capability": "assets.asset.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List asset reservation rows",
+        "description": "A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions. Returns a cursor page of asset reservation rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of asset reservation rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "advance_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "asset_lot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "po_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "quantity": 1,
+                      "released_at": "2026-10-08T14:30:00Z",
+                      "release_reason": "Split"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/AssetReservationPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/asset-reservations/{id}": {
+      "get": {
+        "operationId": "assetReservations.get",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_reservations",
+        "x-xos-capability": "assets.asset.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["assets"] }],
+        "summary": "Get an asset reservation",
+        "description": "A hold of an approved asset allocation (R7, ADR 0104): a quantity held from class stock, a pinned unit, a lot or the order line the item arrives on, until it is released. Class, window and holder are the allocation's. Written by the allocation actions. Returns one asset reservation with its `ETag`. A asset reservation the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the asset reservation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the asset reservation.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The asset reservation.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_lot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "po_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "quantity": 1,
+                  "released_at": "2026-10-08T14:30:00Z",
+                  "release_reason": "Split"
+                },
+                "schema": { "$ref": "#/components/schemas/AssetReservation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/asset-reservations/{id}/release": {
+      "post": {
+        "operationId": "assetReservations.release",
+        "tags": ["Assets"],
+        "x-xos-table": "app.asset_reservations",
+        "x-xos-capability": "advancing.submission.review",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["advancing"] }],
+        "x-xos-rpc": "app.release_reservation",
+        "summary": "Release a hold",
+        "description": "Releases one hold through `app.release_reservation`, Released By Reviewer, with the reason in the audit ledger. Refuses a hold already released (422 reservation_released) or with something issued against it still out (reservation_in_use). Needs advancing.submission.review. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the asset reservation.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the asset reservation.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "Ordering more instead." },
+              "schema": { "$ref": "#/components/schemas/AssetReservationRelease" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "advance_allocation_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_unit_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "asset_lot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "po_line_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "quantity": 1,
+                  "released_at": "2026-10-08T14:30:00Z",
+                  "release_reason": "Split"
+                },
+                "schema": { "$ref": "#/components/schemas/AssetReservation" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

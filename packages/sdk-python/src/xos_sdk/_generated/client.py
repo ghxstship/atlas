@@ -349,8 +349,11 @@ from .resources import (
     ProjectMeasurementSummaryResource,
     CueCallsResource,
     RosterEntriesResource,
+    AdvanceAllocationsResource,
+    AssetReservationConflictsResource,
     GuestListEntriesResource,
     AssetUnitHireResource,
+    AssetReservationsResource,
     Form1099NecResource,
     GoodsReturnsResource,
     ReturnLinesResource,
@@ -784,8 +787,11 @@ class XosClient(XosClientCore):
     project_measurement_summary: ProjectMeasurementSummaryResource
     cue_calls: CueCallsResource
     roster_entries: RosterEntriesResource
+    advance_allocations: AdvanceAllocationsResource
+    asset_reservation_conflicts: AssetReservationConflictsResource
     guest_list_entries: GuestListEntriesResource
     asset_unit_hire: AssetUnitHireResource
+    asset_reservations: AssetReservationsResource
     form1099_nec: Form1099NecResource
     goods_returns: GoodsReturnsResource
     return_lines: ReturnLinesResource
@@ -1207,8 +1213,11 @@ class XosClient(XosClientCore):
         self.project_measurement_summary = ProjectMeasurementSummaryResource(self)
         self.cue_calls = CueCallsResource(self)
         self.roster_entries = RosterEntriesResource(self)
+        self.advance_allocations = AdvanceAllocationsResource(self)
+        self.asset_reservation_conflicts = AssetReservationConflictsResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
         self.asset_unit_hire = AssetUnitHireResource(self)
+        self.asset_reservations = AssetReservationsResource(self)
         self.form1099_nec = Form1099NecResource(self)
         self.goods_returns = GoodsReturnsResource(self)
         self.return_lines = ReturnLinesResource(self)

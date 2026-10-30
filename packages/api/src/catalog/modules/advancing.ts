@@ -20,6 +20,7 @@ import {
   setCapabilities,
 } from "../correct.ts";
 import { itemAction, resource } from "../define.ts";
+import { allocationCapabilities, allocationResources } from "./parts/allocations.ts";
 import { rosterEntryCapabilities, rosterEntryResources } from "./parts/roster-project-facts.ts";
 
 const SINCE = "1.0.0-draft.2";
@@ -90,6 +91,7 @@ const GuestListEntry = editDefinition(
 export const additions = defineAdditions("Advancing", {
   resources: [
     ...rosterEntryResources,
+    ...allocationResources,
     resource("Advancing", "/guest-list-entries", GuestListEntry, {
       actions: [
         itemAction("decide", {
@@ -115,6 +117,7 @@ export const additions = defineAdditions("Advancing", {
   ],
   capabilities: {
     ...rosterEntryCapabilities,
+    ...allocationCapabilities,
     guestListEntries: {
       read: "advancing.packet.read",
       write: "advancing.rider.write",
