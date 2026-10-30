@@ -134,7 +134,16 @@
     "close": "Cerrar",
     "previousMonth": "Mes anterior",
     "nextMonth": "Mes siguiente",
-    "calendarLabel": "Hoja del día de {project}"
+    "calendarLabel": "Hoja del día de {project}",
+    "downloadFor": "Descargar para…",
+    "audienceKind": "Audiencia",
+    "forTeam": "Un equipo",
+    "forDepartment": "Un departamento",
+    "team": "Equipo",
+    "department": "Departamento",
+    "showDepartment": "Departamento del show",
+    "anyDepartment": "Todos los departamentos del show",
+    "paper": "Tamaño de papel"
   },
   "callSheets": {
     "label": "Hojas de llamado",

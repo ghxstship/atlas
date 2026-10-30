@@ -36,6 +36,17 @@ Asigne a cada tecla del Stream Deck una acción **Hotkey**: **F13** Go, **F14** 
 
 Una hoja del día resume una jornada del proyecto: horarios, lugares, contactos y notas. Publíquela cuando esté lista; las personas ven la última versión publicada.
 
+El PDF de la hoja del día muestra las notas del día, sus llamados, sus reuniones, hitos y plazos, y los cues de esa fecha de show. **Descargar para…** imprime una copia para un equipo o un departamento: solo sus llamados y los registros asignados a ellos, de su propiedad o bajo su responsabilidad, nunca más de lo que usted puede ver. Elija un departamento del show para dejar solo los cues con un llamado de ese departamento, y elija carta o A4.
+
+### Libros
+
+Un libro imprime los documentos del show de un proyecto en un solo PDF con portada y contenido. Abra la pestaña **Documentos** del proyecto y elija **Nuevo libro**:
+
+- Un **libro de gira** cubre días de show con fecha: hojas del día, hojas de llamado, guiones, órdenes de evento de banquete, inspecciones e incidentes, por día.
+- Un **libro de producción** cubre todo el proyecto o un período y también puede contener el informe de costo final y el informe de cierre.
+
+Las hojas del día y de llamado entran una vez publicadas, y se omiten los registros que usted no puede abrir; la portada dice cuántos. Un libro contiene hasta 100 documentos: acote sus fechas para descargar uno más largo. Eliminar un libro lo mueve a la papelera, y **Deshacer** lo recupera.
+
 ## Hojas de llamado
 
 Una hoja de llamado indica a cada persona cuándo y dónde presentarse. Se basa en el horario del equipo, así que los cambios de turnos aparecen en la siguiente versión publicada.

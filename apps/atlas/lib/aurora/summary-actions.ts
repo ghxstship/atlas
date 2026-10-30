@@ -1,6 +1,7 @@
 "use server";
 
 import { listActivity } from "@xos/data/activity";
+import { getProjectDebrief, listDebriefItems } from "@xos/data/debriefs";
 import { addCalendarDays, startOfDayIn, todayIn, zoneOrUtc } from "@xos/data/calendar";
 import { getFormatter } from "next-intl/server";
 import { z } from "zod";
@@ -29,7 +30,7 @@ const PAGE = 100;
 const Input = z.object({
   org: z.string().min(1).max(100),
   projectKey: z.string().min(1).max(40),
-  kind: z.enum(["project_week", "gate_readiness"]),
+  kind: z.enum(["project_week", "gate_readiness", "project_wrap_up"]),
 });
 
 export async function projectSummaryItemsAction(
@@ -48,6 +49,28 @@ export async function projectSummaryItemsAction(
   };
   if (kind === "gate_readiness") {
     return { ok: true, items: [subject], window: null, truncated: false };
+  }
+  // A wrap-up reads the project and its debrief points; aurora.summarize adds the budget, incident and measurement
+  // facts the viewer may read (B7).
+  if (kind === "project_wrap_up") {
+    const debrief = await getProjectDebrief(ctx.org.viewer.db, project.id);
+    const points =
+      debrief.ok && debrief.data
+        ? await listDebriefItems(ctx.org.viewer.db, debrief.data.id)
+        : null;
+    return {
+      ok: true,
+      items: [
+        subject,
+        ...(points?.ok ? points.data : []).map((p) => ({
+          collection: "project-debrief-items",
+          id: p.id,
+          label: p.body.length > 80 ? `${p.body.slice(0, 80)}…` : p.body,
+        })),
+      ],
+      window: null,
+      truncated: false,
+    };
   }
   const zone = zoneOrUtc(project.timeZone);
   const to = todayIn(zone);

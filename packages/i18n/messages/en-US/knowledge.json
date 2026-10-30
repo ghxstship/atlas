@@ -107,5 +107,60 @@
     "sop_version_managed": "The version rises only when the SOP is published.",
     "append_only": "Versions and acknowledgments never change once recorded.",
     "cross_org_reference": "That item belongs to another organization."
+  },
+  "books": {
+    "title": "Books",
+    "description": "A book prints a project's show documents in one PDF with a cover and contents: a Tour Book for show days, a Production Book for the whole project or a period. Day and call sheets go in once published.",
+    "none": "This project has no books yet.",
+    "listLabel": "Books of this project",
+    "new": "New book",
+    "newTitle": "New book",
+    "edit": "Edit",
+    "editLabel": "Edit {name}",
+    "editTitle": "Edit book",
+    "delete": "Delete",
+    "deleteLabel": "Delete {name}",
+    "trashed": "{name} moved to Trash.",
+    "name": "Name",
+    "kind": "Kind",
+    "startsOn": "First day",
+    "endsOn": "Last day",
+    "datesHelp": "A Tour Book needs both days. Leave both empty for a Production Book of the whole project.",
+    "sections": "Sections",
+    "sectionsHelp": "Check what the book holds and put it in order.",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "save": "Save book",
+    "cancel": "Cancel",
+    "range": "{from} to {to}",
+    "wholeProject": "Whole project",
+    "documents": "{count, plural, one {# document} other {# documents}}",
+    "tooMany": "More than {max} documents. Narrow the dates to download it.",
+    "download": "Download PDF",
+    "downloadA4": "PDF (A4)",
+    "kinds": {
+      "TourBook": "Tour Book",
+      "ProductionBook": "Production Book"
+    },
+    "sectionKinds": {
+      "daysheet": "Day sheets",
+      "callsheet": "Call sheets",
+      "runofshow": "Runs of show",
+      "beo": "Banquet event orders",
+      "inspectionreport": "Inspection reports",
+      "incidentreport": "Incident reports",
+      "finalcostreport": "Final cost report",
+      "wrapupreport": "Wrap-up report"
+    },
+    "errors": {
+      "document_book_name": "Give the book a name of 1 to 120 characters.",
+      "document_book_sections": "Choose at least one section.",
+      "document_book_kind_sections": "A Tour Book holds show-day documents. Put the final cost report and the wrap-up in a Production Book.",
+      "document_book_dates": "A Tour Book needs a first and a last day, the last on or after the first. A Production Book takes both or neither.",
+      "refused": "This change was refused.",
+      "notFound": "That book is not available to you.",
+      "invalid": "Check the book's fields and try again.",
+      "unexpected": "Something went wrong. Try again."
+    }
   }
 }

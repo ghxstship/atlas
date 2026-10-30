@@ -204,5 +204,64 @@
     "visibility": "Visibility",
     "when": "Started",
     "you": "You"
+  },
+  "wrapUp": {
+    "title": "Wrap-up",
+    "description": "The debrief and the management summary of the project, printed with budget against actuals, attendance, carbon and incidents as the wrap-up report.",
+    "debrief": "Debrief",
+    "states": {
+      "notStarted": "Not started",
+      "open": "Open",
+      "completed": "Completed"
+    },
+    "completed": "Completed by {name} on {date}",
+    "aiReviewed": "Drafted with Aurora and reviewed by {name} on {date}",
+    "writtenBy": "Written by {name} on {date}",
+    "summaryNotIncluded": "Not included: the management summary is drafted from budget, ledger, gate and incident facts you cannot read.",
+    "summaryLabel": "Management summary",
+    "summaryHelp": "Up to 4000 characters. Nothing is saved until you choose Save summary.",
+    "saveSummary": "Save summary",
+    "summarySaved": "Summary saved.",
+    "useSummary": "Use as management summary",
+    "aiPending": "Drafted with Aurora. Review it, then save it under your name.",
+    "points": "Debrief points",
+    "areaLabel": "Area",
+    "kindLabel": "Kind",
+    "point": "Point",
+    "owner": "Owner",
+    "noOwner": "No owner",
+    "addPoint": "Add a point",
+    "savePoint": "Save point",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "trashed": "Debrief point moved to Trash.",
+    "noPoints": "No debrief points yet.",
+    "complete": "Complete debrief",
+    "reopen": "Reopen debrief",
+    "area": {
+      "schedule": "Schedule",
+      "budget": "Budget",
+      "safety": "Safety",
+      "audience": "Audience",
+      "sustainability": "Sustainability",
+      "crew": "Crew",
+      "vendors": "Vendors",
+      "other": "Other"
+    },
+    "kind": {
+      "wentWell": "Went well",
+      "toImprove": "To improve",
+      "action": "Action"
+    },
+    "errors": {
+      "debrief_completed": "This debrief is completed. Reopen it to change its points or summary.",
+      "debrief_ai_request": "That draft is not your own Aurora summary of this project. Draft it again, then save it.",
+      "debrief_summary": "Write a management summary of up to 4000 characters.",
+      "refused": "This change was refused.",
+      "notFound": "That debrief or point is not available to you.",
+      "invalid": "Check the fields and try again.",
+      "unexpected": "Something went wrong. Try again."
+    }
   }
 }

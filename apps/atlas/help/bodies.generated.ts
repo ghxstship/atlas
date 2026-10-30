@@ -1552,6 +1552,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Wrap-up" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "A project's " },
+          { t: "strong", v: "Reports" },
+          {
+            t: "text",
+            v: " tab starts with its wrap-up: the debrief and a management summary, printed with budget against actuals, attendance, sustainability and carbon, and incidents as the wrap-up report PDF.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Add debrief points by area: what went well, what to improve, and actions, each action with an owner.",
+            },
+          ],
+          [
+            { t: "text", v: "Write the management summary, or choose " },
+            { t: "strong", v: "Summarize" },
+            {
+              t: "text",
+              v: " to have Aurora draft one from the project's figures and debrief points. ",
+            },
+            { t: "strong", v: "Use as management summary" },
+            { t: "text", v: " puts the draft in the box; nothing is saved until you choose " },
+            { t: "strong", v: "Save summary" },
+            {
+              t: "text",
+              v: '. A saved draft prints as "Drafted with Aurora and reviewed by" you, with the date.',
+            },
+          ],
+          [
+            { t: "strong", v: "Complete debrief" },
+            { t: "text", v: " locks the points and the summary. " },
+            { t: "strong", v: "Reopen debrief" },
+            {
+              t: "text",
+              v: " unlocks them; a point deleted while the debrief is completed cannot be restored until you reopen it.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: 'Each section of the report shows only what you may read; the others say "Not included". A figure that was not measured reads Unmeasured, never 0.',
+          },
+        ],
+      },
       { t: "h2", v: "Objectives and measurement" },
       {
         t: "p",
@@ -2167,6 +2223,66 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The day sheet PDF lists the day's notes, its calls, its meetings, milestones and deadlines, and the cues of that show date. ",
+          },
+          { t: "strong", v: "Download for…" },
+          {
+            t: "text",
+            v: " prints a copy for one team or one department: only their calls and the records assigned to, owned by or accountable to them, never more than you can see. Pick a show department to keep only the cues with that department's call, and choose Letter or A4.",
+          },
+        ],
+      },
+      { t: "h3", v: "Books" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "A book prints a project's show documents as one PDF with a cover and contents. Open the project's ",
+          },
+          { t: "strong", v: "Documents" },
+          { t: "text", v: " tab and choose " },
+          { t: "strong", v: "New book" },
+          { t: "text", v: ":" },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "A " },
+            { t: "strong", v: "Tour Book" },
+            {
+              t: "text",
+              v: " covers dated show days: day sheets, call sheets, runs of show, banquet event orders, inspections and incidents, in day order.",
+            },
+          ],
+          [
+            { t: "text", v: "A " },
+            { t: "strong", v: "Production Book" },
+            {
+              t: "text",
+              v: " covers the whole project or a period and can also hold the final cost report and the wrap-up report.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Day sheets and call sheets go in once they are published, and records you cannot open are left out; the cover says how many. A book holds up to 100 documents: narrow its dates to download a longer one. Deleting a book moves it to Trash, and ",
+          },
+          { t: "strong", v: "Undo" },
+          { t: "text", v: " brings it back." },
+        ],
+      },
       { t: "h2", v: "Call sheets" },
       {
         t: "p",
@@ -2385,6 +2501,19 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Set your language, time zone, theme and reduced motion. In " },
           { t: "strong", v: "Preferences" },
           { t: "text", v: ", you can replay any guided tour and show the contextual tips again." },
+        ],
+      },
+      { t: "h2", v: "Calendar feeds" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Me, Calendar Feeds" },
+          {
+            t: "text",
+            v: " subscribes your calendar app to your schedule in this organization, or to a project's. Give each feed a name, which your calendar shows, and choose what it shows: shifts, meetings, milestones, deadlines and, on a project feed, cues. A project feed can also follow only some people, one team or one department, and only the cues with one show department's call. A feed never shows more than you may see. ",
+          },
+          { t: "strong", v: "Edit" },
+          { t: "text", v: " changes a feed without changing its link." },
         ],
       },
       { t: "h2", v: "Notifications" },
@@ -3927,6 +4056,62 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Cierre" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "La pestaña " },
+          { t: "strong", v: "Informes" },
+          {
+            t: "text",
+            v: " de un proyecto empieza con su cierre: el balance y un resumen para la dirección, impresos con el presupuesto frente a los costos reales, la asistencia, la sostenibilidad y el carbono, y los incidentes como el PDF del informe de cierre.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            {
+              t: "text",
+              v: "Agregue puntos del balance por área: lo que salió bien, lo que hay que mejorar y acciones, cada acción con un responsable.",
+            },
+          ],
+          [
+            { t: "text", v: "Escriba el resumen para la dirección, o elija " },
+            { t: "strong", v: "Resumir" },
+            {
+              t: "text",
+              v: " para que Aurora redacte uno con las cifras y los puntos del balance del proyecto. ",
+            },
+            { t: "strong", v: "Usar como resumen para la dirección" },
+            { t: "text", v: " pone el borrador en el cuadro; no se guarda nada hasta que elija " },
+            { t: "strong", v: "Guardar resumen" },
+            {
+              t: "text",
+              v: '. Un borrador guardado se imprime como "Redactado con Aurora y revisado por" usted, con la fecha.',
+            },
+          ],
+          [
+            { t: "strong", v: "Completar balance" },
+            { t: "text", v: " bloquea los puntos y el resumen. " },
+            { t: "strong", v: "Reabrir balance" },
+            {
+              t: "text",
+              v: " los desbloquea; un punto eliminado mientras el balance está completado no se puede recuperar hasta que lo reabra.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: 'Cada sección del informe muestra solo lo que usted puede leer; las demás dicen "No incluido". Una cifra que no se midió dice Sin medir, nunca 0.',
+          },
+        ],
+      },
       { t: "h2", v: "Objetivos y medición" },
       {
         t: "p",
@@ -4533,6 +4718,66 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El PDF de la hoja del día muestra las notas del día, sus llamados, sus reuniones, hitos y plazos, y los cues de esa fecha de show. ",
+          },
+          { t: "strong", v: "Descargar para…" },
+          {
+            t: "text",
+            v: " imprime una copia para un equipo o un departamento: solo sus llamados y los registros asignados a ellos, de su propiedad o bajo su responsabilidad, nunca más de lo que usted puede ver. Elija un departamento del show para dejar solo los cues con un llamado de ese departamento, y elija carta o A4.",
+          },
+        ],
+      },
+      { t: "h3", v: "Libros" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un libro imprime los documentos del show de un proyecto en un solo PDF con portada y contenido. Abra la pestaña ",
+          },
+          { t: "strong", v: "Documentos" },
+          { t: "text", v: " del proyecto y elija " },
+          { t: "strong", v: "Nuevo libro" },
+          { t: "text", v: ":" },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "text", v: "Un " },
+            { t: "strong", v: "libro de gira" },
+            {
+              t: "text",
+              v: " cubre días de show con fecha: hojas del día, hojas de llamado, guiones, órdenes de evento de banquete, inspecciones e incidentes, por día.",
+            },
+          ],
+          [
+            { t: "text", v: "Un " },
+            { t: "strong", v: "libro de producción" },
+            {
+              t: "text",
+              v: " cubre todo el proyecto o un período y también puede contener el informe de costo final y el informe de cierre.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Las hojas del día y de llamado entran una vez publicadas, y se omiten los registros que usted no puede abrir; la portada dice cuántos. Un libro contiene hasta 100 documentos: acote sus fechas para descargar uno más largo. Eliminar un libro lo mueve a la papelera, y ",
+          },
+          { t: "strong", v: "Deshacer" },
+          { t: "text", v: " lo recupera." },
+        ],
+      },
       { t: "h2", v: "Hojas de llamado" },
       {
         t: "p",
@@ -4745,6 +4990,19 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: " puede repetir cualquier recorrido guiado y volver a mostrar los consejos.",
           },
+        ],
+      },
+      { t: "h2", v: "Calendarios suscritos" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Yo, Calendarios suscritos" },
+          {
+            t: "text",
+            v: " suscribe su aplicación de calendario a su horario en esta organización, o al de un proyecto. Dé a cada calendario un nombre, que su aplicación muestra, y elija qué muestra: turnos, reuniones, hitos, fechas límite y, en un calendario de proyecto, cues. Un calendario de proyecto también puede seguir solo a algunas personas, un equipo o un departamento, y solo los cues con un llamado de un departamento del show. Un calendario nunca muestra más de lo que usted puede ver. ",
+          },
+          { t: "strong", v: "Editar" },
+          { t: "text", v: " lo cambia sin cambiar su enlace." },
         ],
       },
       { t: "h2", v: "Notificaciones" },

@@ -34,6 +34,12 @@ import { getTranslate } from "@/lib/shell/translate";
 import { CreateRunDialog, RunBody, RunCollection, RunPeek } from "./runs";
 import { CallSheetPeek, DaySheetPeek, SheetCollection } from "./sheets";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { DaySheetAudienceDownload } from "@/components/lazy-ui/day-sheet-audience-download";
+import { documentHref } from "@/lib/documents/links";
+import { CUE_CALL_KINDS, CUE_CALL_SLUGS } from "@xos/data/cue-calls";
+import { departmentsInUse, getDepartmentsInUse } from "@xos/data/org-setup";
+import { listDepartments } from "@xos/data/projects";
+import { listTeams } from "@xos/data/views";
 
 type Subject = { table: "app.run_of_show" | "app.day_sheets" | "app.call_sheets"; id: string };
 
@@ -221,10 +227,52 @@ export async function DaySheetsPage({
             canPublish={caps.has("show.call_sheet.publish")}
           >
             <DocumentActions org={ctx.org.slug} kind="day-sheet" id={open.id} />
+            {await audienceDownload(ctx, open.id)}
             {await collab(ctx, meta, { table: "app.day_sheets", id: open.id })}
           </DaySheetPeek>
         ) : null,
       )}
+    />
+  );
+}
+
+/**
+ * The day sheet peek's "Download for…" (B7): the org's teams and the departments in use, read only while a sheet is
+ * open, with the copy passed to the on-demand client control.
+ */
+async function audienceDownload(ctx: OrgContext, id: string) {
+  const [t, teams, departments, inUse] = await Promise.all([
+    getTranslate(),
+    listTeams(ctx.viewer.db, ctx.org.id),
+    listDepartments(ctx.viewer.db),
+    getDepartmentsInUse(ctx.viewer.db, ctx.org.id),
+  ]);
+  return (
+    <DaySheetAudienceDownload
+      href={documentHref(ctx.org.slug, "day-sheet", id)}
+      teams={(teams.ok ? teams.data : []).map((team) => ({ value: team.id, label: team.name }))}
+      departments={(departments.ok
+        ? departmentsInUse(departments.data, inUse.ok ? inUse.data.departments : [])
+        : []
+      ).map((d) => ({ value: d.code, label: `${d.label} · ${d.code}` }))}
+      callKinds={CUE_CALL_KINDS.map((k) => ({
+        value: CUE_CALL_SLUGS[k],
+        label: t(`show.cues.departments.${CUE_CALL_SLUGS[k]}`),
+      }))}
+      labels={{
+        downloadFor: t("show.daySheets.downloadFor"),
+        audienceKind: t("show.daySheets.audienceKind"),
+        forTeam: t("show.daySheets.forTeam"),
+        forDepartment: t("show.daySheets.forDepartment"),
+        team: t("show.daySheets.team"),
+        department: t("show.daySheets.department"),
+        showDepartment: t("show.daySheets.showDepartment"),
+        anyDepartment: t("show.daySheets.anyDepartment"),
+        paper: t("show.daySheets.paper"),
+        letter: t("documents.paper.letter"),
+        a4: t("documents.paper.a4"),
+        download: t("documents.actions.download"),
+      }}
     />
   );
 }

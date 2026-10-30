@@ -36,6 +36,17 @@ Give each Stream Deck key a **Hotkey** action: **F13** Go, **F14** Standby, **F1
 
 A day sheet summarizes one day of a project: times, locations, contacts and notes. Publish it when it is ready; people see the latest published version.
 
+The day sheet PDF lists the day's notes, its calls, its meetings, milestones and deadlines, and the cues of that show date. **Download for…** prints a copy for one team or one department: only their calls and the records assigned to, owned by or accountable to them, never more than you can see. Pick a show department to keep only the cues with that department's call, and choose Letter or A4.
+
+### Books
+
+A book prints a project's show documents as one PDF with a cover and contents. Open the project's **Documents** tab and choose **New book**:
+
+- A **Tour Book** covers dated show days: day sheets, call sheets, runs of show, banquet event orders, inspections and incidents, in day order.
+- A **Production Book** covers the whole project or a period and can also hold the final cost report and the wrap-up report.
+
+Day sheets and call sheets go in once they are published, and records you cannot open are left out; the cover says how many. A book holds up to 100 documents: narrow its dates to download a longer one. Deleting a book moves it to Trash, and **Undo** brings it back.
+
 ## Call sheets
 
 A call sheet tells each person when and where to report. It draws on the crew schedule, so changes to shifts appear on the next published version.
