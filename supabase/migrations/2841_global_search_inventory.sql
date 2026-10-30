@@ -12,6 +12,9 @@
 --     serials the candidates match exactly come back with matched 'key'.
 --   * class_hits and unit_hits read the ids app.search_asset_candidates (2840) found again, under row level
 --     security. A unit whose class the caller cannot read (a Field member's unit) is titled by its tag.
+--   * omit_types: types the caller leaves out because it cannot open them (Atlas sends the inventory types whose
+--     page is hidden). They narrow v_allowed like exclude_types but are not something to search for, so a query
+--     with nothing else to look for (a lone minus word, or no lexemes) still returns nothing.
 --   app.recent_items and app.record_recent_view are unchanged: assets have no recent views.
 
 create or replace function app.global_search(
@@ -51,6 +54,7 @@ declare
   v_exclude_phrases text[];
   v_types text[];
   v_exclude_types text[];
+  v_omit_types text[];
   v_kinds text[];
   v_exclude_kinds text[];
   v_projects text[];
@@ -123,6 +127,7 @@ begin
     v_urids, v_depts, v_is;
   -- is:archived searches the archived records and documents only; without it they are left out (A124).
   v_archived := 'archived' = any (v_is);
+  v_omit_types := array(select lower(x) from jsonb_array_elements_text(case when jsonb_typeof(v_query->'omit_types') = 'array' then v_query->'omit_types' else '[]' end) x);
 
   -- Words: a key (NWL-12) is looked up exactly; every other word matches as a prefix. Lexemes come from the text
   -- search parser, so punctuation never reaches the tsquery syntax.
@@ -172,6 +177,8 @@ begin
     v_allowed := array(select t from unnest(v_allowed) t where t = any (v_types));
   end if;
   v_allowed := array(select t from unnest(v_allowed) t where not (t = any (v_exclude_types)));
+  -- Omitted types are left out the same way, and are not a criterion below (P7).
+  v_allowed := array(select t from unnest(v_allowed) t where not (t = any (v_omit_types)));
   if cardinality(v_kinds) + cardinality(v_exclude_kinds) + cardinality(v_assignees) + cardinality(v_exclude_assignees)
      + cardinality(v_phases) + cardinality(v_urids) + cardinality(v_depts) > 0
      or v_query->>'due_after' is not null or v_query->>'due_before' is not null
@@ -563,11 +570,17 @@ begin
       select u.* from app.asset_units u
       where u.id = any (v_unit_ids) and u.org_id = p_org_id and u.deleted_at is null
       union all
-      -- Filters alone: newest first through asset_units_org_updated_idx, stopping at the limit. A minus word in
-      -- the tag is left out here already; the class name and serials are checked below.
+      -- Filters alone: newest first through asset_units_org_updated_idx, stopping at the limit. A minus word is
+      -- tested here against the whole unit (tag, the class and the serials the caller reads), so a unit it leaves
+      -- out never takes the place of one it keeps.
       (select u.* from app.asset_units u
        where not v_has_text and u.org_id = p_org_id and u.deleted_at is null
-          and (v_not is null or not (to_tsvector('simple', u.asset_tag) @@ v_not))
+          and (v_not is null or not ((to_tsvector('simple', u.asset_tag)
+               || to_tsvector('simple', coalesce((select c.name from app.asset_classes c
+                                                  where c.id = u.asset_class_id and c.deleted_at is null), ''))
+               || to_tsvector('simple', coalesce((select string_agg(i.value, ' ') from app.asset_identifiers i
+                                                  where i.asset_unit_id = u.id and i.scheme = 'serial' and i.deleted_at is null), '')))
+               @@ v_not))
           and (v_after is null or u.updated_at >= v_after)
           and (v_before is null or u.updated_at < v_before)
        order by u.updated_at desc
@@ -603,6 +616,6 @@ begin
 end;
 $$;
 
-comment on function app.global_search(uuid, jsonb, extensions.vector, integer, real) is 'Global search (Section 11.7, Section 11.10 item 1, A87): records, incidents, people, documents, SOPs, handbook articles, asset classes and asset units of an org, read with the caller''s own row level security (SECURITY INVOKER). p_query is the request @xos/data builds from the operator grammar: terms (prefix words), phrases, exclude_terms, exclude_phrases, types, exclude_types, kinds, exclude_kinds, projects, exclude_projects, assignees (me or a name), exclude_assignees, statuses (a state, open or closed), exclude_statuses, phases, urids, depts, is (blocked, open, closed, overdue, mine, archived), after, before, due_after and due_before (a date or days from today on the org''s calendar) and model (the embedding model of p_embedding). Ranked by text relevance times recency; with p_embedding and search.semantic_enabled on, the nearest documents, SOPs and articles at or above p_min_similarity blend in. Archived records and documents are left out unless is names archived, which searches only them; an exact record key finds its record archived or not (A124). Asset classes match by name and units by asset tag, the name of a class the caller reads or a serial the caller reads; a tag or serial typed in full matches as a key, and the filters that apply only to records, incidents or documents leave assets out (P7). Up to p_limit results of each type (at most 50).';
+comment on function app.global_search(uuid, jsonb, extensions.vector, integer, real) is 'Global search (Section 11.7, Section 11.10 item 1, A87): records, incidents, people, documents, SOPs, handbook articles, asset classes and asset units of an org, read with the caller''s own row level security (SECURITY INVOKER). p_query is the request @xos/data builds from the operator grammar: terms (prefix words), phrases, exclude_terms, exclude_phrases, types, exclude_types, kinds, exclude_kinds, projects, exclude_projects, assignees (me or a name), exclude_assignees, statuses (a state, open or closed), exclude_statuses, phases, urids, depts, is (blocked, open, closed, overdue, mine, archived), after, before, due_after and due_before (a date or days from today on the org''s calendar), omit_types (types left out that are not a search criterion: Atlas sends the types whose page the caller cannot open) and model (the embedding model of p_embedding). Ranked by text relevance times recency; with p_embedding and search.semantic_enabled on, the nearest documents, SOPs and articles at or above p_min_similarity blend in. Archived records and documents are left out unless is names archived, which searches only them; an exact record key finds its record archived or not (A124). Asset classes match by name and units by asset tag, the name of a class the caller reads or a serial the caller reads; a tag or serial typed in full matches as a key, and the filters that apply only to records, incidents or documents leave assets out (P7). Up to p_limit results of each type (at most 50).';
 revoke all on function app.global_search(uuid, jsonb, extensions.vector, integer, real) from public, anon;
 grant execute on function app.global_search(uuid, jsonb, extensions.vector, integer, real) to authenticated, service_role;

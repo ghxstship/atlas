@@ -2,13 +2,14 @@
 -- by name and units by tag, class name or serial, under the caller's own row level security: an org-wide reader finds
 -- them all, a Field member only the units checked out to them, by tag or serial, and never by a class they cannot
 -- read. A tag or serial typed in full matches as a key. Deleted rows never match, and the filters that apply only to
--- records, incidents or documents leave assets out. The world has no assets, and the Standard Library holds none.
+-- records, incidents or documents leave assets out. Types omitted because Atlas hides their page are left out without
+-- becoming a criterion. The world has no assets, and the Standard Library holds none (it does hold SOPs and documents).
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(48);
+select plan(56);
 
 create temporary table r (result_type text, result_id uuid, result_key text, title text, state text, dated_at timestamptz,
   rank real, matched text);
@@ -172,9 +173,26 @@ select pg_temp.run('carol', 'org_a', '{"types": ["asset"]}', null, 3);
 select is((select string_agg(result_key, ',' order by result_key) from r), 'MH-001,RAD-001,RAD-0011',
   'type:asset alone lists the readable units, newest first, at most the limit (RAD-002 changed 90 days ago)');
 select is((select string_agg(distinct matched, ',') from r), 'filter', 'as filter matches');
+select pg_temp.run('carol', 'org_a', '{"types": ["asset"], "exclude_terms": ["spot"]}', null, 2);
+select is((select string_agg(result_key, ',' order by result_key) from r), 'GEN-001,RAD-001',
+  'with filters alone a minus word in the class name is applied before the limit: the next unit takes the place of a spot');
+select pg_temp.run('carol', 'org_a', '{"types": ["asset"], "exclude_terms": ["spx"]}', null, 3);
+select is((select string_agg(result_key, ',' order by result_key) from r), 'MH-004,RAD-001,RAD-0011',
+  'and so is a minus word in a live serial (MH-004''s only serial is deleted)');
 select pg_temp.run('carol', 'org_a', '{"types": ["asset"], "before": "-30"}');
 select ok(abs((select rank from r where result_key = 'RAD-002') - 0.5 * (0.7 + 0.3 * exp(-2.0))) < 0.002,
   'a filter match ranks 0.5 times the 45-day recency factor');
+
+-- Omitted types ------------------------------------------------------------------------------------------------------
+select is(pg_temp.inv('carol', 'org_a', '{"terms": ["radio"], "omit_types": ["asset"]}'), 'asset_class:Digital Two-Way Radio',
+  'an omitted type is left out of the results');
+select pg_temp.run('carol', 'org_a', '{"exclude_terms": ["radio"], "omit_types": ["asset", "asset_class"]}');
+select is((select count(*)::integer from r), 0, 'a lone minus word with the inventory omitted still has nothing to search for');
+select pg_temp.run('carol', 'org_a', '{"terms": ["##"], "omit_types": ["asset", "asset_class"]}');
+select is((select count(*)::integer from r), 0, 'nor does a word with no lexemes');
+select pg_temp.run('carol', 'org_a', '{"exclude_terms": ["radio"], "exclude_types": ["asset", "asset_class"]}');
+select ok((select count(*)::integer from r where result_type in ('sop', 'document')) > 0,
+  'while -type: is a filter and lists the newest of the other types (the Standard Library''s SOPs and documents)');
 
 -- A Field member reads assets at assigned reach ------------------------------------------------------------------------
 select is(pg_temp.inv('frank', 'org_a', '{"terms": ["MH-002"]}') || ' ' || pg_temp.inv('frank', 'org_a', '{"terms": ["SPX-48811"]}'),
@@ -188,6 +206,12 @@ select is(pg_temp.inv('frank', 'org_a', '{"terms": ["MH-003"]}') || pg_temp.inv(
 -- No read, another org -----------------------------------------------------------------------------------------------
 select is(pg_temp.inv('gina', 'org_a', '{"terms": ["radio"]}', array['crew']) || pg_temp.inv('gina', 'org_a', '{"terms": ["MH-002"]}', array['crew']),
   '', 'a session without assets.asset.read (an API key without the assets scope) gets no asset or class');
+select is(pg_temp.inv('erin', 'org_a', '{"terms": ["radio"]}') || pg_temp.inv('erin', 'org_a', '{"terms": ["MH-002"]}'), '',
+  'a collaborator, who reads assets at assigned reach, with no unit in their custody or out for their project gets none');
+delete from app.role_capabilities rc using app.roles ro
+where rc.role_id = ro.id and ro.org_id is null and ro.code = 'viewer' and rc.capability_code = 'assets.asset.read';
+select is(pg_temp.inv('gina', 'org_a', '{"terms": ["radio"]}') || pg_temp.inv('gina', 'org_a', '{"terms": ["MH-002"]}'), '',
+  'a member whose role lacks assets.asset.read (the viewer role, here without it) gets no asset or class');
 select is(pg_temp.inv('xavier', 'org_b', '{"terms": ["radio"]}'), 'asset:HL-RAD-01,asset_class:Digital Two-Way Radio',
   'a member of org_b finds only org_b''s inventory');
 
