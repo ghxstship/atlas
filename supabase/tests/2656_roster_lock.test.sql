@@ -2,8 +2,8 @@
 -- engagement; the column changes only through the RPC; each set notifies every roster manager and is audited. Once
 -- locked the company side cannot add, invite, replace, submit a Draft or edit a Draft; a Returned entry is still edited
 -- and resubmitted (a roster holding both resubmits the Returned entry and leaves the Draft), withdrawals, the person's
--- answer, self entry edits and project facts go on; clearing the lock opens names again. The engaged party reads the
--- lock in api_external.engagements.
+-- answer, self entry edits, a new engaged person's self entry and project facts go on; clearing the lock opens names
+-- again. The engaged party reads the lock in api_external.engagements.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
@@ -101,6 +101,21 @@ select throws_ok(format($$select app.add_roster_entry(%L, %L, null, null, null, 
   pg_temp.id('e_una')), 'XR001',
   'roster_locked: Names are locked on this engagement. Ask the producing organization to change the roster.', 'a replacement is refused');
 select pg_temp.as_platform();
+
+-- A new engaged person's self entry is still created under a lock (R4's t81 inserts it, and t42 lets a self entry through)
+select pg_temp.as_user('alice');
+with x as (insert into app.engagements (project_id, counterparty_id, role_type, role_code, worker_classification, pay_basis,
+    arrangement, start_date)
+  values (pg_temp.id('prj_a'), pg_temp.id('cp_v_a'), 'Vendor', '9000.50.02', 'VENDOR_SUPPLIED', 'Day Rate', 'Per Engagement',
+    '2027-06-01') returning id)
+insert into world select 'eng_vendor_a2', id from x;
+select app.set_roster_lock(pg_temp.id('eng_vendor_a2'), now() - interval '1 minute');
+select is(pg_temp.self_entry('eng_vendor_a2'), null, 'an engagement without a person has no self entry');
+select lives_ok(format($$update app.engagements set person_id = %L where id = %L$$, pg_temp.id('pia'), pg_temp.id('eng_vendor_a2')),
+  'naming the engaged person under a lock goes through');
+select pg_temp.as_platform();
+select isnt(pg_temp.self_entry('eng_vendor_a2'), null, 'and their self entry is created');
+select ok(private.roster_locked(pg_temp.id('eng_vendor_a2')), 'while the lock holds');
 
 -- Clearing the lock
 select pg_temp.lock('alice', null);

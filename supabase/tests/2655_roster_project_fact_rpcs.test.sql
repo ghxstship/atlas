@@ -300,7 +300,13 @@ select private.expire_roster_project_facts();
 select is((select count(*)::int from app.roster_vehicles where roster_entry_id = pg_temp.id('self_art')), 1, 'an active legal hold on the table keeps them');
 select is((select count(*)::int from app.roster_travel_requests where roster_entry_id = pg_temp.id('self_art')), 0,
   'while keep_days 30 with 31 days deletes the tables not held');
-update app.legal_holds set released_at = now() where org_id = pg_temp.id('org_a');
+-- An org-wide hold (no table named) keeps them once the table hold is released
+insert into app.legal_holds (org_id, table_name, matter) values (pg_temp.id('org_a'), null, 'Fixture org hold.');
+update app.legal_holds set released_at = now() where org_id = pg_temp.id('org_a') and table_name = 'app.roster_vehicles';
+select private.expire_roster_project_facts();
+select is((select count(*)::int from app.roster_vehicles where roster_entry_id = pg_temp.id('self_art')), 1,
+  'an active legal hold on the org keeps them');
+update app.legal_holds set released_at = now() where org_id = pg_temp.id('org_a') and released_at is null;
 select private.expire_roster_project_facts();
 select is((select count(*)::int from app.roster_vehicles where roster_entry_id = pg_temp.id('self_art')), 0, 'and the release lets them go');
 

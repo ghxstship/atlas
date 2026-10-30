@@ -863,7 +863,7 @@ begin
 end;
 $$;
 
-comment on function private.expire_roster_project_facts() is 'The nightly job of R5: deletes the project facts of entries whose engagement has been Complete or Canceled for longer than the producing org''s advancing.project_facts.keep_days (default 90), skipping orgs under a legal hold on the table. Each table runs in its own subtransaction inside retention_purge and records its count, or its error, in private.retention_runs; one project_facts.expired event per entry names the kinds deleted. Returns the rows deleted.';
+comment on function private.expire_roster_project_facts() is 'The nightly job of R5: deletes the project facts of entries whose engagement has been Complete or Canceled for longer than the producing org''s advancing.project_facts.keep_days (default 90), skipping orgs under a legal hold on the table or on the whole org. Each table runs in its own subtransaction inside retention_purge and records its count, or its error, in private.retention_runs; one project_facts.expired event per entry names the kinds deleted. Returns the rows deleted.';
 revoke all on function private.expire_roster_project_facts() from public, anon, authenticated;
 grant execute on function private.expire_roster_project_facts() to service_role;
 
