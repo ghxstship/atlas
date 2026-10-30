@@ -13,9 +13,9 @@ import { twoPagePdf } from "../test/fixtures/pdf";
 /** Server actions on a development server can take seconds on first compile. */
 const slow = expect.configure({ timeout: 30_000 });
 
-/** A 2-by-2 PNG. */
+/** A 2-by-2 PNG (red, green, blue and white pixels) whose chunk CRCs and zlib check are valid. */
 const PNG = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP4z8DAwMDAxMDAwMDAAAANHQEDK+mmyAAAAABJRU5ErkJggg==",
+  "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEklEQVR42mP4z8DAAMIM/4EAAB/uBfvxq7p3AAAAAElFTkSuQmCC",
   "base64",
 );
 
