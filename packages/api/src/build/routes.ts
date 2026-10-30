@@ -156,6 +156,7 @@ function standardRoutes(spec: ResourceSpec, params: SharedParameters): Built[] {
                 fields: params.fields,
                 sort: params.sort,
                 filter: params.filter,
+                ...spec.listQuery?.shape,
               }),
             },
             responses: {

@@ -93,4 +93,9 @@ export interface ResourceSpec {
   readonly keyParam: string;
   /** Capability rule of an additive resource (`catalog/additions.ts`); frozen ones use the table. */
   readonly capabilityRule?: CapabilityRule;
+  /**
+   * Optional query parameters a module added to the list operation after the freeze
+   * (`catalog/additions.ts` `listQuery`), after the standard limit, cursor, fields, sort and filter.
+   */
+  readonly listQuery?: z.ZodObject;
 }

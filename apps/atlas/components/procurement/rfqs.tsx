@@ -86,7 +86,8 @@ export async function RfqsSection({
     getFormatter(),
     listRfqs(db, ctx.org.id),
     listProjectOptions(db, ctx.org.id),
-    listVendors(db, ctx.org.id),
+    // Invited vendors keep their names once archived; only live ones can be invited (A124).
+    listVendors(db, ctx.org.id, "include"),
     listTransitionRules<RfqState>(db, "rfq"),
   ]);
   const title = t("rfqs.title");
@@ -136,10 +137,12 @@ export async function RfqsSection({
         properties={properties(selected)}
         transitions={transitions(selected)}
         vendorName={vendorName}
-        vendors={vendors.data.map((v) => ({
-          value: v.id,
-          label: v.name ?? t("fields.unnamedVendor"),
-        }))}
+        vendors={vendors.data
+          .filter((v) => v.archivedAt === null)
+          .map((v) => ({
+            value: v.id,
+            label: v.name ?? t("fields.unnamedVendor"),
+          }))}
         canWrite={canWrite}
         stateLabel={stateLabel}
         purchaseOrdersPath={`/${ctx.org.slug}/procurement/purchase-orders`}

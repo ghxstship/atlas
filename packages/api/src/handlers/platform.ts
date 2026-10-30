@@ -128,6 +128,7 @@ async function writeValues(db: XosClient, record: Row, values: Readonly<Record<s
 }
 
 const objects = tableResource("objects", {
+  archivable: true,
   verbs: [],
   derived: ["values"],
   toContract: async (row, { db }) => ({ ...row, values: await valuesOf(db, row) }),

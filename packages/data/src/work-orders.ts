@@ -1,3 +1,4 @@
+import { applyArchived, type ArchivedFilter } from "./archive.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
@@ -39,6 +40,8 @@ export interface WorkOrder {
   readonly createdBy: string | null;
   readonly createdAt: string;
   readonly updatedAt: string;
+  /** When the work order was archived (A124); archived ones leave lists unless asked for. */
+  readonly archivedAt: string | null;
   readonly bids: readonly Bid[];
 }
 
@@ -78,6 +81,7 @@ interface WorkOrderRow {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  archived_at: string | null;
   project: { project_key: string; name: string; time_zone: string } | null;
   bids:
     | {
@@ -99,7 +103,7 @@ interface WorkOrderRow {
 }
 
 const WORK_ORDER_COLUMNS =
-  "id, work_order_number, project_id, scope_node_id, record_id, title, scope_of_work, urid, location_text, scheduled_starts_at, scheduled_ends_at, estimated_hours, bid_due_at, budget_minor, currency_code, awarded_bid_id, work_order_state, created_by, created_at, updated_at, project:projects!inner(project_key, name, time_zone), bids:work_order_bids!work_order_bids_work_order_id_fkey(id, work_order_id, bidder_organization_id, bidder_person_id, amount_minor, currency_code, estimated_hours, note, submitted_at, withdrawn_at, deleted_at, organization:organizations!work_order_bids_bidder_organization_id_fkey(name), person:people!work_order_bids_bidder_person_id_fkey(full_name))";
+  "id, work_order_number, project_id, scope_node_id, record_id, title, scope_of_work, urid, location_text, scheduled_starts_at, scheduled_ends_at, estimated_hours, bid_due_at, budget_minor, currency_code, awarded_bid_id, work_order_state, created_by, created_at, updated_at, archived_at, project:projects!inner(project_key, name, time_zone), bids:work_order_bids!work_order_bids_work_order_id_fkey(id, work_order_id, bidder_organization_id, bidder_person_id, amount_minor, currency_code, estimated_hours, note, submitted_at, withdrawn_at, deleted_at, organization:organizations!work_order_bids_bidder_organization_id_fkey(name), person:people!work_order_bids_bidder_person_id_fkey(full_name))";
 
 const num = (v: number | string | null): number | null => (v === null ? null : Number(v));
 
@@ -130,6 +134,7 @@ function toWorkOrder(row: WorkOrderRow): WorkOrder {
     createdBy: row.created_by,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    archivedAt: row.archived_at,
     bids: (row.bids ?? [])
       .filter((b) => b.deleted_at === null)
       .map((b) => ({
@@ -173,6 +178,8 @@ export async function listWorkOrders(
     readonly projectId?: string;
     readonly states?: readonly string[];
     readonly search?: string;
+    /** Archived work orders: left out by default (A124). */
+    readonly archived?: ArchivedFilter;
   },
 ): Promise<Result<WorkOrder[]>> {
   let q = untyped(db)
@@ -180,6 +187,7 @@ export async function listWorkOrders(
     .select(WORK_ORDER_COLUMNS)
     .eq("org_id", query.orgId)
     .is("deleted_at", null);
+  q = applyArchived(q, query.archived);
   if (query.projectId) q = q.eq("project_id", query.projectId);
   if (query.states && query.states.length > 0) q = q.in("work_order_state", [...query.states]);
   if (query.search && query.search.trim() !== "") {
@@ -460,6 +468,8 @@ export async function listPunchItems(
     readonly orgId: string;
     readonly projectId?: string;
     readonly states?: readonly string[];
+    /** Archived punch items (their Task records are archived): left out by default (A124). */
+    readonly archived?: ArchivedFilter;
   },
 ): Promise<Result<PunchItem[]>> {
   const { data, error } = await untyped(db)
@@ -487,6 +497,7 @@ export async function listPunchItems(
     ids: rows.map((r) => r.record_id),
     ...(query.projectId ? { projectId: query.projectId } : {}),
     ...(query.states ? { states: query.states } : {}),
+    ...(query.archived ? { archived: query.archived } : {}),
   });
   if (!records.ok) return records;
   const byId = new Map(records.data.map((r) => [r.id, r]));

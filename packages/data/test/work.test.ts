@@ -223,7 +223,7 @@ describe("canon", () => {
   });
 
   it("lists counterparties and venues by name", async () => {
-    const { db } = moduleClient({
+    const { db, calls } = moduleClient({
       "from:counterparties": [
         okResponse([
           { id: "c2", organization: { name: "Zeta Rigging" } },
@@ -241,6 +241,13 @@ describe("canon", () => {
     expect(parties.ok && parties.data.map((p) => p.label)).toEqual(["c1", "Zeta Rigging"]);
     const venues = await listVenueOptions(db, "o1");
     expect(venues.ok && venues.data.map((v) => v.label)).toEqual(["Arena", "Pier"]);
+    // Archived venues are not offered for an Event record (A124).
+    expect(
+      stepsOf(
+        calls.find((c) => c.target === "from:venues"),
+        "is",
+      ),
+    ).toContainEqual(["archived_at", null]);
   });
 });
 
@@ -348,7 +355,22 @@ describe("records", () => {
       "and(starts_at.lt.2027-06-08,ends_at.gte.2027-06-01)",
     );
     expect(stepsOf(call, "limit")).toEqual([[10]]);
-    expect(stepsOf(call, "is")).toEqual([["deleted_at", null]]);
+    expect(stepsOf(call, "is")).toEqual([
+      ["deleted_at", null],
+      ["archived_at", null],
+    ]);
+  });
+
+  it("leaves archived records out unless the query asks for them (A124)", async () => {
+    const { db, calls } = moduleClient({
+      "from:records": [okResponse([]), okResponse([]), okResponse([])],
+    });
+    await listRecords(db, { orgId: "o1", archived: "only" });
+    expect(stepsOf(calls[0], "not")).toEqual([["archived_at", "is", null]]);
+    await listRecords(db, { orgId: "o1", archived: "include" });
+    expect(stepsOf(calls[1], "is")).toEqual([["deleted_at", null]]);
+    await listRecords(db, { orgId: "o1", trashed: true, archived: "only" });
+    expect(stepsOf(calls[2], "not")).toEqual([["deleted_at", "is", null]]);
   });
 
   it("reads Trash and open-ended windows", async () => {
@@ -376,6 +398,11 @@ describe("records", () => {
     expect(stepsOf(calls[0], "eq")).toEqual([["id", "r1"]]);
     expect(stepsOf(calls[1], "eq")).toContainEqual(["parent_record_id", "r1"]);
     expect(stepsOf(calls[2], "in")).toEqual([["id", ["r0"]]]);
+    // An archived parent or sub-record is still a related record (A124): no archived_at filter.
+    for (const call of [calls[1], calls[2]]) {
+      expect(stepsOf(call, "is")).toEqual([["deleted_at", null]]);
+      expect(stepsOf(call, "not")).toEqual([]);
+    }
   });
 
   it("calls a parent the viewer cannot read hidden, and a record without one has none", async () => {
@@ -904,7 +931,7 @@ describe("recurrence", () => {
   };
 
   it("reads rules by record and lists recurring records", async () => {
-    const { db } = moduleClient({
+    const { db, calls } = moduleClient({
       "from:record_recurrences": [
         okResponse([rule]),
         okResponse([rule]),
@@ -918,6 +945,13 @@ describe("recurrence", () => {
     expect(map.ok && map.data.get("r1")?.rrule).toBe("FREQ=WEEKLY;BYDAY=MO");
     const recurring = await listRecurringRecords(db, { orgId: "o1", projectId: "p1" });
     expect(recurring.ok && recurring.data[0]?.record.key).toBe("NWL-7");
+    // A rule keeps running while its record is archived, so the record is not filtered on archived_at.
+    expect(
+      stepsOf(
+        calls.find((c) => c.target === "from:records"),
+        "is",
+      ),
+    ).toEqual([["deleted_at", null]]);
     expect(await listRecurringRecords(db, { orgId: "o1" })).toEqual({ ok: true, data: [] });
     expect((await listRecurringRecords(db, { orgId: "o1" })).ok).toBe(false);
   });

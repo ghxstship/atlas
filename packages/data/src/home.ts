@@ -6,7 +6,8 @@ import { fail, ok, toDataError, type Result } from "./result.ts";
  * Home repository (Section 4.2 Home, Section 4.5.5): what needs the person today, gate readiness
  * across projects, alerts and recent work. Records come from A03's record spine under row level
  * security, so a person sees only records of projects they may read (invariant 2). Readiness is
- * derived from the evidence spine at read time and never stored (Section 3.15).
+ * derived from the evidence spine at read time and never stored (Section 3.15). Archived records
+ * (A124) leave every list and count here, as they leave the Home exports.
  */
 
 export interface HomeRecord {
@@ -79,6 +80,7 @@ export async function listMyRecordsBetween(
     .select(RECORD_COLUMNS)
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
+    .is("archived_at", null)
     .not("record_state", "in", CLOSED_STATES)
     .or(`owner_party_id.eq.${input.personId},accountable_party_id.eq.${input.personId}`)
     .or(
@@ -100,6 +102,7 @@ export async function listMyOverdueRecords(
     .select(RECORD_COLUMNS)
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
+    .is("archived_at", null)
     .not("record_state", "in", CLOSED_STATES)
     .or(`owner_party_id.eq.${input.personId},accountable_party_id.eq.${input.personId}`)
     .lt("due_at", input.now.toISOString())
@@ -119,6 +122,7 @@ export async function listBlockedRecords(
     .select(RECORD_COLUMNS)
     .eq("org_id", orgId)
     .is("deleted_at", null)
+    .is("archived_at", null)
     .eq("record_state", "Blocked")
     .order("updated_at", { ascending: false })
     .limit(100);
@@ -136,6 +140,7 @@ export async function listRecentRecords(
     .select(RECORD_COLUMNS)
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
+    .is("archived_at", null)
     .or(`updated_by.eq.${input.personId},created_by.eq.${input.personId}`)
     .order("updated_at", { ascending: false })
     .limit(input.limit ?? 25);
@@ -312,6 +317,7 @@ export async function countMyRecords(
     .select("id", { count: "exact", head: true })
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
+    .is("archived_at", null)
     .or(`owner_party_id.eq.${input.personId},accountable_party_id.eq.${input.personId}`);
   q =
     input.which === "blocked"

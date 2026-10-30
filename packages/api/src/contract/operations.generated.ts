@@ -10187,6 +10187,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["RecordPage"] };
@@ -10415,6 +10416,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["WorkOrderPage"] };
@@ -10859,6 +10861,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["DocumentPage"] };
@@ -11012,6 +11015,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["VenuePage"] };
@@ -15755,6 +15759,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["VendorPage"] };
@@ -22427,6 +22432,7 @@ export interface Operations {
       fields?: Components["Fields"];
       sort?: Components["Sort"];
       filter?: Components["Filter"];
+      archived?: "include" | "only";
     };
     body: undefined;
     responses: { 200: Components["CustomObjectRecordPage"] };

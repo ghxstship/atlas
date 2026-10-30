@@ -6,6 +6,7 @@
 import { z } from "@hono/zod-openapi";
 import { Classification, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
+import { archivedListQuery } from "./parts/archived-filter.ts";
 import { all, editShape, orNull, putActions, removeVerbs } from "../correct.ts";
 import { collectionAction } from "../define.ts";
 import type { ResourceSpec } from "../types.ts";
@@ -60,6 +61,7 @@ const createAnswering =
   };
 
 export const additions = defineAdditions("Platform", {
+  listQuery: { objects: archivedListQuery },
   resources: [
     ...viewsHelpSupportResources,
     ...workflowResources,

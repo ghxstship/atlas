@@ -6,6 +6,7 @@ import {
   ImportWriteError,
   readSheet,
   runImportJobs,
+  supabaseImportStore,
   UnreadableUploadError,
   validateRow,
   type DetectedSheet,
@@ -14,6 +15,8 @@ import {
   type TargetLookups,
 } from "../src/import-worker.ts";
 import type { SheetsFetch } from "../src/import-sheets.ts";
+import { okResponse } from "./fake-client.ts";
+import { moduleClient, stepsOf } from "./module-client.ts";
 
 type Row = Record<string, unknown>;
 
@@ -777,5 +780,19 @@ describe("Google Sheets links (A65-025)", () => {
     expect((await runImportJobs(noReader.store, "w"))[0]?.error).toContain(
       "no Google Sheets reader",
     );
+  });
+});
+
+describe("the database import store (A124)", () => {
+  it("binds a venue by name to a live venue, never to an archived one sharing the name", async () => {
+    const { db, calls } = moduleClient({ "app:from:venues": [okResponse([{ id: "v9" }])] });
+    const store = supabaseImportStore(db as unknown as Parameters<typeof supabaseImportStore>[0]);
+    expect(await store.lookups.venueId("o1", "Pier 9")).toBe("v9");
+    const call = calls.find((c) => c.target === "app:from:venues");
+    expect(stepsOf(call, "is")).toEqual([
+      ["deleted_at", null],
+      ["archived_at", null],
+    ]);
+    expect(stepsOf(call, "ilike")).toEqual([["name", "Pier 9"]]);
   });
 });
