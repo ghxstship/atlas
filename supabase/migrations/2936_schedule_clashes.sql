@@ -35,10 +35,8 @@
 --     count only for holders of crew.shift.read on the project, and cues only for show.run_of_show.read holders. Its
 --     rows are shown in their own panel and never cached, listed with schedule_clashes or exported.
 
-select private.define_setting('scheduling.changeover_minutes', 'Integer', 'org.scheduling.write', array['organization'], false,
-  p_default_integer => 15, p_min_integer => 0, p_max_integer => 240);
-select private.define_setting('scheduling.travel_buffer_minutes', 'Integer', 'org.scheduling.write', array['organization'], false,
-  p_default_integer => 120, p_min_integer => 0, p_max_integer => 720);
+select private.define_setting('scheduling.changeover_minutes', 'Integer', 'org.scheduling.write', array['organization'], false, p_default_integer => 15, p_min_integer => 0, p_max_integer => 240);
+select private.define_setting('scheduling.travel_buffer_minutes', 'Integer', 'org.scheduling.write', array['organization'], false, p_default_integer => 120, p_min_integer => 0, p_max_integer => 720);
 
 -- 1. Clashes the caller can see ---------------------------------------------------------------------------------------------
 

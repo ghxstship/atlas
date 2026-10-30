@@ -16,8 +16,7 @@
 --       - unestimated tasks: such Task records without an estimate, counted once on each of their days.
 --     At most 92 days (22023). Only person-days with something on them are returned.
 
-select private.define_setting('scheduling.workload_day_hours', 'Integer', 'org.scheduling.write', array['organization'], false,
-  p_default_integer => 10, p_min_integer => 4, p_max_integer => 24);
+select private.define_setting('scheduling.workload_day_hours', 'Integer', 'org.scheduling.write', array['organization'], false, p_default_integer => 10, p_min_integer => 4, p_max_integer => 24);
 
 alter type app.view_type add value if not exists 'Heatmap';
 

@@ -142,6 +142,7 @@ export const VIEW_TYPES = [
   "matrix",
   "org-chart",
   "chart",
+  "heatmap",
   "feed",
   "inbox",
   "split",
