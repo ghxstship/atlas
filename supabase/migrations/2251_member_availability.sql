@@ -152,13 +152,13 @@ begin
   v_cutoff := now() + make_interval(days => v_rule.notice_days);
   if new.starts_at < v_cutoff or (tg_op = 'UPDATE' and old.starts_at < v_cutoff) then
     perform private.refuse('availability_inside_notice',
-      format('Availability for the next %s days is locked; ask a scheduler to change it.', v_rule.notice_days));
+      format('Availability for the next %s days is locked; tell your planner if you cannot work a shift in that period.', v_rule.notice_days));
   end if;
   return new;
 end;
 $$;
 
-comment on function private.guard_member_availability_block() is 'While the org requires availability (scheduling.availability_required), a member''s periods on their calendar for the org that start inside the notice period (scheduling.availability_notice_days) are locked against new, changed and removed periods (A132). Notes stay editable; the platform is not refused.';
+comment on function private.guard_member_availability_block() is 'While the org requires availability (scheduling.availability_required), a member''s periods on their calendar for the org that start inside the notice period (scheduling.availability_notice_days) are locked against new, changed and removed periods (A132). Only the calendar''s owner writes its periods (0740), so nobody signed in can change a locked one; planners reassign the shift instead. Notes stay editable; the platform is not refused.';
 revoke all on function private.guard_member_availability_block() from public, anon, authenticated;
 
 create trigger t41_guard_member_availability before insert or update on app.availability_blocks

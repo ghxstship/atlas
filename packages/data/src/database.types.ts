@@ -63151,6 +63151,12 @@ export type Database = {
           user_agent: string;
         }[];
       };
+      my_shift_planning_projects: {
+        Args: { p_org_id: string };
+        Returns: {
+          project_id: string;
+        }[];
+      };
       my_sms_status: {
         Args: { p_org_id: string };
         Returns: {

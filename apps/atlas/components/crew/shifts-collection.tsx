@@ -50,7 +50,13 @@ import { scheduleViewOf } from "@/components/work/format";
 import { displayTimeZone } from "@xos/ui/preferences";
 import { peekRowMissing } from "@/lib/shell/peek-handoff";
 import { getOrgTimeZone, getOrgWeekStart } from "@/lib/shell/time-zone";
-import { claimingRule, fillRate, listShiftClaims, listShiftTemplates } from "@xos/data/crew";
+import {
+  claimingRule,
+  fillRate,
+  listShiftClaims,
+  listShiftPlanningProjectIds,
+  listShiftTemplates,
+} from "@xos/data/crew";
 import { resolveSettings } from "@xos/data/settings";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
@@ -117,16 +123,26 @@ export async function ShiftsCollection(props: {
   const stateFilter = ["Draft", "Published", "Accepted", "Canceled"].find(
     (s) => s === search["state"],
   );
-  const result = await listShifts(db, {
-    orgId: crew.orgId,
-    from: startOfDayIn(from, zone),
-    to: startOfDayIn(to, zone),
-    ...(projectFilter ? { projectId: projectFilter.id } : {}),
-    ...(stateFilter ? { states: [stateFilter as Shift["state"]] } : {}),
-  });
-  if (!result.ok) throw new Error(`Cannot list shifts: ${result.error.kind}`);
-  const shifts = result.data;
   const canWrite = crew.can("crew.shift.write");
+  // Planners also read the org's shift templates, for "Plan from template", and the projects they may staff,
+  // for the drag board (A132), alongside the shifts rather than after them.
+  const [result, templates, planning] = await Promise.all([
+    listShifts(db, {
+      orgId: crew.orgId,
+      from: startOfDayIn(from, zone),
+      to: startOfDayIn(to, zone),
+      ...(projectFilter ? { projectId: projectFilter.id } : {}),
+      ...(stateFilter ? { states: [stateFilter as Shift["state"]] } : {}),
+    }),
+    canWrite ? listShiftTemplates(db, crew.orgId) : null,
+    canWrite && view === "resource-schedule" ? listShiftPlanningProjectIds(db, crew.orgId) : null,
+  ]);
+  if (!result.ok) throw new Error(`Cannot list shifts: ${result.error.kind}`);
+  if (planning && !planning.ok) {
+    throw new Error(`Cannot read the projects to staff: ${planning.error.kind}`);
+  }
+  const shifts = result.data;
+  const staffable = planning?.ok ? planning.data : new Set<string>();
   const drafts = shifts.filter((s) => s.state === "Draft");
 
   const rules = new Map<string, number | null>();
@@ -495,7 +511,6 @@ export async function ShiftsCollection(props: {
   };
   const swapShift = search["swap"] ? (shifts.find((s) => s.id === search["swap"]) ?? null) : null;
   // Shift templates the org keeps (Settings, Scheduling), for "Plan from template" (A132).
-  const templates = canWrite ? await listShiftTemplates(db, crew.orgId) : null;
   const templateList = templates?.ok ? templates.data : [];
   const drawer =
     search["template"] === "1" && canWrite && projects.length > 0 && templateList.length > 0 ? (
@@ -721,6 +736,8 @@ export async function ShiftsCollection(props: {
             total={fill.total}
             openShifts={shifts
               .filter((s) => s.member === null && s.state !== "Canceled")
+              // Only shifts on projects the planner may staff: crew.shift.write can reach some projects only.
+              .filter((s) => staffable.has(s.projectId))
               .map((s) => ({
                 id: s.id,
                 label: t("crew.common.pair", { a: roleName(s.roleCode), b: when(s) }),

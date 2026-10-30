@@ -7,6 +7,7 @@ import {
   daysBetween,
   fillRate,
   getMyAvailabilityStatus,
+  listShiftPlanningProjectIds,
   listShiftTemplates,
   rankShiftCandidates,
   templateMinutes,
@@ -253,5 +254,26 @@ describe("assigning an open shift", () => {
     const { db } = fakeClient({ "from:shifts": [okResponse([]), okResponse(null)] });
     const result = await assignOpenShift(db, "s1", "m1");
     expect(result.ok === false && result.error.kind).toBe("not-found");
+  });
+});
+
+describe("projects the viewer may staff", () => {
+  it("reads the org's projects where the viewer holds crew.shift.write", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:my_shift_planning_projects": [okResponse([{ project_id: "p1" }, { project_id: "p2" }])],
+    });
+    const result = await listShiftPlanningProjectIds(db, "o1");
+    expect(result.ok && [...result.data]).toEqual(["p1", "p2"]);
+    expect(calls[0]?.steps).toContainEqual(["args", [{ p_org_id: "o1" }]]);
+  });
+
+  it("passes a failure through", async () => {
+    const { db } = fakeClient({
+      "rpc:my_shift_planning_projects": [
+        { data: null, error: { code: "42501", message: "permission denied" } },
+      ],
+    });
+    const result = await listShiftPlanningProjectIds(db, "o1");
+    expect(result.ok).toBe(false);
   });
 });

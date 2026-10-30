@@ -295,7 +295,7 @@
     },
     "availabilityNoticeDays": {
       "label": "Availability notice (days)",
-      "help": "While availability is required, members cannot change their availability for this many days ahead; a scheduler can."
+      "help": "While availability is required, nobody can change a member's availability for this many days ahead. Availability stays the member's own: planners read it and reassign shifts, but cannot edit it."
     },
     "availabilityHorizonDays": {
       "label": "Availability horizon (days)",

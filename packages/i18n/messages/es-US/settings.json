@@ -295,7 +295,7 @@
     },
     "availabilityNoticeDays": {
       "label": "Aviso de disponibilidad (días)",
-      "help": "Mientras la disponibilidad sea obligatoria, los miembros no pueden cambiarla para esta cantidad de días hacia adelante; un planificador sí puede."
+      "help": "Mientras la disponibilidad sea obligatoria, nadie puede cambiar la disponibilidad de un miembro para esta cantidad de días hacia adelante. La disponibilidad sigue siendo del miembro: los planificadores la consultan y reasignan turnos, pero no pueden editarla."
     },
     "availabilityHorizonDays": {
       "label": "Horizonte de disponibilidad (días)",

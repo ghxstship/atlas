@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(21);
+select plan(22);
 
 create temporary table c (key text primary key, id uuid);
 grant select, insert on c to public;
@@ -15,7 +15,14 @@ grant select, insert on c to public;
 -- Templates ----------------------------------------------------------------------------------------------------------
 select has_table('app', 'shift_templates', 'app.shift_templates exists');
 select is((select title_column from private.trash_tables where table_name = 'shift_templates'), 'name',
-  'a removed template is in Trash under its name as soon as the migration runs (ADR 0110)');
+  'a removed template is in Trash under its name (ADR 0110)');
+-- 2390 sorts later and syncs too, so the registration alone does not show 2250 made it: its recorded statements must
+-- sync Trash after installing the template's retention policy, as ADR 0110 asks of the migration that adds the table.
+select ok((
+  select max(st.n) filter (where st.s ~* 'select\s+private\.sync_trash_tables\(\)')
+    > max(st.n) filter (where st.s ~* 'private\.install_default_retention\(\s*''app\.shift_templates''')
+  from supabase_migrations.schema_migrations m, unnest(m.statements) with ordinality st(s, n)
+  where m.version = '2250'), 'migration 2250 itself syncs Trash after the templates'' retention policy');
 select policies_are('app', 'shift_templates', array['shift_templates_read', 'shift_templates_insert', 'shift_templates_update'],
   'read, insert and update policies, no delete');
 

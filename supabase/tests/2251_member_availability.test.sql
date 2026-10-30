@@ -64,7 +64,7 @@ select app.set_setting(pg_temp.id('org_a'), 'scheduling.availability_required', 
 
 select pg_temp.as_user('frank');
 select throws_ok($$insert into app.availability_blocks (availability_calendar_id, starts_at, ends_at, availability_kind) values ((select id from c where key = 'frank_cal'), now() + interval '2 days', now() + interval '2 days 8 hours', 'Unavailable')$$,
-  'XR001', 'availability_inside_notice: Availability for the next 7 days is locked; ask a scheduler to change it.',
+  'XR001', 'availability_inside_notice: Availability for the next 7 days is locked; tell your planner if you cannot work a shift in that period.',
   'while required, a new period inside the notice period is refused');
 select throws_ok($$update app.availability_blocks set availability_kind = 'Unavailable' where id = (select id from c where key = 'tomorrow')$$,
   'XR001', null, 'a period inside the notice period cannot be changed');
