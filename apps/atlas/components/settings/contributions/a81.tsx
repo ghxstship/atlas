@@ -29,11 +29,17 @@ async function ShortcutsPanel({ ctx }: SettingsPanelProps) {
     return <InlineAlert tone="danger">{t("settings.loadFailed")}</InlineAlert>;
   }
   const custom = validBindings(SHORTCUT_REGISTRY, "atlas", stored.data);
+  const shortcuts = SHORTCUT_REGISTRY.shells.atlas.shortcuts;
   // Shortcuts to sections the person cannot open are left out; fixed keys are listed in Help.
-  const rows = SHORTCUT_REGISTRY.shells.atlas.shortcuts
+  const rows = shortcuts
     .filter((s) => !s.fixed && (s.go === null || isNodeVisible(sitemap, s.go, ctx.nav)))
     .map((s) => s.id);
-  return (
+  // Stored keys the registry now refuses (taken by a new shortcut, or reserved) are named, not dropped
+  // quietly: those shortcuts are back on their default keys.
+  const dropped = shortcuts
+    .filter((s) => Object.hasOwn(stored.data, s.id) && !Object.hasOwn(custom, s.id))
+    .map((s) => t(s.label));
+  const rebinder = (
     <ShortcutRebinder
       org={ctx.org.slug}
       platform={platformOf({
@@ -44,6 +50,15 @@ async function ShortcutsPanel({ ctx }: SettingsPanelProps) {
       rows={rows}
       singleKeys={settings.preferences.shortcuts}
     />
+  );
+  if (dropped.length === 0) return rebinder;
+  return (
+    <>
+      <InlineAlert tone="warning">
+        {t("settings.shortcuts.dropped", { actions: dropped.join(", ") })}
+      </InlineAlert>
+      {rebinder}
+    </>
   );
 }
 

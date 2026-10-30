@@ -323,8 +323,13 @@ describe("key grammar", () => {
     expect(keysClash("G H", "G I", "mac")).toBe(false);
     expect(keysClash("H", "G H", "mac")).toBe(false);
     expect(keysClash("nope", "G", "mac")).toBe(false);
-    expect(scopesMeet("list", "inbox")).toBe(false);
     expect(scopesMeet("global", "inbox")).toBe(true);
+    // A list can sit in any region and takes its keys first, so the list scope meets every scope.
+    expect(scopesMeet("list", "inbox")).toBe(true);
+    expect(scopesMeet("view", "list")).toBe(true);
+    expect(scopesMeet("list", "record")).toBe(true);
+    expect(scopesMeet("record", "view")).toBe(false);
+    expect(scopesMeet("inbox", "view")).toBe(false);
   });
 });
 
@@ -394,9 +399,11 @@ describe("personal bindings", () => {
     expect(problem("go.safety", "C")).toEqual({ kind: "conflict", with: "create-menu" });
     expect(problem("go.safety", "G")).toEqual({ kind: "conflict", with: "go.home" });
     expect(problem("go.safety", "G H")).toEqual({ kind: "conflict", with: "go.home" });
-    // Global keys may not shadow a list key, but two other scopes never meet.
+    // No key may shadow a list key, since a list sits in any region; two other scopes never meet.
     expect(problem("go.safety", "X")).toEqual({ kind: "conflict", with: "list.select" });
-    expect(problem("inbox.done", "X")).toBeNull();
+    expect(problem("inbox.done", "X")).toEqual({ kind: "conflict", with: "list.select" });
+    expect(problem("view.switch", "J")).toEqual({ kind: "conflict", with: "list.next" });
+    expect(problem("record.open", "K")).toEqual({ kind: "conflict", with: "list.previous" });
     expect(problem("inbox.done", "A")).toEqual({ kind: "conflict", with: "inbox.approve" });
     // The person's own bindings count, and moving one frees its old keys.
     expect(problem("go.safety", "G Z", { "go.places": "G Z" })).toEqual({
