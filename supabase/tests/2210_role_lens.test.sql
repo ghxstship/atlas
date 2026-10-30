@@ -29,14 +29,15 @@ select ok((select count(*) from app.role_lens_capabilities(pg_temp.id('org_a'), 
            where not exists (select 1 from app.role_capabilities rc where rc.role_id = pg_temp.system_role('field')
                              and rc.capability_code = f.capability_code and rc.deleted_at is null)) = 0,
   'the Field lens adds nothing the Field role lacks, though the member also holds the Member role');
--- A Field capability Mia holds more widely than the Field role gives it, by a direct grant, so the next two tests
--- always have a row to check.
+-- A Field capability Mia holds more widely than the Field role gives it, by a direct grant from Bob, an Admin who holds
+-- it org-wide, so the next two tests always have a row to check.
 select pg_temp.as_user('bob');
 insert into app.user_capability_grants (membership_id, capability_code, reason)
 select pg_temp.id('mia@org_a'), rc.capability_code, 'Covers the gate during the festival.'
 from app.role_capabilities rc
 where rc.role_id = pg_temp.system_role('field') and rc.deleted_at is null and rc.reach <> 'organization'
-  and private.has_capability(pg_temp.id('org_a'), rc.capability_code)
+  and exists (select 1 from app.role_capabilities a where a.role_id = pg_temp.system_role('admin')
+              and a.capability_code = rc.capability_code and a.reach = 'organization' and a.deleted_at is null)
 order by rc.capability_code limit 1;
 select pg_temp.as_user('mia');
 select ok((select count(*) from app.role_lens_capabilities(pg_temp.id('org_a'), pg_temp.system_role('field')) l
