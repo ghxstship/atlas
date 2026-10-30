@@ -627,12 +627,14 @@ begin
                 where l.id = p.stripe_subscription_link_id and l.livemode = coalesce(p_livemode, false))
   returning p.id into v_id;
   if v_id is null then
-    -- The webhook may have ended it first, when Stripe cleared the pause Atlas just lifted.
+    -- The webhook may have ended it first, when Stripe cleared the pause Atlas just lifted: as Resumed in Stripe, or
+    -- as Resumed on schedule when the Owner resumed within two hours of the scheduled end. Stripe has already
+    -- resumed either way, so the Owner's resume is recorded rather than refused.
     update app.subscription_pauses p
     set end_reason = 'Resumed by Owner', ended_by = private.current_person_id()
     where p.id = (select q.id from app.subscription_pauses q
                   join app.stripe_subscription_links l on l.id = q.stripe_subscription_link_id
-                  where q.org_id = p_org_id and q.end_reason = 'Resumed in Stripe' and q.deleted_at is null
+                  where q.org_id = p_org_id and q.end_reason in ('Resumed in Stripe', 'Resumed on schedule') and q.deleted_at is null
                     and q.ended_at > now() - interval '10 minutes' and l.livemode = coalesce(p_livemode, false)
                   order by q.ended_at desc limit 1)
     returning p.id into v_id;
@@ -644,7 +646,7 @@ begin
 end;
 $$;
 
-comment on function app.record_subscription_resume(uuid, boolean) is 'Atlas, once Stripe resumed: ends the open pause as Resumed by Owner, with who resumed it (org.billing.manage and step-up again). Idempotent with the webhook: a pause it ended as Resumed in Stripe in the last 10 minutes is rewritten as Resumed by Owner. Refuses pause_none otherwise. Returns the pause id.';
+comment on function app.record_subscription_resume(uuid, boolean) is 'Atlas, once Stripe resumed: ends the open pause as Resumed by Owner, with who resumed it (org.billing.manage and step-up again). Idempotent with the webhook: a pause it ended as Resumed in Stripe or Resumed on schedule in the last 10 minutes is rewritten as Resumed by Owner. Refuses pause_none otherwise. Returns the pause id.';
 revoke all on function app.record_subscription_resume(uuid, boolean) from public, anon;
 grant execute on function app.record_subscription_resume(uuid, boolean) to authenticated;
 

@@ -866,9 +866,6 @@ begin
   return v_result;
 end;
 $$;
-comment on function app.console_platform_metrics(integer) is 'Platform-wide metrics for the operator console (A137, tenants.read): new orgs, sign-ups and Aurora requests by UTC week for the last p_weeks weeks (1 to 52, default 12); people with an account and those active (signed in or seen on a session) in 1, 7 and 30 days; the plan mix of live subscriptions by state, and trials; closed usage_rollups totals per meter for the last three months; Aurora outcomes, features and tokens over 30 days, counting only Aurora''s own requests, never a connected assistant''s proposals (3052); job queue health per job kind; notification deliveries per channel over 7 days. Aggregates only, never an org, person, record or error text. Read from the database itself (ADR 0046).';
-revoke all on function app.console_platform_metrics(integer) from public, anon;
-grant execute on function app.console_platform_metrics(integer) to authenticated;
 
 comment on function app.console_platform_metrics(integer) is 'Platform-wide metrics for the operator console (A137, tenants.read): new orgs, sign-ups and Aurora requests by UTC week for the last p_weeks weeks (1 to 52, default 12); people with an account and those active (signed in or seen on a session) in 1, 7 and 30 days; the plan mix of live subscriptions by state, and trials; closed usage_rollups totals per meter for the last three months; Aurora outcomes, features and tokens over 30 days, counting only Aurora''s own requests, never a connected app''s proposals (3052); job queue health per job kind; notification deliveries per channel over 7 days. Aggregates only, never an org, person, record or error text. Read from the database itself (ADR 0046).';
 revoke all on function app.console_platform_metrics(integer) from public, anon;

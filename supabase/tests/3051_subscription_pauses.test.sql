@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(78);
+select plan(79);
 
 create temporary table k (key text primary key, at timestamptz, id uuid);
 grant select, insert, update on k to public;
@@ -215,6 +215,12 @@ select is(app.record_subscription_resume(pg_temp.id('org_a'), false), (select id
 select pg_temp.as_platform();
 select results_eq($$select end_reason::text, ended_by from app.subscription_pauses where id = (select id from k where key = 'pause')$$,
   $$values ('Resumed by Owner'::text, pg_temp.id('alice'))$$, 'and rewrites it as the Owner''s resume');
+-- Resuming within two hours of the scheduled end: the webhook ends the pause on schedule before Atlas records it.
+update app.subscription_pauses set end_reason = 'Resumed on schedule' where id = (select id from k where key = 'pause');
+select pg_temp.as_user_stepped_up('alice');
+select is(app.record_subscription_resume(pg_temp.id('org_a'), false), (select id from k where key = 'pause'),
+  'a pause the webhook ended on schedule moments earlier is recorded as the Owner''s resume too, not refused');
+select pg_temp.as_platform();
 select is(private.org_read_only_reason(pg_temp.id('org_a')), null, 'writes are restored at once');
 select pg_temp.as_user_stepped_up('alice');
 select throws_ok($$select app.record_subscription_resume(pg_temp.id('org_a'), false)$$, 'XR001', null, 'with nothing to resume twice');
