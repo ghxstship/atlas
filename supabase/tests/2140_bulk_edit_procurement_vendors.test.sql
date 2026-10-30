@@ -1,13 +1,14 @@
 -- pgTAP: 2140, bulk edit of purchase orders, RFQs and vendors (A120, RRR-165, Section 11.7). Each resource previews
 -- without changing anything, commits all or nothing, checks the capability on every row, and sends its inverse back
 -- through the same RPC. A bulk approval keeps every rule of a single one: one order the creator may not approve, one
--- above the approver's spend limit or one needing a second approver refuses the whole call.
+-- an Active approval policy holds, one above the approver's spend limit or one needing a second approver refuses the
+-- whole call.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(63);
+select plan(69);
 
 create function pg_temp.bulk(p_resource text, p_rows jsonb, p_preview boolean default false, p_reason text default null)
 returns jsonb
@@ -206,6 +207,25 @@ select is((select count(*)::int from app.spend_approvals where document_id in (p
   'and no first approval is left behind');
 select pg_temp.as_platform();
 update app.spend_authorities set dual_approval_above_minor = null where document_type = 'Purchase Order';
+
+-- An Active approval policy over 15,000 holds the larger order until its approval is Approved; the smaller one, which
+-- the policy does not cover, would be approved on its own.
+select pg_temp.as_user('bob');
+with x as (insert into app.approval_policies (org_id, name, document_type, currency_code, applies_above_minor)
+  values (pg_temp.id('org_a'), 'Larger purchase orders', 'Purchase Order', 'USD', 15000) returning id) insert into world select 'pol', id from x;
+insert into app.approval_steps (approval_policy_id, step_order, name, approver_role_id)
+values (pg_temp.id('pol'), 1, 'Admin review', pg_temp.system_role('admin'));
+select app.transition_approval_policy(pg_temp.id('pol'), 'Draft', 'Active', 'Ready.');
+delete from answer;
+insert into answer select pg_temp.bulk('purchase_orders', pg_temp.rows(array['po3', 'po1'], '{"po_state": "Approved"}'));
+select is((select r ->> 'committed' from answer), 'false', 'an order an Active approval policy holds refuses the whole call');
+select is((select jsonb_array_length(r -> 'refused') from answer), 1, 'only that order is refused');
+select is((select r -> 'refused' -> 0 ->> 'id' from answer), pg_temp.id('po1')::text, 'the refusal names it');
+select is((select r -> 'refused' -> 0 ->> 'rule' from answer), 'approval_policy_pending', 'with the approval policy rule');
+select is((select po_state::text from app.purchase_orders where id = pg_temp.id('po3')), 'Proposed', 'the order the policy does not cover is not approved either');
+select is((select count(*)::int from app.spend_approvals where document_id in (pg_temp.id('po1'), pg_temp.id('po3'))), 0,
+  'and its approval is undone with the call');
+select app.transition_approval_policy(pg_temp.id('pol'), 'Active', 'Retired', 'Review done.');
 
 select pg_temp.as_user('bob');
 delete from answer;
